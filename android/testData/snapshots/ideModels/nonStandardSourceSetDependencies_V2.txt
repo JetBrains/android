@@ -1,3 +1,6 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT> (IdeBuildImpl)
+        buildName                     : :
 MODULE                        : NonStandardSourceSetDependencies
     externalProject               : NonStandardSourceSetDependencies (DefaultExternalProject)
         name                          : NonStandardSourceSetDependencies
@@ -1060,6 +1063,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -2293,6 +2299,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :feature-a
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -3371,6 +3380,9 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY

@@ -1,3 +1,6 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT> (IdeBuildImpl)
+        buildName                     : :
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
         name                          : project
@@ -646,6 +649,9 @@ MODULE                        : project.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -2003,6 +2009,9 @@ MODULE                        : project.library1
         targetSdk
             ApiLevel                      : 26
             ApiString                     : 26
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :library1
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -2839,6 +2848,9 @@ MODULE                        : project.library2
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :library2
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY

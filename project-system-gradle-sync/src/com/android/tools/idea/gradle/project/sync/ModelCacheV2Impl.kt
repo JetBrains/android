@@ -1139,6 +1139,8 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
   }
 
   fun androidProjectFrom(
+    rootBuildId: BuildId,
+    buildId: BuildId,
     basicProject: BasicAndroidProject,
     project: AndroidProject,
     modelsVersions: Versions,
@@ -1185,6 +1187,9 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
 
     return IdeAndroidProjectImpl(
       agpVersion = modelsVersions.agp,
+      rootBuildId = rootBuildId.asFile,
+      buildId = buildId.asFile,
+      buildName = basicProject.buildName,
       projectPath = basicProject.path,
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,
@@ -1238,12 +1243,16 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       lock.withLock { variantFrom(ownerBuildId, ownerProjectPath, variant, variantDependencies, androidProjectPathResolver, buildNameMap) }
 
     override fun androidProjectFrom(
+      rootBuildId: BuildId,
+      buildId: BuildId,
       basicProject: BasicAndroidProject,
       project: AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl,
       legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeAndroidProjectImpl = lock.withLock { androidProjectFrom(basicProject, project, androidVersion, androidDsl, legacyApplicationIdModel) }
+    ): IdeAndroidProjectImpl = lock.withLock {
+      androidProjectFrom(rootBuildId, buildId, basicProject, project, androidVersion, androidDsl, legacyApplicationIdModel)
+    }
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }
   }

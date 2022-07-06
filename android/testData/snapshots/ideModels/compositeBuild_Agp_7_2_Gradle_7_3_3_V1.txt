@@ -1,3 +1,18 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT> (IdeBuildImpl)
+        buildName                     : :
+    - builds                      : <ROOT>/TestCompositeLib1 (IdeBuildImpl)
+        buildName                     : includedLib1
+    - builds                      : <ROOT>/TestCompositeLib2 (IdeBuildImpl)
+        buildName                     : TestCompositeLib2
+    - builds                      : <ROOT>/TestCompositeLib3 (IdeBuildImpl)
+        buildName                     : TestCompositeLib3
+    - builds                      : <ROOT>/TestCompositeLib4 (IdeBuildImpl)
+        buildName                     : TestCompositeLib4
+    - builds                      : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1 (IdeBuildImpl)
+        buildName                     : TestCompositeLibNested_1
+    - builds                      : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3 (IdeBuildImpl)
+        buildName                     : TestCompositeLibNested_3
 MODULE                        : TestCompositeLib1
     externalProject               : TestCompositeLib1 (DefaultExternalProject)
         name                          : TestCompositeLib1
@@ -507,6 +522,9 @@ MODULE                        : TestCompositeLib1.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>/TestCompositeLib1
+    BuildName                     : includedLib1
     ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -2068,6 +2086,9 @@ MODULE                        : TestCompositeLib1.lib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>/TestCompositeLib1
+    BuildName                     : includedLib1
     ProjectPath                   : :lib
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -3450,6 +3471,9 @@ MODULE                        : TestCompositeLib3.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>/TestCompositeLib3
+    BuildName                     : TestCompositeLib3
     ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -4491,6 +4515,9 @@ MODULE                        : TestCompositeLib3.lib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>/TestCompositeLib3
+    BuildName                     : TestCompositeLib3
     ProjectPath                   : :lib
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -6063,6 +6090,9 @@ MODULE                        : project.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -7142,6 +7172,9 @@ MODULE                        : project.lib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY

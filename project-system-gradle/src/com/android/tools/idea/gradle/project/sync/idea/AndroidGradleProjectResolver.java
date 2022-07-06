@@ -25,6 +25,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.KotlinPropertiesKt
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NATIVE_VARIANTS;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
@@ -61,6 +62,7 @@ import com.android.tools.idea.gradle.LibraryFilePaths.ArtifactPaths;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore;
+import com.android.tools.idea.gradle.model.IdeCompositeBuildMap;
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet;
 import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
@@ -240,6 +242,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (project != null) {
       removeExternalSourceSetsAndReportWarnings(project, gradleProject);
       attachVariantsSavedFromPreviousSyncs(project, projectDataNode);
+    }
+
+    if (isAndroidGradleProject()) {
+      IdeCompositeBuildMap buildMap = resolverCtx.getModels().getModel(IdeCompositeBuildMap.class);
+      projectDataNode.createChild(IDE_COMPOSITE_BUILD_MAP, buildMap);
     }
 
     IdeAndroidSyncError syncError = resolverCtx.getModels().getModel(IdeAndroidSyncError.class);
@@ -845,7 +852,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
    * Find IdeaModule representations of every Gradle project included in the main build and calls
    * {@link #removeExternalSourceSetsAndReportWarnings(Project, IdeaModule)} on each of them.
    *
-   * @param project the project
+   * @param project         the project
    * @param mainGradleBuild the IdeaProject representing the mainGradleBuild
    */
   private void removeExternalSourceSetsAndReportWarnings(@NotNull Project project, @NotNull IdeaProject mainGradleBuild) {

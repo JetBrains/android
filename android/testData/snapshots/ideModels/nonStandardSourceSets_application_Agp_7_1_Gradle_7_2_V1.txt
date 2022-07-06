@@ -1,3 +1,6 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT>/application (IdeBuildImpl)
+        buildName                     : :
 MODULE                        : application
     externalProject               : application (DefaultExternalProject)
         name                          : application
@@ -164,6 +167,9 @@ MODULE                        : application.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>/application
+    BuildId                       : <ROOT>/application
+    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP

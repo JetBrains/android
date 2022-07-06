@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPENDENCY;
 
+import com.android.tools.idea.gradle.model.IdeCompositeBuildMap;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -70,7 +71,11 @@ public final class AndroidProjectKeys {
     Key.create(IdeResolvedLibraryTable.class, ANDROID_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<IdeSyncIssue> SYNC_ISSUE = Key.create(IdeSyncIssue.class, IDE_LIBRARY_TABLE.getProcessingWeight() + 10);
+  public static final Key<IdeCompositeBuildMap> IDE_COMPOSITE_BUILD_MAP =
+    Key.create(IdeCompositeBuildMap.class, IDE_LIBRARY_TABLE.getProcessingWeight() + 10);
+
+  @NotNull
+  public static final Key<IdeSyncIssue> SYNC_ISSUE = Key.create(IdeSyncIssue.class, IDE_COMPOSITE_BUILD_MAP.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<IdeAndroidNativeVariantsModelsWrapper> NATIVE_VARIANTS =

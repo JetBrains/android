@@ -1,3 +1,6 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT> (IdeBuildImpl)
+        buildName                     : :
 MODULE                        : navgraph
     externalProject               : navgraph (DefaultExternalProject)
         name                          : navgraph
@@ -319,6 +322,9 @@ MODULE                        : navgraph.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -2123,6 +2129,9 @@ MODULE                        : navgraph.lib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY

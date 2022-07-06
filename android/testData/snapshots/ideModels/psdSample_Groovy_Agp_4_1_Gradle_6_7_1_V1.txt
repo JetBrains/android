@@ -1,3 +1,6 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT> (IdeBuildImpl)
+        buildName                     : :
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
         name                          : project
@@ -2100,6 +2103,9 @@ MODULE                        : project.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -3947,6 +3953,9 @@ MODULE                        : project.dyn_feature
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :dyn_feature
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
@@ -4289,6 +4298,9 @@ MODULE                        : project.lib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4992,6 +5004,9 @@ MODULE                        : project.nested1
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :nested1
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5310,6 +5325,9 @@ MODULE                        : project.nested1.deep
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :nested1:deep
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5638,6 +5656,9 @@ MODULE                        : project.nested2
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :nested2
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -6088,6 +6109,9 @@ MODULE                        : project.nested2.deep
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :nested2:deep
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -6420,6 +6444,9 @@ MODULE                        : project.nested2.trans.deep2
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :nested2:trans:deep2
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY

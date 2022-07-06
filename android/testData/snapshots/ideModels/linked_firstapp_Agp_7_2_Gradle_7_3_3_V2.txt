@@ -1,3 +1,6 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT>/firstapp (IdeBuildImpl)
+        buildName                     : :
 MODULE                        : My_First_App
     externalProject               : My First App (DefaultExternalProject)
         name                          : My First App
@@ -506,6 +509,9 @@ MODULE                        : My_First_App.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>/firstapp
+    BuildId                       : <ROOT>/firstapp
+    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -1989,6 +1995,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>/firstapp
+    BuildId                       : <ROOT>/firstapp
+    BuildName                     : :
     ProjectPath                   : :app:mysharedlibrary
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY

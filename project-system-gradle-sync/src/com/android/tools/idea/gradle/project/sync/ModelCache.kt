@@ -69,6 +69,9 @@ interface ModelCache {
     ): IdeVariantWithPostProcessor
 
     fun androidProjectFrom(
+      rootBuildId: BuildId,
+      buildId: BuildId,
+      buildName: String,
       projectPath: String,
       project: AndroidProject,
       legacyApplicationIdModel: LegacyApplicationIdModel?
@@ -105,6 +108,8 @@ interface ModelCache {
     ): IdeVariantWithPostProcessor
 
     fun androidProjectFrom(
+      rootBuildId: BuildId,
+      buildId: BuildId,
       basicProject: BasicAndroidProject,
       project: com.android.builder.model.v2.models.AndroidProject,
       androidVersion: Versions,

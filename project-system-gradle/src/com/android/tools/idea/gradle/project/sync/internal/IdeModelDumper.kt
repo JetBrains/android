@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
+import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
@@ -47,6 +48,9 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.compositeBuildMap
+import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -57,14 +61,12 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
-import org.gradle.tooling.model.build.BuildEnvironment
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.idea.gradle.configuration.CachedArgumentsRestoring.restoreExtractedArgs
 import org.jetbrains.kotlin.idea.gradle.configuration.EntityArgsInfo
 import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinTaskPropertiesImpl
 import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.projectModel.CompilerArgumentsCacheAware
@@ -79,8 +81,16 @@ fun ProjectDumper.dumpAndroidIdeModel(
   mppModels: (Module) -> KotlinMPPGradleModel?,
   externalProjects: (Module) -> ExternalProject?
 ) {
-  nest(File(project.basePath!!), "PROJECT") {
+  val projectRoot = File(project.basePath!!)
+  nest(projectRoot, "PROJECT") {
     with(ideModelDumper(this)) {
+      // Android Studio projects always have just one Gradle root, and thus we dump the composite build structure of the root project of a
+      // build located at the root of the IDE project.
+      GradleHolderProjectPath(projectRoot.path, ":")
+        .resolveIn(project)
+        ?.compositeBuildMap()
+        ?.let { dump(it) }
+
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
         head("MODULE") { module.name }
         nest {
@@ -195,6 +205,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
   val modelDumper = ModelDumper(jbModelDumpers)
   object {
     fun dump(ideAndroidModel: IdeAndroidProject) {
+      prop("RootBuildId") { ideAndroidModel.rootBuildId.path.toPrintablePath() }
+      prop("BuildId") { ideAndroidModel.buildId.path.toPrintablePath() }
+      prop("BuildName") { ideAndroidModel.buildName }
       prop("ProjectPath") { ideAndroidModel.projectPath }
       prop("ModelVersion") { ideAndroidModel.agpVersion.replaceKnownPatterns() }
       prop("ProjectType") { ideAndroidModel.projectType.toString() }
@@ -331,6 +344,10 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
           }
         }
       }
+    }
+
+    fun dump(compositeBuildMap: IdeCompositeBuildMap) {
+      modelDumper.dumpModel(projectDumper, "CompositeBuildMap", compositeBuildMap)
     }
 
     private fun dump(ideAndroidArtifact: IdeAndroidArtifact) {

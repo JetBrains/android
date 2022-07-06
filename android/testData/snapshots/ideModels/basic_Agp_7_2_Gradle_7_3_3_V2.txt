@@ -1,3 +1,6 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT> (IdeBuildImpl)
+        buildName                     : :
 MODULE                        : project
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -30,6 +33,9 @@ MODULE                        : project
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
     ProjectPath                   : :
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP

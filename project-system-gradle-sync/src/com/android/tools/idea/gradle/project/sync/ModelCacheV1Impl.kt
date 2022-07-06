@@ -1182,7 +1182,14 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     )
   }
 
-  fun androidProjectFrom(projectPath: String, project: AndroidProject, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeAndroidProjectImpl {
+  fun androidProjectFrom(
+    rootBuildId: BuildId,
+    buildId: BuildId,
+    buildName: String,
+    projectPath: String,
+    project: AndroidProject,
+    legacyApplicationIdModel: LegacyApplicationIdModel?
+  ): IdeAndroidProjectImpl {
     // Old plugin versions do not return model version.
     val parsedModelVersion = GradleVersion.tryParse(project.modelVersion)
 
@@ -1230,6 +1237,9 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       }
     return IdeAndroidProjectImpl(
       agpVersion = project.modelVersion,
+      rootBuildId = rootBuildId.asFile,
+      buildId = buildId.asFile,
+      buildName = buildName,
       projectPath = projectPath,
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,
@@ -1275,11 +1285,14 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       lock.withLock { variantFrom(androidProject, variant, legacyApplicationIdModel, modelVersion, androidModuleId) }
 
     override fun androidProjectFrom(
+      rootBuildId: BuildId,
+      buildId: BuildId,
+      buildName: String,
       projectPath: String,
       project: AndroidProject,
       legacyApplicationIdModel: LegacyApplicationIdModel?
     ): IdeAndroidProjectImpl {
-      return lock.withLock { androidProjectFrom(projectPath, project, legacyApplicationIdModel) }
+      return lock.withLock { androidProjectFrom(rootBuildId, buildId, buildName, projectPath, project, legacyApplicationIdModel) }
     }
 
     override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl =

@@ -68,7 +68,7 @@ fun SdkSync.syncAndroidSdks(projectPath: @SystemDependent String) {
  */
 fun AndroidSdks.computeSdkReloadingAsNeeded(
   project: Project,
-  moduleName: String,
+  moduleDisplayName: String,
   compileTarget: String,
   bootClasspath: Collection<String>,
   ideSdks: IdeSdks
@@ -90,7 +90,7 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   }
 
   if (sdk != null) {
-    logSdkFound(sdk, moduleName)
+    logSdkFound(sdk, moduleDisplayName)
     return sdk
   }
 
@@ -119,7 +119,7 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   }
 
   if (newSdk != null) {
-    logSdkFound(newSdk as Sdk, moduleName)
+    logSdkFound(newSdk as Sdk, moduleDisplayName)
     return (newSdk as Sdk)
   }
 
