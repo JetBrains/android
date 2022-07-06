@@ -52,6 +52,6 @@ public final class TestVirtualDevices {
    * @param name what is returned by com.android.sdklib.internal.avd.AvdInfo::getName
    */
   public static @NotNull Key newKey(@NotNull String name) {
-    return new VirtualDeviceName(Paths.get(System.getProperty("user.home"), ".android", "avd", name + ".avd").toString());
+    return new VirtualDevicePath(Paths.get(System.getProperty("user.home"), ".android", "avd", name + ".avd").toString());
   }
 }

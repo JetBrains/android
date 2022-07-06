@@ -71,7 +71,7 @@ final class VirtualDeviceBuilder {
     AndroidVersion version = myDevice.getAndroidVersion();
 
     return new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName(myDevice.getId()))
+      .setKey(new VirtualDevicePath(myDevice.getId()))
       .setType(getType(tag))
       .setName(myDevice.getDisplayName())
       .setTarget(Targets.toString(version, tag))

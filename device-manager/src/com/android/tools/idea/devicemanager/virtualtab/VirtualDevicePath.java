@@ -21,10 +21,10 @@ import com.android.tools.idea.devicemanager.SerialNumber;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class VirtualDeviceName extends Key {
+public final class VirtualDevicePath extends Key {
   private final @NotNull String myValue;
 
-  public VirtualDeviceName(@NotNull String value) {
+  public VirtualDevicePath(@NotNull String value) {
     myValue = value;
   }
 
@@ -50,7 +50,7 @@ public final class VirtualDeviceName extends Key {
 
   @Override
   public boolean equals(@Nullable Object object) {
-    return object instanceof VirtualDeviceName && myValue.equals(((VirtualDeviceName)object).myValue);
+    return object instanceof VirtualDevicePath && myValue.equals(((VirtualDevicePath)object).myValue);
   }
 
   @Override

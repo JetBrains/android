@@ -95,7 +95,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
       AvdOptionsModel model = new AvdOptionsModel(getDevice().getAvdInfo());
 
       if (AvdWizardUtils.createAvdWizardForDuplication(table, myPanel.getProject(), model).showAndGet()) {
-        table.addDevice(new VirtualDeviceName(model.getCreatedAvd().getId()));
+        table.addDevice(new VirtualDevicePath(model.getCreatedAvd().getId()));
       }
     });
 

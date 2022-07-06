@@ -16,7 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceName;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDevicePath;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ final class Pairing {
     AndroidVersion version = new AndroidVersion(device.getApiLevel());
 
     return new DeviceManagerPairingDevice.Builder()
-      .setKey(virtual ? new VirtualDeviceName(device.getDeviceID()) : new SerialNumber(device.getDeviceID()))
+      .setKey(virtual ? new VirtualDevicePath(device.getDeviceID()) : new SerialNumber(device.getDeviceID()))
       .setType(type)
       .setIcon(virtual ? type.getVirtualIcon() : type.getPhysicalIcon())
       .setName(device.getDisplayName())
