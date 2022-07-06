@@ -378,12 +378,11 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
    */
   var hasAnimations = false
 
-  override fun toPreviewXml(xmlBuilder: PreviewXmlBuilder): PreviewXmlBuilder {
+  override fun toPreviewXml(): PreviewXmlBuilder {
     val matchParent = displaySettings.showDecoration
     val width = dimensionToString(configuration.width, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
     val height = dimensionToString(configuration.height, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
-    xmlBuilder
-      .setRootTagName(COMPOSE_VIEW_ADAPTER_FQN)
+    val xmlBuilder = PreviewXmlBuilder(COMPOSE_VIEW_ADAPTER_FQN)
       .androidAttribute(ATTR_LAYOUT_WIDTH, width)
       .androidAttribute(ATTR_LAYOUT_HEIGHT, height)
       // Compose will fail if the top parent is 0,0 in size so avoid that case by setting a min 1x1 parent (b/169230467).
@@ -466,14 +465,12 @@ private class ParametrizedComposePreviewElementInstance(private val basePreviewE
     basePreviewElement.displaySettings.backgroundColor
   )
 
-  override fun toPreviewXml(xmlBuilder: PreviewXmlBuilder): PreviewXmlBuilder {
-    super.toPreviewXml(xmlBuilder)
+  override fun toPreviewXml(): PreviewXmlBuilder {
+    return super.toPreviewXml()
       // The index within the provider of the element to be rendered
       .toolsAttribute("parameterProviderIndex", index.toString())
       // The FQN of the ParameterProvider class
       .toolsAttribute("parameterProviderClass", providerClassFqn)
-
-    return xmlBuilder
   }
 }
 

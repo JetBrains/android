@@ -18,38 +18,12 @@ package com.android.tools.idea.compose.preview.util
 import com.android.SdkConstants
 import com.android.xml.XmlBuilder
 
-/**
- * Interface to serialize [ComposePreviewElement]s to XML.
- */
-interface PreviewXmlBuilder {
-  /**
-   * Sets the root tag name. This method *must* be called before calling buildString.
-   */
-  fun setRootTagName(name: String): PreviewXmlBuilder
-
-  /**
-   * Adds a new attribute with [name] from the `tools` namespace with the given value.
-   */
-  fun toolsAttribute(name: String, value: String): PreviewXmlBuilder
-
-  /**
-   * Adds a new attribute with [name] from the `android` namespace with the given value.
-   */
-  fun androidAttribute(name: String, value: String): PreviewXmlBuilder
-
-  /**
-   * Returns the formatted XML constructed by this builder. If the root tag name has not been set by calling [setRootTagName], the
-   * call with throw an [IllegalStateException].
-   */
-  fun buildString(): String
-}
-
 
 /**
- *  Implementation of [PreviewXmlBuilder] backed by [XmlBuilder]
+ *  A class to generate valid Xml layouts for custom View specified by [customViewFqcn]. Allows to specify Android (recognized by the
+ *  Android framework) and Tooling (for custom behavior) attributes.
  */
-private class PreviewXmlBuilderImpl : PreviewXmlBuilder {
-  private var rootTagName: String? = null
+class PreviewXmlBuilder(private val customViewFqcn: String) {
   private val attributes: MutableMap<String, String> = mutableMapOf()
 
   private fun addAttribute(prefix: String, name: String, value: String): PreviewXmlBuilder {
@@ -58,20 +32,12 @@ private class PreviewXmlBuilderImpl : PreviewXmlBuilder {
     return this
   }
 
-  override fun setRootTagName(name: String): PreviewXmlBuilder {
-    rootTagName = name
+  fun toolsAttribute(name: String, value: String): PreviewXmlBuilder = addAttribute(SdkConstants.TOOLS_NS_NAME, name, value)
+  fun androidAttribute(name: String, value: String): PreviewXmlBuilder = addAttribute(SdkConstants.ANDROID_NS_NAME, name, value)
 
-    return this
-  }
-
-  override fun toolsAttribute(name: String, value: String): PreviewXmlBuilder = addAttribute(SdkConstants.TOOLS_NS_NAME, name, value)
-  override fun androidAttribute(name: String, value: String): PreviewXmlBuilder = addAttribute(SdkConstants.ANDROID_NS_NAME, name, value)
-
-  override fun buildString(): String {
-    val rootTagName = rootTagName ?: throw IllegalStateException("no root tag name specified")
-
+  fun buildString(): String {
     val xmlBuilder = XmlBuilder()
-      .startTag(rootTagName)
+      .startTag(customViewFqcn)
       .attribute(SdkConstants.XMLNS, SdkConstants.ANDROID_NS_NAME, SdkConstants.ANDROID_URI)
       .attribute(SdkConstants.XMLNS, SdkConstants.TOOLS_NS_NAME, SdkConstants.TOOLS_URI)
 
@@ -79,17 +45,17 @@ private class PreviewXmlBuilderImpl : PreviewXmlBuilder {
       xmlBuilder.attribute(name, value)
     }
 
-    return xmlBuilder.endTag(rootTagName).toString()
+    return xmlBuilder.endTag(customViewFqcn).toString()
   }
 }
 
 /**
- * Interface to be implemented by serializable elements.
+ * Interface that provides a custom view Xml Layout representation of the object.
  */
 interface XmlSerializable {
   /**
-   * Generates the XML string wrapper for one [ComposePreviewElement].
-   * @param xmlBuilder output [PreviewXmlBuilderImpl] used to output the resulting XML.
+   * Generates the mutable [PreviewXmlBuilder]. The callers of this method can further modify Xml attributed of the builder before
+   * serializing it into a Xml Layout string.
    */
-  fun toPreviewXml(xmlBuilder: PreviewXmlBuilder = PreviewXmlBuilderImpl()): PreviewXmlBuilder
+  fun toPreviewXml(): PreviewXmlBuilder
 }
