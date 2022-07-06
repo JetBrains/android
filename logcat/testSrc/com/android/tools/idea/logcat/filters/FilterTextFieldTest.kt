@@ -235,7 +235,7 @@ class FilterTextFieldTest {
     filterHistory.add("bar", isFavorite = false)
     fakeLogcatPresenter.filterMatchesCount["foo"] = 1
     fakeLogcatPresenter.filterMatchesCount["bar"] = 2
-    val historyList = HistoryList(project, fakeLogcatPresenter, filterHistory, logcatFilterParser, coroutineContext)
+    val historyList = filterTextField().HistoryList(project, coroutineContext)
     historyList.waitForCounts(fakeLogcatPresenter)
 
     assertThat(historyList.renderToStrings()).containsExactly(
@@ -255,7 +255,7 @@ class FilterTextFieldTest {
     filterHistory.add("bar", isFavorite = true)
     fakeLogcatPresenter.filterMatchesCount["foo"] = 1
     fakeLogcatPresenter.filterMatchesCount["bar"] = 2
-    val historyList = HistoryList(project, fakeLogcatPresenter, filterHistory, logcatFilterParser, coroutineContext)
+    val historyList = filterTextField().HistoryList(project, coroutineContext)
     historyList.waitForCounts(fakeLogcatPresenter)
 
     assertThat(historyList.renderToStrings()).containsExactly(
@@ -274,7 +274,7 @@ class FilterTextFieldTest {
     filterHistory.add("bar", isFavorite = false)
     fakeLogcatPresenter.filterMatchesCount["foo"] = 1
     fakeLogcatPresenter.filterMatchesCount["bar"] = 2
-    val historyList = HistoryList(project, fakeLogcatPresenter, filterHistory,logcatFilterParser,  coroutineContext)
+    val historyList = filterTextField().HistoryList(project, coroutineContext)
     historyList.waitForCounts(fakeLogcatPresenter)
 
     assertThat(historyList.renderToStrings()).containsExactly(
@@ -291,7 +291,7 @@ class FilterTextFieldTest {
   fun historyList_renderNamedFilter() = runBlockingTest {
     filterHistory.add("name:Foo tag:Foo", isFavorite = false)
     fakeLogcatPresenter.filterMatchesCount["name:Foo tag:Foo"] = 1
-    val historyList = HistoryList(project, fakeLogcatPresenter, filterHistory, logcatFilterParser, coroutineContext)
+    val historyList = filterTextField().HistoryList(project, coroutineContext)
     historyList.waitForCounts(fakeLogcatPresenter)
 
     assertThat(historyList.renderToStrings()).containsExactly(
@@ -309,7 +309,7 @@ class FilterTextFieldTest {
     filterHistory.add("name:Foo tag:Foobar", isFavorite = false)
     fakeLogcatPresenter.filterMatchesCount["name:Foo tag:Foo"] = 1
     fakeLogcatPresenter.filterMatchesCount["name:Foo tag:Foobar"] = 2
-    val historyList = HistoryList(project, fakeLogcatPresenter, filterHistory, logcatFilterParser, coroutineContext)
+    val historyList = filterTextField().HistoryList(project, coroutineContext)
     historyList.waitForCounts(fakeLogcatPresenter)
 
     assertThat(historyList.renderToStrings()).containsExactly(

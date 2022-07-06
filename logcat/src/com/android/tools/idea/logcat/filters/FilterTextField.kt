@@ -63,12 +63,15 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Font
+import java.awt.Point
+import java.awt.Rectangle
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.BUTTON1
 import java.net.URL
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
@@ -269,7 +272,7 @@ internal class FilterTextField(
     val popupDisposable = Disposer.newDisposable("popupDisposable")
 
     addToHistory()
-    val list: JList<FilterHistoryItem> = HistoryList(popupDisposable, logcatPresenter, filterHistory, filterParser)
+    val list: JList<FilterHistoryItem> = HistoryList(popupDisposable)
     JBPopupFactory.getInstance().createPopupChooserBuilder(listOf("foo", "bar"))
     val popup = PopupChooserBuilder(list)
       .setMovable(false)
@@ -356,11 +359,8 @@ internal class FilterTextField(
    * rendering from the JBList (HistoryList) directly.
    */
   @VisibleForTesting
-  internal class HistoryList(
+  internal inner class HistoryList(
     parentDisposable: Disposable,
-    logcatPresenter: LogcatPresenter,
-    filterHistory: AndroidLogcatFilterHistory,
-    filterParser: LogcatFilterParser,
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
   ) : JBList<FilterHistoryItem>() {
     init {
@@ -408,6 +408,61 @@ internal class FilterTextField(
           }
         }
       }
+
+      addMouseListener(MouseListener())
+    }
+
+    /**
+     * Toggle the Favorite state of an item.
+     *
+     * This method does several things:
+     * 1. Toggle [Item.isFavorite]
+     * 2. Update [FilterTextField.filterHistory] by moving the [Item.filter] to its new collection
+     * 3. If the item happens to be the current, item in the [FilterTextField.text] also toggle [FilterTextField.isFavorite]
+     * 4. Force a paint
+     */
+    private fun toggleFavoriteItem(index: Int, bounds: Rectangle) {
+      val item = model.getElementAt(index) as Item
+      if (item.isFavorite) {
+        item.isFavorite = false
+        filterHistory.favorites.remove(item.filter)
+        filterHistory.nonFavorites.add(item.filter)
+      }
+      else {
+        item.isFavorite = true
+        filterHistory.favorites.add(item.filter)
+        filterHistory.nonFavorites.remove(item.filter)
+      }
+      if (item.filter == text) {
+        isFavorite = item.isFavorite
+      }
+      paintImmediately(bounds)
+    }
+
+    /**
+     * Track mouse events and manipulate the UI to reflect them. For example, toggling Favorite state.
+     *
+     * This allows us to detect mouse events on specific UI areas such as the favorite icon.
+     *
+     * We need this because the implementation of JList is such that the UI doesn't actually contain any components. Rather, a dummy
+     * component (provided by the [ListCellRenderer.getListCellRendererComponent]) is used to draw directly onto the list
+     * [java.awt.Graphics]. Mouse listeners on the item components are not actually triggered.
+     *
+     * When processing a mouse event, we map the event location in the list to the specific item. We use [JList.getSelectedIndex] to find
+     * the item. This works because the item corresponding to the mouse event must be the selected item since the mouse is hovering on it.
+     */
+    inner class MouseListener : MouseAdapter() {
+      override fun mouseReleased(event: MouseEvent) {
+        if (event.button == BUTTON1 && event.modifiersEx == 0) {
+          val index = selectedIndex
+          val cellLocation = getCellBounds(index, index).location
+          val favoriteIconBounds = Item.getFavoriteIconBounds(cellLocation)
+          if (favoriteIconBounds.contains(event.point)) {
+            toggleFavoriteItem(index, favoriteIconBounds)
+            event.consume()
+          }
+        }
+      }
     }
   }
 
@@ -428,7 +483,7 @@ internal class FilterTextField(
    */
   @VisibleForTesting
   internal sealed class FilterHistoryItem {
-    class Item(val filter: String, val isFavorite: Boolean, val count: Int?, private val filterParser: LogcatFilterParser)
+    class Item(val filter: String, var isFavorite: Boolean, val count: Int?, private val filterParser: LogcatFilterParser)
       : FilterHistoryItem() {
 
       private val filterName = filterParser.parse(filter)?.getFilterName()
@@ -486,6 +541,8 @@ internal class FilterTextField(
       // HistoryListCellRenderer will use this component's paint() to render the ue. The component itself is not inserted into the tree.
       // The common pattern is to reuse the same component for all the items rather than allocate a new one for each item.
       companion object {
+        fun getFavoriteIconBounds(offset: Point): Rectangle = favoriteLabel.bounds + offset
+
         private val favoriteLabel = JLabel()
         private val filterLabel = SimpleColoredComponent().apply {
           border = HISTORY_ITEM_LABEL_BORDER
@@ -537,4 +594,8 @@ internal class FilterTextField(
 
     abstract fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent
   }
+}
+
+private operator fun Rectangle.plus(point: Point): Rectangle {
+  return Rectangle(x + point.x, y + point.y, width, height)
 }
