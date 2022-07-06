@@ -1126,6 +1126,13 @@ class EmulatorView(
   }
 }
 
+/**
+ * Returns this [Dimension] rotated according to [rotation].
+ */
+private fun Dimension.rotated(rotation: SkinRotation): Dimension {
+  return rotatedByQuadrants(rotation.number)
+}
+
 internal const val DISPLAY_MODE_PROPERTY = "displayMode"
 
 private var emulatorOutOfDateNotificationShown = false

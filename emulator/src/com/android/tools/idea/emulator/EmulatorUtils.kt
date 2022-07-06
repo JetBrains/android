@@ -18,7 +18,6 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
-import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.ThemingStyle
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.Disposable
@@ -131,13 +130,6 @@ internal fun isSameAspectRatio(width1: Int, height1: Int, width2: Int, height2: 
   val b = width2.toDouble() * height1
   val d = a - b
   return abs(d) <= tolerance * abs(a + b) / 2
-}
-
-/**
- * Returns this [Dimension] rotated according to [rotation].
- */
-internal fun Dimension.rotated(rotation: SkinRotation): Dimension {
-  return if (rotation == SkinRotation.LANDSCAPE || rotation == SkinRotation.REVERSE_LANDSCAPE) Dimension(height, width) else this
 }
 
 /**
