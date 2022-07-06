@@ -363,6 +363,7 @@ MODULE                        : project.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -762,6 +763,7 @@ MODULE                        : project.lib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :lib
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -1118,6 +1120,7 @@ MODULE                        : project.otherlib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :otherlib
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

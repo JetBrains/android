@@ -64,12 +64,10 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeFilterData
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeMavenCoordinates
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
@@ -1184,7 +1182,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     )
   }
 
-  fun androidProjectFrom(project: AndroidProject, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeAndroidProjectImpl {
+  fun androidProjectFrom(projectPath: String, project: AndroidProject, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeAndroidProjectImpl {
     // Old plugin versions do not return model version.
     val parsedModelVersion = GradleVersion.tryParse(project.modelVersion)
 
@@ -1232,7 +1230,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       }
     return IdeAndroidProjectImpl(
       agpVersion = project.modelVersion,
-      name = project.name,
+      projectPath = projectPath,
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,
       productFlavors = productFlavorCopy,
@@ -1276,8 +1274,12 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     ): IdeVariantWithPostProcessor =
       lock.withLock { variantFrom(androidProject, variant, legacyApplicationIdModel, modelVersion, androidModuleId) }
 
-    override fun androidProjectFrom(project: AndroidProject, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeAndroidProjectImpl {
-      return lock.withLock { androidProjectFrom(project, legacyApplicationIdModel) }
+    override fun androidProjectFrom(
+      projectPath: String,
+      project: AndroidProject,
+      legacyApplicationIdModel: LegacyApplicationIdModel?
+    ): IdeAndroidProjectImpl {
+      return lock.withLock { androidProjectFrom(projectPath, project, legacyApplicationIdModel) }
     }
 
     override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl =

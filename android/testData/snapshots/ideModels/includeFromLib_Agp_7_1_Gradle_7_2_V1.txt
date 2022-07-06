@@ -289,6 +289,7 @@ MODULE                        : navgraph.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :app
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -2107,6 +2108,7 @@ MODULE                        : navgraph.lib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :lib
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

@@ -1749,6 +1749,7 @@ MODULE                        : project.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -3613,6 +3614,7 @@ MODULE                        : project.dyn_feature
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    ProjectPath                   : :dyn_feature
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-<SDK_VERSION>
@@ -3960,6 +3962,7 @@ MODULE                        : project.lib
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :lib
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -4668,6 +4671,7 @@ MODULE                        : project.nested1
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    ProjectPath                   : :nested1
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -4988,6 +4992,7 @@ MODULE                        : project.nested1.deep
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    ProjectPath                   : :nested1:deep
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -5318,6 +5323,7 @@ MODULE                        : project.nested2
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    ProjectPath                   : :nested2
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -5788,6 +5794,7 @@ MODULE                        : project.nested2.deep
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    ProjectPath                   : :nested2:deep
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -6122,6 +6129,7 @@ MODULE                        : project.nested2.trans.deep2
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    ProjectPath                   : :nested2:trans:deep2
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

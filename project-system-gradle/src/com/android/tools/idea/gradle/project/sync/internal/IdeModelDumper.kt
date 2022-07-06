@@ -195,6 +195,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
   val modelDumper = ModelDumper(jbModelDumpers)
   object {
     fun dump(ideAndroidModel: IdeAndroidProject) {
+      prop("ProjectPath") { ideAndroidModel.projectPath }
       prop("ModelVersion") { ideAndroidModel.agpVersion.replaceKnownPatterns() }
       prop("ProjectType") { ideAndroidModel.projectType.toString() }
       prop("CompileTarget") { ideAndroidModel.compileTarget.replaceCurrentSdkVersion() }

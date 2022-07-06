@@ -295,6 +295,7 @@ MODULE                        : MultiFlavor.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>

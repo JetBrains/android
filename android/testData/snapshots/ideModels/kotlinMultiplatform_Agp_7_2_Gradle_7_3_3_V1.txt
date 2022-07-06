@@ -590,6 +590,7 @@ MODULE                        : kotlinMultiPlatform.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -2195,6 +2196,7 @@ MODULE                        : kotlinMultiPlatform.module2
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :module2
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

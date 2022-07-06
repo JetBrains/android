@@ -599,6 +599,7 @@ MODULE                        : project.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -1922,6 +1923,7 @@ MODULE                        : project.library1
         targetSdk
             ApiLevel                      : 26
             ApiString                     : 26
+    ProjectPath                   : :library1
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -2761,6 +2763,7 @@ MODULE                        : project.library2
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    ProjectPath                   : :library2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

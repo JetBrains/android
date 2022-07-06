@@ -1185,7 +1185,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
 
     return IdeAndroidProjectImpl(
       agpVersion = modelsVersions.agp,
-      name = basicProject.path,
+      projectPath = basicProject.path,
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,
       productFlavors = productFlavorCopy,

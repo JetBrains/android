@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeVariantCore
 
 fun buildVariantNameResolver(androidProject: IdeAndroidProject, v2Variants: Collection<IdeVariantCore>): AndroidVariantResolver {
-  val moduleName = androidProject.name
+  val moduleName = androidProject.projectPath
   val availableDimensions = androidProject.productFlavors.mapNotNull { it.productFlavor.dimension }.toSet()
   val dimensions = androidProject.flavorDimensions.filter { availableDimensions.contains(it) }
   val map = v2Variants

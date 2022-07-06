@@ -147,6 +147,7 @@ MODULE                        : withGradleMetadata.app
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
+    ProjectPath                   : :app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>

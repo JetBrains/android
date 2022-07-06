@@ -389,7 +389,8 @@ public class AndroidProjectStub implements AndroidProject {
   }
 
   @NotNull
-  public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return ((ModelCache.V1)(ModelCache.createForTests(false))).androidProjectFrom(androidProject, null);
+  public static IdeAndroidProject toIdeAndroidProject(@NotNull String projectPath, AndroidProjectStub androidProject) {
+    return ((ModelCache.V1)(ModelCache.createForTests(false)))
+      .androidProjectFrom(projectPath, androidProject, null);
   }
 }

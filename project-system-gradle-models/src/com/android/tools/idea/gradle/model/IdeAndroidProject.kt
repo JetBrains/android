@@ -27,11 +27,9 @@ interface IdeAndroidProject : Serializable {
   val agpVersion: String
 
   /**
-   * Returns the name of the module.
-   *
-   * @return the name of the module.
+   * Returns the Gradle project path of the module (excluding the build name, if in an included build).
    */
-  val name: String
+  val projectPath: String
 
   /**
    * Returns the type of project: Android application, library, feature, instantApp.

@@ -298,7 +298,12 @@ internal class AndroidExtraModelProviderWorker(
 
                   checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions)
                   val modelCache = modelCacheV1Impl(internedModels, buildFolderPaths, modelCacheLock)
-                  val androidProjectResult = AndroidProjectResult.V1Project(modelCache, androidProject, legacyApplicationIdModel)
+                  val androidProjectResult = AndroidProjectResult.V1Project(
+                    modelCache = modelCache,
+                    projectPath = it.gradleProject.path,
+                    androidProject = androidProject,
+                    legacyApplicationIdModel = legacyApplicationIdModel
+                  )
 
                   val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
                   val nativeAndroidProject: NativeAndroidProject? =
@@ -598,12 +603,14 @@ internal class AndroidExtraModelProviderWorker(
   sealed class AndroidProjectResult {
     class V1Project(
       val modelCache: ModelCache.V1,
+      projectPath: String,
       androidProject: AndroidProject,
       override val legacyApplicationIdModel: LegacyApplicationIdModel?,
     ) : AndroidProjectResult() {
       override val buildName: String? = null
       override val agpVersion: String = safeGet(androidProject::getModelVersion, "")
-      override val ideAndroidProject: IdeAndroidProjectImpl = modelCache.androidProjectFrom(androidProject, legacyApplicationIdModel)
+      override val ideAndroidProject: IdeAndroidProjectImpl =
+        modelCache.androidProjectFrom(projectPath, androidProject, legacyApplicationIdModel)
       override val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
       override val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
                                                  ?: allVariantNames.getDefaultOrFirstItem("debug")

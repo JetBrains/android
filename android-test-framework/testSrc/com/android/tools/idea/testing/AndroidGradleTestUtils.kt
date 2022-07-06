@@ -1018,7 +1018,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
   val projectType = projectType
   return IdeAndroidProjectImpl(
     agpVersion = agpVersion,
-    name = projectName,
+    projectPath = projectName,
     projectType = projectType,
     defaultConfig = defaultConfig,
     buildTypes = buildTypes,

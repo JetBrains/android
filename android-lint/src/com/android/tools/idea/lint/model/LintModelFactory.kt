@@ -116,7 +116,7 @@ class LintModelFactory : LintModelModuleLoader {
             val module = DefaultLintModelModule(
               loader = this,
               dir = dir,
-              modulePath = project.name,
+              modulePath = project.projectPath,
               type = getModuleType(project.projectType),
               mavenName = getMavenName(project),
               gradleVersion = gradleVersion,
@@ -602,7 +602,7 @@ class LintModelFactory : LintModelModuleLoader {
 
     private fun getMavenName(androidProject: IdeAndroidProject): LintModelMavenName? {
         val groupId = androidProject.groupId ?: return null
-        return DefaultLintModelMavenName(groupId, androidProject.name, "")
+        return DefaultLintModelMavenName(groupId, androidProject.projectPath, "")
     }
 
     private fun getMavenName(artifactAddress: String): LintModelMavenName {
@@ -689,7 +689,7 @@ class LintModelFactory : LintModelModuleLoader {
       override val gradleVersion: GradleVersion?
     ) : LintModelModule {
         override val modulePath: String
-            get() = project.name
+            get() = project.projectPath
         override val type: LintModelModuleType
             get() = getModuleType(project.projectType)
         override val mavenName: LintModelMavenName?

@@ -240,6 +240,7 @@ MODULE                        : project.app
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -605,6 +606,7 @@ MODULE                        : project.test
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :test
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-<SDK_VERSION>
@@ -1493,6 +1495,7 @@ MODULE                        : project.test2
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
+    ProjectPath                   : :test2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-<SDK_VERSION>

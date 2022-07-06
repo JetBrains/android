@@ -68,7 +68,11 @@ interface ModelCache {
       androidModuleId: ModuleId
     ): IdeVariantWithPostProcessor
 
-    fun androidProjectFrom(project: AndroidProject, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeAndroidProjectImpl
+    fun androidProjectFrom(
+      projectPath: String,
+      project: AndroidProject,
+      legacyApplicationIdModel: LegacyApplicationIdModel?
+    ): IdeAndroidProjectImpl
 
     fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
 
