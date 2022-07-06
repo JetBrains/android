@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.stubs.android.AndroidProjectStub.toIdeAndroidProject;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
