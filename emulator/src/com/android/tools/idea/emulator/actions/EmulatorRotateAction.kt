@@ -22,20 +22,24 @@ import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.EventQueue
-import kotlin.math.roundToInt
 
 /**
  * Rotates the emulator left or right.
  */
 sealed class EmulatorRotateAction(
-  val rotationAngleDegrees: Float,
+  private val rotationQuadrants: Int,
 ) : AbstractEmulatorAction(configFilter = { config -> config.hasOrientationSensors && !config.isWearOs }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
     val emulatorView = getEmulatorView(event) ?: return
-    val rotation = emulatorView.displayRotation
-    val angle = canonicalizeRotationAngle(rotation.number * 90F + rotationAngleDegrees)
+    val rotationQuadrants = (emulatorView.displayRotation.number + rotationQuadrants) and 0x03
+    val angle = when (rotationQuadrants) {
+      1 -> 90F
+      2 -> -180F
+      3 -> -90F
+      else -> 0F
+    }
     val parameters = ParameterValue.newBuilder()
       .addData(0F)
       .addData(0F)
@@ -44,10 +48,10 @@ sealed class EmulatorRotateAction(
       .setTarget(PhysicalModelValue.PhysicalType.ROTATION)
       .setValue(parameters)
       .build()
-    emulatorController.setPhysicalModel(rotationModel, object: EmptyStreamObserver<Empty>() {
+    emulatorController.setPhysicalModel(rotationModel, object : EmptyStreamObserver<Empty>() {
       override fun onCompleted() {
         EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-          emulatorView.displayRotation = SkinRotation.forNumber(((angle / 90).toInt() + 4) % 4)
+          emulatorView.displayRotation = SkinRotation.forNumber(rotationQuadrants)
         }
       }
     })
@@ -62,18 +66,6 @@ sealed class EmulatorRotateAction(
     }
   }
 
-  /**
-   * Rounds the given angle to a multiple of 90 degrees and puts it in the [-180, 180) interval.
-   */
-  private fun canonicalizeRotationAngle(angleDegrees: Float): Float {
-    val angle = (angleDegrees / 90).roundToInt() * 90F
-    return when {
-      angle < -180F -> angle + 360
-      angle >= 180F -> angle - 360
-      else -> angle
-    }
-  }
-
-  class Left : EmulatorRotateAction(90F)
-  class Right : EmulatorRotateAction(-90F)
+  class Left : EmulatorRotateAction(1)
+  class Right : EmulatorRotateAction(3)
 }
