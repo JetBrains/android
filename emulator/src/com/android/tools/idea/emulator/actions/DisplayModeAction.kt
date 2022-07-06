@@ -31,7 +31,10 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.DisplayModeValue
+import com.android.tools.idea.emulator.EmptyStreamObserver
+import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
+import java.awt.EventQueue
 
 /**
  * Sets a display mode for a resizable AVD.
@@ -41,9 +44,16 @@ internal sealed class DisplayModeAction(
 ) : AbstractEmulatorAction(configFilter = { config -> config.displayModes.isNotEmpty() }) {
 
   override fun actionPerformed(event: AnActionEvent) {
-    if (getCurrentDisplayMode(event) != mode) {
+    val emulatorView = getEmulatorView(event) ?: return
+    if (mode != emulatorView.displayMode?.displayModeId) {
       val emulator = getEmulatorController(event) ?: return
-      emulator.setDisplayMode(mode)
+      emulator.setDisplayMode(mode, object : EmptyStreamObserver<Empty>() {
+        override fun onCompleted() {
+          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+            emulatorView.displayModeChanged(mode)
+          }
+        }
+      })
     }
   }
 

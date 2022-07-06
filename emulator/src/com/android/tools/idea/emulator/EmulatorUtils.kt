@@ -109,6 +109,12 @@ internal fun Point.scaled(scale: Double): Point {
 }
 
 /**
+ * Returns this integer scaled by multiplying by [numerator] and then dividing by [denominator].
+ */
+internal fun Int.scaledDown(numerator: Int, denominator: Int): Int =
+  ((this.toLong() * numerator) / denominator).toInt()
+
+/**
  * Converts the given [value] from the `[0, fromRange-1]` interval to the `[0, toRange - 1]`
  * interval by scaling by the [toRange]/[fromRange] factor while maintaining symmetry with
  * respect to the centers of the two intervals.
