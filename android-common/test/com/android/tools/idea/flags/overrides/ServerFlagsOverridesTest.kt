@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.flags.overrides
 
 import com.android.flags.Flag
 import com.android.flags.FlagGroup
 import com.android.flags.Flags
 import com.android.flags.ImmutableFlagOverrides
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.flags.overrides.ServerFlagOverrides
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.ApplicationManager

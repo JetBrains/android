@@ -23,6 +23,7 @@ import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +50,11 @@ public final class StudioFlags {
       userOverrides = new DefaultFlagOverrides();
     }
     return new Flags(userOverrides, new PropertyOverrides(), new ServerFlagOverrides());
+  }
+
+  @VisibleForTesting
+  public static void validate() {
+      FLAGS.validate();
   }
 
   //region New Project Wizard
