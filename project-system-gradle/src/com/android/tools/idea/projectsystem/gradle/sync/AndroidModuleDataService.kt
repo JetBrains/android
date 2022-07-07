@@ -254,7 +254,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       // Android model is null for the root project module.
       val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
         project,
-        androidModel.androidProject.projectPath,
+        androidModel.androidProject.projectPath.projectPath,
         androidModel.androidProject.compileTarget,
         androidModel.androidProject.bootClasspath,
         IdeSdks.getInstance()
@@ -262,7 +262,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
       if (sdkToUse == null) {
         modulesWithSDKSetupFailureByCompileTarget.getOrPut(androidModel.androidProject.compileTarget) { mutableListOf() }
-          .add(androidModel.androidProject.projectPath)
+          .add(androidModel.androidProject.projectPath.projectPath)
       }
 
       val modules = mainIdeModule.getAllLinkedModules()

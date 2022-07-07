@@ -22,10 +22,7 @@ import java.io.Serializable
 
 data class IdeAndroidProjectImpl(
   override val agpVersion: String,
-  override val rootBuildId: File,
-  override val buildId: File,
-  override val buildName: String,
-  override val projectPath: String,
+  override val projectPath: IdeProjectPathImpl,
   override val projectType: IdeAndroidProjectType,
   override val defaultConfig: IdeProductFlavorContainerImpl,
   override val buildTypes: Collection<IdeBuildTypeContainerImpl>,

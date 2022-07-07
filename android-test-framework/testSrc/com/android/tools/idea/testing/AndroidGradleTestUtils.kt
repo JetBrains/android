@@ -55,6 +55,7 @@ import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
+import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
@@ -1020,10 +1021,12 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
   val projectType = projectType
   return IdeAndroidProjectImpl(
     agpVersion = agpVersion,
-    rootBuildId = File("/"),
-    buildId = File("/"),
-    buildName = ":",
-    projectPath = gradleProjectPath,
+    projectPath = IdeProjectPathImpl(
+      rootBuildId = File("/"),
+      buildId = File("/"),
+      buildName = ":",
+      projectPath = gradleProjectPath
+    ),
     projectType = projectType,
     defaultConfig = defaultConfig,
     buildTypes = buildTypes,

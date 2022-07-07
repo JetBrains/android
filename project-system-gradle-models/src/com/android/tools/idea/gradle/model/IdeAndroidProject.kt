@@ -25,30 +25,9 @@ interface IdeAndroidProject : Serializable {
   val agpVersion: String
 
   /**
-   * The build ID (directory containing the settings file) of the root build of this project.
-   *
-   * Note, this directory might be different from the root directory of the root project of the root build if the root project directory is
-   * relocated.
+   * Returns a project path together with the name and location of the build containing it.
    */
-  val rootBuildId: File
-
-  /**
-   * The build ID (directory containing the settings file) of the (included) build containing this project.
-   *
-   * Note, this directory might be different from the root directory of the root project of the root build if the root project directory is
-   * relocated.
-   */
-  val buildId: File
-
-  /**
-   * The name of the included build containing this project or ":" if this project belongs to the root build.
-   */
-  val buildName: String
-
-  /**
-   * Returns the Gradle project path of the module (excluding the build name, if in an included build).
-   */
-  val projectPath: String
+  val projectPath: IdeProjectPath
 
   /**
    * Returns the type of project: Android application, library, feature, instantApp.

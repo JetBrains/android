@@ -98,6 +98,7 @@ import com.android.tools.idea.gradle.model.impl.IdeMavenCoordinatesImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
+import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
@@ -1237,10 +1238,12 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       }
     return IdeAndroidProjectImpl(
       agpVersion = project.modelVersion,
-      rootBuildId = rootBuildId.asFile,
-      buildId = buildId.asFile,
-      buildName = buildName,
-      projectPath = projectPath,
+      projectPath = IdeProjectPathImpl(
+        rootBuildId = rootBuildId.asFile,
+        buildId = buildId.asFile,
+        buildName = buildName,
+        projectPath = projectPath
+      ),
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,
       productFlavors = productFlavorCopy,

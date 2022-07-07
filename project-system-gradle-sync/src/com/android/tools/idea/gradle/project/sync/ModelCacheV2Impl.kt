@@ -96,6 +96,7 @@ import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
+import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
@@ -1187,10 +1188,12 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
 
     return IdeAndroidProjectImpl(
       agpVersion = modelsVersions.agp,
-      rootBuildId = rootBuildId.asFile,
-      buildId = buildId.asFile,
-      buildName = basicProject.buildName,
-      projectPath = basicProject.path,
+      projectPath = IdeProjectPathImpl(
+        rootBuildId = rootBuildId.asFile,
+        buildId = buildId.asFile,
+        buildName = basicProject.buildName,
+        projectPath = basicProject.path,
+      ),
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,
       productFlavors = productFlavorCopy,
