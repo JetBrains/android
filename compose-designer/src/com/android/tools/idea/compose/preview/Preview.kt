@@ -1104,13 +1104,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           surface.refreshExistingPreviewElements(
             refreshProgressIndicator,
             NlModel::toPreviewElement,
-          ) { displaySettings, sceneManager ->
-            // When showing decorations, show the full device size
-            configureLayoutlibSceneManager(sceneManager,
-                                           showDecorations = displaySettings.showDecoration,
-                                           isInteractive = interactiveMode.isStartingOrReady(),
-                                           requestPrivateClassLoader = usePrivateClassLoader())
-          }
+            this@ComposePreviewRepresentation::configureLayoutlibSceneManagerForPreviewElement
+          )
         }
         else {
           refreshProgressIndicator.text = message("refresh.progress.indicator.refreshing.all.previews")
