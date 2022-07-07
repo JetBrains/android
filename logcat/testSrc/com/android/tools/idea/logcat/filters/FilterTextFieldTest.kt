@@ -49,7 +49,6 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.SimpleColoredComponent
-import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
@@ -57,12 +56,12 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_ENTER
 import java.util.concurrent.TimeUnit.SECONDS
+import javax.swing.GroupLayout
 import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -242,8 +241,6 @@ class FilterTextFieldTest {
       "*: foo ( 1 )",
       "----------------------------------",
       " : bar ( 2 )",
-      "----------------------------------",
-      "Press Delete to remove an item",
     ).inOrder() // Order is reverse of the order added
   }
 
@@ -261,8 +258,6 @@ class FilterTextFieldTest {
     assertThat(historyList.renderToStrings()).containsExactly(
       "*: bar ( 2 )",
       "*: foo ( 1 )",
-      "----------------------------------",
-      "Press Delete to remove an item",
     ).inOrder() // Order is reverse of the order added
   }
 
@@ -280,8 +275,6 @@ class FilterTextFieldTest {
     assertThat(historyList.renderToStrings()).containsExactly(
       " : bar ( 2 )",
       " : foo ( 1 )",
-      "----------------------------------",
-      "Press Delete to remove an item",
     ).inOrder() // Order is reverse of the order added
   }
 
@@ -296,8 +289,6 @@ class FilterTextFieldTest {
 
     assertThat(historyList.renderToStrings()).containsExactly(
       " : Foo ( 1 )",
-      "----------------------------------",
-      "Press Delete to remove an item",
     ).inOrder()
   }
 
@@ -315,8 +306,6 @@ class FilterTextFieldTest {
     assertThat(historyList.renderToStrings()).containsExactly(
       " : Foo: tag:Foobar ( 2 )",
       " : Foo: tag:Foo ( 1 )",
-      "----------------------------------",
-      "Press Delete to remove an item",
     ).inOrder() // Order is reverse of the order added
   }
 
@@ -434,38 +423,28 @@ private fun FilterTextField.getButtonWithIcon(icon: Icon) =
 
 private fun HistoryList.renderToStrings(): List<String> {
   return model.asSequence().toList().map {
-    val component = cellRenderer.getListCellRendererComponent(this, it, 0, false, false)
-
-    component.renderToString()
+    val panel = cellRenderer.getListCellRendererComponent(this, it, 0, false, false) as? JPanel
+                ?: throw IllegalStateException("Unexpected component: ${it::class}")
+    panel.renderToString()
   }
-}
-
-private fun Component.renderToString(): String {
-  return when (this) {
-    is BorderLayoutPanel -> this.renderToString()
-    is JPanel -> this.renderToString()
-    else -> throw IllegalStateException("Unexpected object: ${this::class}")
-  }
-}
-
-private fun BorderLayoutPanel.renderToString(): String {
-  val favorite = if ((components[0] as JLabel).icon == StudioIcons.Logcat.Input.FAVORITE_FILLED) "*" else " "
-  val text = (components[1] as SimpleColoredComponent).toString()
-  val count = (components[2] as JLabel).text
-  return "$favorite: $text ($count)"
 }
 
 private fun JPanel.renderToString(): String {
-  return when (val child = components[0]) {
-    is JSeparator -> "----------------------------------"
-    is JLabel -> child.text
-    else -> throw IllegalStateException("Unexpected object: ${child::class}")
+  return when {
+    components[0] is JSeparator -> "----------------------------------"
+    layout is GroupLayout -> {
+      val favorite = if ((components[0] as JLabel).icon == StudioIcons.Logcat.Input.FAVORITE_FILLED) "*" else " "
+      val text = (components[1] as SimpleColoredComponent).toString()
+      val count = (components[2] as JLabel).text
+      "$favorite: $text ($count)"
+    }
+    else -> throw IllegalStateException("Unexpected component")
   }
 }
 
 private fun HistoryList.waitForCounts(fakeLogcatPresenter: FakeLogcatPresenter) {
   waitForCondition(2, SECONDS) {
-    val counts = model.asSequence().filterIsInstance<Item>().associateBy({it.filter}, {it.count})
+    val counts = model.asSequence().filterIsInstance<Item>().associateBy({ it.filter }, { it.count })
     counts == fakeLogcatPresenter.filterMatchesCount
   }
 }

@@ -22,7 +22,6 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
-import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Hint
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Separator
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
@@ -56,7 +55,14 @@ import com.intellij.ui.components.JBList
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
-import icons.StudioIcons
+import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED
+import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED_HOVER
+import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED_POPUP_HOVER
+import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE
+import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE_HOVER
+import icons.StudioIcons.Logcat.Input.FAVORITE_POPUP_HOVER
+import icons.StudioIcons.Logcat.Input.FILTER_HISTORY
+import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -77,6 +83,8 @@ import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.BoxLayout.LINE_AXIS
 import javax.swing.BoxLayout.PAGE_AXIS
+import javax.swing.GroupLayout
+import javax.swing.GroupLayout.Alignment.CENTER
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -92,13 +100,7 @@ import kotlin.math.min
 
 private const val APPLY_FILTER_DELAY_MS = 100L
 
-private val FAVORITE_ICON = StudioIcons.Logcat.Input.FAVORITE_OUTLINE
-private val FAVORITE_ON_ICON = StudioIcons.Logcat.Input.FAVORITE_FILLED
-private val FAVORITE_FOCUSED_ICON = StudioIcons.Logcat.Input.FAVORITE_OUTLINE_HOVER
-private val FAVORITE_FOCUSED_ON_ICON = StudioIcons.Logcat.Input.FAVORITE_FILLED_HOVER
-private val FAVORITE_POPUP_HOVER_ICON = StudioIcons.Logcat.Input.FAVORITE_POPUP_HOVER
-private val FAVORITE_FILLED_POPUP_HOVER_ICON = StudioIcons.Logcat.Input.FAVORITE_FILLED_POPUP_HOVER
-private val FAVORITE_BLANK_ICON = EmptyIcon.create(FAVORITE_ON_ICON.iconWidth, FAVORITE_ON_ICON.iconHeight)
+private val BLANK_ICON = EmptyIcon.create(16, 16)
 
 // The text of the history dropdown item needs a little horizontal padding
 private val HISTORY_ITEM_LABEL_BORDER = JBUI.Borders.empty(0, 3)
@@ -138,14 +140,14 @@ internal class FilterTextField(
   internal val notifyFilterChangedTask = ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
   private val documentChangedListeners = mutableListOf<DocumentListener>()
   private val textField = FilterEditorTextField(project, logcatPresenter, androidProjectDetector)
-  private val historyButton = InlineButton(StudioIcons.Logcat.Input.FILTER_HISTORY)
+  private val historyButton = InlineButton(FILTER_HISTORY)
   private val clearButton = JLabel(AllIcons.Actions.Close)
-  private val favoriteButton = JLabel(FAVORITE_ICON)
+  private val favoriteButton = JLabel(FAVORITE_OUTLINE)
 
   private var isFavorite: Boolean = false
     set(value) {
       field = value
-      favoriteButton.icon = if (isFavorite) FAVORITE_ON_ICON else FAVORITE_ICON
+      favoriteButton.icon = if (isFavorite) FAVORITE_FILLED else FAVORITE_OUTLINE
     }
 
   override var text: String
@@ -251,11 +253,11 @@ internal class FilterTextField(
         }
 
         override fun mouseEntered(e: MouseEvent) {
-          icon = if (isFavorite) FAVORITE_FOCUSED_ON_ICON else FAVORITE_FOCUSED_ICON
+          icon = if (isFavorite) FAVORITE_FILLED_HOVER else FAVORITE_OUTLINE_HOVER
         }
 
         override fun mouseExited(e: MouseEvent) {
-          icon = if (isFavorite) FAVORITE_ON_ICON else FAVORITE_ICON
+          icon = if (isFavorite) FAVORITE_FILLED else FAVORITE_OUTLINE
         }
       })
     }
@@ -365,6 +367,8 @@ internal class FilterTextField(
     parentDisposable: Disposable,
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
   ) : JBList<FilterHistoryItem>() {
+    private val listModel = CollectionListModel<FilterHistoryItem>()
+
     init {
       // The "count" field in FilterHistoryItem.Item takes time to calculate so initially, add all items with no count.
       val items = mutableListOf<FilterHistoryItem>().apply {
@@ -373,19 +377,14 @@ internal class FilterTextField(
           add(Separator)
         }
         addAll(filterHistory.nonFavorites.map { Item(filter = it, isFavorite = false, count = null, filterParser) })
-        add(Separator)
-        add(Hint)
       }
-      val listModel = CollectionListModel(items)
       model = listModel
+      listModel.addAll(0, items)
       addKeyListener(object : KeyAdapter() {
         override fun keyPressed(e: KeyEvent) {
           val item = selectedValue as? Item
           if (item != null && e.keyCode == KeyEvent.VK_DELETE) {
-            filterHistory.remove(item.filter)
-            val index = selectedIndex
-            listModel.remove(index)
-            selectedIndex = min(index, model.size - 1)
+            deleteItem(selectedIndex)
           }
         }
       })
@@ -443,6 +442,17 @@ internal class FilterTextField(
       paintImmediately(bounds)
     }
 
+    fun deleteItem(index: Int) {
+      val item = listModel.getElementAt(index) as? Item ?: return
+      filterHistory.remove(item.filter)
+      if (text == item.filter) {
+        // If the deleted item is the current text, clear it. If not, it will just be added to the history which is annoying
+        text = ""
+      }
+      listModel.remove(index)
+      selectedIndex = min(index, model.size - 1)
+    }
+
     /**
      * Track mouse events and manipulate the UI to reflect them. For example, toggling Favorite state.
      *
@@ -461,10 +471,17 @@ internal class FilterTextField(
       override fun mouseReleased(event: MouseEvent) {
         if (event.button == BUTTON1 && event.modifiersEx == 0) {
           val index = selectedIndex
+          val item = model.getElementAt(index) as? Item ?: return
           val cellLocation = getCellBounds(index, index).location
-          val favoriteIconBounds = Item.getFavoriteIconBounds(cellLocation)
-          if (favoriteIconBounds.contains(event.point)) {
-            toggleFavoriteItem(index, favoriteIconBounds)
+          val favoriteIconBounds = item.getFavoriteIconBounds(cellLocation)
+          val deleteIconBounds = item.getDeleteIconBounds(cellLocation)
+          var consume = true
+          when {
+            favoriteIconBounds.contains(event.point) -> toggleFavoriteItem(index, favoriteIconBounds)
+            deleteIconBounds.contains(event.point) -> deleteItem(index)
+            else -> consume = false
+          }
+          if (consume) {
             event.consume()
           }
         }
@@ -472,11 +489,14 @@ internal class FilterTextField(
 
       override fun mouseMoved(event: MouseEvent) {
         val index = selectedIndex
-        if (model.getElementAt(index) !is Item) {
+        val item = model.getElementAt(index) as? Item
+
+        if (item == null) {
           hoveredFavoriteIndex?.setIsHoveredFavorite(false)
+          return
         }
         val cellLocation = getCellBounds(index, index).location
-        val favoriteIconBounds = Item.getFavoriteIconBounds(cellLocation)
+        val favoriteIconBounds = item.getFavoriteIconBounds(cellLocation)
         val hoveredIndex = when {
           favoriteIconBounds.contains(event.point) -> index
           else -> null
@@ -507,8 +527,6 @@ internal class FilterTextField(
     ): Component = value.getComponent(isSelected, list)
   }
 
-  override fun getToolTipText(event: MouseEvent): String = LogcatBundle.message("logcat.filter.delete.history.tooltip")
-
   /**
    * See [HistoryList] for why this is VisibleForTesting
    */
@@ -523,6 +541,40 @@ internal class FilterTextField(
     ) : FilterHistoryItem() {
 
       private val filterName = filterParser.parse(filter)?.getFilterName()
+
+      fun getFavoriteIconBounds(offset: Point): Rectangle = favoriteLabel.bounds + offset
+
+      fun getDeleteIconBounds(offset: Point): Rectangle = deleteLabel.bounds + offset
+
+      private val favoriteLabel = JLabel()
+
+      private val filterLabel = SimpleColoredComponent().apply {
+        border = HISTORY_ITEM_LABEL_BORDER
+      }
+
+      private val countLabel = JLabel().apply {
+        font = Font(Font.MONOSPACED, Font.PLAIN, font.size)
+        border = HISTORY_ITEM_LABEL_BORDER
+      }
+
+      private val deleteLabel = JLabel()
+
+      private val component = JPanel(null).apply {
+        layout = GroupLayout(this).apply {
+          setHorizontalGroup(
+            createSequentialGroup()
+              .addComponent(favoriteLabel)
+              .addComponent(filterLabel)
+              .addComponent(countLabel)
+              .addComponent(deleteLabel))
+          setVerticalGroup(
+            createParallelGroup(CENTER)
+              .addComponent(favoriteLabel)
+              .addComponent(filterLabel)
+              .addComponent(countLabel)
+              .addComponent(deleteLabel))
+        }
+      }
 
       override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
         filterLabel.clear()
@@ -539,27 +591,28 @@ internal class FilterTextField(
         }
         // This can be mico optimized, but it's more readable like this
         favoriteLabel.icon = when {
-          isFavoriteHovered && isFavorite -> FAVORITE_FILLED_POPUP_HOVER_ICON
-          isFavoriteHovered && !isFavorite -> FAVORITE_POPUP_HOVER_ICON
-          !isFavoriteHovered && isFavorite -> FAVORITE_ON_ICON
-          else -> FAVORITE_BLANK_ICON
+          isFavoriteHovered && isFavorite -> FAVORITE_FILLED_POPUP_HOVER
+          isFavoriteHovered && !isFavorite -> FAVORITE_POPUP_HOVER
+          !isFavoriteHovered && isFavorite -> FAVORITE_FILLED
+          else -> BLANK_ICON
         }
+
+        deleteLabel.icon = if (isSelected) FILTER_HISTORY_DELETE else BLANK_ICON
 
         countLabel.text = when (count) {
           null -> " ".repeat(3)
           in 0..99 -> "% 2d ".format(count)
           else -> "99+"
         }
-        if (isSelected) {
-          filterLabel.foreground = list.selectionForeground
-          countLabel.foreground = filterLabel.foreground
-          component.background = list.selectionBackground
+        val (foreground, background) = when {
+          isSelected -> Pair(list.selectionForeground, list.selectionBackground)
+          else -> Pair(list.foreground, list.background)
         }
-        else {
-          filterLabel.foreground = list.foreground
-          countLabel.foreground = filterLabel.foreground
-          component.background = list.background
-        }
+        filterLabel.foreground = foreground
+        countLabel.foreground = foreground
+        deleteLabel.foreground = foreground
+        component.background = background
+
         return component
       }
 
@@ -584,23 +637,6 @@ internal class FilterTextField(
       // HistoryListCellRenderer will use this component's paint() to render the ue. The component itself is not inserted into the tree.
       // The common pattern is to reuse the same component for all the items rather than allocate a new one for each item.
       companion object {
-        fun getFavoriteIconBounds(offset: Point): Rectangle = favoriteLabel.bounds + offset
-
-        private val favoriteLabel = JLabel()
-        private val filterLabel = SimpleColoredComponent().apply {
-          border = HISTORY_ITEM_LABEL_BORDER
-        }
-
-        private val countLabel = JLabel().apply {
-          font = Font(Font.MONOSPACED, Font.PLAIN, font.size)
-          border = HISTORY_ITEM_LABEL_BORDER
-        }
-
-        private val component = BorderLayoutPanel().apply {
-          addToLeft(favoriteLabel)
-          addToCenter(filterLabel)
-          addToRight(countLabel)
-        }
       }
     }
 
@@ -615,21 +651,6 @@ internal class FilterTextField(
       }
 
       override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
-        component.background = list.background
-        return component
-      }
-    }
-
-    object Hint : FilterHistoryItem() {
-      // A standalone JLabel here will change the background of the separator when it is selected. Wrapping it with a JPanel
-      // suppresses that behavior for some reason.
-      private val component = JPanel().apply {
-        add(JLabel("Press Delete to remove an item").apply {
-          foreground = SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
-        })
-      }
-
-      override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JPanel {
         component.background = list.background
         return component
       }
