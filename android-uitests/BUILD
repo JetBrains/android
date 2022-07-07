@@ -600,8 +600,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + [
-        "qa_unreliable",  # b/139761045
-        "qa_smoke_unreliable",  # b/139761045
+        "manual",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1735,8 +1734,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ThemeEditorTest"],
     tags = COMMON_TAGS + [
-        "qa_unreliable",  # b/115685973
-        "qa_fast_unreliable",  # b/115685973
+        "manual",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
