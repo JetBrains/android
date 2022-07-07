@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
+import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
-import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.intellij.ide.ActivityTracker
@@ -29,9 +29,7 @@ import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.layout.panel
-import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.android.util.AndroidBundle.message
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 
 class LiveEditConfigurable : BoundSearchableConfigurable(
   message("live.edit.configurable.display.name"), "android.live.edit"
@@ -50,13 +48,15 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
           )
         }
 
-        row {
-          radioButton(
-            message("live.edit.configurable.display.name"),
-            { config.mode == LIVE_EDIT },
-            { enabled -> if (enabled) config.mode = LIVE_EDIT },
-            message("live.edit.configurable.display.name.comment")
-          )
+        if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
+          row {
+            radioButton(
+              message("live.edit.configurable.display.name"),
+              { config.mode == LIVE_EDIT },
+              { enabled -> if (enabled) config.mode = LIVE_EDIT },
+              message("live.edit.configurable.display.name.comment")
+            )
+          }
         }
 
         row {

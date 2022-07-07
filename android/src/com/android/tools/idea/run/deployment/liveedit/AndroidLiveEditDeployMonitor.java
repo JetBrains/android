@@ -198,7 +198,7 @@ public class AndroidLiveEditDeployMonitor {
 
     // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
     public void onLiteralsChanged(EditEvent event) {
-      if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveEditDevice()) {
+      if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveEdit()) {
         return;
       }
 
@@ -258,7 +258,7 @@ public class AndroidLiveEditDeployMonitor {
     // TODO: Don't use Live Literal's reporting
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + applicationId);
 
-    if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveEditDevice()) {
+    if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveEdit()) {
       LOGGER.info("Live Edit on device disabled via settings.");
       return null;
     }

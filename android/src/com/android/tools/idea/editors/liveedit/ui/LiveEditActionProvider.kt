@@ -63,7 +63,7 @@ class LiveEditActionProvider : InspectionWidgetActionProvider {
       object : DefaultActionGroup(LiveEditAction(editor), Separator.create()) {
         override fun update(e: AnActionEvent) {
           val proj = e.project ?: return
-          if (!LiveEditApplicationConfiguration.getInstance().isLiveEditDevice) {
+          if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit) {
             e.presentation.isEnabledAndVisible = false
             return
           }

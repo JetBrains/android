@@ -38,18 +38,18 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
 
   class State : BaseState() {
     var mode by enum(LIVE_LITERALS)
-    var liveEditDeviceEnabled by property(true)
   }
 
   var mode
-    get() = state.mode
+    get() = if (state.mode == LIVE_EDIT && !StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) LIVE_LITERALS else state.mode
     set(value) {
-      if (state.mode != value) {
-        state.mode = value
-        LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(value == LIVE_LITERALS)
-        if (value == LIVE_EDIT) {
-          liveEditDeviceEnabled = state.liveEditDeviceEnabled
-        }
+      var patchedValue = value
+      if (patchedValue == LIVE_EDIT && !StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
+        patchedValue = LIVE_LITERALS
+      }
+      if (state.mode != patchedValue) {
+        state.mode = patchedValue
+        LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(patchedValue == LIVE_LITERALS)
       }
     }
 
@@ -61,24 +61,12 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   val isLiveLiterals
     get() = mode == LIVE_LITERALS
 
-  var liveEditDeviceEnabled
-    get() = state.liveEditDeviceEnabled
-    set(value) {
-      if (state.liveEditDeviceEnabled != value) {
-        state.liveEditDeviceEnabled = value
-      }
-    }
-
   val isLiveEdit
     get() = mode == LIVE_EDIT
-
-  val isLiveEditDevice
-    get() = mode == LIVE_EDIT && liveEditDeviceEnabled
 
   @TestOnly
   fun resetDefault() {
     state.mode = LIVE_LITERALS
-    state.liveEditDeviceEnabled = true
   }
 
   companion object {
