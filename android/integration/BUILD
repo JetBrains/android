@@ -15,11 +15,6 @@ iml_module(
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
-        "//tools/vendor/google/firebase[module, test]",
-        "//tools/adt/idea/.idea/libraries:studio-proto[test]",
-        "//tools/adt/idea/.idea/libraries:firebase_java_proto[test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
     ],
 )
 
@@ -60,30 +55,6 @@ iml_test(
         "no_windows",  # Path issues, probably easily fixable.
     ],
     test_class = "com.android.tools.idea.EmulatorTest",
-)
-
-iml_test(
-    name = "AppInsightsTest",
-    timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-    }) + [
-        ":appinsights",
-        ":openproject_deps",
-        "//tools/base/build-system:gradle-distrib-7.2",
-    ],
-    module = ":intellij.android.core.integration",
-    tags = [
-        "block-network",
-        "no_mac",  # Untested.
-        "no_windows",
-    ],
-    test_class = "com.google.services.firebase.insights.AppInsightsTest",
 )
 
 iml_test(
@@ -151,9 +122,4 @@ maven_repository(
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
-)
-
-filegroup(
-    name = "appinsights",
-    srcs = glob(["testData/appinsights/**"]),
 )

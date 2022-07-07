@@ -22,10 +22,5 @@
     <orderEntry type="module" module-name="as-driver.utils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
-    <orderEntry type="module" module-name="firebase" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="firebase_java_proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
   </component>
 </module>
