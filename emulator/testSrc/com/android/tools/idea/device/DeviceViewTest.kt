@@ -91,6 +91,9 @@ internal class DeviceViewTest {
     if (SystemInfo.isWindows) {
       return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
     }
+    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
+      return // FFmpeg library requires Mac OS 10.15+.
+    }
     createDeviceView(200, 300, 2.0)
     assertThat(agent.commandLine).isEqualTo("CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
                                             " $DEVICE_PATH_BASE com.android.tools.screensharing.Main --log=debug --codec=vp8")
@@ -166,6 +169,9 @@ internal class DeviceViewTest {
     if (SystemInfo.isWindows) {
       return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
     }
+    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
+      return // FFmpeg library requires Mac OS 10.15+.
+    }
     createDeviceView(50, 100, 2.0)
     assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(100, 200))
 
@@ -208,6 +214,9 @@ internal class DeviceViewTest {
   fun testKeyboardInput() {
     if (SystemInfo.isWindows) {
       return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
+      return // FFmpeg library requires Mac OS 10.15+.
     }
     createDeviceView(150, 250, 1.5)
     assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(225, 375))
@@ -341,6 +350,9 @@ internal class DeviceViewTest {
   fun testClipboardSynchronization() {
     if (SystemInfo.isWindows) {
       return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
+      return // FFmpeg library requires Mac OS 10.15+.
     }
     createDeviceView(100, 200, 1.5)
     assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(150, 300))

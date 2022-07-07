@@ -100,6 +100,9 @@ class DeviceToolWindowPanelTest {
     if (SystemInfo.isWindows) {
       return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
     }
+    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
+      return // FFmpeg library requires Mac OS 10.15+.
+    }
     assertThat(panel.deviceView).isNull()
 
     panel.createContent(false)
