@@ -40,9 +40,11 @@ import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_ME
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.matchToProcessDescriptor
 import com.android.tools.idea.layoutinspector.snapshots.CaptureSnapshotAction
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -189,8 +191,15 @@ class DeviceViewPanel(
   }
 
   private val contentPanel = DeviceViewContentPanel(
-    layoutInspector.layoutInspectorModel, layoutInspector.stats, layoutInspector.treeSettings, viewSettings,
-    { layoutInspector.currentClient }, this, targetSelectedAction, disposableParent
+    inspectorModel = layoutInspector.layoutInspectorModel,
+    deviceModel = deviceModel,
+    stats = layoutInspector.stats,
+    treeSettings = layoutInspector.treeSettings,
+    viewSettings = viewSettings,
+    currentClient = { layoutInspector.currentClient },
+    pannable = this,
+    selectTargetAction = targetSelectedAction,
+    disposableParent = disposableParent
   )
 
   private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) = when {
@@ -303,6 +312,23 @@ class DeviceViewPanel(
       bubble.isVisible = !text.isNullOrBlank()
     }
 
+  /**
+   * If the new [ForegroundProcess] is not debuggable (it's not present in [ProcessesModel]),
+   * [DeviceViewContentPanel] will show an error message.
+   */
+  fun onNewForegroundProcess(foregroundProcess: ForegroundProcess) {
+    if (processesModel == null) {
+      contentPanel.showProcessNotDebuggableText = false
+    }
+    else {
+      val processDescriptor = foregroundProcess.matchToProcessDescriptor(processesModel)
+      contentPanel.showProcessNotDebuggableText = processDescriptor == null
+
+      contentPanel.revalidate()
+      contentPanel.repaint()
+    }
+  }
+
   init {
     loadingPane.addListener(object : JBLoadingPanelListener {
       override fun onLoadingStart() {
@@ -313,6 +339,7 @@ class DeviceViewPanel(
         contentPanel.showEmptyText = true
       }
     })
+
     scrollPane.viewport.layout = viewportLayoutManager
     contentPanel.isFocusable = true
 

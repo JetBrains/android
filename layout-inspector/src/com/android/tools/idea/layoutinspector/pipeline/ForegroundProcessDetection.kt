@@ -58,7 +58,7 @@ object ForegroundProcessDetectionInitializer {
     return object : ForegroundProcessListener {
       override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
         // set the foreground process to be the selected process.
-        processModel.selectedProcess = getProcessDescriptor(processModel, foregroundProcess)
+        processModel.selectedProcess = foregroundProcess.matchToProcessDescriptor(processModel)
       }
     }
   }
@@ -80,9 +80,10 @@ object ForegroundProcessDetectionInitializer {
     val foregroundProcessDetection = ForegroundProcessDetection(
       deviceModel,
       transportClient,
-      foregroundProcessListener,
       coroutineScope
     )
+
+    foregroundProcessDetection.foregroundProcessListeners.add(foregroundProcessListener)
 
     processModel.addSelectedProcessListeners {
       val selectedProcessDevice = processModel.selectedProcess?.device
@@ -96,13 +97,6 @@ object ForegroundProcessDetectionInitializer {
     }
 
     return foregroundProcessDetection
-  }
-
-  /**
-   * Match a [ForegroundProcess] with a [ProcessDescriptor].
-   */
-  private fun getProcessDescriptor(processModel: ProcessesModel, foregroundProcess: ForegroundProcess): ProcessDescriptor? {
-    return processModel.processes.firstOrNull { it.pid == foregroundProcess.pid }
   }
 }
 
@@ -177,6 +171,13 @@ class TransportDeviceManagerListenerImpl : TransportDeviceManager.TransportDevic
  */
 data class ForegroundProcess(val pid: Int, val processName: String)
 
+/**
+ * Match a [ForegroundProcess] with a [ProcessDescriptor].
+ */
+fun ForegroundProcess.matchToProcessDescriptor(processModel: ProcessesModel): ProcessDescriptor? {
+  return processModel.processes.firstOrNull { it.pid == this.pid }
+}
+
 interface ForegroundProcessListener {
   fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess)
 }
@@ -193,9 +194,10 @@ interface ForegroundProcessListener {
 class ForegroundProcessDetection(
   private val deviceModel: DeviceModel,
   private val transportClient: TransportClient,
-  private val foregroundProcessListener: ForegroundProcessListener,
   scope: CoroutineScope,
   workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread) {
+
+  val foregroundProcessListeners = mutableListOf<ForegroundProcessListener>()
 
   /**
    * Maps groupId to connected stream. Each stream corresponds to a device.
@@ -227,7 +229,7 @@ class ForegroundProcessDetection(
               ).collect { streamEvent ->
                 val foregroundProcess = streamEvent.toForegroundProcess()
                 if (foregroundProcess != null) {
-                  foregroundProcessListener.onNewProcess(streamDevice, foregroundProcess)
+                  foregroundProcessListeners.forEach { it.onNewProcess(streamDevice, foregroundProcess) }
                 }
               }
             }

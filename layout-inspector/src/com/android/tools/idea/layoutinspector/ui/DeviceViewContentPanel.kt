@@ -30,6 +30,8 @@ import com.android.tools.idea.layoutinspector.model.getDrawNodeLabelHeight
 import com.android.tools.idea.layoutinspector.model.getEmphasizedBorderOutlineThickness
 import com.android.tools.idea.layoutinspector.model.getFoldStroke
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
+import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
@@ -86,6 +88,7 @@ data class DropDownActionWithButton(val dropDownAction: DropDownAction, val butt
 
 class DeviceViewContentPanel(
   val inspectorModel: InspectorModel,
+  val deviceModel: DeviceModel?,
   val stats: SessionStatistics,
   val treeSettings: TreeSettings,
   val viewSettings: DeviceViewSettings,
@@ -95,8 +98,8 @@ class DeviceViewContentPanel(
   disposableParent: Disposable
 ) : AdtPrimaryPanel() {
 
-  @VisibleForTesting
   var showEmptyText = true
+  var showProcessNotDebuggableText = false
 
   val model = DeviceViewPanelModel(inspectorModel, stats, treeSettings, currentClient)
 
@@ -108,10 +111,17 @@ class DeviceViewContentPanel(
     }
 
   private val emptyText: StatusText = object : StatusText(this) {
-    override fun isStatusVisible() = !model.isActive && showEmptyText
+    override fun isStatusVisible() = !model.isActive && showEmptyText && deviceModel?.selectedDevice == null
+  }
+
+  private val processNotDebuggableText: StatusText = object : StatusText(this) {
+    override fun isStatusVisible() = !model.isActive && showProcessNotDebuggableText && deviceModel?.selectedDevice != null
   }
 
   init {
+    processNotDebuggableText.appendLine("Application not inspectable.")
+    processNotDebuggableText.appendLine("Switch to a debuggable application on your device to inspect.")
+
     selectTargetAction?.let { selectDeviceAction ->
       emptyText.appendLine("No process connected")
 
@@ -249,6 +259,7 @@ class DeviceViewContentPanel(
     g2d.color = primaryPanelBackground
     g2d.fillRect(0, 0, width, height)
     emptyText.paint(this, g)
+    processNotDebuggableText.paint(this, g)
     g2d.translate(size.width / 2.0, size.height / 2.0)
     g2d.scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
 

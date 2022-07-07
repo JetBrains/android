@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -30,9 +31,12 @@ import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectio
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -130,6 +134,13 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           viewSettings = viewSettings,
           disposableParent = workbench
         )
+
+        // notify DeviceViewPanel that a new foreground process showed up
+        foregroundProcessDetection?.foregroundProcessListeners?.add(object : ForegroundProcessListener {
+          override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
+            deviceViewPanel.onNewForegroundProcess(foregroundProcess)
+          }
+        })
 
         DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
         workbench.init(deviceViewPanel, layoutInspector, listOf(

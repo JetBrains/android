@@ -80,14 +80,20 @@ class ForegroundProcessDetectionTest {
     val foregroundProcessLatch = CountDownLatch(expectedForegroundProcesses.size)
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
-    val foregroundProcessDetection = ForegroundProcessDetection(deviceModel, transportClient, object : ForegroundProcessListener {
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      deviceModel,
+      transportClient,
+      CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
+    )
+    foregroundProcessDetection.foregroundProcessListeners.add(object : ForegroundProcessListener {
       override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
         receivedForegroundProcesses.add(foregroundProcess)
         receivedDevices.add(device)
 
         foregroundProcessLatch.countDown()
       }
-    }, CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()), SameThreadExecutor.INSTANCE.asCoroutineDispatcher())
+    })
 
     foregroundProcessDetection.startListeningForEvents()
 
@@ -123,7 +129,13 @@ class ForegroundProcessDetectionTest {
     val latch1 = CountDownLatch(1)
     val latch2 = CountDownLatch(2)
 
-    val foregroundProcessDetection = ForegroundProcessDetection(deviceModel, transportClient, object : ForegroundProcessListener {
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      deviceModel,
+      transportClient,
+      CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
+    )
+    foregroundProcessDetection.foregroundProcessListeners.add(object : ForegroundProcessListener {
       override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
         receivedForegroundProcesses.add(foregroundProcess)
         receivedDevices.add(device)
@@ -135,7 +147,7 @@ class ForegroundProcessDetectionTest {
           latch2.countDown()
         }
       }
-    }, CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()), SameThreadExecutor.INSTANCE.asCoroutineDispatcher())
+    })
 
     foregroundProcessDetection.startListeningForEvents()
 
@@ -176,13 +188,19 @@ class ForegroundProcessDetectionTest {
     val foregroundProcessLatch = CountDownLatch(1)
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
-    val foregroundProcessDetection = ForegroundProcessDetection(deviceModel, transportClient, object : ForegroundProcessListener {
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      deviceModel,
+      transportClient,
+      CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
+    )
+    foregroundProcessDetection.foregroundProcessListeners.add(object : ForegroundProcessListener {
       override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
         receivedForegroundProcesses.add(foregroundProcess)
 
         foregroundProcessLatch.countDown()
       }
-    }, CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()), SameThreadExecutor.INSTANCE.asCoroutineDispatcher())
+    })
 
     foregroundProcessDetection.startListeningForEvents()
 
