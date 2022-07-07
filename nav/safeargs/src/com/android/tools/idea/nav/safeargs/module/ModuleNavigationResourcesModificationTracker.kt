@@ -16,8 +16,8 @@
 package com.android.tools.idea.nav.safeargs.module
 
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.ModificationTracker
@@ -29,7 +29,6 @@ import com.intellij.openapi.util.SimpleModificationTracker
  */
 class ModuleNavigationResourcesModificationTracker(val module: Module) : ModificationTracker {
   private val navigationModificationTracker = SimpleModificationTracker()
-  private val LOG get() = Logger.getInstance(ModuleNavigationResourcesModificationTracker::class.java)
 
   init {
     val project = module.project
@@ -38,7 +37,7 @@ class ModuleNavigationResourcesModificationTracker(val module: Module) : Modific
       if (!startupManager.postStartupActivityPassed()) {
         // If query happens before indexing when project just starts up, invalid queried results are cached.
         // So we need to explicitly update tracker to ensure another index query, instead of providing stale cached results.
-        startupManager.registerPostStartupActivity { navigationChanged() }
+        startupManager.runAfterOpened(::navigationChanged)
       }
     }
   }
@@ -55,6 +54,7 @@ class ModuleNavigationResourcesModificationTracker(val module: Module) : Modific
    */
   internal fun navigationChanged() {
     navigationModificationTracker.incModificationCount()
-    LOG.debug { "Navigation Modification Tracker of ${module} is updated to ${modificationCount}" }
+    logger<ModuleNavigationResourcesModificationTracker>()
+      .debug { "Navigation Modification Tracker of $module is updated to $modificationCount" }
   }
 }
