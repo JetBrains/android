@@ -27,6 +27,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 public class EmulatorTest {
+  private static final String EMULATOR_NAME = "emu";
+
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -37,11 +39,11 @@ public class EmulatorTest {
     AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk()));
     sdk.install(env);
 
-    Emulator.createEmulator(fileSystem, TestUtils.getWorkspaceRoot().resolve("../system_image_android-29_default_x86_64"));
+    Emulator.createEmulator(fileSystem, EMULATOR_NAME, TestUtils.getWorkspaceRoot().resolve("../system_image_android-29_default_x86_64"));
 
     try (Display display = Display.createDefault();
          Adb adb = Adb.start(sdk, fileSystem.getHome());
-         Emulator emulator = Emulator.start(fileSystem, sdk, display, "emu")) {
+         Emulator emulator = Emulator.start(fileSystem, sdk, display, EMULATOR_NAME)) {
       emulator.waitForBoot();
       adb.waitForDevice(emulator);
     }

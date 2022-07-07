@@ -32,7 +32,7 @@ public class Emulator implements AutoCloseable {
   private final String portString;
   private final Process process;
 
-  public static void createEmulator(TestFileSystem fileSystem, Path systemImage) throws IOException {
+  public static void createEmulator(TestFileSystem fileSystem, String name, Path systemImage) throws IOException {
     Path avdHome = getAvdHome(fileSystem);
     Files.createDirectories(avdHome);
 
@@ -40,16 +40,16 @@ public class Emulator implements AutoCloseable {
     Matcher api = getString(sourceProperties, "AndroidVersion.ApiLevel=(.*)");
     Matcher abi = getString(sourceProperties, "SystemImage.Abi=(.*)");
 
-    Path emuIni = avdHome.resolve("emu.ini");
+    Path emuIni = avdHome.resolve(name + ".ini");
     Files.createFile(emuIni);
     try (FileWriter writer = new FileWriter(emuIni.toFile())) {
       writer.write(String.format("avd.ini.encoding=UTF-8%n"));
-      writer.write(String.format("path=%s/emu.avd%n", avdHome));
-      writer.write(String.format("path.rel=avd/emu.avd%n"));
+      writer.write(String.format("path=%s/%s.avd%n", avdHome, name));
+      writer.write(String.format("path.rel=avd/%s.avd%n", name));
       writer.write(String.format("target=android-%s%n", api.group(1)));
     }
 
-    Path configIni = avdHome.resolve("emu.avd").resolve("config.ini");
+    Path configIni = avdHome.resolve(name + ".avd").resolve("config.ini");
     Files.createDirectories(configIni.getParent());
     try (FileWriter writer = new FileWriter(configIni.toFile())) {
       writer.write(String.format("PlayStore.enabled=false%n"));
