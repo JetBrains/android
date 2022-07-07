@@ -44,16 +44,12 @@ class BuildProjectTest {
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
     project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
-    val projectPath = project.install(fileSystem.root)
-
-    // Mark that project as trusted
-    install.trustPath(projectPath)
 
     // Create a maven repo and set it up in the installation and environment
     val mavenRepo = MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest")
     mavenRepo.install(fileSystem.root, install, env)
     XvfbServer().use { display ->
-      install.run(display, env, arrayOf(projectPath.toString())).use { studio ->
+      install.run(display, env, project).use { studio ->
         var matcher = install.ideaLog.waitForMatchingLine(".*Gradle sync finished in (.*)", 300, TimeUnit.SECONDS)
         println("Sync took " + matcher.group(1))
         studio.waitForIndex()

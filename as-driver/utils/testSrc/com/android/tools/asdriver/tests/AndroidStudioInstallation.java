@@ -292,6 +292,13 @@ public class AndroidStudioInstallation {
     return run(display, env, new String[] {});
   }
 
+  public AndroidStudio run(Display display, Map<String, String> env, AndroidProject project) throws IOException, InterruptedException {
+    Path projectPath = project.install(fileSystem.getRoot());
+    // Mark that project as trusted
+    trustPath(projectPath);
+    return run(display, env, new String[]{ projectPath.toString() });
+  }
+
   public AndroidStudio run(Display display, Map<String, String> env, String[] args) throws IOException, InterruptedException {
     Map<String, String> newEnv = new HashMap<>(env);
     newEnv.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());

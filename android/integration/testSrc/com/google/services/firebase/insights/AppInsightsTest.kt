@@ -114,10 +114,6 @@ class AppInsightsTest {
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/android/integration/testData/appinsights")
     project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
-    val projectPath = project.install(fileSystem.root)
-
-    // Mark that project as trusted
-    install.trustPath(projectPath)
 
     // Create a maven repo and set it up in the installation and environment
     val mavenRepo = MavenRepo("tools/adt/idea/android/integration/openproject_deps.manifest")
@@ -128,7 +124,7 @@ class AppInsightsTest {
     install.addVmOption("-Dappinsights.crashlytics.grpc.use.transport.security=false")
     XvfbServer().use { display ->
       env["GOOGLE_LOGIN_USER"] = "test_user@google.com"
-      install.run(display, env, arrayOf(projectPath.toString())).use { studio ->
+      install.run(display, env, project).use { studio ->
         var matcher = install.ideaLog.waitForMatchingLine(".*Gradle sync finished in (.*)", 300, TimeUnit.SECONDS)
         println("Sync took " + matcher.group(1))
 
