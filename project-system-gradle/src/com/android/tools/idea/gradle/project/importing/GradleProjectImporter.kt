@@ -94,7 +94,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
           project = newProject,
           projectName = null,
           showWelcomeScreen = true,
-          callback = null,
         )
       )
     }
