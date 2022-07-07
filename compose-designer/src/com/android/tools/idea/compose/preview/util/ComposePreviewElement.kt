@@ -38,6 +38,8 @@ import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.xml.PreviewXmlBuilder
+import com.android.tools.idea.preview.xml.XmlSerializable
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
