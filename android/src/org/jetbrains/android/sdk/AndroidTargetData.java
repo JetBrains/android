@@ -24,8 +24,10 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
@@ -77,10 +79,8 @@ public class AndroidTargetData {
 
   private LayoutLibrary myLayoutLibrary;
 
-  private final Object myPublicResourceCacheLock = new Object();
-  @GuardedBy("myPublicResourceCacheLock")
-  private volatile Map<String, Set<String>> myPublicResourceCache;
-  @GuardedBy("myPublicResourceCacheLock")
+  private final Object myPublicResourceIdMapLock = new Object();
+  @GuardedBy("myPublicResourceIdMapLock")
   private TIntObjectHashMap<String> myPublicResourceIdMap;
 
   private volatile MyStaticConstantsData myStaticConstantsData;
@@ -114,41 +114,29 @@ public class AndroidTargetData {
     }
   }
 
-  @Nullable
-  private Map<String, Set<String>> getPublicResourceCache() {
-    synchronized (myPublicResourceCacheLock) {
-      if (myPublicResourceCache == null) {
-        parsePublicResCache();
-      }
-      return myPublicResourceCache;
-    }
-  }
-
+  // TODO: Consider moving this method to FrameworkResourceRepository.
   @Nullable
   public TIntObjectHashMap<String> getPublicIdMap() {
-    synchronized (myPublicResourceCacheLock) {
+    synchronized (myPublicResourceIdMapLock) {
       if (myPublicResourceIdMap == null) {
-        parsePublicResCache();
+        buildPublicResourceIdMap();
       }
       return myPublicResourceIdMap;
     }
   }
 
-  // TODO(b/237867274): Remove this method and use resource repositories instead
-  public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
-    Map<String, Set<String>> publicResourceCache = getPublicResourceCache();
-
-    if (publicResourceCache == null) {
+  public boolean isResourcePublic(@NotNull ResourceType type, @NotNull String name) {
+    ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet());
+    if (frameworkResources == null) {
       return false;
     }
-    Set<String> set = publicResourceCache.get(type);
-    return set != null && set.contains(name);
+    List<ResourceItem> resources = frameworkResources.getResources(ResourceNamespace.ANDROID, type, name);
+    return !resources.isEmpty() && ((ResourceItemWithVisibility)resources.get(0)).getVisibility() == ResourceVisibility.PUBLIC;
   }
 
-  private void parsePublicResCache() {
+  private void buildPublicResourceIdMap() {
     Path resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
 
-    Map<String, Set<String>> resourceCache = new HashMap<>();
     TIntObjectHashMap<String> resourceIdMap = new TIntObjectHashMap<>();
 
     for (String fileName : myPublicFileNames) {
@@ -157,10 +145,9 @@ public class AndroidTargetData {
 
       if (publicXml != null) {
         try {
-          MyPublicResourceCacheBuilder builder = new MyPublicResourceCacheBuilder();
+          MyPublicResourceIdMapBuilder builder = new MyPublicResourceIdMapBuilder();
           NanoXmlUtil.parse(publicXml.getInputStream(), builder);
 
-          resourceCache.putAll(builder.getPublicResourceCache());
           builder.getIdMap().forEachEntry((key, value) -> {
             resourceIdMap.put(key, value);
             return true;
@@ -171,8 +158,7 @@ public class AndroidTargetData {
         }
       }
     }
-    synchronized (myPublicResourceCacheLock) {
-      myPublicResourceCache = resourceCache;
+    synchronized (myPublicResourceIdMapLock) {
       myPublicResourceIdMap = resourceIdMap;
     }
   }
@@ -284,7 +270,7 @@ public class AndroidTargetData {
   public synchronized ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
     Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
     if (!Files.exists(resFolderOrJar)) {
-      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.toString()));
+      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar));
       return null;
     }
 
@@ -307,7 +293,7 @@ public class AndroidTargetData {
   public synchronized ResourceRepository getCachedFrameworkResources(@NotNull Set<String> languages) {
     Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
     if (!Files.exists(resFolderOrJar)) {
-      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.toString()));
+      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar));
       return null;
     }
 
@@ -335,13 +321,12 @@ public class AndroidTargetData {
     protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
       return attr.getNamespace().equals(ResourceNamespace.ANDROID)
              && !attr.getName().startsWith("__removed")
-             && isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
+             && isResourcePublic(ResourceType.ATTR, attr.getName());
     }
   }
 
   @VisibleForTesting
-  static class MyPublicResourceCacheBuilder implements NanoXmlBuilder {
-    private final Map<String, Set<String>> myResult = new HashMap<>();
+  static class MyPublicResourceIdMapBuilder implements NanoXmlBuilder {
     private final TIntObjectHashMap<String> myIdMap = new TIntObjectHashMap<>(3000);
 
     private String myName;
@@ -352,9 +337,6 @@ public class AndroidTargetData {
     @Override
     public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) {
       if ("public".equals(name) && myName != null && myType != null) {
-        Set<String> set = myResult.computeIfAbsent(myType, k -> new HashSet<>());
-        set.add(myName);
-
         if (myId != 0) {
           myIdMap.put(myId, SdkConstants.ANDROID_PREFIX + myType + "/" + myName);
 
@@ -406,10 +388,6 @@ public class AndroidTargetData {
       if ("public-group".equals(name)) {
         inGroup = false;
       }
-    }
-
-    public Map<String, Set<String>> getPublicResourceCache() {
-      return myResult;
     }
 
     public TIntObjectHashMap<String> getIdMap() {

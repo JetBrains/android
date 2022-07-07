@@ -41,10 +41,8 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 public class AndroidTargetDataTest extends AndroidTestCase {
 
   private static void parseAndClose(InputStream stream, IXMLBuilder builder) throws IOException {
-    try {
+    try (stream) {
       NanoXmlUtil.parse(stream, builder);
-    } finally {
-      stream.close();
     }
   }
 
@@ -52,7 +50,7 @@ public class AndroidTargetDataTest extends AndroidTestCase {
    * Tests that we correctly can read the platform public.xml
    */
   public void testPlatformResourceIdMap() throws Exception {
-    final AndroidTargetData.MyPublicResourceCacheBuilder builder = new AndroidTargetData.MyPublicResourceCacheBuilder();
+    final AndroidTargetData.MyPublicResourceIdMapBuilder builder = new AndroidTargetData.MyPublicResourceIdMapBuilder();
 
     parseAndClose(Files.newInputStream(TestUtils.resolvePlatformPath("data/res/values/public.xml")), builder);
 
@@ -90,7 +88,7 @@ public class AndroidTargetDataTest extends AndroidTestCase {
                                     "     <public name=\"textAssist\" />\n" +
                                     "  </public-group>" +
                                     "</resources>";
-    final AndroidTargetData.MyPublicResourceCacheBuilder builder = new AndroidTargetData.MyPublicResourceCacheBuilder();
+    final AndroidTargetData.MyPublicResourceIdMapBuilder builder = new AndroidTargetData.MyPublicResourceIdMapBuilder();
 
     parseAndClose(new ByteArrayInputStream(publicXmlContent.getBytes(UTF_8)), builder);
     TIntObjectHashMap<String> map = builder.getIdMap();
