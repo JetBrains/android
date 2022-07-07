@@ -125,14 +125,12 @@ class AppInsightsTest {
     XvfbServer().use { display ->
       env["GOOGLE_LOGIN_USER"] = "test_user@google.com"
       install.run(display, env, project).use { studio ->
-        var matcher = install.ideaLog.waitForMatchingLine(".*Gradle sync finished in (.*)", 300, TimeUnit.SECONDS)
-        println("Sync took " + matcher.group(1))
-
+        studio.waitForSync()
         studio.waitForIndex()
 
         assertThat(studio.showToolWindow("App Quality Insights")).isTrue()
 
-        matcher = install.ideaLog.waitForMatchingLine(".*New app states (.*?activeConnection=debug: \\[dummy_id\\].*)$", 20, TimeUnit.SECONDS)
+        val matcher = install.ideaLog.waitForMatchingLine(".*New app states (.*?activeConnection=debug: \\[dummy_id\\].*)$", 20, TimeUnit.SECONDS)
         println("App states ${matcher.group(1)}")
       }
     }

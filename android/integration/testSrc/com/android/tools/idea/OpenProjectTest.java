@@ -24,8 +24,6 @@ import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.TestFileSystem;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -54,8 +52,7 @@ public class OpenProjectTest {
 
     try (Display display = Display.createDefault();
          AndroidStudio studio = install.run(display, env, project)) {
-      Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle sync finished in (.*)", 300, TimeUnit.SECONDS);
-      System.out.println("Sync took " + matcher.group(1));
+      studio.waitForSync();
     }
   }
 }

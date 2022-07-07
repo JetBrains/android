@@ -38,6 +38,7 @@ public class AndroidStudio implements AutoCloseable {
 
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final ProcessHandle process;
+  private final AndroidStudioInstallation install;
 
   static public AndroidStudio run(AndroidStudioInstallation installation,
                        Display display,
@@ -93,10 +94,11 @@ public class AndroidStudio implements AutoCloseable {
 
     ProcessHandle process = ProcessHandle.of(pid).get();
     int port = waitForDriverServer(installation.getIdeaLog());
-    return new AndroidStudio(process, port);
+    return new AndroidStudio(installation, process, port);
   }
 
-  private AndroidStudio(ProcessHandle process, int port) {
+  private AndroidStudio(AndroidStudioInstallation install, ProcessHandle process, int port) {
+    this.install = install;
     this.process = process;
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
@@ -253,5 +255,15 @@ public class AndroidStudio implements AutoCloseable {
       default:
         throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
+  }
+
+  public void waitForSync() throws IOException, InterruptedException {
+    // "Infinite" timeout
+    waitForSync(1, TimeUnit.DAYS);
+  }
+
+  public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
+    Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle sync finished in (.*)", timeout, unit);
+    System.out.println("Sync took " + matcher.group(1));
   }
 }

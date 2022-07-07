@@ -50,11 +50,10 @@ class BuildProjectTest {
     mavenRepo.install(fileSystem.root, install, env)
     XvfbServer().use { display ->
       install.run(display, env, project).use { studio ->
-        var matcher = install.ideaLog.waitForMatchingLine(".*Gradle sync finished in (.*)", 300, TimeUnit.SECONDS)
-        println("Sync took " + matcher.group(1))
+        studio.waitForSync()
         studio.waitForIndex()
         studio.executeAction("MakeGradleProject")
-        matcher = install.ideaLog.waitForMatchingLine(".*Gradle build finished in (.*)", 180, TimeUnit.SECONDS)
+        val matcher = install.ideaLog.waitForMatchingLine(".*Gradle build finished in (.*)", 180, TimeUnit.SECONDS)
         println("Build took " + matcher.group(1))
       }
     }
