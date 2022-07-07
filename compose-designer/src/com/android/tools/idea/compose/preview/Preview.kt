@@ -33,7 +33,6 @@ import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationM
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FpsCalculator
@@ -67,6 +66,7 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.projectsystem.BuildListener
+import com.android.tools.idea.projectsystem.CodeOutOfDateTracker
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform

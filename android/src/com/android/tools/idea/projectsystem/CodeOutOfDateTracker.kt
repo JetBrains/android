@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.util
+package com.android.tools.idea.projectsystem
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.projectsystem.BuildListener
-import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.lang.java.JavaLanguage
@@ -49,7 +47,7 @@ interface CodeOutOfDateTracker: ModificationTracker {
   fun buildWillTriggerRefresh(): Boolean
 
   companion object {
-    internal fun create(module: Module?, parentDisposable: Disposable, needsRefreshCallback: () -> Unit): CodeOutOfDateTracker =
+    fun create(module: Module?, parentDisposable: Disposable, needsRefreshCallback: () -> Unit): CodeOutOfDateTracker =
       module?.let { CodeOutOfDateTrackerImpl(it, parentDisposable, needsRefreshCallback) } ?: NopCodeOutOfDateTrackerImpl
   }
 }
@@ -83,6 +81,13 @@ private class CodeOutOfDateTrackerImpl constructor(module: Module,
   private var kotlinJavaModificationCount = -1L
   private val kotlinJavaModificationTracker = PsiModificationTracker.SERVICE.getInstance(module.project).forLanguages { lang ->
     lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
+  }
+
+  private val resourceChangeListener: ((MutableSet<ResourceNotificationManager.Reason>) -> Unit) = { reasons ->
+    // If this listener was triggered by any reason but a project build,
+    // then we need to refresh the previews on the next successful build
+    reasons.remove(ResourceNotificationManager.Reason.PROJECT_BUILD)
+    if (reasons.isNotEmpty()) invalidateSavedBuildStatus()
   }
 
   init {
@@ -155,21 +160,14 @@ private class CodeOutOfDateTrackerImpl constructor(module: Module,
     }, parentDisposable = buildDisposable)
 
     module.androidFacet?.let { facet ->
-      val listener: ((MutableSet<ResourceNotificationManager.Reason>) -> Unit) = { reasons ->
-        // If this listener was triggered by any reason but a project build,
-        // then we need to refresh the previews on the next successful build
-        reasons.remove(ResourceNotificationManager.Reason.PROJECT_BUILD)
-        if (reasons.isNotEmpty()) invalidateSavedBuildStatus()
-      }
-
       // Set a ResourceChangeListener to update the need of refreshing the previews when corresponds
       ResourceNotificationManager
         .getInstance(module.project)
-        .addListener(listener, facet, null, null)
+        .addListener(resourceChangeListener, facet, null, null)
       Disposer.register(parentDisposable) {
         ResourceNotificationManager
           .getInstance(module.project)
-          .removeListener(listener, facet, null, null)
+          .removeListener(resourceChangeListener, facet, null, null)
       }
     } ?: log.error("Couldn't set the ResourceChangeListener, some previews might not be refreshed correctly after successful builds")
   }
