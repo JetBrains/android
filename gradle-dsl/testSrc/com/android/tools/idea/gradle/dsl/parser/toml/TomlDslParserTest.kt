@@ -30,15 +30,6 @@ import com.intellij.testFramework.PlatformTestCase
 import org.junit.Assume.assumeTrue
 
 class TomlDslParserTest : PlatformTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
-    super.tearDown()
-  }
 
   fun testSingleLibraryLiteralString() {
     val toml = """

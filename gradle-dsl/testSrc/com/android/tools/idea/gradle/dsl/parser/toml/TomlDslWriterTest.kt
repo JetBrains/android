@@ -32,13 +32,11 @@ import com.intellij.testFramework.PlatformTestCase
 class TomlDslWriterTest : PlatformTestCase() {
   override fun setUp() {
     super.setUp()
-    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
   }
 
   override fun tearDown() {
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
-    StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
     super.tearDown()
   }
 

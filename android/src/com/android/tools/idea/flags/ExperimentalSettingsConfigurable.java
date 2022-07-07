@@ -93,7 +93,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseL2DependenciesCheckBox.setVisible(false);
 
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
-    myEnableVersionCatalogParsing.setVisible(StudioFlags.GRADLE_DSL_TOML_SUPPORT.get() || StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.get());
+    myEnableVersionCatalogParsing.setVisible(StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.get());
 
     Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
     qualityLabels.put(0, new JLabel("Fastest"));

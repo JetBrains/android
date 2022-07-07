@@ -25,11 +25,7 @@ import com.intellij.psi.PsiFile
 import org.toml.lang.psi.TomlFile
 
 class TomlDslTransformerFactory : GradleDslTransformerFactory {
-  override fun canTransform(psiFile: PsiFile) = when {
-    // TODO(b/200280395): when we remove the flag, also remove the dependency on intellij.android.common
-    StudioFlags.GRADLE_DSL_TOML_SUPPORT.get() -> psiFile is TomlFile
-    else -> false
-  }
+  override fun canTransform(psiFile: PsiFile) = psiFile is TomlFile
 
   override fun createParser(psiFile: PsiFile, context: BuildModelContext, dslFile: GradleDslFile) =
     TomlDslParser(psiFile as TomlFile, context, dslFile)
