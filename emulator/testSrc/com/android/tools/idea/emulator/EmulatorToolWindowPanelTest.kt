@@ -748,7 +748,7 @@ class EmulatorToolWindowPanelTest {
     get() = getData(EMULATOR_VIEW_KEY.name) as EmulatorView?
 
   private fun assertAppearance(ui: FakeUi,
-                               @Suppress("SameParameterValue") goldenImageName: String,
+                               goldenImageName: String,
                                maxPercentDifferentLinux: Double = 0.0,
                                maxPercentDifferentMac: Double = 0.0,
                                maxPercentDifferentWindows: Double = 0.0) {
