@@ -204,8 +204,6 @@ class EmulatorView(
   val displaySizeWithFrame: Dimension
     get() = computeActualSize(screenshotShape.orientation)
 
-  private val isMultiTouchModeSupported = displayId == 0 // See b/150699691.
-
   private var multiTouchMode = false
     set(value) {
       if (value != field) {
@@ -662,7 +660,7 @@ class EmulatorView(
       }
 
       if (event.keyCode == VK_CONTROL && event.modifiersEx == CTRL_DOWN_MASK) {
-        multiTouchMode = isMultiTouchModeSupported
+        multiTouchMode = true
         return
       }
 
@@ -756,7 +754,7 @@ class EmulatorView(
 
     private fun updateMultiTouchMode(event: MouseEvent) {
       val oldMultiTouchMode = multiTouchMode
-      multiTouchMode = isMultiTouchModeSupported && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !virtualSceneCameraOperating
+      multiTouchMode = (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !virtualSceneCameraOperating
       if (multiTouchMode && oldMultiTouchMode) {
         repaint() // If multitouch mode changed above, the repaint method was already called.
       }
