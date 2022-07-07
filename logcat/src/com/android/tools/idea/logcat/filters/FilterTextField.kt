@@ -96,6 +96,8 @@ private val FAVORITE_ICON = StudioIcons.Logcat.Input.FAVORITE_OUTLINE
 private val FAVORITE_ON_ICON = StudioIcons.Logcat.Input.FAVORITE_FILLED
 private val FAVORITE_FOCUSED_ICON = StudioIcons.Logcat.Input.FAVORITE_OUTLINE_HOVER
 private val FAVORITE_FOCUSED_ON_ICON = StudioIcons.Logcat.Input.FAVORITE_FILLED_HOVER
+private val FAVORITE_POPUP_HOVER_ICON = StudioIcons.Logcat.Input.FAVORITE_POPUP_HOVER
+private val FAVORITE_FILLED_POPUP_HOVER_ICON = StudioIcons.Logcat.Input.FAVORITE_FILLED_POPUP_HOVER
 private val FAVORITE_BLANK_ICON = EmptyIcon.create(FAVORITE_ON_ICON.iconWidth, FAVORITE_ON_ICON.iconHeight)
 
 // The text of the history dropdown item needs a little horizontal padding
@@ -409,7 +411,9 @@ internal class FilterTextField(
         }
       }
 
-      addMouseListener(MouseListener())
+      val listener = MouseListener()
+      addMouseListener(listener)
+      addMouseMotionListener(listener)
     }
 
     /**
@@ -452,6 +456,8 @@ internal class FilterTextField(
      * the item. This works because the item corresponding to the mouse event must be the selected item since the mouse is hovering on it.
      */
     inner class MouseListener : MouseAdapter() {
+      var hoveredFavoriteIndex: Int? = null
+
       override fun mouseReleased(event: MouseEvent) {
         if (event.button == BUTTON1 && event.modifiersEx == 0) {
           val index = selectedIndex
@@ -462,6 +468,31 @@ internal class FilterTextField(
             event.consume()
           }
         }
+      }
+
+      override fun mouseMoved(event: MouseEvent) {
+        val index = selectedIndex
+        if (model.getElementAt(index) !is Item) {
+          hoveredFavoriteIndex?.setIsHoveredFavorite(false)
+        }
+        val cellLocation = getCellBounds(index, index).location
+        val favoriteIconBounds = Item.getFavoriteIconBounds(cellLocation)
+        val hoveredIndex = when {
+          favoriteIconBounds.contains(event.point) -> index
+          else -> null
+        }
+
+        if (hoveredIndex != hoveredFavoriteIndex) {
+          hoveredFavoriteIndex?.setIsHoveredFavorite(false)
+          hoveredIndex?.setIsHoveredFavorite(true)
+          hoveredFavoriteIndex = hoveredIndex
+          paintImmediately(favoriteIconBounds)
+        }
+      }
+
+      private fun Int.setIsHoveredFavorite(value: Boolean) {
+        val item = model.getElementAt(this) as? Item ?: return
+        item.isFavoriteHovered = value
       }
     }
   }
@@ -483,8 +514,13 @@ internal class FilterTextField(
    */
   @VisibleForTesting
   internal sealed class FilterHistoryItem {
-    class Item(val filter: String, var isFavorite: Boolean, val count: Int?, private val filterParser: LogcatFilterParser)
-      : FilterHistoryItem() {
+    class Item(
+      val filter: String,
+      var isFavorite: Boolean,
+      val count: Int?,
+      private val filterParser: LogcatFilterParser,
+      var isFavoriteHovered: Boolean = false,
+    ) : FilterHistoryItem() {
 
       private val filterName = filterParser.parse(filter)?.getFilterName()
 
@@ -501,7 +537,14 @@ internal class FilterTextField(
         else {
           filterLabel.append(filter)
         }
-        favoriteLabel.icon = if (isFavorite) FAVORITE_ON_ICON else FAVORITE_BLANK_ICON
+        // This can be mico optimized, but it's more readable like this
+        favoriteLabel.icon = when {
+          isFavoriteHovered && isFavorite -> FAVORITE_FILLED_POPUP_HOVER_ICON
+          isFavoriteHovered && !isFavorite -> FAVORITE_POPUP_HOVER_ICON
+          !isFavoriteHovered && isFavorite -> FAVORITE_ON_ICON
+          else -> FAVORITE_BLANK_ICON
+        }
+
         countLabel.text = when (count) {
           null -> " ".repeat(3)
           in 0..99 -> "% 2d ".format(count)

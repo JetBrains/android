@@ -665,6 +665,8 @@ public class StudioIcons {
       public static final Icon FAVORITE_OUTLINE_HOVER = load("/studio/icons/logcat/input/favorite-outline-hover.svg"); // 16x16
       public static final Icon FAVORITE_OUTLINE = load("/studio/icons/logcat/input/favorite-outline.svg"); // 16x16
       public static final Icon FILTER_HISTORY = load("/studio/icons/logcat/input/filter-history.svg"); // 16x16
+      public static final Icon FAVORITE_POPUP_HOVER = load("/studio/icons/logcat/input/favorite-popup-hover.svg"); // 16x16
+      public static final Icon FAVORITE_FILLED_POPUP_HOVER = load("/studio/icons/logcat/input/favorite-filled-popup-hover.svg"); // 16x16
     }
 
     public static class Toolbar {
