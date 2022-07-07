@@ -33,6 +33,7 @@ import com.android.utils.FileUtils.toSystemIndependentPath
 import com.android.utils.HtmlBuilder
 import com.android.utils.forEach
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -60,8 +61,12 @@ class ManifestPanelContentTest : GradleIntegrationTest {
 
       val mergedManifest = MergedManifestManager.getMergedManifestSupplier(appModule).get().get(2, TimeUnit.SECONDS)
 
-      val panel = ManifestPanel(appModuleFacet, projectRule.testRootDisposable)
-      panel.showManifest(mergedManifest, appModuleFacet.sourceProviders.mainManifestFile!!, false)
+      var panel : ManifestPanel? = null
+      
+      runInEdtAndWait { 
+        panel = ManifestPanel(appModuleFacet, projectRule.testRootDisposable)
+        panel?.showManifest(mergedManifest, appModuleFacet.sourceProviders.mainManifestFile!!, false)
+      }
 
       val reportBuilder = HtmlBuilder()
       mergedManifest.document?.getElementsByTagName("*")?.forEach { node ->
@@ -70,7 +75,7 @@ class ManifestPanelContentTest : GradleIntegrationTest {
           reportBuilder.newline()
           reportBuilder.addBold(key.toString())
           reportBuilder.newline()
-          panel.prepareSelectedNodeReport(node, reportBuilder)
+          panel?.prepareSelectedNodeReport(node, reportBuilder)
         }
       }
 
