@@ -2116,34 +2116,21 @@ fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, invoker: (
 
 // HACK: b/143864616 and ag/14916674 Bazel hack, until missing dependencies are available in "offline-maven-repo"
 fun updatePluginsResolutionManagement(origContent: String, pluginDefinitions: String): String {
-  fun findPluginVersion(pluginId: String): String? = pluginDefinitions.lines()
-    .firstOrNull { it.contains(pluginId) && it.contains("version") }
-    ?.replace(" apply false", "")?.replace("'", "")
-    ?.substringAfterLast(" ")
-
-  fun pluginIdResolutionText(pluginId: String, resolution: String): String =
-    """
-          if (requested.id.id == "$pluginId") {
-              useModule("$resolution:${'$'}{requested.version}")
-          }
+  val pluginsResolutionStrategy =
     """
 
-  val pluginsResolutionStrategy = findPluginVersion("com.android.application")?.let { agpVersion ->
-    """
       resolutionStrategy {
         eachPlugin {
-          if (requested.id.namespace == "com.android") {
-              useModule("com.android.tools.build:gradle:$agpVersion")
+          if (requested.id.id == "com.google.android.libraries.mapsplatform.secrets-gradle-plugin") {
+              useModule("com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:${'$'}{requested.version}")
           }
-    """.trimEnd() +
-    pluginIdResolutionText("com.google.android.libraries.mapsplatform.secrets-gradle-plugin",
-                           "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin") +
-    pluginIdResolutionText("org.jetbrains.kotlin.android", "org.jetbrains.kotlin:kotlin-gradle-plugin") +
-    """
+          if (requested.id.id == "org.jetbrains.kotlin.android" && requested.version == "1.6.21") {
+              // KGP marker for 1.6.21 is not in the offline repo; remove this once Compose tests are updated to 1.7.0+
+              useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
+          }
         }
       }
-    """
-  } ?: ""
+    """.trimMargin()
 
   return origContent.replace("pluginManagement {", "pluginManagement { $pluginsResolutionStrategy")
 }

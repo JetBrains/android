@@ -42,6 +42,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
     linkIntoOfflineMavenRepo("tools/adt/idea/android-uitests/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
     unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
+    linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
 
     List<File> additionalPlugins = getExternalPlugins();
     if (!additionalPlugins.isEmpty()) {
