@@ -1124,7 +1124,7 @@ public final class StudioFlags {
     COMPOSE, "deploy.live.edit.deploy",
     "Enable live edit deploy",
     "If enabled, Live Edit will be visible and available",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = Flag.create(
