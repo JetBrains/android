@@ -17,7 +17,6 @@ package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
-import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,7 +32,7 @@ sealed class EmulatorRotateAction(
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
     val emulatorView = getEmulatorView(event) ?: return
-    val rotationQuadrants = (emulatorView.displayRotation.number + rotationQuadrants) and 0x03
+    val rotationQuadrants = (emulatorView.displayOrientationQuadrants + rotationQuadrants) and 0x03
     val angle = when (rotationQuadrants) {
       1 -> 90F
       2 -> -180F
@@ -51,7 +50,7 @@ sealed class EmulatorRotateAction(
     emulatorController.setPhysicalModel(rotationModel, object : EmptyStreamObserver<Empty>() {
       override fun onCompleted() {
         EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-          emulatorView.displayRotation = SkinRotation.forNumber(rotationQuadrants)
+          emulatorView.displayOrientationQuadrants = rotationQuadrants
         }
       }
     })

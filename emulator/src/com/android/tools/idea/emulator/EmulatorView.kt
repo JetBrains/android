@@ -147,8 +147,8 @@ class EmulatorView(
   private val displayTransform = AffineTransform()
   private val screenshotShape: DisplayShape
     get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
-  private val initialOrientation: SkinRotation
-    get() = if (displayId == PRIMARY_DISPLAY_ID) emulatorConfig.initialOrientation else SkinRotation.PORTRAIT
+  private val initialOrientation: Int
+    get() = if (displayId == PRIMARY_DISPLAY_ID) emulatorConfig.initialOrientation.number else SkinRotation.PORTRAIT.number
   private val deviceDisplaySize: Dimension
     get() = displaySize ?: emulatorConfig.displaySize
   private val currentDisplaySize: Dimension
@@ -177,10 +177,10 @@ class EmulatorView(
 
   private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
 
-  var displayRotation: SkinRotation
-    get() = screenshotShape.rotation
+  var displayOrientationQuadrants: Int
+    get() = screenshotShape.orientation
     set(value) {
-      if (value != screenshotShape.rotation && deviceFrameVisible) {
+      if (value != screenshotShape.orientation && deviceFrameVisible) {
         requestScreenshotFeed(currentDisplaySize, value)
       }
     }
@@ -202,7 +202,7 @@ class EmulatorView(
    * The size of the device including frame in device pixels.
    */
   val displaySizeWithFrame: Dimension
-    get() = computeActualSize(screenshotShape.rotation)
+    get() = computeActualSize(screenshotShape.orientation)
 
   private val isMultiTouchModeSupported = displayId == 0 // See b/150699691.
 
@@ -327,15 +327,15 @@ class EmulatorView(
   override fun canZoom(): Boolean = connected
 
   override fun computeActualSize(): Dimension =
-    computeActualSize(screenshotShape.rotation)
+    computeActualSize(screenshotShape.orientation)
 
-  private fun computeActualSize(rotation: SkinRotation): Dimension {
+  private fun computeActualSize(orientationQuadrants: Int): Dimension {
     val skin = emulator.skinDefinition
     return if (skin != null && deviceFrameVisible) {
-      skin.getRotatedFrameSize(rotation.number, currentDisplaySize)
+      skin.getRotatedFrameSize(orientationQuadrants, currentDisplaySize)
     }
     else {
-      currentDisplaySize.rotatedByQuadrants(rotation.number)
+      currentDisplaySize.rotatedByQuadrants(orientationQuadrants)
     }
   }
 
@@ -459,13 +459,13 @@ class EmulatorView(
 
   private fun requestScreenshotFeed() {
     if (connected) {
-      requestScreenshotFeed(currentDisplaySize, displayRotation)
+      requestScreenshotFeed(currentDisplaySize, displayOrientationQuadrants)
     }
   }
 
-  private fun requestScreenshotFeed(displaySize: Dimension, rotation: SkinRotation) {
+  private fun requestScreenshotFeed(displaySize: Dimension, orientationQuadrants: Int) {
     if (width != 0 && height != 0 && connected) {
-      val maxSize = realSize.rotatedByQuadrants(-rotation.number)
+      val maxSize = realSize.rotatedByQuadrants(-orientationQuadrants)
       val skin = emulator.skinDefinition
       if (skin != null && deviceFrameVisible) {
         // Scale down to leave space for the device frame.
@@ -479,7 +479,7 @@ class EmulatorView(
       maxSize.width = maxSize.width.coerceAtMost(displaySize.width)
       maxSize.height = maxSize.height.coerceAtMost(displaySize.height)
 
-      val maxImageSize = maxSize.rotatedByQuadrants(rotation.number)
+      val maxImageSize = maxSize.rotatedByQuadrants(orientationQuadrants)
 
       val currentReceiver = screenshotReceiver
       if (currentReceiver != null && currentReceiver.maxImageSize == maxImageSize) {
@@ -493,7 +493,7 @@ class EmulatorView(
         .setWidth(maxImageSize.width)
         .setHeight(maxImageSize.height)
         .build()
-      val receiver = ScreenshotReceiver(maxImageSize, rotation)
+      val receiver = ScreenshotReceiver(maxImageSize, orientationQuadrants)
       screenshotReceiver = receiver
       screenshotFeed = emulator.streamScreenshot(imageFormat, receiver)
     }
@@ -579,9 +579,6 @@ class EmulatorView(
     emulator.rotateVirtualSceneCamera(cameraRotation)
   }
 
-  private val IdeGlassPane.rootPane
-    get() = (this as IdeGlassPaneImpl).rootPane
-
   private fun getButtonBit(button: Int): Int {
     return when(button) {
       BUTTON1 -> BUTTON1_BIT
@@ -593,8 +590,11 @@ class EmulatorView(
 
   internal fun displayModeChanged(displayModeId: DisplayModeValue) {
     val displayMode = emulatorConfig.displayModes.firstOrNull { it.displayModeId == displayModeId } ?: return
-    requestScreenshotFeed(displayMode.displaySize, displayRotation)
+    requestScreenshotFeed(displayMode.displaySize, displayOrientationQuadrants)
   }
+
+  private val IdeGlassPane.rootPane
+    get() = (this as IdeGlassPaneImpl).rootPane
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
 
@@ -789,20 +789,20 @@ class EmulatorView(
       val deviceDisplayRegion = deviceDisplayRegion
       val displayX: Int
       val displayY: Int
-      when (screenshotShape.rotation) {
-        SkinRotation.PORTRAIT -> {
+      when (screenshotShape.orientation) {
+        0 -> {
           displayX = transformNormalizedCoordinate(normalizedX, deviceDisplayRegion.x, deviceDisplayRegion.width)
           displayY = transformNormalizedCoordinate(normalizedY, deviceDisplayRegion.y, deviceDisplayRegion.height)
         }
-        SkinRotation.LANDSCAPE -> {
+        1 -> {
           displayX = transformNormalizedCoordinate(-normalizedY, deviceDisplayRegion.x, deviceDisplayRegion.width)
           displayY = transformNormalizedCoordinate(normalizedX, deviceDisplayRegion.y, deviceDisplayRegion.height)
         }
-        SkinRotation.REVERSE_PORTRAIT -> {
+        2 -> {
           displayX = transformNormalizedCoordinate(-normalizedX, deviceDisplayRegion.x, deviceDisplayRegion.width)
           displayY = transformNormalizedCoordinate(-normalizedY, deviceDisplayRegion.y, deviceDisplayRegion.height)
         }
-        SkinRotation.REVERSE_LANDSCAPE -> {
+        3 -> {
           displayX = transformNormalizedCoordinate(normalizedY, deviceDisplayRegion.x, deviceDisplayRegion.width)
           displayY = transformNormalizedCoordinate(-normalizedX, deviceDisplayRegion.y, deviceDisplayRegion.height)
         }
@@ -853,7 +853,7 @@ class EmulatorView(
 
   private inner class ScreenshotReceiver(
     val maxImageSize: Dimension,
-    val rotation: SkinRotation
+    val orientationQuadrants: Int
   ) : EmptyStreamObserver<ImageMessage>(), Disposable {
     private val screenshotForProcessing = AtomicReference<Screenshot?>()
     private val screenshotForDisplay = AtomicReference<Screenshot?>()
@@ -865,7 +865,7 @@ class EmulatorView(
     override fun onNext(response: ImageMessage) {
       val arrivalTime = System.currentTimeMillis()
       val imageFormat = response.format
-      val imageRotation = imageFormat.rotation.rotation
+      val imageRotation = imageFormat.rotation.rotation.number
       val frameOriginationTime: Long = response.timestampUs / 1000
       val displayMode: DisplayMode? = emulatorConfig.displayModes.firstOrNull { it.displayModeId == imageFormat.displayMode }
 
@@ -895,7 +895,7 @@ class EmulatorView(
       // It is possible that the snapshot feed was requested assuming an out of date device rotation.
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.
-      if (imageRotation != rotation) {
+      if (imageRotation != orientationQuadrants) {
         invokeLaterInAnyModalityState {
           requestScreenshotFeed(currentDisplaySize, imageRotation)
         }
@@ -1064,7 +1064,7 @@ class EmulatorView(
       synchronized(this) {
         var layout = this.skinLayout
         if (displayShape != this.displayShape || layout == null) {
-          layout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.rotation.number) ?:
+          layout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.orientation) ?:
                    SkinLayout(displayShape.width, displayShape.height)
           this.displayShape = displayShape
           this.skinLayout = layout
@@ -1076,7 +1076,7 @@ class EmulatorView(
 
   private data class DisplayShape(val width: Int,
                                   val height: Int,
-                                  val rotation: SkinRotation,
+                                  val orientation: Int,
                                   val activeDisplayRegion: Rectangle? = null,
                                   val displayMode: DisplayMode? = null)
 
