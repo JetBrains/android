@@ -105,13 +105,19 @@ enum class TestProject(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm",
     isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = false, addJvmTo = "module2") }
+    patch = { patchMppProject(it, enableHierarchicalSupport = false, addJvmTo = listOf("module2")) }
   ),
   KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm_hierarchical",
     isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = true, addJvmTo = "module2") }
+    patch = { patchMppProject(it, enableHierarchicalSupport = true, addJvmTo = listOf("module2")) }
+  ),
+  KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "jvm_hierarchical_kmpapp",
+    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { patchMppProject(it, enableHierarchicalSupport = true, convertAppToKmp = true, addJvmTo = listOf("app", "module2")) }
   ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   MULTI_FLAVOR_WITH_FILTERING(
@@ -192,15 +198,39 @@ private fun truncateForV2(settingsFile: File) {
   settingsFile.writeText(patchedText)
 }
 
-private fun patchMppProject(projectRoot: File, enableHierarchicalSupport: Boolean, addJvmTo: String? = null) {
+private fun patchMppProject(
+  projectRoot: File,
+  enableHierarchicalSupport: Boolean,
+  convertAppToKmp: Boolean = false,
+  addJvmTo: List<String> = emptyList()
+) {
   if (enableHierarchicalSupport) {
     projectRoot.resolve("gradle.properties").replaceInContent(
       "kotlin.mpp.hierarchicalStructureSupport=false",
       "kotlin.mpp.hierarchicalStructureSupport=true"
     )
   }
-  if (addJvmTo != null) {
-    projectRoot.resolve(addJvmTo).resolve("build.gradle").replaceInContent(
+  if (convertAppToKmp) {
+    projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
+      """
+        plugins {
+            id 'com.android.application'
+            id 'kotlin-android'
+        }
+      """.trimIndent(),
+      """
+        plugins {
+            id 'com.android.application'
+            id 'kotlin-multiplatform'
+        }
+        kotlin {
+            android()
+        }
+     """.trimIndent(),
+    )
+  }
+  for (module in addJvmTo) {
+    projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
       "android()",
       "android()\njvm()"
     )

@@ -156,6 +156,9 @@ abstract class SyncedProjectTest(
   fun testKotlinMultiplatform_jvm_hierarchical() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL)
 
   @Test
+  fun testKotlinMultiplatform_jvm_hierarchical_kmpapp() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP)
+
+  @Test
   fun testMultiFlavor() = testProject(TestProject.MULTI_FLAVOR)
 
   @Test
