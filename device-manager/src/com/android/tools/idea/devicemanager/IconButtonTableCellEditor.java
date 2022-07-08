@@ -28,17 +28,21 @@ import org.jetbrains.annotations.Nullable;
 
 public class IconButtonTableCellEditor extends AbstractCellEditor implements TableCellEditor {
   protected final @NotNull IconButton myButton;
-  private final @NotNull Object myValue;
+  private final @Nullable Object myValue;
 
-  protected IconButtonTableCellEditor(@NotNull Object value) {
+  protected IconButtonTableCellEditor() {
+    this(null);
+  }
+
+  protected IconButtonTableCellEditor(@Nullable Object value) {
     this(value, null);
   }
 
-  protected IconButtonTableCellEditor(@NotNull Object value, @Nullable Icon icon) {
+  protected IconButtonTableCellEditor(@Nullable Object value, @Nullable Icon icon) {
     this(value, icon, null);
   }
 
-  protected IconButtonTableCellEditor(@NotNull Object value, @Nullable Icon icon, @Nullable String tooltipText) {
+  protected IconButtonTableCellEditor(@Nullable Object value, @Nullable Icon icon, @Nullable String tooltipText) {
     myButton = new IconButton(icon);
 
     myButton.setOpaque(true);
@@ -70,6 +74,7 @@ public class IconButtonTableCellEditor extends AbstractCellEditor implements Tab
 
   @Override
   public final @NotNull Object getCellEditorValue() {
+    assert myValue != null;
     return myValue;
   }
 }

@@ -77,7 +77,7 @@ public abstract class Device {
     return myType;
   }
 
-  protected abstract @NotNull Icon getIcon();
+  public abstract @NotNull Icon getIcon();
 
   public final @NotNull String getName() {
     return myName;
@@ -95,10 +95,6 @@ public abstract class Device {
 
   public final @Nullable Resolution getResolution() {
     return myResolution;
-  }
-
-  public final int getDensity() {
-    return myDensity;
   }
 
   public final @Nullable Resolution getDp() {

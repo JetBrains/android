@@ -210,7 +210,7 @@ public final class VirtualDevice extends Device {
   }
 
   @Override
-  protected @NotNull Icon getIcon() {
+  public @NotNull Icon getIcon() {
     return myType.getVirtualIcon();
   }
 

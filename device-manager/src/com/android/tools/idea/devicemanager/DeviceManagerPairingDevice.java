@@ -80,7 +80,7 @@ final class DeviceManagerPairingDevice extends Device {
   }
 
   @Override
-  protected @NotNull Icon getIcon() {
+  public @NotNull Icon getIcon() {
     return myIcon;
   }
 
