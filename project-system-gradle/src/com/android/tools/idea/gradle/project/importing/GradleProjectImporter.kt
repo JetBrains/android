@@ -86,15 +86,13 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       importProjectNoSync(Request(newProject))
       return ProjectManagerEx.getInstanceEx().openProject(
         projectFolderPath.toPath(),
-        OpenProjectTask(
-          forceOpenInNewFrame = forceOpenInNewFrame,
-          projectToClose = projectToClose,
-          isNewProject = false,
-          useDefaultProjectAsTemplate = false,
-          project = newProject,
-          projectName = null,
-          showWelcomeScreen = true,
-        )
+        OpenProjectTask {
+          this.forceOpenInNewFrame = forceOpenInNewFrame
+          this.projectToClose = projectToClose
+          isNewProject = false
+          useDefaultProjectAsTemplate = false
+          project = newProject
+        }
       )
     }
     catch (e: Throwable) {
