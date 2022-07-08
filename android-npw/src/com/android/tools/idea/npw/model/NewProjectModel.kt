@@ -116,7 +116,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           }
         }
 
-        val openProjectTask = OpenProjectTask(project = newProject, isNewProject = false, forceOpenInNewFrame = true)
+        val openProjectTask = OpenProjectTask {
+          project = newProject
+          isNewProject = false
+          forceOpenInNewFrame = true
+        }
         ProjectManagerEx.getInstanceEx().openProject(projectBaseDirectory.toPath(), openProjectTask)
       }
     }.queue()

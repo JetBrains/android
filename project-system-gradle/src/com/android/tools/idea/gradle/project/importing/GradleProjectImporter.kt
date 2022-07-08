@@ -164,9 +164,9 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     GradleProjectInfo.beginInitializingGradleProjectAt(projectFolderPath).use { ignored ->
       val newProject = ProjectManagerEx.getInstanceEx().newProject(
         Path.of(projectFolderPath.path),
-        OpenProjectTask(
-          projectName = projectName
-        )
+        OpenProjectTask {
+          this.projectName = projectName
+        }
       ) ?: throw NullPointerException("Failed to create a new project")
       configureNewProject(newProject)
       return newProject
