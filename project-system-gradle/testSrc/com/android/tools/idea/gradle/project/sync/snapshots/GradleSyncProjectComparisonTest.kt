@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_32
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -115,7 +116,7 @@ data class ProjectStructureSnapshotTestDef(
           "EXTERNAL_MANIFEST" to File("externalManifest")
         )
       ),
-      ProjectStructureSnapshotTestDef(TestProject.BUILDSRC_WITH_COMPOSITE),
+      ProjectStructureSnapshotTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
     )
   }
 }
