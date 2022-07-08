@@ -71,7 +71,7 @@ class ResourcePickerDialogTest {
   @Test
   fun updateSelectedResource() {
     // Save project to guarantee project.getProjectFile() is non-null.
-    runInEdtAndWait { runInAllowSaveMode { projectRule.project.save() } }
+    runInAllowSaveMode { projectRule.project.save() }
     pickerDialog = createResourcePickerDialog(false)
     Disposer.register(projectRule.project, pickerDialog.disposable)
     val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
