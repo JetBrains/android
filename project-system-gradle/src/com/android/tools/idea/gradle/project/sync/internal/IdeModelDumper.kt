@@ -49,7 +49,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
-import com.android.tools.idea.projectsystem.gradle.compositeBuildMap
+import com.android.tools.idea.projectsystem.gradle.compositeBuildMapModel
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -88,7 +88,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
       // build located at the root of the IDE project.
       GradleHolderProjectPath(projectRoot.path, ":")
         .resolveIn(project)
-        ?.compositeBuildMap()
+        ?.compositeBuildMapModel()
         ?.let { dump(it) }
 
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->

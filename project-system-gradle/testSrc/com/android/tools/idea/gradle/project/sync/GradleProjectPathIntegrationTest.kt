@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
+import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getRootBuildRelativeGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -127,6 +130,31 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
   }
 
   @Test
+  fun rootBuildRelativeGradleProjectPaths_inComposites() {
+    val root = prepareGradleProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD, "project")
+    openPreparedProject("project") { project ->
+      assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project, root)).isEqualTo(
+        """
+            ==> :
+            .app ==> :app
+            .lib ==> :lib
+            TestCompositeLib1 ==> :includedLib1
+            TestCompositeLib1.app ==> :includedLib1:app
+            TestCompositeLib1.lib ==> :includedLib1:lib
+            TestCompositeLib3 ==> :TestCompositeLib3
+            TestCompositeLib3.app ==> :TestCompositeLib3:app
+            TestCompositeLib3.lib ==> :TestCompositeLib3:lib
+            com.test.compositeNest3.compositeNest ==> :TestCompositeLibNested_3
+            composite2 ==> :TestCompositeLib2
+            composite4 ==> :TestCompositeLib4
+            compositeNest ==> :TestCompositeLibNested_1
+        """.trimIndent()
+      )
+      assertThatProjectPathsCanBeResolved(project)
+    }
+  }
+
+  @Test
   fun updatesResolutionCache() {
     val root = prepareGradleProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES, "project")
     openPreparedProject("project") { project ->
@@ -152,15 +180,15 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  private fun dumpModuleToGradlePathMapping(project: Project, root: File) =
-    ModuleManager.getInstance(project).modules.map { it.name to it.getGradleProjectPath() }
-      .map { (key, value) ->
-        val moduleName = key.removePrefix(project.name)
+  private fun dumpModuleToGradlePathMapping(project: Project, root: File): String {
+    return ModuleManager.getInstance(project).modules.map { it to it.getGradleProjectPath() }
+      .map { (module, gradleProjectPath) ->
+        val moduleName = module.name.removePrefix(project.name)
         "$moduleName ==>${
-          value?.let {
-            val buildId = value.buildRoot.let(::File).relativeToOrSelf(root).path.nullize()?.let { "[$it]" }.orEmpty()
-            val gradlePath = value.path
-            val sourceSet = (value as? GradleSourceSetProjectPath)?.sourceSet?.let { "/$it" }.orEmpty()
+          gradleProjectPath?.let {
+            val buildId = gradleProjectPath.buildRoot.let(::File).relativeToOrSelf(root).path.nullize()?.let { "[$it]" }.orEmpty()
+            val gradlePath = gradleProjectPath.path
+            val sourceSet = (gradleProjectPath as? GradleSourceSetProjectPath)?.sourceSet?.let { "/$it" }.orEmpty()
             " ${buildId}$gradlePath$sourceSet"
           } ?: ""
         }"
@@ -168,6 +196,21 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
       .sorted()
       .joinToString("\n")
       .trim()
+  }
+
+  private fun dumpModuleToRootBuildRelativeGradlePathMapping(project: Project, root: File): String {
+    return ModuleManager.getInstance(project)
+      .modules
+      .mapNotNull { it to (it.getGradleProjectPath() as? GradleHolderProjectPath ?: return@mapNotNull  null) }
+      .map { (module, gradleProjectPath) ->
+        val moduleName = module.name.removePrefix(project.name)
+        val path = module.getRootBuildRelativeGradleProjectPath()
+        "$moduleName ==> ${path?.buildNamePrefixedGradleProjectPath()}"
+      }
+      .sorted()
+      .joinToString("\n")
+      .trim()
+  }
 
   private fun assertThatProjectPathsCanBeResolved(project: Project) {
     val pathMap = ModuleManager.getInstance(project).modules.map { it to it.getGradleProjectPath() }
