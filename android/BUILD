@@ -407,23 +407,33 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "app-inspection-artifacts",
+    srcs = [
+        "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
+        "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
+        "//tools/base/app-inspection/inspectors/backgroundtask:agent",
+        "//tools/base/app-inspection/inspectors/backgroundtask:backgroundtask_inspector_java_proto",
+        "//tools/base/app-inspection/inspectors/network:agent",
+        "//tools/base/app-inspection/inspectors/network:network_inspector_java_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
     srcs = [
         ":android-core-proto",
         ":android-core-proto-test",
+        ":app-inspection-artifacts",
         ":deploy-artifacts",
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
-        "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
-        "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
         "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
-        "//tools/base/app-inspection/inspectors/network:network_inspector_java_proto",
-        "//tools/base/app-inspection/inspectors/backgroundtask:backgroundtask_inspector_java_proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
