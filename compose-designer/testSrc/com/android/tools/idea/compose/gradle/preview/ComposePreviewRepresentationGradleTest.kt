@@ -26,6 +26,7 @@ import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -45,11 +46,13 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.problems.ProblemListener
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -60,7 +63,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.BorderLayout
@@ -162,6 +164,31 @@ class ComposePreviewRepresentationGradleTest {
       onRefreshCompletable.await()
     }
     waitForRefreshToFinish()
+  }
+
+  /**
+   * Runs the [runnable]. The [runnable] is expected to trigger a fast preview refresh
+   */
+  private fun runAndWaitForFastRefresh(timeout: Duration = Duration.ofSeconds(40), runnable: () -> Unit) = runBlocking {
+    val fastPreviewManager = FastPreviewManager.getInstance(project)
+
+    assertTrue("FastPreviewManager must be enabled", fastPreviewManager.isEnabled)
+
+    val compileDeferred = CompletableDeferred<Unit>()
+    val compileListener = object: FastPreviewManager.Companion.CompileListener {
+      override fun onCompilationStarted(files: Collection<PsiFile>) {}
+
+      override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
+        compileDeferred.complete(Unit)
+      }
+
+    }
+    fastPreviewManager.addCompileListener(fixture.testRootDisposable, compileListener)
+    withTimeout(timeout.toMillis()) {
+      while (FastPreviewManager.getInstance(project).isCompiling) delay(50)
+      runnable()
+      compileDeferred.await()
+    }
   }
 
   /**
@@ -403,21 +430,24 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  @Ignore("b/227498081")
   fun `fast preview request`() {
     StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
-    runWriteActionAndWait {
-      projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
-      projectRule.fixture.moveCaret("Text(\"Hello 2\")|")
-      projectRule.fixture.type("\nText(\"added during test execution\")")
-      PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-      FileDocumentManager.getInstance().saveAllDocuments()
+    runAndWaitForFastRefresh {
+      runWriteActionAndWait {
+        projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
+        projectRule.fixture.moveCaret("Text(\"Hello 2\")|")
+        projectRule.fixture.type("\nText(\"added during test execution\")")
+        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      }
     }
-    runBlocking {
-      val result = composePreviewRepresentation.requestFastPreviewRefreshAsync().await()
-      ?: fail("fast preview refresh request was rejected")
+  }
 
-      assertTrue(result is CompilationResult.Success)
+  @Test
+  fun `fast preview fixing syntax error triggers compilation`() {
+    StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
+
+    runAndWaitForFastRefresh {
+      project.messageBus.syncPublisher(ProblemListener.TOPIC).problemsDisappeared(psiMainFile.virtualFile)
     }
   }
 

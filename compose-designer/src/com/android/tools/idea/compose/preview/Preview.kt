@@ -101,6 +101,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.problems.ProblemListener
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -121,6 +124,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
@@ -751,14 +755,24 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
       }
 
-      // Flow handling file changes.
+      // Flow handling file changes and syntax error changes.
       launch(workerThread) {
         val psiFile = psiFilePointer.element ?: return@launch
-        documentChangeFlow(psiFile, this@ComposePreviewRepresentation, LOG)
-          .debounce {
-            // The debounce timer is smaller when running with Fast Preview so the changes are more responsive to typing.
-            if (FastPreviewManager.getInstance(project).isAvailable) 250L else 1000L
+        merge(
+          documentChangeFlow(psiFile, this@ComposePreviewRepresentation, LOG)
+            .debounce {
+              // The debounce timer is smaller when running with Fast Preview so the changes are more responsive to typing.
+              if (FastPreviewManager.getInstance(project).isAvailable) 250L else 1000L
+            },
+          disposableCallbackFlow<Unit>("SyntaxErrorFlow", LOG, this@ComposePreviewRepresentation) {
+            project.messageBus.connect(disposable).subscribe(ProblemListener.TOPIC, object : ProblemListener {
+              override fun problemsDisappeared(file: VirtualFile) {
+                if (file != psiFilePointer.virtualFile || !FastPreviewManager.getInstance(project).isEnabled) return
+                trySend(Unit)
+              }
+            })
           }
+        )
           .conflate()
           .collectLatest {
             if (FastPreviewManager.getInstance(project).isEnabled) {
