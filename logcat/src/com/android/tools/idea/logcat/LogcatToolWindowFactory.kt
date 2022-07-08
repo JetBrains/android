@@ -60,7 +60,6 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     super.createToolWindowContent(project, toolWindow)
     toolWindow.isAvailable = true
-    toolWindow.setToHideOnEmptyContent(true)
   }
 
   private fun showLogcat(toolWindow: ToolWindowEx, serialNumber: String) {

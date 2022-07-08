@@ -31,10 +31,6 @@ import java.awt.event.KeyEvent
 import javax.swing.JComponent
 
 abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
-  override fun init(toolWindow: ToolWindow) {
-    toolWindow.setToHideOnEmptyContent(true)
-  }
-
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val stateManager = SplittingTabsStateManager.getInstance(project)
     stateManager.registerToolWindow(toolWindow)

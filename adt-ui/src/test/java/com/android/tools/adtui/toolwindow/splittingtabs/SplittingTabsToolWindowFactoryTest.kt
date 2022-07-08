@@ -66,7 +66,7 @@ class SplittingTabsToolWindowFactoryTest {
 
     splittingTabsToolWindowFactory.init(toolWindow)
 
-    assertThat(toolWindow.hideOnEmpty).isTrue()
+    assertThat(toolWindow.hideOnEmpty).isFalse()
   }
 
   @Test
