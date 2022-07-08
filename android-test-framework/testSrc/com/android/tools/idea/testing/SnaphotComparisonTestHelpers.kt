@@ -35,7 +35,6 @@ fun Project.saveAndDump(
   additionalRoots: Map<String, File> = emptyMap(),
   dumpToAction: ProjectDumpAction = { project, projectDumper -> projectDumper.dumpProject(project) }
 ): String {
-  save()
   ApplicationManager.getApplication().saveAll()
   val dumper = ProjectDumper(
     androidSdk = getSdk().toFile(),

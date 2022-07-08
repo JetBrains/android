@@ -52,8 +52,8 @@ class AssetDataProviderTest {
       runInEdtAndWait {
         projectRule.fixture.testDataPath = getTestDataDirectory()
         projectRule.fixture.copyDirectoryToProject("res/", "res/")
-        projectRule.project.save()
       }
+      projectRule.project.save()
     }
   }
 

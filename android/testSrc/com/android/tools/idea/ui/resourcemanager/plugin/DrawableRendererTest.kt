@@ -24,7 +24,6 @@ import com.android.tools.idea.ui.resourcemanager.getStateList
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.pathToVirtualFile
 import com.intellij.configurationStore.runInAllowSaveMode
-import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.ImageUtil
 import org.junit.Before
 import org.junit.Ignore
@@ -69,6 +68,6 @@ class DrawableRendererTest {
   }
 
   private fun saveProjectOnDisk() {
-    runInEdtAndWait { runInAllowSaveMode { projectRule.project.save() } }
+    runInAllowSaveMode { projectRule.project.save() }
   }
 }
