@@ -35,7 +35,6 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -97,11 +96,8 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testAppearanceAndToolbarActions() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
-    }
-    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
-      return // FFmpeg library requires Mac OS 10.15+.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     assertThat(panel.deviceView).isNull()
 
@@ -151,8 +147,8 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testZoom() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     assertThat(panel.deviceView).isNull()
 

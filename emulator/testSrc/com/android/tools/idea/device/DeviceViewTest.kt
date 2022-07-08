@@ -88,11 +88,8 @@ internal class DeviceViewTest {
 
   @Test
   fun testResizingRotationAndMouseInput() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
-    }
-    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
-      return // FFmpeg library requires Mac OS 10.15+.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     createDeviceView(200, 300, 2.0)
     assertThat(agent.commandLine).isEqualTo("CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
@@ -166,11 +163,8 @@ internal class DeviceViewTest {
 
   @Test
   fun testMultiTouch() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
-    }
-    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
-      return // FFmpeg library requires Mac OS 10.15+.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     createDeviceView(50, 100, 2.0)
     assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(100, 200))
@@ -212,11 +206,8 @@ internal class DeviceViewTest {
 
   @Test
   fun testKeyboardInput() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
-    }
-    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
-      return // FFmpeg library requires Mac OS 10.15+.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     createDeviceView(150, 250, 1.5)
     assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(225, 375))
@@ -280,8 +271,8 @@ internal class DeviceViewTest {
 
   @Test
   fun testZoom() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     createDeviceView(100, 200, 2.0)
     assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
@@ -348,11 +339,8 @@ internal class DeviceViewTest {
 
   @Test
   fun testClipboardSynchronization() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
-    }
-    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
-      return // FFmpeg library requires Mac OS 10.15+.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     createDeviceView(100, 200, 1.5)
     assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(150, 300))
