@@ -70,7 +70,7 @@
             id="ResourceExplorer.show"
             icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS">
       <add-to-group anchor="after" group-id="ProjectViewPopupMenu" relative-to-action="popup@ExpandableBookmarkContextMenu"/>
-      <add-to-group anchor="after" group-id="NavbarPopupMenu" relative-to-action="AddToFavorites"/>
+      <add-to-group anchor="after" group-id="NavbarPopupMenu" relative-to-action="ProjectViewPopupMenuRefactoringGroup"/>
       <keyboard-shortcut first-keystroke="shift control T" keymap="$default" replace-all="true"/>
     </action>
   </actions>
