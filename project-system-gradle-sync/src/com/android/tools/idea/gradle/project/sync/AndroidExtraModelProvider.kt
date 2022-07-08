@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
@@ -22,6 +23,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildImpl
 import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
@@ -43,15 +45,11 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
         runCatching { it.includedBuilds.all }.getOrDefault(/* old Gradle? */ emptyList())
       }
         .toSet()
+      val buildMap = buildCompositeBuildMap(controller, buildModel, buildModels)
+
       this.buildModels = buildModels
-      val buildMap = IdeCompositeBuildMapImpl(
-        listOf(IdeBuildImpl(":", buildModel.buildIdentifier.rootDir)) +
-          buildModels
-            .mapNotNull { build -> controller.findModel(build.rootProject, BuildMap::class.java) }
-            .flatMap { buildNames -> buildNames.buildIdMap.entries.map { IdeBuildImpl(it.key, it.value) } }
-            .distinct()
-      )
       this.buildMap = buildMap
+
       consumer.consume(buildModel, buildMap, IdeCompositeBuildMap::class.java)
     }
     if (!seenBuildModels.add(buildModel)) {
@@ -72,6 +70,25 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
         consumer
       ).populateBuildModels()
     }
+  }
+
+  private fun buildCompositeBuildMap(
+    controller: BuildController,
+    buildModel: GradleBuild,
+    buildModels: Set<GradleBuild>
+  ): IdeCompositeBuildMapImpl {
+    val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
+      ?: error("Cannot get BuildEnvironment model")
+    val parsedGradleVersion = GradleVersion.parse(buildEnvironment.gradle.gradleVersion)
+    val gradleSupportsDirectTaskInvocationInComposites = parsedGradleVersion.compareIgnoringQualifiers("6.8") >= 0
+    return IdeCompositeBuildMapImpl(
+      builds = listOf(IdeBuildImpl(":", buildModel.buildIdentifier.rootDir)) +
+        buildModels
+          .mapNotNull { build -> controller.findModel(build.rootProject, BuildMap::class.java) }
+          .flatMap { buildNames -> buildNames.buildIdMap.entries.map { IdeBuildImpl(it.key, it.value) } }
+          .distinct(),
+      gradleSupportsDirectTaskInvocation = gradleSupportsDirectTaskInvocationInComposites
+    )
   }
 
   override fun populateProjectModels(

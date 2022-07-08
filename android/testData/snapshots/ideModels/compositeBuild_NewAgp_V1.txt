@@ -13,6 +13,7 @@ CompositeBuildMap             : IdeCompositeBuildMapImpl
         buildName                     : TestCompositeLibNested_1
     - builds                      : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3 (IdeBuildImpl)
         buildName                     : TestCompositeLibNested_3
+    gradleSupportsDirectTaskInvocation      : true
 MODULE                        : TestCompositeLib1
     externalProject               : TestCompositeLib1 (DefaultExternalProject)
         name                          : TestCompositeLib1

@@ -18,8 +18,16 @@ package com.android.tools.idea.gradle.model
 interface IdeCompositeBuildMap {
   val builds: List<IdeBuild>
 
+  /**
+   * Returns `true` if the version of Gradle used by this project supports direct invocation of from included builds. I.e. tasks can be
+   * referred to as `:included_build_name:project:path:task_name`.
+   */
+  val gradleSupportsDirectTaskInvocation: Boolean
+
   object EMPTY: IdeCompositeBuildMap {
     override val builds: List<IdeBuild>
       get() = emptyList()
+    override val gradleSupportsDirectTaskInvocation: Boolean
+      get() = false
   }
 }

@@ -1,6 +1,7 @@
 CompositeBuildMap             : IdeCompositeBuildMapImpl
     - builds                      : <ROOT> (IdeBuildImpl)
         buildName                     : :
+    gradleSupportsDirectTaskInvocation      : true
 MODULE                        : kotlinMultiPlatform
     externalProject               : kotlinMultiPlatform (DefaultExternalProject)
         name                          : kotlinMultiPlatform

@@ -19,7 +19,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.projectsystem.gradle.getRootBuildRelativeGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -204,7 +204,7 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
       .mapNotNull { it to (it.getGradleProjectPath() as? GradleHolderProjectPath ?: return@mapNotNull  null) }
       .map { (module, gradleProjectPath) ->
         val moduleName = module.name.removePrefix(project.name)
-        val path = module.getRootBuildRelativeGradleProjectPath()
+        val path = module.getBuildAndRelativeGradleProjectPath()
         "$moduleName ==> ${path?.buildNamePrefixedGradleProjectPath()}"
       }
       .sorted()

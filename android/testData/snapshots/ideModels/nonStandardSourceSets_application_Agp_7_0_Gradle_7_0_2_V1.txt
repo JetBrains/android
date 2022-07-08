@@ -1,6 +1,7 @@
 CompositeBuildMap             : IdeCompositeBuildMapImpl
     - builds                      : <ROOT>/application (IdeBuildImpl)
         buildName                     : :
+    gradleSupportsDirectTaskInvocation      : true
 MODULE                        : application
     externalProject               : application (DefaultExternalProject)
         name                          : application

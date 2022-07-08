@@ -23,7 +23,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find
 import com.intellij.openapi.module.Module
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
@@ -31,7 +30,7 @@ import java.io.File
  * A value representing a path to a Gradle project together with the location of the root Gradle build and the name of the included build
  * containing the project.
  */
-data class RootBuildRelativeGradleProjectPath(
+data class BuildRelativeGradleProjectPath(
   /**
    * The build ID (directory containing the settings file) of the root build of this project.
    *
@@ -54,7 +53,7 @@ data class RootBuildRelativeGradleProjectPath(
 /**
  * Returns a string which can be used to refer to the given Gradle project when invoking Gradle at the level of [this.rootBuildId].
  */
-fun RootBuildRelativeGradleProjectPath.buildNamePrefixedGradleProjectPath(): String {
+fun BuildRelativeGradleProjectPath.buildNamePrefixedGradleProjectPath(): String {
   return when {
     buildName == ":" -> gradleProjectPath
     gradleProjectPath == ":" -> ":$buildName"
@@ -63,16 +62,19 @@ fun RootBuildRelativeGradleProjectPath.buildNamePrefixedGradleProjectPath(): Str
 }
 
 /**
- * Finds the build at the root of the composite and returns its location together with the name of an (included) build containing this
- * project and the Gradle project path to the project within this build.
+ * If the version of Gradle the project is synced with supports invoking tasks directly from included builds, finds the build at the root
+ * of the composite and returns its location together with the name of an (included) build containing this project and the Gradle project
+ * path to the project within this build. Otherwise, returns the location of the included build and the Gradle project path relative to the
+ * included build.
  */
-fun Module.getRootBuildRelativeGradleProjectPath(): RootBuildRelativeGradleProjectPath? {
-  return compositeBuildMap().translateToRootBuildRelative(getGradleProjectPath() ?: return null)
+fun Module.getBuildAndRelativeGradleProjectPath(): BuildRelativeGradleProjectPath? {
+  return compositeBuildMap().translateToBuildAndRelativeProjectPath(getGradleProjectPath() ?: return null)
 }
 
-private interface CompositeBuildMap {
+interface CompositeBuildMap {
   fun buildIdToName(buildId: File): String
   fun buildNameToId(buildName: String): File
+  val gradleSupportsDirectTaskInvocation: Boolean
 
   companion object {
     val EMPTY = IdeCompositeBuildMap.EMPTY.toCompositeBuildMap()
@@ -85,6 +87,8 @@ private fun IdeCompositeBuildMap.toCompositeBuildMap(): CompositeBuildMap {
   return object : CompositeBuildMap {
     override fun buildIdToName(buildId: File): String = byId[buildId] ?: error("Build (id='$buildId') not found")
     override fun buildNameToId(buildName: String): File = byName[buildName] ?: error("Build (name='$buildName') not found")
+    override val gradleSupportsDirectTaskInvocation: Boolean
+      get() = this@toCompositeBuildMap.gradleSupportsDirectTaskInvocation
   }
 }
 
@@ -108,8 +112,13 @@ private fun Module.compositeBuildMap(): CompositeBuildMap {
   }
 }
 
-private fun CompositeBuildMap.translateToRootBuildRelative(projectPath: GradleProjectPath): RootBuildRelativeGradleProjectPath {
-  val rootBuildId = this.buildNameToId(":")
-  val buildName = this.buildIdToName(projectPath.buildRootDir)
-  return RootBuildRelativeGradleProjectPath(rootBuildId, buildName, projectPath.path)
+fun CompositeBuildMap.translateToBuildAndRelativeProjectPath(projectPath: GradleProjectPath): BuildRelativeGradleProjectPath {
+  return when (gradleSupportsDirectTaskInvocation) {
+    false -> BuildRelativeGradleProjectPath(projectPath.buildRootDir, ":", projectPath.path)
+    true -> {
+      val rootBuildId = this.buildNameToId(":")
+      val buildName = this.buildIdToName(projectPath.buildRootDir)
+      BuildRelativeGradleProjectPath(rootBuildId, buildName, projectPath.path)
+    }
+  }
 }

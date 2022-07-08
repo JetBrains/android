@@ -1,6 +1,7 @@
 CompositeBuildMap             : IdeCompositeBuildMapImpl
     - builds                      : <ROOT>/firstapp (IdeBuildImpl)
         buildName                     : :
+    gradleSupportsDirectTaskInvocation      : true
 MODULE                        : My_First_App
     externalProject               : My First App (DefaultExternalProject)
         name                          : My First App
