@@ -631,11 +631,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
 
     setupBuildListener(project, object : BuildListener {
-      @GuardedBy("previewFreshnessLock")
-      private var pendingBuildsCount = 0
-      @GuardedBy("previewFreshnessLock")
-      private var someConcurrentBuildFailed = false
-
       override fun buildSucceeded() {
         LOG.debug("buildSucceeded")
         module?.let {
