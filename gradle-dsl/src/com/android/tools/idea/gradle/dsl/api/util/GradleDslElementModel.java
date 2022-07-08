@@ -25,6 +25,11 @@ import org.jetbrains.annotations.Nullable;
 
 public interface GradleDslElementModel {
   /**
+   * @return the Dsl element holding the most specific element associated with this model.
+   */
+  @NotNull GradleDslElement getHolder();
+
+  /**
    * @return the Dsl element associated with this model.
    */
   @Nullable GradleDslElement getRawElement();

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.api.ext;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslElementModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Objects;
@@ -75,7 +76,7 @@ public final class ReferenceTo {
   @Nullable
   public static ReferenceTo createReferenceFromText(@NotNull String referredElementName, @NotNull GradlePropertyModel propertyContext) {
     GradlePropertyModel referenceModel =
-      GradlePropertyModelBuilder.getModelFromExternalText(referredElementName, propertyContext.getRawPropertyHolder());
+      GradlePropertyModelBuilder.getModelFromExternalText(referredElementName, propertyContext.getHolder());
     if (referenceModel == null) {
       return null;
     }

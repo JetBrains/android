@@ -247,6 +247,11 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  public @NotNull GradleDslElement getHolder() {
+    return myRealModel.getHolder();
+  }
+
+  @Override
   @NotNull
   public GradleDslElement getRawPropertyHolder() {
     return myRealModel.getRawPropertyHolder();

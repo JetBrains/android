@@ -1303,6 +1303,42 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testSetVersionToReferenceByText() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [versions]
+        fooVersion = "2.3.4"
+
+        [libraries]
+        foo = { module = "com.example:foo", version = "1.2.3" }
+      """.trimIndent())
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val libraries = vcModel.libraries()
+      val foo = libraries.findProperty("foo")
+      val ref = ReferenceTo.createReferenceFromText("versions.fooVersion", foo)!!
+      foo.getMapValue("version").setValue(ref)
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [versions]
+        fooVersion = "2.3.4"
+
+        [libraries]
+        foo = { module = "com.example:foo", version.ref = "fooVersion" }
+      """.trimIndent())
+
+
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
   fun testPluginAliasInvalidSyntax() {
     StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)

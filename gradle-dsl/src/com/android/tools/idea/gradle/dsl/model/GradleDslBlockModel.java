@@ -64,6 +64,11 @@ public abstract class GradleDslBlockModel implements GradleBlockModel, GradleDsl
   }
 
   @Override
+  public @NotNull GradleDslElement getHolder() {
+    return getRawPropertyHolder();
+  }
+
+  @Override
   public @NotNull GradleDslElement getRawPropertyHolder() {
     GradleDslElement parent = myDslElement.getParent();
     if (parent != null) return parent;

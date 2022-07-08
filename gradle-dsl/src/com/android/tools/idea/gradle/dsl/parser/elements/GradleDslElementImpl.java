@@ -884,8 +884,21 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
                                                                @NotNull List<String> referenceText,
                                                                GradleDslNameConverter converter,
                                                                boolean resolveWithOrder) {
+    GradleDslElement element;
+
+    // References within Version Catalog files must be version.ref
+    if (startElement.getDslFile() instanceof GradleVersionCatalogFile && referenceText.size() == 1) {
+      GradleDslExpressionMap versions = startElement.getDslFile().getPropertyElement("versions", GradleDslExpressionMap.class);
+      if (versions != null) {
+        element = resolveReferenceOnElement(versions, referenceText, converter, false, false, -1);
+        if (element != null) {
+          return element;
+        }
+      }
+    }
+
     // Try to resolve in the build.gradle file the startElement belongs to.
-    GradleDslElement element =
+    element =
       resolveReferenceOnElement(startElement, referenceText, converter, resolveWithOrder, true, startElement.getNameElement().fullNameParts().size());
     if (element != null) {
       return element;
@@ -940,6 +953,9 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   public GradleDslElement resolveExternalSyntaxReference(@NotNull String referenceText, boolean resolveWithOrder) {
     GradleDslElement searchStartElement = this;
+    if (searchStartElement.getDslFile() instanceof GradleVersionCatalogFile && referenceText.startsWith("versions.")) {
+      referenceText = "\"" + referenceText.substring("versions.".length()) + "\"";
+    }
     GradleDslParser parser = getDslFile().getParser();
     referenceText = parser.convertReferenceText(searchStartElement, referenceText);
 

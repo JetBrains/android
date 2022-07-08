@@ -42,18 +42,13 @@ interface TomlDslNameConverter: GradleDslNameConverter {
 
   @JvmDefault
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
-    // There are no references in Toml viewed as a data language.  However, we represent version.ref indirections as references
-    // (injections) and consequently other parts of the system may later query that element for its reference information.
-    //
-    // The referenceText in these circumstances is a String in external Toml syntax, so to find the (internal) name of the entry in the
-    // versions map, we first need to get the name corresponding to that string.
     val literal = TomlPsiFactory(context.dslFile.project, true).createLiteral(referenceText)
     val name = when (val kind = literal.kind) {
       is TomlLiteralKind.String -> kind.value
       else -> referenceText
     }
 
-    return "versions.$name"
+    return "$name"
   }
 
   @JvmDefault

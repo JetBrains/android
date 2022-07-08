@@ -86,9 +86,14 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     final private boolean initialRef;
 
     @Override
+    public boolean isReference() {
+      return ref;
+    }
+
+    @Override
     public void setValue(@NotNull Object value) {
       if (value instanceof ReferenceTo) {
-        super.setValue(value.toString());
+        super.setValue(((ReferenceTo) value).getReferredElement().getName());
         ref = true;
         return;
       }
