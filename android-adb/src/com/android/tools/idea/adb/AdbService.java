@@ -410,7 +410,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
           bridge = createBridge(adb);
         }
         catch (Exception e) {
-          LOG.warn("Error creating adb");
+          LOG.warn("Error creating adb", e);
         }
       }
 
