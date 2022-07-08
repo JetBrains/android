@@ -23,7 +23,6 @@ import com.android.tools.analytics.HostData.osBean
 import com.android.tools.analytics.stubs.StubDateProvider
 import com.android.tools.analytics.stubs.StubGraphicsDevice.Companion.withBounds
 import com.android.tools.analytics.stubs.StubGraphicsEnvironment
-import com.android.tools.analytics.stubs.StubOperatingSystemMXBean
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperimentList
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfo
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApiLevelOnly
@@ -70,15 +69,7 @@ class AndroidStudioUsageTrackerTest : TestCase() {
     // (we normally use the studio install path).
     val root = File(File.separator)
     // Stub out the Operating System MX Bean to get consistent system info in the test.
-    osBean = object : StubOperatingSystemMXBean() {
-      override fun getAvailableProcessors(): Int {
-        return 16
-      }
-
-      override fun getTotalPhysicalMemorySize(): Long {
-        return 16L * 1024 * 1024 * 1024
-      }
-    }
+    osBean = StubOperatingSystemMXBeanImpl()
 
     // Stub out the Graphics Environment to get consistent screen sizes in the test.
     graphicsEnvironment = object : StubGraphicsEnvironment() {
