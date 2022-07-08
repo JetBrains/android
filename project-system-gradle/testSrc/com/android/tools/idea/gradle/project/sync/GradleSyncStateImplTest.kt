@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.MockitoKt.mockStatic
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder.Companion.MESSAGE_MULTIPLE_GRADLE_DAEMONS
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
@@ -26,6 +25,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Test
 import org.mockito.MockedStatic
@@ -100,16 +100,16 @@ class GradleSyncStateImplTest : AndroidGradleTestCase() {
   }
 
   private fun createWarningMessageMultipleGradleDaemons(
-    jdkFromJavaHomePath: String?
+    jdkFromJavaHomePath: String? = null
   ) = StringBuilder().apply {
-    appendLine(
-      String.format(MESSAGE_MULTIPLE_GRADLE_DAEMONS,
-                    project.name,
-                    GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()),
-                    jdkFromJavaHomePath ?: "Undefined"
-      ).trimIndent()
+    append(
+      AndroidBundle.message("project.sync.warning.multiple.gradle.daemons",
+                            project.name,
+                            GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
+                            jdkFromJavaHomePath ?: "Undefined"
+      )
     )
-    appendLine(OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info...").toHtml())
-    appendLine(DoNotShowJdkHomeWarningAgainHyperlink().toHtml())
-  }.toString().trim()
+    append("<br>", OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info...").toHtml())
+    append("<br>", DoNotShowJdkHomeWarningAgainHyperlink().toHtml())
+  }.toString()
 }

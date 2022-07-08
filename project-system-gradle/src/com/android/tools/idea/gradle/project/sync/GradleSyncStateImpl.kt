@@ -63,6 +63,7 @@ import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.util.PathUtil.toSystemIndependentName
 import com.intellij.util.ThreeState
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -100,18 +101,6 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): GradleSyncStateHolder = project.getService(GradleSyncStateHolder::class.java)
-
-    @VisibleForTesting
-    const val MESSAGE_MULTIPLE_GRADLE_DAEMONS = """
-       Multiple Gradle daemons might be spawned because the Gradle JDK and JAVA_HOME locations are different.
-       Project %s is using the following JDK location when running Gradle:
-       %s
-       The system environment variable JAVA_HOME is:
-       %s
-       If you don’t need to use different paths (or if JAVA_HOME is undefined), you
-       can avoid spawning multiple daemons by setting JAVA_HOME and the JDK location
-       to the same path.
-    """
   }
 
   private enum class LastSyncState(val isInProgress: Boolean = false, val isSuccessful: Boolean = false, val isFailed: Boolean = false) {
@@ -303,11 +292,11 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     if (selectJdkHyperlink != null) quickFixes += selectJdkHyperlink
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
-    val message = String.format(MESSAGE_MULTIPLE_GRADLE_DAEMONS,
+    val message = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons",
       project.name,
-      gradleInstallation.getGradleJvmPath(project, project.basePath.orEmpty()),
+      gradleInstallation.getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
       IdeSdks.getJdkFromJavaHome() ?: "Undefined"
-    ).trimIndent()
+    )
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)
   }
 
@@ -334,7 +323,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     var listener: NotificationListener? = null
     if (quickFixes != null) {
       quickFixes.forEach { quickFix ->
-        resultMessage += "\n${quickFix.toHtml()}"
+        resultMessage += "<br>${quickFix.toHtml()}"
       }
       listener = NotificationListener { _, event ->
         quickFixes.forEach { link -> link.executeIfClicked(project, event) }
