@@ -119,6 +119,12 @@ enum class TestProject(
     isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true, convertAppToKmp = true, addJvmTo = listOf("app", "module2")) }
   ),
+  KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "jvm_hierarchical_kmpapp_withintermediate",
+    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { patchMppProject(it, enableHierarchicalSupport = true, convertAppToKmp = true, addJvmTo = listOf("app", "module2"), addIntermediateTo = listOf("module2")) }
+  ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   MULTI_FLAVOR_WITH_FILTERING(
     TestProjectToSnapshotPaths.MULTI_FLAVOR,
@@ -202,7 +208,8 @@ private fun patchMppProject(
   projectRoot: File,
   enableHierarchicalSupport: Boolean,
   convertAppToKmp: Boolean = false,
-  addJvmTo: List<String> = emptyList()
+  addJvmTo: List<String> = emptyList(),
+  addIntermediateTo: List<String> = emptyList()
 ) {
   if (enableHierarchicalSupport) {
     projectRoot.resolve("gradle.properties").replaceInContent(
@@ -233,6 +240,21 @@ private fun patchMppProject(
     projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
       "android()",
       "android()\njvm()"
+    )
+  }
+  for (module in addIntermediateTo) {
+    projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
+      """
+        |sourceSets {
+      """.trimMargin(),
+      """
+        |sourceSets {
+        |  create("jvmAndAndroid") {
+        |    dependsOn(commonMain)
+        |    androidMain.dependsOn(it)
+        |    jvmMain.dependsOn(it)
+        |  }
+      """.trimMargin()
     )
   }
 }
