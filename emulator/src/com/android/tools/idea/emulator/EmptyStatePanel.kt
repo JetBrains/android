@@ -53,9 +53,9 @@ private const val TOP_MARGIN = 0.45
 private const val SIDE_MARGIN = 0.15
 
 /**
- * Placeholder panel that is shown in the Emulator tool window when no embedded Emulators are running.
+ * The panel that is shown in the Emulator tool window when no embedded Emulators are running.
  */
-internal class PlaceholderPanel(project: Project): JBPanel<PlaceholderPanel>(GridBagLayout()), Disposable {
+internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridBagLayout()), Disposable {
 
   val title
     get() = "No Running Emulators"

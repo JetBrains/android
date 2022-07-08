@@ -112,7 +112,7 @@ internal class EmulatorToolWindowManager private constructor(
       panels.remove(panel)
       savedUiState.remove(panel.id)
       if (panels.isEmpty()) {
-        createPlaceholderPanel()
+        createEmptyStatePanel()
         hideLiveIndicator(getToolWindow())
       }
     }
@@ -277,7 +277,7 @@ internal class EmulatorToolWindowManager private constructor(
 
     val contentManager = toolWindow.contentManager
     if (contentManager.contentCount == 0) {
-      createPlaceholderPanel()
+      createEmptyStatePanel()
     }
 
     contentManager.addContentManagerListener(contentManagerListener)
@@ -392,8 +392,8 @@ internal class EmulatorToolWindowManager private constructor(
     contentManager.removeContent(content, true)
   }
 
-  private fun createPlaceholderPanel() {
-    val panel = PlaceholderPanel(project)
+  private fun createEmptyStatePanel() {
+    val panel = EmptyStatePanel(project)
     val contentFactory = ContentFactory.SERVICE.getInstance()
     val content = contentFactory.createContent(panel, panel.title, false).apply {
       tabName = panel.title
