@@ -40,7 +40,6 @@ import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.asSequence
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.openapi.util.Disposer
@@ -54,6 +53,7 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBList
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED
 import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED_HOVER
@@ -368,6 +368,7 @@ internal class FilterTextField(
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
   ) : JBList<FilterHistoryItem>() {
     private val listModel = CollectionListModel<FilterHistoryItem>()
+    private val inactiveColor = String.format("%06x", UIUtil.getInactiveTextColor().rgb and 0xffffff)
 
     init {
       // The "count" field in FilterHistoryItem.Item takes time to calculate so initially, add all items with no count.
@@ -413,6 +414,24 @@ internal class FilterTextField(
       val listener = MouseListener()
       addMouseListener(listener)
       addMouseMotionListener(listener)
+    }
+
+    override fun getToolTipText(event: MouseEvent): String? {
+      val index = selectedIndex
+      val item = model.getElementAt(index) as? Item ?: return null
+      val cellLocation = getCellBounds(index, index).location
+      val favoriteIconBounds = item.getFavoriteIconBounds(cellLocation)
+      val deleteIconBounds = item.getDeleteIconBounds(cellLocation)
+      return when {
+        favoriteIconBounds.contains(event.point) -> getFavoriteTooltip(item)
+        deleteIconBounds.contains(event.point) -> LogcatBundle.message("logcat.filter.history.delete.tooltip", inactiveColor)
+        else -> item.tooltip
+      }
+    }
+
+    private fun getFavoriteTooltip(item: Item) = when (item.isFavorite) {
+      true -> LogcatBundle.message("logcat.filter.tag.favorite.tooltip")
+      false -> LogcatBundle.message("logcat.filter.untag.favorite.tooltip")
     }
 
     /**
@@ -517,6 +536,7 @@ internal class FilterTextField(
     }
   }
 
+
   private class HistoryListCellRenderer : ListCellRenderer<FilterHistoryItem> {
     override fun getListCellRendererComponent(
       list: JList<out FilterHistoryItem>,
@@ -537,10 +557,11 @@ internal class FilterTextField(
       var isFavorite: Boolean,
       val count: Int?,
       private val filterParser: LogcatFilterParser,
-      var isFavoriteHovered: Boolean = false,
     ) : FilterHistoryItem() {
 
-      private val filterName = filterParser.parse(filter)?.getFilterName()
+      var isFavoriteHovered: Boolean = false
+
+      val tooltip: String?
 
       fun getFavoriteIconBounds(offset: Point): Rectangle = favoriteLabel.bounds + offset
 
@@ -576,19 +597,30 @@ internal class FilterTextField(
         }
       }
 
-      override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
-        filterLabel.clear()
+      init {
+        val filterName = filterParser.parse(filter)?.getFilterName()
         if (filterName != null) {
+          val history = AndroidLogcatFilterHistory.getInstance().items
           // If there is more than one Item with the same filterName, show the name and the filter.
-          val sameName = list.model.asSequence().filterIsInstance<Item>().count { it.filterName == filterName }
+          val sameName = history.count { filterParser.parse(it)?.getFilterName() == filterName }
           filterLabel.append(filterName, NAMED_FILTER_HISTORY_ITEM_COLOR)
+          val filterWithoutName = filterParser.removeFilterNames(filter)
           if (sameName > 1) {
-            filterLabel.append(": ${filterParser.removeFilterNames(filter)}")
+            filterLabel.append(": $filterWithoutName")
+            tooltip = null
+          }
+          else {
+            tooltip = filterWithoutName
           }
         }
         else {
+          tooltip = null
           filterLabel.append(filter)
         }
+
+      }
+
+      override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
         // This can be mico optimized, but it's more readable like this
         favoriteLabel.icon = when {
           isFavoriteHovered && isFavorite -> FAVORITE_FILLED_POPUP_HOVER

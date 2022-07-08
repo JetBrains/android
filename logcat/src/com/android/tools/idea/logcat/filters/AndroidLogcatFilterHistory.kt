@@ -39,6 +39,8 @@ internal class AndroidLogcatFilterHistory(
   private val maxNonFavoriteItems: Int = MAX_HISTORY_SIZE,
 ) : PersistentStateComponent<AndroidLogcatFilterHistory> {
 
+  val items get() = favorites + nonFavorites
+
   fun add(filter: String, isFavorite: Boolean) {
     remove(filter)
 
