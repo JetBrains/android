@@ -904,7 +904,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun status(): ComposePreviewManager.Status {
     val isRefreshing = (refreshCallsCount.get() > 0 ||
                         DumbService.isDumb(project) ||
-                        projectBuildStatusManager.isBuilding)
+                        invokeAndWaitIfNeeded { projectBuildStatusManager.isBuilding })
 
     // If we are refreshing, we avoid spending time checking other conditions like errors or if the preview
     // is out of date.

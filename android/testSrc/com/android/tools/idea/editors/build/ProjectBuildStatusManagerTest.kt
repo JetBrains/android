@@ -63,17 +63,18 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewTriggersCompileState() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val fileFilter = ProjectBuildStatusManagerTest.TestFilter()
+    val blockingDaemon = BlockingDaemonClient()
+    val fastPreviewManager = FastPreviewManager.getTestInstance(project, { _, _, _, _ -> blockingDaemon }).also {
+      Disposer.register(projectRule.fixture.testRootDisposable, it)
+    }
+    projectRule.replaceProjectService(FastPreviewManager::class.java, fastPreviewManager)
+
+    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
       fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
-
-    val blockingDaemon = BlockingDaemonClient()
-    val fastPreviewManager = FastPreviewManager.getTestInstance(project, { _, _, _, _ -> blockingDaemon }).also {
-      Disposer.register(projectRule.fixture.testRootDisposable, it)
-    }
 
     runBlocking {
       val module = projectRule.fixture.module

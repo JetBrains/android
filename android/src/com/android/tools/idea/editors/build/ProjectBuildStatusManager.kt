@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.build
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.CompilationResult
@@ -145,7 +146,6 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       else
         psiFileChangeDetector
 
-  private val buildsCount = AtomicInteger(0)
   private var projectBuildStatus: ProjectBuildStatus = ProjectBuildStatus.NotReady
     set(value) {
       if (field != value) {
@@ -171,11 +171,13 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       }
     }
 
-  override val isBuilding: Boolean get() = buildsCount.get() > 0
+  @get:UiThread
+  override val isBuilding: Boolean get() =
+    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().isBuilding ||
+    FastPreviewManager.getInstance(project).isCompiling
 
   private val buildListener = object : ProjectSystemBuildManager.BuildListener {
     override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-      buildsCount.incrementAndGet()
       LOG.debug("buildStarted $mode")
       if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
         projectBuildStatus = ProjectBuildStatus.NeedsBuild
@@ -183,9 +185,6 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     }
 
     override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-      buildsCount.updateAndGet {
-        (it - 1).coerceAtLeast(0)
-      }
       LOG.debug("buildFinished $result")
       if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
         onSuccessfulBuild()
@@ -236,14 +235,9 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
 
     if (FastPreviewManager.getInstance(project).isAvailable) {
       FastPreviewManager.getInstance(project).addCompileListener(parentDisposable, object : FastPreviewManager.Companion.CompileListener {
-        override fun onCompilationStarted(files: Collection<PsiFile>) {
-          buildsCount.incrementAndGet()
-        }
+        override fun onCompilationStarted(files: Collection<PsiFile>) { }
 
         override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
-          buildsCount.updateAndGet {
-            (it - 1).coerceAtLeast(0)
-          }
           val file = editorFile.element ?: return
           if (result == CompilationResult.Success && files.any { it.isEquivalentTo(file) }) onSuccessfulBuild()
         }
