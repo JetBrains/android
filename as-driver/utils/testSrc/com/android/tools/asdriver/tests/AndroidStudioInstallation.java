@@ -319,6 +319,7 @@ public class AndroidStudioInstallation {
   public AndroidStudio run(Display display, Map<String, String> env, String[] args) throws IOException, InterruptedException {
     Map<String, String> newEnv = new HashMap<>(env);
     newEnv.put("STUDIO_VM_OPTIONS", vmOptionsPath.toString());
+    newEnv.put("HOME", fileSystem.getHome().toString());
     newEnv.put("ANDROID_USER_HOME", this.fileSystem.getAndroidHome().toString());
 
     return AndroidStudio.run(this, display, newEnv, args);

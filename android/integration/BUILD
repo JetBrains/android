@@ -113,6 +113,34 @@ iml_test(
     test_class = "com.android.tools.idea.EmulatorAfterStudioTest",
 )
 
+iml_test(
+    name = "DeploymentTest",
+    timeout = "long",
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+    }) + [
+        ":buildproject_deps",
+        ":minapp",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//tools/base/build-system:gradle-distrib-7.2",
+        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags = [
+        "block-network",
+        "no_mac",  # Untested
+        "no_windows",  # Untested
+    ],
+    test_class = "com.android.tools.idea.DeploymentTest",
+)
+
 maven_repository(
     name = "openproject_deps",
     # keep sorted: for buildifier
