@@ -48,6 +48,7 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
         unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
         linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
         linkIntoOfflineMavenRepo("tools/adt/idea/ide-perf-tests/test_deps.manifest")
+        linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
 
         // Write Perfgate metadata (e.g. benchmark descriptions).
         val perfData = PerfData()

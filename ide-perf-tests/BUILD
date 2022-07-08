@@ -32,6 +32,7 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
@@ -134,12 +135,6 @@ maven_repository(
         "@maven//:javax.annotation.javax.annotation-api_1.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
-        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.7.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.7.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.7.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.7.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.0",
         "@maven//:org.mockito.mockito-core_3.0.0",
     ],
 )
