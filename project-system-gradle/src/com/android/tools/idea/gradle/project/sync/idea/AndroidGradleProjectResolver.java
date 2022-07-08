@@ -244,10 +244,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       attachVariantsSavedFromPreviousSyncs(project, projectDataNode);
     }
 
-    if (isAndroidGradleProject()) {
-      IdeCompositeBuildMap buildMap = resolverCtx.getModels().getModel(IdeCompositeBuildMap.class);
-      projectDataNode.createChild(IDE_COMPOSITE_BUILD_MAP, buildMap);
-    }
+    IdeCompositeBuildMap buildMap = resolverCtx.getModels().getModel(IdeCompositeBuildMap.class);
+    projectDataNode.createChild(IDE_COMPOSITE_BUILD_MAP, buildMap);
 
     IdeAndroidSyncError syncError = resolverCtx.getModels().getModel(IdeAndroidSyncError.class);
     if (syncError != null) {

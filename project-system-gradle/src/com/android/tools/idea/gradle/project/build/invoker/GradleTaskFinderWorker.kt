@@ -23,10 +23,12 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
-import com.android.tools.idea.projectsystem.gradle.buildRootDir
+import com.android.tools.idea.projectsystem.gradle.BuildRelativeGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
-import com.android.tools.idea.projectsystem.gradle.toHolder
+import com.android.tools.idea.projectsystem.gradle.rootBuildPath
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.gradle.api.plugins.JavaPlugin
@@ -121,7 +123,7 @@ class GradleTaskFinderWorker private constructor(
     if (!expand) return emptyList()
     val androidModel = androidModel ?: return emptyList()
     val androidProject = androidModel.androidProject
-    val buildRoot = gradleProjectPath.buildRoot
+    val buildRoot = gradleProjectPath.rootBuildPath()
 
     return when (androidProject.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> emptyList()
@@ -234,11 +236,12 @@ class GradleTaskFinderWorker private constructor(
 }
 
 private data class RootedTask(val root: Path, val taskPath: String)
-private data class ModuleTasks(val gradlePath: GradleHolderProjectPath, val cleanTasks: Set<String>, val tasks: Set<String>)
+private data class ModuleTasks(val gradlePath: BuildRelativeGradleProjectPath, val cleanTasks: Set<String>, val tasks: Set<String>)
 
 private fun ModuleTasks.rootedTasks(tasks: ModuleTasks.() -> Set<String>): List<RootedTask> {
-  val root = gradlePath.buildRootDir.toPath()
-  return tasks().map { RootedTask(root, "${gradlePath.path.trimEnd(':')}:$it") }
+  return tasks().map {
+    RootedTask(gradlePath.rootBuildId.toPath(), "${gradlePath.buildNamePrefixedGradleProjectPath().trimEnd(':')}:$it")
+  }
 }
 
 private data class ModuleAndMode(
@@ -247,8 +250,8 @@ private data class ModuleAndMode(
   val testCompileMode: TestCompileType,
   val expand: Boolean = true
 ) {
-  val gradleProjectPath: GradleHolderProjectPath =
-    module.getGradleProjectPath()?.toHolder() ?: error("Module $module should have been skipped")
+  val gradleProjectPath: BuildRelativeGradleProjectPath =
+    module.getBuildAndRelativeGradleProjectPath() ?: error("Module $module should have been skipped")
 
   val androidModel: GradleAndroidModel? = GradleAndroidModel.get(module)
   val isGradleJavaModule: Boolean = if (androidModel == null) module.isGradleJavaModule() else false

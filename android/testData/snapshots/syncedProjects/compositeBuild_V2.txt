@@ -83,37 +83,37 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
     MODULE                        : TestCompositeLib1.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.app
@@ -312,37 +312,37 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.app.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
     MODULE                        : TestCompositeLib1.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.app
@@ -495,37 +495,37 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/production/TestCompositeLib1.app.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
     MODULE                        : TestCompositeLib1.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.app
@@ -709,37 +709,37 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.app.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::includedLib1:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:app:assembleDebug
+                REBUILD                       : <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::includedLib1:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::includedLib1:app:extractApksForDebug
     MODULE                        : TestCompositeLib1.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.lib
@@ -798,29 +798,29 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugSources
     MODULE                        : TestCompositeLib1.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.lib
@@ -1011,29 +1011,29 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.lib.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugSources
     MODULE                        : TestCompositeLib1.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.lib
@@ -1182,29 +1182,29 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/production/TestCompositeLib1.lib.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugSources
     MODULE                        : TestCompositeLib1.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.lib
@@ -1380,29 +1380,29 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.lib.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::includedLib1:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::includedLib1:lib:assembleDebug
+                REBUILD                       : <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::includedLib1:lib:generateDebugSources
     MODULE                        : TestCompositeLib3
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -1485,37 +1485,37 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
     MODULE                        : TestCompositeLib3.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.app
@@ -1710,37 +1710,37 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.app.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
     MODULE                        : TestCompositeLib3.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.app
@@ -1891,37 +1891,37 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/production/TestCompositeLib3.app.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
     MODULE                        : TestCompositeLib3.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.app
@@ -2101,37 +2101,37 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.app.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug
+                REBUILD                       : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:app:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugSources
+                BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug
+                APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug
     MODULE                        : TestCompositeLib3.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.lib
@@ -2190,29 +2190,29 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:generateDebugSources
     MODULE                        : TestCompositeLib3.lib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.lib
@@ -2343,29 +2343,29 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.lib.androidTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:generateDebugSources
     MODULE                        : TestCompositeLib3.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.lib
@@ -2461,29 +2461,29 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/production/TestCompositeLib3.lib.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:generateDebugSources
     MODULE                        : TestCompositeLib3.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.lib
@@ -2599,29 +2599,29 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.lib.unitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :lib:createMockableJar, :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
-                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
-                SOURCE_GEN                    : :lib:createMockableJar, :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :lib:generateDebugSources
-                ASSEMBLE                      : :lib:assembleDebug
-                REBUILD                       : :lib:assembleDebug, :lib:clean
-                COMPILE_JAVA                  : :lib:compileDebugSources
-                SOURCE_GEN                    : :lib:generateDebugSources
+                CLEAN                         : <PROJECT>::TestCompositeLib3:lib:generateDebugSources
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:lib:assembleDebug
+                REBUILD                       : <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:lib:compileDebugSources
+                SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:generateDebugSources
     MODULE                        : com.test.compositeNest3.compositeNest
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleVersion         : 1.0
@@ -2647,21 +2647,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
     MODULE                        : com.test.compositeNest3.compositeNest.main
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
@@ -2685,21 +2685,21 @@ PROJECT                       : project
             -                             : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
     MODULE                        : com.test.compositeNest3.compositeNest.test
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
@@ -2724,21 +2724,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
     MODULE                        : composite2
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleVersion         : 1.0
@@ -2764,21 +2764,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava
     MODULE                        : composite2.main
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleType            : sourceSet
@@ -2802,21 +2802,21 @@ PROJECT                       : project
             -                             : file://<PROJECT>/TestCompositeLib2/build/classes/java/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava
     MODULE                        : composite2.test
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleType            : sourceSet
@@ -2841,21 +2841,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : composite2.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib2:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava
     MODULE                        : composite4
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleVersion         : 1.0
@@ -2881,21 +2881,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava
     MODULE                        : composite4.main
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleType            : sourceSet
@@ -2919,21 +2919,21 @@ PROJECT                       : project
             -                             : file://<PROJECT>/TestCompositeLib4/build/classes/java/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava
     MODULE                        : composite4.test
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleType            : sourceSet
@@ -2958,21 +2958,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : composite4.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib4:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib4:compileJava
     MODULE                        : compositeNest
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleVersion         : 1.0
@@ -2998,21 +2998,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
     MODULE                        : compositeNest.main
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleType            : sourceSet
@@ -3036,21 +3036,21 @@ PROJECT                       : project
             -                             : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
     MODULE                        : compositeNest.test
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleType            : sourceSet
@@ -3075,21 +3075,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : compositeNest.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :assemble
-                REBUILD                       : :assemble, :clean
-                COMPILE_JAVA                  : :compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
     MODULE                        : project
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -4609,34 +4609,34 @@ PROJECT                       : project
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
-            CLEAN                         : <PROJECT>/TestCompositeLib1::app:createMockableJar, <PROJECT>/TestCompositeLib1::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:createMockableJar, <PROJECT>/TestCompositeLib1::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:createMockableJar, <PROJECT>/TestCompositeLib3::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:createMockableJar, <PROJECT>/TestCompositeLib3::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib1::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::app:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::clean, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::testClasses, <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib1::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib1::lib:assembleDebugUnitTest, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib2::clean, <PROJECT>/TestCompositeLib2::testClasses, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::clean, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::testClasses, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::lib:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib4::assemble, <PROJECT>/TestCompositeLib4::clean, <PROJECT>/TestCompositeLib4::testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::testClasses, <PROJECT>/TestCompositeLib1::app:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:compileDebugSources, <PROJECT>/TestCompositeLib1::app:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib1::lib:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:compileDebugSources, <PROJECT>/TestCompositeLib1::lib:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib2::testClasses, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::testClasses, <PROJECT>/TestCompositeLib3::app:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:compileDebugSources, <PROJECT>/TestCompositeLib3::app:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib3::lib:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib4::compileJava, <PROJECT>/TestCompositeLib4::testClasses, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>/TestCompositeLib1::app:createMockableJar, <PROJECT>/TestCompositeLib1::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:createMockableJar, <PROJECT>/TestCompositeLib1::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:createMockableJar, <PROJECT>/TestCompositeLib3::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:createMockableJar, <PROJECT>/TestCompositeLib3::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            BUNDLE                        : <PROJECT>/TestCompositeLib1::app:bundleDebug, <PROJECT>/TestCompositeLib3::app:bundleDebug, <PROJECT>::app:bundleDebug
-            APK_FROM_BUNDLE               : <PROJECT>/TestCompositeLib1::app:extractApksForDebug, <PROJECT>/TestCompositeLib3::app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
+            CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses, <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses, <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugUnitTestSources, <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug, <PROJECT>::app:bundleDebug, <PROJECT>::includedLib1:app:bundleDebug
+            APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::includedLib1:app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>/TestCompositeLib1::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::clean, <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib2::clean, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::clean, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:assembleDebugAndroidTest, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib4::assemble, <PROJECT>/TestCompositeLib4::clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib1::app:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:compileDebugSources, <PROJECT>/TestCompositeLib1::lib:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:compileDebugSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib3::app:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:compileDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>/TestCompositeLib1::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugAndroidTestSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            BUNDLE                        : <PROJECT>/TestCompositeLib1::app:bundleDebug, <PROJECT>/TestCompositeLib3::app:bundleDebug, <PROJECT>::app:bundleDebug
-            APK_FROM_BUNDLE               : <PROJECT>/TestCompositeLib1::app:extractApksForDebug, <PROJECT>/TestCompositeLib3::app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
+            CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug, <PROJECT>::app:bundleDebug, <PROJECT>::includedLib1:app:bundleDebug
+            APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::includedLib1:app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>/TestCompositeLib1::app:createMockableJar, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:createMockableJar, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:createMockableJar, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:createMockableJar, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::clean, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::testClasses, <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:assembleDebugUnitTest, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib2::clean, <PROJECT>/TestCompositeLib2::testClasses, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::clean, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::testClasses, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:assembleDebugUnitTest, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib4::assemble, <PROJECT>/TestCompositeLib4::clean, <PROJECT>/TestCompositeLib4::testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::testClasses, <PROJECT>/TestCompositeLib1::app:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib1::lib:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib2::testClasses, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::testClasses, <PROJECT>/TestCompositeLib3::app:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib3::lib:compileDebugUnitTestSources, <PROJECT>/TestCompositeLib4::compileJava, <PROJECT>/TestCompositeLib4::testClasses, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>/TestCompositeLib1::app:createMockableJar, <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:createMockableJar, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:createMockableJar, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:createMockableJar, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
-            BUNDLE                        : <PROJECT>/TestCompositeLib1::app:bundleDebug, <PROJECT>/TestCompositeLib3::app:bundleDebug, <PROJECT>::app:bundleDebug
-            APK_FROM_BUNDLE               : <PROJECT>/TestCompositeLib1::app:extractApksForDebug, <PROJECT>/TestCompositeLib3::app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
+            CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses, <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses, <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::includedLib1:app:compileDebugUnitTestSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
+            BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug, <PROJECT>::app:bundleDebug, <PROJECT>::includedLib1:app:bundleDebug
+            APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::includedLib1:app:extractApksForDebug
         TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>::app:assembleDebug
-            REBUILD                       : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::assemble, <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::clean, <PROJECT>/TestCompositeLib1::app:assembleDebug, <PROJECT>/TestCompositeLib1::app:clean, <PROJECT>/TestCompositeLib1::lib:assembleDebug, <PROJECT>/TestCompositeLib1::lib:clean, <PROJECT>/TestCompositeLib2::assemble, <PROJECT>/TestCompositeLib2::clean, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::assemble, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::clean, <PROJECT>/TestCompositeLib3::app:assembleDebug, <PROJECT>/TestCompositeLib3::app:clean, <PROJECT>/TestCompositeLib3::lib:assembleDebug, <PROJECT>/TestCompositeLib3::lib:clean, <PROJECT>/TestCompositeLib4::assemble, <PROJECT>/TestCompositeLib4::clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1::compileJava, <PROJECT>/TestCompositeLib1::app:compileDebugSources, <PROJECT>/TestCompositeLib1::lib:compileDebugSources, <PROJECT>/TestCompositeLib2::compileJava, <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3::compileJava, <PROJECT>/TestCompositeLib3::app:compileDebugSources, <PROJECT>/TestCompositeLib3::lib:compileDebugSources, <PROJECT>/TestCompositeLib4::compileJava, <PROJECT>::app:compileDebugSources, <PROJECT>::lib:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>/TestCompositeLib1::app:generateDebugSources, <PROJECT>/TestCompositeLib1::lib:generateDebugSources, <PROJECT>/TestCompositeLib3::app:generateDebugSources, <PROJECT>/TestCompositeLib3::lib:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
-            BUNDLE                        : <PROJECT>/TestCompositeLib1::app:bundleDebug, <PROJECT>/TestCompositeLib3::app:bundleDebug, <PROJECT>::app:bundleDebug
-            APK_FROM_BUNDLE               : <PROJECT>/TestCompositeLib1::app:extractApksForDebug, <PROJECT>/TestCompositeLib3::app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
+            CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebug
+            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::lib:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:generateDebugSources
+            BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug, <PROJECT>::app:bundleDebug, <PROJECT>::includedLib1:app:bundleDebug
+            APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::includedLib1:app:extractApksForDebug

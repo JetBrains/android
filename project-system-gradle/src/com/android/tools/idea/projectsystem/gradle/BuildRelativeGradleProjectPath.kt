@@ -18,9 +18,11 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -61,6 +63,8 @@ fun BuildRelativeGradleProjectPath.buildNamePrefixedGradleProjectPath(): String 
   }
 }
 
+fun BuildRelativeGradleProjectPath.rootBuildPath(): String = toSystemIndependentName(rootBuildId.path)
+
 /**
  * If the version of Gradle the project is synced with supports invoking tasks directly from included builds, finds the build at the root
  * of the composite and returns its location together with the name of an (included) build containing this project and the Gradle project
@@ -92,12 +96,12 @@ private fun IdeCompositeBuildMap.toCompositeBuildMap(): CompositeBuildMap {
   }
 }
 
-fun Module.compositeBuildMapModel(): IdeCompositeBuildMap {
+fun Module.findCompositeBuildMapModel(): IdeCompositeBuildMap {
   val linkedProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return IdeCompositeBuildMap.EMPTY
 
-  @Suppress("UnstableApiUsage")
   val projectDataNode =
-    ExternalSystemApiUtil.findProjectData(project, GradleConstants.SYSTEM_ID, linkedProjectPath) ?: return IdeCompositeBuildMap.EMPTY
+    ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, linkedProjectPath)?.externalProjectStructure
+      ?: return IdeCompositeBuildMap.EMPTY
 
   return find(projectDataNode, AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP)?.data ?: IdeCompositeBuildMap.EMPTY
 }
@@ -107,9 +111,14 @@ private fun Module.compositeBuildMap(): CompositeBuildMap {
   val rootProjectGradleProjectPath = GradleHolderProjectPath(gradleProjectPath.buildRoot, ":")
   val rootModule = rootProjectGradleProjectPath.resolveIn(project) ?: error("Cannot find root module for $rootProjectGradleProjectPath")
   // We cache the map in the root module of each build.
-  return CachedValuesManager.getManager(project).getCachedValue(rootModule) {
-    CachedValueProvider.Result(compositeBuildMapModel().toCompositeBuildMap(), ProjectSyncModificationTracker.getInstance(project))
-  }
+  return CachedValuesManager.getManager(project).getCachedValue(rootModule, rootModule::createCompositeBuildMapCachedValue)
+}
+
+private fun Module.createCompositeBuildMapCachedValue(): CachedValueProvider.Result<CompositeBuildMap> {
+  return CachedValueProvider.Result(
+    findCompositeBuildMapModel().toCompositeBuildMap(),
+    ProjectSyncModificationTracker.getInstance(project)
+  )
 }
 
 fun CompositeBuildMap.translateToBuildAndRelativeProjectPath(projectPath: GradleProjectPath): BuildRelativeGradleProjectPath {

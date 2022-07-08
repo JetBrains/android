@@ -40,9 +40,11 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
+import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
@@ -1354,6 +1356,13 @@ private fun setupTestProjectFromAndroidModelCore(
   projectDataNode.createChild(
     AndroidProjectKeys.IDE_LIBRARY_TABLE,
     internedModels.createResolvedLibraryTable()
+  )
+  projectDataNode.createChild(
+    AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP,
+    IdeCompositeBuildMapImpl(
+      builds = listOf(IdeBuildImpl(buildName = ":", buildId = rootProjectBasePath)),
+      gradleSupportsDirectTaskInvocation = true
+    )
   )
 
   setupDataNodesForSelectedVariant(project, toSystemIndependentName(rootProjectBasePath.path), androidModels, projectDataNode, libraryResolver)
