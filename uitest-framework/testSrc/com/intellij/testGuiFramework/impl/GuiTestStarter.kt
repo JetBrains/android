@@ -28,7 +28,7 @@ class GuiTestStarter : IdeStarter() {
 
   private val guiTestThread = GuiTestThread()
 
-  override fun getCommandName() = COMMAND_NAME
+  override val commandName = COMMAND_NAME
 
   override fun premain(args: List<String>) {
     processArgs(args)
