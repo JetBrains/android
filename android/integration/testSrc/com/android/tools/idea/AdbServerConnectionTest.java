@@ -15,38 +15,24 @@
  */
 package com.android.tools.idea;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.Adb;
-import com.android.tools.asdriver.tests.AndroidSdk;
-import com.android.tools.asdriver.tests.Display;
+import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.Emulator;
-import com.android.tools.asdriver.tests.TestFileSystem;
-import com.android.tools.asdriver.tests.XvfbServer;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 public class AdbServerConnectionTest {
-  private static final String EMULATOR_NAME = "emu";
-
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
   @Test
   public void adbServerTest() throws Exception {
-    TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
-    AndroidSdk sdk = new AndroidSdk(TestUtils.resolveWorkspacePath("prebuilts/studio/sdk/linux"));
+    AndroidSystem system = AndroidSystem.basic(tempFolder.getRoot().toPath());
 
-    HashMap<String, String> env = new HashMap<>();
-    sdk.install(env);
-
-    Emulator.createEmulator(fileSystem, EMULATOR_NAME, TestUtils.getWorkspaceRoot().resolve("../system_image_android-29_default_x86_64"));
-
-    try (Display display = new XvfbServer();
-         Adb adb = Adb.start(sdk, fileSystem.getHome(), false);
-         Emulator emulator = Emulator.start(fileSystem, sdk, display, EMULATOR_NAME)) {
+    try (Adb adb = system.runAdb(false);
+         Emulator emulator = system.runEmulator()) {
       emulator.waitForBoot();
       try (Adb devices = adb.runCommand("devices")) {
         devices.waitForLog("List of devices attached", 5, TimeUnit.SECONDS);

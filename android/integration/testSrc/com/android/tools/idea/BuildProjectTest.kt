@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea
 
-import com.android.testutils.TestUtils
 import com.android.tools.asdriver.tests.AndroidProject
-import com.android.tools.asdriver.tests.AndroidSdk
-import com.android.tools.asdriver.tests.AndroidStudioInstallation
+import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
-import com.android.tools.asdriver.tests.TestFileSystem
-import com.android.tools.asdriver.tests.XvfbServer
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.util.concurrent.TimeUnit
 
 class BuildProjectTest {
   @JvmField @Rule
@@ -33,29 +28,20 @@ class BuildProjectTest {
 
   @Test
   fun buildProjectTest() {
-    val fileSystem = TestFileSystem(tempFolder.root.toPath())
-    val install = AndroidStudioInstallation.fromZip(fileSystem)
-    install.createFirstRunXml()
-    val env = HashMap<String, String>()
-
-    val sdk = AndroidSdk(TestUtils.resolveWorkspacePath("prebuilts/studio/sdk/linux"))
-    sdk.install(env)
+    val system = AndroidSystem.standard(tempFolder.root.toPath())
 
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
     project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
 
     // Create a maven repo and set it up in the installation and environment
-    val mavenRepo = MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest")
-    mavenRepo.install(fileSystem.root, install, env)
-    XvfbServer().use { display ->
-      install.run(display, env, project).use { studio ->
-        studio.waitForSync()
-        studio.waitForIndex()
-        studio.executeAction("MakeGradleProject")
-        val matcher = install.ideaLog.waitForMatchingLine(".*Gradle build finished in (.*)", 180, TimeUnit.SECONDS)
-        println("Build took " + matcher.group(1))
-      }
+    system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
+
+    system.runStudio(project) { studio ->
+      studio.waitForSync()
+      studio.waitForIndex()
+      studio.executeAction("MakeGradleProject")
+      studio.waitForBuild()
     }
   }
 }

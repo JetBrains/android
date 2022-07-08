@@ -257,6 +257,16 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
+  public void waitForBuild() throws IOException, InterruptedException {
+    // "Infinite" timeout
+    waitForBuild(1, TimeUnit.DAYS);
+  }
+
+  public void waitForBuild(long timeout, TimeUnit unit) throws IOException, InterruptedException {
+    Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle build finished in (.*)", timeout, unit);
+    System.out.println("Build took " + matcher.group(1));
+  }
+
   public void waitForSync() throws IOException, InterruptedException {
     // "Infinite" timeout
     waitForSync(1, TimeUnit.DAYS);
