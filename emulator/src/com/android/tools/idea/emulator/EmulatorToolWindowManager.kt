@@ -395,8 +395,7 @@ internal class EmulatorToolWindowManager private constructor(
   private fun createEmptyStatePanel() {
     val panel = EmptyStatePanel(project)
     val contentFactory = ContentFactory.SERVICE.getInstance()
-    val content = contentFactory.createContent(panel, panel.title, false).apply {
-      tabName = panel.title
+    val content = contentFactory.createContent(panel, null, false).apply {
       isCloseable = false
     }
     val contentManager = getContentManager()

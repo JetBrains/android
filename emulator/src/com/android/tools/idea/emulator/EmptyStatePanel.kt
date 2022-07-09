@@ -23,8 +23,9 @@ import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.emulator.settings.EmulatorSettingsUi
+import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.openapi.Disposable
@@ -36,12 +37,15 @@ import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.htmlComponent
 import com.intellij.util.ui.JBUI
+import icons.AndroidIcons
+import java.awt.EventQueue
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.awt.event.MouseEvent
+import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
@@ -53,14 +57,13 @@ private const val TOP_MARGIN = 0.45
 private const val SIDE_MARGIN = 0.15
 
 /**
- * The panel that is shown in the Emulator tool window when no embedded Emulators are running.
+ * The panel that is shown in the Running Devices tool window when there are no running
+ * embedded emulators and no mirrored devices.
  */
 internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridBagLayout()), Disposable {
 
-  val title
-    get() = "No Running Emulators"
-
   private var emulatorLaunchesInToolWindow: Boolean
+  private var deviceMirroringEnabled: Boolean
   private var emulatorVersionIsSufficient: Boolean
   private var hyperlinkListener: HyperlinkListener
 
@@ -74,35 +77,42 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
     isFocusable = true
 
     emulatorLaunchesInToolWindow = EmulatorSettings.getInstance().launchInToolWindow
+    deviceMirroringEnabled = DeviceMirroringSettings.getInstance().deviceMirroringEnabled
     emulatorVersionIsSufficient = true
 
     hyperlinkListener = HyperlinkListener { event ->
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-        if (emulatorLaunchesInToolWindow) {
-          if (emulatorVersionIsSufficient) {
+        when (event.description) {
+          "DeviceManager" -> {
             // Action id is from com.android.tools.idea.devicemanager.DeviceManagerAction.
-            val deviceManagerAction = ActionManager.getInstance().getAction("Android.DeviceManager")
-            val projectContext = SimpleDataContext.getProjectContext(project)
-            ActionUtil.invokeAction(deviceManagerAction, projectContext, ActionPlaces.UNKNOWN, null, null)
+            val action = ActionManager.getInstance().getAction("Android.DeviceManager")
+            ActionUtil.invokeAction(action, SimpleDataContext.getProjectContext(project), ActionPlaces.UNKNOWN, null, null)
           }
-          else {
-            val actionManager = ActionManager.getInstance()
-            val mouseEvent = MouseEvent(this, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 0, 0, 1, false)
-            actionManager.tryToExecute(actionManager.getAction("CheckForUpdate"), mouseEvent, null, null, false)
+          "CheckForUpdate" -> {
+            val action = ActionManager.getInstance().getAction("CheckForUpdate")
+            ActionUtil.invokeAction(action, SimpleDataContext.getProjectContext(project), ActionPlaces.UNKNOWN, null, null)
           }
-        }
-        else {
-          ShowSettingsUtil.getInstance().showSettingsDialog(project, EmulatorSettingsUi::class.java)
+          "EmulatorSettings" -> {
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, EmulatorSettingsUi::class.java)
+          }
+          "ExperimentalSettings" -> {
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, ExperimentalSettingsConfigurable::class.java)
+          }
         }
       }
     }
 
-    project.messageBus.connect(this).subscribe(EmulatorSettingsListener.TOPIC, EmulatorSettingsListener { settings ->
+    val messageBusConnection = project.messageBus.connect(this)
+    messageBusConnection.subscribe(EmulatorSettingsListener.TOPIC, EmulatorSettingsListener { settings ->
       emulatorLaunchesInToolWindow = settings.launchInToolWindow
       updateContent()
     })
+    messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { settings ->
+      deviceMirroringEnabled = settings.deviceMirroringEnabled
+      updateContent()
+    })
 
-    executeOnPooledThread {
+    AndroidExecutors.getInstance().workerThreadExecutor.execute {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
       val progress: ProgressIndicator = StudioLoggerProgressIndicator(AvdManagerConnection::class.java)
       val sdkManager = sdkHandler.getSdkManager(progress)
@@ -119,7 +129,7 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
   @AnyThread
   private fun localPackagesUpdated(packages: RepositoryPackages) {
     val emulatorPackage = packages.localPackages[SdkConstants.FD_EMULATOR] ?: return
-    invokeLaterInAnyModalityState {
+    EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
       val minRequired = if (SystemInfo.OS_ARCH == "aarch64") MIN_REQUIRED_EMULATOR_VERSION_AARCH64 else MIN_REQUIRED_EMULATOR_VERSION
       val sufficient = emulatorPackage.version >= Revision.parseRevision(minRequired)
       if (emulatorVersionIsSufficient != sufficient) {
@@ -131,38 +141,66 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
 
   private fun createContent() {
     val linkColorString = (JBUI.CurrentTheme.Link.Foreground.ENABLED.rgb and 0xFFFFFF).toString(16)
-    val html = if (emulatorLaunchesInToolWindow) {
-      if (emulatorVersionIsSufficient) {
-        val linkTitle = "Device&nbsp;Manager"
+    val html = when {
+      emulatorLaunchesInToolWindow && emulatorVersionIsSufficient && deviceMirroringEnabled ->
         """
         <center>
-        No emulators are currently running.
-        To&nbsp;launch an&nbsp;emulator, use the&nbsp;<font color = $linkColorString><a href=''>$linkTitle</a></font>
-        or run your app while targeting a&nbsp;virtual device.
+        <p>To launch a&nbsp;virtual device, use the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>
+        or run your app while targeting a&nbsp;virtual device.</p>
+        <p/>
+        <p>To mirror a&nbsp;physical device, connect it via USB cable or over WiFi.</p>
         </center>
         """.trimIndent()
-      }
-      else {
+      emulatorLaunchesInToolWindow && emulatorVersionIsSufficient && !deviceMirroringEnabled ->
         """
         <center>
-        To use the Android Emulator in this
-        window, install version $MIN_REQUIRED_EMULATOR_VERSION or higher.
-        Please <font color = $linkColorString><a href=''>check for&nbsp;updates</a></font> and install
-        the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator.
+        <p>To launch a&nbsp;virtual device, use the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>
+        or run your app while targeting a&nbsp;virtual device.</p>
+        <p/>
+        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i>
+        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='ExperimentalSettings'>Experimental&nbsp;settings</a></font>.</p>
         </center>
         """.trimIndent()
-      }
-    }
-    else {
-      """
-      <center>
-      The&nbsp;Android Emulator is currently configured
-      to run as a&nbsp;standalone application. To&nbsp;make
-      the&nbsp;Android Emulator launch in this window
-      instead, select the&nbsp;<i>Launch in a&nbsp;tool window</i>
-      option in the&nbsp;<font color = $linkColorString><a href=''>Emulator&nbsp;settings</a></font>.
-      </center>
-      """.trimIndent()
+      emulatorLaunchesInToolWindow && !emulatorVersionIsSufficient && deviceMirroringEnabled ->
+        """
+        <center>
+        <p>To launch virtual devices in this window, install Android Emulator $MIN_REQUIRED_EMULATOR_VERSION or higher.
+        Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install
+        the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator.</p>
+        <p/>
+        <p>To mirror a&nbsp;physical device, connect it via USB cable or over WiFi.</p>
+        </center>
+        """.trimIndent()
+      emulatorLaunchesInToolWindow && !emulatorVersionIsSufficient && !deviceMirroringEnabled ->
+        """
+        <center>
+        <p>To launch virtual devices in this window, install Android Emulator $MIN_REQUIRED_EMULATOR_VERSION or higher.
+        Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install
+        the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator.</p>
+        <p/>
+        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i>
+        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='ExperimentalSettings'>Experimental&nbsp;settings</a></font>.</p>
+        </center>
+        """.trimIndent()
+      deviceMirroringEnabled ->
+        """
+        <center>
+        To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i>
+        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
+        <p/>
+        <p>To mirror a&nbsp;physical device, connect it via USB cable or over WiFi.</p>
+        </center>
+        """.trimIndent()
+      else ->
+        """
+        <center>
+        To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i>
+        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
+        <p/>
+        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i>
+        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='ExperimentalSettings'>Experimental&nbsp;settings</a></font>.</p>
+        </center>
+        """.trimIndent()
     }
 
     val text = htmlComponent(text = html,
@@ -182,7 +220,10 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
       weightx = 1 - SIDE_MARGIN * 2
       weighty = TOP_MARGIN
     }
-    add(createSpacer(), c)
+    val icon = JBLabel(AndroidIcons.DeviceExplorer.DevicesLineup)
+    icon.horizontalAlignment = SwingConstants.CENTER
+    icon.verticalAlignment = SwingConstants.BOTTOM
+    add(icon, c)
 
     c.apply {
       gridx = 0
