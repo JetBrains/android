@@ -39,7 +39,7 @@ import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
-import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
+import com.intellij.openapi.fileEditor.impl.FileEditorManagerExImpl
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
@@ -83,7 +83,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
     buildSessionId = UUID.randomUUID().toString()
 
-    project.registerComponentInstance(FileEditorManager::class.java, FileEditorManagerImpl(project), testRootDisposable)
+    project.registerComponentInstance(FileEditorManager::class.java, FileEditorManagerExImpl(project), testRootDisposable)
   }
 
   override fun tearDown() {
