@@ -116,9 +116,9 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
       "started" -> AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.RUN_START_DATA
         runStartData = RunStartData.newBuilder().apply {
-          (data["ide_activity_id"] as? String?)?.toIntOrNull()?.let { ideActivityId = it }
+          (data["ide_activity_id"] as? Int?)?.let { ideActivityId = it }
           (data["executor"] as? String?)?.let { executor = it }
-          (data["run_configuration"] as? String?)?.let { runConfiguration = it }
+          (data["id"] as? String?)?.let { runConfiguration = it }
         }.build()
       }
       "finished" -> AndroidStudioEvent.newBuilder().apply {
