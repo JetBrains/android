@@ -640,8 +640,8 @@ public final class NlComponentTest extends LayoutTestCase {
   private static String arrangeXml(@NotNull Project project, @NotNull PsiFile psiFile) {
     WriteCommandAction.runWriteCommandAction(project, () -> {
       project.getService(ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
-      ApplicationManager.getApplication().saveAll();
     });
+    ApplicationManager.getApplication().saveAll();
     return FileDocumentManager.getInstance().getDocument(psiFile.getVirtualFile()).getText();
   }
 }
