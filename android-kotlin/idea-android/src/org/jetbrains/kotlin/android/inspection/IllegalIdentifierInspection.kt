@@ -35,7 +35,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
+import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.quickfix.RenameIdentifierFix
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtPsiUtil
@@ -50,6 +50,8 @@ import java.io.File
  * This should only be run on sources which will end up being run on the Android Runtime / Dalvik: build and unit test sources can use
  * all identifiers permitted by the JVM.
  */
+import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
+
 class IllegalIdentifierInspection : AbstractKotlinInspection() {
     private class JunitPaths(val paths: List<File>, val generationId: Long) {
         companion object : Key<JunitPaths>("AndroidModuleJunitPaths")
