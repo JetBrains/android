@@ -21,7 +21,7 @@ import org.jetbrains.annotations.PropertyKey
 private const val BUNDLE_NAME = "bundle.preview.PreviewBundle"
 
 object PreviewBundle {
-  private val bundleRef = MessageBundleReference(BUNDLE_NAME)
+  private val bundleRef = MessageBundleReference(BUNDLE_NAME, PreviewBundle::class.java.classLoader)
   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
 
   fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.lazyMessage(key, *params)
