@@ -31,9 +31,9 @@ import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
 import com.intellij.profile.codeInspection.ui.readHTML
 import com.intellij.profile.codeInspection.ui.toHTML
 import com.intellij.ui.OnePixelSplitter
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.Link
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -43,6 +43,7 @@ import java.io.File
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
+import javax.swing.ToolTipManager
 
 /**
  * The side panel to show the detail of issue and its source code if available
@@ -133,10 +134,16 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
         }
         for (file in relatedFiles) {
           val pathToDisplay = FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true) ?: continue
-          val link = Link(pathToDisplay, null) {
-            OpenFileDescriptor(project, file).navigateInEditor(project, true)
-            alignmentX = LEFT_ALIGNMENT
+          val link = object: ActionLink(pathToDisplay, { OpenFileDescriptor(project, file).navigateInEditor(project, true) }) {
+            override fun getToolTipText(): String? {
+              return if (size.width < minimumSize.width) {
+                pathToDisplay
+              } else {
+                null
+              }
+            }
           }
+          ToolTipManager.sharedInstance().registerComponent(link)
           affectedFilePanel.add(link)
         }
       }
