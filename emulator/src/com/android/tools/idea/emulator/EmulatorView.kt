@@ -353,7 +353,7 @@ class EmulatorView(
 
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
-      remove(disconnectedStateLabel)
+      hideDisconnectedStateMessage()
       if (isVisible) {
         if (screenshotFeed == null) {
           requestScreenshotFeed()
@@ -367,12 +367,9 @@ class EmulatorView(
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
       lastScreenshot = null
-      hideLongRunningOperationIndicator()
-      disconnectedStateLabel.text = "Disconnected from the Emulator"
-      add(disconnectedStateLabel)
+      showDisconnectedStateMessage("Disconnected from the Emulator")
     }
 
-    revalidate()
     repaint()
   }
 

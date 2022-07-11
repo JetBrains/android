@@ -179,7 +179,7 @@ class DeviceView(
         override fun onNewFrameAvailable() {
           EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             if (!connected) {
-              hideLongRunningOperationIndicatorInstantly()
+              hideDisconnectedStateMessage()
               connected = true
             }
             if (width != 0 && height != 0) {
@@ -189,7 +189,7 @@ class DeviceView(
         }
 
         override fun onEndOfVideoStream() {
-          showDisconnectedMessage("Lost connection to the device. See the error log.")
+          lostConnection("Lost connection to the device. See the error log.")
         }
       })
       deviceClient.startVideoDecoding(decoder)
@@ -199,19 +199,16 @@ class DeviceView(
     }
     catch (e: Throwable) {
       thisLogger().error("Failed to initialize the screen sharing agent", e)
-      showDisconnectedMessage("Failed to initialize the device agent. See the error log.")
+      lostConnection("Failed to initialize the device agent. See the error log.")
     }
   }
 
-  private fun showDisconnectedMessage(message: String) {
+  private fun lostConnection(message: String) {
     EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
       if (!disposed) {
         connected = false
         decoder = null
-        hideLongRunningOperationIndicatorInstantly()
-        disconnectedStateLabel.text = message
-        add(disconnectedStateLabel)
-        revalidate()
+        showDisconnectedStateMessage(message)
       }
     }
   }

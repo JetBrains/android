@@ -43,7 +43,7 @@ import kotlin.math.roundToInt
  */
 abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
 
-  protected val disconnectedStateLabel = JLabel()
+  private val disconnectedStateLabel = JLabel()
 
   init {
     background = primaryPanelBackground
@@ -149,6 +149,19 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
 
   fun hideLongRunningOperationIndicatorInstantly() {
     findLoadingPanel()?.stopLoadingInstantly()
+  }
+
+  protected fun showDisconnectedStateMessage(message: String) {
+    hideLongRunningOperationIndicatorInstantly()
+    disconnectedStateLabel.text = message
+    add(disconnectedStateLabel)
+    revalidate()
+  }
+
+  protected fun hideDisconnectedStateMessage() {
+    hideLongRunningOperationIndicatorInstantly()
+    remove(disconnectedStateLabel)
+    revalidate()
   }
 
   private fun findLoadingPanel(): EmulatorLoadingPanel? = findContainingComponent()
