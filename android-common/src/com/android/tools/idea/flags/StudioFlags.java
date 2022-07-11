@@ -1398,7 +1398,7 @@ public final class StudioFlags {
                 "Support adding logic for intent handling in Kotlin.", true);
   public static final Flag<Boolean> APP_LINKS_ASSISTANT_V2 =
     Flag.create(APP_LINKS_ASSISTANT, "v2", "App Links Assistant V2",
-                "Revamped App Links Assistant (new surfaces and navigation between surfaces).", true);
+                "Revamped App Links Assistant (new surfaces and navigation between surfaces).", false);
   // endregion App Links Assistant
 
   // region GOOGLE_PLAY_SDK_INDEX
