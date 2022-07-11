@@ -9,7 +9,6 @@ import com.intellij.testFramework.TestDataPath;
 import org.jetbrains.kotlin.android.KotlinTestUtils;
 import org.junit.runner.RunWith;
 
-/* TODO(b/237017847): this test fails with Kotlin 221.
 @SuppressWarnings("all")
 @TestDataPath("$PROJECT_ROOT")
 public class AndroidIntentionTestGenerated {
@@ -305,4 +304,3 @@ public class AndroidIntentionTestGenerated {
         }
     }
 }
- */
