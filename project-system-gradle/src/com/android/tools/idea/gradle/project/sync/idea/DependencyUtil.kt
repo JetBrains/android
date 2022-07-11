@@ -291,7 +291,7 @@ private class AndroidDependenciesSetupContext(
 
 fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   gradleProjectPathToModuleData: (GradleSourceSetProjectPath) -> ModuleData?,
-  additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths,
+  additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
   variant: IdeVariant,
   project: Project?
 ) {
