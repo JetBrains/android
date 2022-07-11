@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -36,6 +37,7 @@ import org.junit.Rule
 import org.junit.Test
 import javax.swing.JPanel
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class AllTabPanelTest {
 
@@ -178,7 +180,8 @@ class AllTabPanelTest {
       panel.addCard(cardThree)
       ui.updateToolbars()
       ui.layout()
-      ui.render()
+      // Uncomment to preview.
+      //ui.render()
     }
   }
 
@@ -209,6 +212,31 @@ class AllTabPanelTest {
       ui.layout()
       // Uncomment to preview ui.
       //ui.render()
+    }
+  }
+
+  @Test
+  fun `expand cards`() {
+    val panel = AllTabPanel().apply {
+      setSize(1000, 400)
+      addPlayback(TestUtils.createPlaybackPlaceHolder())
+      addTimeline(TestUtils.createTimelinePlaceHolder())
+    }
+    for (i in 0..10) {
+      panel.addCard(AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}.apply { setDuration(i * 10) })
+    }
+
+    invokeAndWaitIfNeeded {
+      val ui = FakeUi(panel)
+      ui.updateToolbars()
+      ui.layoutAndDispatchEvents()
+      // Uncomment to preview.
+      //ui.render()
+      val firstCard = TestUtils.findAllCards(panel)[0] as AnimationCard
+      firstCard.expandedSize = 300
+      assertNotEquals(300, firstCard.getCurrentHeight())
+      ui.clickOn(firstCard.findExpandButton())
+      assertEquals(300, firstCard.getCurrentHeight())
     }
   }
 

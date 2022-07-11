@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.intellij.ui.JBColor
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Container
 import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.Point
@@ -109,4 +110,7 @@ object TestUtils {
     TreeWalker(this.component).descendantStream().filter { it is JLabel }.collect(
       Collectors.toList()).map { it as JLabel }.first()
 
+  fun AnimationCard.findExpandButton(): Component {
+    return (this.component.components[0] as Container).components[0]
+  }
 }

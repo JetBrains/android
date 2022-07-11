@@ -30,6 +30,7 @@ class LabelCardTest {
   fun `create animation card`(): Unit {
     val card = LabelCard(ElementState("Title"))
     card.component.setSize(100, card.getCurrentHeight())
+    card.setDuration(0)
 
     assertTrue { card.getCurrentHeight() > minimumSize.height }
 

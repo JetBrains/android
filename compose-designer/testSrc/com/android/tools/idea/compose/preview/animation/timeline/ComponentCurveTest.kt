@@ -35,9 +35,9 @@ class ComponentCurveTest {
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
 
     val property = AnimatedProperty.Builder()
-      .add(0, ComposeUnit.IntSize(0, 0))
-      .add(50, ComposeUnit.IntSize(10, 10))
-      .add(100, ComposeUnit.IntSize(20, 20))
+      .add(0, ComposeUnit.Color(0.1f, 0.1f, 0.1f, 0.1f))
+      .add(50, ComposeUnit.Color(0.2f, 0.2f, 0.2f, 0.2f))
+      .add(100, ComposeUnit.Color(0.3f, 0.3f, 0.3f, 0.3f))
       .build()!!
     val componentCurve = ComponentCurve.create(
       state = ElementState(),

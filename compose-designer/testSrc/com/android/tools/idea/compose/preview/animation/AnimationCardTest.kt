@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -56,7 +57,7 @@ class AnimationCardTest {
       ui.layout()
       ui.layoutAndDispatchEvents()
       // Expand/collapse button.
-      (card.components[0] as Container).components[0].also {
+      card.findExpandButton().also {
         // Button is here and visible.
         assertTrue(it.isVisible)
         TestUtils.assertBigger(Dimension(10, 10), it.size)
@@ -78,22 +79,26 @@ class AnimationCardTest {
         TestUtils.assertBigger(minimumSize, it.size)
       }
 
-      // Lock button.
+      // Freeze button.
       findFreezeButton(card).also {
         // Button is here and visible.
         assertTrue(it.isVisible)
         assertTrue { it.isEnabled }
         TestUtils.assertBigger(minimumSize, it.size)
         // After clicking button callback is called.
-        var lockCalls = 0
-        card.state.addFreezeListener { lockCalls++ }
+        var freezeCalls = 0
+        card.state.addFreezeListener { freezeCalls++ }
         ui.clickOn(it)
         ui.updateToolbars()
-        assertEquals(1, lockCalls)
+        assertEquals(1, freezeCalls)
         card.state.frozen = false
         ui.layout()
         ui.updateToolbars()
-        assertEquals(2, lockCalls)
+        assertEquals(2, freezeCalls)
+        // Freeze and unfreeze
+        ui.clickOn(it)
+        ui.clickOn(it)
+        assertEquals(4, freezeCalls)
       }
       // Double click to open in new tab. Use label position just to make sure we are not clicking on any button.
       val label = (card.components[0] as JComponent).components[1]
