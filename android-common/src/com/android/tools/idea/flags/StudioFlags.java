@@ -23,10 +23,10 @@ import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A collection of all feature flags used by Android Studio. These flags can be used to gate
@@ -52,7 +52,7 @@ public final class StudioFlags {
     return new Flags(userOverrides, new PropertyOverrides(), new ServerFlagOverrides());
   }
 
-  @VisibleForTesting
+  @TestOnly
   public static void validate() {
       FLAGS.validate();
   }
