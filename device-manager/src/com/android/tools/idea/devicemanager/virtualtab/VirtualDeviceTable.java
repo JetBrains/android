@@ -74,20 +74,20 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
-    this(panel, new VirtualDeviceAsyncSupplier(), VirtualDeviceTable::newSetDevices);
+    this(panel, panel.getProject(), new VirtualDeviceAsyncSupplier(), VirtualDeviceTable::newSetDevices);
   }
 
   @VisibleForTesting
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel,
+                     @Nullable Project project,
                      @NotNull VirtualDeviceAsyncSupplier asyncSupplier,
                      @NotNull NewSetDevices newSetDevices) {
-    super(new VirtualDeviceTableModel(), VirtualDevice.class);
+    super(new VirtualDeviceTableModel(project), VirtualDevice.class);
 
     myAsyncSupplier = asyncSupplier;
     myNewSetDevices = newSetDevices;
-    initListener();
 
-    Project project = panel.getProject();
+    initListener();
 
     setDefaultEditor(VirtualDevice.State.class, new LaunchOrStopButtonTableCellEditor(project));
 

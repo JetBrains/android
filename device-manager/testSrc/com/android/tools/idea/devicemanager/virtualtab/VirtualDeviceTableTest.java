@@ -25,7 +25,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.testFramework.ApplicationRule;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -45,7 +44,7 @@ public final class VirtualDeviceTableTest {
 
   @Test
   public void emptyTable() throws InterruptedException {
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, mockSupplier(Collections.emptyList()), this::newSetDevices);
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of()), this::newSetDevices);
 
     CountDownLatchAssert.await(myLatch);
 
@@ -62,7 +61,7 @@ public final class VirtualDeviceTableTest {
 
     VirtualDevice device = TestVirtualDevices.pixel5Api31(avdInfo);
 
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, mockSupplier(Collections.singletonList(device)), this::newSetDevices);
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of(device)), this::newSetDevices);
 
     CountDownLatchAssert.await(myLatch);
 

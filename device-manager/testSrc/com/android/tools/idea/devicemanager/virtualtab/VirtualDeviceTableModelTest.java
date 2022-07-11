@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
@@ -25,6 +26,7 @@ import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -40,6 +42,7 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTableModelTest {
+  private final @NotNull AvdManagerConnection myConnection = Mockito.mock(AvdManagerConnection.class);
   private final @NotNull AvdInfo myAvd = Mockito.mock(AvdInfo.class);
   private final @NotNull Collection<@NotNull VirtualDevice> myDevices = List.of(TestVirtualDevices.pixel5Api31(myAvd));
   private final @NotNull TableModelListener myListener = Mockito.mock(TableModelListener.class);
@@ -47,12 +50,14 @@ public final class VirtualDeviceTableModelTest {
   @Test
   public void setAllOnline() throws InterruptedException {
     // Arrange
-    AvdManagerConnection connection = Mockito.mock(AvdManagerConnection.class);
-    Mockito.when(connection.isAvdRunning(myAvd)).thenReturn(true);
-
+    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
     CountDownLatch latch = new CountDownLatch(1);
 
-    VirtualDeviceTableModel model = new VirtualDeviceTableModel(myDevices, () -> connection, (m, key) -> newSetOnline(m, key, latch));
+    VirtualDeviceTableModel model = new VirtualDeviceTableModel(null,
+                                                                myDevices,
+                                                                () -> myConnection,
+                                                                (m, key) -> newSetOnline(m, key, latch));
+
     model.addTableModelListener(myListener);
 
     // Act
@@ -60,10 +65,9 @@ public final class VirtualDeviceTableModelTest {
 
     // Assert
     CountDownLatchAssert.await(latch);
-    assertEquals(List.of(TestVirtualDevices.onlinePixel5Api31(myAvd)), model.getDevices());
 
-    TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+    assertEquals(List.of(TestVirtualDevices.onlinePixel5Api31(myAvd)), model.getDevices());
+    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
   }
 
   private static @NotNull FutureCallback<@NotNull Boolean> newSetOnline(@NotNull VirtualDeviceTableModel model,
@@ -73,9 +77,11 @@ public final class VirtualDeviceTableModelTest {
   }
 
   @Test
-  public void setValueAt() {
+  public void setValueAtStartAvdSucceeded() {
     // Arrange
-    TableModel model = new VirtualDeviceTableModel(myDevices);
+    Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
+
+    TableModel model = new VirtualDeviceTableModel(null, myDevices, () -> myConnection, VirtualDeviceTableModel::newSetOnline);
     model.addTableModelListener(myListener);
 
     // Act
@@ -96,5 +102,28 @@ public final class VirtualDeviceTableModelTest {
 
     TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
     Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+  }
+
+  @Test
+  public void setValueAtStartAvdFailed() throws Exception {
+    // Arrange
+    Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
+    CountDownLatch latch = new CountDownLatch(1);
+
+    TableModel model = new VirtualDeviceTableModel(null, myDevices, () -> myConnection, (m, key) -> newSetOnline(m, key, latch));
+    model.addTableModelListener(myListener);
+
+    // Act
+    model.setValueAt(VirtualDevice.State.LAUNCHING, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+
+    assertEquals(TestVirtualDevices.pixel5Api31(myAvd), model.getValueAt(0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
+
+    TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+
+    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
   }
 }
