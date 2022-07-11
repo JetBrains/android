@@ -50,7 +50,6 @@ import java.io.File
  * This should only be run on sources which will end up being run on the Android Runtime / Dalvik: build and unit test sources can use
  * all identifiers permitted by the JVM.
  */
-import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 
 class IllegalIdentifierInspection : AbstractKotlinInspection() {
     private class JunitPaths(val paths: List<File>, val generationId: Long) {

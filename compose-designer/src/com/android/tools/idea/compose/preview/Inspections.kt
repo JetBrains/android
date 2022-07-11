@@ -42,9 +42,7 @@ import org.jetbrains.kotlin.psi.KtVisitorVoid
 /**
  * Base class for inspection that depend on methods annotated with `@Preview`.
  */
-abstract import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
-
-class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
+abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
   /** Will be true if the inspected file imports the `@Preview` annotation. This is used as a shortcut to avoid analyzing all kotlin files */
   var isPreviewFile: Boolean = false
 

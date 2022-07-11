@@ -277,5 +277,6 @@
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
     <orderEntry type="module" module-name="intellij.properties.psi.impl" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
+    <orderEntry type="module" module-name="kotlin.code-insight.api" />
   </component>
 </module>

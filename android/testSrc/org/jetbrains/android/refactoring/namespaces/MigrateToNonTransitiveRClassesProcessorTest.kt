@@ -49,7 +49,7 @@ import com.intellij.usages.UsageTarget
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.KotlinBundle
+import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
 import org.jetbrains.kotlin.idea.inspections.KotlinUnusedImportInspection
 
 class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {

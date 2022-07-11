@@ -20,14 +20,14 @@ import com.android.tools.idea.kotlin.insideBody
 import com.intellij.openapi.editor.Editor
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
+import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.isAbstract
 import org.jetbrains.kotlin.psi.psiUtil.isPrivate
 import org.jetbrains.kotlin.psi.psiUtil.isProtected
 
 
-abstract class AbstractRegisterComponentAction(text: String) : SelfTargetingIntention<KtClass>(KtClass::class.java, text) {
+abstract class AbstractRegisterComponentAction(text: String) : SelfTargetingIntention<KtClass>(KtClass::class.java, { text }) {
 
     abstract fun isApplicableTo(element: KtClass, manifest: Manifest): Boolean
 

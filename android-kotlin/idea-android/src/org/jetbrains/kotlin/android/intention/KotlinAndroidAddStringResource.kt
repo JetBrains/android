@@ -39,8 +39,8 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
+import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.idea.core.ShortenReferences
-import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
@@ -54,7 +54,7 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTemplateEntry>(
   KtLiteralStringTemplateEntry::class.java,
-  AndroidBundle.message("add.string.resource.intention.text")
+  { AndroidBundle.message("add.string.resource.intention.text") }
 ) {
     private companion object {
         private val CLASS_CONTEXT = "android.content.Context"

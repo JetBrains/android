@@ -24,7 +24,7 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.android.canRemoveParcelable
 import org.jetbrains.kotlin.android.isParcelize
 import org.jetbrains.kotlin.android.removeParcelableImplementation
-import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
+import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 
 
