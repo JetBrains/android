@@ -16,6 +16,7 @@
 package com.android.tools.idea.nav.safeargs;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.testutils.TestUtils;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.ClassRule;
@@ -29,9 +30,15 @@ public final class SafeArgsTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    linkIntoOfflineMavenRepo("tools/adt/idea/nav/safeargs/testdeps_repo.manifest");
-    unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
-    linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
+    String TESTDEPS_REPO = "tools/adt/idea/nav/safeargs/testdeps_repo.manifest";
+    if (TestUtils.workspaceFileExists(TESTDEPS_REPO)) {
+      linkIntoOfflineMavenRepo(TESTDEPS_REPO);
+    }
+    String ANDROID_GRADLE_PLUGIN = "tools/base/build-system/android_gradle_plugin.zip";
+    if (TestUtils.workspaceFileExists(ANDROID_GRADLE_PLUGIN)) {
+      unzipIntoOfflineMavenRepo(ANDROID_GRADLE_PLUGIN);
+      linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
+      linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
+    }
   }
 }
