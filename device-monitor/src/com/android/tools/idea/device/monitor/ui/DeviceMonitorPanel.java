@@ -21,7 +21,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
@@ -33,7 +32,6 @@ import javax.swing.JPanel;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 public class DeviceMonitorPanel {
   static final int TEXT_RENDERER_HORIZ_PADDING = 6;
@@ -69,14 +67,6 @@ public class DeviceMonitorPanel {
   public JPanel getToolbarPanel() {
     return myToolbarPanel;
   }
-
-  @NotNull
-  public ProgressPanel getProgressPanel() {
-    return myProgressPanel;
-  }
-
-  @TestOnly
-  public JBScrollPane getColumnTreePane() { return (JBScrollPane)myColumnTreePane.getComponent(0); }
 
   public void showMessageLayer(@NotNull String message, boolean showDeviceList) {
     showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), null, showDeviceList);

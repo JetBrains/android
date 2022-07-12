@@ -27,7 +27,6 @@ import com.android.tools.idea.device.monitor.processes.isPidOnly
 import com.android.tools.idea.device.monitor.processes.safeProcessName
 import com.android.tools.idea.device.monitor.ui.TreeUtil
 import com.android.tools.idea.device.monitor.ui.TreeUtil.UpdateChildrenOps
-import com.android.tools.idea.device.monitor.ui.childrenSequence
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.diagnostic.logger
@@ -35,16 +34,13 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.util.ArrayUtil
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import javax.swing.tree.DefaultMutableTreeNode
+import org.jetbrains.annotations.TestOnly
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.MutableTreeNode
-import javax.swing.tree.TreeNode
-import javax.swing.tree.TreePath
 
 /**
  * Implementation of the Device Monitor application logic
@@ -110,18 +106,6 @@ class DeviceMonitorController(
 
   private fun reportErrorFindingDevice(message: String) {
     view.reportErrorGeneric(message, IllegalStateException())
-  }
-
-  fun selectActiveDevice(serialNumber: String) {
-    uiThreadScope.launch {
-      // This is called shortly after setup; wait for setup to complete
-      setupJob.await()
-
-      when (val device = model.devices.find { it.serialNumber == serialNumber }) {
-        null -> refreshDeviceList(serialNumber)
-        else -> setActiveDevice(device)
-      }
-    }
   }
 
   private suspend fun refreshDeviceList(serialNumberToSelect: String?) {
@@ -351,10 +335,7 @@ class DeviceMonitorController(
           return node.processInfo == entry
         }
 
-        override fun updateNode(
-          node: ProcessInfoTreeNode,
-          entry: ProcessInfo
-        ) {
+        override fun updateNode(node: ProcessInfoTreeNode, entry: ProcessInfo) {
           node.processInfo = entry
         }
       }
@@ -381,6 +362,24 @@ class DeviceMonitorController(
         else {
           o1.safeProcessName.compareTo(o2.safeProcessName)
         }
+      }
+    }
+  }
+
+  @TestOnly
+  fun hasActiveDevice(): Boolean {
+    return model.activeDevice != null
+  }
+
+  @TestOnly
+  fun selectActiveDevice(serialNumber: String) {
+    uiThreadScope.launch {
+      // This is called shortly after setup; wait for setup to complete
+      setupJob.await()
+
+      when (val device = model.devices.find { it.serialNumber == serialNumber }) {
+        null -> refreshDeviceList(serialNumber)
+        else -> setActiveDevice(device)
       }
     }
   }
