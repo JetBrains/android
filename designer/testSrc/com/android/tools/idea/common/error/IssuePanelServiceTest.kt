@@ -30,9 +30,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -205,6 +205,29 @@ class IssuePanelServiceTest {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf())
     }
     assertEquals("Layout and Qualifiers", content.displayName)
+  }
+
+  @Test
+  fun testSelectFirstTabWhenSharedIssuePanelIsRemoved() {
+    service.setSharedIssuePanelVisibility(true)
+    val contentManager = toolWindow.contentManager
+    // Add some tool between "Current File" tab and shared issue panel.
+
+    val factory = contentManager.factory
+    repeat(3) {
+      val newContent = factory.createContent(JPanel(), "Title", false)
+      contentManager.addContent(newContent, 1)
+    }
+
+    service.setSharedIssuePanelVisibility(true)
+    // It should select the shared issue panel, which should be the last content.
+    assertEquals(contentManager.selectedContent,
+                 contentManager.getContent(contentManager.contentCount - 1))
+
+    service.removeSharedIssueTabFromProblemsPanel()
+    // It should select the first tab, because the shared issue panel is gone.
+    assertEquals(contentManager.selectedContent,
+                 contentManager.getContent(0))
   }
 }
 

@@ -47,6 +47,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
@@ -207,10 +208,13 @@ class IssuePanelService(private val project: Project) {
    * Remove the [sharedIssueTab] from Problems Tool Window. Return true if the [sharedIssueTab] is removed successfully, or false if
    * the [sharedIssueTab] doesn't exist or the [sharedIssueTab] is not in the Problems Tool Window (e.g. has been removed before).
    */
-  private fun removeSharedIssueTabFromProblemsPanel(): Boolean {
+  @VisibleForTesting
+  fun removeSharedIssueTabFromProblemsPanel(): Boolean {
     val tab = sharedIssueTab ?: return false
     val toolWindow = ProblemsView.getToolWindow(project) ?: return false
-    toolWindow.contentManager.removeContent(tab, false)
+    val contentManager = toolWindow.contentManager
+    contentManager.removeContent(tab, false)
+    contentManager.getContent(0)?.let { contentManager.setSelectedContent(it) }
     return true
   }
 
