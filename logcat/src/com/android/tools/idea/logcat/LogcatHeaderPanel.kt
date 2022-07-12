@@ -23,6 +23,7 @@ import com.android.tools.idea.logcat.filters.FilterTextComponent
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
@@ -65,7 +66,9 @@ internal class LogcatHeaderPanel(
       font = Font.getFont(Font.MONOSPACED)
       addDocumentListener(object : DocumentListener {
         override fun documentChanged(event: DocumentEvent) {
-          logcatPresenter.applyFilter(filterParser.parse(text))
+          runInEdt {
+            logcatPresenter.applyFilter(filterParser.parse(text))
+          }
         }
       })
     }
