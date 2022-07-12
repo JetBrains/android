@@ -850,12 +850,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         memoizedElementsProvider.previewElements()
       }
 
-      filePreviewElements.find { element ->
-        element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
-      }?.let { selectedPreviewElement ->
-        surface.models.find { it.toPreviewElement() == selectedPreviewElement }
-      }?.let {
-        surface.scrollToVisible(it, true)
+      // Workaround for b/238735830: The following withContext(uiThread) should not be needed but the code below ends up being executed
+      // in a worker thread under some circumstances so we need to prevent that from happening by forcing the context switch.
+      withContext(uiThread) {
+        filePreviewElements.find { element ->
+          element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
+        }?.let { selectedPreviewElement ->
+          surface.models.find { it.toPreviewElement() == selectedPreviewElement }
+        }?.let {
+          surface.scrollToVisible(it, true)
+        }
       }
     }
   }
