@@ -226,9 +226,9 @@ void DisplayStreamer::Run() {
       AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
       AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
       AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
-      AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
-      if (surface == nullptr) {
-        Log::Fatal("Unable to create input surface");
+      media_status_t status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
+      if (status != AMEDIA_OK) {
+        Log::Fatal("Unable to create input surface: %d", status);
       }
       ConfigureDisplay(surface_control, display, surface, rotation_correction, display_info, video_size.Rotated(-rotation_correction));
       AMediaCodec_start(codec);
