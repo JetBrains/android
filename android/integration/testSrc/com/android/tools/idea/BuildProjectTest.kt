@@ -20,16 +20,13 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 
 class BuildProjectTest {
   @JvmField @Rule
-  var tempFolder = TemporaryFolder()
+  val system: AndroidSystem = AndroidSystem.standard()
 
   @Test
   fun buildProjectTest() {
-    val system = AndroidSystem.standard(tempFolder.root.toPath())
-
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
     project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")

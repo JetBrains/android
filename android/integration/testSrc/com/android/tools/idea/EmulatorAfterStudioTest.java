@@ -23,26 +23,23 @@ import com.android.tools.asdriver.tests.Emulator;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class EmulatorAfterStudioTest {
   @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  public AndroidSystem system = AndroidSystem.standard();
 
   @Test
   public void recognizeNewEmulatorTest() throws Exception {
-    try (AndroidSystem system = AndroidSystem.standard(tempFolder.getRoot().toPath())) {
-      AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/minapp");
-      project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip");
+    AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/minapp");
+    project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip");
 
-      try (Adb adb = system.runAdb();
-           AndroidStudio studio = system.runStudio(project);
-           Emulator emulator = system.runEmulator()) {
-        emulator.waitForBoot();
-        adb.waitForDevice(emulator);
-        system.getInstallation().getIdeaLog()
-          .waitForMatchingLine(String.format(".*Adding emulator-%s", emulator.getPortString()), 180, TimeUnit.SECONDS);
-      }
+    try (Adb adb = system.runAdb();
+         AndroidStudio studio = system.runStudio(project);
+         Emulator emulator = system.runEmulator()) {
+      emulator.waitForBoot();
+      adb.waitForDevice(emulator);
+      system.getInstallation().getIdeaLog()
+        .waitForMatchingLine(String.format(".*Adding emulator-%s", emulator.getPortString()), 180, TimeUnit.SECONDS);
     }
   }
 }

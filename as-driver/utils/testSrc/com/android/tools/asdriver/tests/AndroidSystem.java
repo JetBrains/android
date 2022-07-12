@@ -16,16 +16,22 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
+import com.android.utils.PathUtils;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.function.Consumer;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 /**
  * Represents a system running android development tools.
  * It has a display, environment variables, a file system etc.
  */
-public class AndroidSystem implements AutoCloseable {
+public class AndroidSystem implements AutoCloseable, TestRule {
   private final TestFileSystem fileSystem;
   private final HashMap<String, String> env;
   private final Display display;
@@ -33,7 +39,9 @@ public class AndroidSystem implements AutoCloseable {
   private AndroidStudioInstallation install;
   private String emulator;
 
-  public AndroidSystem(TestFileSystem fileSystem, Display display, AndroidSdk sdk) {
+  private static boolean applied = false;
+
+  private AndroidSystem(TestFileSystem fileSystem, Display display, AndroidSdk sdk) {
     this.fileSystem = fileSystem;
     this.display = display;
     this.sdk = sdk;
@@ -42,18 +50,59 @@ public class AndroidSystem implements AutoCloseable {
     this.emulator = null;
   }
 
+  @Override
+  public Statement apply(Statement base, Description description) {
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        if (applied) {
+          // This object can be used as a rule only once per execution to avoid multiple
+          // integration tests on the same target. We only want a single test in a single
+          // target so that integration tests are parallelized, since they tend to take
+          // much longer time than unit tests.
+          throw new IllegalStateException("There should only be one integration test per test execution.");
+        }
+        applied = true;
+        try {
+          base.evaluate();
+        } finally {
+          AndroidSystem.this.close();
+        }
+      }
+    };
+  }
+
   /**
-   * Creates a standard system that contains a preinstalled
-   * version of android studio from the distribution zips.
-   * And the SDK set up pointing to the standard prebuilts one.
+   * Creates a standard system with a default temp folder
+   * that contains a preinstalled version of android studio
+   * from the distribution zips. The SDK is set up pointing
+   * to the standard prebuilts one.
    */
-  public static AndroidSystem standard(Path root) throws IOException {
-    AndroidSystem system = basic(root);
+  public static AndroidSystem standard() {
+    try {
+      AndroidSystem system = basic(Files.createTempDirectory("root"));
 
-    system.install = AndroidStudioInstallation.fromZip(system.fileSystem);
-    system.install.createFirstRunXml();
+      system.install = AndroidStudioInstallation.fromZip(system.fileSystem);
+      system.install.createFirstRunXml();
 
-    return system;
+      return system;
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  /**
+   * Creates a system that contains only the sdk installed
+   * and with a default temp folder.
+   */
+  public static AndroidSystem basic() {
+    try {
+      return basic(Files.createTempDirectory("root"));
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   /**
@@ -132,5 +181,6 @@ public class AndroidSystem implements AutoCloseable {
   @Override
   public void close() throws Exception {
     display.close();
+    PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
   }
 }

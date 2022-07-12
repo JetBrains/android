@@ -20,17 +20,13 @@ import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.Emulator;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class EmulatorTest {
-
   @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  public AndroidSystem system = AndroidSystem.basic();
 
   @Test
   public void runEmulatorTest() throws Exception {
-    AndroidSystem system = AndroidSystem.basic(tempFolder.getRoot().toPath());
-
     try (Adb adb = system.runAdb();
          Emulator emulator = system.runEmulator()) {
       emulator.waitForBoot();

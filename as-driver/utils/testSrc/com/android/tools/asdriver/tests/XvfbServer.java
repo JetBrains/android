@@ -200,9 +200,11 @@ public class XvfbServer implements Display {
   public void close() {
     if (process != null) {
       process.destroyForcibly();
+      process = null;
     }
     if (recorder != null) {
       recorder.destroy();
+      recorder = null;
     }
   }
 }

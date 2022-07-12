@@ -25,12 +25,10 @@ import org.junit.rules.TemporaryFolder;
 
 public class OpenProjectTest {
   @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  public AndroidSystem system = AndroidSystem.standard();
 
   @Test
   public void openProjectTest() throws Exception {
-    AndroidSystem system = AndroidSystem.standard(tempFolder.getRoot().toPath());
-
     // Create a new android project, and set a fixed distribution
     AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/minapp");
     project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip");

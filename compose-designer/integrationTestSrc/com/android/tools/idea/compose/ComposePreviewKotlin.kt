@@ -20,7 +20,6 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.nio.file.Path
 
 /**
@@ -30,12 +29,10 @@ import java.nio.file.Path
 class ComposePreviewKotlin {
 
   @get:Rule
-  val tempFolder = TemporaryFolder()
+  val system = AndroidSystem.standard()
 
   @Test
   fun basic() {
-    val system = AndroidSystem.standard(tempFolder.root.toPath())
-
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/compose-designer/testData/projects/composepreview")
     project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")

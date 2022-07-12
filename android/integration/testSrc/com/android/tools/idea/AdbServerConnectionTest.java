@@ -21,16 +21,13 @@ import com.android.tools.asdriver.tests.Emulator;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class AdbServerConnectionTest {
   @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  public AndroidSystem system = AndroidSystem.basic();
 
   @Test
   public void adbServerTest() throws Exception {
-    AndroidSystem system = AndroidSystem.basic(tempFolder.getRoot().toPath());
-
     try (Adb adb = system.runAdb(false);
          Emulator emulator = system.runEmulator()) {
       emulator.waitForBoot();
