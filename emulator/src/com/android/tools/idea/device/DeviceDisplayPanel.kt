@@ -28,7 +28,7 @@ internal class DeviceDisplayPanel(
   disposableParent: Disposable,
   deviceSerialNumber: String,
   deviceAbi: String,
-  initialDisplayOrientation: Int?,
+  initialDisplayOrientation: Int,
   project: Project,
   zoomToolbarVisible: Boolean,
 ) : AbstractDisplayPanel<DeviceView>(disposableParent, zoomToolbarVisible), DataProvider {

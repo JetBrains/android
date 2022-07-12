@@ -85,7 +85,7 @@ class DeviceView(
   disposableParent: Disposable,
   private val deviceSerialNumber: String,
   private val deviceAbi: String,
-  initialDisplayOrientation: Int?,
+  initialDisplayOrientation: Int,
   private val project: Project,
 ) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable, DeviceMirroringSettingsListener {
 
@@ -157,7 +157,7 @@ class DeviceView(
     AndroidCoroutineScope(this).launch { initializeAgent(initialDisplayOrientation) }
   }
 
-  private suspend fun initializeAgent(initialDisplayOrientation: Int?) {
+  private suspend fun initializeAgent(initialDisplayOrientation: Int) {
     try {
       val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
       deviceClient.startAgentAndConnect(initialDisplayOrientation)
@@ -189,7 +189,8 @@ class DeviceView(
         }
 
         override fun onEndOfVideoStream() {
-          lostConnection("Lost connection to the device. See the error log.")
+          lostConnection("Lost connection to the device. See the error log.",
+                         Reconnector("Reconnect", "Attempting to reconnect") { initializeAgent(UNKNOWN_ORIENTATION) })
         }
       })
       deviceClient.startVideoDecoding(decoder)
@@ -199,16 +200,17 @@ class DeviceView(
     }
     catch (e: Throwable) {
       thisLogger().error("Failed to initialize the screen sharing agent", e)
-      lostConnection("Failed to initialize the device agent. See the error log.")
+      lostConnection("Failed to initialize the device agent. See the error log.",
+                     Reconnector("Retry", "Connecting to the device")  { initializeAgent(initialDisplayOrientation) })
     }
   }
 
-  private fun lostConnection(message: String) {
+  private fun lostConnection(message: String, reconnector: Reconnector) {
     EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
       if (!disposed) {
         connected = false
         decoder = null
-        showDisconnectedStateMessage(message)
+        showDisconnectedStateMessage(message, reconnector)
       }
     }
   }

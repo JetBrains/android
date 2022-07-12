@@ -34,6 +34,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -52,6 +53,8 @@ import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyEvent
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
+import javax.swing.JButton
+import javax.swing.JLabel
 import javax.swing.JScrollPane
 
 /**
@@ -357,8 +360,28 @@ internal class DeviceViewTest {
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(StopClipboardSyncMessage())
   }
 
+  @Test
+  fun testReconnect() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    createDeviceView(500, 1000, screenScale = 1.0)
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(500, 1000))
+    // Simulate crash of the screen sharing agent.
+    runBlocking { agent.crash() }
+    val message = ui.getComponent<JLabel>()
+    waitForCondition(2, TimeUnit.SECONDS) { ui.isShowing(message) }
+    assertThat(message.text).isEqualTo("Lost connection to the device. See the error log.")
+    ui.layoutAndDispatchEvents()
+    val button = ui.getComponent<JButton>()
+    assertThat(ui.isShowing(button)).isTrue()
+    assertThat(button.text).isEqualTo("Reconnect")
+    ui.clickOn(button)
+    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(500, 1000))
+  }
+
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
-    view = DeviceView(testRootDisposable, device.serialNumber, device.deviceState.cpuAbi, null, agentRule.project)
+    view = DeviceView(testRootDisposable, device.serialNumber, device.deviceState.cpuAbi, UNKNOWN_ORIENTATION, agentRule.project)
     ui = FakeUi(wrapInScrollPane(view, width, height), screenScale)
     waitForCondition(15, TimeUnit.SECONDS) { agent.running }
   }

@@ -25,3 +25,5 @@ import com.intellij.openapi.actionSystem.DataKey
 @JvmField val DEVICE_VIEW_KEY = DataKey.create<DeviceView>("DeviceView")
 
 internal const val DEVICE_MAIN_TOOLBAR_ID = "DeviceToolbar"
+
+internal const val UNKNOWN_ORIENTATION = -1

@@ -16,7 +16,11 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.Disposable
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.scale.JBUIScale
+import kotlinx.coroutines.launch
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -26,11 +30,14 @@ import java.awt.Point
 import java.awt.RadialGradientPaint
 import java.awt.Rectangle
 import java.awt.RenderingHints
+import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
+import javax.swing.AbstractAction
+import javax.swing.Box
+import javax.swing.JButton
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.math.floor
@@ -38,18 +45,29 @@ import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToInt
 
+
 /**
  * Common base class for [EmulatorView] and [com.android.tools.idea.device.DeviceView].
  */
 abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
 
-  private val disconnectedStateLabel = JLabel()
+  private val disconnectedStateMessage = JBLabel("", SwingConstants.CENTER).apply { font = font.deriveFont(font.size * 1.2F) }
+  private val reconnectButton = JButton("Reconnect")
+
+  private val disconnectedStatePanel = Box.createVerticalBox().apply {
+    isVisible = false
+    add(Box.createVerticalGlue())
+    disconnectedStateMessage.alignmentX = CENTER_ALIGNMENT
+    add(disconnectedStateMessage)
+    add(Box.createVerticalStrut(JBUIScale.scale(20)))
+    reconnectButton.alignmentX = CENTER_ALIGNMENT
+    add(reconnectButton)
+    add(Box.createVerticalGlue())
+  }
 
   init {
     background = primaryPanelBackground
-
-    disconnectedStateLabel.horizontalAlignment = SwingConstants.CENTER
-    disconnectedStateLabel.font = disconnectedStateLabel.font.deriveFont(disconnectedStateLabel.font.size * 1.2F)
+    addToCenter(disconnectedStatePanel)
 
     isFocusable = true // Must be focusable to receive keyboard events.
     focusTraversalKeysEnabled = false // Receive focus traversal keys to send them to the device.
@@ -151,16 +169,33 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
-  protected fun showDisconnectedStateMessage(message: String) {
+  protected fun showDisconnectedStateMessage(message: String, reconnector: Reconnector? = null) {
     hideLongRunningOperationIndicatorInstantly()
-    disconnectedStateLabel.text = message
-    add(disconnectedStateLabel)
+    disconnectedStateMessage.text = message
+    reconnectButton.apply {
+      if (reconnector == null) {
+        isVisible = false
+      }
+      else {
+        isVisible = true
+        action = object : AbstractAction(reconnector.reconnectLabel) {
+          override fun actionPerformed(event: ActionEvent) {
+            reconnector.start()
+          }
+        }
+        SwingUtilities.getRootPane(this)?.let { it.defaultButton = this }
+      }
+    }
+    disconnectedStatePanel.isVisible = true
     revalidate()
   }
 
   protected fun hideDisconnectedStateMessage() {
     hideLongRunningOperationIndicatorInstantly()
-    remove(disconnectedStateLabel)
+    disconnectedStatePanel.isVisible = false
+    reconnectButton.apply {
+      action = null
+    }
     revalidate()
   }
 
@@ -182,5 +217,18 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   /** Rounds the given value down to an integer if it is above 1, or to the nearest multiple of 1/128 if it is below 1. */
   protected fun roundScale(value: Double): Double {
     return if (value >= 1) floor(value) else round(value * 128) / 128
+  }
+
+  /** Attempts to restore a lost device connection. */
+  protected inner class Reconnector(val reconnectLabel: String, val progressMessage: String, val reconnect: suspend () -> Unit) {
+
+    /** Starts the reconnection attempt. */
+    fun start() {
+      hideDisconnectedStateMessage()
+      showLongRunningOperationIndicator(progressMessage)
+      AndroidCoroutineScope(this@AbstractDisplayView).launch {
+        reconnect()
+      }
+    }
   }
 }

@@ -117,8 +117,8 @@ internal class DeviceToolWindowPanel(
     contentDisposable = disposable
 
     savedUiState as DeviceUiState?
-    val primaryDisplayPanel =
-        DeviceDisplayPanel(disposable, deviceSerialNumber, deviceAbi, savedUiState?.orientation, project, zoomToolbarVisible)
+    val initialOrientation = savedUiState?.orientation ?: UNKNOWN_ORIENTATION
+    val primaryDisplayPanel = DeviceDisplayPanel(disposable, deviceSerialNumber, deviceAbi, initialOrientation, project, zoomToolbarVisible)
     savedUiState?.zoomScrollState?.let { primaryDisplayPanel.zoomScrollState = it }
 
     displayPanel = primaryDisplayPanel

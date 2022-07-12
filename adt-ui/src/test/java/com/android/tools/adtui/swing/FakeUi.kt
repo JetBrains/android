@@ -42,7 +42,6 @@ import java.awt.Window
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
-import java.util.ArrayDeque
 import java.util.function.Predicate
 import javax.swing.JLabel
 import javax.swing.JRootPane
@@ -150,6 +149,23 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
         dump(component.getComponent(i), "$prefix  ")
       }
     }
+  }
+
+  /**
+   * Checks if the component and all its ancestors are visible.
+   */
+  fun isShowing(component: Component): Boolean {
+    var c = component
+    while (true) {
+      if (!c.isVisible) {
+        return false;
+      }
+      if (c == root) {
+        break
+      }
+      c = c.parent
+    }
+    return true
   }
 
   fun getPosition(component: Component): Point {

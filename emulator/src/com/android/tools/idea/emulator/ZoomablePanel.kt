@@ -17,7 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
-import java.awt.BorderLayout
+import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import javax.swing.JPanel
 import kotlin.math.floor
@@ -28,7 +28,7 @@ import kotlin.math.roundToInt
 /**
  * A [JPanel] with zoom support.
  */
-abstract class ZoomablePanel : JPanel(BorderLayout()), Zoomable {
+abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
   protected var screenScale = 0.0 // Scale factor of the host screen.
     get() {

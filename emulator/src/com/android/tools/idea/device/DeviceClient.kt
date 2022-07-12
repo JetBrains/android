@@ -78,7 +78,7 @@ internal class DeviceClient(
     Disposer.register(disposableParent, this)
   }
 
-  suspend fun startAgentAndConnect(initialDisplayOrientation: Int?) {
+  suspend fun startAgentAndConnect(initialDisplayOrientation: Int) {
     startTime = System.currentTimeMillis()
     val adb = AdbLibService.getSession(project).deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
@@ -193,9 +193,9 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices, initialDisplayOrientation: Int?) {
+  private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices, initialDisplayOrientation: Int) {
     startAgentTime = System.currentTimeMillis()
-    val orientationArg = initialDisplayOrientation?.let {" --orientation=$it" } ?: ""
+    val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main" +
                   orientationArg +
