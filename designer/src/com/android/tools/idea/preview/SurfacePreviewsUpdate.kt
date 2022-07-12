@@ -39,7 +39,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
 
@@ -192,7 +192,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         debugLogger?.log("No models to reuse were found. New model $now.")
         val file = lightVirtualFileFactory("model-$now.xml", fileContents) { psiFile.virtualFile }
         val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-        runBlocking(AndroidDispatchers.workerThread) {
+        withContext(AndroidDispatchers.workerThread) {
           val newModel = NlModel.builder(facet, file, configuration)
             .withParentDisposable(parentDisposable)
             .withModelDisplayName(previewElement.displaySettings.name)
