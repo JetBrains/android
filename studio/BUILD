@@ -795,13 +795,13 @@ iml_test(
         "@platforms//os:macos": [
             ":android-studio.mac.zip",
         ],
+        "@platforms//os:windows": [
+            ":android-studio.win.zip",
+        ],
     }) + [
         ":updater",
         ":updater.jar",
     ],
     module = ":intellij.android.studio.integration",
-    tags = [
-        "no_windows",  # In RBE, Bazel doesn't actually build the Updater's runfiles for some reason
-    ],
     test_class = "com.android.tools.idea.UpdateTest",
 )

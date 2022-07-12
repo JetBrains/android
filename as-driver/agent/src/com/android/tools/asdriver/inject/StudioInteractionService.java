@@ -103,8 +103,8 @@ public class StudioInteractionService {
    */
   public void findAndInvokeComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
     log("Attempting to find and invoke a component with matchers: " + matchers);
-    // TODO(b/234067246): consider this timeout when addressing b/234067246.
-    int timeoutMillis = 10000;
+    // TODO(b/234067246): consider this timeout when addressing b/234067246. At 10000 or less, this fails occasionally on Windows.
+    int timeoutMillis = 60000;
     long msBetweenRetries = 300;
     long startTime = System.currentTimeMillis();
     long elapsedTime = 0;

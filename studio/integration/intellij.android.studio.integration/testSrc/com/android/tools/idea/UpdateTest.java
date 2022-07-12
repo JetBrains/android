@@ -288,6 +288,8 @@ public class UpdateTest {
       // ensure that a single notification is produced: the "Update available" notification.
       install.preventProguardNotification();
       install.createFirstRunXml();
+      // Prevent an error related to jumplists on Windows.
+      install.createGeneralPropertiesXml();
       install.setBuildNumber(PRODUCT_PREFIX + FAKE_CURRENT_BUILD_NUMBER);
 
       Patcher patcher = new Patcher(fileSystem, install.getStudioDir());
