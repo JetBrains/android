@@ -71,7 +71,6 @@ import com.intellij.ui.CheckboxTreeHelper
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.DocumentAdapter
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
@@ -79,6 +78,8 @@ import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBPanel
+import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.content.ContentFactory
@@ -98,7 +99,6 @@ import javax.swing.JSeparator
 import javax.swing.JTree
 import javax.swing.SwingConstants
 import javax.swing.event.DocumentEvent
-import javax.swing.event.HyperlinkEvent
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
@@ -929,16 +929,35 @@ class ContentManagerImpl(val project: Project): ContentManager {
         uiState is ToolWindowModel.UIState.UpgradeSyncFailed -> {
           val sb = StringBuilder()
           sb.append("<div><b>Sync Failed</b></div>")
-          sb.append("<p>The project failed to sync with the IDE.  ")
-          sb.append("You should revert to a known-good state before making further changes.</p>")
-          sb.append("<p>The error message from sync is:</p>")
-          sb.append("<pre>\n")
-          sb.append(uiState.errorMessage)
-          sb.append("\n</pre>")
+          sb.append("<p>The project failed to sync with the IDE.  You should revert<br/>")
+          sb.append("to a known-good state before making further changes.</p>")
           label.text = sb.toString()
-          detailsPanel.add(label)
-          detailsPanel.addBuildWindowInfo()
-          detailsPanel.addRevertInfo(showRevertButton = true, markRevertAsDefault = true)
+          val layoutPanel = JPanel()
+          layoutPanel.layout = BorderLayout()
+          detailsPanel.add(layoutPanel)
+          val realDetailsPanel = JBPanel<JBPanel<*>>().apply {
+            layout = VerticalLayout(0, SwingConstants.LEFT)
+            border = JBUI.Borders.empty(0, 0, 0, 20)
+          }
+          layoutPanel.add(realDetailsPanel, BorderLayout.WEST)
+          val errorPanel = JBPanel<JBPanel<*>>().apply {
+            layout = VerticalLayout(0, SwingConstants.LEFT)
+            border = JBUI.Borders.empty(0, 0, 0, 0)
+          }
+          layoutPanel.add(errorPanel, BorderLayout.CENTER)
+          realDetailsPanel.add(label)
+          errorPanel.add(JBLabel("The error message from sync is:"))
+          uiState.errorMessage.trimEnd().let { errorMessage ->
+            val rows = minOf(errorMessage.lines().size, 10)
+            JBTextArea(errorMessage, rows, 80).let { textArea ->
+              textArea.isEditable = false
+              JBScrollPane(textArea).run {
+                errorPanel.add(this)
+              }
+            }
+          }
+          realDetailsPanel.addRevertInfo(showRevertButton = true, markRevertAsDefault = true)
+          realDetailsPanel.addBuildWindowInfo()
         }
         uiState is ToolWindowModel.UIState.UpgradeSyncSucceeded -> {
           val sb = StringBuilder()
@@ -1022,8 +1041,9 @@ class ContentManagerImpl(val project: Project): ContentManager {
     private fun JBPanel<JBPanel<*>>.addBuildWindowInfo() {
       JPanel().apply {
         name = "build window info panel"
-        layout = FlowLayout(FlowLayout.LEADING, 0, 0)
-        add(JBLabel("There may be more information about the sync failure in the "))
+        layout = VerticalLayout(0);
+        border = JBUI.Borders.empty(10, 0, 0, 0)
+        add(JBLabel("There may be more information about the sync failure in the"))
         ActionLink("'Build' window") {
           val project = this@View.model.project
           invokeLater {
@@ -1039,28 +1059,11 @@ class ContentManagerImpl(val project: Project): ContentManager {
         }
           .apply { name = "open build window link" }
           .also { actionLink -> add(actionLink) }
-        add(JBLabel("."))
       }
         .also { panel -> add(panel) }
     }
 
     private fun JBPanel<JBPanel<*>>.addRevertInfo(showRevertButton: Boolean, markRevertAsDefault: Boolean) {
-      JPanel().apply {
-        name = "revert information panel"
-        layout = FlowLayout(FlowLayout.LEADING, 0, 0)
-        add(JBLabel("You can review the applied changes in the "))
-        ActionLink("'Local History' dialog") {
-          val ideaGateway = LocalHistoryImpl.getInstanceImpl().getGateway()
-          // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
-          val dialog = DirectoryHistoryDialog(this@View.model.project, ideaGateway, this@View.model.project.baseDir)
-          dialog.show()
-        }
-          .apply { name = "open local history link" }
-          .also { actionLink -> add(actionLink) }
-        add(JBLabel("."))
-      }
-        .also { panel -> add(panel) }
-
       if (showRevertButton) {
         JButton("Revert Project Files")
           .apply {
@@ -1071,6 +1074,23 @@ class ContentManagerImpl(val project: Project): ContentManager {
           }
           .also { revertButton -> add(revertButton) }
       }
+
+      JPanel().apply {
+        name = "revert information panel"
+        layout = FlowLayout(FlowLayout.LEADING, 0, 0)
+        border = JBUI.Borders.empty(20, 0, 0, 0)
+        add(JBLabel("You can review the applied changes in the "))
+        ActionLink("'Local History' dialog") {
+          val ideaGateway = LocalHistoryImpl.getInstanceImpl().getGateway()
+          // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
+          val dialog = DirectoryHistoryDialog(this@View.model.project, ideaGateway, this@View.model.project.baseDir)
+          dialog.show()
+        }
+          .apply { name = "open local history link" }
+          .also { actionLink -> add(actionLink) }
+      }
+        .also { panel -> add(panel) }
+
     }
   }
 
