@@ -959,13 +959,11 @@ class ContentManagerImpl(val project: Project): ContentManager {
         }
         uiState is ToolWindowModel.UIState.AllDone -> {
           val sb = StringBuilder()
-          sb.append("<div><b>Nothing to do</b></div>")
-          sb.append("<p>Project build files are up-to-date for Android Gradle Plugin version ${this@View.model.current}.")
+          sb.append("<div><b>Up-to-date for Android Gradle Plugin version ${this@View.model.current}</b></div>")
           if (this@View.model.current?.let { it < this@View.model.latestKnownVersion } == true) {
-            sb.append("<br>Upgrades to newer versions of Android Gradle Plugin (up to ${this@View.model.latestKnownVersion}) can be")
-            sb.append("<br>performed by selecting those versions from the dropdown.")
+            sb.append("<p>Upgrades to newer versions of Android Gradle Plugin (up to ${this@View.model.latestKnownVersion}) can be")
+            sb.append("<br>performed by selecting those versions from the dropdown.</p>")
           }
-          sb.append("</p>")
           label.text = sb.toString()
           detailsPanel.add(label)
         }

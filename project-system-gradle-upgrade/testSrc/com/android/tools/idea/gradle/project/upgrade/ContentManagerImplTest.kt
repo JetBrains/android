@@ -340,8 +340,8 @@ class ContentManagerImplTest {
     val model = ToolWindowModel(project, { currentAgpVersion }, currentAgpVersion)
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
-    assertThat(detailsPanelContent.text).contains("<b>Nothing to do</b>")
-    assertThat(detailsPanelContent.text).contains("up-to-date")
+    assertThat(detailsPanelContent.text).contains("<b>Up-to-date for Android Gradle Plugin version $currentAgpVersion</b>")
+    assertThat(detailsPanelContent.text).contains("Upgrades to newer versions")
   }
 
   @Test
