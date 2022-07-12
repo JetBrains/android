@@ -183,15 +183,15 @@ public class AndroidStudioInstallation {
     }
 
     Files.createDirectories(filetypePaths.getParent());
-    String filetypeContents =
-      "<application>\n" +
-      "  <component name=\"FileTypeManager\" version=\"18\">\n" +
-      "    <extensionMap>\n" +
-      "      <removed_mapping ext=\"pro\" type=\"DeviceSpecFile\" />\n" +
-      "      <mapping ext=\"pro\" type=\"Shrinker Config File\" />\n" +
-      "    </extensionMap>\n" +
-      "  </component>\n" +
-      "</application>";
+    String filetypeContents = String.format(
+      "<application>%n" +
+      "  <component name=\"FileTypeManager\" version=\"18\">%n" +
+      "    <extensionMap>%n" +
+      "      <removed_mapping ext=\"pro\" type=\"DeviceSpecFile\" />%n" +
+      "      <mapping ext=\"pro\" type=\"Shrinker Config File\" />%n" +
+      "    </extensionMap>%n" +
+      "  </component>%n" +
+      "</application>");
     Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
   }
 

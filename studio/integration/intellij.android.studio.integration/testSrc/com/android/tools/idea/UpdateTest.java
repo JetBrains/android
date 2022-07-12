@@ -92,26 +92,28 @@ public class UpdateTest {
    */
   public Path createUpdatesXml(Path tempDir) throws IOException {
     Path updatesXml = tempDir.resolve("updates.xml");
-    StringBuilder sb = new StringBuilder();
     String apiVersion = PRODUCT_PREFIX + FAKE_API_VERSION;
     String fakeUpdatedBuild = PRODUCT_PREFIX + FAKE_UPDATED_BUILD_NUMBER;
-    sb.append("<?xml version=\"1.0\" ?><products>\n");
-    sb.append("<product name=\"Android Studio\">\n");
-    sb.append("<code>AI</code>\n");
-    sb.append(
-      "<channel feedback=\"https://code.google.com/p/android/issues/entry?template=Android+Studio+bug\" id=\"AI-1-eap\" majorVersion=\"1\" name=\"Android Studio updates\" status=\"eap\" url=\"https://developer.android.com/r/studio-ui/release-updates.html\">\n");
-    sb.append(
-      String.format("<build apiVersion=\"%s\" number=\"%s\" version=\"Dolphin | 2021.3.1 Canary 9\">\n", apiVersion, fakeUpdatedBuild));
-    sb.append("<message><![CDATA[<html> Fake channel for updating </html>]]></message>\n");
-    sb.append("<button download=\"true\" name=\"Download\" url=\"https://developer.android.com/r/studio-ui/download-canary.html\"/>\n");
-    sb.append("<button name=\"Release Notes\" url=\"https://developer.android.com/r/studio-ui/release-updates.html\"/>\n");
-    sb.append(String.format("<patch from=\"%s\" size=\"1234\"/> <!-- 2021.3.1.9 -->\n", FAKE_CURRENT_BUILD_NUMBER));
-    sb.append("</build>\n");
-    sb.append("</channel>\n");
-    sb.append("</product>\n");
-    sb.append("</products>\n");
+    // Note: these are individual String.format calls to make it easier to spot where strings are being replaced
+    String xmlContents = String.format("<?xml version=\"1.0\" ?><products>%n") +
+                         String.format("<product name=\"Android Studio\">%n") +
+                         String.format("<code>AI</code>%n") +
+                         String.format(
+                           "<channel feedback=\"https://code.google.com/p/android/issues/entry?template=Android+Studio+bug\" id=\"AI-1-eap\" majorVersion=\"1\" name=\"Android Studio updates\" status=\"eap\" url=\"https://developer.android.com/r/studio-ui/release-updates.html\">%n") +
+                         String.format("<build apiVersion=\"%s\" number=\"%s\" version=\"Dolphin | 2021.3.1 Canary 9\">%n", apiVersion,
+                                       fakeUpdatedBuild) +
+                         String.format("<message><![CDATA[<html> Fake channel for updating </html>]]></message>%n") +
+                         String.format(
+                           "<button download=\"true\" name=\"Download\" url=\"https://developer.android.com/r/studio-ui/download-canary.html\"/>%n") +
+                         String.format(
+                           "<button name=\"Release Notes\" url=\"https://developer.android.com/r/studio-ui/release-updates.html\"/>%n") +
+                         String.format("<patch from=\"%s\" size=\"1234\"/> <!-- 2021.3.1.9 -->%n", FAKE_CURRENT_BUILD_NUMBER) +
+                         String.format("</build>%n") +
+                         String.format("</channel>%n") +
+                         String.format("</product>%n") +
+                         String.format("</products>%n");
 
-    Files.writeString(updatesXml, sb.toString(), StandardCharsets.UTF_8);
+    Files.writeString(updatesXml, xmlContents, StandardCharsets.UTF_8);
     System.out.println("Created " + updatesXml);
 
     return updatesXml;
