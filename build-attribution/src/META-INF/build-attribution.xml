@@ -27,4 +27,11 @@
     <applicationService serviceInterface="com.android.build.attribution.KnownGradlePluginsService"
                         serviceImplementation="com.android.build.attribution.LocalKnownGradlePluginsServiceImpl"/>
   </extensions>
+  <actions>
+    <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerAction"
+            class="com.android.build.attribution.ui.OpenBuildAnalyzerAction"
+            description = "Opens Build Analyzer (requires successful build to show report).">
+      <add-to-group group-id="BuildMenu" anchor="last"/>
+    </action>
+  </actions>
 </idea-plugin>

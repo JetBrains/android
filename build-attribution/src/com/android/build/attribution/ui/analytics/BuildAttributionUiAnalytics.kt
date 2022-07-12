@@ -42,7 +42,8 @@ class BuildAttributionUiAnalytics(
     BUILD_OUTPUT_LINK,
     TAB_HEADER,
     AUTO_OPEN,
-    BALLOON_LINK
+    BALLOON_LINK,
+    BUILD_MENU_ACTION
   }
 
   private val unknownPage: BuildAttributionUiEvent.Page = BuildAttributionUiEvent.Page.newBuilder()
@@ -80,6 +81,8 @@ class BuildAttributionUiAnalytics(
     val eventType = when (tabOpenEventSource) {
       TabOpenEventSource.WNA_BUTTON -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON
       TabOpenEventSource.BUILD_OUTPUT_LINK -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK
+      //TODO(b/239174185) Update the event type
+      TabOpenEventSource.BUILD_MENU_ACTION -> BuildAttributionUiEvent.EventType.UNKNOWN_TYPE
       TabOpenEventSource.TAB_HEADER -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK
       // Not opened by direct user action so don't report.
       TabOpenEventSource.AUTO_OPEN -> null
