@@ -158,11 +158,22 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
 
   override fun getId(): String = RestartAdbAction.ACTION_ID
 
-  override fun getState(project: Project, actionData: ActionData) =
-    projectStates[project]?.getAssistActionState() ?: throw IllegalStateException("getState called before init for this project")
+  override fun getState(project: Project, actionData: ActionData): AssistActionState {
+    if (projectStates[project]?.getAssistActionState() == null) {
+      Logger.warn("getState called before init for this project")
+      return DefaultActionState.IN_PROGRESS
+    }
 
-  override fun getStateDisplay(project: Project, actionData: ActionData, message: String?) =
-    projectStates[project]?.getStateDisplay() ?: throw IllegalStateException("getStateDisplay called before init for this project")
+    return projectStates[project]!!.getAssistActionState()
+  }
+
+  override fun getStateDisplay(project: Project, actionData: ActionData, message: String?): StatefulButtonMessage? {
+    if (projectStates[project]?.getStateDisplay() == null) {
+      Logger.warn("getStateDisplay called before init for this project")
+      return null
+    }
+    return projectStates[project]!!.getStateDisplay()
+  }
 
   private fun generateMessage(devices: Array<IDevice>): ButtonMessage {
     return if (devices.isEmpty()) {
