@@ -466,10 +466,10 @@ MODULE                        : project
                             file                          : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>.jar
                             source                        : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
                         - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar
                         - dependencies                : DefaultExternalLibraryDependency
