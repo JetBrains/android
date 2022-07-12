@@ -17,26 +17,33 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Key;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.SetAllOnline;
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.BiConsumer;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -50,13 +57,17 @@ public final class VirtualDeviceTableModelTest {
   @Test
   public void setAllOnline() throws InterruptedException {
     // Arrange
-    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
     CountDownLatch latch = new CountDownLatch(1);
+    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
 
     VirtualDeviceTableModel model = new VirtualDeviceTableModel(null,
                                                                 myDevices,
+                                                                (m, key) -> newSetOnline(m, key, latch),
                                                                 () -> myConnection,
-                                                                (m, key) -> newSetOnline(m, key, latch));
+                                                                SetAllOnline::new,
+                                                                new DeviceManagerAndroidDebugBridge(),
+                                                                EmulatorConsole::getConsole,
+                                                                VirtualTabMessages::showErrorDialog);
 
     model.addTableModelListener(myListener);
 
@@ -81,7 +92,15 @@ public final class VirtualDeviceTableModelTest {
     // Arrange
     Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
 
-    TableModel model = new VirtualDeviceTableModel(null, myDevices, () -> myConnection, VirtualDeviceTableModel::newSetOnline);
+    TableModel model = new VirtualDeviceTableModel(null,
+                                                   myDevices,
+                                                   VirtualDeviceTableModel::newSetOnline,
+                                                   () -> myConnection,
+                                                   SetAllOnline::new,
+                                                   new DeviceManagerAndroidDebugBridge(),
+                                                   EmulatorConsole::getConsole,
+                                                   VirtualTabMessages::showErrorDialog);
+
     model.addTableModelListener(myListener);
 
     // Act
@@ -107,10 +126,22 @@ public final class VirtualDeviceTableModelTest {
   @Test
   public void setValueAtStartAvdFailed() throws Exception {
     // Arrange
-    Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
     CountDownLatch latch = new CountDownLatch(1);
+    Throwable throwable = new RuntimeException();
+    Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFailedFuture(throwable));
 
-    TableModel model = new VirtualDeviceTableModel(null, myDevices, () -> myConnection, (m, key) -> newSetOnline(m, key, latch));
+    @SuppressWarnings("unchecked")
+    BiConsumer<Throwable, Project> showErrorDialog = Mockito.mock(BiConsumer.class);
+
+    TableModel model = new VirtualDeviceTableModel(null,
+                                                   myDevices,
+                                                   (m, key) -> newSetOnline(m, key, latch),
+                                                   () -> myConnection,
+                                                   SetAllOnline::new,
+                                                   new DeviceManagerAndroidDebugBridge(),
+                                                   EmulatorConsole::getConsole,
+                                                   showErrorDialog);
+
     model.addTableModelListener(myListener);
 
     // Act
@@ -125,5 +156,120 @@ public final class VirtualDeviceTableModelTest {
     Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
 
     Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
+
+    Mockito.verify(showErrorDialog).accept(throwable, null);
+  }
+
+  @Test
+  public void setValueAtStopFailed() throws Exception {
+    // Arrange
+    CountDownLatch latch = new CountDownLatch(1);
+    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
+
+    DeviceManagerAndroidDebugBridge bridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
+    Mockito.when(bridge.findDevice(null, TestVirtualDevices.newKey("Pixel_5_API_31"))).thenReturn(Futures.immediateFuture(null));
+
+    @SuppressWarnings("unchecked")
+    BiConsumer<Throwable, Project> showErrorDialog = Mockito.mock(BiConsumer.class);
+
+    TableModel model = new VirtualDeviceTableModel(null,
+                                                   List.of(TestVirtualDevices.onlinePixel5Api31(myAvd)),
+                                                   (m, key) -> newSetOnline(m, key, latch),
+                                                   () -> myConnection,
+                                                   SetAllOnline::new,
+                                                   bridge,
+                                                   EmulatorConsole::getConsole,
+                                                   showErrorDialog);
+
+    model.addTableModelListener(myListener);
+
+    // Act
+    model.setValueAt(VirtualDevice.State.STOPPING, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+
+    assertEquals(TestVirtualDevices.onlinePixel5Api31(myAvd), model.getValueAt(0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
+
+    TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+
+    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
+
+    ErrorDialogException exception = new ErrorDialogException(
+      "Unable to stop Pixel 5 API 31",
+      "An error occurred stopping Pixel 5 API 31. To stop the device, try manually closing the Pixel 5 API 31 emulator window.");
+
+    ArgumentMatcher<Throwable> matcher = new ErrorDialogExceptionArgumentMatcher(exception);
+    Mockito.verify(showErrorDialog).accept(ArgumentMatchers.argThat(matcher), ArgumentMatchers.isNull());
+  }
+
+  private static final class ErrorDialogExceptionArgumentMatcher implements ArgumentMatcher<Throwable> {
+    private final @NotNull ErrorDialogException myExpected;
+
+    private ErrorDialogExceptionArgumentMatcher(@NotNull ErrorDialogException expected) {
+      myExpected = expected;
+    }
+
+    @Override
+    public boolean matches(@NotNull Throwable actual) {
+      if (!(actual instanceof ErrorDialogException)) {
+        return false;
+      }
+
+      ErrorDialogException exception = (ErrorDialogException)actual;
+      return myExpected.getTitle().equals(exception.getTitle()) && myExpected.getMessage().equals(exception.getMessage());
+    }
+  }
+
+  @Test
+  public void setValueAtStopSucceeded() throws Exception {
+    // Arrange
+    CountDownLatch latch = new CountDownLatch(1);
+    Key key = TestVirtualDevices.newKey("Pixel_5_API_31");
+
+    DeviceManagerAndroidDebugBridge bridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
+    Mockito.when(bridge.findDevice(null, key)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
+
+    EmulatorConsole console = Mockito.mock(EmulatorConsole.class);
+
+    TableModel model = new VirtualDeviceTableModel(null,
+                                                   List.of(TestVirtualDevices.onlinePixel5Api31(myAvd)),
+                                                   VirtualDeviceTableModel::newSetOnline,
+                                                   AvdManagerConnection::getDefaultAvdManagerConnection,
+                                                   m -> newSetAllOnline(m, latch),
+                                                   bridge,
+                                                   device -> console,
+                                                   VirtualTabMessages::showErrorDialog);
+
+    model.addTableModelListener(myListener);
+
+    // Act
+    model.setValueAt(VirtualDevice.State.STOPPING, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+
+    Object device = new VirtualDevice.Builder()
+      .setKey(key)
+      .setName("Pixel 5 API 31")
+      .setTarget("Android 12.0 Google APIs")
+      .setCpuArchitecture("x86_64")
+      .setAndroidVersion(new AndroidVersion(31))
+      .setState(VirtualDevice.State.STOPPING)
+      .setAvdInfo(myAvd)
+      .build();
+
+    assertEquals(device, model.getValueAt(0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
+
+    TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+
+    Mockito.verify(console).kill();
+  }
+
+  private static @NotNull FutureCallback<@Nullable Object> newSetAllOnline(@NotNull VirtualDeviceTableModel model,
+                                                                           @NotNull CountDownLatch latch) {
+    return new CountDownLatchFutureCallback<>(new SetAllOnline(model), latch);
   }
 }

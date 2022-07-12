@@ -16,10 +16,14 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
+import com.android.ddmlib.EmulatorConsole;
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.Devices;
@@ -31,6 +35,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -40,10 +45,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+// TODO Annotate the methods with the threading annotations
 @UiThread
 final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
@@ -56,8 +64,12 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   private final @Nullable Project myProject;
   private @NotNull List<@NotNull VirtualDevice> myDevices;
-  private final @NotNull Callable<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
   private final @NotNull NewSetOnline myNewSetOnline;
+  private final @NotNull Callable<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull Function<@NotNull VirtualDeviceTableModel, @NotNull FutureCallback<@Nullable Object>> myNewSetAllOnline;
+  private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
+  private final @NotNull Function<@NotNull IDevice, @NotNull EmulatorConsole> myGetConsole;
+  private final @NotNull BiConsumer<@NotNull Throwable, @Nullable Project> myShowErrorDialog;
 
   @VisibleForTesting
   interface NewSetOnline {
@@ -77,23 +89,33 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   }
 
   VirtualDeviceTableModel(@Nullable Project project) {
-    this(project, List.of());
-  }
-
-  @VisibleForTesting
-  VirtualDeviceTableModel(@Nullable Project project, @NotNull Collection<@NotNull VirtualDevice> devices) {
-    this(project, devices, AvdManagerConnection::getDefaultAvdManagerConnection, VirtualDeviceTableModel::newSetOnline);
+    this(project,
+         List.of(),
+         VirtualDeviceTableModel::newSetOnline,
+         AvdManagerConnection::getDefaultAvdManagerConnection,
+         SetAllOnline::new,
+         new DeviceManagerAndroidDebugBridge(),
+         EmulatorConsole::getConsole,
+         VirtualTabMessages::showErrorDialog);
   }
 
   @VisibleForTesting
   VirtualDeviceTableModel(@Nullable Project project,
                           @NotNull Collection<@NotNull VirtualDevice> devices,
+                          @NotNull NewSetOnline newSetOnline,
                           @NotNull Callable<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
-                          @NotNull NewSetOnline newSetOnline) {
+                          @NotNull Function<@NotNull VirtualDeviceTableModel, @NotNull FutureCallback<@Nullable Object>> newSetAllOnline,
+                          @NotNull DeviceManagerAndroidDebugBridge bridge,
+                          @NotNull Function<@NotNull IDevice, @NotNull EmulatorConsole> getConsole,
+                          @NotNull BiConsumer<@NotNull Throwable, @Nullable Project> showErrorDialog) {
     myProject = project;
     myDevices = new ArrayList<>(devices);
-    myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
     myNewSetOnline = newSetOnline;
+    myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
+    myNewSetAllOnline = newSetAllOnline;
+    myBridge = bridge;
+    myGetConsole = getConsole;
+    myShowErrorDialog = showErrorDialog;
   }
 
   @VisibleForTesting
@@ -307,7 +329,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         assert false;
         break;
       case STOPPING:
-        // TODO stop
+        stop(modelRowIndex);
         break;
       default:
         assert false : state;
@@ -317,7 +339,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   private void launch(int modelRowIndex) {
     DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-      .setKind(DeviceManagerEvent.EventKind.VIRTUAL_LAUNCH_ACTION)
+      .setKind(EventKind.VIRTUAL_LAUNCH_ACTION)
       .build();
 
     DeviceManagerUsageTracker.log(event);
@@ -332,18 +354,54 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     // noinspection UnstableApiUsage
     FluentFuture.from(getDefaultAvdManagerConnection())
       .transformAsync(connection -> connection.startAvd(myProject, device.getAvdInfo()), executor)
-      .addCallback(new SetAllOnline(this), executor);
+      .addCallback(myNewSetAllOnline.apply(this), executor);
   }
 
-  private static final class SetAllOnline implements FutureCallback<Object> {
+  private void stop(int modelRowIndex) {
+    DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+      .setKind(EventKind.VIRTUAL_STOP_ACTION)
+      .build();
+
+    DeviceManagerUsageTracker.log(event);
+
+    VirtualDevice device = myDevices.get(modelRowIndex).withState(VirtualDevice.State.STOPPING);
+
+    myDevices.set(modelRowIndex, device);
+    fireTableCellUpdated(modelRowIndex, LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+
+    // noinspection UnstableApiUsage
+    FluentFuture.from(myBridge.findDevice(myProject, device.getKey()))
+      .transform(d -> stop(d, device), AppExecutorUtil.getAppExecutorService())
+      .addCallback(myNewSetAllOnline.apply(this), EdtExecutorService.getInstance());
+  }
+
+  /**
+   * Called by an application pool thread
+   */
+  @WorkerThread
+  @SuppressWarnings("SameReturnValue")
+  private @Nullable Void stop(@Nullable IDevice d, @NotNull Object device) {
+    if (d == null) {
+      throw new ErrorDialogException("Unable to stop " + device,
+                                     "An error occurred stopping " + device + ". To stop the device, try manually closing the " + device +
+                                     " emulator window.");
+    }
+
+    myGetConsole.apply(d).kill();
+    return null;
+  }
+
+  @VisibleForTesting
+  static final class SetAllOnline implements FutureCallback<Object> {
     private final @NotNull VirtualDeviceTableModel myModel;
 
-    private SetAllOnline(@NotNull VirtualDeviceTableModel model) {
+    @VisibleForTesting
+    SetAllOnline(@NotNull VirtualDeviceTableModel model) {
       myModel = model;
     }
 
     @Override
-    public void onSuccess(@NotNull Object object) {
+    public void onSuccess(@Nullable Object object) {
       // The launch succeeded. Rely on the VirtualDeviceChangeListener, which calls VirtualDeviceTableModel::setAllOnline, to transition the
       // device state from VirtualDevice.State.LAUNCHING to VirtualDevice.State.LAUNCHED. Likewise for STOPPING and STOPPED.
     }
@@ -353,6 +411,8 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       // The launch failed. Manually transition the state from LAUNCHING to whatever the AvdManagerConnection reports (STOPPED, presumably).
       // Likewise for STOPPING.
       myModel.setAllOnline();
+
+      myModel.myShowErrorDialog.accept(throwable, myModel.myProject);
     }
   }
 }
