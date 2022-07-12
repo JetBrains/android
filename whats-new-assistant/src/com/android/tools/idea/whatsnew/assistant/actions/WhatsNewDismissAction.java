@@ -16,9 +16,11 @@
 package com.android.tools.idea.whatsnew.assistant.actions;
 
 import com.android.tools.idea.assistant.AssistActionHandler;
+import com.android.tools.idea.assistant.AssistantToolWindowService;
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +35,10 @@ final class WhatsNewDismissAction implements AssistActionHandler {
 
   @Override
   public void handleAction(@NotNull ActionData actionData, @NotNull Project project) {
-    ToolWindowManager.getInstance(project).getToolWindow("Assistant").hide(() -> {});
+    ToolWindow assistantToolWindow = ToolWindowManager.getInstance(project).getToolWindow(AssistantToolWindowService.TOOL_WINDOW_TITLE);
+    if (assistantToolWindow != null) {
+      assistantToolWindow.hide();
+    }
     WhatsNewMetricsTracker.getInstance().dismissed(project);
   }
 }
