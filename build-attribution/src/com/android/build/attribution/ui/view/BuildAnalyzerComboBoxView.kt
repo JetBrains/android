@@ -97,7 +97,7 @@ class BuildAnalyzerComboBoxView(
 
     controlsPanel.add(dataSetCombo)
     controlsPanel.add(additionalControlsPanel)
-    controlsPanel.add(createToolbar())
+    controlsPanel.add(createToolbar(this))
     add(controlsPanel, BorderLayout.NORTH)
     add(pagesPanel, BorderLayout.CENTER)
   }
@@ -122,11 +122,13 @@ class BuildAnalyzerComboBoxView(
 
   override fun dispose() = Unit
 
-  private fun createToolbar(): JComponent {
+  private fun createToolbar(targetComponent: JComponent): JComponent {
     val group = DefaultActionGroup()
     group.add(BuildAnalyzerPropertiesAction())
     val actionManager = ActionManager.getInstance()
-    return JBUI.Panels.simplePanel(actionManager.createActionToolbar("BuildAnalyzerToolbar", group, true).component)
+    val toolbar = actionManager.createActionToolbar("BuildAnalyzerToolbar", group, true)
+    toolbar.targetComponent = targetComponent
+    return JBUI.Panels.simplePanel(toolbar.component)
   }
 }
 

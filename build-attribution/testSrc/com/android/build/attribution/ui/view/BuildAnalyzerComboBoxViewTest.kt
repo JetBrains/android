@@ -17,9 +17,13 @@ package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.MockUiData
+import com.android.build.attribution.ui.controllers.BuildAnalyzerPropertiesAction
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -157,6 +161,17 @@ class BuildAnalyzerComboBoxViewTest {
 
     view.dataSetCombo.selectedItem = BuildAnalyzerViewModel.DataSet.OVERVIEW
     Mockito.verifyZeroInteractions(mockHandlers)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testActionToolbarIsSetProperly() {
+    val toolbar = TreeWalker(view.wholePanel).descendants().filterIsInstance<ActionToolbar>().single()
+
+    assertThat(toolbar.targetComponent).isEqualTo(view.wholePanel)
+    assertThat(toolbar.actions).hasSize(2)
+    assertThat(toolbar.actions[0]).isInstanceOf(BuildAnalyzerPropertiesAction::class.java)
+    assertThat(toolbar.actions[1]).isInstanceOf(Separator::class.java)
   }
 
   private fun grabElementsVisibilityStatus(names: Set<String>): Map<String, Boolean> {
