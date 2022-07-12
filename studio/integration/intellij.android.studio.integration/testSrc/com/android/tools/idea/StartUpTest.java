@@ -21,8 +21,12 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.TestFileSystem;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
+import org.apache.commons.lang.SystemUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -44,7 +48,8 @@ public class StartUpTest {
       for (int i = 0; i < plugins.length; i++) {
         plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();
       }
-      assertThat(plugins).asList().containsExactlyElementsIn(new String[]{
+
+      List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
         "Android",
         "Android APK Support",
         "Android NDK Support",
@@ -61,7 +66,6 @@ public class StartUpTest {
         "Design Tools",
         "Eclipse Keymap",
         "EditorConfig",
-        "Emoji Picker",
         "Firebase App Indexing",
         "Firebase Services",
         "Firebase Testing",
@@ -108,8 +112,14 @@ public class StartUpTest {
         "Toml",
         "Visual Studio Keymap",
         "WebP Support",
-        "YAML",
-      });
+        "YAML"
+      ));
+
+      if (SystemUtils.IS_OS_LINUX) {
+        expectedPlugins.add("Emoji Picker");
+      }
+
+      assertThat(plugins).asList().containsExactlyElementsIn(expectedPlugins);
 
       install.verify();
     }

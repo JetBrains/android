@@ -771,12 +771,18 @@ iml_module(
 
 iml_test(
     name = "StartUpTest",
-    data = [":android-studio.linux.zip"],
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
+    }),
     module = ":intellij.android.studio.integration",
-    tags = [
-        "no_mac",  # Different number of plugins expected from Linux
-        "no_windows",  # Different number of plugins expected from Linux
-    ],
     test_class = "com.android.tools.idea.StartUpTest",
 )
 
