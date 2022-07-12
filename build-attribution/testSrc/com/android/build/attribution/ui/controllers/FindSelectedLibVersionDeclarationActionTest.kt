@@ -35,7 +35,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.usageView.UsageViewContentManager
 import com.intellij.usages.UsageViewManager
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.idea.core.util.getLineNumber
+import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule

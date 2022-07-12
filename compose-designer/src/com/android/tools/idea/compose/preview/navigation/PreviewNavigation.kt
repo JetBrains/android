@@ -36,7 +36,7 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.kotlin.idea.core.util.getLineStartOffset
+import org.jetbrains.kotlin.idea.base.psi.getLineStartOffset
 import java.util.WeakHashMap
 
 private object PreviewNavigation {
