@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.annotations.concurrency.WorkerThread
 import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerHook
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
 import org.junit.rules.TestRule
@@ -36,11 +36,13 @@ class ThreadingCheckRule : TestRule {
         val hook = object : ThreadingCheckerHook {
           var hasPerformedThreadingChecks = false
           var hasThreadingViolation = false
+          var errorMessage = ""
 
           override fun verifyOnUiThread() {
             hasPerformedThreadingChecks = true
             if (!SwingUtilities.isEventDispatchThread()) {
               hasThreadingViolation = true
+              errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called on EventDispatchThread."
             }
           }
 
@@ -48,7 +50,13 @@ class ThreadingCheckRule : TestRule {
             hasPerformedThreadingChecks = true
             if (SwingUtilities.isEventDispatchThread()) {
               hasThreadingViolation = true
+              errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called on a worker thread."
             }
+          }
+
+          private fun getInstrumentedMethodName(): String {
+            // Instrumented method (method annotated with @WorkerThread/@UiThread) is located 4 frames up the stack trace
+            return Thread.currentThread().stackTrace[4].toString()
           }
         }
 
@@ -62,7 +70,7 @@ class ThreadingCheckRule : TestRule {
           println("No threading checks were performed when running ${description.className}#${description.methodName} test")
         }
         if (hook.hasThreadingViolation) {
-          throw RuntimeException("Method called on a wrong thread. See the test output log for details.")
+          throw RuntimeException(hook.errorMessage)
         }
       }
     }
