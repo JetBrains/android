@@ -71,7 +71,7 @@ class DeviceToolWindowPanelTest {
 
   private val device by lazy { agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a") }
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
-  private val ui: FakeUi by lazy { FakeUi(panel, createFakeWindow = true) } // Fake window is necessary for the toolbars to be rendered.
+  private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true) } // Fake window is necessary for the toolbars to be rendered.
   private val project get() = agentRule.project
   private val testRootDisposable get() = agentRule.testRootDisposable
   private val agent: FakeScreenSharingAgent get() = device.agent
@@ -102,13 +102,14 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.deviceView).isNull()
 
     panel.createContent(false)
-    waitForCondition(15, TimeUnit.SECONDS) { agent.running }
     assertThat(panel.deviceView).isNotNull()
 
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(2, TimeUnit.SECONDS) { agent.running }
+
     // Check appearance.
-    ui.updateToolbars()
-    ui.layoutAndDispatchEvents()
-    getNextControlMessageAndWaitForFrame(panel)
+    fakeUi.updateToolbars()
+    waitForFrame()
     assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferent = 0.08)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.deviceView)
     assertThat(panel.isClosable).isFalse()
@@ -121,11 +122,11 @@ class DeviceToolWindowPanelTest {
       Pair("Volume Down", AKEYCODE_VOLUME_DOWN),
     )
     for (case in pushButtonCases) {
-      val button = ui.getComponent<ActionButton> { it.action.templateText == case.first }
-      ui.mousePressOn(button)
-      assertThat(getNextControlMessageAndWaitForFrame(panel)).isEqualTo(KeyEventMessage(ACTION_DOWN, case.second, 0))
-      ui.mouseRelease()
-      assertThat(getNextControlMessageAndWaitForFrame(panel)).isEqualTo(KeyEventMessage(ACTION_UP, case.second, 0))
+      val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
+      fakeUi.mousePressOn(button)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN, case.second, 0))
+      fakeUi.mouseRelease()
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_UP, case.second, 0))
     }
 
     // Check keypress actions.
@@ -135,9 +136,9 @@ class DeviceToolWindowPanelTest {
       Pair("Overview", AKEYCODE_APP_SWITCH),
     )
     for (case in keypressCases) {
-      val button = ui.getComponent<ActionButton> { it.action.templateText == case.first }
-      ui.mouseClickOn(button)
-      assertThat(getNextControlMessageAndWaitForFrame(panel)).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, case.second, 0))
+      val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
+      fakeUi.mouseClickOn(button)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, case.second, 0))
     }
 
     panel.destroyContent()
@@ -155,14 +156,17 @@ class DeviceToolWindowPanelTest {
     panel.createContent(false)
     assertThat(panel.deviceView).isNotNull()
 
-    ui.updateToolbars()
-    ui.layoutAndDispatchEvents()
-    getNextControlMessageAndWaitForFrame(panel)
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(15, TimeUnit.SECONDS) { agent.running }
+
+    fakeUi.updateToolbars()
+    fakeUi.layoutAndDispatchEvents()
+    waitForFrame()
 
     var deviceView = panel.deviceView!!
     // Zoom in.
     deviceView.zoom(ZoomType.IN)
-    ui.layoutAndDispatchEvents()
+    fakeUi.layoutAndDispatchEvents()
     assertThat(deviceView.scale).isWithin(0.0001).of(0.25)
     assertThat(deviceView.preferredSize).isEqualTo(Dimension(270, 570))
     val viewport = deviceView.parent as JViewport
@@ -178,8 +182,8 @@ class DeviceToolWindowPanelTest {
     panel.createContent(false, uiState)
     assertThat(panel.deviceView).isNotNull()
     deviceView = panel.deviceView!!
-    ui.layoutAndDispatchEvents()
-    getNextControlMessageAndWaitForFrame(panel)
+    fakeUi.layoutAndDispatchEvents()
+    getNextControlMessageAndWaitForFrame()
 
     // Check that zoom level and scroll position are restored.
     assertThat(deviceView.scale).isWithin(0.0001).of(0.25)
@@ -221,18 +225,28 @@ class DeviceToolWindowPanelTest {
     return panel
   }
 
-  private fun getNextControlMessageAndWaitForFrame(devicePanel: DeviceToolWindowPanel): ControlMessage {
+  private fun getNextControlMessageAndWaitForFrame(): ControlMessage {
     val message = agent.getNextControlMessage(500, TimeUnit.SECONDS)
-    // Wait for all video frames to be received.
-    waitForCondition(2, TimeUnit.SECONDS) { ui.render(); devicePanel.frameNumber == agent.frameNumber }
+    waitForFrame()
     return message
   }
 
+  /** Waits for all video frames to be received. */
+  private fun waitForFrame() {
+    waitForCondition(2, TimeUnit.SECONDS) { agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
+  }
+
+  private fun renderAndGetFrameNumber(): Long {
+    fakeUi.render() // The frame number may get updated as a result of rendering.
+    return panel.frameNumber
+  }
+
+
   @Suppress("SameParameterValue")
   private fun assertAppearance(goldenImageName: String, maxPercentDifferent: Double = 0.0) {
-    ui.layoutAndDispatchEvents()
-    ui.updateToolbars()
-    val image = ui.render()
+    fakeUi.layoutAndDispatchEvents()
+    fakeUi.updateToolbars()
+    val image = fakeUi.render()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent)
   }
 
