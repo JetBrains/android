@@ -15,20 +15,9 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.tools.idea.logcat.message.LogLevel
-import com.android.tools.idea.logcat.message.LogcatHeader
-import com.intellij.openapi.util.Key
-import java.time.Instant
-
 /**
- * Bucket for various global constants
+ * Provides a set of process names.
  */
-
-internal val TAGS_PROVIDER_KEY = Key<TagsProvider>("TagProvider")
-
-internal val PACKAGE_NAMES_PROVIDER_KEY = Key<PackageNamesProvider>("PackageNamesProvider")
-
-internal val PROCESS_NAMES_PROVIDER_KEY = Key<ProcessNamesProvider>("ProcessNamesProvider")
-
-@JvmField
-internal val SYSTEM_HEADER = LogcatHeader(LogLevel.INFO, 0, 0, "", "", "", Instant.EPOCH)
+internal interface ProcessNamesProvider {
+  fun getProcessNames(): Set<String>
+}

@@ -90,6 +90,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
+  override fun getProcessNames(): Set<String> {
+    TODO("Not yet implemented")
+  }
+
   override fun selectDevice(serialNumber: String) {
     TODO()
   }

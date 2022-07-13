@@ -55,7 +55,7 @@ internal interface LogcatFilter {
 
   fun matches(message: LogcatMessageWrapper): Boolean
 
-  open fun getFilterName(): String? = null
+  fun getFilterName(): String? = null
 
   companion object {
     const val MY_PACKAGE = "package:mine"
@@ -91,7 +91,7 @@ internal enum class LogcatFilterField {
     override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.tag
   },
   APP {
-    override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.getAppName()
+    override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.applicationId
   },
   MESSAGE {
     override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.message
@@ -101,7 +101,11 @@ internal enum class LogcatFilterField {
   },
   IMPLICIT_LINE {
     override fun getValue(message: LogcatMessageWrapper) = message.logLine
-  };
+  },
+  PROCESS {
+    override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.processName
+  },
+  ;
 
   abstract fun getValue(message: LogcatMessageWrapper): String
 }

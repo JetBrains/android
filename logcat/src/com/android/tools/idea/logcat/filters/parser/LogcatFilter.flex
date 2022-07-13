@@ -86,6 +86,7 @@ TEXT_KEY
   = "line"
   | "message"
   | "package"
+  | "process"
   | "tag"
 
 // Keys that accept unquoted, non-whitespace values

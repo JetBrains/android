@@ -134,6 +134,7 @@ import kotlin.math.max
 // This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
 private const val MAX_TAGS = 1000
 private const val MAX_PACKAGE_NAMES = 1000
+private const val MAX_PROCESS_NAMES = 1000
 
 private val HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
@@ -197,6 +198,7 @@ internal class LogcatMainPanel(
   internal val messageBacklog = AtomicReference(MessageBacklog(logcatSettings.bufferSize))
   private val tags = MostRecentlyAddedSet<String>(MAX_TAGS)
   private val packages = MostRecentlyAddedSet<String>(MAX_PACKAGE_NAMES)
+  private val processNames = MostRecentlyAddedSet<String>(MAX_PROCESS_NAMES)
 
   @VisibleForTesting
   val headerPanel = LogcatHeaderPanel(
@@ -344,8 +346,12 @@ internal class LogcatMainPanel(
 
   override suspend fun processMessages(messages: List<LogcatMessage>) {
     messageBacklog.get().addAll(messages)
-    tags.addAll(messages.map { it.header.tag })
-    packages.addAll(messages.map { it.header.getAppName() })
+    messages.forEach {
+      val (_, _, _, applicationId, processName, tag, _) = it.header
+      tags.add(tag)
+      packages.add(applicationId)
+      processNames.add(processName)
+    }
     if (!isLogcatPaused) {
       // When paused, we don't send message to the document.
       messageProcessor.appendMessages(messages)
@@ -423,6 +429,8 @@ internal class LogcatMainPanel(
   override fun getTags(): Set<String> = tags
 
   override fun getPackageNames(): Set<String> = packages
+
+  override fun getProcessNames(): Set<String> = processNames
 
   private fun createToolbarActions(project: Project): ActionGroup {
     return SimpleActionGroup().apply {

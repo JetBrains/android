@@ -21,6 +21,7 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
+import com.android.tools.idea.logcat.filters.LogcatFilterField.PROCESS
 import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.AND
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.OR
@@ -217,6 +218,7 @@ internal class LogcatFilterParser(
       MESSAGE -> messageTermsBuilder
       LINE -> lineTermsBuilder
       IMPLICIT_LINE -> return
+      PROCESS -> return // TODO(238877175): Add processTermsBuilder
     }
     updater(terms)
   }
@@ -309,6 +311,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
         when (key) {
           "tag" -> TAG
           "package" -> APP
+          "process" -> PROCESS
           "message" -> MESSAGE
           "line" -> LINE
           else -> {

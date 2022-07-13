@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.DataKey
 /**
  * Encapsulates the presentation of Logcat messages.
  */
-internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposable {
+internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, ProcessNamesProvider, Disposable {
   var formattingOptions: FormattingOptions
 
   /**

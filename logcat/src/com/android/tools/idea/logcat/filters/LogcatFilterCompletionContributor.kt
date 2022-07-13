@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle.message
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
+import com.android.tools.idea.logcat.PROCESS_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.LogcatFilter.Companion.MY_PACKAGE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes
@@ -74,9 +75,10 @@ private class StringKey(name: String, hint: String) {
 
 private val MESSAGE_KEY = StringKey("message", message("logcat.filter.completion.hint.key.message"))
 private val PACKAGE_KEY = StringKey("package", message("logcat.filter.completion.hint.key.package"))
+private val PROCESS_KEY = StringKey("process", message("logcat.filter.completion.hint.key.process"))
 private val TAG_KEY = StringKey("tag", message("logcat.filter.completion.hint.key.tag"))
 
-private val STRING_KEYS = listOf(MESSAGE_KEY, PACKAGE_KEY, TAG_KEY)
+private val STRING_KEYS = listOf(MESSAGE_KEY, PACKAGE_KEY, TAG_KEY, PROCESS_KEY)
 
 private val BASE_KEY_LOOKUPS = listOf(
   createLookupElement(LEVEL_KEY, message("logcat.filter.completion.hint.level")),
@@ -183,8 +185,8 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                    }
                  }
                  in PACKAGE_KEY.keys -> result.addAllElements((parameters.getPackageNames()).map { createLookupElement("$it ") })
-                 in TAG_KEY.keys ->
-                   result.addAllElements(parameters.getTags().filter(String::isNotBlank).map { createLookupElement("$it ") })
+                 in PROCESS_KEY.keys -> result.addAllElements((parameters.getProcessNames()).map { createLookupElement("$it ") })
+                 in TAG_KEY.keys -> result.addAllElements(parameters.getTags().map { createLookupElement("$it ") })
                }
                result.addHints()
              }
@@ -216,10 +218,14 @@ private fun createLookupElement(text: String, hint: String? = null) = LookupElem
 private fun CompletionParameters.findPreviousText() = PsiTreeUtil.skipWhitespacesBackward(position)?.text
 
 private fun CompletionParameters.getTags() =
-  editor.getUserData(TAGS_PROVIDER_KEY)?.getTags() ?: throw IllegalStateException("Missing PackageNamesProvider")
+  editor.getUserData(TAGS_PROVIDER_KEY)?.getTags()
+    ?.filter(String::isNotBlank) ?: throw IllegalStateException("Missing PackageNamesProvider")
 
 private fun CompletionParameters.getPackageNames() =
   editor.getUserData(PACKAGE_NAMES_PROVIDER_KEY)?.getPackageNames() ?: throw IllegalStateException("Missing PackageNamesProvider")
+
+private fun CompletionParameters.getProcessNames() =
+  editor.getUserData(PROCESS_NAMES_PROVIDER_KEY)?.getProcessNames() ?: throw IllegalStateException("Missing ProcessNamesProvider")
 
 private fun CompletionParameters.getRealTextLength(): Int {
   val text = position.text

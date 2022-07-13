@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
+import com.android.tools.idea.logcat.PROCESS_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Separator
@@ -319,6 +320,7 @@ internal class FilterTextField(
       return super.createEditor().apply {
         putUserData(TAGS_PROVIDER_KEY, logcatPresenter)
         putUserData(PACKAGE_NAMES_PROVIDER_KEY, logcatPresenter)
+        putUserData(PROCESS_NAMES_PROVIDER_KEY, logcatPresenter)
         putUserData(AndroidProjectDetector.KEY, androidProjectDetector)
         setBorder(EDITOR_BORDER)
       }

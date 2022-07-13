@@ -38,6 +38,7 @@ private val STRING_KEYS_REGEX = listOf(
   "msg",
   "name",
   "package",
+  "process",
   "tag",
 ).joinToString("|")
 
