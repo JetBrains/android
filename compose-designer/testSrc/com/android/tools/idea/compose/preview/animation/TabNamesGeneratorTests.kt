@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeAnimation
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -44,5 +45,13 @@ class TabNamesGeneratorTests {
     assertEquals("Another label", label)
     label = names.createName(createComposeAnimation("One more label"))
     assertEquals("One more label", label)
+    label = names.createName(createComposeAnimation(null, ComposeAnimationType.UNSUPPORTED))
+    assertEquals("Animation", label)
+    label = names.createName(createComposeAnimation(null, ComposeAnimationType.TRANSITION_ANIMATION))
+    assertEquals("Transition Animation", label)
+    label = names.createName(createComposeAnimation(null, ComposeAnimationType.ANIMATED_VALUE))
+    assertEquals("Animated Value", label)
+    label = names.createName(createComposeAnimation(null, ComposeAnimationType.ANIMATED_VISIBILITY))
+    assertEquals("Animated Visibility", label)
   }
 }

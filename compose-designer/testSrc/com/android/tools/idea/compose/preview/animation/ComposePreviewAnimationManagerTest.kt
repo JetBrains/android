@@ -82,10 +82,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
 
   private lateinit var surface: NlDesignSurface
 
-  private val animations = listOf(createComposeAnimation("animation1", type = ComposeAnimationType.ANIMATED_VISIBILITY),
-                                  createComposeAnimation("animation2", type = ComposeAnimationType.TRANSITION_ANIMATION),
-                                  createComposeAnimation("animation3", type = ComposeAnimationType.ANIMATED_VALUE),
-                                  createComposeAnimation("animation4", type = ComposeAnimationType.TRANSITION_ANIMATION))
+  private val animations = ComposeAnimationType.values().map { createComposeAnimation(it.toString(), type = it) }
 
   companion object {
     @JvmStatic
@@ -465,13 +462,13 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     val timeline = TestUtils.findTimeline(inspector.component)
 
     invokeAndWaitIfNeeded {
-      // 4 cards and 4 TimelineElements are added to coordination panel.
-      assertEquals(4, cards.size)
+      // 11 cards and 11 TimelineElements are added to coordination panel.
+      assertEquals(11, cards.size)
       assertInstanceOf<AnimationCard>(cards[0])
-      assertInstanceOf<AnimationCard>(cards[1])
-      assertInstanceOf<LabelCard>(cards[2])
-      assertInstanceOf<AnimationCard>(cards[3])
-      assertEquals(4, timeline.sliderUI.elements.size)
+      assertInstanceOf<LabelCard>(cards[1])
+      assertInstanceOf<AnimationCard>(cards[2])
+      for(i in 3 until ComposeAnimationType.values().size) assertInstanceOf<LabelCard>(cards[i])
+      assertEquals(11, timeline.sliderUI.elements.size)
       // Only coordination tab is opened.
       assertEquals(1, inspector.tabbedPane.tabCount)
     }
@@ -482,11 +479,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     val clock = getClock()
     animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
     UIUtil.pump() // Wait for cards to be added on the UI thread
-    assertEquals(4, inspector.animations.size)
+    assertEquals(11, inspector.animations.size)
     assertInstanceOf<AnimationManager>(inspector.animations[0])
-    assertInstanceOf<AnimationManager>(inspector.animations[1])
-    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[2])
-    assertInstanceOf<AnimationManager>(inspector.animations[3])
+    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[1])
+    assertInstanceOf<AnimationManager>(inspector.animations[2])
+    for(i in 3 until ComposeAnimationType.values().size) assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[i])
   }
   @Test
   fun `preview inspector`() {

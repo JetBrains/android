@@ -327,7 +327,14 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
       ComposeAnimationType.TRANSITION_ANIMATION -> TransitionAnimationManager(animation)
       ComposeAnimationType.ANIMATED_VALUE -> UnsupportedAnimationManager(animation, tabNames.createName(animation))
       ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
-      else -> UnsupportedAnimationManager(animation, tabNames.createName(animation))
+      ComposeAnimationType.ANIMATABLE,
+      ComposeAnimationType.ANIMATE_CONTENT_SIZE,
+      ComposeAnimationType.ANIMATE_X_AS_STATE,
+      ComposeAnimationType.ANIMATED_CONTENT,
+      ComposeAnimationType.DECAY_ANIMATION,
+      ComposeAnimationType.INFINITE_TRANSITION,
+      ComposeAnimationType.TARGET_BASED_ANIMATION,
+      ComposeAnimationType.UNSUPPORTED -> UnsupportedAnimationManager(animation, tabNames.createName(animation))
     }
   }
 
@@ -551,7 +558,15 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
           loadTransitionFromCacheOrLib()
           loadProperties()
         }
-        ComposeAnimationType.ANIMATED_VALUE -> InspectorPainter.EmptyComboBox()
+        ComposeAnimationType.ANIMATED_VALUE,
+        ComposeAnimationType.ANIMATABLE,
+        ComposeAnimationType.ANIMATE_CONTENT_SIZE,
+        ComposeAnimationType.ANIMATE_X_AS_STATE,
+        ComposeAnimationType.ANIMATED_CONTENT,
+        ComposeAnimationType.DECAY_ANIMATION,
+        ComposeAnimationType.INFINITE_TRANSITION,
+        ComposeAnimationType.TARGET_BASED_ANIMATION,
+        ComposeAnimationType.UNSUPPORTED -> InspectorPainter.EmptyComboBox()
       }
     }
 
