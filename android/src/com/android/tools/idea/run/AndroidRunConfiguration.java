@@ -28,11 +28,12 @@ import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
 import com.android.tools.idea.run.configuration.AppRunSettings;
 import com.android.tools.idea.run.configuration.ComponentLaunchOptions;
-import com.android.tools.idea.run.configuration.RunConfigurationWithAndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
 import com.android.tools.idea.run.configuration.execution.DeployOptions;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
@@ -53,6 +54,7 @@ import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -90,8 +92,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Run Configuration used for running Android Apps (and Instant Apps) locally on a device/emulator.
  */
-public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider,
-                                                                                    RunConfigurationWithAndroidConfigurationExecutor {
+public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
@@ -386,7 +387,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @NotNull
-  @Override
   public AndroidConfigurationExecutor getExecutor(@NotNull ExecutionEnvironment environment) {
     Module myModule = getConfigurationModule().getModule();
     ComponentLaunchOptions launchOptions = getLaunchOptionState(MODE);
@@ -412,5 +412,13 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       }
     };
     return new AndroidActivityConfigurationExecutor(environment, getDeployTarget(), settings, getApplicationIdProvider(), getApkProvider());
+  }
+
+  @Override
+  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+    if (AndroidConfigurationProgramRunner.Companion.getUseNewExecutionForActivities()) {
+      return new AndroidConfigurationExecutorRunProfileState(getExecutor(env));
+    }
+    return super.getState(executor, env);
   }
 }

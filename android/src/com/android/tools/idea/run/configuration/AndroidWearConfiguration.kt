@@ -25,6 +25,7 @@ import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState
 import com.android.tools.idea.run.configuration.execution.DeployOptions
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
@@ -38,7 +39,6 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.JavaRunConfigurationModule
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
-import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
@@ -52,7 +52,7 @@ import org.jetbrains.android.util.AndroidBundle
 
 abstract class AndroidWearConfiguration(project: Project, factory: ConfigurationFactory) :
   ModuleBasedConfiguration<JavaRunConfigurationModule, Element>(JavaRunConfigurationModule(project, false), factory),
-  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, RunConfigurationWithAndroidConfigurationExecutor {
+  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake {
 
   companion object {
     const val LAUNCH_OPTIONS_ELEMENT_NAME = "LaunchOptions"
@@ -78,9 +78,11 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
       "${componentLaunchOptions.userVisibleComponentTypeName} is not chosen")
   }
 
-  final override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState = EmptyRunProfileState()
+  final override fun getState(executor: Executor, environment: ExecutionEnvironment): AndroidConfigurationExecutorRunProfileState {
+    return AndroidConfigurationExecutorRunProfileState(getExecutor(environment))
+  }
 
-  final override fun getExecutor(environment: ExecutionEnvironment): AndroidConfigurationExecutor {
+  private fun getExecutor(environment: ExecutionEnvironment): AndroidConfigurationExecutor {
     val provider = DeviceAndSnapshotComboBoxTargetProvider()
     val deployTarget = if (provider.requiresRuntimePrompt(project)) {
       invokeAndWaitIfNeeded { provider.showPrompt(project) }
@@ -146,7 +148,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   }
 
   override fun writeExternal(element: Element) {
-    super.writeExternal(element)
+    super<ModuleBasedConfiguration>.writeExternal(element)
     XmlSerializer.serializeInto(this, element)
 
     Element(LAUNCH_OPTIONS_ELEMENT_NAME).apply {
@@ -161,7 +163,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   }
 
   override fun readExternal(element: Element) {
-    super.readExternal(element)
+    super<ModuleBasedConfiguration>.readExternal(element)
     XmlSerializer.deserializeInto(this, element)
 
     element.getChild(LAUNCH_OPTIONS_ELEMENT_NAME)?.let { XmlSerializer.deserializeInto(componentLaunchOptions, it) }

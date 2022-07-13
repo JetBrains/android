@@ -53,21 +53,18 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
     val supportExecutor = DefaultRunExecutor.EXECUTOR_ID == executorId || DefaultDebugExecutor.EXECUTOR_ID == executorId
 
-    if (supportExecutor && profile is RunConfigurationWithAndroidConfigurationExecutor) {
-      // TODO: remove when StudioFlags.NEW_EXECUTION_FLOW_ENABLED is permanently enabled
-      if (profile is AndroidRunConfiguration) {
-        return useNewExecutionForActivities
-      }
-      return true
+    if (!supportExecutor) {
+      return false
     }
-    return false
+
+    return profile is AndroidWearConfiguration || (profile is AndroidRunConfiguration && useNewExecutionForActivities)
   }
 
   @Throws(ExecutionException::class)
   override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
     val runProfile = environment.runProfile
 
-    val executor = (runProfile as RunConfigurationWithAndroidConfigurationExecutor).getExecutor(environment)
+    val executor = state as AndroidConfigurationExecutor
 
     FileDocumentManager.getInstance().saveAllDocuments()
 

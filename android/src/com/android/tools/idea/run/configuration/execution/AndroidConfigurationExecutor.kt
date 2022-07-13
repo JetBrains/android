@@ -16,7 +16,11 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.tools.idea.run.editor.DeployTarget
+import com.intellij.execution.ExecutionResult
+import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.RunContentDescriptor
 import org.jetbrains.concurrency.Promise
 
@@ -30,5 +34,11 @@ interface AndroidConfigurationExecutor {
   fun debug(): Promise<RunContentDescriptor>
   fun applyChanges(): Promise<RunContentDescriptor>
   fun applyCodeChanges(): Promise<RunContentDescriptor>
+}
+
+class AndroidConfigurationExecutorRunProfileState(executor: AndroidConfigurationExecutor) : AndroidConfigurationExecutor by executor, RunProfileState {
+  override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult? {
+    throw RuntimeException("Unexpected code path")
+  }
 }
 
