@@ -17,4 +17,9 @@ package com.android.tools.idea.logcat.util
 
 import com.intellij.openapi.diagnostic.Logger
 
-internal val LOGGER = Logger.getInstance("com.intellij.openapi.diagnostic.Logger.Logcat")
+/**
+ * The common logger for all Logcat logs.
+ *
+ * To see DEBUG logs, add `#LogcatLogger` to `Help -> Diagnostic Tools -> Debug Log Settings`
+ */
+internal val LOGGER = Logger.getInstance("#LogcatLogger")
