@@ -21,6 +21,7 @@ import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.crea
 
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
 import com.android.tools.idea.emulator.DeviceMirroringSettings;
+import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.android.tools.idea.logcat.LogcatExperimentalSettings;
@@ -73,6 +74,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   private JCheckBox myEnableParallelSync;
 
+  private JCheckBox myEnableVersionCatalogParsing;
+
   private Runnable myRestartCallback;
 
   @SuppressWarnings("unused") // called by IDE
@@ -90,6 +93,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseL2DependenciesCheckBox.setVisible(false);
 
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
+    myEnableVersionCatalogParsing.setVisible(StudioFlags.GRADLE_DSL_TOML_SUPPORT.get() || StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.get());
 
     Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
     qualityLabels.put(0, new JLabel("Fastest"));
@@ -139,7 +143,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
            myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() ||
-           myEnableDeviceMirroringCheckBox.isSelected() != DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled();
+           myEnableDeviceMirroringCheckBox.isSelected() != DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled() ||
+           myEnableVersionCatalogParsing.isSelected() != GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled();
   }
 
   private int getQualitySetting() {
@@ -157,6 +162,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     applyTraceSettings();
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
     DeviceMirroringSettings.getInstance().setDeviceMirroringEnabled(myEnableDeviceMirroringCheckBox.isSelected());
+    GradleDslModelExperimentalSettings.getInstance().setVersionCatalogEnabled(myEnableVersionCatalogParsing.isSelected());
 
     LogcatExperimentalSettings logcatSettings = LogcatExperimentalSettings.getInstance();
     if (myEnableNewLogcatToolCheckBox.isSelected() != logcatSettings.getLogcatV2Enabled()) {
@@ -237,6 +243,11 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @TestOnly
   void setEnableParallelSync(boolean value) {
     myEnableParallelSync.setSelected(value);
+  }
+
+  @TestOnly
+  void setEnableVersionCatalogParsing(boolean value) {
+    myEnableVersionCatalogParsing.setSelected(value);
   }
 
   private void initTraceComponents() {
@@ -329,6 +340,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
     myEnableNewLogcatToolCheckBox.setSelected(LogcatExperimentalSettings.getInstance().getLogcatV2Enabled());
     myEnableDeviceMirroringCheckBox.setSelected(DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled());
+    myEnableVersionCatalogParsing.setSelected(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
   }
 
   private void createUIComponents() {

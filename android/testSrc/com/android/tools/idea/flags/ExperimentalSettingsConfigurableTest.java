@@ -19,6 +19,7 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
@@ -76,6 +77,11 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.isModified());
     mySettings.ENABLE_PARALLEL_SYNC = true;
     assertFalse(myConfigurable.isModified());
+
+    myConfigurable.setEnableVersionCatalogParsing(false);
+    assertTrue(myConfigurable.isModified());
+    myConfigurable.setEnableVersionCatalogParsing(true);
+    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
@@ -94,6 +100,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertEquals("/tmp/text1.profile", mySettings.TRACE_PROFILE_LOCATION);
     assertEquals(DEFAULT, mySettings.TRACE_PROFILE_SELECTION);
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
+    assertTrue(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
 
     myConfigurable.setUseL2DependenciesInSync(false);
     myConfigurable.setSkipGradleTasksList(false);
@@ -101,6 +108,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     myConfigurable.setTraceProfileLocation("/tmp/text2.profile");
     myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
     myConfigurable.setEnableParallelSync(false);
+    myConfigurable.setEnableVersionCatalogParsing(false);
 
     myConfigurable.apply();
 
@@ -110,6 +118,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertEquals("/tmp/text2.profile", mySettings.TRACE_PROFILE_LOCATION);
     assertEquals(SPECIFIED_LOCATION, mySettings.TRACE_PROFILE_SELECTION);
     assertFalse(mySettings.ENABLE_PARALLEL_SYNC);
+    assertFalse(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
   }
 
   public void testReset() {

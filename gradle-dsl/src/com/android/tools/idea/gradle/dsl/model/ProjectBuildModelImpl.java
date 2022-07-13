@@ -194,6 +194,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @Override
   public @Nullable GradleVersionCatalogModel getVersionCatalogModel() {
+    if (!GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled()) return null;
     // TODO(b/200280395): actually compute the set of version catalog files to read from the settings model.
     VirtualFile versionCatalogVirtualFile = myBuildModelContext.getVersionCatalogFile("libs");
     if (versionCatalogVirtualFile == null) return null;

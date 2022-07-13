@@ -397,6 +397,26 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testNoVersionCatalogResolutionIfSettingIsOff() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = false
+    try {
+      writeToBuildFile(TestFile.VERSION_CATALOG_BUILD_FILE)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_COMPACT_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val dependencies = buildModel.dependencies()
+      val artifacts = dependencies.artifacts()
+      assertSize(0, artifacts)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = true
+    }
+  }
+
+  @Test
   fun testVersionCatalogCompactNotationVariableResolution() {
     StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
     try {
@@ -646,6 +666,26 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     finally {
       StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
       StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testVersionCatalogModelNullIfSettingIsOff() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = false
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("")
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel
+      assertNull(vcModel)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+      GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = true
     }
   }
 

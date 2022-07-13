@@ -254,6 +254,7 @@ public final class BuildModelContext {
 
   private void populateVersionCatalogFiles(@NotNull GradleBuildFile buildFile, @Nullable GradleSettingsModel gradleSettingsModel) {
     if (gradleSettingsModel == null) return;
+    if (!GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled()) return;
     for (VersionCatalogModel versionCatalogModel: gradleSettingsModel.dependencyResolutionManagement().versionCatalogs()) {
       String from = versionCatalogModel.from().getValue(GradlePropertyModel.STRING_TYPE);
       if (from == null) continue;
