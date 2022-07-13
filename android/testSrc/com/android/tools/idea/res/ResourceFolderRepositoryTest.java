@@ -3587,7 +3587,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     waitForUpdates(repository);
-    assertThat(repository.getFileRescans()).isEqualTo(rescans + 1);
+    assertThat(repository.getFileRescans()).isAtLeast(rescans + 1);
     assertThat(repository.getModificationCount()).isGreaterThan(generation);
     List<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.STRING, "app_name");
     assertThat(items).hasSize(1);
