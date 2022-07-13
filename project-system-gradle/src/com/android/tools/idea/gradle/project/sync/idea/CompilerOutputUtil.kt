@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -43,6 +44,11 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null, i
   // MPSS: Set compilation data for Gradle sourceSets too.
   for (sourceSet in ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY)) {
     val sourceSetData = sourceSet.data
+    if (IdeModuleWellKnownSourceSet.fromName(sourceSetData.moduleName) == null) {
+      // Ignore any non-Android source sets e.g in a KMP project
+      continue
+    }
+
     sourceSetData.useExternalCompilerOutput(isDelegatedBuildUsed)
     sourceSetData.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
     sourceSetData.setCompileOutputPath(ExternalSystemSourceType.TEST, null)
@@ -55,3 +61,5 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null, i
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
 }
+
+

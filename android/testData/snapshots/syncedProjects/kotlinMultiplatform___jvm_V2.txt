@@ -1074,8 +1074,7 @@ PROJECT                       : kotlinMultiPlatform
         LinkedProjectPath             : <PROJECT>/module2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/module2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/module2/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/module2/build/classes/kotlin/jvm/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.jvmMain.iml [-]
@@ -1152,8 +1151,7 @@ PROJECT                       : kotlinMultiPlatform
         LinkedProjectPath             : <PROJECT>/module2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/module2/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/module2/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/module2/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1202,18 +1200,6 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            Scope                         : Test
-            LIBRARY
-                *CLASSES                      : file://<PROJECT>/module2/build/classes/kotlin/jvm/main [-]
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            Scope                         : Runtime
-            LIBRARY
-                *CLASSES                      : file://<PROJECT>/module2/build/processedResources/jvm/main [-]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
@@ -1228,6 +1214,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
             Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
+            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :module2:assemble, :module2:testClasses
