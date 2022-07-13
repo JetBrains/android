@@ -17,8 +17,7 @@ package com.android.tools.idea.localization
 
 import com.intellij.AbstractBundle
 import com.intellij.reference.SoftReference
-import org.jetbrains.annotations.Nls
-import java.lang.ref.Reference
+import com.intellij.util.ReflectionUtil
 import java.util.Locale
 import java.util.ResourceBundle
 import java.util.function.Supplier
@@ -41,7 +40,7 @@ import java.util.function.Supplier
  * # src/messages/CustomBundle.kt:
  * private const val BUNDLE_NAME = "messages.CustomBundle"
  * object CustomBundle {
- *   private val bundleRef = MessageBundleReference(BUNDLE_NAME, CustomBundle::class.java.classLoader)
+ *   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
  *   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
  * }
  * ```
@@ -49,14 +48,18 @@ import java.util.function.Supplier
  * That's it! Now you can call `CustomBundle.message("sample.text.key")` to fetch the text value.
  *
  * @param name the fully qualified path to the bundle messages text file
- * @param bundleClassLoader a classloader that is aware of the bundle messages file
  */
-class MessageBundleReference(
-  private val name: String, private val bundleClassLoader: ClassLoader = MessageBundleReference::class.java.classLoader
-) {
-  private var bundleRef: Reference<ResourceBundle>? = null
+class MessageBundleReference(private val name: String) {
+  /**
+   * [ReflectionUtil.getCallerClass] has 4 as a parameter because:
+   * 1. ReflectionUtil.getCallerClass
+   * 2. MessageBundleReference.<init>
+   * 3. CustomBundle.<clinit>
+   */
+  private val bundleClassLoader = ReflectionUtil.getCallerClass(3).classLoader
+  private var bundleRef: SoftReference<ResourceBundle>? = null
 
-  fun getBundle(): ResourceBundle =
+  private fun getBundle(): ResourceBundle =
     SoftReference.dereference(bundleRef) ?:
     ResourceBundle.getBundle(name, Locale.getDefault(), bundleClassLoader).also { bundleRef = SoftReference(it) }
 
