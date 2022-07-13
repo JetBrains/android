@@ -101,7 +101,7 @@ import kotlin.math.min
 
 private const val APPLY_FILTER_DELAY_MS = 100L
 
-private val BLANK_ICON = EmptyIcon.create(16, 16)
+private val BLANK_ICON = EmptyIcon.ICON_16
 
 // The text of the history dropdown item needs a little horizontal padding
 private val HISTORY_ITEM_LABEL_BORDER = JBUI.Borders.empty(0, 3)
