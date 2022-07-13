@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device
 
-import com.android.adblib.DevicePropertyNames
+import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
 import com.android.testutils.TestUtils
@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_UP
+import com.android.tools.idea.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
@@ -69,7 +70,7 @@ class DeviceToolWindowPanelTest {
   @get:Rule
   val ruleChain = RuleChain(agentRule, SetPortableUiFontRule(), EdtRule())
 
-  private val device by lazy { agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a") }
+  private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
   private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true) } // Fake window is necessary for the toolbars to be rendered.
   private val project get() = agentRule.project
@@ -99,6 +100,7 @@ class DeviceToolWindowPanelTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
+    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
     assertThat(panel.deviceView).isNull()
 
     panel.createContent(false)
@@ -141,6 +143,70 @@ class DeviceToolWindowPanelTest {
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, case.second, 0))
     }
 
+    // Check that the Wear OS-specific buttons are hidden.
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Button 1" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Button 2" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNull()
+
+    panel.destroyContent()
+    assertThat(panel.deviceView).isNull()
+    waitForCondition(2, TimeUnit.SECONDS) { !agent.isRunning }
+  }
+
+  @Test
+  fun testWearToolbarActions() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454), "arm64-v8a",
+                                     mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    panel.createContent(false)
+    assertThat(panel.deviceView).isNotNull()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+
+    // Check appearance.
+    fakeUi.updateToolbars()
+    fakeUi.layoutAndDispatchEvents()
+    waitForFrame()
+    assertThat(panel.preferredFocusableComponent).isEqualTo(panel.deviceView)
+    assertThat(panel.isClosable).isFalse()
+    assertThat(panel.icon).isNotNull()
+
+    // Check push button actions.
+    val pushButtonCases = listOf(
+      Pair("Button 1", AKEYCODE_POWER)
+    )
+    for (case in pushButtonCases) {
+      val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
+      fakeUi.mousePressOn(button)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN, case.second, 0))
+      fakeUi.mouseRelease()
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_UP, case.second, 0))
+    }
+
+    // Check keypress actions.
+    val keypressCases = listOf(
+      Pair("Button 2", AKEYCODE_STEM_PRIMARY),
+      Pair("Palm", AKEYCODE_SLEEP),
+      Pair("Back", AKEYCODE_BACK),
+    )
+    for (case in keypressCases) {
+      val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
+      fakeUi.mouseClickOn(button)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, case.second, 0))
+    }
+
+    // Check that the buttons not applicable to Wear OS 3 are hidden.
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Power" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()
+    assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
+
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
     waitForCondition(2, TimeUnit.SECONDS) { !agent.isRunning }
@@ -151,6 +217,7 @@ class DeviceToolWindowPanelTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
+    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
     assertThat(panel.deviceView).isNull()
 
     panel.createContent(false)
@@ -214,8 +281,7 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun createToolWindowPanel(): DeviceToolWindowPanel {
-    val panel = DeviceToolWindowPanel(project, device.serialNumber, device.deviceState.cpuAbi, "Test device",
-                                      mapOf(DevicePropertyNames.RO_BUILD_VERSION_SDK to device.deviceState.buildVersionSdk))
+    val panel = DeviceToolWindowPanel(project, device.serialNumber, device.deviceState.cpuAbi, "Test device", device.deviceProperties)
     Disposer.register(testRootDisposable) {
       if (panel.deviceView != null) {
         panel.destroyContent()

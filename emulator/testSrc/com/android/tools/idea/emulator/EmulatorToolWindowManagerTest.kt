@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.adblib.DevicePropertyNames
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.PaneEntry
@@ -54,6 +55,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.ContentManager
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.After
 import org.junit.Before
@@ -104,7 +106,7 @@ class EmulatorToolWindowManagerTest {
   @After
   fun tearDown() {
     toolWindow.hide()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
+    dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
     DeviceMirroringSettings.getInstance().deviceMirroringEnabled = savedMirroringEnabledState
   }
 
@@ -326,7 +328,7 @@ class EmulatorToolWindowManagerTest {
   }
 
   @Test
-  fun testUnsupportedPhysicalDevice() {
+  fun testUnsupportedPhysicalDevices() {
     if (SystemInfo.isWindows) {
       return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
     }
@@ -338,13 +340,20 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    val device = agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), "armeabi-v7a")
+    val device1 = agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), "armeabi-v7a")
     toolWindow.show()
 
     dispatchAllEventsInIdeEventQueue()
     assertThat(contentManager.contents.size == 1).isTrue()
     assertThat(contentManager.contents[0].displayName).isNull()
-    agentRule.disconnectDevice(device)
+    agentRule.disconnectDevice(device1)
+
+    val device2 = agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), "armeabi-v7a",
+                                     mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    dispatchAllEventsInIdeEventQueue()
+    assertThat(contentManager.contents.size == 1).isTrue()
+    assertThat(contentManager.contents[0].displayName).isNull()
+    agentRule.disconnectDevice(device2)
   }
 
   @Test

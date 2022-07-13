@@ -16,8 +16,10 @@
 package com.android.tools.idea
 
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.android.tools.idea.device.DEVICE_CONFIGURATION_KEY
 import com.android.tools.idea.device.DEVICE_CONTROLLER_KEY
 import com.android.tools.idea.device.DEVICE_VIEW_KEY
+import com.android.tools.idea.device.DeviceConfiguration
 import com.android.tools.idea.device.DeviceView
 import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.EMULATOR_CONTROLLER_KEY
@@ -63,6 +65,7 @@ private class TestDataContext(private val displayView: AbstractDisplayView, priv
       EMULATOR_VIEW_KEY.name -> emulatorView
       EMULATOR_CONTROLLER_KEY.name -> emulatorView?.emulator
       DEVICE_VIEW_KEY.name -> deviceView
+      DEVICE_CONFIGURATION_KEY.name -> DeviceConfiguration(mapOf())
       DEVICE_CONTROLLER_KEY.name -> deviceView?.deviceController
       ZOOMABLE_KEY.name -> displayView
       CommonDataKeys.PROJECT.name -> project

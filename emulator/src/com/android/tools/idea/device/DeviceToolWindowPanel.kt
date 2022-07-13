@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.device
 
-import com.android.adblib.DevicePropertyNames
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
@@ -54,7 +53,7 @@ internal class DeviceToolWindowPanel(
   private val deviceSerialNumber: String,
   private val deviceAbi: String,
   override val title: String,
-  private val deviceProperties: Map<String, String>,
+  deviceProperties: Map<String, String>,
 ) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceSerialNumber)) {
 
   private val mainToolbar: ActionToolbar
@@ -72,11 +71,12 @@ internal class DeviceToolWindowPanel(
   val component: JComponent
     get() = this
 
+  private val deviceConfiguration = DeviceConfiguration(deviceProperties)
   private val apiLevel
-    get() = deviceProperties[DevicePropertyNames.RO_BUILD_VERSION_SDK]?.toInt() ?: 0
+    get() = deviceConfiguration.apiLevel
 
   private val avdName
-    get() = deviceProperties[DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME]
+    get() = deviceConfiguration.avdName
 
   override val preferredFocusableComponent: JComponent
     get() = primaryDeviceView ?: this
@@ -164,10 +164,13 @@ internal class DeviceToolWindowPanel(
     return when (dataId) {
       DEVICE_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
       DEVICE_CONTROLLER_KEY.name -> primaryDeviceView?.deviceController
+      DEVICE_CONFIGURATION_KEY.name -> deviceConfiguration
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
-          primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceProperties, it) else null }
+          primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfiguration, it) else null }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
-          primaryDeviceView?.let { ScreenRecorderAction.Parameters(deviceSerialNumber, apiLevel, avdName, it) }
+          primaryDeviceView?.let {
+            ScreenRecorderAction.Parameters(deviceSerialNumber, deviceConfiguration.apiLevel, deviceConfiguration.avdName, it)
+          }
       else -> null
     }
   }

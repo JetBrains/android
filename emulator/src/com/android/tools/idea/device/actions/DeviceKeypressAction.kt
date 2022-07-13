@@ -16,13 +16,18 @@
 package com.android.tools.idea.device.actions
 
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
+import com.android.tools.idea.device.DeviceConfiguration
 import com.android.tools.idea.device.KeyEventMessage
 import com.intellij.openapi.actionSystem.AnActionEvent
+import java.util.function.Predicate
 
 /**
  * Sends the given key code to an Android device.
  */
-internal open class DeviceKeypressAction(private val keyCode: Int) : AbstractDeviceAction() {
+internal open class DeviceKeypressAction(
+  private val keyCode: Int,
+  configFilter: Predicate<DeviceConfiguration>? = null,
+) : AbstractDeviceAction(configFilter) {
 
   override fun actionPerformed(event: AnActionEvent) {
     getDeviceController(event)?.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, metaState = 0))

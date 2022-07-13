@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.device.actions
 
-import com.android.tools.idea.device.AKEYCODE_HOME
+import com.android.tools.idea.device.AKEYCODE_POWER
 
 /**
- * Simulates pressing the Home button on an Android device.
+ * Simulates pressing the first button on an Android Wear physical device.
  */
-internal class DeviceHomeButtonAction : DeviceKeypressAction(AKEYCODE_HOME, configFilter = { !it.isWatch })
+internal class DeviceWear1ButtonAction : DevicePushButtonAction(AKEYCODE_POWER, configFilter = { it.isWatch })

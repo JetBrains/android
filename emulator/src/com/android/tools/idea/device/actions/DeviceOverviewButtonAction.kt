@@ -20,4 +20,4 @@ import com.android.tools.idea.device.AKEYCODE_APP_SWITCH
 /**
  * Simulates pressing the Overview button on an Android device.
  */
-internal class DeviceOverviewButtonAction : DeviceKeypressAction(AKEYCODE_APP_SWITCH)
+internal class DeviceOverviewButtonAction : DeviceKeypressAction(AKEYCODE_APP_SWITCH, configFilter = { !it.isWatch })

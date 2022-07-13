@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  */
 internal sealed class DeviceRotateAction(
   private val rotationQuadrants: Int,
-) : AbstractDeviceAction() {
+) : AbstractDeviceAction(configFilter = { it.hasOrientationSensors && !it.isWatch }) {
 
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {

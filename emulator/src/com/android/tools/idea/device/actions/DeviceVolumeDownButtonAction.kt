@@ -20,4 +20,4 @@ import com.android.tools.idea.device.AKEYCODE_VOLUME_DOWN
 /**
  * Simulates pressing the Volume Down button on an Android device.
  */
-internal class DeviceVolumeDownButtonAction : DevicePushButtonAction(AKEYCODE_VOLUME_DOWN)
+internal class DeviceVolumeDownButtonAction : DevicePushButtonAction(AKEYCODE_VOLUME_DOWN, configFilter = { !it.isWatch })

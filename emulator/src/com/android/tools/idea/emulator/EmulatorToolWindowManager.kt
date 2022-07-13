@@ -664,6 +664,10 @@ internal class EmulatorToolWindowManager private constructor(
         if (apiLevel < 26) {
           return null // Mirroring is supported for API >= 26.
         }
+        val isWatch = properties[RO_BUILD_CHARACTERISTICS]?.contains("watch") ?: false
+        if (isWatch && apiLevel < 30) {
+          return null // Wear OS devices with API < 30 don't support VP8/VP9 video encoders.
+        }
         return properties
       }
       catch (e: CancellationException) {
