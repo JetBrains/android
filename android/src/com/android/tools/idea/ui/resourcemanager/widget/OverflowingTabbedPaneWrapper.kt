@@ -162,7 +162,7 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
     tabPane.removeComponentListener(resizeListener)
   }
 
-  override fun createLayoutManager() = OverflowingTabPaneLayout()
+  override fun createLayoutManager(): TabbedPaneLayout = OverflowingTabPaneLayout()
 
   /**
    * A modified copy of the base [javax.swing.plaf.basic.BasicTabbedPaneUI.TabbedPaneLayout]
