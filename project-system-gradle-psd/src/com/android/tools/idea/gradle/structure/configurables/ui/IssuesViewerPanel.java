@@ -54,6 +54,7 @@ public class IssuesViewerPanel extends CollapsiblePanel {
     issuesView.addHyperlinkListener(hyperlinkListener);
     setUpAsHtmlLabel(issuesView, font);
     this.setContents(issuesView);
+    issuesView.setPreferredSize(getPreferredSize());
     addPropertyChangeListener("expanded", propertyChangeListener);
   }
 
