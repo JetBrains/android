@@ -104,6 +104,7 @@ import com.intellij.util.SystemProperties
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
+import org.jetbrains.kotlin.android.configure.patchFromMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
@@ -300,6 +301,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject::class.java)
     val kaptGradleModel =
       if (androidModels != null) androidModels.kaptGradleModel else resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)
+    val mppModel = resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java)
     val gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel::class.java)
     val buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, BuildScriptClasspathModel::class.java)
     var androidModel: GradleAndroidModelData? = null
@@ -307,7 +309,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     var gradleModel: GradleModuleModel? = null
     var issueData: Collection<IdeSyncIssue>? = null
     if (androidModels != null) {
-      androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels)
+      androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels, mppModel)
       issueData = androidModels.syncIssues
       val ndkModuleName = moduleName + "." + getModuleName(androidModel.mainArtifactCore.name)
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath!!, androidModels)
@@ -779,13 +781,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     private fun createGradleAndroidModel(
       moduleName: String,
       rootModulePath: File?,
-      ideModels: IdeAndroidModels
+      ideModels: IdeAndroidModels,
+      mppModel: KotlinMPPGradleModel?
     ): GradleAndroidModelData {
       return create(
         moduleName,
         rootModulePath!!,
         ideModels.androidProject,
-        ideModels.fetchedVariants,
+        ideModels.fetchedVariants.map {
+          if (mppModel != null && it.name == ideModels.selectedVariantName) it.patchFromMppModel(ideModels.androidProject, mppModel)
+          else it
+        },
         ideModels.selectedVariantName
       )
     }

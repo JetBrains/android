@@ -972,6 +972,13 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/testDebug/shaders
                     ./module2/src/androidTestDebug/shaders
+            debug_KotlinMPP
+                Manifest:
+                    ./module2/src/test/__KotlinMPP__/AndroidManifest.xml
+                JavaDirectories:
+                    ./module2/src/androidDebugUnitTest/kotlin
+                ResourcesDirectories:
+                    ./module2/src/androidDebugUnitTest/resources
         AndroidTest:
             androidTest
                 Manifest:
@@ -1031,6 +1038,13 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectories:
                     ./module2/src/androidTestDebug/shaders
                     ./module2/src/androidAndroidTestDebug/shaders
+            debug_KotlinMPP
+                Manifest:
+                    ./module2/src/androidTest/__KotlinMPP__/AndroidManifest.xml
+                JavaDirectories:
+                    ./module2/src/androidDebugAndroidTest/kotlin
+                ResourcesDirectories:
+                    ./module2/src/androidDebugAndroidTest/resources
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1101,9 +1115,11 @@ MODULE: kotlinMultiPlatform.module2
                 ManifestFileUrls:
                     file://./module2/src/test/AndroidManifest.xml
                     file://./module2/src/testDebug/AndroidManifest.xml
+                    file://./module2/src/test/__KotlinMPP__/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/test
                     file://./module2/src/testDebug
+                    file://./module2/src/test/__KotlinMPP__
                 AidlDirectoryUrls:
                     file://./module2/src/test/aidl
                     file://./module2/src/androidTest/aidl
@@ -1117,6 +1133,7 @@ MODULE: kotlinMultiPlatform.module2
                 JavaDirectoryUrls:
                     file://./module2/src/test/java
                     file://./module2/src/testDebug/java
+                    file://./module2/src/androidDebugUnitTest/kotlin
                 KotlinDirectoryUrls:
                     file://./module2/src/androidTest/kotlin
                     file://./module2/src/test/kotlin
@@ -1146,6 +1163,7 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidTest/resources
                     file://./module2/src/testDebug/resources
                     file://./module2/src/androidTestDebug/resources
+                    file://./module2/src/androidDebugUnitTest/resources
                 ShadersDirectoryUrls:
                     file://./module2/src/test/shaders
                     file://./module2/src/androidTest/shaders
@@ -1157,9 +1175,11 @@ MODULE: kotlinMultiPlatform.module2
                 ManifestFileUrls:
                     file://./module2/src/androidTest/AndroidManifest.xml
                     file://./module2/src/androidTestDebug/AndroidManifest.xml
+                    file://./module2/src/androidTest/__KotlinMPP__/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/androidTest
                     file://./module2/src/androidTestDebug
+                    file://./module2/src/androidTest/__KotlinMPP__
                 ManifestDirectories:
                     file://./module2/src/androidTest
                 AidlDirectoryUrls:
@@ -1175,6 +1195,7 @@ MODULE: kotlinMultiPlatform.module2
                 JavaDirectoryUrls:
                     file://./module2/src/androidTest/java
                     file://./module2/src/androidTestDebug/java
+                    file://./module2/src/androidDebugAndroidTest/kotlin
                 KotlinDirectoryUrls:
                     file://./module2/src/androidAndroidTest/kotlin
                     file://./module2/src/androidTest/java
@@ -1202,6 +1223,7 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidAndroidTest/resources
                     file://./module2/src/androidTestDebug/resources
                     file://./module2/src/androidAndroidTestDebug/resources
+                    file://./module2/src/androidDebugAndroidTest/resources
                 ShadersDirectoryUrls:
                     file://./module2/src/androidTest/shaders
                     file://./module2/src/androidAndroidTest/shaders
@@ -1488,6 +1510,16 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectoryUrls:
                     file://./module2/src/testDebug/shaders
                     file://./module2/src/androidTestDebug/shaders
+            debug_KotlinMPP (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./module2/src/test/__KotlinMPP__/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./module2/src/test/__KotlinMPP__
+                JavaDirectoryUrls:
+                    file://./module2/src/androidDebugUnitTest/kotlin
+                ResourcesDirectoryUrls:
+                    file://./module2/src/androidDebugUnitTest/resources
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1557,4 +1589,14 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectoryUrls:
                     file://./module2/src/androidTestDebug/shaders
                     file://./module2/src/androidAndroidTestDebug/shaders
+            debug_KotlinMPP (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./module2/src/androidTest/__KotlinMPP__/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./module2/src/androidTest/__KotlinMPP__
+                JavaDirectoryUrls:
+                    file://./module2/src/androidDebugAndroidTest/kotlin
+                ResourcesDirectoryUrls:
+                    file://./module2/src/androidDebugAndroidTest/resources
         CurrentTestFixturesSourceProviders:

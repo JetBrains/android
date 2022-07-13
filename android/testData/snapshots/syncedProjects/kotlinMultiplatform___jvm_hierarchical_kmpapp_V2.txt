@@ -182,6 +182,7 @@ PROJECT                       : kotlinMultiPlatform
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidAndroidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidAndroidTestDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidDebugAndroidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
@@ -211,6 +212,8 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidAndroidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidAndroidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidAndroidTestDebug/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidDebugAndroidTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidDebugAndroidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
@@ -929,6 +932,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidDebugUnitTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/assets [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/kotlin [-]
@@ -948,6 +952,8 @@ PROJECT                       : kotlinMultiPlatform
         CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidDebugUnitTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidDebugUnitTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
@@ -1248,6 +1254,7 @@ PROJECT                       : kotlinMultiPlatform
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidAndroidTest
             JavaSource (test)             : file://<PROJECT>/module2/src/androidAndroidTest/kotlin
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidAndroidTestDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidDebugAndroidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -1275,6 +1282,8 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidAndroidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidAndroidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidAndroidTestDebug/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidDebugAndroidTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidDebugAndroidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTest/java [-]
@@ -1888,6 +1897,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidDebugUnitTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/aidl [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/assets [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/kotlin
@@ -1907,6 +1917,8 @@ PROJECT                       : kotlinMultiPlatform
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidDebugUnitTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidDebugUnitTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/assets [-]

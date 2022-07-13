@@ -5,8 +5,20 @@
 
 package org.jetbrains.kotlin.android.configure
 
+import com.android.builder.model.AndroidProject
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.ANDROID_TEST
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.UNIT_TEST
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.utils.appendCapitalized
 import com.intellij.openapi.diagnostic.Logger
@@ -87,6 +99,126 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
         )
       }
     }
+  }
+}
+
+/**
+ * Populates Android variant IDE model with source directories present in the MPP model but absent in the variant model.
+ *
+ * This is a temporary workaround needed to handle additional Android source sets created by MPP, which we remove from the MPP model
+ * since they are not true KMP fragments are just source directories compiled together with all other Android sources.
+ *
+ * This method is supposed to receive an already patched [mppModel], i.e. where all android source sets are already merged into the root
+ * source sets of each Android compilation.
+ */
+fun IdeVariantCoreImpl.patchFromMppModel(
+  androidProject: IdeAndroidProjectImpl,
+  mppModel: KotlinMPPGradleModel
+): IdeVariantCoreImpl {
+  val variantName = this.name
+
+  fun sourceProvidersFor(artifact: IdeModuleWellKnownSourceSet): List<IdeSourceProvider> {
+    return listOfNotNull(
+      this.artifact(artifact)?.variantSourceProvider,
+      this.artifact(artifact)?.multiFlavorSourceProvider,
+      *(androidProject.productFlavors.filter { it.productFlavor.name in this.productFlavors }
+        .mapNotNull { it.sourceProvider(artifact) }).toTypedArray(),
+      *(androidProject.buildTypes.filter { it.buildType.name == this.buildType }.mapNotNull { it.sourceProvider(artifact) }).toTypedArray(),
+      androidProject.defaultConfig.sourceProvider(artifact)
+    )
+  }
+
+  fun sourceSetsFor(artifact: IdeModuleWellKnownSourceSet): List<KotlinSourceSet> {
+    return mppModel
+      .androidTargets()
+      .flatMap { it.androidCompilations() }
+      .filter { IdeModuleWellKnownSourceSet.findFor(variantName, it) == artifact }
+      .mapNotNull { artifact.getRootKotlinSourceSet(it) }
+  }
+
+  fun IdeSourceProviderImpl?.patch(artifact: IdeModuleWellKnownSourceSet): IdeSourceProviderImpl? {
+    val root = androidProject.defaultConfig.sourceProvider(artifact)?.manifestFile?.parentFile
+
+    val sourceSets = sourceSetsFor(artifact)
+    val sourceProviders = sourceProvidersFor(artifact)
+
+    val missingSourceDirs = sourceSets.flatMap { it.sourceDirs }.toSet() -
+      sourceProviders.flatMap { it.javaDirectories + it.kotlinDirectories }.toSet()
+
+    val missingResourceDirs = sourceSets.flatMap { it.resourceDirs }.toSet() -
+      sourceProviders.flatMap { it.resourcesDirectories }.toSet()
+
+    if (missingSourceDirs.isEmpty() && missingResourceDirs.isEmpty()) return this
+
+    val thisOrNewProvider = this
+      ?: IdeSourceProviderImpl().copy(
+        // We cannot use [variantName] directly because it is likely to clash with its build type if the variant specific source provider
+        // is null
+        myName = "${variantName}_KotlinMPP",
+        // The location of this root folder does not really matter. It is used as an anchor for relative paths stored inside the object,
+        // but paths returned are absolute anyway. Redirecting it to a non-existent subdirectory allows us to avoid conflicting content
+        // roots set up for non-existent manifest files.
+        myFolder = root?.resolve("__KotlinMPP__"),
+
+        // This is unfortunately a required property, and it is already meaningless in unit test artifacts. Here, we return a second copy
+        // of the same file returned by the default configuration to avoid NPEs in various places.
+        myManifestFile = "AndroidManifest.xml"
+      )
+
+    return thisOrNewProvider.appendDirectories(
+      javaDirectories = missingSourceDirs,
+      resourcesDirectories = missingResourceDirs
+    )
+  }
+
+  return this.copy(
+    mainArtifact = mainArtifact.copy(
+      variantSourceProvider = mainArtifact.variantSourceProvider.patch(MAIN)
+    ),
+    androidTestArtifact = androidTestArtifact?.copy(
+      variantSourceProvider = androidTestArtifact?.variantSourceProvider.patch(ANDROID_TEST)
+    ),
+    unitTestArtifact = unitTestArtifact?.copy(
+      variantSourceProvider = unitTestArtifact?.variantSourceProvider.patch(UNIT_TEST)
+    ),
+    testFixturesArtifact = testFixturesArtifact?.copy(
+      variantSourceProvider = testFixturesArtifact?.variantSourceProvider.patch(TEST_FIXTURES)
+    )
+  )
+}
+
+private fun IdeVariantCoreImpl.artifact(artifact: IdeModuleWellKnownSourceSet): IdeBaseArtifactCore? {
+  return when (artifact) {
+    MAIN -> mainArtifact
+    TEST_FIXTURES -> testFixturesArtifact
+    UNIT_TEST -> unitTestArtifact
+    ANDROID_TEST -> androidTestArtifact
+  }
+}
+
+private val IdeModuleWellKnownSourceSet.artifactName: String
+  get() = when (this) {
+    MAIN -> AndroidProject.ARTIFACT_MAIN
+    ANDROID_TEST -> AndroidProject.ARTIFACT_ANDROID_TEST
+    UNIT_TEST -> AndroidProject.ARTIFACT_UNIT_TEST
+    TEST_FIXTURES -> AndroidProject.ARTIFACT_TEST_FIXTURES
+  }
+
+private fun IdeBuildTypeContainerImpl.sourceProvider(artifact: IdeModuleWellKnownSourceSet): IdeSourceProviderImpl? {
+  return when (artifact) {
+    MAIN -> sourceProvider
+    TEST_FIXTURES -> extraSourceProviders.singleOrNull { it.artifactName == TEST_FIXTURES.artifactName }?.sourceProvider
+    UNIT_TEST -> extraSourceProviders.singleOrNull { it.artifactName == UNIT_TEST.artifactName }?.sourceProvider
+    ANDROID_TEST -> extraSourceProviders.singleOrNull { it.artifactName == ANDROID_TEST.artifactName }?.sourceProvider
+  }
+}
+
+private fun IdeProductFlavorContainerImpl.sourceProvider(artifact: IdeModuleWellKnownSourceSet): IdeSourceProviderImpl? {
+  return when (artifact) {
+    MAIN -> sourceProvider
+    TEST_FIXTURES -> extraSourceProviders.singleOrNull { it.artifactName == TEST_FIXTURES.artifactName }?.sourceProvider
+    UNIT_TEST -> extraSourceProviders.singleOrNull { it.artifactName == UNIT_TEST.artifactName }?.sourceProvider
+    ANDROID_TEST -> extraSourceProviders.singleOrNull { it.artifactName == ANDROID_TEST.artifactName }?.sourceProvider
   }
 }
 

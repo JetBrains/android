@@ -2360,6 +2360,11 @@ MODULE                        : kotlinMultiPlatform.module2
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]
                 ClassesFolder                 : <ROOT>/module2/build/tmp/kotlin-classes/debug [-]
+                VariantSourceProvider
+                    Name                          : debug_KotlinMPP
+                    Manifest                      : <ROOT>/module2/src/main/__KotlinMPP__/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/module2/src/commonMain/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/commonMain/resources [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -2402,6 +2407,13 @@ MODULE                        : kotlinMultiPlatform.module2
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/javac/debugAndroidTest/classes [-]
                 ClassesFolder                 : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest [-]
+                VariantSourceProvider
+                    Name                          : debug_KotlinMPP
+                    Manifest                      : <ROOT>/module2/src/androidTest/__KotlinMPP__/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/module2/src/commonTest/kotlin [-]
+                    JavaDirectories               : <ROOT>/module2/src/androidDebugAndroidTest/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/commonTest/resources [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/androidDebugAndroidTest/resources [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
@@ -2473,6 +2485,13 @@ MODULE                        : kotlinMultiPlatform.module2
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/javac/debugUnitTest/classes [-]
                 ClassesFolder                 : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest [-]
+                VariantSourceProvider
+                    Name                          : debug_KotlinMPP
+                    Manifest                      : <ROOT>/module2/src/test/__KotlinMPP__/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/module2/src/commonTest/kotlin [-]
+                    JavaDirectories               : <ROOT>/module2/src/androidDebugUnitTest/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/commonTest/resources [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/androidDebugUnitTest/resources [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
