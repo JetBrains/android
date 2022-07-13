@@ -2521,7 +2521,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - moduleDependencies          : <ROOT>::module2@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::module2@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinMppGradleModel          : {androidAndroidTest=androidAndroidTest, androidMain=androidMain, androidTest=androidTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
+    kotlinMppGradleModel          : {androidAndroidTest=androidAndroidTest, androidMain=androidMain, androidTest=androidTest} (KotlinMPPGradleModelImpl)
         dependencyMap
             1                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
@@ -2707,8 +2707,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
-                    - allDependsOnSourceSets      : commonMain
-                    - declaredDependsOnSourceSets : commonMain
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2723,7 +2721,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     - sourceDirs                  : <ROOT>/module2/src/androidMain/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/main/kotlin
                     - sourceDirs                  : <ROOT>/module2/src/main/java [-]
-                    - dependsOnSourceSets         : commonMain
                     platform                      : ANDROID
                 arguments                     : KotlinCompilationArgumentsImpl
                 cachedArgsInfo
@@ -2828,11 +2825,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
-                    - additionalVisibleSourceSets : androidDebug
                     - additionalVisibleSourceSets : androidMain
-                    - additionalVisibleSourceSets : commonMain
-                    - allDependsOnSourceSets      : commonTest
-                    - declaredDependsOnSourceSets : commonTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2847,7 +2840,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     - resourceDirs                : <ROOT>/module2/src/androidTest/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidAndroidTest/kotlin
                     - sourceDirs                  : <ROOT>/module2/src/androidTest/java [-]
-                    - dependsOnSourceSets         : commonTest
                     platform                      : ANDROID
                 - allSourceSets               : androidAndroidTestDebug (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
@@ -2971,9 +2963,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
                     - additionalVisibleSourceSets : androidMain
-                    - additionalVisibleSourceSets : commonMain
-                    - allDependsOnSourceSets      : commonTest
-                    - declaredDependsOnSourceSets : commonTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2989,7 +2978,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     - sourceDirs                  : <ROOT>/module2/src/androidTest/kotlin
                     - sourceDirs                  : <ROOT>/module2/src/test/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/test/java [-]
-                    - dependsOnSourceSets         : commonTest
                     platform                      : ANDROID
                 - allSourceSets               : androidTestDebug (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
@@ -3100,8 +3088,6 @@ MODULE                        : kotlinMultiPlatform.module2
             androidAndroidTest            : androidAndroidTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
             androidTest                   : androidTest (KotlinSourceSetImpl) (*seen*)
-            commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
-            commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
     externalProject               : :module2 (DefaultExternalProject) (*seen*)
 MODULE                        : kotlinMultiPlatform.module2.androidTest
 MODULE                        : kotlinMultiPlatform.module2.main

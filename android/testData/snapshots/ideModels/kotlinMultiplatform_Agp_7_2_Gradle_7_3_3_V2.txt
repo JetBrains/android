@@ -2885,7 +2885,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
-                    - additionalVisibleSourceSets : androidDebug
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
                     - allDependsOnSourceSets      : commonTest
