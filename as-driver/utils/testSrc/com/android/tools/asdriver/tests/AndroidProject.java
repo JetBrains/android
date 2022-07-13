@@ -17,6 +17,7 @@ package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
 import com.android.utils.FileUtils;
+import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,7 +46,8 @@ public class AndroidProject {
     FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
     Path wrapper = targetProject.resolve("gradle/wrapper/gradle-wrapper.properties");
     String content = Files.readString(wrapper);
-    content = content.replaceAll("distributionUrl=.*", "distributionUrl=file\\:" + distribution);
+    String replacedDistributionUrl = distribution.toUri().toString().replace("file:", "file\\:");
+    content = content.replaceAll("distributionUrl=.*", "distributionUrl=" + replacedDistributionUrl);
     Files.writeString(wrapper, content);
     return targetProject;
   }

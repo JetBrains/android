@@ -28,6 +28,9 @@ iml_test(
         "@platforms//os:macos": [
             "//tools/adt/idea/studio:android-studio.mac.zip",
         ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
     }) + [
         ":minapp",
         ":openproject_deps",
@@ -36,7 +39,6 @@ iml_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "no_windows",  # Gradle-sync error on Windows. Probably fixable with a different project.
     ],
     test_class = "com.android.tools.idea.OpenProjectTest",
 )
