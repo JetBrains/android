@@ -16,6 +16,6 @@
 package com.android.tools.idea.emulator.actions
 
 /**
- * Simulates pressing the first button on an Android Wear virtual device.
+ * Simulates pressing the second button on an Android Wear virtual device.
  */
-class Wear1ButtonAction : EmulatorKeypressAction("Home", configFilter = { config -> config.isWearOs && config.api >= 28 })
+internal class EmulatorWear2ButtonAction : EmulatorPushButtonAction("Power", configFilter = { it.isWearOs && it.api >= 30 })

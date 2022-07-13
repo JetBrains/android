@@ -18,4 +18,4 @@ package com.android.tools.idea.emulator.actions
 /**
  * Simulates pressing the Home button on an Android virtual device.
  */
-class EmulatorHomeButtonAction : EmulatorKeypressAction("Home", configFilter = { config -> !config.isWearOs || config.api < 28 })
+class EmulatorHomeButtonAction : EmulatorKeypressAction("Home", configFilter = { !it.isWearOs || it.api < 28 })

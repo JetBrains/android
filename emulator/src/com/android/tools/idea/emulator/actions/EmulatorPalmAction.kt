@@ -16,6 +16,6 @@
 package com.android.tools.idea.emulator.actions
 
 /**
- * Simulates pressing the second button on an Android Wear virtual device.
+ * Simulates the Palm gesture on an Android Wear virtual device.
  */
-class Wear2ButtonAction : EmulatorPushButtonAction("Power", configFilter = { config -> config.isWearOs && config.api >= 30 })
+internal class EmulatorPalmAction : EmulatorKeypressAction("Standby", configFilter = { it.isWearOs && it.api >= 28 })

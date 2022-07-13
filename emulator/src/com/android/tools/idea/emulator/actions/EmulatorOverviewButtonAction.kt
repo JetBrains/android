@@ -18,4 +18,4 @@ package com.android.tools.idea.emulator.actions
 /**
  * Simulates pressing the Overview button on an Android virtual device.
  */
-class EmulatorOverviewButtonAction : EmulatorKeypressAction("AppSwitch", configFilter = { config -> !config.isWearOs || config.api < 28 })
+class EmulatorOverviewButtonAction : EmulatorKeypressAction("AppSwitch", configFilter = { !it.isWearOs || it.api < 28 })

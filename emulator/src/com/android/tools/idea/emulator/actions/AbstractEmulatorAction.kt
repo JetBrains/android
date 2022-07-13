@@ -29,7 +29,7 @@ import com.intellij.openapi.project.Project
 import java.util.function.Predicate
 
 /**
- * Common superclass for toolbar actions of the Emulator window.
+ * Common superclass for toolbar actions for embedded emulators.
  *
  * @param configFilter determines the types of devices the action is applicable to
  */

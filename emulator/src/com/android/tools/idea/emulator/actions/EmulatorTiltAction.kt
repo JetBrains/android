@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 /**
  * Triggers the tilt sensor on an Android Wear virtual device.
  */
-class TiltAction : AbstractEmulatorAction(configFilter = { config -> config.isWearOs && config.api >= 28 }) {
+internal class EmulatorTiltAction : AbstractEmulatorAction(configFilter = { it.isWearOs && it.api >= 28 }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
