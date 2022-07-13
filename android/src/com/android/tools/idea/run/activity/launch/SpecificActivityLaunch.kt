@@ -77,7 +77,7 @@ class SpecificActivityLaunch : ActivityLaunchOption<SpecificActivityLaunch.State
     override fun launch(
       device: IDevice,
       app: App,
-      config: AndroidRunConfiguration,
+      apkProvider: ApkProvider,
       isDebug: Boolean,
       extraFlags: String,
       console: ConsoleView

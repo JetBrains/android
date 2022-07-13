@@ -19,9 +19,10 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ServiceOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
+import com.android.tools.idea.run.configuration.AppRunSettings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
@@ -40,9 +41,6 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration("run App", AndroidRunConfigurationType().factory)
-    val configuration = configSettings.configuration as AndroidRunConfiguration
-    configuration.setModule(myModule)
-    configuration.setLaunchActivity(componentName)
     return ExecutionEnvironment(executorInstance, AndroidConfigurationProgramRunner(), configSettings, project)
   }
 
@@ -50,8 +48,6 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
   fun testRun() {
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
-
-    (env.runProfile as AndroidRunConfiguration).ACTIVITY_EXTRA_FLAGS = "--user 123"
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
@@ -64,8 +60,18 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
+    val settings = object : AppRunSettings {
+      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val componentLaunchOptions = SpecificActivityLaunch().createState().apply {
+        amFlags = "--user 123"
+        ACTIVITY_CLASS = componentName
+      }
+      override val module = myModule
+    }
+
     val executor = Mockito.spy(
-      AndroidActivityConfigurationExecutor(env, TestDeployTarget(device), TestApplicationIdProvider(appId), TestApksProvider(appId)))
+      AndroidActivityConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+                                           TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -103,6 +109,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
         startCommand -> {
           deviceState.startClient(1234, 1235, appId, true)
         }
+
         forceStop -> {
           deviceState.stopClient(1234)
           processTerminatedLatch.countDown()
@@ -112,9 +119,20 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
+    assertThat(device.isOnline)
+
+    val settings = object : AppRunSettings {
+      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val componentLaunchOptions = SpecificActivityLaunch().createState().apply {
+        ACTIVITY_CLASS = componentName
+      }
+      override val module = myModule
+    }
+
     // Executor we test.
     val executor = Mockito.spy(
-      AndroidActivityConfigurationExecutor(env, TestDeployTarget(device), TestApplicationIdProvider(appId), TestApksProvider(appId)))
+      AndroidActivityConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+                                           TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -122,7 +140,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
 
-    val runContentDescriptor = executor.debug().blockingGet(10, TimeUnit.SECONDS)
+    val runContentDescriptor = executor.debug().blockingGet(15, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
     // Emulate stopping debug session.

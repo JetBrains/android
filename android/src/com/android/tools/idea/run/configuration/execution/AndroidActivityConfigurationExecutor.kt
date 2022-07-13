@@ -24,6 +24,7 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
+import com.android.tools.idea.run.configuration.AppRunSettings
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -34,18 +35,17 @@ import org.jetbrains.concurrency.Promise
 
 class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
                                            deployTarget: DeployTarget,
+                                           appRunSettings: AppRunSettings,
                                            applicationIdProvider: ApplicationIdProvider,
                                            apkProvider: ApkProvider) : AndroidConfigurationExecutorBase(environment, deployTarget,
+                                                                                                        appRunSettings,
                                                                                                         applicationIdProvider,
                                                                                                         apkProvider) {
-
-  override val configuration = environment.runProfile as AndroidRunConfiguration
+  private val activityLaunchOptions = appRunSettings.componentLaunchOptions as ActivityLaunchOptionState
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { it.forceStop(appId) }
 
   override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean) {
-    val state: ActivityLaunchOptionState = configuration.getLaunchOptionState(configuration.MODE)!!
-
-    state.launch(device, app, configuration, isDebug, getFlags(device), console)
+    activityLaunchOptions.launch(device, app, apkProvider, isDebug, getFlags(device), console)
   }
 
   public override fun startDebugSession(device: IDevice, console: ConsoleView): Promise<XDebugSessionImpl> {
@@ -73,18 +73,20 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
   }
 
   private fun getFlags(device: IDevice): String {
-    if (configuration.module!!.androidFacet?.configuration?.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
+    if (appRunSettings.module!!.androidFacet?.configuration?.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
       return InstantAppStartActivityFlagsProvider().getFlags(device)
     }
 
     val amStartOptions = StringBuilder()
-    for (taskContributor in AndroidLaunchTaskContributor.EP_NAME.extensions) {
-      val amOptions = taskContributor.getAmStartOptions(appId, configuration, device, environment.executor)
-      amStartOptions.appendWithSpace(amOptions)
-      // TODO: use contributors launch tasks
+    if (configuration is AndroidRunConfiguration) {
+      for (taskContributor in AndroidLaunchTaskContributor.EP_NAME.extensions) {
+        val amOptions = taskContributor.getAmStartOptions(appId, configuration, device, environment.executor)
+        amStartOptions.appendWithSpace(amOptions)
+        // TODO: use contributors launch tasks
+      }
     }
 
-    amStartOptions.appendWithSpace(configuration.ACTIVITY_EXTRA_FLAGS)
+    amStartOptions.appendWithSpace(activityLaunchOptions.amFlags)
 
     return amStartOptions.toString()
   }

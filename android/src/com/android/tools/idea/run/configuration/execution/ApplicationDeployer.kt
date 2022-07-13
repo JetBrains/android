@@ -38,7 +38,7 @@ interface ApplicationDeployer {
 
 data class DeployOptions(
   val disabledDynamicFeatures: List<String>,
-  val pmInstallFlags: String,
+  var pmInstallFlags: String,
   val installOnAllUsers: Boolean,
   val alwaysInstallWithPm: Boolean
 )

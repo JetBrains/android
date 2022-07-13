@@ -58,7 +58,7 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
     val configurationFromClass = createConfigurationFromElement(classElement)
 
     assertEquals("MyTestWatchFace", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyTestWatchFace", configurationFromClass.componentName)
+    assertEquals("com.example.myapplication.MyTestWatchFace", configurationFromClass.componentLaunchOptions.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 
@@ -79,7 +79,7 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
     val configurationFromClass = createConfigurationFromElement(classElement)
 
     assertEquals("MyWatchFaceService", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyWatchFaceService", configurationFromClass.componentName)
+    assertEquals("com.example.myapplication.MyWatchFaceService", configurationFromClass.componentLaunchOptions.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 

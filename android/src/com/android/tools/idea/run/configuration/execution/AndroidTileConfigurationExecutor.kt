@@ -22,12 +22,15 @@ import com.android.ddmlib.MultiReceiver
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
+import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.Tile
 import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.configuration.AndroidTileConfiguration
+import com.android.tools.idea.run.configuration.AppRunSettings
+import com.android.tools.idea.run.configuration.WearBaseClasses
+import com.android.tools.idea.run.configuration.WearSurfaceLaunchOptions
 import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -43,12 +46,14 @@ private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
 class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
                                        deployTarget: DeployTarget,
+                                       appRunSettings: AppRunSettings,
                                        applicationIdProvider: ApplicationIdProvider,
                                        apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
+                                                                                                    appRunSettings,
                                                                                                     applicationIdProvider, apkProvider) {
-  override val configuration = environment.runProfile as AndroidTileConfiguration
+  private val tileLaunchOptions = appRunSettings.componentLaunchOptions as TileLaunchOptions
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
-    val tileName = AppComponent.getFQEscapedName(appId, configuration.componentName!!)
+    val tileName = AppComponent.getFQEscapedName(appId, tileLaunchOptions.componentName!!)
     return getStopTileCallback(tileName, console, isDebug)
   }
 
@@ -81,7 +86,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
     val indexReceiver = AddTileCommandResultReceiver { indicator?.isCanceled == true }
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
-      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
+      app.activateComponent(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver)
     }
     catch (ex: DeployerException) {
       throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)
@@ -109,6 +114,13 @@ private class AddTileCommandResultReceiver(private val isCancelledCheck: () -> B
   override fun processNewLines(lines: Array<String>) = lines.forEach { line ->
     extractPattern(line, indexPattern)?.let { index = it.toInt() }
   }
+}
+
+class TileLaunchOptions : WearSurfaceLaunchOptions {
+  override val componentType = ComponentType.TILE
+  override var componentName: String? = null
+  override val userVisibleComponentTypeName: String = AndroidBundle.message("android.run.configuration.tile")
+  override val componentBaseClassesFqNames = WearBaseClasses.TILES
 }
 
 private fun getStopTileCallback(tileName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->

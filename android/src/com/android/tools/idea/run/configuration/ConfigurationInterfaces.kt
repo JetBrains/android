@@ -19,17 +19,25 @@ import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.run.configuration.execution.DeployOptions
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.intellij.execution.configurations.ModuleRunConfiguration
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 
 /**
- * Interfaces in this file eventually should become one single interface as we migrate all configuration on the new code flow and support all
- * features for them.
+ * Describes any start of Android Process that contains 2 steps: deploy and launch.
  */
-interface ComponentSpecificConfiguration : RunConfiguration {
+interface AppRunSettings {
   val deployOptions: DeployOptions
-  val componentType: ComponentType
+  val componentLaunchOptions: ComponentLaunchOptions
   val module: Module?
+}
+
+interface ComponentLaunchOptions {
+  val componentType: ComponentType
+  val userVisibleComponentTypeName: String
+}
+
+interface WearSurfaceLaunchOptions : ComponentLaunchOptions {
+  var componentName: String?
+  val componentBaseClassesFqNames: Array<String>
 }
 
 interface RunConfigurationWithDebugger : ModuleRunConfiguration {

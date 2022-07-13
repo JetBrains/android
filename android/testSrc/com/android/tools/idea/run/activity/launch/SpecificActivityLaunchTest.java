@@ -27,9 +27,9 @@ import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.tools.deployer.model.App;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ApkProvider;
+import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -39,6 +39,7 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -100,11 +101,15 @@ public class SpecificActivityLaunchTest extends AndroidGradleTestCase {
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
     state.ACTIVITY_CLASS = "com.example.app.MyActivity";
     IDevice device = Mockito.mock(IDevice.class);
-    AndroidRunConfiguration config =
-      (AndroidRunConfiguration)AndroidRunConfigurationType.getInstance().getFactory().createTemplateConfiguration(getProject());
     App app =
       createApp(device, "com.example.app", Collections.emptyList(), new ArrayList<>(Collections.singleton("com.example.app.MyActivity")));
-    state.launch(device, app, config, false, "", new EmptyTestConsoleView());
+    ApkProvider provider = new ApkProvider() {
+      @Override
+      public @NotNull Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
+        return null;
+      }
+    };
+    state.launch(device, app, provider, false, "", new EmptyTestConsoleView());
     Mockito.verify(device).executeShellCommand(
       eq("am start -n com.example.app/com.example.app.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
       any(IShellOutputReceiver.class),

@@ -16,12 +16,12 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.Complication
-import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.run.configuration.execution.ComplicationLaunchOptions
 import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
@@ -30,7 +30,6 @@ import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.util.xmlb.annotations.Transient
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle
 
@@ -61,50 +60,27 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     private constructor() : this(-1, Complication.ComplicationType.LONG_TEXT)
   }
 
-  internal fun verifyProviderTypes(supportedTypes: List<Complication.ComplicationType>) {
-    if (supportedTypes.isEmpty()) {
-      throw RuntimeConfigurationWarning(AndroidBundle.message("no.provider.type.error"))
-    }
-    for (slot in chosenSlots) {
-      val slotType = slot.type ?: throw RuntimeConfigurationWarning(
-        AndroidBundle.message("provider.type.empty", watchFaceInfo.complicationSlots.find { it.slotId == slot.id }!!.name))
-      if (!supportedTypes.contains(slotType)) {
-        throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.mismatch.error", slotType))
-      }
-    }
-  }
-
   override fun checkConfiguration() {
     super.checkConfiguration()
     // super.checkConfiguration() has already checked that module and componentName are not null.
-    assert(module != null && componentName != null)
-    val rawTypes = getComplicationTypesFromManifest(module!!, componentName!!)
+    val rawTypes = getComplicationTypesFromManifest(module!!, componentLaunchOptions.componentName!!)
                    ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
-    if (chosenSlots.isEmpty()) {
+    if (componentLaunchOptions.chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
-    verifyProviderTypes(parseRawComplicationTypes(rawTypes))
+    componentLaunchOptions.verifyProviderTypes(parseRawComplicationTypes(rawTypes))
     checkRawComplicationTypes(rawTypes) // Make sure Errors are thrown before Warnings.
   }
 
-  var chosenSlots: List<ChosenSlot> = listOf()
-
-  @Transient
-  @JvmField
-  var watchFaceInfo: ComplicationWatchFaceInfo = DefaultComplicationWatchFaceInfo
-
-  override val componentType = ComponentType.COMPLICATION
-  override val userVisibleComponentTypeName: String = AndroidBundle.message("android.run.configuration.complication")
-
-  @Transient
-  override val componentBaseClassesFqNames = WearBaseClasses.COMPLICATIONS
+  override val componentLaunchOptions: ComplicationLaunchOptions = ComplicationLaunchOptions()
 
   override fun getConfigurationEditor() = AndroidComplicationConfigurationEditor(project, this)
 
   override fun getExecutor(environment: ExecutionEnvironment,
                            deployTarget: DeployTarget,
+                           appRunSettings: AppRunSettings,
                            applicationIdProvider: ApplicationIdProvider,
                            apkProvider: ApkProvider): AndroidConfigurationExecutor {
-    return AndroidComplicationConfigurationExecutor(environment, deployTarget, applicationIdProvider, apkProvider)
+    return AndroidComplicationConfigurationExecutor(environment, deployTarget, appRunSettings, applicationIdProvider, apkProvider)
   }
 }

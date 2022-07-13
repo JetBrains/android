@@ -52,16 +52,18 @@ import org.jetbrains.android.util.AndroidBundle
 
 abstract class AndroidWearConfiguration(project: Project, factory: ConfigurationFactory) :
   ModuleBasedConfiguration<JavaRunConfigurationModule, Element>(JavaRunConfigurationModule(project, false), factory),
-  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, ComponentSpecificConfiguration, RunConfigurationWithAndroidConfigurationExecutor {
-  var componentName: String? = null
-  var installFlags = ""
+  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, RunConfigurationWithAndroidConfigurationExecutor {
 
-  abstract val userVisibleComponentTypeName: String
-  abstract val componentBaseClassesFqNames: Array<String>
+  companion object {
+    const val LAUNCH_OPTIONS_ELEMENT_NAME = "LaunchOptions"
+    const val DEPLOY_OPTIONS_ELEMENT_NAME = "DeployOptions"
+  }
+
   val androidDebuggerContext: AndroidDebuggerContext = AndroidDebuggerContext(AndroidJavaDebugger.ID)
 
-  override val deployOptions: DeployOptions
-    get() = DeployOptions(emptyList(), installFlags, installOnAllUsers = true, alwaysInstallWithPm = true)
+  abstract val componentLaunchOptions: WearSurfaceLaunchOptions
+
+  val deployOptions: DeployOptions = DeployOptions(emptyList(), "", installOnAllUsers = true, alwaysInstallWithPm = true)
 
   override fun getConfigurationEditor(): AndroidWearConfigurationEditor<*> = AndroidWearConfigurationEditor(project, this)
   override fun checkConfiguration() {
@@ -72,7 +74,8 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
       throw RuntimeConfigurationError("Project is synchronizing")
     }
-    componentName ?: throw RuntimeConfigurationError("$userVisibleComponentTypeName is not chosen")
+    componentLaunchOptions.componentName ?: throw RuntimeConfigurationError(
+      "${componentLaunchOptions.userVisibleComponentTypeName} is not chosen")
   }
 
   final override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState = EmptyRunProfileState()
@@ -98,7 +101,12 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
       val applicationIdProvider = project.getProjectSystem().getApplicationIdProvider(this) ?: throw RuntimeException(
         "Cannot get ApplicationIdProvider")
 
-      val state = getExecutor(environment, deployTarget, applicationIdProvider, apkProvider)
+      val appRunSettings = object : AppRunSettings {
+        override val deployOptions = this@AndroidWearConfiguration.deployOptions
+        override val componentLaunchOptions = this@AndroidWearConfiguration.componentLaunchOptions
+        override val module = this@AndroidWearConfiguration.module
+      }
+      val state = getExecutor(environment, deployTarget, appRunSettings, applicationIdProvider, apkProvider)
       stats.markStateCreated()
       state
     }
@@ -111,6 +119,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   abstract fun getExecutor(
     environment: ExecutionEnvironment,
     deployTarget: DeployTarget,
+    appRunSettings: AppRunSettings,
     applicationIdProvider: ApplicationIdProvider,
     apkProvider: ApkProvider
   ): AndroidConfigurationExecutor
@@ -122,7 +131,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     val appId = project.getProjectSystem().getApplicationIdProvider(this)?.packageName
                 ?: throw RuntimeException("Cannot get ApplicationIdProvider")
     stats.setPackage(appId)
-    stats.setAppComponentType(componentType)
+    stats.setAppComponentType(componentLaunchOptions.componentType)
 
     // Save the stats so that before-run task can access it
     environment.putUserData(RunStats.KEY, stats)
@@ -137,17 +146,30 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   }
 
   override fun writeExternal(element: Element) {
-    super<ModuleBasedConfiguration>.writeExternal(element)
+    super.writeExternal(element)
     XmlSerializer.serializeInto(this, element)
+
+    Element(LAUNCH_OPTIONS_ELEMENT_NAME).apply {
+      element.addContent(this)
+      XmlSerializer.serializeInto(componentLaunchOptions, this)
+    }
+
+    Element(DEPLOY_OPTIONS_ELEMENT_NAME).apply {
+      element.addContent(this)
+      XmlSerializer.serializeInto(deployOptions, this)
+    }
   }
 
   override fun readExternal(element: Element) {
-    super<ModuleBasedConfiguration>.readExternal(element)
+    super.readExternal(element)
     XmlSerializer.deserializeInto(this, element)
+
+    element.getChild(LAUNCH_OPTIONS_ELEMENT_NAME)?.let { XmlSerializer.deserializeInto(componentLaunchOptions, it) }
+    element.getChild(DEPLOY_OPTIONS_ELEMENT_NAME)?.let { XmlSerializer.deserializeInto(deployOptions, it) }
   }
 
   override fun getValidModules() = project.getAndroidModulesForDisplay()
 
-  override val module: Module?
+  val module: Module?
     get() = configurationModule.module
 }

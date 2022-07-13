@@ -44,7 +44,7 @@ abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>
       return false
     }
     val serviceName = context.psiLocation.getPsiClass()?.qualifiedName
-    return configuration.componentName == serviceName
+    return configuration.componentLaunchOptions.componentName == serviceName
   }
 
   public override fun setupConfigurationFromContext(configuration: T,
@@ -61,7 +61,7 @@ abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>
 
     configuration.name = JavaExecutionUtil.getPresentableClassName(serviceName)!!
     configuration.configurationModule.module = context.module.getHolderModule()
-    configuration.componentName = serviceName
+    configuration.componentLaunchOptions.componentName = serviceName
 
     return true
   }

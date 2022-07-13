@@ -20,6 +20,7 @@ import com.android.tools.deployer.model.component.WatchFace
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.configuration.AppRunSettings
 import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
@@ -30,8 +31,10 @@ import org.jetbrains.concurrency.Promise
 
 abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironment,
                                                 deployTarget: DeployTarget,
+                                                appRunSettings: AppRunSettings,
                                                 applicationIdProvider: ApplicationIdProvider,
                                                 apkProvider: ApkProvider) : AndroidConfigurationExecutorBase(environment, deployTarget,
+                                                                                                             appRunSettings,
                                                                                                              applicationIdProvider,
                                                                                                              apkProvider) {
   override fun runAsInstantApp(): Promise<RunContentDescriptor> {

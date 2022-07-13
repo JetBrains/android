@@ -23,7 +23,7 @@ import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ApplicationTerminator
-import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
+import com.android.tools.idea.run.configuration.AppRunSettings
 import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.util.LaunchUtils
@@ -31,6 +31,7 @@ import com.android.tools.idea.stats.RunStats
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
@@ -52,11 +53,12 @@ import java.util.concurrent.TimeoutException
 abstract class AndroidConfigurationExecutorBase(
   protected val environment: ExecutionEnvironment,
   override val deployTarget: DeployTarget,
+  protected val appRunSettings: AppRunSettings,
   protected val applicationIdProvider: ApplicationIdProvider,
   protected val apkProvider: ApkProvider
 ) : AndroidConfigurationExecutor {
 
-  override val configuration = environment.runProfile as ComponentSpecificConfiguration
+  override val configuration: RunConfiguration = environment.runProfile as RunConfiguration
 
   protected val project = environment.project
   protected val appId
@@ -79,7 +81,7 @@ abstract class AndroidConfigurationExecutorBase(
       processHandler.addTargetDevice(device)
       terminatePreviousAppInstance(device)
 
-      val result = applicationInstaller.fullDeploy(device, apkProvider.getApks(device), configuration.deployOptions)
+      val result = applicationInstaller.fullDeploy(device, apkProvider.getApks(device), appRunSettings.deployOptions)
       launch(device, result.app, console, false)
     }
 
@@ -121,7 +123,7 @@ abstract class AndroidConfigurationExecutorBase(
 
     terminatePreviousAppInstance(device)
 
-    val deployResult = getApplicationInstaller(console).fullDeploy(device, apkProvider.getApks(device), configuration.deployOptions)
+    val deployResult = getApplicationInstaller(console).fullDeploy(device, apkProvider.getApks(device), appRunSettings.deployOptions)
 
     executeOnPooledThread {
       promise.catchError {

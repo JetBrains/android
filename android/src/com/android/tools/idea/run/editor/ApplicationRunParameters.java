@@ -279,6 +279,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     ActivityLaunchOption activityLaunchOption = (ActivityLaunchOption)myLaunchOptionCombo.getSelectedItem();
     configuration.MODE = activityLaunchOption.getId();
     configuration.ACTIVITY_EXTRA_FLAGS = StringUtil.notNullize(myAmOptionsLabeledComponent.getComponent().getText());
+    configuration.getLaunchOptionState(configuration.MODE).setAmFlags(configuration.ACTIVITY_EXTRA_FLAGS);
     configuration.setDisabledDynamicFeatures(myDynamicFeaturesParameters.getDisabledDynamicFeatures());
   }
 

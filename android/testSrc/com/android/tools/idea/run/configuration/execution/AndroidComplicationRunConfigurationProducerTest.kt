@@ -55,7 +55,7 @@ class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
     val configurationFromClass = createConfigurationFromElement(classElement)
 
     assertEquals("MyTestComplication", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyTestComplication", configurationFromClass.componentName)
+    assertEquals("com.example.myapplication.MyTestComplication", configurationFromClass.componentLaunchOptions.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 
@@ -76,7 +76,7 @@ class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
     val configurationFromClass = createConfigurationFromElement(classElement)
 
     assertEquals("MyComplicationService", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyComplicationService", configurationFromClass.componentName)
+    assertEquals("com.example.myapplication.MyComplicationService", configurationFromClass.componentLaunchOptions.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 

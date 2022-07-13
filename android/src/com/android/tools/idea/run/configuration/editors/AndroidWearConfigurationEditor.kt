@@ -115,9 +115,9 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
     moduleSelector.reset(runConfiguration)
     val componentClass = moduleSelector.module?.let { getComponentSearchScope(it) }
     if (componentClass != null) {
-      componentName = runConfiguration.componentName
+      componentName = runConfiguration.componentLaunchOptions.componentName
     }
-    installFlags = runConfiguration.installFlags
+    installFlags = runConfiguration.deployOptions.pmInstallFlags
     (component as DialogPanel).reset()
   }
 
@@ -126,8 +126,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   override fun applyEditorTo(runConfiguration: T) {
     (component as DialogPanel).apply()
     moduleSelector.applyTo(runConfiguration)
-    runConfiguration.componentName = componentName
-    runConfiguration.installFlags = installFlags
+    runConfiguration.componentLaunchOptions.componentName = componentName
+    runConfiguration.deployOptions.pmInstallFlags = installFlags
   }
 
   override fun createEditor() =
@@ -146,7 +146,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
   protected fun LayoutBuilder.getComponentCompoBox() {
     row {
-      label(configuration.userVisibleComponentTypeName)
+      label(configuration.componentLaunchOptions.userVisibleComponentTypeName)
       wearComponentFqNameComboBox = comboBox(
         DefaultComboBoxModel(emptyArray<String>()),
         { componentName },
@@ -156,8 +156,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
             text = when {
               value != null -> value
               modulesComboBox.item == null -> "Module is not chosen"
-              list.selectionModel.maxSelectionIndex == -1 -> "${configuration.userVisibleComponentTypeName} not found"
-              else -> "${configuration.userVisibleComponentTypeName} is not chosen"
+              list.selectionModel.maxSelectionIndex == -1 -> "${configuration.componentLaunchOptions.userVisibleComponentTypeName} not found"
+              else -> "${configuration.componentLaunchOptions.userVisibleComponentTypeName} is not chosen"
             }
           }
         })
@@ -187,7 +187,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   private fun findAvailableComponents(module: Module): Set<String> {
     ApplicationManager.getApplication().assertIsNonDispatchThread()
     val facade = JavaPsiFacade.getInstance(project)
-    val surfaceBaseClasses = configuration.componentBaseClassesFqNames.mapNotNull {
+    val surfaceBaseClasses = configuration.componentLaunchOptions.componentBaseClassesFqNames.mapNotNull {
       facade.findClass(it, ProjectScope.getAllScope(project))
     }
     return surfaceBaseClasses.flatMap { baseClass ->

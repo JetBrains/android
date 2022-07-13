@@ -28,7 +28,8 @@ import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
-import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration;
+import com.android.tools.idea.run.configuration.AppRunSettings;
+import com.android.tools.idea.run.configuration.ComponentLaunchOptions;
 import com.android.tools.idea.run.configuration.RunConfigurationWithAndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
@@ -90,7 +91,6 @@ import org.jetbrains.annotations.Nullable;
  * Run Configuration used for running Android Apps (and Instant Apps) locally on a device/emulator.
  */
 public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider,
-                                                                                    ComponentSpecificConfiguration,
                                                                                     RunConfigurationWithAndroidConfigurationExecutor {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
@@ -158,11 +158,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       .setDeployAsInstant(DEPLOY_AS_INSTANT)
       .setAlwaysInstallWithPm(ALWAYS_INSTALL_WITH_PM)
       .setClearAppStorage(CLEAR_APP_STORAGE);
-  }
-
-  @Override
-  public @NotNull DeployOptions getDeployOptions() {
-    return new DeployOptions(getDisabledDynamicFeatures(), PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM);
   }
 
   @NotNull
@@ -319,7 +314,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return StringUtil.equals(((SpecificActivityLaunch.State)state).ACTIVITY_CLASS, activityName);
   }
 
-  @Nullable
+  @NotNull
   public ActivityLaunchOptionState getLaunchOptionState(@NotNull String launchOptionId) {
     return myLaunchOptionStates.get(launchOptionId);
   }
@@ -385,26 +380,37 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   public void updateExtraRunStats(RunStats runStats) {
-    runStats.setAppComponentType(getComponentType());
+    runStats.setAppComponentType(ComponentType.ACTIVITY);
     runStats.setDeployedAsInstant(DEPLOY_AS_INSTANT);
     runStats.setDeployedFromBundle(DEPLOY_APK_FROM_BUNDLE);
   }
 
   @NotNull
   @Override
-  public ComponentType getComponentType() {
-    return ComponentType.ACTIVITY;
-  }
-
-  @Nullable
-  @Override
-  public Module getModule() {
-    return getConfigurationModule().getModule();
-  }
-
-  @NotNull
-  @Override
   public AndroidConfigurationExecutor getExecutor(@NotNull ExecutionEnvironment environment) {
-    return new AndroidActivityConfigurationExecutor(environment, getDeployTarget(), getApplicationIdProvider(), getApkProvider());
+    Module myModule = getConfigurationModule().getModule();
+    ComponentLaunchOptions launchOptions = getLaunchOptionState(MODE);
+    DeployOptions deployOptions = new DeployOptions(getDisabledDynamicFeatures(), PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM);
+    AppRunSettings settings = new AppRunSettings() {
+
+      @Nullable
+      @Override
+      public Module getModule() {
+        return myModule;
+      }
+
+      @NotNull
+      @Override
+      public ComponentLaunchOptions getComponentLaunchOptions() {
+        return launchOptions;
+      }
+
+      @NotNull
+      @Override
+      public DeployOptions getDeployOptions() {
+        return deployOptions;
+      }
+    };
+    return new AndroidActivityConfigurationExecutor(environment, getDeployTarget(), settings, getApplicationIdProvider(), getApkProvider());
   }
 }

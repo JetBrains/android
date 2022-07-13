@@ -55,7 +55,7 @@ class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
     val configurationFromClass = createConfigurationFromElement(classElement)
 
     assertEquals("MyTestTile", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyTestTile", configurationFromClass.componentName)
+    assertEquals("com.example.myapplication.MyTestTile", configurationFromClass.componentLaunchOptions.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 
@@ -76,7 +76,7 @@ class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
     val configurationFromClass = createConfigurationFromElement(classElement)
 
     assertEquals("MyTileService", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyTileService", configurationFromClass.componentName)
+    assertEquals("com.example.myapplication.MyTileService", configurationFromClass.componentLaunchOptions.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 

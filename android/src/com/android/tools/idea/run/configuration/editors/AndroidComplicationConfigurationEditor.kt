@@ -59,10 +59,10 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
 
   override fun resetEditorFrom(runConfiguration: AndroidComplicationConfiguration) {
     super.resetEditorFrom(runConfiguration)
-    allAvailableSlots = runConfiguration.watchFaceInfo.complicationSlots
+    allAvailableSlots = runConfiguration.componentLaunchOptions.watchFaceInfo.complicationSlots
     currentChosenSlots.apply {
       beginUpdate()
-      addAll(runConfiguration.chosenSlots.map { it.copy() })
+      addAll(runConfiguration.componentLaunchOptions.chosenSlots.map { it.copy() })
       endUpdate()
     }
     update()
@@ -70,7 +70,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
 
   override fun applyEditorTo(runConfiguration: AndroidComplicationConfiguration) {
     super.applyEditorTo(runConfiguration)
-    runConfiguration.chosenSlots = currentChosenSlots.map { it.copy() }
+    runConfiguration.componentLaunchOptions.chosenSlots = currentChosenSlots.map { it.copy() }
   }
 
   override fun onComponentNameChanged(newComponent: String?) {

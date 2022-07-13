@@ -63,7 +63,7 @@ class AndroidWearConfigurationEditorTest : AndroidTestCase() {
     val watchFaceClass = myFixture.addWatchFace().qualifiedName
 
     runConfiguration.setModule(myModule)
-    runConfiguration.componentName = watchFaceClass
+    runConfiguration.componentLaunchOptions.componentName = watchFaceClass
     settingsEditor.resetFrom(runConfiguration)
 
     val componentComboBox = TreeWalker(settingsEditor.component).descendants().filterIsInstance<ComboBox<*>>()[1] as ComboBox<String>
