@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
+import java.io.File
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
 class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension() {
@@ -110,7 +111,7 @@ private fun KotlinMPPGradleModel.androidCompilationsForVariant(variant: String):
  * This method removes those compilations and source sets by patching internal structures of [KotlinMPPGradleModel] model.
  */
 private fun KotlinMPPGradleModel.removeWrongCompilationsAndMergeNonNeededSourceSets(variant: String) {
-  val androidTargets: List<KotlinTarget> = targets.filter { it.platform == KotlinPlatform.ANDROID }
+  val androidTargets: List<KotlinTarget> = androidTargets()
 
   androidTargets.forEach { androidTarget ->
     val wrongCompilations: List<KotlinCompilation> =
@@ -126,12 +127,14 @@ private fun KotlinMPPGradleModel.removeWrongCompilationsAndMergeNonNeededSourceS
     .flatMap { it.androidSourceSets() }
     .toList()
 
-  val validSourceSetNames = validAndroidSourceSets
+  val validAndroidSourceSetNames = validAndroidSourceSets
     .map { it.name }
     .toSet()
 
   val pureAndroidSourceSetNames =
     sourceSetsByName.values
+      // Cannot go through declared source sets because KMP wrongly adds commonMain to declared source sets even in presence of the JVM
+      // platform.
       .filter { sourceSet -> sourceSet.actualPlatforms.singleOrNull() == KotlinPlatform.ANDROID }
       .map { it.name }
       .toSet()
@@ -147,9 +150,9 @@ private fun KotlinMPPGradleModel.removeWrongCompilationsAndMergeNonNeededSourceS
         .map { it.name }
         .toSet()
 
+  val wrongSourceSetNames = pureAndroidSourceSetNames - validAndroidSourceSetNames + orphanAndroidSourceSetNames
 
-  val wrongSourceSetNames = pureAndroidSourceSetNames - validSourceSetNames + orphanAndroidSourceSetNames
-  removeSourceSets(wrongSourceSetNames, validAndroidSourceSets)
+  mergeSourceSets(wrongSourceSetNames, validAndroidSourceSets)
 }
 
 private fun DataNode<ModuleData>.sourceSetsByName(): Map<String, DataNode<GradleSourceSetData>> {
@@ -181,6 +184,9 @@ private fun IdeModuleWellKnownSourceSet.kmpSourceSetSuffix() = when (this) {
   IdeModuleWellKnownSourceSet.TEST_FIXTURES -> "testFixtures"
 }
 
+private fun KotlinMPPGradleModel.androidTargets() =
+  targets.filter { it.platform == KotlinPlatform.ANDROID }
+
 private fun KotlinTarget.androidCompilations(): List<KotlinCompilation> =
   compilations.filter { it.platform == KotlinPlatform.ANDROID }
 
@@ -196,9 +202,25 @@ private fun KotlinTarget.removeCompilations(compilationsToRemove: Collection<Kot
     }
 }
 
-private fun KotlinMPPGradleModel.removeSourceSets(sourceSetsToRemove: Collection<String>, validAndroidSourceSets: List<KotlinSourceSet>) {
-  val mutableSourceSetsByName = sourceSetsByName as? MutableMap<String, KotlinSourceSet> ?: return
+private fun KotlinMPPGradleModel.mergeSourceSets(sourceSetsToRemove: Set<String>, validAndroidSourceSets: List<KotlinSourceSet>) {
   kotlin.runCatching {
+    val validAndroidSourceSetNames = validAndroidSourceSets.map { it.name }.toSet()
+    androidTargets().flatMap { it.androidCompilations() }.forEach { androidCompilation ->
+      val compilationMainSourceSet = androidCompilation.allSourceSets.single {
+        it.name in validAndroidSourceSetNames
+      }
+      val compilationRemovedSourceSets = androidCompilation.allSourceSets.filter { it.name in sourceSetsToRemove }.toSet()
+      androidCompilation.allSourceSets.takeUnless { it.isEmpty() }
+        ?.castTo<MutableSet<KotlinSourceSet>>()
+        ?.removeAll(compilationRemovedSourceSets)
+      androidCompilation.declaredSourceSets.takeUnless { it.isEmpty() }
+        ?.castTo<MutableSet<KotlinSourceSet>>()
+        ?.removeAll(compilationRemovedSourceSets)
+      compilationMainSourceSet.sourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.sourceDirs })
+      compilationMainSourceSet.resourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.resourceDirs })
+    }
+
+    val mutableSourceSetsByName = sourceSetsByName as? MutableMap<String, KotlinSourceSet> ?: return
     sourceSetsToRemove.forEach { nameToRemove ->
       mutableSourceSetsByName.remove(nameToRemove)
       validAndroidSourceSets.forEach { valid ->
@@ -210,7 +232,7 @@ private fun KotlinMPPGradleModel.removeSourceSets(sourceSetsToRemove: Collection
   }
     .onFailure {
       Logger.getInstance(KotlinAndroidMPPGradleProjectResolver::class.java)
-        .error("Failed to remove not necessary Kotlin source sets", it)
+        .error("Failed to merge and remove not necessary Kotlin source sets", it)
     }
 }
 
