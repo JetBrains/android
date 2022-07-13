@@ -25,7 +25,10 @@ public class TestFileSystem {
   private final Path androidHome;
 
   public TestFileSystem(Path root) throws IOException {
-    this.root = root;
+    // We canonicalize the path at least for macOS; JUnit's TemporaryFolder gets created by default
+    // in "/var", which is a symlink to "/private/var", but Gradle only ever refers to that path by
+    // its canonical form when building, so we have to match it.
+    this.root = root.toFile().getCanonicalFile().toPath();
     home = root.resolve("home");
     androidHome = home.resolve(".android");
     Files.createDirectories(androidHome);
