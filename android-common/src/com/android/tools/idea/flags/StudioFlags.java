@@ -680,6 +680,14 @@ public final class StudioFlags {
     "Enables a Logcat filter using the 'is' keyword for example 'is:stacktrace'is:crash' etc",
     true
   );
+
+  public static final Flag<Integer> LOGCAT_MAX_MESSAGES_PER_BATCH = Flag.create(
+    LOGCAT,
+    "logcat.max.messages.per.batch",
+    "Set the max number of messages that are appended to the UI component",
+    "Set the max number of messages that are appended to the UI component",
+    1000
+  );
   //endregion
 
   //region Gradle Project System

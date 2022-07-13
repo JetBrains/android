@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
@@ -29,10 +30,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
+import kotlin.system.measureTimeMillis
 
 const val CHANNEL_CAPACITY = 10
 const val MAX_TIME_PER_BATCH_MS = 100
-const val MAX_MESSAGES_PER_BATCH = 5000
 
 /**
  * Prints formatted [LogcatMessage]s to a [Document] with coloring provided by a [LogcatColors].
@@ -56,7 +57,7 @@ internal class MessageProcessor @TestOnly constructor(
     logcatFilter,
     Clock.systemDefaultZone(),
     MAX_TIME_PER_BATCH_MS,
-    MAX_MESSAGES_PER_BATCH,
+    StudioFlags.LOGCAT_MAX_MESSAGES_PER_BATCH.get(),
     autoStart = true)
 
   private val messageChannel = Channel<List<LogcatMessage>>(CHANNEL_CAPACITY)
@@ -75,7 +76,7 @@ internal class MessageProcessor @TestOnly constructor(
   }
 
   // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
-  @Suppress("EXPERIMENTAL_API_USAGE")
+  @Suppress("OPT_IN_USAGE")
   @TestOnly
   internal fun isChannelEmpty() = messageChannel.isEmpty
 
@@ -104,13 +105,17 @@ internal class MessageProcessor @TestOnly constructor(
 
         // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
         val now = clock.millis()
-        @Suppress("EXPERIMENTAL_API_USAGE")
+        @Suppress("OPT_IN_USAGE")
         if (messageChannel.isEmpty || now - lastFlushTime > maxTimePerBatchMs || numMessages > maxMessagesPerBatch) {
-          logcatPresenter.appendMessages(textAccumulator)
+          val timeInAppendMessages = measureTimeMillis { logcatPresenter.appendMessages(textAccumulator) }
           LOGGER.debug {
             val timeSinceStart = now - startTime
             val timeSinceLastFlush = now - lastFlushTime
-            "timeSinceStart: $timeSinceStart timeSinceLastFlush (ms): $timeSinceLastFlush  numMessages: $numMessages totalMessages=$totalMessages"
+            "timeSinceStart: $timeSinceStart " +
+            "timeSinceLastFlush (ms): $timeSinceLastFlush " +
+            "numMessages: $numMessages " +
+            "totalMessages=$totalMessages " +
+            "timeInAppendMessages=$timeInAppendMessages"
           }
           textAccumulator = TextAccumulator()
           lastFlushTime = now

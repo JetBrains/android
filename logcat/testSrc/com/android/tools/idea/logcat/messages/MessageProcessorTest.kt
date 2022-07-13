@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -185,7 +186,7 @@ class MessageProcessorTest {
     formatMessagesInto: (TextAccumulator, List<LogcatMessage>) -> Unit = messageFormatter,
     clock: Clock = Clock.systemDefaultZone(),
     maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
-    maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
+    maxMessagesPerBatch: Int = StudioFlags.LOGCAT_MAX_MESSAGES_PER_BATCH.get(),
     autoStart: Boolean = true,
   ) = MessageProcessor(
     logcatPresenter,
