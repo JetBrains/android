@@ -20,15 +20,22 @@ import com.android.tools.idea.device.SetDeviceOrientationMessage
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Common superclass of [DeviceRotateLeftAction] and [DeviceRotateRightAction].
+ * Rotates device left or right.
  */
-internal abstract class DeviceRotateAction : AbstractDeviceAction() {
+internal sealed class DeviceRotateAction(
+  private val rotationQuadrants: Int,
+) : AbstractDeviceAction() {
+
   @UiThread
-  fun rotate(event: AnActionEvent, numQuadrants: Int) {
+  override fun actionPerformed(event: AnActionEvent) {
     val deviceController = getDeviceController(event) ?: return
     val deviceView = getDeviceView(event) ?: return
-    val orientation = (deviceView.displayRotationQuadrants + numQuadrants + 4) % 4
+    val orientation = (deviceView.displayRotationQuadrants + rotationQuadrants) and 0x03
     val controlMessage = SetDeviceOrientationMessage(orientation)
     deviceController.sendControlMessage(controlMessage)
   }
+
+
+  class Left : DeviceRotateAction(1)
+  class Right : DeviceRotateAction(3)
 }
