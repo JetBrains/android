@@ -18,8 +18,14 @@ package com.android.tools.idea.logcat
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceState
 import com.android.adblib.testing.FakeAdbSession
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.Client
+import com.android.ddmlib.ClientData
+import com.android.ddmlib.IDevice
+import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
 import com.android.tools.adtui.swing.FakeUi
@@ -946,6 +952,43 @@ class LogcatMainPanelTest {
 
     assertThat(banner.isVisible).isTrue()
     assertThat(banner.text).isEqualTo("Logcat is paused")
+  }
+
+  @Test
+  fun projectAppMonitorInstalled() {
+    val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
+    fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
+    fakeAdbSession.hostServices.setDevices(testDevice)
+    val fakePackageNamesProvider = FakePackageNamesProvider("myapp")
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(adbSession = fakeAdbSession, packageNamesProvider = fakePackageNamesProvider).also {
+        waitForCondition(TIMEOUT_SEC, SECONDS) { it.getConnectedDevice() != null }
+      }
+    }
+    val iDevice = mock<IDevice>()
+    val client = mock<Client>()
+    val clientData = mock<ClientData>()
+
+    whenever(clientData.packageName).thenReturn("myapp")
+    whenever(client.clientData).thenReturn(clientData)
+    whenever(iDevice.serialNumber).thenReturn("device1")
+    whenever(iDevice.clients).thenReturn(arrayOf(client))
+    AndroidDebugBridge.deviceChanged(iDevice, CHANGE_CLIENT_LIST)
+
+    waitForCondition(TIMEOUT_SEC, SECONDS) {
+      logcatMainPanel.editor.document.text.contains("PROCESS STARTED (0) for package myapp")
+    }
+  }
+
+  @RunsInEdt
+  @Test
+  fun projectAppMonitorRemoved() {
+    val logcatMainPanel = logcatMainPanel()
+    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount() == 1)
+
+    Disposer.dispose(logcatMainPanel)
+
+    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount() == 0)
   }
 
   private fun logcatMainPanel(

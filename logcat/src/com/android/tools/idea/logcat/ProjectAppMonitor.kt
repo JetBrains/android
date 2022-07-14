@@ -36,22 +36,16 @@ import org.jetbrains.annotations.VisibleForTesting
 internal class ProjectAppMonitor(
   private val logcatPresenter: LogcatPresenter,
   private val projectPackageNamesProvider: PackageNamesProvider,
-  private val device: IDevice,
 ) : IDeviceChangeListener, IClientChangeListener {
   @GuardedBy("itself")
   private val projectClients = mutableMapOf<Int, Client>()
-
-  init {
-    // Initialize the projectClients list by triggering a deviceChanged(CHANGE_CLIENT_LIST) event.
-    deviceChanged(device, CHANGE_CLIENT_LIST)
-  }
 
   override fun deviceConnected(device: IDevice) {}
   override fun deviceDisconnected(device: IDevice) {}
 
   @AnyThread
   override fun deviceChanged(device: IDevice, changeMask: Int) {
-    if (device != this.device || changeMask and CHANGE_CLIENT_LIST == 0) {
+   if (device.serialNumber != getMonitoredSerialNumber() || changeMask and CHANGE_CLIENT_LIST == 0) {
       return
     }
 
@@ -74,7 +68,7 @@ internal class ProjectAppMonitor(
 
   @AnyThread
   override fun clientChanged(client: Client, changeMask: Int) {
-    if (changeMask and CHANGE_NAME == 0 || client.device != this.device || !client.isProjectClient()) {
+    if (changeMask and CHANGE_NAME == 0 || client.device.serialNumber != getMonitoredSerialNumber() || !client.isProjectClient()) {
       return
     }
     val added = synchronized(projectClients) {
@@ -86,6 +80,8 @@ internal class ProjectAppMonitor(
       }
     }
   }
+
+  private fun getMonitoredSerialNumber() = logcatPresenter.getConnectedDevice()?.serialNumber
 
   private fun Client.isProjectClient() = clientData.packageName in projectPackageNamesProvider.getPackageNames()
 }

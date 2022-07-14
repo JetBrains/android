@@ -24,6 +24,7 @@ import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.ddmlib.IDevice.CHANGE_STATE
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.logcat.devices.Device
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
@@ -45,7 +46,7 @@ class ProjectAppMonitorTest {
   @get:Rule
   val rule = ApplicationRule()
 
-  private val device = mock<IDevice>().apply { setClients() }
+  private val device1 = mockDevice("device1")
   private val logcatPresenter = FakeLogcatPresenter()
 
   @After
@@ -55,10 +56,11 @@ class ProjectAppMonitorTest {
 
   @Test
   fun deviceChanged_addClients() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2")
+    logcatPresenter.attachedDevice = createDevice(device1.serialNumber)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2")
 
-    device.setClients(client1, client2, client3)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    device1.setClients(client1, client2, client3)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
     runInEdtAndWait {
       assertThat(logcatPresenter.messageBatches).containsExactly(listOf(client1.startedMessage(), client2.startedMessage()))
@@ -67,12 +69,13 @@ class ProjectAppMonitorTest {
 
   @Test
   fun deviceChanged_addMoreClients() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2", "client3")
-    device.setClients(client1)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    logcatPresenter.attachedDevice = createDevice(device1.serialNumber)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2", "client3")
+    device1.setClients(client1)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
-    device.setClients(client1, client2, client3)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    device1.setClients(client1, client2, client3)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
     runInEdtAndWait {
       assertThat(logcatPresenter.messageBatches).containsExactly(
@@ -84,12 +87,13 @@ class ProjectAppMonitorTest {
 
   @Test
   fun deviceChanged_removeClients() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2", "client3")
-    device.setClients(client1, client2, client3)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    logcatPresenter.attachedDevice = createDevice(device1.serialNumber)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2", "client3")
+    device1.setClients(client1, client2, client3)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
-    device.setClients(client3)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    device1.setClients(client3)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
     runInEdtAndWait {
       assertThat(logcatPresenter.messageBatches).containsExactly(
@@ -101,12 +105,13 @@ class ProjectAppMonitorTest {
 
   @Test
   fun deviceChanged_addAndRemoveClients() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2", "client3")
-    device.setClients(client1, client2)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    logcatPresenter.attachedDevice = createDevice(device1.serialNumber)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2", "client3")
+    device1.setClients(client1, client2)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
-    device.setClients(client2, client3)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    device1.setClients(client2, client3)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
     runInEdtAndWait {
       assertThat(logcatPresenter.messageBatches).containsExactly(
@@ -118,12 +123,13 @@ class ProjectAppMonitorTest {
 
   @Test
   fun deviceChanged_noChanges() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2")
-    device.setClients(client1, client2)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    logcatPresenter.attachedDevice = createDevice(device1.serialNumber)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2")
+    device1.setClients(client1, client2)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
-    device.setClients(client2, client1)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    device1.setClients(client2, client1)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
     runInEdtAndWait {
       assertThat(logcatPresenter.messageBatches).containsExactly(
@@ -134,10 +140,10 @@ class ProjectAppMonitorTest {
 
   @Test
   fun deviceChanged_wrongMask() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2")
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2")
 
-    device.setClients(client1, client2)
-    projectAppMonitor.deviceChanged(device, CHANGE_STATE)
+    device1.setClients(client1, client2)
+    projectAppMonitor.deviceChanged(device1, CHANGE_STATE)
 
     runInEdtAndWait {
       assertThat(logcatPresenter.messageBatches).isEmpty()
@@ -146,11 +152,11 @@ class ProjectAppMonitorTest {
 
   @Test
   fun deviceChanged_wrongDevice() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2")
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2")
     val otherDevice = mock<IDevice>()
 
     otherDevice.setClients(client1, client2)
-    projectAppMonitor.deviceChanged(device, CHANGE_STATE)
+    projectAppMonitor.deviceChanged(device1, CHANGE_STATE)
 
     runInEdtAndWait {
       assertThat(logcatPresenter.messageBatches).isEmpty()
@@ -159,8 +165,9 @@ class ProjectAppMonitorTest {
 
   @Test
   fun clientChanged() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2")
-    device.setClients(client1)
+    logcatPresenter.attachedDevice = createDevice(device1.serialNumber)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2")
+    device1.setClients(client1)
 
     projectAppMonitor.clientChanged(client1, CHANGE_NAME)
 
@@ -171,8 +178,8 @@ class ProjectAppMonitorTest {
 
   @Test
   fun clientChanged_wrongMask() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2")
-    device.setClients(client1)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2")
+    device1.setClients(client1)
 
     projectAppMonitor.clientChanged(client1, CHANGE_DEBUGGER_STATUS)
 
@@ -183,8 +190,9 @@ class ProjectAppMonitorTest {
 
   @Test
   fun clientChanged_wrongDevice() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1", "client2")
-    val otherDevice = mock<IDevice>()
+    logcatPresenter.attachedDevice = createDevice("device1")
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1", "client2")
+    val otherDevice = mockDevice("device2")
     otherDevice.setClients(client1)
 
     projectAppMonitor.clientChanged(client1, CHANGE_NAME)
@@ -196,8 +204,8 @@ class ProjectAppMonitorTest {
 
   @Test
   fun clientChanged_wrongPackage() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client2")
-    device.setClients(client1)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client2")
+    device1.setClients(client1)
 
     projectAppMonitor.clientChanged(client1, CHANGE_NAME)
 
@@ -208,9 +216,10 @@ class ProjectAppMonitorTest {
 
   @Test
   fun clientChanged_alreadyAdded() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1")
-    device.setClients(client1)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    logcatPresenter.attachedDevice = createDevice(device1.serialNumber)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1")
+    device1.setClients(client1)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
     projectAppMonitor.clientChanged(client1, CHANGE_NAME)
 
@@ -221,12 +230,13 @@ class ProjectAppMonitorTest {
 
   @Test
   fun clientChanged_thenRemoved() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client1")
+    logcatPresenter.attachedDevice = createDevice(device1.serialNumber)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client1")
 
-    device.setClients(client1)
+    device1.setClients(client1)
     projectAppMonitor.clientChanged(client1, CHANGE_NAME)
-    device.setClients()
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    device1.setClients()
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
     runInEdtAndWait {
       assertThat(logcatPresenter.messageBatches).containsExactly(
@@ -238,10 +248,11 @@ class ProjectAppMonitorTest {
 
   @Test
   fun clientAddedWithoutPackageNameAndThenUpdated() {
-    val projectAppMonitor = projectAppMonitor(logcatPresenter, device, "client", "client2")
+    logcatPresenter.attachedDevice = createDevice(device1.serialNumber)
+    val projectAppMonitor = projectAppMonitor(logcatPresenter, "client", "client2")
     val client = client(1, "")
-    device.setClients(client, client2)
-    projectAppMonitor.deviceChanged(device, CHANGE_CLIENT_LIST)
+    device1.setClients(client, client2)
+    projectAppMonitor.deviceChanged(device1, CHANGE_CLIENT_LIST)
 
     whenever(client.clientData.packageName).thenReturn("client")
     projectAppMonitor.clientChanged(client, CHANGE_NAME)
@@ -253,6 +264,13 @@ class ProjectAppMonitorTest {
       )
     }
   }
+}
+
+private fun mockDevice(serialNumber: String) : IDevice {
+  val device = mock<IDevice>()
+  whenever(device.serialNumber).thenReturn(serialNumber)
+  whenever(device.clients).thenReturn(emptyArray())
+  return device
 }
 
 private fun IDevice.setClients(vararg clients: Client) {
@@ -274,5 +292,9 @@ private fun client(pid: Int, packageName: String): Client {
   return client
 }
 
-private fun projectAppMonitor(logcatPresenter: LogcatPresenter, device: IDevice, vararg packageNames: String) =
-  ProjectAppMonitor(logcatPresenter, FakePackageNamesProvider(*packageNames), device)
+private fun projectAppMonitor(logcatPresenter: LogcatPresenter, vararg packageNames: String) =
+  ProjectAppMonitor(logcatPresenter, FakePackageNamesProvider(*packageNames))
+
+private fun createDevice(serialNumber: String): Device {
+  return Device.createPhysical(serialNumber, true, 11, 30, "Google", "Pixel")
+}

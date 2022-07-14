@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.adblib.AdbSession
 import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adblib.AdbLibService
@@ -224,6 +225,7 @@ internal class LogcatMainPanel(
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   private val connectedDevice = AtomicReference<Device?>()
   private val logcatServiceChannel = Channel<LogcatServiceEvent>(1)
+  private val clientListener = ProjectAppMonitor(this, packageNamesProvider)
 
   init {
     editor.apply {
@@ -291,6 +293,9 @@ internal class LogcatMainPanel(
         }
       }
     }
+
+    AndroidDebugBridge.addDeviceChangeListener(clientListener)
+    AndroidDebugBridge.addClientChangeListener(clientListener)
   }
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
@@ -393,6 +398,8 @@ internal class LogcatMainPanel(
 
   override fun dispose() {
     EditorFactory.getInstance().releaseEditor(editor)
+    AndroidDebugBridge.removeDeviceChangeListener(clientListener)
+    AndroidDebugBridge.removeClientChangeListener(clientListener)
   }
 
   override fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings) {
