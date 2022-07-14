@@ -106,6 +106,7 @@ iml_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
+        "manual",  # Test occasionally fails because emulator can't fully boot
         "no_mac",  # Untested
         "no_windows",  # Untested
     ],
