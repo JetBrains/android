@@ -69,7 +69,11 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
     }
   }
 
-  class OverviewPageFixture(robot: Robot, target: JPanel) : JPanelFixture(robot, target)
+  class OverviewPageFixture(robot: Robot, target: JPanel) : JPanelFixture(robot, target) {
+    fun verifyLinkPresent(linkToVerify: String) {
+      findHyperlinkLabelByTextContains(linkToVerify, robot(), target()).requireVisible()
+    }
+  }
 
   class BuildAnalyzerMasterDetailsPageFixture(robot: Robot, target: JPanel) : JPanelFixture(robot, target) {
     val tree: JTreeFixture

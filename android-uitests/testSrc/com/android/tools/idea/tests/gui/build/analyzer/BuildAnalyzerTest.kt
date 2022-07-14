@@ -15,29 +15,30 @@
  */
 package com.android.tools.idea.tests.gui.build.analyzer
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.BuildAnalyzerViewFixture
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.After
-import org.junit.Before
+import org.fest.swing.core.matcher.JButtonMatcher.withText
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertTrue
 
 @RunWith(GuiTestRemoteRunner::class)
-@RunIn(TestGroup.UNRELIABLE)
 class BuildAnalyzerTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = GuiTestRule().withTimeout(7, TimeUnit.MINUTES)
 
   /**
+   * * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: fcf6beb5-9a59-4f2c-9fab-428f378dcdb2
+   * <p>
    * Test user path through Build Analyzer feature.
    * Use project with two fake tasks added to the build to have warnings in the report.
    * Sync and build to get the report.
@@ -56,10 +57,18 @@ class BuildAnalyzerTest {
       val result = ideFrame.invokeProjectMake()
       assertTrue(result.isBuildSuccessful)
 
+      guiTest.robot().waitForIdle()
+
       buildToolWindow.openBuildAnalyzerUsingTabHeaderClick().also { view ->
         view.verifyInitState()
+        guiTest.waitForBackgroundTasks()
+        guiTest.robot().waitForIdle()
         view.openTasksPage().also { page -> verifyTasksPage(view, page) }
+        guiTest.waitForBackgroundTasks()
+        guiTest.robot().waitForIdle()
         view.openWarningsPage().also { page -> verifyWarningsPage(page) }
+        guiTest.waitForBackgroundTasks()
+        guiTest.robot().waitForIdle()
         view.openOverviewPage()
       }
       buildToolWindow.closeBuildAnalyzerTab()
@@ -74,6 +83,15 @@ class BuildAnalyzerTest {
   private fun BuildAnalyzerViewFixture.verifyInitState() {
     pageComboBox.requireSelection("Overview")
     overviewPage.requireVisible()
+    overviewPage.toString().contains("Gradle Daemon Memory Utilization")
+    overviewPage.toString().contains("Build finished on \\d{1,2}\\/\\d{1,2}\\/\\d{1,2}, \\d{2}:\\d{2} [A|P]M")
+    overviewPage.toString().contains("Total build duration was \\d{1,2}.\\d{1.2}s.")
+    overviewPage.button(withText("Edit memory settings")).requireVisible()
+    overviewPage.verifyLinkPresent("Tasks impacting build duration")
+    overviewPage.verifyLinkPresent("Plugins with tasks impacting build duration")
+    overviewPage.verifyLinkPresent("All warnings")
+    overviewPage.toString().contains("Fine tune your JVM")
+    overviewPage.toString().contains("Don't show this again")
   }
 
   private fun verifyTasksPage(view: BuildAnalyzerViewFixture, tasksPage: BuildAnalyzerViewFixture.BuildAnalyzerMasterDetailsPageFixture) {
