@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.model.NlModel
@@ -33,6 +32,7 @@ import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationM
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.util.PreviewLifecycleManager
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FpsCalculator
@@ -43,7 +43,6 @@ import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
-import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
@@ -80,7 +79,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.intellij.codeInsight.lookup.LookupManager
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
 import com.intellij.notification.Notification
@@ -115,14 +113,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
@@ -137,9 +133,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
-import kotlin.concurrent.withLock
 import kotlin.properties.Delegates
 
 /**
@@ -570,36 +564,26 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                             }
                                           }, Duration.ofMillis(5))
 
-  // region Lifecycle handling
-
-  /**
-   * [CoroutineScope] that is valid while this preview is active. The scope will be cancelled as soon as the preview becomes
-   * inactive. Use this scope to launch tasks that only make sense while the preview is visible to the user.
-   *
-   * Certain things might make sense to run at the preview level scope and not this one. For example, the [refreshFlow] must keep listening
-   * for calls that require to refresh the preview after it becomes active again.
-   */
-  @get:Synchronized
-  @set:Synchronized
-  private var activationScope: CoroutineScope? = null
-
-  /**
-   * Lock used during the [onActivate]/[onDeactivate]/[onDeactivationTimeout] to avoid activations happening in the middle.
-   */
-  private val activationLock = ReentrantLock()
-
-  /**
-   * Tracks whether this preview is active or not. The value tracks the [onActivate] and [onDeactivate] calls.
-   */
-  private val isActive = AtomicBoolean(false)
-
-  /**
-   * Tracks whether the preview has received an [onActivate] call before or not. This is used to decide whether
-   * [onInit] must be called.
-   */
-  @GuardedBy("activationLock")
-  private var isFirstActivation = true
-  // endregion
+  private val lifecycleManager = PreviewLifecycleManager(
+    project,
+    this,
+    this,
+    { activate(false) },
+    { activate(true) },
+    {
+      LOG.debug("onDeactivate")
+      if (interactiveMode.isStartingOrReady()) {
+        pauseInteractivePreview()
+      }
+      // The editor is scheduled to be deactivated, deactivate its issue model to avoid updating publish the issue update event.
+      surface.deactivateIssueModel()
+    },
+    {
+      stopInteractivePreview()
+      LOG.debug("Delayed surface deactivation")
+      surface.deactivate()
+    }
+  )
 
   init {
     Disposer.register(this, ticker)
@@ -717,10 +701,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Initializes the flows that will listen to different events and will call [requestRefresh].
    */
   @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-  private fun initializeFlows() = activationLock.withLock {
-    activationScope?.cancel()
-    with(createChildScope(true)) {
-      activationScope = this
+  private fun CoroutineScope.initializeFlows() {
+    with(this@initializeFlows) {
       // Launch all the listeners that are bound to the current activation.
 
       // Flow to collate and process requestRefresh requests.
@@ -792,61 +774,29 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun onActivate() {
-    activationLock.withLock {
-      LOG.debug("onActivate")
-
-      // Reset overlay every time we come back to the preview
-      module?.let { ModuleClassLoaderOverlays.getInstance(it).overlayPath = null }
-
-      initializeFlows()
-
-      isActive.set(true)
-      if (isFirstActivation) {
-        isFirstActivation = false
-        onInit()
-      }
-      else surface.activate()
-
-      if (interactiveMode.isStartingOrReady()) {
-        resumeInteractivePreview()
-      }
-    }
+    lifecycleManager.activate()
   }
 
-  /**
-   * This method will be called by [onDeactivate] after the deactivation timeout expires or the LRU queue is full.
-   */
-  private fun onDeactivationTimeout() {
-    activationLock.withLock {
-      // If the preview is still not active, deactivate the surface.
-      if (!isActive.get()) {
-        stopInteractivePreview()
-        LOG.debug("Delayed surface deactivation")
-        surface.deactivate()
-      }
+  private fun CoroutineScope.activate(resume: Boolean) {
+    LOG.debug("onActivate")
+    // Reset overlay every time we come back to the preview
+    module?.let { ModuleClassLoaderOverlays.getInstance(it).overlayPath = null }
+
+    initializeFlows()
+
+    if (resume) {
+      surface.activate()
+    } else {
+      onInit()
+    }
+
+    if (interactiveMode.isStartingOrReady()) {
+      resumeInteractivePreview()
     }
   }
 
   override fun onDeactivate() {
-    activationLock.withLock {
-      LOG.debug("onDeactivate")
-      activationScope?.cancel()
-      activationScope = null
-      if (interactiveMode.isStartingOrReady()) {
-        pauseInteractivePreview()
-      }
-      isActive.set(false)
-      // The editor is scheduled to be deactivated, deactivate its issue model to avoid updating publish the issue update event.
-      surface.deactivateIssueModel()
-
-      if  (PreviewPowerSaveManager.isInPowerSaveMode) {
-        // When on power saving mode, deactivate immediately to free resources.
-        onDeactivationTimeout()
-      }
-      else {
-        project.getService(PreviewProjectService::class.java).deactivationQueue.addDelayedAction(this, this::onDeactivationTimeout)
-      }
-    }
+    lifecycleManager.deactivate()
   }
   // endregion
 
@@ -854,25 +804,26 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (PreviewPowerSaveManager.isInPowerSaveMode) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
-    if (!isActive.get() || interactiveMode.isStartingOrReady()) return
+    if (interactiveMode.isStartingOrReady()) return
     // If we have not changed line, ignore
     if (event.newPosition.line == event.oldPosition.line) return
     val offset = event.editor.logicalPositionToOffset(event.newPosition)
 
-    activationScope?.launch(uiThread) {
-      val filePreviewElements = withContext(workerThread) {
-        memoizedElementsProvider.previewElements()
-      }
-
-      // Workaround for b/238735830: The following withContext(uiThread) should not be needed but the code below ends up being executed
-      // in a worker thread under some circumstances so we need to prevent that from happening by forcing the context switch.
-      withContext(uiThread) {
-        filePreviewElements.find { element ->
-          element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
-        }?.let { selectedPreviewElement ->
-          surface.models.find { it.toPreviewElement() == selectedPreviewElement }
-        }?.let {
-          surface.scrollToVisible(it, true)
+    lifecycleManager.executeIfActive {
+      launch(uiThread) {
+        val filePreviewElements = withContext(workerThread) {
+          memoizedElementsProvider.previewElements()
+        }
+        // Workaround for b/238735830: The following withContext(uiThread) should not be needed but the code below ends up being executed
+        // in a worker thread under some circumstances so we need to prevent that from happening by forcing the context switch.
+        withContext(uiThread) {
+          filePreviewElements.find { element ->
+            element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
+          }?.let { selectedPreviewElement ->
+            surface.models.find { it.toPreviewElement() == selectedPreviewElement }
+          }?.let {
+            surface.scrollToVisible(it, true)
+          }
         }
       }
     }
@@ -1265,5 +1216,5 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult?> =
-    activationScope?.async { requestFastPreviewRefresh() } ?: CompletableDeferred(null)
+    lifecycleManager.executeIfActive { async { requestFastPreviewRefresh() } } ?: CompletableDeferred(null)
 }

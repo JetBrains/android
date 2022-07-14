@@ -6,6 +6,6 @@ import com.intellij.openapi.project.Project
 import java.time.Duration
 
 @Service
-internal class PreviewProjectService(project: Project) {
+internal class PreviewDeactivationProjectService(project: Project) {
   internal val deactivationQueue = DelayedLruActionQueue(5, Duration.ofMinutes(5))
 }
