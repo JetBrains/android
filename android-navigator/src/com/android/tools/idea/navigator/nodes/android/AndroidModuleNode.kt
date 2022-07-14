@@ -23,6 +23,7 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.AndroidViewNodes
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
 import com.android.tools.idea.navigator.nodes.ndk.containedByNativeNodes
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toVirtualFile
@@ -181,24 +182,18 @@ class AndroidModuleNode(
         if (sourceType == AndroidSourceType.SHADERS && androidModel == null) {
           continue
         }
-        val sources: MutableSet<VirtualFile> = if (sourceType == AndroidSourceType.GENERATED_JAVA || sourceType == AndroidSourceType.GENERATED_RES) {
-          getGeneratedSources(sourceType, providers)
+
+        val sources = when (sourceType) {
+          AndroidSourceType.GENERATED_JAVA, AndroidSourceType.GENERATED_RES -> getGeneratedSources(sourceType, providers)
+          else -> getSources(sourceType, providers)
         }
-        else {
-          getSources(sourceType, providers)
-        }
+        
         if (sources.isEmpty()) {
           continue
         }
-        if (SetUtil.intersect(allSources, sources).isEmpty()) {
-          // if we haven't seen any of these source folders, then create a new source type folder
-          sourcesByType.putAll(sourceType, sources)
-        }
-        else if (!allSources.containsAll(sources)) {
-          // if we have a partial overlap, we put just the non overlapping sources into this source type
-          sources.removeAll(allSources)
-          sourcesByType.putAll(sourceType, sources)
-        }
+
+        // if we have a partial overlap, we put just the non overlapping sources into this source type
+        sourcesByType.putAll(sourceType, sources - allSources)
         allSources.addAll(sources)
       }
 
@@ -211,20 +206,16 @@ class AndroidModuleNode(
       return sourcesByType
     }
 
-    private fun getSources(sourceType: AndroidSourceType, providers: SourceProviders): MutableSet<VirtualFile> {
-      val sources: MutableSet<VirtualFile> = HashSet()
-      for (provider in AndroidViewNodes.getSourceProviders(providers)) {
-        sources.addAll(sourceType.getSources(provider))
-      }
-      return sources
+    private fun getSources(sourceType: AndroidSourceType, providers: SourceProviders): Set<VirtualFile> {
+      return AndroidViewNodes.getSourceProviders(providers).sourcesOfType(sourceType)
     }
 
-    private fun getGeneratedSources(sourceType: AndroidSourceType, providers: SourceProviders): MutableSet<VirtualFile> {
-      val sources: MutableSet<VirtualFile> = HashSet()
-      for (provider in AndroidViewNodes.getGeneratedSourceProviders(providers)) {
-        sources.addAll(sourceType.getSources(provider))
-      }
-      return sources
+    private fun getGeneratedSources(sourceType: AndroidSourceType, providers: SourceProviders): Set<VirtualFile> {
+      return AndroidViewNodes.getGeneratedSourceProviders(providers).sourcesOfType(sourceType)
+    }
+
+    private fun Iterable<IdeaSourceProvider>.sourcesOfType(sourceType: AndroidSourceType): Set<VirtualFile> {
+      return flatMap { sourceType.getSources(it) }.toSet()
     }
   }
 }
