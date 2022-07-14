@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import com.android.SdkConstants
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.uipreview.ClassModificationTimestamp
 import org.jetbrains.android.uipreview.INTERNAL_PACKAGE
@@ -102,7 +105,16 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
 
   override fun loadClass(fqcn: String): ByteArray? = try {
       val vFile = findClassVirtualFile(fqcn)
-      vFile?.readBytesUsingNio() ?: vFile?.contentsToByteArray()
+      val contents = vFile?.readBytesUsingNio() ?: vFile?.contentsToByteArray()
+
+      // This clears the Zip cache for the R.jar class file on Windows. This is to workaround the locking of the file that
+      // IntelliJ does for 60 seconds. Clearing the archive cache will immediately release the ZIP.
+      if (SystemInfoRt.isWindows && vFile?.path?.contains(SdkConstants.FN_R_CLASS_JAR) == true) {
+        @Suppress("UnstableApiUsage")
+        (vFile.fileSystem as? ArchiveFileSystem)?.clearArchiveCache(vFile)
+      }
+
+      contents
     } catch (_: Throwable) {
       null
     }
