@@ -21,6 +21,8 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -30,20 +32,20 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event
 import com.android.tools.profiler.proto.Common.Stream
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
+import com.intellij.testFramework.ProjectRule
 import com.intellij.util.concurrency.SameThreadExecutor
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import layout_inspector.LayoutInspector
-import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 class ForegroundProcessDetectionTest {
@@ -52,6 +54,9 @@ class ForegroundProcessDetectionTest {
 
   @get:Rule
   val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
+
+  @get:Rule
+  val projectRule = ProjectRule()
 
   private lateinit var transportClient: TransportClient
 
@@ -86,11 +91,13 @@ class ForegroundProcessDetectionTest {
     val receivedDevices = mutableListOf<DeviceDescriptor>()
 
     val foregroundProcessLatch = CountDownLatch(expectedForegroundProcesses.size)
+    val mockMetrics = mock(ForegroundProcessDetectionMetrics::class.java)
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
     val foregroundProcessDetection = ForegroundProcessDetection(
       deviceModel,
       transportClient,
+      mockMetrics,
       CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
       SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
     )
@@ -105,14 +112,14 @@ class ForegroundProcessDetectionTest {
 
     foregroundProcessDetection.startListeningForEvents()
 
-    connectStream(stream1)
+    connectDevice(stream1.device)
 
     helper.sendForegroundProcessEvents(stream1, expectedForegroundProcesses)
 
     // wait for events to be dispatched
     foregroundProcessLatch.await(2, TimeUnit.SECONDS)
 
-    disconnectStream(stream1)
+    disconnectDevice(stream1.device)
 
     foregroundProcessDetection.stopListeningForEvents()
 
@@ -121,6 +128,12 @@ class ForegroundProcessDetectionTest {
     assertThat(helper.startCommandInvocationCount).isEqualTo(1)
     assertThat(helper.startHandshakeCommandInvocationCount).isEqualTo(1)
     assertThat(helper.stopCommandInvocationCount).isEqualTo(0)
+
+    // metrics
+    val event = LayoutInspector.TrackingForegroundProcessSupported.newBuilder()
+      .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED)
+      .build()
+    verify(mockMetrics).logHandshakeResult(event)
   }
 
   @Test
@@ -140,6 +153,7 @@ class ForegroundProcessDetectionTest {
     val foregroundProcessDetection = ForegroundProcessDetection(
       deviceModel,
       transportClient,
+      ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(projectRule.project)),
       CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
       SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
     )
@@ -159,8 +173,8 @@ class ForegroundProcessDetectionTest {
 
     foregroundProcessDetection.startListeningForEvents()
 
-    connectStream(stream1)
-    connectStream(stream2)
+    connectDevice(stream1.device)
+    connectDevice(stream2.device)
 
     helper.sendForegroundProcessEvent(stream1, foregroundProcess1)
 
@@ -194,11 +208,13 @@ class ForegroundProcessDetectionTest {
     val receivedForegroundProcesses = mutableListOf<ForegroundProcess>()
 
     val foregroundProcessLatch = CountDownLatch(1)
+    val mockMetrics = mock(ForegroundProcessDetectionMetrics::class.java)
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
     val foregroundProcessDetection = ForegroundProcessDetection(
       deviceModel,
       transportClient,
+      mockMetrics,
       CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
       SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
     )
@@ -213,7 +229,8 @@ class ForegroundProcessDetectionTest {
     foregroundProcessDetection.startListeningForEvents()
 
     // device connected
-    connectStream(stream3)
+    // stream3 was added as NOT_SUPPORTED to ForegroundProcessDetectionHelper
+    connectDevice(stream3.device)
 
     // wait for events to be dispatched
     // TODO this latch is used a timeout, write better implementation
@@ -227,6 +244,13 @@ class ForegroundProcessDetectionTest {
     // start command was never sent
     assertThat(helper.startCommandInvocationCount).isEqualTo(0)
     assertThat(helper.stopCommandInvocationCount).isEqualTo(0)
+
+    // metrics
+    val event = LayoutInspector.TrackingForegroundProcessSupported.newBuilder()
+      .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED)
+      .setReasonNotSupported(LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.DUMPSYS_NOT_FOUND)
+      .build()
+    verify(mockMetrics).logHandshakeResult(event)
   }
 
   @Test
@@ -235,11 +259,13 @@ class ForegroundProcessDetectionTest {
     val receivedForegroundProcesses = mutableListOf<ForegroundProcess>()
 
     val foregroundProcessLatch = CountDownLatch(1)
+    val mockMetrics = mock(ForegroundProcessDetectionMetrics::class.java)
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
     val foregroundProcessDetection = ForegroundProcessDetection(
       deviceModel,
       transportClient,
+      mockMetrics,
       CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
       SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
     )
@@ -254,7 +280,8 @@ class ForegroundProcessDetectionTest {
     foregroundProcessDetection.startListeningForEvents()
 
     // device connected
-    connectStream(stream4)
+    // stream4 was added as UNKNOWN to ForegroundProcessDetectionHelper
+    connectDevice(stream4.device)
 
     // wait for events to be dispatched
     // TODO this latch is used a timeout, write better implementation
@@ -269,6 +296,166 @@ class ForegroundProcessDetectionTest {
     // start command was never sent
     assertThat(helper.startCommandInvocationCount).isEqualTo(0)
     assertThat(helper.stopCommandInvocationCount).isEqualTo(0)
+
+    // metrics
+    val event = LayoutInspector.TrackingForegroundProcessSupported.newBuilder()
+      .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN)
+      .build()
+    verify(mockMetrics).logHandshakeResult(event)
+  }
+
+  @Test
+  fun testUnknownToSupportedIsLoggedInMetrics() {
+    val foregroundProcessLatch1 = CountDownLatch(1)
+    val foregroundProcessLatch2 = CountDownLatch(1)
+    val mockMetrics = mock(ForegroundProcessDetectionMetrics::class.java)
+
+    val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      deviceModel,
+      transportClient,
+      mockMetrics,
+      CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
+    )
+
+    foregroundProcessDetection.startListeningForEvents()
+
+    // device connected
+    // stream4 was added as UNKNOWN to ForegroundProcessDetectionHelper
+    connectDevice(stream4.device)
+
+    // wait for events to be dispatched
+    // TODO this latch is used a timeout, write better implementation
+    foregroundProcessLatch1.await(2, TimeUnit.SECONDS)
+
+    // change type to SUPPORTED
+    helper.availableStreams
+      .first { it.stream == stream4 }
+      .supportType = LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED
+
+    // TODO this latch is used a timeout, write better implementation
+    foregroundProcessLatch2.await(2, TimeUnit.SECONDS)
+
+    disconnectDevice(stream4.device)
+
+    foregroundProcessDetection.stopListeningForEvents()
+
+    // handshake is repeated because result was "UNKNOWN"
+    assertThat(helper.startHandshakeCommandInvocationCount).isEqualTo(2)
+
+    // metrics
+    val eventUnknown = LayoutInspector.TrackingForegroundProcessSupported.newBuilder()
+      .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN)
+      .build()
+
+    val eventSupported = LayoutInspector.TrackingForegroundProcessSupported.newBuilder()
+      .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED)
+      .build()
+
+    verify(mockMetrics).logHandshakeResult(eventUnknown)
+    verify(mockMetrics).logHandshakeResult(eventSupported)
+    verify(mockMetrics).logConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_TO_SUPPORTED)
+    verifyNoMoreInteractions(mockMetrics)
+  }
+
+  @Test
+  fun testUnknownToNotSupportedIsLoggedInMetrics() {
+    val foregroundProcessLatch1 = CountDownLatch(1)
+    val foregroundProcessLatch2 = CountDownLatch(1)
+    val mockMetrics = mock(ForegroundProcessDetectionMetrics::class.java)
+
+    val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      deviceModel,
+      transportClient,
+      mockMetrics,
+      CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
+    )
+
+    foregroundProcessDetection.startListeningForEvents()
+
+    // device connected
+    // stream4 was added as UNKNOWN to ForegroundProcessDetectionHelper
+    connectDevice(stream4.device)
+
+    // wait for events to be dispatched
+    // TODO this latch is used a timeout, write better implementation
+    foregroundProcessLatch1.await(2, TimeUnit.SECONDS)
+
+    // change type to SUPPORTED
+    helper.availableStreams.first { it.stream == stream4 }.supportType = LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED
+
+    // TODO this latch is used a timeout, write better implementation
+    foregroundProcessLatch2.await(2, TimeUnit.SECONDS)
+
+    disconnectDevice(stream4.device)
+
+    foregroundProcessDetection.stopListeningForEvents()
+
+    // handshake is repeated because result was "UNKNOWN"
+    assertThat(helper.startHandshakeCommandInvocationCount).isEqualTo(2)
+
+    // metrics
+    val eventUnknown = LayoutInspector.TrackingForegroundProcessSupported.newBuilder()
+      .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN)
+      .build()
+
+    val eventNotSupported = LayoutInspector.TrackingForegroundProcessSupported.newBuilder()
+      .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED)
+      .setReasonNotSupported(LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.DUMPSYS_NOT_FOUND)
+      .build()
+
+    verify(mockMetrics).logHandshakeResult(eventUnknown)
+    verify(mockMetrics).logHandshakeResult(eventNotSupported)
+    verify(mockMetrics).logConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_TO_NOT_SUPPORTED)
+    verifyNoMoreInteractions(mockMetrics)
+  }
+
+  @Test
+  fun testUnknownIsNotResolvedIsLoggedInMetrics() {
+    val foregroundProcessLatch1 = CountDownLatch(1)
+    val foregroundProcessLatch2 = CountDownLatch(1)
+    val mockMetrics = mock(ForegroundProcessDetectionMetrics::class.java)
+
+    val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      deviceModel,
+      transportClient,
+      mockMetrics,
+      CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
+    )
+
+    foregroundProcessDetection.startListeningForEvents()
+
+    // device connected
+    // stream4 was added as UNKNOWN to ForegroundProcessDetectionHelper
+    connectDevice(stream4.device)
+
+    // wait for events to be dispatched
+    // TODO this latch is used a timeout, write better implementation
+    foregroundProcessLatch1.await(2, TimeUnit.SECONDS)
+
+    // disconnect device
+    disconnectDevice(stream4.device)
+
+    // TODO this latch is used a timeout, write better implementation
+    foregroundProcessLatch2.await(2, TimeUnit.SECONDS)
+
+    foregroundProcessDetection.stopListeningForEvents()
+
+    // handshake is repeated because result was "UNKNOWN"
+    assertThat(helper.startHandshakeCommandInvocationCount).isEqualTo(2)
+
+    // metrics
+    val eventUnknown = LayoutInspector.TrackingForegroundProcessSupported.newBuilder()
+      .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN)
+      .build()
+
+    verify(mockMetrics).logHandshakeResult(eventUnknown)
+    verify(mockMetrics).logConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_NOT_RESOLVED)
   }
 
   private fun createDeviceModel(vararg devices: DeviceDescriptor): DeviceModel {
@@ -302,54 +489,32 @@ class ForegroundProcessDetectionTest {
       .build()
   }
 
-  private fun connectStream(stream: Stream) {
-    transportService.addDevice(stream.device)
-    sendEvent(stream, createStreamConnectedEvent(stream))
+  private fun connectDevice(device: Common.Device) {
+    transportService.addDevice(device)
   }
 
-  private fun disconnectStream(stream: Stream) {
-    sendEvent(stream, createStreamEndedEvent(stream))
-  }
-
-  private fun sendEvent(stream: Stream, event: Common.Event) {
-    transportService.addEventToStream(stream.streamId, event)
-  }
-
-  private fun createStreamConnectedEvent(stream: Stream): Common.Event {
-    val eventBuilder = Common.Event.newBuilder()
-    return eventBuilder
-      .setKind(Common.Event.Kind.STREAM)
-      .setTimestamp(1)
-      .setGroupId(stream.streamId)
-      .setStream(
-        eventBuilder.streamBuilder.setStreamConnected(
-          eventBuilder.streamBuilder.streamConnectedBuilder
-            .setStream(stream)
-        )
-      ).build()
-  }
-
-  private fun createStreamEndedEvent(stream: Stream): Common.Event {
-    val eventBuilder = Common.Event.newBuilder()
-    return eventBuilder
-      .setKind(Common.Event.Kind.STREAM)
-      .setTimestamp(1)
-      .setIsEnded(true)
-      .setGroupId(stream.streamId)
+  private fun disconnectDevice(device: Common.Device) {
+    val offlineDevice = device.toBuilder()
+      .setState(Common.Device.State.OFFLINE)
       .build()
+
+    transportService.updateDevice(device, offlineDevice)
   }
 
   /**
    * Helper class used to send LAYOUT_INSPECTOR_FOREGROUND_PROCESS events.
    * Only sends events to a stream if it is connected. If it's not the events are held in a queue waiting for the stream to connect.
    */
-  private class ForegroundProcessDetectionHelper(private val timer: FakeTimer, private val transportService: FakeTransportService, private val availableStreams: Set<ForegroundProcessDetectionStream>) {
+  // TODO refactor, this class makes tests hard to read
+  private class ForegroundProcessDetectionHelper(private val timer: FakeTimer, private val transportService: FakeTransportService, val availableStreams: Set<ForegroundProcessDetectionStream>) {
     private val connectedStreamIds = mutableListOf<Long>()
-    private var eventsQueue = mutableMapOf<Stream, MutableList<Common.Event>>()
+    private var eventsQueue = mutableMapOf<Stream, MutableList<Event>>()
 
     var startHandshakeCommandInvocationCount = 0
     var startCommandInvocationCount = 0
     var stopCommandInvocationCount = 0
+
+    var timestamp = 0L
 
     init {
       // Handler for the handshake command.
@@ -360,16 +525,20 @@ class ForegroundProcessDetectionTest {
           it.stream.streamId == command.streamId
         } ?: throw java.lang.RuntimeException("Received command from unknown streamId: ${command.streamId}")
 
-        val event = Common.Event.newBuilder()
-          .setKind(Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED)
-          .setLayoutInspectorTrackingForegroundProcessSupported(
-            Common.Event.newBuilder().layoutInspectorTrackingForegroundProcessSupportedBuilder
-              .setSupportType(
-                foregroundProcessDetectionStream.supportType
-              ).build()
-          )
+        val foregroundProcessEventBuilder = Event.newBuilder().layoutInspectorTrackingForegroundProcessSupportedBuilder
+          .setSupportType(foregroundProcessDetectionStream.supportType)
+
+        if (foregroundProcessDetectionStream.supportType == LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED) {
+          foregroundProcessEventBuilder.reasonNotSupported = LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.DUMPSYS_NOT_FOUND
+        }
+
+        val event = Event.newBuilder()
+          .setKind(Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED)
+          .setLayoutInspectorTrackingForegroundProcessSupported(foregroundProcessEventBuilder.build())
+          .setTimestamp(timestamp)
           .build()
 
+        timestamp += 1
         sendEventImmediately(foregroundProcessDetectionStream.stream, event)
       }
 
@@ -399,17 +568,17 @@ class ForegroundProcessDetectionTest {
     }
 
     fun sendForegroundProcessEvent(stream: Stream, foregroundProcess: ForegroundProcess) {
-      sendForegroundProcessEvent(stream, createForegroundProcessEvent(foregroundProcess, 1, stream))
+      sendForegroundProcessEvent(stream, createForegroundProcessEvent(foregroundProcess, stream))
     }
 
     fun sendForegroundProcessEvents(stream: Stream, foregroundProcesses: List<ForegroundProcess>) {
       foregroundProcesses.forEachIndexed { index, foregroundProcess ->
-        sendForegroundProcessEvent(stream, createForegroundProcessEvent(foregroundProcess, index, stream))
+        sendForegroundProcessEvent(stream, createForegroundProcessEvent(foregroundProcess, stream))
       }
     }
 
-    private fun sendForegroundProcessEvent(stream: Stream, event: Common.Event) {
-      assertThat(event.kind).isEqualTo(Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS)
+    private fun sendForegroundProcessEvent(stream: Stream, event: Event) {
+      assertThat(event.kind).isEqualTo(Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS)
 
       if (connectedStreamIds.contains(stream.streamId)) {
         sendEventImmediately(stream, event)
@@ -428,11 +597,12 @@ class ForegroundProcessDetectionTest {
       transportService.addEventToStream(stream.streamId, event)
     }
 
-    private fun createForegroundProcessEvent(foregroundProcess: ForegroundProcess, timestamp: Int, stream: Stream): Common.Event {
-      val eventBuilder = Common.Event.newBuilder()
+    private fun createForegroundProcessEvent(foregroundProcess: ForegroundProcess, stream: Stream): Event {
+      val eventBuilder = Event.newBuilder()
+      timestamp += 1
       return eventBuilder
-        .setKind(Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS)
-        .setTimestamp(timestamp.toLong())
+        .setKind(Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS)
+        .setTimestamp(timestamp)
         .setGroupId(stream.streamId)
         .setStream(
           eventBuilder.streamBuilder.setStreamConnected(
@@ -449,7 +619,7 @@ class ForegroundProcessDetectionTest {
 
     private fun FakeTransportService.setCommandHandler(command: Commands.Command.CommandType, block: (Commands.Command) -> Unit) {
       setCommandHandler(command, object : CommandHandler(timer) {
-        override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+        override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
           block.invoke(command)
         }
       })
@@ -457,4 +627,4 @@ class ForegroundProcessDetectionTest {
   }
 }
 
-private data class ForegroundProcessDetectionStream(val stream: Common.Stream, val supportType: LayoutInspector.TrackingForegroundProcessSupported.SupportType)
+private data class ForegroundProcessDetectionStream(val stream: Stream, var supportType: LayoutInspector.TrackingForegroundProcessSupported.SupportType)

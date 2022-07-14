@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -122,7 +123,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
         val deviceModel = DeviceModel(processesModel)
         val foregroundProcessDetection = createForegroundProcessDetection(
-          project, processesModel, deviceModel, workbench, toolWindow
+          project, processesModel, deviceModel, workbench, toolWindow, metrics
         )
 
         val deviceViewPanel = DeviceViewPanel(
@@ -158,13 +159,15 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     processesModel: ProcessesModel,
     deviceModel: DeviceModel,
     workBench: WorkBench<LayoutInspector>,
-    toolWindow: ToolWindow
+    toolWindow: ToolWindow,
+    layoutInspectorMetrics: LayoutInspectorMetrics
   ): ForegroundProcessDetection? {
     return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
       ForegroundProcessDetectionInitializer.initialize(
         processModel = processesModel,
         deviceModel = deviceModel,
-        coroutineScope = project.coroutineScope
+        coroutineScope = project.coroutineScope,
+        metrics = ForegroundProcessDetectionMetrics(layoutInspectorMetrics)
       ).also {
         project.messageBus.connect(workBench).subscribe(
           ToolWindowManagerListener.TOPIC,

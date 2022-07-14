@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportDeviceManager
@@ -36,6 +37,8 @@ import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
@@ -77,11 +80,13 @@ object ForegroundProcessDetectionInitializer {
     deviceModel: DeviceModel,
     coroutineScope: CoroutineScope,
     foregroundProcessListener: ForegroundProcessListener = getDefaultForegroundProcessListener(processModel),
-    transportClient: TransportClient = getDefaultTransportClient()
+    transportClient: TransportClient = getDefaultTransportClient(),
+    metrics: ForegroundProcessDetectionMetrics,
   ): ForegroundProcessDetection {
     val foregroundProcessDetection = ForegroundProcessDetection(
       deviceModel,
       transportClient,
+      metrics,
       coroutineScope
     )
 
@@ -196,6 +201,7 @@ interface ForegroundProcessListener {
 class ForegroundProcessDetection(
   private val deviceModel: DeviceModel,
   private val transportClient: TransportClient,
+  private val metrics: ForegroundProcessDetectionMetrics,
   scope: CoroutineScope,
   workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread) {
 
@@ -206,6 +212,13 @@ class ForegroundProcessDetection(
    * The groupId is the only information available when the stream disconnects.
    */
   private val connectedStreams = ConcurrentHashMap<Long, TransportStreamChannel>()
+
+  // Set of devices that with UNKNOWN support of foreground process detection.
+  // UNKNOWN should eventually convert to SUPPORTED or NOT_SUPPORTED.
+  // Keeping track of these devices is only useful for metrics purposes.
+  // We want to know how many devices convert to SUPPORTED or NOT_SUPPORTED
+  // and how many never convert.
+  private val devicesWithUnknownState = mutableSetOf<DeviceDescriptor>()
 
   init {
     val manager = TransportStreamManager.createManager(transportClient.transportStub, workDispatcher)
@@ -247,14 +260,25 @@ class ForegroundProcessDetection(
                   if (streamEvent.event.hasLayoutInspectorTrackingForegroundProcessSupported()) {
                     when (val supportType = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported.supportType!!) {
                       LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN -> {
-                        // The handshake couldn't determine if the device supports foreground process detection.
+                        // UNKNOWN support means that the handshake couldn't determine if the device supports foreground process detection.
                         // This could be because the device is in a state where we can't determine the foreground activity,
                         // for example if the device is locked and there is no foreground activity.
-                        // We should wait a try the handshake again.
+                        // We should wait a try the handshake again until the device converts to SUPPORTED or NOT_SUPPORTED.
+                        if (!devicesWithUnknownState.contains(streamDevice)) {
+                          devicesWithUnknownState.add(streamDevice)
+                          // log UNKNOWN devices only once
+                          metrics.logHandshakeResult(streamEvent.event.layoutInspectorTrackingForegroundProcessSupported)
+                        }
                         delay(2000)
                         sendStartHandshakeCommand(activity.streamChannel.stream)
                       }
                       LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED -> {
+                        logConcludedHandshake(
+                          streamEvent.event.layoutInspectorTrackingForegroundProcessSupported,
+                          streamDevice,
+                          HandshakeUnknownConversion.UNKNOWN_TO_SUPPORTED
+                        )
+
                         deviceModel.foregroundProcessDetectionSupportedDevices.add(streamDevice)
 
                         // If there are no devices connected, we can automatically connect to the first device.
@@ -265,6 +289,11 @@ class ForegroundProcessDetection(
                         }
                       }
                       LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED -> {
+                        logConcludedHandshake(
+                          streamEvent.event.layoutInspectorTrackingForegroundProcessSupported,
+                          streamDevice,
+                          HandshakeUnknownConversion.UNKNOWN_TO_NOT_SUPPORTED
+                        )
                         // the device is never added to DeviceModel#foregroundProcessDetectionSupportedDevices,
                         // so it will be handled in the UI by showing a process picker.
                       }
@@ -284,11 +313,36 @@ class ForegroundProcessDetection(
             connectedStreams.remove(stream.streamId)
             deviceModel.foregroundProcessDetectionSupportedDevices.remove(streamDevice)
 
+            devicesWithUnknownState.forEach { _ ->
+              // These devices had UNKNOWN support and never converted to SUPPORTED or NOT_SUPPORTED.
+              // This could happen if there are issues in the handshake or if a device was disconnected
+              // before the UNKNOWN state had time to resolve.
+              // For example if a device was plugged in while locked and unplugged before ever being unlocked.
+              metrics.logConversion(HandshakeUnknownConversion.UNKNOWN_NOT_RESOLVED)
+            }
+
+            devicesWithUnknownState.clear()
+
             if (streamDevice.serial == deviceModel.selectedDevice?.serial) {
               deviceModel.selectedDevice = null
             }
           }
         }
+    }
+  }
+
+  /**
+   * Logs to metrics the result of a handshake that resulted in SUPPORTED or NOT_SUPPORTED.
+   */
+  private fun logConcludedHandshake(
+    handshakeResult: LayoutInspector.TrackingForegroundProcessSupported,
+    streamDevice: DeviceDescriptor,
+    conversion: HandshakeUnknownConversion
+  ) {
+    metrics.logHandshakeResult(handshakeResult)
+    if (devicesWithUnknownState.contains(streamDevice)) {
+      devicesWithUnknownState.remove(streamDevice)
+      metrics.logConversion(conversion)
     }
   }
 

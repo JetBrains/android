@@ -24,6 +24,8 @@ import com.android.tools.idea.appinspection.internal.process.TransportProcessDes
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.coroutineScope
+import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportService
@@ -93,10 +95,11 @@ class ForegroundProcessDetectionInitializerTest {
   fun testNewForegroundProcessSetsSelectedProcess() {
     val foregroundProcessListener = ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(processModel)
     ForegroundProcessDetectionInitializer.initialize(
-      processModel,
-      deviceModel,
-      CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
-      foregroundProcessListener
+      processModel = processModel,
+      deviceModel = deviceModel,
+      coroutineScope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      foregroundProcessListener = foregroundProcessListener,
+      metrics = ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(projectRule.project)),
     )
 
     foregroundProcessListener.onNewProcess(device1, ForegroundProcess(1, "process1"))
@@ -150,10 +153,11 @@ class ForegroundProcessDetectionInitializerTest {
     connectStream(fakeStream1)
 
     val foregroundProcessDetection = ForegroundProcessDetectionInitializer.initialize(
-      processModel,
-      deviceModel,
-      projectRule.project.coroutineScope,
-      transportClient =  transportClient
+      processModel = processModel,
+      deviceModel = deviceModel,
+      coroutineScope = projectRule.project.coroutineScope,
+      transportClient =  transportClient,
+      metrics = ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(projectRule.project)),
     )
 
     handshakeLatch1.await(5, TimeUnit.SECONDS)
