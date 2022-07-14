@@ -52,7 +52,6 @@
     <orderEntry type="module" module-name="intellij.java.compiler" />
     <orderEntry type="module" module-name="intellij.groovy.psi" />
     <orderEntry type="module" module-name="intellij.platform.editor" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" />
     <orderEntry type="module" module-name="intellij.platform.debugger" />
     <orderEntry type="module" module-name="intellij.platform.remote.core" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />

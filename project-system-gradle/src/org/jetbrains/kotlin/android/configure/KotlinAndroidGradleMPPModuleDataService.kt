@@ -1,10 +1,11 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 
 @file:Suppress("DuplicatedCode")
 
-package org.jetbrains.kotlin.android.common.configure
+package org.jetbrains.kotlin.android.configure
 
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
@@ -14,7 +15,6 @@ import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjec
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ContentEntry
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetInfo
@@ -25,22 +25,18 @@ import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinSourceSetDataSer
 import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.File
-import java.util.stream.Stream
 
-abstract class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<ModuleData, Void>() {
+class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<ModuleData, Void>() {
     override fun getTargetDataKey() = ProjectKeys.MODULE
 
-    protected class IndexedModules(val byId: Map<String, DataNode<ModuleData>>, val byIdeName: Map<String, DataNode<ModuleData>>)
-
-    abstract fun getVariantName(node: DataNode<ModuleData>): String?
+    private class IndexedModules(val byId: Map<String, DataNode<ModuleData>>)
 
     override fun postProcess(
       toImport: MutableCollection<out DataNode<ModuleData>>,
       projectData: ProjectData?,
       project: Project,
       modelsProvider: IdeModifiableModelsProvider) {
-        val indexedModulesCache = IndexedModulesCache(modelsProvider)
+        val indexedModulesCache = IndexedModulesCache()
         toImport.forEach { gradleModuleDataNode ->
             val indexedModules = indexedModulesCache[gradleModuleDataNode] ?: return@forEach
             ExternalSystemApiUtil.findAll(gradleModuleDataNode, GradleSourceSetData.KEY).forEach forEachSourceSet@{ sourceSetDataNode ->
@@ -63,7 +59,7 @@ abstract class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataServ
      * However, if 'lib.main' happens to be a multiplatform project, then all the 'dependsOn' source sets from 'lib.main'
      * should also be dependencies of 'app.main'.
      */
-    protected open fun expandMultiplatformDependenciesToDependsOnSourceSets(
+    private fun expandMultiplatformDependenciesToDependsOnSourceSets(
       gradleModuleDataNode: DataNode<ModuleData>,
       sourceSetDataNode: DataNode<GradleSourceSetData>,
       sourceSetModule: Module,
@@ -160,7 +156,7 @@ abstract class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataServ
         val sourceSetRootModel = modelsProvider.getModifiableRootModel(sourceSetModule)
 
         getDependencyModuleNodes(
-          gradleModuleDataNode, sourceSetDataNode, indexedModules, modelsProvider
+          gradleModuleDataNode, sourceSetDataNode, indexedModules
         ).filter { dependencyModuleNode -> dependencyModuleNode.data !in alreadyProcessedModules }
           .flatMap { dependencyModuleNode ->
             /* Find all source sets in this parent 'dependencyModuleNode'
@@ -174,7 +170,7 @@ abstract class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataServ
               .filter { (_, sourceSetInfo) ->
                   val platforms = sourceSetInfo.actualPlatforms.platforms.toSet()
                   platforms.contains(KotlinPlatform.COMMON) || platforms.contains(KotlinPlatform.ANDROID) ||
-                  (platforms.contains(KotlinPlatform.JVM) && !isAndroidModule(dependencyModuleNode))
+                  (platforms.contains(KotlinPlatform.JVM) && getAndroidModuleModel(dependencyModuleNode) == null)
               }
               .map { (node, _) -> node }
         }.toSet()
@@ -207,9 +203,7 @@ abstract class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataServ
         }
     }
 
-    private class IndexedModulesCache(
-      private val modelsProvider: IdeModifiableModelsProvider
-    ) {
+    private class IndexedModulesCache {
         private val indexByProject = mutableMapOf<ProjectData, IndexedModules>()
 
         operator fun get(moduleNode: DataNode<out ModuleData>): IndexedModules? {
@@ -218,28 +212,38 @@ abstract class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataServ
             return indexByProject.getOrPut(projectDataNode.data) {
                 val moduleNodes = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)
                 IndexedModules(
-                  byId = moduleNodes.associateBy { it.data.id },
-                  byIdeName = moduleNodes.mapNotNull { node -> modelsProvider.findIdeModule(node.data)?.let { it.name to node } }.toMap()
+                  byId = moduleNodes.associateBy { it.data.id }
                 )
             }
         }
     }
 
-    protected abstract fun getDependencyModuleNodes(
+    private fun getDependencyModuleNodes(
       moduleNode: DataNode<ModuleData>,
       sourceSetDataNode: DataNode<GradleSourceSetData>,
       indexedModules: IndexedModules,
-      modelsProvider: IdeModifiableModelsProvider,
-    ): List<DataNode<out ModuleData>>
+    ): List<DataNode<out ModuleData>> {
+        val ideModuleSourceSet = IdeModuleSourceSet.values().find { sourceSet -> sourceSet.sourceSetName == sourceSetDataNode.data.moduleName }
+        if (ideModuleSourceSet == null) return emptyList()
+        val androidModuleModel = getAndroidModuleModel(moduleNode)
+        if (androidModuleModel != null) {
+            val selectedVariant = androidModuleModel.selectedVariant
+            val moduleDependencies = when (ideModuleSourceSet) {
+                IdeModuleSourceSet.MAIN -> selectedVariant.mainArtifact.level2Dependencies.moduleDependencies
+                IdeModuleSourceSet.TEST_FIXTURES -> selectedVariant.testFixturesArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
+                IdeModuleSourceSet.UNIT_TEST -> selectedVariant.unitTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
+                IdeModuleSourceSet.ANDROID_TEST -> selectedVariant.androidTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
+            }
 
-    abstract fun isAndroidModule(node: DataNode<out ModuleData>): Boolean
+            return moduleDependencies.mapNotNull { moduleDependency ->
+                indexedModules.byId[moduleDependency.projectPath]
+            }
+        }
 
-    abstract fun findParentContentEntry(path: File, contentEntries: Stream<ContentEntry>): ContentEntry?
-
-    abstract fun pathToIdeaUrl(path: File): String
-
-    companion object {
-        private val LOG = Logger.getInstance(KotlinAndroidGradleMPPModuleDataService::class.java)
+        return emptyList()
     }
+
+    private fun getAndroidModuleModel(moduleNode: DataNode<out ModuleData>) =
+      ExternalSystemApiUtil.getChildren(moduleNode, AndroidProjectKeys.ANDROID_MODEL).firstOrNull()?.data
 }
 
