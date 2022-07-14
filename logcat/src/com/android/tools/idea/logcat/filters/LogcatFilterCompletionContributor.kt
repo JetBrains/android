@@ -208,6 +208,7 @@ private fun CompletionResultSet.addHints() {
 internal fun String.getKeyVariants() = listOf("$this:", "-$this:", "$this~:", "-$this~:", "$this=:", "-$this=:")
 
 private fun createLookupElement(text: String, hint: String? = null) = LookupElementBuilder.create(text)
+  .withCaseSensitivity(false)
   .withRenderer(object : LookupElementRenderer<LookupElement>() {
     override fun renderElement(element: LookupElement, presentation: LookupElementPresentation) {
       presentation.itemText = element.lookupString

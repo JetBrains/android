@@ -422,6 +422,17 @@ class LogcatFilterCompletionContributorTest {
 
     assertThat(fixture.lookupElementStrings).containsExactly("foo ")
   }
+
+  @Test
+  fun caseInsensitivity() {
+    listOf("tag:t$caret", "tag:T$caret").forEach {
+      fixture.configure(it, tags = setOf("Tag", "tag"))
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named("it").containsExactlyElementsIn(setOf("Tag ", "tag "))
+    }
+  }
 }
 
 private fun String.isPackageKey() = equals("package:")
