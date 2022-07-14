@@ -17,12 +17,16 @@ public class StudioIcons {
   }
 
   public static class AppQualityInsights {
-    public static final Icon ANR_INLINE = load("/studio/icons/app-quality insights/anr-inline.svg"); // 16x16
-    public static final Icon ANR = load("/studio/icons/app-quality insights/anr.svg"); // 16x16
-    public static final Icon FATAL_INLINE = load("/studio/icons/app-quality insights/fatal-inline.svg"); // 16x16
-    public static final Icon FATAL = load("/studio/icons/app-quality insights/fatal.svg"); // 16x16
-    public static final Icon NON_FATAL_INLINE = load("/studio/icons/app-quality insights/non-fatal-inline.svg"); // 16x16
-    public static final Icon NON_FATAL = load("/studio/icons/app-quality insights/non-fatal.svg"); // 16x16
+    public static final Icon ANR_INLINE = load("/studio/icons/app-quality-insights/anr-inline.svg"); // 16x16
+    public static final Icon ANR_WITH_NOTE = load("/studio/icons/app-quality-insights/anr-with-note.svg"); // 16x16
+    public static final Icon ANR = load("/studio/icons/app-quality-insights/anr.svg"); // 16x16
+    public static final Icon FATAL_INLINE = load("/studio/icons/app-quality-insights/fatal-inline.svg"); // 16x16
+    public static final Icon FATAL_WITH_NOTE = load("/studio/icons/app-quality-insights/fatal-with-note.svg"); // 16x16
+    public static final Icon FATAL = load("/studio/icons/app-quality-insights/fatal.svg"); // 16x16
+    public static final Icon ISSUE = load("/studio/icons/app-quality-insights/issue.svg"); // 16x16
+    public static final Icon NON_FATAL_INLINE = load("/studio/icons/app-quality-insights/non-fatal-inline.svg"); // 16x16
+    public static final Icon NON_FATAL_WITH_NOTE = load("/studio/icons/app-quality-insights/non-fatal-with-note.svg"); // 16x16
+    public static final Icon NON_FATAL = load("/studio/icons/app-quality-insights/non-fatal.svg"); // 16x16
   }
 
   public static class Avd {
@@ -249,6 +253,10 @@ public class StudioIcons {
     public static final Icon VIRTUAL_DEVICE_PHONE = load("/studio/icons/device-explorer/virtual-device-phone.svg"); // 16x16
     public static final Icon VIRTUAL_DEVICE_TV = load("/studio/icons/device-explorer/virtual-device-tv.svg"); // 16x16
     public static final Icon VIRTUAL_DEVICE_WEAR = load("/studio/icons/device-explorer/virtual-device-wear.svg"); // 16x16
+  }
+
+  public static class DeviceProcessMonitor {
+    public static final Icon FORCE_STOP = load("/studio/icons/device-process-monitor/force-stop.svg"); // 16x16
   }
 
   public static class Emulator {
