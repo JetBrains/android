@@ -150,7 +150,19 @@ class LibraryResourceClassLoader(parent: ClassLoader?, module: Module) : ClassLo
 
     if (ResourceIdManager.get(module).finalIdsUsed) {
       // If final IDs are used, we check if the last build was successful in order to use the compiled classes instead of load them from
-      // this class loader.
+      // this class loader. If the compiled classes are available, they will be used (i.e. we'll throw a ClassNotFoundException here and
+      // let the R classes be loaded by a parent class loader (ProjectSystemClassLoader). If compiled classes are not available, there are
+      // two possible scenarios:
+      //     1) We are looking for a resource class available in the ResourceClassRegistry
+      //     2) We are looking for a resource class that's not available in the ResourceClassRegistry
+      //
+      // In the first scenario, we'll load the R class using this class loader. This covers the case where users are opening a project
+      // before compiling and want to view an XML resource file, which should work.
+      //
+      // In the second scenario, we'll fail to find the class in the ResourceClassRegistry below and will throw a ClassNotFoundException,
+      // delegating loading to a parent class loader. If compilation *actually* didn't happen (the check below has a limitation of not
+      // detecting if a just-opened project is already built), the resource class won't be loaded. However, if the project was built at
+      // some point, the ProjectSystemClassLoader will load the resource classes from the compiled sources regardless.
       val lastBuild = ProjectSystemService.getInstance(module.project).projectSystem.getBuildManager().getLastBuildResult()
       if (lastBuild.mode != ProjectSystemBuildManager.BuildMode.CLEAN
           && lastBuild.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
