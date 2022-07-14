@@ -41,10 +41,15 @@ internal class LogcatFormatModifyViewsAction(
     LogcatFormatPresetsDialog(project, initialFormatting, defaultFormatting, object : LogcatFormatDialogBase.ApplyAction {
       override fun onApply(logcatFormatDialogBase: LogcatFormatDialogBase) {
         val dialog = logcatFormatDialogBase as LogcatFormatPresetsDialog
+        LogcatToolWindowFactory.logcatPresenters.forEach {
+          when (it.formattingOptions) {
+            androidLogcatFormattingOptions.standardFormattingOptions -> it.formattingOptions = dialog.standardFormattingOptions
+            androidLogcatFormattingOptions.compactFormattingOptions -> it.formattingOptions = dialog.compactFormattingOptions
+          }
+        }
         androidLogcatFormattingOptions.standardFormattingOptions = dialog.standardFormattingOptions
         androidLogcatFormattingOptions.compactFormattingOptions = dialog.compactFormattingOptions
         androidLogcatFormattingOptions.defaultFormatting = dialog.defaultFormatting
-        LogcatToolWindowFactory.logcatPresenters.filter { it.formattingOptions.getStyle() != null }.forEach(LogcatPresenter::reloadMessages)
       }
     }).dialogWrapper.show()
   }

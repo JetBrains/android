@@ -128,7 +128,7 @@ class LogcatFormatCustomViewActionTest {
     fakeLogcatPresenter.formattingOptions = COMPACT.formattingOptions
     assertThat(logcatFormatCustomViewAction(fakeLogcatPresenter).isSelected()).isFalse()
 
-    fakeLogcatPresenter.formattingOptions = FormattingOptions()
+    fakeLogcatPresenter.formattingOptions = FormattingOptions(TimestampFormat(enabled = false))
     assertThat(logcatFormatCustomViewAction(fakeLogcatPresenter).isSelected()).isTrue()
   }
 

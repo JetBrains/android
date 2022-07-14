@@ -53,8 +53,8 @@ internal data class FormattingOptions(
 
   fun getStyle(): Style? {
     return when {
-      this === logcatFormattingOptions.standardFormattingOptions -> STANDARD
-      this === logcatFormattingOptions.compactFormattingOptions -> COMPACT
+      this == logcatFormattingOptions.standardFormattingOptions -> STANDARD
+      this == logcatFormattingOptions.compactFormattingOptions -> COMPACT
       else -> null
     }
   }

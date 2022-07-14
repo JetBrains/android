@@ -61,14 +61,6 @@ class LogcatFormatPresetActionTest {
   }
 
   @Test
-  fun isSelected_standard_copy() {
-    fakeLogcatPresenter.formattingOptions = STANDARD.formattingOptions.copy()
-    val action = LogcatFormatPresetAction.Standard(fakeLogcatPresenter)
-
-    assertThat(action.isSelected()).isFalse()
-  }
-
-  @Test
   fun isSelected_standard_compact() {
     fakeLogcatPresenter.formattingOptions = COMPACT.formattingOptions
     val action = LogcatFormatPresetAction.Standard(fakeLogcatPresenter)
@@ -85,14 +77,6 @@ class LogcatFormatPresetActionTest {
   }
 
   @Test
-  fun isSelected_compact_copy() {
-    fakeLogcatPresenter.formattingOptions = COMPACT.formattingOptions.copy()
-    val action = LogcatFormatPresetAction.Compact(fakeLogcatPresenter)
-
-    assertThat(action.isSelected()).isFalse()
-  }
-
-  @Test
   fun isSelected_compact_standard() {
     fakeLogcatPresenter.formattingOptions = STANDARD.formattingOptions
     val action = LogcatFormatPresetAction.Compact(fakeLogcatPresenter)
@@ -106,7 +90,7 @@ class LogcatFormatPresetActionTest {
 
     action.actionPerformed(TestActionEvent())
 
-    assertThat(fakeLogcatPresenter.formattingOptions).isSameAs(STANDARD.formattingOptions)
+    assertThat(fakeLogcatPresenter.formattingOptions).isEqualTo(STANDARD.formattingOptions)
   }
 
   @Test
@@ -115,6 +99,6 @@ class LogcatFormatPresetActionTest {
 
     action.actionPerformed(TestActionEvent())
 
-    assertThat(fakeLogcatPresenter.formattingOptions).isSameAs(COMPACT.formattingOptions)
+    assertThat(fakeLogcatPresenter.formattingOptions).isEqualTo(COMPACT.formattingOptions)
   }
 }

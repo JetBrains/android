@@ -18,16 +18,21 @@ package com.android.tools.idea.logcat.messages
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
+import org.junit.Rule
 import org.junit.Test
 
 /**
  * Tests for [FormattingOptions]
  */
 class FormattingOptionsTest {
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
   @Test
   fun getStyle() {
     assertThat(STANDARD.formattingOptions.getStyle()).isEqualTo(STANDARD)
     assertThat(COMPACT.formattingOptions.getStyle()).isEqualTo(COMPACT)
-    assertThat(STANDARD.formattingOptions.copy().getStyle()).isNull()
+    assertThat(FormattingOptions(TimestampFormat(enabled = false)).getStyle()).isNull()
   }
 }
