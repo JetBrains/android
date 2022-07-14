@@ -50,7 +50,19 @@ class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<A
     fileEditorManager = FileEditorManager.getInstance(project)
     messageBusConnection.subscribe(IssueProviderListener.TOPIC, object : IssueProviderListener {
       override fun issueUpdated(source: Any, issues: List<Issue>) {
-        val filteredIssues = filterSelectedOrNoFileIssues(issues)
+        var filteredIssues = filterSelectedOrNoFileIssues(issues)
+
+        // Background lint update the issue asynchronized. For example, it is possible that a layout issue is reported after switching to
+        // Kotlin file. For now we only display the visual lint issue when the linted file is selected.
+        // TODO: Remove when visual lint always running in the background regardless the current selected file.
+        val selectedFiles = fileEditorManager.selectedFiles
+        filteredIssues = filteredIssues.filter {
+          if (it is VisualLintRenderIssue) {
+            it.source.models.map { model -> model.virtualFile }.any { file -> selectedFiles.contains(file) }
+          }
+          else true
+        }
+
         if (filteredIssues.isEmpty()) {
           sourceToIssueMap.remove(source)
         }

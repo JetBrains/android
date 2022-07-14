@@ -71,14 +71,14 @@ internal class CommonIssueTestParentNode(project: Project) : DesignerCommonIssue
 }
 
 fun createTestVisualLintRenderIssue(type: VisualLintErrorType,
-                                    components: MutableList<NlComponent>,
+                                    components: List<NlComponent>,
                                     summary: String = "") : VisualLintRenderIssue {
   return VisualLintRenderIssue.builder().model(components.first().model)
     .summary(summary)
     .severity(HighlightSeverity.WARNING)
     .contentDescriptionProvider { HtmlBuilder() }
     .model(components.first().model)
-    .components(components)
+    .components(components.toMutableList())
     .type(type)
     .build()
 }

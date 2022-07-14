@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -102,5 +107,34 @@ class DesignToolsIssueProviderTest {
 
     runInEdtAndWait { fileEditorManager.closeFile(file) }
     assertEquals(0, provider.getFilteredIssues().size)
+  }
+
+  @Test
+  fun testDoNotShowVisualLintIssueWhenTheirSourceFilesAreNotSelected() {
+    val messageBus = rule.project.messageBus
+    val provider = DesignToolsIssueProvider(rule.project)
+    val fileEditorManager = FileEditorManager.getInstance(rule.project)
+
+    val ktFile = rule.fixture.addFileToProject("src/KtFile.kt", "").virtualFile
+    val layoutFile = rule.fixture.addFileToProject("res/layout/my_layout.xml", "").virtualFile
+
+    val fakeNlModel = mock<NlModel>()
+    `when`(fakeNlModel.virtualFile).thenReturn(layoutFile)
+    val fakeNlComponent = mock<NlComponent>()
+    `when`(fakeNlComponent.model).thenReturn(fakeNlModel)
+
+    val ktFileIssues = listOf(TestIssue(source = IssueSourceWithFile(ktFile, "")))
+    val visualLintIssues = listOf(createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, listOf(fakeNlComponent), ""))
+
+    val ktSource = Any()
+    val layoutSource = Any()
+
+    runInEdtAndWait { fileEditorManager.openFile(ktFile, true) }
+    messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(ktSource, ktFileIssues)
+    assertEquals(ktFileIssues, provider.getFilteredIssues())
+
+    messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(layoutSource, visualLintIssues)
+    // Visual lint issue should not be displayed because the current selected file is Kotlin file.
+    assertEquals(ktFileIssues, provider.getFilteredIssues())
   }
 }
