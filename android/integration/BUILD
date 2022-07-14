@@ -53,8 +53,7 @@ iml_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "no_mac",  # Path issues, probably easily fixable.
-        "no_windows",  # Path issues, probably easily fixable.
+        "no_windows",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.idea.EmulatorTest",
 )

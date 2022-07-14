@@ -156,7 +156,8 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   public Emulator runEmulator() throws IOException, InterruptedException {
     if (emulator == null) {
       emulator = "emu";
-      Emulator.createEmulator(fileSystem, emulator, TestUtils.getWorkspaceRoot().resolve("../system_image_android-29_default_x86_64"));
+      Path workspaceRoot = TestUtils.getWorkspaceRoot("system_image_android-29_default_x86_64");
+      Emulator.createEmulator(fileSystem, emulator, workspaceRoot);
     }
     return Emulator.start(fileSystem, sdk, display, emulator);
   }

@@ -92,7 +92,9 @@ public class Emulator implements AutoCloseable {
     pb.environment().put("ANDROID_AVD_HOME", getAvdHome(fileSystem).toString());
     pb.environment().put("ANDROID_SDK_ROOT", sdk.getSourceDir().toString());
     pb.environment().put("ANDROID_PREFS_ROOT", fileSystem.getHome().toString());
-    pb.environment().put("DISPLAY", display.getDisplay());
+    if (display.getDisplay() != null) {
+      pb.environment().put("DISPLAY", display.getDisplay());
+    }
     // On older emulators in a remote desktop session, the hardware acceleration won't start properly without this env var.
     pb.environment().put("CHROME_REMOTE_DESKTOP_SESSION", "1");
 
