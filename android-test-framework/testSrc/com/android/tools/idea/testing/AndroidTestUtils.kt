@@ -38,8 +38,8 @@ import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.concurrency.SameThreadExecutor
+import com.intellij.util.ui.EDT
 import com.intellij.util.ui.EdtInvocationManager
-import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -204,8 +204,8 @@ fun waitForUpdates(repository: LocalResourceRepository) {
 /** Waits for the app resource repository to finish currently pending updates.  */
 @Throws(InterruptedException::class, TimeoutException::class)
 fun waitForUpdates(timeout: Long, unit: TimeUnit, repository: LocalResourceRepository) {
-  if (EdtInvocationManager.getInstance().isEventDispatchThread) {
-    UIUtil.dispatchAllInvocationEvents()
+  if (EDT.isCurrentThreadEdt()) {
+    EdtInvocationManager.dispatchAllInvocationEvents()
   }
   val latch = CountDownLatch(1)
   repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) { latch.countDown() }

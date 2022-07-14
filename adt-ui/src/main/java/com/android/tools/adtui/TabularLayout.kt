@@ -16,7 +16,7 @@
 package com.android.tools.adtui
 
 import com.android.annotations.concurrency.UiThread
-import com.intellij.util.ui.EdtInvocationManager
+import com.intellij.util.ui.EDT
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Container
@@ -252,7 +252,7 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
 
   override fun layoutContainer(parent: Container) {
     // Ensure parent.getComponent access is synchronous
-    assert (EdtInvocationManager.getInstance().isEventDispatchThread)
+    assert (EDT.isCurrentThreadEdt())
 
     val result = LayoutResult(parent)
     val colCalc = result.colCalculator
@@ -438,7 +438,7 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
 
     init {
       // Ensure parent.getComponent access is synchronous
-      assert (EdtInvocationManager.getInstance().isEventDispatchThread)
+      assert (EDT.isCurrentThreadEdt())
 
       val components = mutableListOf<Component>()
 
