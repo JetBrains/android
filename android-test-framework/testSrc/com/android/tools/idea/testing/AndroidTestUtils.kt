@@ -39,7 +39,6 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.ui.EDT
-import com.intellij.util.ui.EdtInvocationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -205,7 +204,7 @@ fun waitForUpdates(repository: LocalResourceRepository) {
 @Throws(InterruptedException::class, TimeoutException::class)
 fun waitForUpdates(timeout: Long, unit: TimeUnit, repository: LocalResourceRepository) {
   if (EDT.isCurrentThreadEdt()) {
-    EdtInvocationManager.dispatchAllInvocationEvents()
+    EDT.dispatchAllInvocationEvents()
   }
   val latch = CountDownLatch(1)
   repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) { latch.countDown() }
