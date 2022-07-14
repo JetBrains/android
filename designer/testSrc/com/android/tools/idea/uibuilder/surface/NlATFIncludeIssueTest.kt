@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.lint.detector.api.Category
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.util.containers.getIfSingle
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,7 +48,8 @@ class NlATFIncludeIssueTest: LayoutTestCase() {
     assertEquals(HighlightSeverity.WARNING, atfIssue.severity)
     assertNotEquals(IssueSource.NONE, atfIssue.source)
     assertEquals(Category.A11Y.name, atfIssue.category)
-    assertEquals(2, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.suppresses.count())
   }
 
   @Test
@@ -65,11 +67,9 @@ class NlATFIncludeIssueTest: LayoutTestCase() {
     val source: NlComponent = model.components[0].getChild(0)!!
     val atfIssue = NlATFIncludeIssue(source, mockSurface)
 
-    atfIssue.fixes.filter { it.buttonText == "Ignore" }.forEach {
-      it.action.run()
-
-      assertEquals(SdkConstants.ATTR_IGNORE_A11Y_LINTS, source.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE))
-    }
+    val ignore = atfIssue.suppresses.getIfSingle()!!
+    ignore.action.run()
+    assertEquals(SdkConstants.ATTR_IGNORE_A11Y_LINTS, source.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE))
   }
 
   @Test

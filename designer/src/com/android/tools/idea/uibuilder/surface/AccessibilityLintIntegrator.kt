@@ -119,18 +119,6 @@ class NlATFIncludeIssue(
 
   override val fixes: Stream<Fix>
     get() {
-      val ignore = Fix("Ignore", "Ignore this check if it is false positive.") {
-        var attr = include.getAttribute(TOOLS_URI, ATTR_IGNORE)
-        attr = if (!attr.isNullOrEmpty()) {
-          "$attr,$ATTR_IGNORE_A11Y_LINTS"
-        } else {
-          ATTR_IGNORE_A11Y_LINTS
-        }
-        NlWriteCommandActionUtil.run(include, "Ignore A11Y lints") {
-          // Set attr automatically refreshes the surface.
-          include.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
-        }
-      }
       val goto = Fix("Open the layout", "Open the include layout.") {
         include.viewHandler?.let { handler ->
           if (handler is IncludeHandler) {
@@ -138,7 +126,21 @@ class NlATFIncludeIssue(
           }
         }
       }
-      return listOf(ignore, goto).stream()
+      return Stream.of(goto)
+    }
+
+  override val suppresses: Stream<Suppress>
+    get() {
+      val ignore = Suppress("Suppress", "Suppress this check if it is false positive.") {
+        val attr = include.getAttribute(TOOLS_URI, ATTR_IGNORE).let {
+          if (it.isNullOrEmpty()) ATTR_IGNORE_A11Y_LINTS else "$it,$ATTR_IGNORE_A11Y_LINTS"
+        }
+        NlWriteCommandActionUtil.run(include, "Suppress A11Y lints") {
+          // Set attr automatically refreshes the surface.
+          include.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
+        }
+      }
+      return Stream.of(ignore)
     }
 }
 
@@ -214,33 +216,34 @@ open class NlAtfIssue(
 
   override val fixes: Stream<Fix>
     get() {
-      val source = source
+      val source = this.source
       if (source is NlAttributesHolder) {
-        val fixes:MutableList<Fix> = mutableListOf()
         result.mFix?.let {
           val fix = Fix("Fix", it.description) {
             applyFixWrapper(it)
             eventListener?.onApplyFixButtonClicked(result)
           }
-          fixes.add(fix)
+          return Stream.of(fix)
         }
-
-        val ignore = Fix("Ignore", "Ignore this check if it is false positive.") {
-          var attr = source.getAttribute(TOOLS_URI, ATTR_IGNORE)
-          if (!attr.isNullOrEmpty()) {
-            attr = "$attr,${result.mSourceClass}"
-          } else {
-            attr = result.mSourceClass
-          }
-
-          // Set attr automatically refreshes the surface.
-          source.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
-          eventListener?.onIgnoreButtonClicked(result)
-        }
-        fixes.add(ignore)
-        return fixes.stream()
       }
       return Stream.empty()
+    }
+
+  override val suppresses: Stream<Suppress>
+    get() {
+      val source = this.source
+      if (source !is NlAttributesHolder) {
+        return Stream.empty()
+      }
+      val ignore = Suppress("Suppress", "Suppress this check if it is false positive.") {
+        val attr = source.getAttribute(TOOLS_URI, ATTR_IGNORE).let {
+          if (it.isNullOrEmpty()) result.mSourceClass else "$it,${result.mSourceClass}"
+        }
+        // Set attr automatically refreshes the surface.
+        source.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
+        eventListener?.onIgnoreButtonClicked(result)
+      }
+      return Stream.of(ignore)
     }
 
   override val hyperlinkListener: HyperlinkListener?
