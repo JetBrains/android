@@ -1980,6 +1980,8 @@ android-studio/plugins/design-tools/resources/layoutlib/data/layoutlib-extension
 android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libandroid_runtime.dll
 android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libicuuc-host.dll
 android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libicuuc_stubdata.dll
+android-studio/plugins/devkit/lib/devkit-jps.jar
+android-studio/plugins/devkit/lib/devkit.jar
 android-studio/plugins/editorconfig/lib/editorconfig.jar
 android-studio/plugins/firebase-testing/lib/firebase-testing.jar
 android-studio/plugins/firebase-testing/lib/google-api-services-storage-v1-rev1-1.18.0-rc.jar

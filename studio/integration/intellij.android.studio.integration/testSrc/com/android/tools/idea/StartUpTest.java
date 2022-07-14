@@ -97,6 +97,7 @@ public class StartUpTest {
         "Markdown",
         "Mercurial",
         "NetBeans Keymap",
+        "Plugin DevKit",
         "Properties",
         "Refactoring Detector",
         "Settings Repository",
