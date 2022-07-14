@@ -47,7 +47,7 @@ public class ProjectStructure {
 
   @GuardedBy("myLock")
   @NotNull
-  private final AndroidPluginVersionsInProject myPluginVersionsInProject = new AndroidPluginVersionsInProject();
+  private AndroidPluginVersionsInProject myPluginVersionsInProject = new AndroidPluginVersionsInProject();
 
   @GuardedBy("myLock")
   @NotNull
@@ -99,7 +99,7 @@ public class ProjectStructure {
     }
 
     synchronized (myLock) {
-      myPluginVersionsInProject.copy(pluginVersionsInProject);
+      myPluginVersionsInProject = pluginVersionsInProject;
 
       // "Leaf" modules include app modules and the non-app modules that no other modules depend on via any path that starts from a main
       // source setand and end on a main source set.
@@ -123,11 +123,9 @@ public class ProjectStructure {
 
   @NotNull
   public AndroidPluginVersionsInProject getAndroidPluginVersions() {
-    AndroidPluginVersionsInProject pluginVersionsInProject = new AndroidPluginVersionsInProject();
     synchronized (myLock) {
-      pluginVersionsInProject.copy(myPluginVersionsInProject);
+      return myPluginVersionsInProject;
     }
-    return pluginVersionsInProject;
   }
 
   @NotNull
@@ -178,11 +176,7 @@ public class ProjectStructure {
   public static class AndroidPluginVersionsInProject {
     @NotNull private final Set<GradleVersion> myAgpVersions = new HashSet<>();
 
-    void copy(@NotNull AndroidPluginVersionsInProject other) {
-      myAgpVersions.addAll(other.myAgpVersions);
-    }
-
-    void add(@NotNull AndroidModuleModel androidModel) {
+    private void add(@NotNull AndroidModuleModel androidModel) {
       GradleVersion modelVersion = androidModel.getAgpVersion();
       if (modelVersion != null) {
         add(modelVersion);
@@ -190,12 +184,8 @@ public class ProjectStructure {
     }
 
     @VisibleForTesting
-    void add(@NotNull GradleVersion modelVersion) {
+    private void add(@NotNull GradleVersion modelVersion) {
       myAgpVersions.add(modelVersion);
-    }
-
-    void clear() {
-      myAgpVersions.clear();
     }
 
     @NotNull
