@@ -18,7 +18,7 @@ package com.android.tools.idea.concurrency
 
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.util.ui.EdtInvocationManager
+import com.intellij.util.ui.EDT
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
@@ -39,7 +39,7 @@ fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
   val timeoutMillis = unit.toMillis(timeout)
   val deadline = System.currentTimeMillis() + timeoutMillis
   var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
-  val isEdt = EdtInvocationManager.getInstance().isEventDispatchThread
+  val isEdt = EDT.isCurrentThreadEdt()
   while (waitUnit > 0) {
     if (isEdt) {
       UIUtil.dispatchAllInvocationEvents()
