@@ -35,7 +35,6 @@ class TomlDslTransformerFactory : GradleDslTransformerFactory {
     TomlDslParser(psiFile as TomlFile, context, dslFile)
 
   override fun createWriter(context: BuildModelContext) =
-    // TODO(b/200280395): implement writer
     when {
       // TODO(b/200280395): when we remove the flag, also remove the dependency on intellij.android.common
       StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.get() -> TomlDslWriter(context)
