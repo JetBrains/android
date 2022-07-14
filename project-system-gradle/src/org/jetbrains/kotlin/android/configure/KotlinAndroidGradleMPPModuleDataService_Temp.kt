@@ -14,13 +14,12 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.roots.ContentEntry
-import com.intellij.openapi.roots.DependencyScope
 import org.jetbrains.kotlin.android.common.configure.AbstractKotlinAndroidGradleMPPModuleDataService
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 import java.util.stream.Stream
 
-class KotlinAndroidGradleMPPModuleDataService : AbstractKotlinAndroidGradleMPPModuleDataService() {
+class KotlinAndroidGradleMPPModuleDataService_Temp : AbstractKotlinAndroidGradleMPPModuleDataService() {
 
   override fun getVariantName(node: DataNode<ModuleData>): String? {
     return getAndroidModuleModel(node)?.selectedVariant?.name

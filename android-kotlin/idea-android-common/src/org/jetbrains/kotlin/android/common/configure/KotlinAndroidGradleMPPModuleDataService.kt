@@ -28,7 +28,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.util.stream.Stream
 
-abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<ModuleData, Void>() {
+abstract class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<ModuleData, Void>() {
     override fun getTargetDataKey() = ProjectKeys.MODULE
 
     protected class IndexedModules(val byId: Map<String, DataNode<ModuleData>>, val byIdeName: Map<String, DataNode<ModuleData>>)
@@ -239,7 +239,7 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
     abstract fun pathToIdeaUrl(path: File): String
 
     companion object {
-        private val LOG = Logger.getInstance(AbstractKotlinAndroidGradleMPPModuleDataService::class.java)
+        private val LOG = Logger.getInstance(KotlinAndroidGradleMPPModuleDataService::class.java)
     }
 }
 
