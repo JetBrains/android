@@ -249,14 +249,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   fun showPlace(place: Place?) {
     // TODO(IDEA-196602):  Pressing Ctrl+Alt+S or Ctrl+Alt+Shift+S for a little longer shows tens of dialogs. Remove when fixed.
     if (myShowing) return
-    if (GradleSyncState.getInstance(myProject).isSyncInProgress) {
-      val ideFrame = WindowManager.getInstance().getIdeFrame(myProject)
-      if (ideFrame != null) {
-        val statusBar = ideFrame.statusBar as StatusBarEx
-        statusBar.notifyProgressByBalloon(MessageType.WARNING, "Project Structure is unavailable while sync is in progress.", null, null)
-      }
-      return
-    }
+    if (!canShowPsdOrWarnUser(myProject)) return
     myOpenTimeMs = System.currentTimeMillis()
     logUsageOpen()
     needsSync = false
@@ -524,3 +517,17 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     private fun createPlaceFor(configurable: Configurable): Place = Place().putPath(CATEGORY_NAME, configurable.displayName)
   }
 }
+
+fun canShowPsdOrWarnUser(project: Project): Boolean {
+  if (canShowPsd(project)) {
+    return true
+  }
+  val ideFrame = WindowManager.getInstance().getIdeFrame(project)
+  if (ideFrame != null) {
+    val statusBar = ideFrame.statusBar as StatusBarEx
+    statusBar.notifyProgressByBalloon(MessageType.WARNING, "Project Structure is unavailable while sync is in progress.", null, null)
+  }
+  return false
+}
+
+fun canShowPsd(project: Project) = !GradleSyncState.getInstance(project).isSyncInProgress

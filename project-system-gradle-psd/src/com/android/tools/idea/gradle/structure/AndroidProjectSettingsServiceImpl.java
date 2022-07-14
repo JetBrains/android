@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.structure;
 
 import static com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink.showGradleSettings;
 import static com.android.tools.idea.gradle.util.GradleProjects.getGradleModulePath;
+import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurableKt.canShowPsd;
+import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurableKt.canShowPsdOrWarnUser;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
@@ -68,6 +70,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void openGlobalLibraries() {
+    if (!canShowPsdOrWarnUser(myProject)) return;
     if (!isGradleProjectInAndroidStudio()) {
       myDelegate.openGlobalLibraries();
     }
@@ -75,6 +78,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void openLibrary(@NotNull Library library) {
+    if (!canShowPsdOrWarnUser(myProject)) return;
     if (!isGradleProjectInAndroidStudio()) {
       myDelegate.openLibrary(library);
     }
@@ -82,6 +86,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public boolean canOpenModuleSettings() {
+    if (!canShowPsd(myProject)) return false;
     if (isGradleProjectInAndroidStudio()) {
       return true;
     }
@@ -92,6 +97,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void openModuleLibrarySettings(Module module) {
+    if (!canShowPsdOrWarnUser(myProject)) return;
     if (isGradleProjectInAndroidStudio()) {
       openModuleSettings(module);
     }
@@ -106,6 +112,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void openModuleSettings(Module module) {
+    if (!canShowPsdOrWarnUser(myProject)) return;
     if (isGradleProjectInAndroidStudio()) {
       showNewPsd(
         new Place()
@@ -188,6 +195,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public boolean canOpenModuleLibrarySettings() {
+    if (!canShowPsd(myProject)) return false;
     if (isGradleProjectInAndroidStudio()) {
       return false;
     }
@@ -198,6 +206,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public boolean canOpenContentEntriesSettings() {
+    if (!canShowPsd(myProject)) return false;
     if (isGradleProjectInAndroidStudio()) {
       return false;
     }
@@ -208,6 +217,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void openContentEntriesSettings(Module module) {
+    if (!canShowPsdOrWarnUser(myProject)) return;
     if (isGradleProjectInAndroidStudio()) {
       openModuleSettings(module);
     }
@@ -218,6 +228,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public boolean canOpenModuleDependenciesSettings() {
+    if (!canShowPsd(myProject)) return false;
     if (isGradleProjectInAndroidStudio()) {
       // TODO: This is something we ought to be able to do. However, it's not clear that there's any code path that can reach this method.
       return false;
@@ -229,6 +240,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void openModuleDependenciesSettings(@NotNull Module module, @Nullable OrderEntry orderEntry) {
+    if (!canShowPsdOrWarnUser(myProject)) return;
     if (isGradleProjectInAndroidStudio()) {
       openModuleSettings(module);
     }
@@ -239,6 +251,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public boolean canOpenLibraryOrSdkSettings(OrderEntry orderEntry) {
+    if (!canShowPsd(myProject)) return false;
     if (isGradleProjectInAndroidStudio()) {
       return false;
     }
@@ -249,6 +262,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void openLibraryOrSdkSettings(@NotNull OrderEntry orderEntry) {
+    if (!canShowPsdOrWarnUser(myProject)) return;
     if (!isGradleProjectInAndroidStudio()) {
       myDelegate.openLibraryOrSdkSettings(orderEntry);
     }
@@ -256,6 +270,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public boolean processModulesMoved(Module[] modules, @Nullable ModuleGroup targetGroup) {
+    if (!canShowPsd(myProject)) return false;
     if (isGradleProjectInAndroidStudio()) {
       return false;
     }
@@ -266,6 +281,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void showModuleConfigurationDialog(String moduleToSelect, String editorNameToSelect) {
+    if (!canShowPsdOrWarnUser(myProject)) return;
     if (isGradleProjectInAndroidStudio()) {
       Module module = ModuleManager.getInstance(myProject).findModuleByName(moduleToSelect);
       assert module != null;
@@ -288,6 +304,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void openArtifactSettings(@Nullable Artifact artifact) {
+    if (!canShowPsdOrWarnUser(myProject)) return;
     if (!isGradleProjectInAndroidStudio()) {
       myDelegate.openArtifactSettings(artifact);
     }
