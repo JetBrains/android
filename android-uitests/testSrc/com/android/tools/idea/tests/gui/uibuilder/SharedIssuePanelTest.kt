@@ -78,9 +78,10 @@ class SharedIssuePanelTest {
     editor.open(javaFile)
     assertThat(problemsPane.isTabExist(title)).isFalse()
 
-    // Test switching back.
+    // Test switching back. The tab should appear but the selected tab is still "Current File" tab because the layout file is opened
+    // already.
     editor.open(layoutFile)
-    assertThat(problemsPane.isTabSelected(title)).isTrue()
+    assertThat(problemsPane.isTabExist(title)).isTrue()
 
     editor.closeFile(layoutFile).closeFile(javaFile)
   }
