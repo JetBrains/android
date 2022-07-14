@@ -568,4 +568,33 @@ class LiteralsTest {
       assertEquals("-120", contents)
     }
   }
+
+  @Suppress("UnstableApiUsage")
+  @Test
+  fun `find literals in non-smart mode`() {
+    val literalsManager = LiteralsManager()
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+      package test.app
+
+      class LiteralsTest {
+        private val SIMPLE = -120
+
+        fun testCall() {
+          method(SIMPLE)
+        }
+    }
+    """.trimIndent())
+
+    runBlocking {
+      withUiContext {
+        (DumbService.getInstance(projectRule.project) as DumbServiceImpl).isDumb = true
+      }
+
+      val literals = literalsManager.findLiterals(file)
+      assertTrue(literals.all.isEmpty())
+    }
+  }
 }

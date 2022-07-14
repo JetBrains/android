@@ -57,6 +57,7 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.jetbrains.kotlin.types.TypeUtils
 import java.util.Objects
+import java.util.concurrent.Callable
 
 @FunctionalInterface
 interface PsiElementUniqueIdProvider {
@@ -395,61 +396,64 @@ class LiteralsManager(
                                    constantType: Collection<Class<*>>,
                                    constantEvaluator: ConstantEvaluator,
                                    elementFilter: (PsiElement) -> Boolean): LiteralReferenceSnapshot {
-    val savedLiterals = mutableListOf<LiteralReferenceImpl>()
-    ReadAction.nonBlocking {
-      root.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
-        override fun visitElement(element: PsiElement) {
-          if (!elementFilter(element) || !element.isValid || element.containingFile == null) return
+    val savedLiterals = ReadAction.nonBlocking(Callable<Collection<LiteralReferenceImpl>> {
+      val savedLiterals = mutableListOf<LiteralReferenceImpl>()
+      try {
+        root.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
+          override fun visitElement(element: PsiElement) {
+            if (!elementFilter(element) || !element.isValid || element.containingFile == null) return
 
-          // Special case for string templates
-          if (element is KtStringTemplateExpression) {
-            // A template can generate multiple constants. For example "Hello $name!!" will generate two:
-            //  - "Hello "
-            //  - "!!"
-            // This is not currently supported by the ConstantExpressionEvaluator in the plugin so we handle it here.
-            if (element.entries.size == 1 || element.entries.any { it !is KtLiteralStringTemplateEntry }) {
-              element.entries.forEach {
-                if (it is KtLiteralStringTemplateEntry) {
-                  savedLiterals.add(
-                    LiteralReferenceImpl(it,
-                                         uniqueIdProvider,
-                                         literalUsageReferenceProvider,
-                                         it.text,
-                                         PsiTextConstantEvaluator,
-                                         Companion::markAsManaged))
+            // Special case for string templates
+            if (element is KtStringTemplateExpression) {
+              // A template can generate multiple constants. For example "Hello $name!!" will generate two:
+              //  - "Hello "
+              //  - "!!"
+              // This is not currently supported by the ConstantExpressionEvaluator in the plugin so we handle it here.
+              if (element.entries.size == 1 || element.entries.any { it !is KtLiteralStringTemplateEntry }) {
+                element.entries.forEach {
+                  if (it is KtLiteralStringTemplateEntry) {
+                    savedLiterals.add(
+                      LiteralReferenceImpl(it,
+                                           uniqueIdProvider,
+                                           literalUsageReferenceProvider,
+                                           it.text,
+                                           PsiTextConstantEvaluator,
+                                           Companion::markAsManaged))
+                  }
                 }
               }
+              else {
+                // All sub elements are string entries so handle as one string
+                savedLiterals.add(
+                  LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider,
+                                       KotlinLiteralTemplateConstantEvaluator.evaluate(element) as String,
+                                       KotlinLiteralTemplateConstantEvaluator,
+                                       Companion::markAsManaged))
+              }
+              return
             }
-            else {
-              // All sub elements are string entries so handle as one string
-              savedLiterals.add(
-                LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider,
-                                     KotlinLiteralTemplateConstantEvaluator.evaluate(element) as String,
-                                     KotlinLiteralTemplateConstantEvaluator,
-                                     Companion::markAsManaged))
+
+            if (constantType.any { it.isInstance(element) }) {
+              constantEvaluator.evaluate(element)?.let {
+                // This is a regular constant, save it.
+                savedLiterals.add(LiteralReferenceImpl(element,
+                                                       uniqueIdProvider,
+                                                       literalUsageReferenceProvider,
+                                                       it,
+                                                       constantEvaluator,
+                                                       Companion::markAsManaged))
+              }
+              return
             }
-            return
+
+            super.visitElement(element)
           }
+        })
+      } catch (_: IndexNotReadyException) {}
+      savedLiterals
+    }).submit(literalReadingExecutor).await()
 
-          if (constantType.any { it.isInstance(element) }) {
-            constantEvaluator.evaluate(element)?.let {
-              // This is a regular constant, save it.
-              savedLiterals.add(LiteralReferenceImpl(element,
-                                                     uniqueIdProvider,
-                                                     literalUsageReferenceProvider,
-                                                     it,
-                                                     constantEvaluator,
-                                                     Companion::markAsManaged))
-            }
-            return
-          }
-
-          super.visitElement(element)
-        }
-      })
-    }.submit(literalReadingExecutor).await()
-
-    return LiteralReferenceSnapshotImpl(savedLiterals)
+    return if (savedLiterals.isNotEmpty()) LiteralReferenceSnapshotImpl(savedLiterals) else EmptyLiteralReferenceSnapshot
   }
 
   /**
