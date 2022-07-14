@@ -30,7 +30,7 @@ import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.ui.EdtInvocationManager
+import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.junit.Before
 import org.junit.Rule
@@ -86,12 +86,12 @@ class EmulatorScreenshotActionTest {
     val clipComboBox = ui.getComponent<JComboBox<*>>()
 
     clipComboBox.selectFirstMatch("Display Shape")
-    EdtInvocationManager.dispatchAllInvocationEvents()
+    EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     var image = ui.getComponent<ImageComponent>().document.value
     assertAppearance(image, "WithoutFrame")
     clipComboBox.selectFirstMatch("Show Device Frame")
-    EdtInvocationManager.dispatchAllInvocationEvents()
+    EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     image = ui.getComponent<ImageComponent>().document.value
     assertAppearance(image, "WithFrame")

@@ -45,7 +45,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.ui.EdtInvocationManager
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.EDT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -208,7 +208,7 @@ fun waitForResourceRepositoryUpdates(module: Module, timeout: Long = 2, unit: Ti
 @JvmOverloads
 fun waitForUpdates(repository: LocalResourceRepository, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
   if (EdtInvocationManager.getInstance().isEventDispatchThread) {
-    UIUtil.dispatchAllInvocationEvents()
+    EDT.dispatchAllInvocationEvents()
   }
   val done = AtomicBoolean()
   repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) { done.set(true) }

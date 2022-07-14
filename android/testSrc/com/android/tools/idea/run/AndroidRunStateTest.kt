@@ -35,7 +35,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.ui.EdtInvocationManager
+import com.intellij.util.ui.EDT
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
@@ -94,7 +94,7 @@ class AndroidRunStateTest {
 
   @After
   fun tearDown() {
-    EdtInvocationManager.dispatchAllInvocationEvents()
+    EDT.dispatchAllInvocationEvents()
   }
 
   @Test
