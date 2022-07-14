@@ -117,6 +117,7 @@ public final class VirtualDevice extends Device {
   enum State {
     STOPPED(false, StudioIcons.Avd.RUN, "Launch this AVD in the emulator") {
       @Override
+      @SuppressWarnings("unused")
       boolean isEnabled(@NotNull VirtualDevice device) {
         return device.myAvdInfo.getStatus().equals(AvdStatus.OK);
       }
@@ -124,6 +125,7 @@ public final class VirtualDevice extends Device {
 
     LAUNCHING(false, StudioIcons.Avd.RUN, "Launch this AVD in the emulator") {
       @Override
+      @SuppressWarnings("unused")
       boolean isEnabled(@NotNull VirtualDevice device) {
         return false;
       }
@@ -131,6 +133,7 @@ public final class VirtualDevice extends Device {
 
     LAUNCHED(true, StudioIcons.Avd.STOP, "Stop the emulator running this AVD") {
       @Override
+      @SuppressWarnings("unused")
       boolean isEnabled(@NotNull VirtualDevice device) {
         return true;
       }
@@ -138,6 +141,7 @@ public final class VirtualDevice extends Device {
 
     STOPPING(true, StudioIcons.Avd.STOP, "Stop the emulator running this AVD") {
       @Override
+      @SuppressWarnings("unused")
       boolean isEnabled(@NotNull VirtualDevice device) {
         return false;
       }
@@ -225,6 +229,10 @@ public final class VirtualDevice extends Device {
 
   long getSizeOnDisk() {
     return mySizeOnDisk;
+  }
+
+  @NotNull Object getState() {
+    return myState;
   }
 
   boolean isPairable() {

@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
-import icons.StudioIcons;
 import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
@@ -30,20 +28,12 @@ final class LaunchOrStopButtonTableCellRenderer extends IconButtonTableCellRende
                                                           boolean focused,
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
-    VirtualDevice device = ((VirtualDeviceTable)table).getDeviceAt(viewRowIndex);
+    VirtualDevice.State state = (VirtualDevice.State)value;
 
-    if (device.isOnline()) {
-      myButton.setDefaultIcon(StudioIcons.Avd.STOP);
-      myButton.setEnabled(true);
-      myButton.setToolTipText("Stop the emulator running this AVD");
-    }
-    else {
-      myButton.setDefaultIcon(StudioIcons.Avd.RUN);
-      myButton.setEnabled(device.getAvdInfo().getStatus().equals(AvdStatus.OK));
-      myButton.setToolTipText("Launch this AVD in the emulator");
-    }
+    myButton.setDefaultIcon(state.getIcon());
+    myButton.setEnabled(state.isEnabled(((VirtualDeviceTable)table).getDeviceAt(viewRowIndex)));
+    myButton.setToolTipText(state.getTooltipText());
 
-    super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
-    return myButton;
+    return super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
   }
 }

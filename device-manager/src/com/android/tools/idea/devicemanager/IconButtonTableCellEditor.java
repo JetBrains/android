@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.awt.Component;
-import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.Icon;
 import javax.swing.JTable;
@@ -28,14 +27,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class IconButtonTableCellEditor extends AbstractCellEditor implements TableCellEditor {
   protected final @NotNull IconButton myButton;
-  private final @Nullable Object myValue;
+  protected @Nullable Object myValue;
 
   protected IconButtonTableCellEditor() {
-    this(null);
-  }
-
-  protected IconButtonTableCellEditor(@Nullable Object value) {
-    this(value, null);
+    this(null, null);
   }
 
   protected IconButtonTableCellEditor(@Nullable Object value, @Nullable Icon icon) {
@@ -49,11 +44,6 @@ public class IconButtonTableCellEditor extends AbstractCellEditor implements Tab
     myButton.setToolTipText(tooltipText);
 
     myValue = value;
-  }
-
-  @VisibleForTesting
-  public final @NotNull AbstractButton getButton() {
-    return myButton;
   }
 
   @VisibleForTesting

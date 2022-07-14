@@ -282,7 +282,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getSizeOnDisk();
       case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
-        return VirtualDevice.State.STOPPED;
+        return myDevices.get(modelRowIndex).getState();
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
         return ActivateDeviceFileExplorerWindowValue.INSTANCE;
       case EDIT_MODEL_COLUMN_INDEX:
@@ -319,13 +319,13 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   private void launchOrStop(@NotNull VirtualDevice.State state, int modelRowIndex) {
     switch (state) {
       case STOPPED:
-        // TODO Uncomment the assert when http://b/237442318 is fixed
-        // assert false;
+        assert false;
         break;
       case LAUNCHING:
         launch(modelRowIndex);
         break;
       case LAUNCHED:
+        // noinspection DuplicateBranchesInSwitch
         assert false;
         break;
       case STOPPING:

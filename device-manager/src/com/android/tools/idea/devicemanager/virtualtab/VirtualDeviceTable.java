@@ -89,7 +89,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
     initListener();
 
-    setDefaultEditor(VirtualDevice.State.class, new LaunchOrStopButtonTableCellEditor(project));
+    setDefaultEditor(VirtualDevice.State.class, new LaunchOrStopButtonTableCellEditor());
 
     setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class,
                      new ActivateDeviceFileExplorerWindowButtonTableCellEditor<>(project,
