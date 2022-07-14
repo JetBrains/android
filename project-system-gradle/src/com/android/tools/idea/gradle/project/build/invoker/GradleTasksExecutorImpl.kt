@@ -293,7 +293,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             .withEnvironmentVariables(myRequest.env)
             .passParentEnvs(myRequest.isPassParentEnvs)
           val operation: LongRunningOperation = if (isRunBuildAction) connection.action(buildAction) else connection.newBuild()
-          GradleExecutionHelper.prepare(operation, id, executionSettings, object : ExternalSystemTaskNotificationListenerAdapter() {
+          val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
             override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
               if (myBuildStopper.contains(id)) {
                 taskListener.onStatusChange(event)
@@ -315,7 +315,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
                 taskListener.onTaskOutput(id, text, stdOut)
               }
             }
-          }, connection)
+          }
+          GradleExecutionHelper.prepare(connection, operation, id, executionSettings, listener)
           if (enableBuildAttribution) {
             buildAttributionManager = myProject.getService(BuildAttributionManager::class.java)
             setUpBuildAttributionManager(
