@@ -38,6 +38,7 @@ import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemRenderer
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
 import com.android.tools.idea.explorer.ui.TreeUtil
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ThreadingCheckRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.SettableFuture
@@ -119,6 +120,9 @@ class DeviceExplorerControllerTest {
   // AndroidDebugBridge.)
   @get:Rule
   val androidProjectRule = AndroidProjectRule.onDisk().onEdt()
+
+  @get:Rule
+  val threadingCheckRule = ThreadingCheckRule()
 
   private val project: Project
     get() = androidProjectRule.project
