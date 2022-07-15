@@ -51,7 +51,6 @@ import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-// TODO Annotate the methods with the threading annotations
 @UiThread
 final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
@@ -391,6 +390,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     return null;
   }
 
+  @UiThread
   @VisibleForTesting
   static final class SetAllOnline implements FutureCallback<Object> {
     private final @NotNull VirtualDeviceTableModel myModel;
