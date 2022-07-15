@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstru
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.GradlePluginVersion
@@ -190,8 +191,9 @@ fun androidConfig(
 
 private fun resource(path: String) = File("templates/module", path)
 
-fun RecipeExecutor.copyIcons(destination: File) {
-  fun copyAdaptiveIcons() {
+fun RecipeExecutor.copyIcons(destination: File, targetSdkVersion: ApiVersion) {
+
+  fun copyAdaptiveIcons(targetSdkVersion: ApiVersion) {
     copy(
       resource("mipmap-anydpi-v26/ic_launcher.xml"),
       destination.resolve("mipmap-anydpi-v26/ic_launcher.xml")
@@ -208,11 +210,18 @@ fun RecipeExecutor.copyIcons(destination: File) {
       resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
       destination.resolve("mipmap-anydpi-v26/ic_launcher_round.xml")
     )
+    if (targetSdkVersion.api >= 33) {
+      // For themed app icons
+      copy(
+        resource("mipmap-anydpi-v33/ic_launcher.xml"),
+        destination.resolve("mipmap-anydpi-v33/ic_launcher.xml")
+      )
+    }
   }
 
   copyMipmapFolder(destination)
   copyMipmapFolder(destination)
-  copyAdaptiveIcons()
+  copyAdaptiveIcons(targetSdkVersion)
 }
 
 fun RecipeExecutor.copyMipmapFolder(destination: File) {
