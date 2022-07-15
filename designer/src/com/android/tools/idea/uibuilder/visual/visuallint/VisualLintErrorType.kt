@@ -36,7 +36,7 @@ enum class VisualLintErrorType(val shortName: String) {
     get() = ATTRIBUTE_PREFIX + shortName
 
   fun toSuppressActionDescription(): String {
-    return """Add ${SdkConstants.TOOLS_NS_NAME_PREFIX}${SdkConstants.ATTR_IGNORE}="$ignoredAttributeValue""""
+    return """Add ${SdkConstants.TOOLS_NS_NAME_PREFIX}${SdkConstants.ATTR_IGNORE}="$ignoredAttributeValue attribute""""
   }
 
   companion object {

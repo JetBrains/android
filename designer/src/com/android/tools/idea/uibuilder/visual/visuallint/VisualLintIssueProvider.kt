@@ -88,7 +88,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
         return Stream.empty()
       }
       return Stream.of(Suppress("Suppress",
-                                "Suppress: Add " + type.toSuppressActionDescription() + " attribute",
+                                "Suppress: ${type.toSuppressActionDescription()}",
                                 VisualLintSuppressTask(type, components)))
     }
 

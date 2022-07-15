@@ -26,6 +26,8 @@ import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
+import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.Assert.assertEquals
 import org.jetbrains.kotlin.idea.util.application.executeCommand
@@ -45,6 +47,18 @@ class VisualLintSuppressTaskTest {
     VisualLintSuppressTask(BoundsAnalyzer.type, model.components).run()
     val attr = model.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
     assertEquals(BoundsAnalyzer.type.ignoredAttributeValue, attr)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSuppressionTaskDescriptionInUndoManager() {
+    val model = createModel("test.xml")
+    rule.fixture.openFileInEditor(model.virtualFile)
+    VisualLintSuppressTask(BoundsAnalyzer.type, model.components).run()
+
+    val editor = FileEditorManager.getInstance(rule.project).selectedEditor
+    assertEquals("Undo Suppress: ${BoundsAnalyzer.type.toSuppressActionDescription()}",
+                 UndoManager.getInstance(rule.project).getUndoActionNameAndDescription(editor).second)
   }
 
   @RunsInEdt
