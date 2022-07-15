@@ -36,6 +36,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.AvailableDevice
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEFAULT_DEVICE_ID
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEFAULT_DEVICE_ID_WITH_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
+import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_NAME_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getSdkDevices
 import com.android.tools.idea.flags.StudioFlags
@@ -119,6 +120,15 @@ internal object PreviewAnnotationCheck {
         }
         else {
           checkDeviceId(deviceParameterValue.substringAfter(DEVICE_BY_ID_PREFIX), module)
+        }
+      }
+      // Check the device_id in "name:<device_name>
+      deviceParameterValue.startsWith(DEVICE_BY_NAME_PREFIX) -> {
+        if (module == null) {
+          failedCheck("Couldn't obtain Module")
+        }
+        else {
+          checkDeviceName(deviceParameterValue.substringAfter(DEVICE_BY_NAME_PREFIX), module)
         }
       }
       // Check the DeviceSpec parameters in "spec:..."
@@ -255,6 +265,20 @@ internal object PreviewAnnotationCheck {
   }
 
   /**
+   * Finds the default device in the list and, if found, returns a [CheckResult], flagging the given [unknownParameterValue] as the error
+   * and the default device as proposed fix.
+   */
+  private fun List<Device>.findDefaultDeviceAndReturnFix(unknownParameterValue: String): CheckResult =
+    if (any { it.id == DEFAULT_DEVICE_ID }) {
+      // TODO(b/236383162): Improve the messaging for issues in the DeviceId
+      CheckResult(issues = listOf(Unknown(unknownParameterValue)), proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX)
+    }
+    else {
+      // Expected default device not in Sdk
+      failedCheck("Default Device: $DEFAULT_DEVICE_ID not found")
+    }
+
+  /**
    * Check that the given [deviceId] is the ID of an actual device in the Sdk.
    */
   private fun checkDeviceId(deviceId: String, module: Module): CheckResult {
@@ -263,16 +287,19 @@ internal object PreviewAnnotationCheck {
     return if (isValid) {
       Passed
     }
-    else {
-      if (sdkDevices.any { it.id == DEFAULT_DEVICE_ID }) {
-        // TODO(b/236383162): Improve the messaging for issues in the DeviceId
-        CheckResult(issues = listOf(Unknown(deviceId)), proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX)
-      }
-      else {
-        // Expected default device not in Sdk
-        failedCheck("Default Device: $DEFAULT_DEVICE_ID not found")
-      }
+    else sdkDevices.findDefaultDeviceAndReturnFix(deviceId)
+  }
+
+  /**
+   * Check that the given [deviceName] is the name of an actual device in the Sdk.
+   */
+  private fun checkDeviceName(deviceName: String, module: Module): CheckResult {
+    val sdkDevices = getSdkDevices(module)
+    val isValid = sdkDevices.any { it.name == deviceName }
+    return if (isValid) {
+      Passed
     }
+    else sdkDevices.findDefaultDeviceAndReturnFix(deviceName)
   }
 }
 

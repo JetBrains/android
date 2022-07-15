@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -316,6 +317,60 @@ internal class PreviewAnnotationCheckTest {
         fun myFun() {}
 """.trimIndent())
     assertFalse(result.hasIssues)
+  }
+
+  @Test
+  fun testDeviceNameCheck() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    runWriteActionAndWait {
+      Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module)
+    }
+
+    var result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "name:Nexus 11")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(1, result.issues.size)
+    assertEquals(Unknown::class, result.issues[0]::class)
+    assertEquals("id:pixel_5", result.proposedFix)
+
+    result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "name:Nexus 10")
+        @Composable
+        fun myFun() {}
+""".trimIndent())
+    assertFalse(result.hasIssues)
+  }
+
+  @Test
+  fun testDeviceNameCheckWithNoDevicesFails() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+
+    val result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "name:Nexus 11")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(1, result.issues.size)
+    assertEquals("Default Device: pixel_5 not found", (result.issues[0] as Failure).failureMessage)
   }
 
   @Test
