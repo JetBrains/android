@@ -73,7 +73,7 @@ class SceneViewErrorsPanelTest {
     invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
     assertNotNull(fakeUi.findComponent<JBLabel> { it.text.contains("Some issues were found when trying to render this preview") })
-    assertNotNull(fakeUi.findComponent<JBLabel> { it.icon == StudioIcons.Common.ERROR })
+    assertNotNull(fakeUi.findComponent<JBLabel> { it.icon == StudioIcons.Common.WARNING })
     val hyperlink = fakeUi.findComponent<HyperlinkLabel>()!!
     assertEquals("Open Issues Panel (I)", hyperlink.highlightedRegionsBoundsMap.keys.single())
   }

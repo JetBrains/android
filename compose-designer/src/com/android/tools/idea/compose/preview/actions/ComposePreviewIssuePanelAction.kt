@@ -16,30 +16,14 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
-import com.android.tools.idea.common.error.IssuePanelService.Companion.getInstance
 import com.android.tools.idea.common.error.NlIssueSource
 import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
-import javax.swing.Icon
-
-fun Collection<Issue>.getIssueTypeIcon(): Icon? {
-  return groupBy { it.severity }.let {
-    when {
-      it[HighlightSeverity.ERROR]?.any() ?: false -> StudioIcons.Common.ERROR
-      it[HighlightSeverity.WARNING]?.any() ?: false -> StudioIcons.Common.WARNING
-      it[HighlightSeverity.INFORMATION]?.any() ?: false -> StudioIcons.Common.INFO
-      else -> null
-    }
-  }
-}
 
 /**
  * An action that shows the status of the issues for the given [NlModel]. The action will look at the issues in
@@ -66,12 +50,11 @@ class ComposePreviewIssuePanelAction(
       return
     }
 
-    val icon = issueModel.issues
-      .filter {
-        (it.source as? NlIssueSource)?.model == model
-      }.getIssueTypeIcon()
-    e.presentation.icon = icon
-    e.presentation.isEnabledAndVisible = icon != null
+    val hasIssues = issueModel.issues.any {
+      (it.source as? NlIssueSource)?.model == model
+    }
+    e.presentation.icon = StudioIcons.Common.WARNING
+    e.presentation.isEnabledAndVisible = hasIssues
   }
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(state, true)

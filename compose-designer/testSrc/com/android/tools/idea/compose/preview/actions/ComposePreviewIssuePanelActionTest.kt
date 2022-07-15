@@ -122,7 +122,7 @@ internal class ComposePreviewIssuePanelActionTest {
       ComposePreviewIssuePanelAction({ model1 }, { issueModel })
         .update(event)
       assertTrue(event.presentation.isEnabledAndVisible)
-      assertEquals(StudioIcons.Common.ERROR, event.presentation.icon)
+      assertEquals(StudioIcons.Common.WARNING, event.presentation.icon)
     }
 
     run {

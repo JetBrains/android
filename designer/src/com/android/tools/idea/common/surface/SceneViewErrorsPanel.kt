@@ -76,7 +76,7 @@ class SceneViewErrorsPanel(private val isPanelVisible: () -> Boolean = { true })
     val panelContent = JPanel(TabularLayout("Fit,*", "*,Fit,5px,Fit,*"))
 
     val errorIconPanel = JPanel(TabularLayout("Fit", "Fit,*"))
-    errorIconPanel.add(JBLabel(StudioIcons.Common.ERROR).apply { border = JBUI.Borders.empty(2, 5) }, TabularLayout.Constraint(0, 0))
+    errorIconPanel.add(JBLabel(StudioIcons.Common.WARNING).apply { border = JBUI.Borders.empty(2, 5) }, TabularLayout.Constraint(0, 0))
     panelContent.add(errorIconPanel, TabularLayout.Constraint(1, 0))
 
     val label = JBLabel("<html>Some issues were found when trying to render this preview.</html>").apply { foreground = Gray._119 }
