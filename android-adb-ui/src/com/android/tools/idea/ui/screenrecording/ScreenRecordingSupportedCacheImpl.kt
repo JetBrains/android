@@ -83,8 +83,9 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
     return out.trim() == SCREEN_RECORDER_DEVICE_PATH
   }
 
-  private suspend fun execute(serialNumber: String, command: String) =
-    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT)
+  private suspend fun execute(serialNumber: String, command: String): String =
+    //TODO: Check for `stderr` and `exitCode` to report errors
+    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT).stdout
 }
 
 private fun String.isEmulator() = startsWith("emulator-")

@@ -67,7 +67,9 @@ internal class DeviceFactory(private val adbSession: AdbSession) {
   private suspend fun getProperties(serialNumber: String, vararg properties: String): Map<String, String> {
     val selector = DeviceSelector.fromSerialNumber(serialNumber)
     val command = properties.joinToString(" ; ") { "getprop $it" }
-    val lines = adbSession.deviceServices.shellAsText(selector, command, commandTimeout = ADB_TIMEOUT).split("\n")
+    //TODO: Check for `stderr` and `exitCode` to report errors
+    //TODO: Maybe use `AdbDeviceServices.deviceProperties(selector).allReadonly()` to take advantage of caching
+    val lines = adbSession.deviceServices.shellAsText(selector, command, commandTimeout = ADB_TIMEOUT).stdout.split("\n")
     return properties.withIndex().associate { it.value to lines[it.index].trimEnd('\r') }
   }
 

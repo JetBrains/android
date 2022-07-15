@@ -149,6 +149,7 @@ class ScreenRecorderAction : DumbAwareAction(
 
   private suspend fun getDeviceScreenSize(adbSession: AdbSession, serialNumber: String): Dimension? {
     try {
+      //TODO: Check for `stderr` and `exitCode` to report errors
       val out = execute(adbSession, serialNumber, "wm size")
       val matchResult = WM_SIZE_OUTPUT_REGEX.find(out)
       if (matchResult == null) {
@@ -169,12 +170,14 @@ class ScreenRecorderAction : DumbAwareAction(
     return null
   }
 
-  private suspend fun execute(adbSession: AdbSession, serialNumber: String, command: String) =
-    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT)
+  private suspend fun execute(adbSession: AdbSession, serialNumber: String, command: String): String =
+    //TODO: Check for `stderr` and `exitCode` to report errors
+    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT).stdout
 
   private suspend fun setShowTouch(adbSession: AdbSession, serialNumber: String, isEnabled: Boolean) {
     val value = if (isEnabled) 1 else 0
     try {
+      //TODO: Check for `stderr` and `exitCode` to report errors
       execute(adbSession, serialNumber, "settings put system show_touches $value")
     }
     catch (e: Exception) {
@@ -183,6 +186,7 @@ class ScreenRecorderAction : DumbAwareAction(
   }
 
   private suspend fun isShowTouchEnabled(adbSession: AdbSession, serialNumber: String): Boolean {
+    //TODO: Check for `stderr` and `exitCode` to report errors
     val out = execute(adbSession, serialNumber, "settings get system show_touches")
     return out.trim() == "1"
   }

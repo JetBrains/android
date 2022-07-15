@@ -20,7 +20,7 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.RemoteFileMode
 import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.SocketSpec
-import com.android.adblib.shellV2AsLines
+import com.android.adblib.shellAsLines
 import com.android.adblib.syncSend
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -179,7 +179,7 @@ internal class DeviceClient(
     coroutineScope {
       this@DeviceClient.thisLogger()
       val command = "mkdir -p $DEVICE_PATH_BASE; chmod 700 $DEVICE_PATH_BASE"
-      adb.shellV2AsLines(deviceSelector, command).collect {
+      adb.shellAsLines(deviceSelector, command).collect {
         if (it is ShellCommandOutputElement.ExitCode && it.exitCode != 0) {
           logger.warn("Unable to create $DEVICE_PATH_BASE directory: ${it.exitCode}")
         }
@@ -207,7 +207,7 @@ internal class DeviceClient(
     CoroutineScope(Dispatchers.Unconfined).launch {
       val log = Logger.getInstance("ScreenSharingAgent")
       try {
-        adb.shellV2AsLines(deviceSelector, command).collect {
+        adb.shellAsLines(deviceSelector, command).collect {
           when (it) {
             is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
             is ShellCommandOutputElement.StderrLine -> if (it.contents.isNotBlank()) log.warn(it.contents)

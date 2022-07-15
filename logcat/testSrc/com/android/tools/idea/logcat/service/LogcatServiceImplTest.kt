@@ -145,7 +145,7 @@ class LogcatServiceImplTest {
       // Ignore if not configured
     }
 
-    assertThat(fakeDeviceServices.shellRequests).containsExactly(
+    assertThat(fakeDeviceServices.shellV2Requests).containsExactly(
       ShellRequest("serial-device", "logcat -c", Duration.ofSeconds(2))
     )
   }

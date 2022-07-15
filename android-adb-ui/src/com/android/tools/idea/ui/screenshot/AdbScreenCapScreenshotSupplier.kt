@@ -60,11 +60,13 @@ internal class AdbScreenCapScreenshotSupplier(
     }
 
     val dumpsysJob = coroutineScope.async {
-      adbLibService.session.deviceServices.shellAsText(deviceSelector, "dumpsys display", commandTimeout = COMMAND_TIMEOUT)
+      //TODO: Check for `stderr` and `exitCode` to report errors
+      adbLibService.session.deviceServices.shellAsText(deviceSelector, "dumpsys display", commandTimeout = COMMAND_TIMEOUT).stdout
     }
 
     val pmJob = coroutineScope.async {
-      adbLibService.session.deviceServices.shellAsText(deviceSelector, "pm list features", commandTimeout = COMMAND_TIMEOUT)
+      //TODO: Check for `stderr` and `exitCode` to report errors
+      adbLibService.session.deviceServices.shellAsText(deviceSelector, "pm list features", commandTimeout = COMMAND_TIMEOUT).stdout
     }
 
     return runBlocking {

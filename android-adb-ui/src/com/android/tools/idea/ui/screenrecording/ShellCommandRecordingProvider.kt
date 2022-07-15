@@ -68,7 +68,8 @@ internal class ShellCommandRecordingProvider(
   }
 
   override suspend fun doesRecordingExist(): Boolean {
-    val out = adbSession.deviceServices.shellAsText(deviceSelector, "ls $remotePath", commandTimeout = CMD_TIMEOUT)
+    //TODO: Check for `stderr` and `exitCode` to report errors
+    val out = adbSession.deviceServices.shellAsText(deviceSelector, "ls $remotePath", commandTimeout = CMD_TIMEOUT).stdout
     return out.trim() == remotePath
   }
 

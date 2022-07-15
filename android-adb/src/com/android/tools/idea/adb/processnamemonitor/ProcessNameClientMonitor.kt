@@ -17,6 +17,7 @@ package com.android.tools.idea.adb.processnamemonitor
 
 import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DeviceSelector
+import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.shellAsLines
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
@@ -112,10 +113,13 @@ internal class ProcessNameClientMonitor(
         val names = mutableMapOf<Int, ProcessNames>()
         adbDeviceServicesFactory().shellAsLines(DeviceSelector.fromSerialNumber(device.serialNumber),
                                                 "ps -A -o PID,NAME").collect shellAsLines@{
-          val split = it.trim().split(" ")
-          val pid = split[0].toIntOrNull() ?: return@shellAsLines
-          val processName = split[1]
-          names[pid] = ProcessNames("", processName)
+          //TODO: Check for `stderr` and `exitCode` to report errors
+          if (it is ShellCommandOutputElement.StdoutLine) {
+            val split = it.contents.trim().split(" ")
+            val pid = split[0].toIntOrNull() ?: return@shellAsLines
+            val processName = split[1]
+            names[pid] = ProcessNames("", processName)
+          }
         }
         LOGGER.debug("${device.serialNumber}: Adding ${names.size} processes from ps command")
         lastKnownPids.set(names)
