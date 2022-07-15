@@ -5,11 +5,14 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.kotlin.android.synthetic.idea.AndroidExtensionsProjectResolverExtension;
 import org.jetbrains.plugins.gradle.importing.GradleImportingTestCase;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.junit.Test;
+import org.junit.runners.Parameterized;
 
 public class GradleImportOnJDK8Test extends GradleImportingTestCase {
 
@@ -18,6 +21,12 @@ public class GradleImportOnJDK8Test extends GradleImportingTestCase {
     AndroidExtensionsProjectResolverExtension.class
     //GradleAndroidProjectResolverExtension.class <= registered dynamically, does not inject classes
   };
+
+  @Parameterized.Parameters(name = "{index}: with Gradle-{0}")
+  public static Collection<Object[]> requiredGradleVersions() {
+    // AGP cannot work on old gradle versions. Only verify import on the base version.
+    return Collections.singleton(new Object[]{BASE_GRADLE_VERSION});
+  }
 
   @Override
   public void setUp() throws Exception {
