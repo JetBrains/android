@@ -50,6 +50,7 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotifications
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
 import com.intellij.ui.components.AnActionLink
@@ -379,10 +380,15 @@ class ComposeIssueNotificationAction(
       }
 
       override fun createToolTip(): JToolTip? = null
+
+      override fun updateUI() {
+        super.updateUI()
+
+        font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
+        foreground = JBColor(Gray._110, Gray._187)
+      }
     }.apply {
       setHorizontalTextPosition(textAlignment)
-      font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
-      foreground = UIUtil.getLabelDisabledForeground()
     }
 
   override fun displayTextInToolbar(): Boolean = true
