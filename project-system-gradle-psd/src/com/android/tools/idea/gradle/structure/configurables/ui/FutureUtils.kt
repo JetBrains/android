@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
+import com.android.tools.idea.concurrency.addCallback
 import com.google.common.base.Function
+import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -37,6 +39,22 @@ internal fun <I, O> ListenableFuture<I>.continueOnEdt(function: (I) -> O) =
         application.invokeLater({ if (!isCancelled) it.run() }, ModalityState.any())
       }
     })
+
+internal fun <I> ListenableFuture<I>.whenCompletedInvokeOnEdt(callback: (ListenableFuture<I>) -> Unit) =
+  also {
+    it.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<I> {
+      override fun onSuccess(result: I) = invokeCallback()
+      override fun onFailure(t: Throwable) = invokeCallback()
+
+      private fun invokeCallback() {
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+          callback(this@whenCompletedInvokeOnEdt)
+        } else {
+          com.intellij.openapi.application.invokeLater { callback(this@whenCompletedInvokeOnEdt) }
+        }
+      }
+    })
+  }
 
 internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -> Unit): ListenableFuture<T> =
   Futures.catching(
