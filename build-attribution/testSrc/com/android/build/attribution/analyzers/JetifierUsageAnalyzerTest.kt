@@ -243,7 +243,7 @@ class JetifierUsageAnalyzerUnitTest {
       useAndroidXPropertyState = true,
       buildRequestHolder = MockitoKt.mock()
     )
-    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+    val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
 
     val analyzer = JetifierUsageAnalyzer()
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -264,7 +264,7 @@ class JetifierUsageAnalyzerUnitTest {
       useAndroidXPropertyState = true,
       buildRequestHolder = BuildRequestHolder(builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build())
     )
-    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+    val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
 
     val analyzer = JetifierUsageAnalyzer()
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)

@@ -44,7 +44,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
   private var lastCheckJetifierBuildTimestamp: Long? = null
 
 
-  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalyzersProxy, studioProvidedInfo: StudioProvidedInfo) {
     shouldAnalyzerRun = shouldAnalyzerRun(studioProvidedInfo.agpVersion)
     if (!shouldAnalyzerRun) return
     enableJetifierFlagState = studioProvidedInfo.enableJetifierPropertyState

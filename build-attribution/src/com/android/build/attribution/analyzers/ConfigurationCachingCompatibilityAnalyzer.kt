@@ -21,6 +21,7 @@ import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import kotlinx.collections.immutable.toImmutableMap
 
 /** Minimal AGP version that supports configuration caching. */
 private val minAGPVersion = GradleVersion.parse("7.0.0-alpha10")
@@ -60,8 +61,8 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     knownPlugins = data.pluginsInfo
   }
 
-  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
-    appliedPlugins = analyzersResult.getAppliedPlugins()
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalyzersProxy, studioProvidedInfo: StudioProvidedInfo) {
+    appliedPlugins = analyzersResult.projectConfigurationAnalyzer.result.allAppliedPlugins.toImmutableMap()
     if (currentAgpVersion == null) currentAgpVersion = studioProvidedInfo.agpVersion
     configurationCachingGradlePropertiesFlagState = studioProvidedInfo.configurationCachingGradlePropertyState
     runningConfigurationCacheTestFlow = studioProvidedInfo.isInConfigurationCacheTestFlow

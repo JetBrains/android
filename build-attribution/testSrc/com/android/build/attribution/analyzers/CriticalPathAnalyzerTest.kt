@@ -108,7 +108,7 @@ class CriticalPathAnalyzerTest {
     wrapper.onBuildSuccess(
       null,
       GradlePluginsData.emptyData,
-      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      Mockito.mock(BuildEventsAnalyzersProxy::class.java),
       studioProvidedInfo
     )
 
@@ -163,7 +163,7 @@ class CriticalPathAnalyzerTest {
       null,
       GradlePluginsData.emptyData,
 
-      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      Mockito.mock(BuildEventsAnalyzersProxy::class.java),
       studioProvidedInfo
     )
 

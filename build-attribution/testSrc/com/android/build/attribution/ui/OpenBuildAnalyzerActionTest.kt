@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 package com.android.build.attribution.ui
+import com.android.build.attribution.BuildAnalyzerStorageManager
+import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
+import com.android.build.attribution.data.BuildRequestHolder
+import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.TaskContainer
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.MapDataContext
@@ -35,6 +40,8 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.util.UUID
 import javax.swing.JPanel
+import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
 @RunsInEdt
 class OpenBuildAnalyzerActionTest {
@@ -77,7 +84,9 @@ class OpenBuildAnalyzerActionTest {
   @Test
   fun testUpdateDataAndProject() {
     mapDataContext.put(CommonDataKeys.PROJECT, projectRule.project)
-    BuildAttributionUiManager.getInstance(projectRule.project).showNewReport(MockUiData(), UUID.randomUUID().toString())
+    val buildSessionID = UUID.randomUUID().toString()
+    storeDefaultData(buildSessionID)
+    BuildAttributionUiManager.getInstance(projectRule.project).showNewReport(buildSessionID)
     openBuildAnalyzerAction.update(event)
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isTrue()
@@ -92,7 +101,9 @@ class OpenBuildAnalyzerActionTest {
     projectRule.project.getService(BuildContentManager::class.java).addContent(
       ContentImpl(JPanel(), BuildContentManagerImpl.BUILD_TAB_TITLE_SUPPLIER.get(), true)
     )
-    BuildAttributionUiManager.getInstance(projectRule.project).showNewReport(MockUiData(), UUID.randomUUID().toString())
+    val buildSessionID = UUID.randomUUID().toString()
+    storeDefaultData(buildSessionID)
+    BuildAttributionUiManager.getInstance(projectRule.project).showNewReport(buildSessionID)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val contentManager = windowManager.getToolWindow(BuildContentManagerImpl.BUILD_TAB_TITLE_SUPPLIER.get())!!.contentManager
     contentManager.removeContent(contentManager.findContent("Build Analyzer"), true)
@@ -100,5 +111,12 @@ class OpenBuildAnalyzerActionTest {
     openBuildAnalyzerAction.actionPerformed(event)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(contentManager.findContent("Build Analyzer")).isNotNull()
+  }
+  private fun storeDefaultData(buildSessionID : String){
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
+      buildSessionID,
+      BuildRequestHolder(GradleBuildInvoker.Request
+                           .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()))
   }
 }

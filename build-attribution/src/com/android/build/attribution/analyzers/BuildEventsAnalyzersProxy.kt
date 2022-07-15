@@ -90,17 +90,18 @@ interface BuildEventsAnalysisResult {
 class BuildEventsAnalyzersProxy(
   taskContainer: TaskContainer,
   pluginContainer: PluginContainer
-) : BuildEventsAnalysisResult {
-  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(taskContainer, pluginContainer)
-  private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer)
-  private val criticalPathAnalyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
-  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(taskContainer)
-  private val garbageCollectionAnalyzer = GarbageCollectionAnalyzer()
-  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(pluginContainer)
-  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(taskContainer)
-  private val configurationCachingCompatibilityAnalyzer = ConfigurationCachingCompatibilityAnalyzer()
-  private val jetifierUsageAnalyzer = JetifierUsageAnalyzer()
-  private val downloadsAnalyzer = StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get().ifTrue { DownloadsAnalyzer() }
+) {
+  val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(taskContainer, pluginContainer)
+  val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer)
+  val criticalPathAnalyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
+  val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(taskContainer)
+  val garbageCollectionAnalyzer = GarbageCollectionAnalyzer()
+  val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(pluginContainer)
+  val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(taskContainer)
+  val configurationCachingCompatibilityAnalyzer = ConfigurationCachingCompatibilityAnalyzer()
+  val jetifierUsageAnalyzer = JetifierUsageAnalyzer()
+  val downloadsAnalyzer = StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get().ifTrue { DownloadsAnalyzer() }
+
 
 
   val buildAnalyzers: List<BaseAnalyzer<*>>
@@ -117,16 +118,16 @@ class BuildEventsAnalyzersProxy(
       downloadsAnalyzer
     )
 
-  override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
+  fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.result.annotationProcessorsData
   }
 
-  override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
+  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.result.nonIncrementalAnnotationProcessorsData
   }
 
   /** Time that includes task graph computation and other configuration activities before the tasks execution starts. */
-  override fun getConfigurationPhaseTimeMs(): Long {
+  fun getConfigurationPhaseTimeMs(): Long {
     return criticalPathAnalyzer.result.run {
       val firstTaskStartTime = tasksDeterminingBuildDuration.minByOrNull { it.executionStartTime } ?.executionStartTime
       // TODO (b/183590011): also change starting point based on first configuration event
@@ -135,7 +136,7 @@ class BuildEventsAnalyzersProxy(
     }
   }
 
-  override fun getTotalBuildTimeMs(): Long {
+  fun getTotalBuildTimeMs(): Long {
     return criticalPathAnalyzer.result.run { buildFinishedTimestamp - buildStartedTimestamp }
   }
 
@@ -143,35 +144,35 @@ class BuildEventsAnalyzersProxy(
     return criticalPathAnalyzer.result.buildFinishedTimestamp
   }
 
-  override fun getCriticalPathTasks(): List<TaskData> {
+  fun getCriticalPathTasks(): List<TaskData> {
     return criticalPathAnalyzer.result.tasksDeterminingBuildDuration.filter(TaskData::isOnTheCriticalPath)
   }
 
-  override fun getTasksDeterminingBuildDuration(): List<TaskData> {
+  fun getTasksDeterminingBuildDuration(): List<TaskData> {
     return criticalPathAnalyzer.result.tasksDeterminingBuildDuration
   }
 
-  override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> {
+  fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> {
     return criticalPathAnalyzer.result.pluginsDeterminingBuildDuration
   }
 
-  override fun getGarbageCollectionData(): List<GarbageCollectionData> {
+  fun getGarbageCollectionData(): List<GarbageCollectionData> {
     return garbageCollectionAnalyzer.result.garbageCollectionData
   }
 
-  override fun getTotalGarbageCollectionTimeMs(): Long {
+  fun getTotalGarbageCollectionTimeMs(): Long {
     return garbageCollectionAnalyzer.result.totalGarbageCollectionTimeMs
   }
 
-  override fun getJavaVersion(): Int? {
+  fun getJavaVersion(): Int? {
     return garbageCollectionAnalyzer.result.javaVersion
   }
 
-  override fun isGCSettingSet(): Boolean? {
+  fun isGCSettingSet(): Boolean? {
     return garbageCollectionAnalyzer.result.isSettingSet
   }
 
-  override fun getTotalConfigurationData(): ProjectConfigurationData = projectConfigurationAnalyzer.result.run {
+  fun getTotalConfigurationData(): ProjectConfigurationData = projectConfigurationAnalyzer.result.run {
     val totalConfigurationTime = projectsConfigurationData.sumByLong { it.totalConfigurationTimeMs }
 
     val totalPluginConfiguration = pluginsConfigurationDataMap.map { entry ->
@@ -185,39 +186,39 @@ class BuildEventsAnalyzersProxy(
     return ProjectConfigurationData("Total Configuration Data", totalConfigurationTime, totalPluginConfiguration, totalConfigurationSteps)
   }
 
-  override fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
+  fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
     return projectConfigurationAnalyzer.result.projectsConfigurationData
   }
 
-  override fun getAppliedPlugins(): Map<String, List<PluginData>> {
+  fun getAppliedPlugins(): Map<String, List<PluginData>> {
     return projectConfigurationAnalyzer.result.allAppliedPlugins.toImmutableMap()
   }
 
-  override fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult {
+  fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult {
     return configurationCachingCompatibilityAnalyzer.result
   }
 
-  override fun buildUsesConfigurationCache(): Boolean = configurationCachingCompatibilityAnalyzer.result.let {
+  fun buildUsesConfigurationCache(): Boolean = configurationCachingCompatibilityAnalyzer.result.let {
     it == ConfigurationCachingTurnedOn || it == ConfigurationCacheCompatibilityTestFlow
   }
 
-  override fun getJetifierUsageResult(): JetifierUsageAnalyzerResult {
+  fun getJetifierUsageResult(): JetifierUsageAnalyzerResult {
     return jetifierUsageAnalyzer.result
   }
 
-  override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {
+  fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {
     return alwaysRunTasksAnalyzer.result.alwaysRunTasks
   }
 
-  override fun getNonCacheableTasks(): List<TaskData> {
+  fun getNonCacheableTasks(): List<TaskData> {
     return noncacheableTasksAnalyzer.result.noncacheableTasks
   }
 
-  override fun getTasksSharingOutput(): List<TasksSharingOutputData> {
+  fun getTasksSharingOutput(): List<TasksSharingOutputData> {
     return tasksConfigurationIssuesAnalyzer.result.tasksSharingOutput
   }
 
-  override fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {
+  fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {
     return downloadsAnalyzer?.result ?: DownloadsAnalyzer.AnalyzerIsDisabled
   }
 }

@@ -42,7 +42,7 @@ class BuildAnalyzersWrapper(
   fun onBuildSuccess(
     androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?,
     gradlePluginsData: GradlePluginsData,
-    analyzersResult: BuildEventsAnalysisResult,
+    analyzersResult: BuildEventsAnalyzersProxy,
     studioProvidedInfo: StudioProvidedInfo
   ) {
 
