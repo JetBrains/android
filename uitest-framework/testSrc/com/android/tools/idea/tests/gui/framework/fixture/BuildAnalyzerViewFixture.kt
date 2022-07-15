@@ -46,6 +46,7 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
   }
 
   fun openOverviewPage(): OverviewPageFixture {
+    robot().waitForIdle()
     pageComboBox.selectItem("Overview")
     return overviewPage.also {
       it.requireVisible()
@@ -54,6 +55,7 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
   }
 
   fun openTasksPage(): BuildAnalyzerMasterDetailsPageFixture {
+    robot().waitForIdle()
     pageComboBox.selectItem("Tasks")
     return tasksPage.also {
       it.requireVisible()
@@ -62,6 +64,7 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
   }
 
   fun openWarningsPage(): BuildAnalyzerMasterDetailsPageFixture {
+    robot().waitForIdle()
     pageComboBox.selectItem("Warnings")
     return warningsPage.also {
       it.requireVisible()

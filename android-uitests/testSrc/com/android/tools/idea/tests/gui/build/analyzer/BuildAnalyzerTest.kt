@@ -125,7 +125,8 @@ class BuildAnalyzerTest {
       detailsPanel.requireVisible()
       detailsPanel.clickNavigationLink(":app:sample1")
     }
-
+    guiTest.waitForBackgroundTasks()
+    guiTest.robot().waitForIdle()
     tasksPage.tree.requireSelection("SamplePlugin/:app:sample1")
     tasksPage.findDetailsPanel(":app:sample1").requireVisible()
   }
