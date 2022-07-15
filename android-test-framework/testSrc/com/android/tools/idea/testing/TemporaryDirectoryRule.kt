@@ -8,7 +8,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.VfsTestUtil
-import com.intellij.testFramework.catchAndStoreExceptions
+import com.intellij.testFramework.common.runAllCatching
 import com.intellij.util.SmartList
 import com.intellij.util.io.Ksuid
 import com.intellij.util.io.delete
@@ -108,9 +108,8 @@ class TemporaryDirectoryRule : ExternalResource() {
       return
     }
 
-    val errors = mutableListOf<Throwable>()
-    for (i in (paths.size - 1) downTo 0) {
-      errors.catchAndStoreExceptions { deleteRecursively(paths[i]) }
+    val errors: List<Throwable> = runAllCatching(paths.asReversed()) {
+      deleteRecursively(it)
     }
 
     paths.clear()
