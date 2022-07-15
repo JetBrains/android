@@ -25,7 +25,8 @@ import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.util.AndroidBundle.message
 
 class LiveLiteralsConfigurable : BoundSearchableConfigurable(
@@ -36,11 +37,9 @@ class LiveLiteralsConfigurable : BoundSearchableConfigurable(
 
     return panel {
       row {
-        checkBox(
-          message("live.literals.configurable.enable.live.literals"),
-          literalsSettings::isEnabled,
-          message("live.literals.configurable.enable.live.literals.comment")
-        )
+        checkBox(message("live.literals.configurable.enable.live.literals"))
+          .comment(message("live.literals.configurable.enable.live.literals.comment"))
+          .bindSelected(literalsSettings::isEnabled)
       }
     }
   }
