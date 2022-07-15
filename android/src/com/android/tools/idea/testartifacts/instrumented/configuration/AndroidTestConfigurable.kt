@@ -18,7 +18,8 @@ package com.android.tools.idea.testartifacts.instrumented.configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.panel
 
 class AndroidTestConfigurable : BoundSearchableConfigurable("Testing", "testing.instrumented.configuration") {
   override fun createPanel(): DialogPanel {
@@ -26,8 +27,8 @@ class AndroidTestConfigurable : BoundSearchableConfigurable("Testing", "testing.
     return panel {
       if (StudioFlags.UTP_INSTRUMENTATION_TESTING.get()) {
         row {
-          checkBox("Run Android Instrumented Tests using Gradle.",
-                   configuration::RUN_ANDROID_TEST_USING_GRADLE)
+          checkBox("Run Android Instrumented Tests using Gradle.")
+            .bindSelected(configuration::RUN_ANDROID_TEST_USING_GRADLE)
         }
       }
     }
