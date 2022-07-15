@@ -102,13 +102,10 @@ fun getGroupKey(compilerOutput: List<OutputFile>, function: KtFunction, parentGr
           ?.let { offset -> return offset.key }
       }
     }
-
-    throw LiveEditUpdateException.noInvalidateGroup("Cannot find group with" +
-                                                    " startOffset=$startOffset and endOffset=$endOffset from ${c.relativePath}",
-                                                    function.containingFile)
+    return null
   }
-  throw LiveEditUpdateException.noInvalidateGroup("No MetaKey file found in output[${compilerOutput.joinToString(",")}]",
-                                                  function.containingFile)}
+  return null
+}
 
 /**
  * Computes the function signature of a given function after being processed by the compose compiler.
