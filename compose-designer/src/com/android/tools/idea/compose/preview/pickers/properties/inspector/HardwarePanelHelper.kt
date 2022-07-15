@@ -103,14 +103,14 @@ private fun createDimensionLine(
   /** The added [component] will shrink horizontally to fit its content */
   fun JPanel.addShrink(component: Component, gbc: GridBagConstraints) {
     gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.weightx = 1.0
+    gbc.weightx = 0.0
     add(component, gbc)
   }
 
   /** The added [component] will expand horizontally proportionally to other components added with this method. */
   fun JPanel.addExpand(component: Component, gbc: GridBagConstraints) {
-    gbc.fill = GridBagConstraints.NONE
-    gbc.weightx = 0.0
+    gbc.fill = GridBagConstraints.HORIZONTAL
+    gbc.weightx = 1.0
     add(component, gbc)
   }
 
