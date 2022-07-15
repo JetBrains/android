@@ -64,7 +64,7 @@ class SeverityFilterAction(val project: Project, @Nls name: String, val severity
   }
 }
 
-class VisualLintFilterAction(val project: Project) : DumbAwareToggleAction("Show Visual Problem") {
+class VisualLintFilterAction(val project: Project) : DumbAwareToggleAction("Show Screen Size Problem") {
   override fun isSelected(e: AnActionEvent) = VisualLintSettings.getInstance(project).isVisualLintFilterSelected
 
   override fun setSelected(e: AnActionEvent, selected: Boolean) {

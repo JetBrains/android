@@ -90,7 +90,7 @@ class IssuePanelViewOptionActionGroupTest {
     assertFalse(severityIterator.hasNext())
 
     showVisualProblemAction.let {
-      assertEquals("Show Visual Problem", it.templateText)
+      assertEquals("Show Screen Size Problem", it.templateText)
     }
 
     sortedBySeverityAction.let {
