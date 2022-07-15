@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.configuration.user.settings
 
-import com.intellij.application.options.editor.CheckboxDescriptor
-import com.intellij.application.options.editor.checkBox
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service
@@ -27,8 +25,8 @@ import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.PropertyBinding
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.panel
 
 class AndroidConfigurationExecutionConfigurableProvider : ConfigurableProvider() {
   override fun createConfigurable(): Configurable {
@@ -40,16 +38,12 @@ class AndroidConfigurationExecutionConfigurable : BoundConfigurable("Android Con
 
   private val settings = AndroidConfigurationExecutionSettings.getInstance()
 
-  private val checkboxDescriptor = CheckboxDescriptor(
-    "Enable new execution flow for Android configurations",
-    PropertyBinding({ settings.state.enableNewConfigurationFlow }, { settings.state.enableNewConfigurationFlow = it })
-  )
-
   override fun createPanel(): DialogPanel {
     return panel {
-      titledRow("New Execution Flow") {
+      group("New Execution Flow") {
         row {
-          checkBox(checkboxDescriptor)
+          checkBox("Enable new execution flow for Android configurations")
+            .bindSelected(settings.state::enableNewConfigurationFlow)
         }
       }
     }
