@@ -56,7 +56,7 @@ internal fun createDeviceEnumSupport(
     }
     else {
       val displayName = enumSupportValuesProvider.getValuesProvider(PARAMETER_HARDWARE_DEVICE)?.invoke()
-        ?.first { enum -> enum.value.equals(it) }?.display
+        ?.firstOrNull { enum -> enum.value.equals(it) }?.display
       // Show an item with the initial value and make it better to read
       val readableValue = displayName ?: it.substringAfter(':', it).replace('_', ' ')
       return@EnumSupportWithConstantData EnumValue.item(it, readableValue)
