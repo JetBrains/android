@@ -69,7 +69,7 @@ class TopLevelModuleFactory() {
         File(File(projectRootDir, Project.DIRECTORY_STORE_FOLDER), "modules"),  // "modules" is private in GradleManager.
         projectRootDir.name + ".iml"
       )
-      val projectModifieableModel = moduleManager.modifiableModel
+      val projectModifieableModel = moduleManager.getModifiableModel()
       val module = projectModifieableModel.newModule(moduleFile.path, StdModuleTypes.JAVA.id)
       try {
         // A top level module name is usually the same as the name of the project it is contained in. If the caller of this method sets

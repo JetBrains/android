@@ -71,7 +71,7 @@ class AndroidLintCustomCheckTest {
 
       val request = GradleSyncInvoker.Request.testRequest()
       myProjectRule.requestSyncAndWait(request)
-      GradleBuildInvoker.getInstance(myProjectRule.project).generateSources(ModuleManager.getInstance(myProjectRule.project).getModules())
+      GradleBuildInvoker.getInstance(myProjectRule.project).generateSources(ModuleManager.getInstance(myProjectRule.project).modules)
     }
   }
 
