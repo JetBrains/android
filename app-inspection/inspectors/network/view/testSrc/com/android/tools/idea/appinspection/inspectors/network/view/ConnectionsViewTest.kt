@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
@@ -134,6 +135,7 @@ class ConnectionsViewTest {
     val table = getConnectionsTable(view)
     // With no selection, table should show all connections.
     model.timeline.reset(0, TimeUnit.SECONDS.toNanos(50))
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange).isEqualTo(model.timeline.dataRange)
     assertThat(table.rowCount).isEqualTo(4)
     // When a range is selected, table should only show connections within.
     model.timeline.selectionRange.set(TimeUnit.SECONDS.toMicros(3).toDouble(), TimeUnit.SECONDS.toMicros(10).toDouble())
@@ -141,6 +143,7 @@ class ConnectionsViewTest {
     // Once selection is cleared, table goes back to showing everything.
     model.timeline.selectionRange.set(0.0, -1.0)
     assertThat(table.rowCount).isEqualTo(4)
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange).isEqualTo(model.timeline.dataRange)
   }
 
   @Test

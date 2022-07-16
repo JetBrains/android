@@ -36,7 +36,6 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
 import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -74,28 +73,38 @@ public final class TimelineTable {
   /**
    * Create a timeline table. You have to specify the {@code column} that the timeline will appear
    * in, as all other columns will be left blank.
+   *
+   * @param showsAllWhenEmpty if the table shows full timeline with an empty selection range
    */
   @NotNull
-  public static JBTable create(@NotNull TableModel model, @NotNull Timeline timeline, int column) {
+  public static JBTable create(@NotNull TableModel model, @NotNull Timeline timeline, int column, boolean showsAllWhenEmpty) {
     JBTable table = new HoverRowTable(model);
-    table.getTableHeader().setDefaultRenderer(new HeaderRenderer(table, timeline, column));
+    table.getTableHeader().setDefaultRenderer(new HeaderRenderer(table, timeline, column, showsAllWhenEmpty));
 
     AspectObserver timelineObserver = new AspectObserver();
-    table.addHierarchyListener(new HierarchyListener() {
-      @Override
-      public void hierarchyChanged(HierarchyEvent e) {
-        if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
-          if (table.isShowing()) {
-            timeline.getSelectionRange().addDependency(timelineObserver).onChange(
+    table.addHierarchyListener(e -> {
+      if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+        if (table.isShowing()) {
+          timeline.getSelectionRange().addDependency(timelineObserver).onChange(
+            Range.Aspect.RANGE, () -> {
+              table.repaint();
+              table.getTableHeader().revalidate();
+            }
+          );
+          if (showsAllWhenEmpty) {
+            timeline.getDataRange().addDependency(timelineObserver).onChange(
               Range.Aspect.RANGE, () -> {
-                table.repaint();
-                table.getTableHeader().revalidate();
+                if (timeline.getSelectionRange().isEmpty()) {
+                  table.repaint();
+                  table.getTableHeader().repaint();
+                }
               }
             );
           }
-          else {
-            timeline.getSelectionRange().removeDependencies(timelineObserver);
-          }
+        }
+        else {
+          timeline.getSelectionRange().removeDependencies(timelineObserver);
+          timeline.getDataRange().removeDependencies(timelineObserver);
         }
       }
     });
@@ -119,8 +128,18 @@ public final class TimelineTable {
   }
 
   @NotNull
-  private static AxisComponent createAxis(@NotNull Timeline timeline) {
-    AxisComponentModel model = new ResizingAxisComponentModel.Builder(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1))
+  public static JBTable create(@NotNull TableModel model, @NotNull Timeline timeline, int column) {
+    return create(model, timeline, column, false);
+  }
+
+  @NotNull
+  private static AxisComponent createAxis(@NotNull Timeline timeline, boolean showsAllWhenEmpty) {
+    Range range = timeline.getSelectionRange();
+    if (range.isEmpty() && showsAllWhenEmpty) {
+      range = timeline.getDataRange();
+    }
+
+    AxisComponentModel model = new ResizingAxisComponentModel.Builder(range, new TimeAxisFormatter(1, 5, 1))
       .setGlobalRange(timeline.getDataRange()).build();
 
     AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
@@ -140,10 +159,13 @@ public final class TimelineTable {
     private final Timeline myTimeline;
     private int myTimelineColumn;
 
-    private HeaderRenderer(@NotNull JTable table, @NotNull Timeline timeline, int timelineColumn) {
+    private final boolean myShowsAllWhenEmpty;
+
+    private HeaderRenderer(@NotNull JTable table, @NotNull Timeline timeline, int timelineColumn, boolean showsAllWhenEmpty) {
       myDelegateRenderer = table.getTableHeader().getDefaultRenderer();
       myTimeline = timeline;
       myTimelineColumn = timelineColumn;
+      myShowsAllWhenEmpty = showsAllWhenEmpty;
     }
 
     @Override
@@ -170,7 +192,7 @@ public final class TimelineTable {
 
       if (column == myTimelineColumn) {
         // Only show the timeline axis if we also show at least one timeline row below
-        AxisComponent header = createAxis(myTimeline);
+        AxisComponent header = createAxis(myTimeline, myShowsAllWhenEmpty);
         header.setShowAxisLine(false);
         header.setMarkerLengths(TIMELINE_HEIGHT, 0);
         axisPanel.add(header);
@@ -200,9 +222,15 @@ public final class TimelineTable {
    */
   public static abstract class CellRenderer implements TableCellRenderer {
     private Timeline myTimeline;
+    private final boolean myShowsAllWhenEmpty;
 
     public CellRenderer(@NotNull Timeline timeline) {
+      this(timeline, false);
+    }
+
+    public CellRenderer(@NotNull Timeline timeline, boolean showsAllWhenEmpty) {
       myTimeline = timeline;
+      myShowsAllWhenEmpty = showsAllWhenEmpty;
     }
 
     @Override
@@ -217,7 +245,7 @@ public final class TimelineTable {
       panel.add(getTableCellRendererComponent(isSelected, row), new TabularLayout.Constraint(0, 0));
 
       // Show timeline lines behind chart components
-      AxisComponent axisTicks = createAxis(myTimeline);
+      AxisComponent axisTicks = createAxis(myTimeline, myShowsAllWhenEmpty);
       axisTicks.setShowLabels(false);
       axisTicks.setMarkerLengths(table.getRowHeight(), 0);
       panel.add(axisTicks, new TabularLayout.Constraint(0, 0));
@@ -228,6 +256,17 @@ public final class TimelineTable {
     @NotNull
     protected final Timeline getTimeline() {
       return myTimeline;
+    }
+
+    /**
+     * Returns the active range for rendering timeline in the cell.
+     *
+     * The returned range could be the selection or data range of the timeline and
+     * do not modify or add aspect observers to the active range directly.
+     */
+    @NotNull
+    public final Range getActiveRange() {
+      return (myTimeline.getSelectionRange().isEmpty() && myShowsAllWhenEmpty) ? myTimeline.getDataRange() : myTimeline.getSelectionRange();
     }
 
     @NotNull
@@ -262,4 +301,3 @@ public final class TimelineTable {
     }
   }
 }
-

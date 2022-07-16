@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -74,6 +75,9 @@ class ThreadsViewTest {
 
   @get:Rule
   val edtRule = EdtRule()
+
+  @get:Rule
+  val projectRule = ProjectRule()
 
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
@@ -130,11 +134,13 @@ class ThreadsViewTest {
 
   @Test
   fun shouldHandleEmptySelection() {
+    model.timeline.reset(0, TimeUnit.SECONDS.toNanos(150))
     val selection = model.timeline.selectionRange
+    assertThat(table.model.rowCount).isEqualTo(4)
     selection[0.0] = TimeUnit.SECONDS.toMicros(22).toDouble()
     assertThat(table.model.rowCount).isEqualTo(2)
     selection.clear()
-    assertThat(table.model.rowCount).isEqualTo(0)
+    assertThat(table.model.rowCount).isEqualTo(4)
   }
 
   @Test

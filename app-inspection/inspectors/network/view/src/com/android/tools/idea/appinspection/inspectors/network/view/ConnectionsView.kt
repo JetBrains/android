@@ -110,7 +110,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
 
 
   init {
-    connectionsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.ordinal)
+    connectionsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.ordinal, true)
     customizeConnectionsTable()
     createTooltip()
     model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) { updateTableSelection() }
@@ -282,7 +282,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
   }
 
   private class TimelineRenderer(private val table: JTable, timeline: StreamingTimeline) :
-    TimelineTable.CellRenderer(timeline), TableModelListener {
+    TimelineTable.CellRenderer(timeline, true), TableModelListener {
     /**
      * Keep in sync 1:1 with [ConnectionsTableModel.dataList]. When the table asks for the
      * chart to render, it will be converted from model index to view index.
@@ -304,7 +304,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
       connectionsCharts.clear()
       val model = table.model as ConnectionsTableModel
       for (i in 0 until model.rowCount) {
-        val chart = ConnectionsStateChart(model.getHttpData(i), timeline.selectionRange)
+        val chart = ConnectionsStateChart(model.getHttpData(i), activeRange)
         chart.setHeightGap(0.3f)
         connectionsCharts.add(chart)
       }
