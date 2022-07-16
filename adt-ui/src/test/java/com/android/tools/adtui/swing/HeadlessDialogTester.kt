@@ -38,7 +38,6 @@ import com.intellij.openapi.ui.DialogWrapperDialog
 import com.intellij.openapi.ui.DialogWrapperPeer
 import com.intellij.openapi.ui.DialogWrapperPeerFactory
 import com.intellij.openapi.ui.popup.StackingPopupDispatcher
-import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.PlatformTestUtil
@@ -69,6 +68,7 @@ import java.awt.event.MouseListener
 import java.awt.event.MouseMotionAdapter
 import java.awt.event.MouseMotionListener
 import java.lang.reflect.InvocationTargetException
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -365,9 +365,9 @@ private class HeadlessDialogWrapperPeer(
     setLocation(Point(x, y))
   }
 
-  override fun show(): ActionCallback {
+  override fun show(): CompletableFuture<*> {
     check(EventQueue.isDispatchThread())
-    val result = ActionCallback()
+    val result = CompletableFuture<Any?>()
     val anCancelAction = AnCancelAction()
     val rootPane = getRootPane()
     UIUtil.decorateWindowHeader(rootPane)
@@ -412,7 +412,7 @@ private class HeadlessDialogWrapperPeer(
         commandProcessor!!.leaveModal()
         LaterInvocator.leaveModal(wrapper)
       }
-      result.createSetDoneRunnable().run()
+      result.complete(null)
     }
     return result
   }
