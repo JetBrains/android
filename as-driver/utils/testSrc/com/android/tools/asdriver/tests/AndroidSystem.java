@@ -16,7 +16,6 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
-import com.android.utils.PathUtils;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -181,6 +180,6 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   @Override
   public void close() throws Exception {
     display.close();
-    PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
+    fileSystem.delete();
   }
 }
