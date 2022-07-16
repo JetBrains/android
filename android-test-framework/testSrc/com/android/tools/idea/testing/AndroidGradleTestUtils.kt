@@ -1203,7 +1203,7 @@ fun setupTestProjectFromAndroidModel(
   val moduleManager = ModuleManager.getInstance(project)
   if (moduleManager.modules.size <= 1) {
     runWriteAction {
-      val modifiableModel = moduleManager.modifiableModel
+      val modifiableModel = moduleManager.getModifiableModel()
       val module = if (modifiableModel.modules.isEmpty()) {
         modifiableModel.newModule(rootProjectBasePath.resolve(".idea").resolve("modules").resolve("${project.name}.iml").path, JAVA.id)
       }

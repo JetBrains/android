@@ -80,7 +80,7 @@ class TopLevelModuleFactory() {
       File(File(projectRoot, Project.DIRECTORY_STORE_FOLDER), "modules"),  // "modules" is private in GradleManager.
       gradleRoot.name + ".iml"
     )
-    val projectModifieableModel = moduleManager.modifiableModel
+    val projectModifieableModel = moduleManager.getModifiableModel()
     // Find or create the top level module. Normally, when invoked from `AndroidGradleProjectConfigurator` it already exists as it is
     // created by `PlatformProjectConfigurator`, which runs first.
     val module = projectModifieableModel

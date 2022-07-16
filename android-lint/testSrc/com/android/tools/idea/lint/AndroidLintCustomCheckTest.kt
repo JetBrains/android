@@ -60,7 +60,7 @@ class AndroidLintCustomCheckTest {
       }
 
       myProjectRule.requestSyncAndWait()
-      GradleBuildInvoker.getInstance(myProjectRule.project).generateSources(ModuleManager.getInstance(myProjectRule.project).getModules())
+      GradleBuildInvoker.getInstance(myProjectRule.project).generateSources(ModuleManager.getInstance(myProjectRule.project).modules)
     }
   }
 

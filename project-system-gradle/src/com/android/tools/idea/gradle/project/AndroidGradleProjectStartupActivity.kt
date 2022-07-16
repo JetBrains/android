@@ -128,7 +128,7 @@ private fun removeEmptyModules(project: Project) {
       ?: return
 
   runWriteAction {
-    with(moduleManager.modifiableModel) {
+    with(moduleManager.getModifiableModel()) {
       modulesToRemove.forEach {
         LOG.warn(
           "Disposing module '${it.name}' which is empty, not registered with the external system and '${it.moduleFilePath}' does not exist."
