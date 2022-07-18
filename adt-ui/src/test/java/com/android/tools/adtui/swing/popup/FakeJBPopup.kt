@@ -119,6 +119,9 @@ open class FakeJBPopup<T>(
     return true
   }
 
+  override fun setSize(size: Dimension) {
+  }
+
   override fun getBestPositionFor(dataContext: DataContext): Point {
     TODO("Not yet implemented")
   }
@@ -152,10 +155,6 @@ open class FakeJBPopup<T>(
   }
 
   override fun setLocation(screenPoint: Point) {
-    TODO("Not yet implemented")
-  }
-
-  override fun setSize(size: Dimension) {
     TODO("Not yet implemented")
   }
 

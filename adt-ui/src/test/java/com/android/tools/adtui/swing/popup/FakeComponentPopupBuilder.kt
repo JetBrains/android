@@ -29,20 +29,33 @@ import com.intellij.openapi.util.Pair
 import com.intellij.ui.ActiveComponent
 import com.intellij.util.BooleanFunction
 import com.intellij.util.Processor
-import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
+import javax.swing.JComponent
 import javax.swing.KeyStroke
 
 /**
  * A fake [ComponentPopupBuilder] for tests.
  */
-open class FakeComponentPopupBuilder : ComponentPopupBuilder {
+open class FakeComponentPopupBuilder(
+  private val factory: FakeJBPopupFactory,
+  private val content: JComponent,
+  private val preferableFocusComponent: JComponent?
+) : ComponentPopupBuilder {
+  private var isFocusable = false
+  private var isRequestFocus = false
 
-  override fun createPopup(): JBPopup = Mockito.mock(JBPopup::class.java)
+  // Section for implemented overrides
+  override fun createPopup(): JBPopup = FakeComponentPopup(content, preferableFocusComponent, isFocusable, isRequestFocus).also(
+    factory::addPopup)
 
+  override fun setFocusable(focusable: Boolean) = this.also { isFocusable = focusable }
+
+  override fun setRequestFocus(requestFocus: Boolean) = this.also { isRequestFocus = requestFocus }
+
+  // Section for unimplemented overrides
   override fun setTitleIcon(icon: ActiveIcon) = this
 
   override fun setProject(project: Project?) = this
@@ -95,11 +108,7 @@ open class FakeComponentPopupBuilder : ComponentPopupBuilder {
 
   override fun setMovable(forceMovable: Boolean) = this
 
-  override fun setFocusable(focusable: Boolean) = this
-
   override fun setCancelCallback(shouldProceed: Computable<Boolean>) = this
-
-  override fun setRequestFocus(requestFocus: Boolean) = this
 
   override fun setShowBorder(show: Boolean) = this
 

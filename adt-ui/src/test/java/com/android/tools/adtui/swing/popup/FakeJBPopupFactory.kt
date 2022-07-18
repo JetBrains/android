@@ -117,7 +117,7 @@ class FakeJBPopupFactory : JBPopupFactory() {
       /* actionPlace= */ null)
 
   override fun createComponentPopupBuilder(content: JComponent, preferableFocusComponent: JComponent?): ComponentPopupBuilder =
-    FakeComponentPopupBuilder()
+    FakeComponentPopupBuilder(this, content, preferableFocusComponent)
 
   override fun getChildPopups(parent: Component): MutableList<JBPopup> = popups
 
