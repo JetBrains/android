@@ -45,6 +45,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
@@ -265,7 +266,10 @@ public final class VirtualDeviceTableModelTest {
     TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
     Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
 
-    Mockito.verify(console).kill();
+    InOrder inOrder = Mockito.inOrder(console);
+
+    inOrder.verify(console).kill();
+    inOrder.verify(console).close();
   }
 
   private static @NotNull FutureCallback<@Nullable Object> newSetAllOnline(@NotNull VirtualDeviceTableModel model,

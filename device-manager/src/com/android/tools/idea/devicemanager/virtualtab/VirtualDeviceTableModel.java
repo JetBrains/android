@@ -386,7 +386,11 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
                                      " emulator window.");
     }
 
-    myGetConsole.apply(d).kill();
+    EmulatorConsole console = myGetConsole.apply(d);
+
+    console.kill();
+    console.close();
+
     return null;
   }
 
