@@ -383,6 +383,9 @@ class ComposeIssueNotificationAction(
 
       override fun createToolTip(): JToolTip? = null
 
+      // Do not display the regular tooltip
+      override fun updateToolTipText() {}
+
       override fun updateUI() {
         super.updateUI()
 
