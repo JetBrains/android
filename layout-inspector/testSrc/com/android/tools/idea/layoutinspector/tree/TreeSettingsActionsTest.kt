@@ -138,6 +138,8 @@ class TreeSettingsActionsTest {
     val event = createEvent()
     assertThat(RecompositionCounts.isSelected(event)).isEqualTo(false)
 
+    RecompositionCounts.testActionVisibility(event, Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+
     RecompositionCounts.setSelected(event, true)
     assertThat(treeSettings.showRecompositions).isEqualTo(true)
     verify(event.treePanel())!!.updateRecompositionColumnVisibility()
@@ -157,14 +159,21 @@ class TreeSettingsActionsTest {
     assertThat(RecompositionCounts.isSelected(event)).isFalse()
   }
 
-  private fun AnAction.testActionVisibility(event: AnActionEvent, controllingCapability: Capability) {
-    // All actions should be visible when not connected no matter the controlling capability:
+  private fun AnAction.testActionVisibility(event: AnActionEvent, vararg controllingCapabilities: Capability) {
+    // All actions should be visible when not connected; no matter the controlling capability:
     isConnected = false
     capabilities.clear()
     update(event)
     assertThat(event.presentation.isVisible).isTrue()
 
-    capabilities.add(controllingCapability)
+    for (excluded in controllingCapabilities) {
+      capabilities.addAll(controllingCapabilities)
+      capabilities.remove(excluded)
+      update(event)
+      assertThat(event.presentation.isVisible).isTrue()
+    }
+
+    capabilities.addAll(controllingCapabilities)
     update(event)
     assertThat(event.presentation.isVisible).isTrue()
 
@@ -174,8 +183,16 @@ class TreeSettingsActionsTest {
     update(event)
     assertThat(event.presentation.isVisible).isFalse()
 
+    // If any capability is missing the action is hidden:
+    for (excluded in controllingCapabilities) {
+      capabilities.addAll(controllingCapabilities)
+      capabilities.remove(excluded)
+      update(event)
+      assertThat(event.presentation.isVisible).isFalse()
+    }
+
     // All actions should be visible when connected and their controlling capability is on:
-    capabilities.add(controllingCapability)
+    capabilities.addAll(controllingCapabilities)
     update(event)
     assertThat(event.presentation.isVisible).isTrue()
   }
