@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.InformationPopup
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
@@ -28,6 +30,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.requestBuild
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.notification.EventLog
@@ -174,6 +177,14 @@ private sealed class ComposePreviewStatusNotification(
     message("notification.preview.fast.compile.description"))
 
   /**
+   * An issue was found while rendering the Preview.
+   */
+  object RenderIssues : ComposePreviewStatusNotification(
+    AllIcons.General.Warning,
+    message("notification.preview.render.issues.title"),
+    message("notification.preview.render.issues.description"))
+
+  /**
    * The Preview has failed to compile a fast change.
    */
   object FastPreviewFailed : ComposePreviewStatusNotification(
@@ -210,9 +221,10 @@ private fun ComposePreviewManager.getStatusInfo(project: Project): ComposePrevie
 
     previewStatus.isRefreshing -> ComposePreviewStatusNotification.Refreshing()
 
-    // Build/Syntax errors
+    // Build/Syntax/Render errors
     project.needsBuild -> ComposePreviewStatusNotification.NeedsBuild
     previewStatus.hasSyntaxErrors -> ComposePreviewStatusNotification.SyntaxError
+    previewStatus.hasRuntimeErrors -> ComposePreviewStatusNotification.RenderIssues
 
     // Fast preview refresh/failures
     !fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled -> ComposePreviewStatusNotification.FastPreviewFailed
@@ -261,6 +273,27 @@ private class BuildAndRefresh(composePreviewManager: ComposePreviewManager) : An
 }
 
 /**
+ * [AnAction] that shows the "Problems" panel.
+ */
+private class ShowProblemsPanel : AnAction() {
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    ProblemsView.getToolWindow(project)?.show()
+  }
+}
+
+/**
+ * [AnAction] that shows the "Problems" panel.
+ */
+private class ShowIssuesPanel : AnAction() {
+  override fun actionPerformed(e: AnActionEvent) {
+    e.getData(DESIGN_SURFACE)?.let { surface ->
+      surface.setIssuePanelVisibilityNoTracking(true, true)
+    }
+  }
+}
+
+/**
  * Creates a new [AnActionLink] with the given [text]. The returned [AnActionLink] will use the given [delegateDataContext] to obtain
  * the associated information when calling into the [action].
  */
@@ -290,6 +323,11 @@ fun defaultCreateInformationPopup(
           message("action.build.and.refresh.title")
             .replace("&&", "&") + getBuildAndRefreshShortcut().asString(), // Remove any ampersand escaping for tooltips (not needed in these links)
           BuildAndRefresh(composePreviewManager), dataContext),
+        when (it) {
+          is ComposePreviewStatusNotification.SyntaxError -> actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
+          is ComposePreviewStatusNotification.RenderIssues -> actionLink(message("action.view.problems"), ShowIssuesPanel(), dataContext)
+          else -> null
+        },
         if (isAutoDisabled)
           actionLink(message("fast.preview.disabled.notification.reenable.action.title"), ReEnableFastPreview(), dataContext)
         else null,

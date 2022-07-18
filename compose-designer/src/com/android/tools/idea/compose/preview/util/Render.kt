@@ -32,8 +32,8 @@ internal fun RenderResult?.isComposeErrorResult(): Boolean {
   }
 
   // Compose renders might fail with onLayout exceptions hiding actual errors. This will return an empty image
-  // result. We can detect this by checking for a 1x1 image and the logger having errors.
-  if (logger.hasErrors() && renderedImage.width == 1 && renderedImage.height == 1) {
+  // result. We can detect this by checking for a 1x1 or 0x0 image and the logger having errors.
+  if (logger.hasErrors() && renderedImage.width <= 1 && renderedImage.height <= 1) {
     return true
   }
 
