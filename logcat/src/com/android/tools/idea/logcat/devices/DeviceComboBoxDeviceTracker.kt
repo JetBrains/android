@@ -17,15 +17,7 @@ package com.android.tools.idea.logcat.devices
 
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceInfo
-import com.android.adblib.DevicePropertyNames.RO_BOOT_QEMU_AVD_NAME
-import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_RELEASE
-import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
-import com.android.adblib.DevicePropertyNames.RO_KERNEL_QEMU_AVD_NAME
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
-import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState.ONLINE
-import com.android.adblib.shellAsText
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
@@ -42,10 +34,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.io.IOException
-import java.time.Duration
 import kotlin.coroutines.CoroutineContext
-
-private val ADB_TIMEOUT = Duration.ofMillis(1000)
 
 /**
  * An implementation of IDeviceComboBoxDeviceTracker that uses an [AdbSession]
@@ -77,11 +66,12 @@ internal class DeviceComboBoxDeviceTracker(
   private suspend fun FlowCollector<DeviceEvent>.trackDevicesInternal() {
     val onlineDevicesBySerial = mutableMapOf<String, Device>()
     val allDevicesById = mutableMapOf<String, Device>()
+    val deviceFactory = DeviceFactory(adbSession)
 
     // Initialize state by reading all current devices
     coroutineScope {
       val devices = adbSession.hostServices.devices()
-      devices.filter { it.isOnline() }.map { async { it.toDevice() } }.awaitAll().forEach {
+      devices.filter { it.isOnline() }.map { async { deviceFactory.createDevice(it.serialNumber) } }.awaitAll().forEach {
         onlineDevicesBySerial[it.serialNumber] = it
         allDevicesById[it.deviceId] = it
         emit(Added(it))
@@ -104,7 +94,7 @@ internal class DeviceComboBoxDeviceTracker(
       devices.values.forEach {
         val serialNumber = it.serialNumber
         if (!onlineDevicesBySerial.containsKey(serialNumber)) {
-          val device = it.toDevice()
+          val device = deviceFactory.createDevice(it.serialNumber)
           if (allDevicesById.containsKey(device.deviceId)) {
             emit(StateChanged(device))
           }
@@ -125,42 +115,6 @@ internal class DeviceComboBoxDeviceTracker(
         allDevicesById[device.deviceId] = deviceOffline
       }
     }
-  }
-
-  private suspend fun DeviceInfo.toDevice(): Device {
-    if (serialNumber.startsWith("emulator-")) {
-      val properties = getProperties(RO_BUILD_VERSION_RELEASE, RO_BUILD_VERSION_SDK, RO_BOOT_QEMU_AVD_NAME, RO_KERNEL_QEMU_AVD_NAME)
-      return Device.createEmulator(
-        serialNumber,
-        isOnline = true,
-        properties.getValue(RO_BUILD_VERSION_RELEASE).toIntOrNull() ?: 0,
-        properties.getValue(RO_BUILD_VERSION_SDK).toIntOrNull() ?: 0,
-        getAvdName(properties))
-    }
-    else {
-      val properties = getProperties(RO_BUILD_VERSION_RELEASE, RO_BUILD_VERSION_SDK, RO_PRODUCT_MANUFACTURER, RO_PRODUCT_MODEL)
-      return Device.createPhysical(
-        serialNumber,
-        isOnline = true,
-        properties.getValue(RO_BUILD_VERSION_RELEASE).toIntOrNull() ?: 0,
-        properties.getValue(RO_BUILD_VERSION_SDK).toIntOrNull() ?: 0,
-        properties.getValue(RO_PRODUCT_MANUFACTURER),
-        properties.getValue(RO_PRODUCT_MODEL))
-    }
-  }
-
-  private fun DeviceInfo.getAvdName(properties: Map<String, String>): String =
-    properties.getValue(RO_BOOT_QEMU_AVD_NAME).ifBlank { properties.getValue(RO_KERNEL_QEMU_AVD_NAME) }.ifBlank {
-      LOGGER.warn("Emulator has no avd_name property")
-      serialNumber
-    }
-
-  @Suppress("SameParameterValue") // The inspection is wrong. It only considers the first arg in the vararg
-  private suspend fun DeviceInfo.getProperties(vararg properties: String): Map<String, String> {
-    val selector = DeviceSelector.fromSerialNumber(serialNumber)
-    val command = properties.joinToString(" ; ") { "getprop $it" }
-    val lines = adbSession.deviceServices.shellAsText(selector, command, commandTimeout = ADB_TIMEOUT).split("\n")
-    return properties.withIndex().associate { it.value to lines[it.index].trimEnd('\r') }
   }
 }
 

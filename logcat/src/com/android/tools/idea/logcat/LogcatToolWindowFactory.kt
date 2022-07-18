@@ -18,8 +18,12 @@ package com.android.tools.idea.logcat
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
+import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.logcat.LogcatExperimentalSettings.Companion.getInstance
+import com.android.tools.idea.logcat.devices.DeviceFactory
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
@@ -33,8 +37,9 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.content.Content
 import com.intellij.util.text.UniqueNameGenerator
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.EventQueue
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
 
@@ -63,22 +68,24 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   }
 
   private fun showLogcat(toolWindow: ToolWindowEx, serialNumber: String) {
-    EventQueue.invokeLater {
-      toolWindow.activate {
-        val contentManager = toolWindow.contentManager
-        val count = contentManager.contentCount
-        for (i in 0 until count) {
-          val content = contentManager.getContent(i)
-          content?.findLogcatPresenters()?.forEach {
-            if (it.getConnectedDevice()?.serialNumber == serialNumber) {
-              contentManager.setSelectedContent(content, true)
-              return@activate
+    AndroidCoroutineScope(toolWindow.project).launch {
+      val device = DeviceFactory(AdbLibService.getSession(toolWindow.project)).createDevice(serialNumber)
+      withContext(uiThread) {
+        toolWindow.activate {
+          val contentManager = toolWindow.contentManager
+          val count = contentManager.contentCount
+          for (i in 0 until count) {
+            val content = contentManager.getContent(i)
+            content?.findLogcatPresenters()?.forEach {
+              if (it.getConnectedDevice()?.serialNumber == serialNumber) {
+                contentManager.setSelectedContent(content, true)
+                return@activate
+              }
             }
           }
+          createNewTab(toolWindow, device.name).findLogcatPresenters().firstOrNull()?.selectDevice(serialNumber)
         }
-        // TODO(aalbert): Getting a pretty name for a device is complicated since it requires fetching properties from device. Use serial
-        //  number as a tab name for now.
-        createNewTab(toolWindow, serialNumber).findLogcatPresenters().firstOrNull()?.selectDevice(serialNumber)
+
       }
     }
   }
