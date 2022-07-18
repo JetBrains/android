@@ -39,7 +39,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
-import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
@@ -48,7 +47,6 @@ import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.GotItTooltip
 import com.intellij.ui.GotItTooltip.Companion.BOTTOM_LEFT
-import com.intellij.ui.JBColor.BLUE
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBList
@@ -119,7 +117,7 @@ private val HISTORY_ICON_BORDER = JBUI.Borders.empty(0, 5, 0, 4)
 
 private val HISTORY_LIST_SEPARATOR_BORDER = JBUI.Borders.empty(3)
 
-private val NAMED_FILTER_HISTORY_ITEM_COLOR = SimpleTextAttributes.fromTextAttributes(TextAttributes(BLUE, null, null, null, Font.PLAIN))
+private val NAMED_FILTER_HISTORY_ITEM_COLOR = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
 
 private const val GOT_IT_ID = "filter.tip"
 
@@ -128,6 +126,8 @@ private val DELETE_KEY_CODES = arrayOf(VK_DELETE, VK_BACK_SPACE)
 private val LOGCAT_FILTER_HELP_URL = URL(
   "https://developer.android.com/studio/preview/features" +
   "?utm_source=android-studio-2021-3-1&utm_medium=studio-assistant-preview#logcat-search")
+
+private val FILTER_HISTORY_ITEM_BORDER = JBUI.Borders.empty(0, 4)
 
 /**
  * A text field for the filter.
@@ -601,6 +601,7 @@ internal class FilterTextField(
               .addComponent(filterLabel)
               .addComponent(countLabel)
               .addComponent(deleteLabel))
+          border = FILTER_HISTORY_ITEM_BORDER
         }
       }
 
@@ -648,9 +649,9 @@ internal class FilterTextField(
           else -> Pair(list.foreground, list.background)
         }
         filterLabel.foreground = foreground
-        countLabel.foreground = foreground
         deleteLabel.foreground = foreground
         component.background = background
+        countLabel.foreground = if (isSelected) foreground else SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
 
         return component
       }
