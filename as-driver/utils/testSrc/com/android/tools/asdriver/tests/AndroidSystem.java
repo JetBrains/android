@@ -67,6 +67,9 @@ public class AndroidSystem implements AutoCloseable, TestRule {
         applied = true;
         try {
           base.evaluate();
+          if (install != null) {
+            install.verify();
+          }
         } finally {
           AndroidSystem.this.close();
         }
