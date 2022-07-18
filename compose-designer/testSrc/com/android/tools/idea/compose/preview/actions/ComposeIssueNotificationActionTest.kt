@@ -165,7 +165,7 @@ internal class ComposeIssueNotificationActionTest {
   private fun InformationPopup.linksDescription(): String =
     component()
       .findAllDescendants(ActionLink::class.java)
-      .map { it.text }
+      .map { it.text.replace("\\(.*\\)".toRegex(), "(SHORTCUT)") }
       .joinToString("\n")
 
   @Test
@@ -175,7 +175,7 @@ internal class ComposeIssueNotificationActionTest {
     run {
       val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
       assertEquals("The preview is up to date", popup.labelsDescription())
-      assertEquals("Build & Refresh", popup.linksDescription())
+      assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
 
     // Even the status is out of date, we do not report it when fast preview is enabled
@@ -185,7 +185,7 @@ internal class ComposeIssueNotificationActionTest {
       )
       val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
       assertEquals("The preview is up to date", popup.labelsDescription())
-      assertEquals("Build & Refresh", popup.linksDescription())
+      assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
 
     // Verify popup for an error that auto disabled the Fast Preview
@@ -198,7 +198,7 @@ internal class ComposeIssueNotificationActionTest {
         val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
         assertEquals("The code might contain errors or might not work with Preview Live Edit.", popup.labelsDescription())
         assertEquals("""
-          Build & Refresh
+          Build & Refresh (SHORTCUT)
           Re-enable
           Do not disable automatically
           View Details
@@ -218,7 +218,7 @@ internal class ComposeIssueNotificationActionTest {
         )
         val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
         assertEquals("The preview is out of date", popup.labelsDescription())
-        assertEquals("Build & Refresh", popup.linksDescription())
+        assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
       }
       finally {
         fastPreviewManager.enable()
@@ -233,7 +233,7 @@ internal class ComposeIssueNotificationActionTest {
       )
       val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
       assertEquals("The preview is updating...", popup.labelsDescription())
-      assertEquals("Build & Refresh", popup.linksDescription())
+      assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
 
     // Verify syntax error status
@@ -244,7 +244,7 @@ internal class ComposeIssueNotificationActionTest {
       )
       val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
       assertEquals("The preview will not update while your project contains syntax errors.", popup.labelsDescription())
-      assertEquals("Build & Refresh", popup.linksDescription())
+      assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
   }
 

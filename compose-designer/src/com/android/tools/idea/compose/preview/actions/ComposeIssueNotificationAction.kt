@@ -22,6 +22,8 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
+import com.android.tools.idea.editors.shortcuts.asString
+import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -286,7 +288,7 @@ fun defaultCreateInformationPopup(
       listOfNotNull(
         actionLink(
           message("action.build.and.refresh.title")
-            .replace("&&", "&"), // Remove any ampersand escaping for tooltips (not needed in these links)
+            .replace("&&", "&") + getBuildAndRefreshShortcut().asString(), // Remove any ampersand escaping for tooltips (not needed in these links)
           BuildAndRefresh(composePreviewManager), dataContext),
         if (isAutoDisabled)
           actionLink(message("fast.preview.disabled.notification.reenable.action.title"), ReEnableFastPreview(), dataContext)
