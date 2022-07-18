@@ -16,7 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -159,7 +158,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
     return launchTasks
   }
 
-  override fun getConnectDebuggerTask(launchStatus: LaunchStatus, version: AndroidVersion?): ConnectDebuggerTask? {
+  override fun getConnectDebuggerTask(): ConnectDebuggerTask? {
     if (!myLaunchOptions.isDebug) {
       return null
     }

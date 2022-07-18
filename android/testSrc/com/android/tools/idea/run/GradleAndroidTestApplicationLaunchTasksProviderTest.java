@@ -22,8 +22,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
@@ -112,7 +110,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
-    ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
+    ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
 
     launchTasks.forEach(task -> {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
@@ -156,7 +154,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
-    ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
+    ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask();
 
     launchTasks.forEach(task -> {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);

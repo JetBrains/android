@@ -19,7 +19,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -251,7 +250,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @Nullable
   @Override
-  public ConnectDebuggerTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version) {
+  public ConnectDebuggerTask getConnectDebuggerTask() {
     if (!myLaunchOptions.isDebug()) {
       return null;
     }

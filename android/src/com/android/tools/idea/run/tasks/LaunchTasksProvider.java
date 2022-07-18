@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApplicationIdProvider;
@@ -27,11 +26,10 @@ import com.android.tools.idea.stats.RunStats;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public interface LaunchTasksProvider {
 
@@ -55,7 +53,7 @@ public interface LaunchTasksProvider {
     throws ExecutionException;
 
   @Nullable
-  ConnectDebuggerTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version);
+  ConnectDebuggerTask getConnectDebuggerTask();
 
   default void fillStats(RunStats stats) { }
 

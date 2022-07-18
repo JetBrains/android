@@ -119,7 +119,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       AndroidVersion androidVersion = myDeviceFutures.getDevices().size() == 1
                                       ? myDeviceFutures.getDevices().get(0).getVersion()
                                       : null;
-      ConnectDebuggerTask debugSessionTask = isSwap() ? null : myLaunchTasksProvider.getConnectDebuggerTask(launchStatus, androidVersion);
+      ConnectDebuggerTask debugSessionTask = isSwap() ? null : myLaunchTasksProvider.getConnectDebuggerTask();
 
       if (debugSessionTask != null) {
         if (listenableDeviceFutures.size() != 1) {
