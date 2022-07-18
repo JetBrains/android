@@ -73,7 +73,7 @@ internal open class ForceCompileAndRefreshAction(private val surface: DesignSurf
     }
     val isRefreshing = findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
     presentation.isEnabled = !isRefreshing
-    templateText?.let { presentation.text = "$it${getBuildAndRefreshShortcut().asString()}" }
+    templateText?.let { presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false) }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
