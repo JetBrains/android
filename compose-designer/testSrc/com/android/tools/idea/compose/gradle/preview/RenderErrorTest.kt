@@ -36,6 +36,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import junit.framework.Assert.assertFalse
+import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -43,7 +44,6 @@ import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JPanel
-import kotlin.test.assertTrue
 
 class RenderErrorTest {
 

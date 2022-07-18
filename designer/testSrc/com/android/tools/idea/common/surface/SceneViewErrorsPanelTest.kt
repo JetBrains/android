@@ -72,10 +72,7 @@ class SceneViewErrorsPanelTest {
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
     invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
-    assertNotNull(fakeUi.findComponent<JBLabel> { it.text.contains("Some issues were found when trying to render this preview") })
-    assertNotNull(fakeUi.findComponent<JBLabel> { it.icon == StudioIcons.Common.WARNING })
-    val hyperlink = fakeUi.findComponent<HyperlinkLabel>()!!
-    assertEquals("Open Issues Panel (I)", hyperlink.highlightedRegionsBoundsMap.keys.single())
+    assertNotNull(fakeUi.findComponent<JBLabel> { it.text.contains("Some issues were found while trying to render this preview") })
   }
 
   @Test
@@ -83,9 +80,9 @@ class SceneViewErrorsPanelTest {
     val sceneViewErrorsPanel = SceneViewErrorsPanel()
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
 
-    assertEquals(200, sceneViewErrorsPanel.minimumSize.height)
-    assertEquals(200, sceneViewErrorsPanel.minimumSize.width)
-    assertEquals(200, sceneViewErrorsPanel.preferredSize.height)
-    assertEquals(200, sceneViewErrorsPanel.preferredSize.width)
+    assertEquals(100, sceneViewErrorsPanel.minimumSize.height)
+    assertEquals(150, sceneViewErrorsPanel.minimumSize.width)
+    assertEquals(100, sceneViewErrorsPanel.preferredSize.height)
+    assertEquals(150, sceneViewErrorsPanel.preferredSize.width)
   }
 }

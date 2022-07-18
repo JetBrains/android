@@ -509,14 +509,6 @@
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/common/surface/SceneViewErrorsPanel.kt"
-            line="59"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
             file="src/com/android/tools/idea/common/editor/SplitEditor.kt"
             line="71"/>
     </issue>
