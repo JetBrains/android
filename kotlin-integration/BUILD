@@ -14,7 +14,7 @@ alias(
 
 alias(
     name = "kotlin-gradle-plugin-for-ide-plugin",
-    actual = "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KOTLIN_IDE_VERSION,
+    actual = "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_" + KOTLIN_IDE_VERSION,
     visibility = ["//visibility:public"],
 )
 
