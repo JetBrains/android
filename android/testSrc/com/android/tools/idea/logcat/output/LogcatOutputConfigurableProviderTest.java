@@ -159,6 +159,6 @@ public class LogcatOutputConfigurableProviderTest extends AndroidTestCase {
 
   private static LogcatOutputConfigurableProvider getLogcatProvider() {
     return (LogcatOutputConfigurableProvider)
-      DebuggerConfigurableProvider.EXTENSION_POINT.extensions().filter(x -> x instanceof LogcatOutputConfigurableProvider).findAny().orElse(null);
+      DebuggerConfigurableProvider.EXTENSION_POINT.getExtensionList().stream().filter(x -> x instanceof LogcatOutputConfigurableProvider).findAny().orElse(null);
   }
 }
