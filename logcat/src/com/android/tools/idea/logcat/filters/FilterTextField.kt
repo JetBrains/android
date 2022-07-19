@@ -76,6 +76,8 @@ import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_BACK_SPACE
+import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
@@ -120,6 +122,8 @@ private val HISTORY_LIST_SEPARATOR_BORDER = JBUI.Borders.empty(3)
 private val NAMED_FILTER_HISTORY_ITEM_COLOR = SimpleTextAttributes.fromTextAttributes(TextAttributes(BLUE, null, null, null, Font.PLAIN))
 
 private const val GOT_IT_ID = "filter.tip"
+
+private val DELETE_KEY_CODES = arrayOf(VK_DELETE, VK_BACK_SPACE)
 
 private val LOGCAT_FILTER_HELP_URL = URL(
   "https://developer.android.com/studio/preview/features" +
@@ -386,7 +390,7 @@ internal class FilterTextField(
       addKeyListener(object : KeyAdapter() {
         override fun keyPressed(e: KeyEvent) {
           val item = selectedValue as? Item
-          if (item != null && e.keyCode == KeyEvent.VK_DELETE) {
+          if (item != null && e.keyCode in DELETE_KEY_CODES) {
             deleteItem(selectedIndex)
           }
         }
