@@ -231,7 +231,7 @@ public final class VirtualDevice extends Device {
     return mySizeOnDisk;
   }
 
-  @NotNull Object getState() {
+  @NotNull State getState() {
     return myState;
   }
 

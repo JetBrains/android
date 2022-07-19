@@ -52,7 +52,6 @@ final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor 
     VirtualDevice.State state = (VirtualDevice.State)value;
 
     myButton.setDefaultIcon(state.getIcon());
-    myButton.setEnabled(state.isEnabled(myDevice));
     myButton.setToolTipText(state.getTooltipText());
 
     return super.getTableCellEditorComponent(table, value, selected, viewRowIndex, viewColumnIndex);

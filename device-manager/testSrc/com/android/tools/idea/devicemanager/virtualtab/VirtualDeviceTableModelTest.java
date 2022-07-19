@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
@@ -86,6 +87,34 @@ public final class VirtualDeviceTableModelTest {
                                                                         @NotNull Key key,
                                                                         @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(VirtualDeviceTableModel.newSetOnline(model, key), latch);
+  }
+
+  @Test
+  public void isCellEditable() {
+    // Arrange
+    VirtualDevice device = new VirtualDevice.Builder()
+      .setKey(TestVirtualDevices.newKey("Pixel_5_API_31"))
+      .setName("Pixel 5 API 31")
+      .setTarget("Android 12.0 Google APIs")
+      .setCpuArchitecture("x86_64")
+      .setState(VirtualDevice.State.LAUNCHING)
+      .setAvdInfo(myAvd)
+      .build();
+
+    TableModel model = new VirtualDeviceTableModel(null,
+                                                   List.of(device),
+                                                   VirtualDeviceTableModel::newSetOnline,
+                                                   AvdManagerConnection::getDefaultAvdManagerConnection,
+                                                   SetAllOnline::new,
+                                                   new DeviceManagerAndroidDebugBridge(),
+                                                   EmulatorConsole::getConsole,
+                                                   VirtualTabMessages::showErrorDialog);
+
+    // Act
+    boolean editable = model.isCellEditable(0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertFalse(editable);
   }
 
   @Test

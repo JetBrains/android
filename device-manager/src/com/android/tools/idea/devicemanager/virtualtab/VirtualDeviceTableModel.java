@@ -262,6 +262,8 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return false;
       case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
+        VirtualDevice device = myDevices.get(modelRowIndex);
+        return device.getState().isEnabled(device);
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
       case EDIT_MODEL_COLUMN_INDEX:
       case POP_UP_MENU_MODEL_COLUMN_INDEX:

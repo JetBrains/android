@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
@@ -60,7 +59,6 @@ public final class LaunchOrStopButtonTableCellEditorTest {
     assertEquals(device, myEditor.getDevice());
 
     assertEquals(Optional.of(StudioIcons.Avd.STOP), component.getDefaultIcon());
-    assertTrue(component.isEnabled());
     assertEquals("Stop the emulator running this AVD", component.getToolTipText());
 
     assertEquals(VirtualDevice.State.STOPPING, myEditor.getCellEditorValue());
@@ -83,7 +81,6 @@ public final class LaunchOrStopButtonTableCellEditorTest {
     assertEquals(device, myEditor.getDevice());
 
     assertEquals(Optional.of(StudioIcons.Avd.RUN), component.getDefaultIcon());
-    assertTrue(component.isEnabled());
     assertEquals("Launch this AVD in the emulator", component.getToolTipText());
 
     assertEquals(VirtualDevice.State.LAUNCHING, myEditor.getCellEditorValue());
