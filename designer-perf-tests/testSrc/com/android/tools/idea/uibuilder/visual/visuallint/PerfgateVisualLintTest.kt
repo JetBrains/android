@@ -56,7 +56,6 @@ val visualLintingBenchmark = Benchmark.Builder("Visual Linting Benchmark")
   .build()
 
 class PerfgateVisualLintTest {
-  private lateinit var surface: DesignSurface<*>
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
@@ -66,9 +65,6 @@ class PerfgateVisualLintTest {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    val issueModel = IssueModel.createForTesting(projectRule.fixture.testRootDisposable, projectRule.project)
-    surface = Mockito.mock(DesignSurface::class.java)
-    Mockito.`when`(surface.issueModel).thenReturn(issueModel)
     DesignerTypeRegistrar.register(LayoutFileType)
     val visualLintInspections = arrayOf(
       BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
@@ -98,7 +94,7 @@ class PerfgateVisualLintTest {
     visualLintingBenchmark.measureOperation(measures = listOf(ElapsedTimeMeasurement(Metric("phone_background_linting_time")),
                                                               MemoryUseMeasurement(Metric("phone_background_linting_memory_use")))) {
       VisualLintService.getInstance(projectRule.project)
-        .runVisualLintAnalysis(listOf(nlModel), surface, MoreExecutors.newDirectExecutorService())
+        .runVisualLintAnalysis(listOf(nlModel), MoreExecutors.newDirectExecutorService())
     }
   }
 
@@ -115,7 +111,7 @@ class PerfgateVisualLintTest {
     visualLintingBenchmark.measureOperation(measures = listOf(ElapsedTimeMeasurement(Metric("wear_background_linting_time")),
                                                               MemoryUseMeasurement(Metric("wear_background_linting_memory_use")))) {
       VisualLintService.getInstance(projectRule.project)
-        .runVisualLintAnalysis(listOf(wearModel), surface, MoreExecutors.newDirectExecutorService())
+        .runVisualLintAnalysis(listOf(wearModel), MoreExecutors.newDirectExecutorService())
     }
   }
 }

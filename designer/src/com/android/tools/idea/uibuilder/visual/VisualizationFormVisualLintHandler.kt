@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -34,14 +35,20 @@ import com.intellij.openapi.project.Project
 class VisualizationFormVisualLintHandler(private val project: Project, private val issueModel: IssueModel) {
 
   private val myBaseConfigIssues = VisualLintBaseConfigIssues()
-  val lintIssueProvider = VisualLintService.getInstance(project).issueProvider
+  val lintIssueProvider = VisualLintIssueProvider(project)
+
+  init {
+    issueModel.addIssueProvider(lintIssueProvider)
+  }
 
   fun clearIssueProvider() {
     lintIssueProvider.clear()
+    issueModel.updateErrorsList()
   }
 
   fun clearIssueProviderAndBaseConfigurationIssue() {
     lintIssueProvider.clear()
+    issueModel.updateErrorsList()
     myBaseConfigIssues.clear()
   }
 
@@ -52,9 +59,10 @@ class VisualizationFormVisualLintHandler(private val project: Project, private v
         val result = manager.renderResult
         if (result != null) {
           ApplicationManager.getApplication().executeOnPooledThread {
-            VisualLintService.getInstance(project).analyzeAfterModelUpdate(result, model, myBaseConfigIssues)
+            VisualLintService.getInstance(project).analyzeAfterModelUpdate(lintIssueProvider, result, model, myBaseConfigIssues)
             if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
               CommonLintUserDataHandler.updateVisualLintIssues(model.file, lintIssueProvider)
+              issueModel.updateErrorsList()
             }
           }
         }
@@ -72,14 +80,18 @@ class VisualizationFormVisualLintHandler(private val project: Project, private v
   }
 
   fun onActivate() {
+    // Clean up the visual lint issue from Layout Editor
+    VisualLintService.getInstance(project).removeIssues()
+
     issueModel.addIssueProvider(lintIssueProvider)
-    FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface()?.let {
-      VisualLintService.getInstance(project).removeIssues(it)
-    }
+    issueModel.updateErrorsList()
   }
 
   fun onDeactivate() {
     issueModel.removeIssueProvider(lintIssueProvider)
+    issueModel.updateErrorsList()
+
+    // Trigger Layout Editor Visual Lint
     (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() as? NlDesignSurface)?.updateErrorDisplay()
   }
 }

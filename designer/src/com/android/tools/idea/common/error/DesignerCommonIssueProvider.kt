@@ -50,26 +50,15 @@ class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<A
     fileEditorManager = FileEditorManager.getInstance(project)
     messageBusConnection.subscribe(IssueProviderListener.TOPIC, object : IssueProviderListener {
       override fun issueUpdated(source: Any, issues: List<Issue>) {
-        var filteredIssues = filterSelectedOrNoFileIssues(issues)
-
-        // Background lint update the issue asynchronized. For example, it is possible that a layout issue is reported after switching to
-        // Kotlin file. For now we only display the visual lint issue when the linted file is selected.
-        // TODO: Remove when visual lint always running in the background regardless the current selected file.
-        val selectedFiles = fileEditorManager.selectedFiles
-        filteredIssues = filteredIssues.filter {
-          if (it is VisualLintRenderIssue) {
-            it.source.models.map { model -> model.virtualFile }.any { file -> selectedFiles.contains(file) }
-          }
-          else true
+        val selectedFiles = fileEditorManager.selectedFiles.toList()
+        var changed = false
+        if (issues != sourceToIssueMap[source]) {
+          changed = true
+          sourceToIssueMap[source] = issues
         }
-
-        if (filteredIssues.isEmpty()) {
-          sourceToIssueMap.remove(source)
+        if (cleanUpFileIssues(selectedFiles) || changed) {
+          listeners.forEach { it.run() }
         }
-        else {
-          sourceToIssueMap[source] = filteredIssues
-        }
-        listeners.forEach { it.run() }
       }
     })
 
@@ -78,30 +67,41 @@ class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<A
     // TODO(b/222110455): Make [DesignSurface] deactivate the IssueModel when it is no longer visible.
     messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
       override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-        if (!source.hasOpenFiles()) {
-          cleanUpFileIssues()
+        if (!source.hasOpenFiles() && sourceToIssueMap.isNotEmpty()) {
+          sourceToIssueMap.clear()
+          listeners.forEach { it.run() }
         }
       }
 
       override fun selectionChanged(event: FileEditorManagerEvent) {
-        cleanUpFileIssues()
-      }
-
-      /**
-       * Remove the file issues if the file is not visible.
-       */
-      private fun cleanUpFileIssues() {
-        for ((source, issues) in sourceToIssueMap.toMap()) {
-          val filteredIssues = filterSelectedOrNoFileIssues(issues)
-          if (filteredIssues.isEmpty()) {
-            sourceToIssueMap.remove(source)
-          }
-          else {
-            sourceToIssueMap[source] = filteredIssues
-          }
+        if (cleanUpFileIssues(listOfNotNull(event.newFile))) {
+          listeners.forEach { it.run() }
         }
       }
     })
+  }
+
+  /**
+   * Remove the file issues or visual lint issue if the associated file is not visible(selected).
+   * Return true if [sourceToIssueMap] is changed, false otherwise.
+   */
+  private fun cleanUpFileIssues(selectedFiles: List<VirtualFile>): Boolean {
+    var changed = false
+    for ((source, issues) in sourceToIssueMap.toMap()) {
+      val filteredIssues = filterSelectedOrNoFileIssues(issues).filterVisualLintIssues(selectedFiles)
+      if (filteredIssues.isEmpty()) {
+        sourceToIssueMap.remove(source)
+        changed = true
+      }
+      else {
+        if (filteredIssues != issues) {
+          sourceToIssueMap[source] = filteredIssues
+          changed = true
+        }
+      }
+    }
+    return changed
+
   }
 
   /**
@@ -119,6 +119,18 @@ class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<A
       }
     }
     return ret
+  }
+
+  /**
+   * Remove the [VisualLintRenderIssue]s which are not related to the given [files]
+   */
+  private fun List<Issue>.filterVisualLintIssues(files: List<VirtualFile>): List<Issue> {
+    return this.filter {
+      if (it is VisualLintRenderIssue) {
+        it.source.models.map { model -> model.virtualFile }.any { file -> files.contains(file) }
+      }
+      else true
+    }
   }
 
   override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.values.flatten()

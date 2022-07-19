@@ -576,7 +576,6 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
       myCancelRenderingTaskLock.unlock()
     }
     var renderFuture = CompletableFuture.completedFuture<Void?>(null)
-
     visualLintHandler.clearIssueProviderAndBaseConfigurationIssue()
 
     // This render the added components.

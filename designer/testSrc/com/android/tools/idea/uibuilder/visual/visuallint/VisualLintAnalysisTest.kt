@@ -270,7 +270,8 @@ class VisualLintAnalysisTest {
         task.setDecorations(false)
         try {
           val result = task.render().get()
-          VisualLintService.getInstance(projectRule.project).analyzeAfterModelUpdate(result, nlModel, VisualLintBaseConfigIssues())
+          val service = VisualLintService.getInstance(projectRule.project)
+          service.analyzeAfterModelUpdate(service.issueProvider, result, nlModel, VisualLintBaseConfigIssues())
         }
         catch (ex: Exception) {
           throw RuntimeException(ex)

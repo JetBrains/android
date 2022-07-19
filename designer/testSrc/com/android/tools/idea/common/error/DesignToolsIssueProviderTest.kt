@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
@@ -127,7 +128,7 @@ class DesignToolsIssueProviderTest {
     val visualLintIssues = listOf(createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, listOf(fakeNlComponent), ""))
 
     val ktSource = Any()
-    val layoutSource = Any()
+    val layoutSource = VisualLintService.getInstance(rule.project).issueModel
 
     runInEdtAndWait { fileEditorManager.openFile(ktFile, true) }
     messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(ktSource, ktFileIssues)

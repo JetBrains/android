@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderAsyncActionExecutor
 import com.android.tools.idea.rendering.RenderResult
@@ -43,6 +42,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInspection.InspectionProfile
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -66,7 +66,7 @@ private val visualLintAnalyzerExecutorService = AppExecutorUtil.createBoundedApp
  * Service that runs visual lints
  */
 @Service
-class VisualLintService(val project: Project) {
+class VisualLintService(val project: Project): Disposable {
 
   companion object {
     @JvmStatic
@@ -75,8 +75,10 @@ class VisualLintService(val project: Project) {
     }
   }
 
+  val issueModel: IssueModel = IssueModel(this, project)
+
   /** Default issue provider for Visual Lint Service. */
-  val issueProvider = VisualLintIssueProvider(project)
+  val issueProvider: VisualLintIssueProvider = VisualLintIssueProvider(this)
 
   private val basicAnalyzers = listOf(BoundsAnalyzer, OverlapAnalyzer, AtfAnalyzer)
   private val adaptiveAnalyzers = listOf(BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer,
@@ -86,6 +88,7 @@ class VisualLintService(val project: Project) {
   private val ignoredTypes: MutableList<VisualLintErrorType>
 
   init {
+    issueModel.addIssueProvider(issueProvider, false)
     val connection = project.messageBus.connect()
     ignoredTypes = mutableListOf()
     getIgnoredTypesFromProfile(InspectionProfileManager.getInstance(project).currentProfile)
@@ -113,29 +116,28 @@ class VisualLintService(val project: Project) {
     }
   }
 
-  fun removeIssues(surface: DesignSurface<*>) {
-    surface.issueModel.removeIssueProvider(issueProvider)
+  fun removeIssues() {
+    issueProvider.clear()
+    issueModel.updateErrorsList()
   }
 
   /**
    * Runs visual lint analysis in a pooled thread for configurations based on the model provided,
    * and adds the issues found to the [IssueModel]
    */
-  fun runVisualLintAnalysis(models: List<NlModel>, surface: DesignSurface<*>) {
-    runVisualLintAnalysis(models, surface, visualLintExecutorService)
+  fun runVisualLintAnalysis(models: List<NlModel>) {
+    runVisualLintAnalysis(models, visualLintExecutorService)
   }
 
   @VisibleForTesting
-  fun runVisualLintAnalysis(models: List<NlModel>, surface: DesignSurface<*>, executorService: ExecutorService) {
+  fun runVisualLintAnalysis(models: List<NlModel>, executorService: ExecutorService) {
     CompletableFuture.runAsync({
-      val issueModel = surface.issueModel
-      issueModel.removeIssueProvider(issueProvider)
       issueProvider.clear()
+      issueModel.updateErrorsList()
       if (models.isEmpty()) {
         return@runAsync
       }
 
-      issueModel.addIssueProvider(issueProvider, false)
       val displayingModel = models[0]
       val listener = object : ModelListener {
         override fun modelChanged(model: NlModel) {
@@ -160,7 +162,7 @@ class VisualLintService(val project: Project) {
           createRenderResult(model, requireRender).handleAsync({ result, _ ->
             if (result != null) {
               updateHierarchy(result, model)
-              analyzeAfterModelUpdate(result, model, visualLintBaseConfigIssues, true)
+              analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues, true)
             }
             Disposer.dispose(model)
             latch.countDown()
@@ -177,30 +179,32 @@ class VisualLintService(val project: Project) {
   /**
    * Collects in [issueProvider] all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult] after model is updated.
    */
-  fun analyzeAfterModelUpdate(result: RenderResult,
+  fun analyzeAfterModelUpdate(targetIssueProvider: VisualLintIssueProvider,
+                              result: RenderResult,
                               model: NlModel,
                               baseConfigIssues: VisualLintBaseConfigIssues,
                               runningInBackground: Boolean = false) {
-    runAnalyzers(basicAnalyzers, result, model, runningInBackground)
+    runAnalyzers(targetIssueProvider, basicAnalyzers, result, model, runningInBackground)
     if (HardwareConfigHelper.isWear(model.configuration.device)) {
-      runAnalyzers(wearAnalyzers, result, model, runningInBackground)
+      runAnalyzers(targetIssueProvider, wearAnalyzers, result, model, runningInBackground)
     } else {
-      runAnalyzers(adaptiveAnalyzers, result, model, runningInBackground)
+      runAnalyzers(targetIssueProvider, adaptiveAnalyzers, result, model, runningInBackground)
       if (VisualLintErrorType.LOCALE_TEXT !in ignoredTypes) {
         LocaleAnalyzer(baseConfigIssues).let {
-          issueProvider.addAllIssues(it.type, it.analyze(result, model, getSeverity(it.type), runningInBackground))
+          targetIssueProvider.addAllIssues(it.type, it.analyze(result, model, getSeverity(it.type), runningInBackground))
         }
       }
     }
   }
 
-  private fun runAnalyzers(analyzers: List<VisualLintAnalyzer>,
+  private fun runAnalyzers(targetIssueProvider: VisualLintIssueProvider,
+                           analyzers: List<VisualLintAnalyzer>,
                            result: RenderResult,
                            model: NlModel,
                            runningInBackground: Boolean) {
     analyzers.filter { !ignoredTypes.contains(it.type) }.forEach {
       val issues = it.analyze(result, model, getSeverity(it.type), runningInBackground)
-      issueProvider.addAllIssues(it.type, issues)
+      targetIssueProvider.addAllIssues(it.type, issues)
     }
   }
 
@@ -208,6 +212,9 @@ class VisualLintService(val project: Project) {
     val key = HighlightDisplayKey.find(type.shortName)
     return key?.let { InspectionProfileManager.getInstance(project).currentProfile.getErrorLevel(it, null).severity }
            ?: HighlightSeverity.WARNING
+    }
+
+  override fun dispose() {
   }
 }
 
