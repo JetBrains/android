@@ -26,10 +26,8 @@ import com.android.tools.idea.lint.common.LintExternalAnnotator;
 import com.android.tools.idea.lint.common.LintProblemData;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.codeHighlighting.HighlightingPass;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
@@ -39,9 +37,13 @@ import java.lang.ref.WeakReference;
 import kotlin.Pair;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class LintHighlightingPass implements HighlightingPass {
+/**
+ * Annotate the lint issue information by using the rendered {@link NlModel}.
+ *
+ * @see LintAnnotationsModel
+ */
+public class ModelLintIssueAnnotator {
   private final WeakReference<DesignSurface<?>> mySurfaceRef;
 
   private final Object myRunningTaskLock = new Object();
@@ -50,16 +52,13 @@ public class LintHighlightingPass implements HighlightingPass {
 
   /**
    * @param surface the surface to add the lint annotations to. This class will keep a {@link WeakReference} to the
-   *                surface so it won't stop it from being disposed.
+   *                surface, so it won't stop it from being disposed.
    */
-  public LintHighlightingPass(@NotNull DesignSurface<?> surface) {
+  public ModelLintIssueAnnotator(@NotNull DesignSurface<?> surface) {
     mySurfaceRef = new WeakReference<>(surface);
   }
 
-  @Override
-  public void collectInformation(@NotNull ProgressIndicator progress) {
-    // Current thread may be canceled by Intellij platform when it decided to stop collecting information. We have to create another task
-    // to make sure the lint annotation models is created and set to the surface.
+  public void annotateRenderInformationToLint(@NotNull NlModel model) {
     final DesignSurface<?> surface = mySurfaceRef.get();
     if (surface == null) {
       // The surface is gone, no need to keep going
@@ -70,13 +69,12 @@ public class LintHighlightingPass implements HighlightingPass {
       if (sceneView == null) {
         return;
       }
-      final NlModel model = sceneView.getSceneManager().getModel();
       LintAnnotationsModel lintAnnotationsModel =
         ApplicationManager.getApplication().runReadAction((Computable<LintAnnotationsModel>)() -> getAnnotations(model));
       synchronized (myRunningTaskLock) {
         myRunningTask = null;
       }
-      UIUtil.invokeLaterIfNeeded(() -> updateLintAnnotationsModelToSurface(surface, lintAnnotationsModel));
+      UIUtil.invokeLaterIfNeeded(() -> updateLintAnnotationsModelToSurface(surface, model, lintAnnotationsModel));
     };
     synchronized (myRunningTaskLock) {
       if (myRunningTask == null) {
@@ -86,17 +84,10 @@ public class LintHighlightingPass implements HighlightingPass {
     }
   }
 
-  @Override
-  public void applyInformationToEditor() {
-  }
-
-  private static void updateLintAnnotationsModelToSurface(@NotNull DesignSurface<?> surface, @Nullable LintAnnotationsModel annotationsModel) {
-    SceneView sceneView = surface.getFocusedSceneView();
-    if (sceneView == null || annotationsModel == null) {
-      return;
-    }
-
-    sceneView.getSceneManager().getModel().setLintAnnotationsModel(annotationsModel);
+  private static void updateLintAnnotationsModelToSurface(@NotNull DesignSurface<?> surface,
+                                                          @NotNull NlModel model,
+                                                          @NotNull LintAnnotationsModel annotationsModel) {
+    model.setLintAnnotationsModel(annotationsModel);
     surface.setLintAnnotationsModel(annotationsModel);
     // Ensure that the layers are repainted to reflect the latest model
     // (updating the lint annotations associated with a model doesn't actually rev the model
