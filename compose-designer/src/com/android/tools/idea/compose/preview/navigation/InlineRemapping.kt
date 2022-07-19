@@ -23,8 +23,8 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
+import org.jetbrains.kotlin.idea.debugger.KotlinSourceMapCache
 import org.jetbrains.kotlin.idea.debugger.SourceLineKind
-import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinDebuggerCaches
 import org.jetbrains.kotlin.idea.debugger.isInlineFrameLineNumber
 import org.jetbrains.kotlin.idea.debugger.mapStacktraceLineToSource
 import org.jetbrains.kotlin.psi.KtFile
@@ -44,7 +44,7 @@ internal fun remapInlineLocation(
   searchScope: GlobalSearchScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)): Pair<KtFile, Int> {
   val virtualFile = PsiUtil.getVirtualFile(ktFile) ?: return Pair(ktFile, line)
   val internalClassName = JvmClassName.byInternalName(className.replace(".", "/"))
-  val smapData = KotlinDebuggerCaches.getSmapCached(module.project, internalClassName, virtualFile) ?: return ktFile to line
+  val smapData = KotlinSourceMapCache.getInstance(module.project).getSourceMap(virtualFile, internalClassName) ?: return ktFile to line
 
   val inlineRemapped = mapStacktraceLineToSource(smapData,
                                                  line,
