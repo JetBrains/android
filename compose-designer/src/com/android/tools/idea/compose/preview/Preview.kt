@@ -1227,6 +1227,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         this.compiledFiles = compiledFiles
       }
 
+      override fun compilationFailed(compilationDurationMs: Long, compiledFiles: Int) {
+        this.compilationDurationMs = compilationDurationMs
+        this.compiledFiles = compiledFiles
+      }
+
       fun refreshSucceeded(refreshTimeMs: Long) {
         delegateRequestTracker.compilationSucceeded(compilationDurationMs, compiledFiles, refreshTimeMs)
       }

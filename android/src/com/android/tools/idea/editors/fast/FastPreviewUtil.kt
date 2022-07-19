@@ -71,7 +71,7 @@ suspend fun fastCompile(parentDisposable: Disposable,
     file.saveIfNeeded()
 
     val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
-      fastPreviewManager.compileRequest(listOf(file), contextModule)
+      fastPreviewManager.compileRequest(listOf(file), contextModule, tracker = requestTracker)
     }
     val isSuccess = result == CompilationResult.Success
     if (isSuccess) {
