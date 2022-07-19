@@ -47,7 +47,7 @@ class NotificationPanel(
 
   fun updateNotifications(virtualFile: VirtualFile, parentEditor: FileEditor, project: Project) {
     notificationsPanel.removeAll()
-    NOTIFICATIONS_EP_NAME.extensions()
+    NOTIFICATIONS_EP_NAME.extensionList
       .asSequence()
       .mapNotNull { it.createNotificationPanel(virtualFile, parentEditor, project) }
       .forEach {
