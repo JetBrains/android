@@ -335,7 +335,7 @@ open class OpenLayoutValidationNavigatable(project: Project, configurationSetToS
 private fun createIssueCountText(issueCount: Int): String {
   return when (issueCount) {
     0 -> "There is no problem"
-    1 -> "Has 1 problem"
-    else -> "Has $issueCount problems"
+    1 -> "1 problem"
+    else -> "$issueCount problems"
   }
 }

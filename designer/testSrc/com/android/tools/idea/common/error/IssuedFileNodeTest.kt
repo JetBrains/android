@@ -23,6 +23,7 @@ import junit.framework.Assert
 import org.junit.Rule
 import org.junit.Test
 
+@Suppress("DialogTitleCapitalization")
 class IssuedFileNodeTest {
   @JvmField
   @Rule
@@ -54,7 +55,7 @@ class IssuedFileNodeTest {
     val expected = PresentationData()
     expected.addText("fileName", SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.addText("  /src/path/to", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-    expected.addText("  Has 1 problem", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+    expected.addText("  1 problem", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     expected.setIcon(AllIcons.FileTypes.Any_type)
 
     Assert.assertEquals(expected, node.presentation)
@@ -70,7 +71,7 @@ class IssuedFileNodeTest {
     val expected = PresentationData()
     expected.addText("fileName", SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.addText("  /src/path/to", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-    expected.addText("  Has 2 problems", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+    expected.addText("  2 problems", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     expected.setIcon(AllIcons.FileTypes.Any_type)
 
     Assert.assertEquals(expected, node.presentation)
