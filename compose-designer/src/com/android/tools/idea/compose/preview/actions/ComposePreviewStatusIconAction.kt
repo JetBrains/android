@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.ui.AnimatedIcon
-import org.jetbrains.annotations.VisibleForTesting
+import icons.StudioIcons
 
 /**
  * [AnAction] that can be used to show an icon according to the Compose Preview status
@@ -36,28 +41,38 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
     val fastPreviewEnabled = project.fastPreviewManager.isEnabled
     val fastPreviewAutoDisabled = project.fastPreviewManager.isAutoDisabled
     e.presentation.apply {
-      isEnabled = false
-      disabledIcon = when {
+      val newIcon = when {
         // loading
         previewStatus.interactiveMode.isStartingOrStopping() || previewStatus.isRefreshing ||
           project.fastPreviewManager.isCompiling -> AnimatedIcon.Default()
         // errors
-        project.needsBuild || previewStatus.hasSyntaxErrors || previewStatus.hasRuntimeErrors ||
-          sceneView?.hasRenderErrors() == true -> AllIcons.General.InspectionsWarning
+        previewStatus.hasRuntimeErrors || sceneView?.hasRenderErrors() == true -> StudioIcons.Common.WARNING
         // ok
         else -> AllIcons.General.InspectionsOK
       }
 
-      // don't show when fast preview is auto-disabled or when out of date.
-      isVisible = fastPreviewEnabled || (!previewStatus.isOutOfDate && !fastPreviewAutoDisabled)
+      isVisible = when {
+        previewStatus.hasSyntaxErrors -> false
+        fastPreviewEnabled -> true
+        else -> !(previewStatus.isOutOfDate || fastPreviewAutoDisabled || project.needsBuild)
+      }
 
-      // TODO(b/232716935) remove this 'if' statement once the errors
-      //  panel is replaced by a cached image of the preview.
-      if (disabledIcon == AllIcons.General.InspectionsWarning) {
-        isVisible = false
+      // Enable the icon to be clickable only when render/runtime errors were found, so that a
+      // click action in such cases would open the issues panel with more info about the errors.
+      isEnabled = isVisible && newIcon === StudioIcons.Common.WARNING
+
+      if (isEnabled) {
+        icon = newIcon
+        text = message("action.open.issues.panel.title")
+      }
+      else {
+        disabledIcon = newIcon
+        text = null
       }
     }
   }
 
-  override fun actionPerformed(e: AnActionEvent) {}
+  override fun actionPerformed(e: AnActionEvent) {
+    e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true, userInvoked = true)
+  }
 }
