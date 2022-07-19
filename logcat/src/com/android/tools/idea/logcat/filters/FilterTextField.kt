@@ -204,14 +204,6 @@ internal class FilterTextField(
           buttonPanel.isVisible = textField.text.isNotEmpty()
         }
       })
-      addKeyListener(object : KeyAdapter() {
-        override fun keyPressed(e: KeyEvent) {
-          if (e.keyCode == KeyEvent.VK_ENTER) {
-            e.consume()
-            addToHistory()
-          }
-        }
-      })
       addFocusListener(object : FocusAdapter() {
         override fun focusGained(e: FocusEvent?) {
           GotItTooltip(GOT_IT_ID, LogcatBundle.message("logcat.filter.hint"), project)
@@ -327,6 +319,15 @@ internal class FilterTextField(
         putUserData(PROCESS_NAMES_PROVIDER_KEY, logcatPresenter)
         putUserData(AndroidProjectDetector.KEY, androidProjectDetector)
         setBorder(EDITOR_BORDER)
+
+        contentComponent.addKeyListener(object : KeyAdapter() {
+          override fun keyPressed(e: KeyEvent) {
+            if (e.keyCode == KeyEvent.VK_ENTER) {
+              e.consume()
+              addToHistory()
+            }
+          }
+        })
       }
     }
 

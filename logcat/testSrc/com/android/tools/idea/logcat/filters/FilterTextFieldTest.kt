@@ -141,8 +141,9 @@ class FilterTextFieldTest {
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
     filterTextField.text = "bar"
 
-    val keyEvent = KeyEvent(textField, 0, 0L, 0, VK_ENTER, '\n')
-    textField.keyListeners.forEach { it.keyPressed(keyEvent) }
+    val fakeUi = FakeUi(filterTextField)
+    fakeUi.keyboard.setFocus(textField.editor!!.contentComponent)
+    fakeUi.keyboard.pressAndRelease(VK_ENTER)
 
     assertThat(getHistoryNonFavorites()).containsExactly("bar").inOrder()
   }
