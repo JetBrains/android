@@ -34,6 +34,7 @@ import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -93,6 +94,7 @@ class TreeTableImplTest {
   private val item1 = Item(SdkConstants.FQCN_LINEAR_LAYOUT)
   private val item2 = Item(SdkConstants.FQCN_TEXT_VIEW)
   private val item3 = Item(SdkConstants.FQCN_BUTTON)
+  private val item4 = Item(SdkConstants.FQCN_CHECK_BOX)
   private val contextPopup = object : ContextPopupHandler {
     var popupInvokeCount = 0
       private set
@@ -574,6 +576,29 @@ class TreeTableImplTest {
     val cell = table.getCellRect(0, 0, true)
     ui.mouse.click(cell.centerX.toInt(), cell.centerY.toInt())
     assertThat(selectionEvents).isEqualTo(1)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSelectionIsMaintainedOnUpdates() {
+    val result = createTree()
+    val table = result.focusComponent as TreeTableImpl
+    setScrollPaneSize(table, 400, 700)
+    val ui = FakeUi(table)
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    val cell = table.getCellRect(2, 0, true)
+    ui.mouse.click(cell.centerX.toInt(), cell.centerY.toInt())
+    assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
+
+    // Simulate a model change. Execute the hierarchy change on a background thread:
+    item1.add(item4)
+    val future = executeOnPooledThread { result.model.hierarchyChanged(item1) }
+    future.get()
+
+    // Make sure the selection is still intact:
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
   }
 
   private fun foregroundOf(table: JTable, column: Int, isSelected: Boolean, hasFocus: Boolean): Color {

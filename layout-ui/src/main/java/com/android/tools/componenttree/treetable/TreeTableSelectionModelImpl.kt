@@ -16,6 +16,7 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
+import com.intellij.openapi.application.invokeLater
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.tree.TreeUtil
 import javax.swing.tree.DefaultTreeSelectionModel
@@ -71,7 +72,12 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
     finally {
       isUpdating = false
     }
-    currentSelection = oldSelection
+    // Tricky:
+    // When the operation is initiated from a data update on the TreeTableImpl, there are several
+    // operations that are executed with invokeLater (i.e. sent to the UI thread for execution).
+    // We want to restore the selection after all these tasks have completed. By using invokeLater
+    // the restore will be added to the UI queue after the subtasks thus giving us the wanted result.
+    invokeLater { currentSelection = oldSelection }
   }
 
   override fun addSelectionListener(listener: (List<Any>) -> Unit) {
