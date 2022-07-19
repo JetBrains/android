@@ -100,6 +100,8 @@ public class AndroidStudioInstallation {
 
     String vmOptions = String.format("-javaagent:%s%n", agentZip) +
                        String.format("-javaagent:%s%n", threadingCheckerAgentZip) +
+                       // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
+                       String.format("-Ddisable.android.first.run=true%n") +
                        String.format("-Dgradle.ide.save.log.to.file=true%n") +
                        String.format("-Didea.config.path=%s%n", configDir) +
                        String.format("-Didea.plugins.path=%s/plugins%n", configDir) +
@@ -239,6 +241,21 @@ public class AndroidStudioInstallation {
       "  </component>\n" +
       "</application>\n";
     Files.writeString(dest, firstRunContents, StandardCharsets.UTF_8);
+  }
+
+  public void createGeneralPropertiesXml() throws IOException {
+    Path dest = configDir.resolve("options").resolve("ide.general.xml");
+    System.out.println("Creating " + dest);
+
+    Files.createDirectories(dest.getParent());
+    String generalPropertyContents =
+      "<application>\n" +
+      "  <component name=\"GeneralSettings\">\n" +
+      "    <option name=\"confirmExit\" value=\"false\" />\n" +
+      "    <option name=\"processCloseConfirmation\" value=\"TERMINATE\" />\n" +
+      "  </component>\n" +
+      "</application>";
+    Files.writeString(dest, generalPropertyContents, StandardCharsets.UTF_8);
   }
 
   public Path getWorkDir() {

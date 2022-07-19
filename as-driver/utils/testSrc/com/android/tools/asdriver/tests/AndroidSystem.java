@@ -16,6 +16,7 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
+import com.android.utils.PathUtils;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -83,6 +84,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
       system.install = AndroidStudioInstallation.fromZip(system.fileSystem);
       system.install.createFirstRunXml();
+      system.install.createGeneralPropertiesXml();
 
       return system;
     }
@@ -180,6 +182,6 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   @Override
   public void close() throws Exception {
     display.close();
-    fileSystem.delete();
+    PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
   }
 }

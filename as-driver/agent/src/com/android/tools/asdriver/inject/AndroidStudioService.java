@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbService;
@@ -73,8 +74,13 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   }
 
   @Override
-  public void kill(ASDriver.KillRequest request, StreamObserver<ASDriver.KillResponse> responseObserver) {
-    System.exit(request.getExitCode());
+  public void quit(ASDriver.QuitRequest request, StreamObserver<ASDriver.QuitResponse> responseObserver) {
+    if (request.getForce()) {
+      System.exit(0);
+    }
+    else {
+      ((ApplicationEx)ApplicationManager.getApplication()).exit(true, true);
+    }
   }
 
   @Override

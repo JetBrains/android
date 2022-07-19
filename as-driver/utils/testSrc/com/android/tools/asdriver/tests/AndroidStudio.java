@@ -141,6 +141,7 @@ public class AndroidStudio implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
+    quitAndWaitForShutdown();
     // We must terminate the process on close. If we don't and expect the test to gracefully terminate it always, it means
     // that if the test has an assertEquals, when the assertion exception is thrown the try-catch will attempt to close
     // this object that has not been asked to terminate, blocking forever until the test times out, swallowing the
@@ -155,14 +156,27 @@ public class AndroidStudio implements AutoCloseable {
     return response.getVersion();
   }
 
-  public void kill(int exitCode) {
-    ASDriver.KillRequest rq = ASDriver.KillRequest.newBuilder().setExitCode(exitCode).build();
+  /**
+   * @param force true to kill Studio right away, false to gracefully exit. Note that killing Studio will not allow it to run
+   *              cleanup processes, such as stopping Gradle, which would let Gradle to continue writing to the filesystem.
+   */
+  public void quit(boolean force) {
+    ASDriver.QuitRequest rq = ASDriver.QuitRequest.newBuilder().setForce(force).build();
     try {
-      ASDriver.KillResponse ignore = androidStudio.kill(rq);
+      ASDriver.QuitResponse ignore = androidStudio.quit(rq);
     }
     catch (StatusRuntimeException e) {
       // Expected as the process is killed.
     }
+  }
+
+  /**
+   * Quit Studio such that Gradle and other Studio-owned processes are properly disposed of.
+   */
+  private void quitAndWaitForShutdown() throws IOException, InterruptedException {
+    System.out.println("Quitting Studio...");
+    quit(false);
+    install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS dispose completed.*", 30, TimeUnit.SECONDS);
   }
 
   public boolean showToolWindow(String toolWindow) {

@@ -7,7 +7,7 @@ option java_outer_classname = "ASDriver";
 service AndroidStudio {
   rpc GetVersion(GetVersionRequest) returns (GetVersionResponse) {}
 
-  rpc Kill(KillRequest) returns (KillResponse) {}
+  rpc Quit(QuitRequest) returns (QuitResponse) {}
 
   rpc ExecuteAction(ExecuteActionRequest) returns (ExecuteActionResponse) {}
 
@@ -28,11 +28,11 @@ message GetVersionResponse {
   string version = 1;
 }
 
-message KillRequest {
-  int32 exit_code = 1;
+message QuitRequest {
+  bool force = 1;
 }
 
-message KillResponse {}
+message QuitResponse {}
 
 message ExecuteActionRequest {
   string action_id = 1;
