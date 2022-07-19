@@ -25,7 +25,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
 import org.jetbrains.kotlin.idea.debugger.SourceLineKind
 import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinDebuggerCaches
-import org.jetbrains.kotlin.idea.debugger.isInlineFunctionLineNumber
+import org.jetbrains.kotlin.idea.debugger.isInlineFrameLineNumber
 import org.jetbrains.kotlin.idea.debugger.mapStacktraceLineToSource
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
@@ -123,7 +123,7 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(module: Module,
     else -> null
   } ?: return null
 
-  val remappedLocation = if (isInlineFunctionLineNumber(originalPsiFile.virtualFile, lineNumber, module.project)) {
+  val remappedLocation = if (isInlineFrameLineNumber(originalPsiFile.virtualFile, lineNumber, module.project)) {
     // re-map inline
     remapInlineLocation(module, originalPsiFile as KtFile, className, lineNumber, scope)
   }
