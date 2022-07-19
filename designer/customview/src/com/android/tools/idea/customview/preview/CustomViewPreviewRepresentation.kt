@@ -222,7 +222,7 @@ class CustomViewPreviewRepresentation(
     object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, this), DataProvider {
       override fun getData(dataId: String): Any? = if (DESIGN_SURFACE.`is`(dataId)) surface else null
     }.apply {
-      val issuePanelSplitter = IssuePanelSplitter(surface, editorPanel)
+      val issuePanelSplitter = IssuePanelSplitter(psiFile.virtualFile, surface, editorPanel)
       init(issuePanelSplitter, surface, listOf(), false)
     }
 

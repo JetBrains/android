@@ -99,7 +99,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final ModelProvider myModelProvider;
   @NotNull private final MyContentPanel myContentPanel;
   @NotNull private final WorkBench<DesignSurface<?>> myWorkBench;
-  private JBSplitter mySplitter;
+  private final JBSplitter mySplitter;
   @Nullable private final JPanel myAccessoryPanel;
   @Nullable private JComponent myBottomComponent;
   /**
@@ -183,7 +183,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     // The rest of the initialization is done once the state of the surface is set to a visible state. This allows to defer the heavy
     // initialization of the model to when the user actually needs it.
 
-    mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
+    mySplitter = new IssuePanelSplitter(file, mySurface, myWorkBench);
     add(mySplitter);
 
     myToolWindowDefinitions = toolWindowDefinitions;

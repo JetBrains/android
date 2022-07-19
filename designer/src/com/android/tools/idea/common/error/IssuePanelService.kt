@@ -73,6 +73,8 @@ class IssuePanelService(private val project: Project) {
   private val initLock = Any()
   private var inited = false
 
+  private val fileToSurfaceMap = mutableMapOf<VirtualFile, DesignSurface<*>>()
+
   init {
     val manager = ToolWindowManager.getInstance(project)
     val problemsView = manager.getToolWindow(ProblemsView.ID)
@@ -155,28 +157,10 @@ class IssuePanelService(private val project: Project) {
         }
         val surface = newEditor?.getDesignSurface()
         if (surface != null) {
-          val psiFileType = newFile.toPsiFile(project)?.typeOf()
-          if (psiFileType is DrawableFileType) {
-            // We don't support Shared issue panel for Drawable files.
-            removeSharedIssueTabFromProblemsPanel()
-          }
-          else {
-            addIssuePanel(selectIfVisible)
-          }
+          updateIssuePanelVisibility(newFile, selectIfVisible)
         }
         else {
           removeSharedIssueTabFromProblemsPanel()
-        }
-      }
-
-      /**
-       * Add shared issue panel into IJ's problems panel. If [selected] is true, select the shared issue panel after added.
-       */
-      private fun addIssuePanel(selected: Boolean) {
-        addSharedIssueTabToProblemsPanel()
-        updateSharedIssuePanelTabName()
-        if (selected) {
-          selectSharedIssuePanelTab()
         }
       }
     })
@@ -198,6 +182,28 @@ class IssuePanelService(private val project: Project) {
           }
         }
       }
+    }
+  }
+
+  private fun updateIssuePanelVisibility(file: VirtualFile, selectIfVisible: Boolean) {
+    val psiFileType = file.toPsiFile(project)?.typeOf()
+    if (psiFileType is DrawableFileType) {
+      // We don't support Shared issue panel for Drawable files.
+      removeSharedIssueTabFromProblemsPanel()
+    }
+    else {
+      addIssuePanel(selectIfVisible)
+    }
+  }
+
+  /**
+   * Add shared issue panel into IJ's problems panel. If [selected] is true, select the shared issue panel after added.
+   */
+  private fun addIssuePanel(selected: Boolean) {
+    addSharedIssueTabToProblemsPanel()
+    updateSharedIssuePanelTabName()
+    if (selected) {
+      selectSharedIssuePanelTab()
     }
   }
 
@@ -280,13 +286,17 @@ class IssuePanelService(private val project: Project) {
   /**
    * Get the title of shared issue panel. The returned string doesn't include the issue count.
    */
-  private fun getSharedIssuePanelTabTitle(): String {
+  @VisibleForTesting
+  fun getSharedIssuePanelTabTitle(): String {
     val editors = FileEditorManager.getInstance(project).selectedEditors ?: return DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME
     if (editors.size != 1) {
       // TODO: What tab name should be show when opening multiple file editor?
       return DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME
     }
     val file = editors[0].file ?: return DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME
+
+    fileToSurfaceMap[file]?.name?.let { return it }
+
     if (isComposeFile(file)) {
       return "Compose"
     }
@@ -415,6 +425,18 @@ class IssuePanelService(private val project: Project) {
   fun getSelectedIssues(): List<Issue> {
     val issuePanelComponent = sharedIssuePanel?.getComponent() ?: return emptyList()
     return DataManager.getInstance().getDataContext(issuePanelComponent).getData(SELECTED_ISSUES) ?: emptyList()
+  }
+
+  fun registerSurfaceFile(file: VirtualFile, surface: DesignSurface<*>) {
+    fileToSurfaceMap[file] = surface
+
+    if (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() == surface) {
+      updateIssuePanelVisibility(file, false)
+    }
+  }
+
+  fun unregisterSurfaceFile(file: VirtualFile) {
+    fileToSurfaceMap.remove(file)
   }
 
   companion object {

@@ -386,7 +386,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
     mainPanelSplitter.firstComponent = contentPanel
 
-    val issueErrorSplitter = IssuePanelSplitter(mainSurface, mainPanelSplitter)
+    val issueErrorSplitter = IssuePanelSplitter(psiFilePointer.virtualFile, mainSurface, mainPanelSplitter)
 
     workbench.init(issueErrorSplitter, mainSurface, listOf(), false)
     workbench.hideContent()

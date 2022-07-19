@@ -195,7 +195,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     myWorkBench.setLoadingText("Loading...")
     myWorkBench.setToolContext(surface)
     val mainComponent: JComponent = if (StudioFlags.NELE_VISUAL_LINT.get()) {
-      IssuePanelSplitter(surface, myWorkBench)
+      IssuePanelSplitter(null, surface, myWorkBench)
     }
     else {
       myWorkBench
