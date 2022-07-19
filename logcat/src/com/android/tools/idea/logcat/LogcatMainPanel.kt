@@ -25,6 +25,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.PauseLogcat
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.StartLogcat
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.StopLogcat
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
@@ -226,6 +227,8 @@ internal class LogcatMainPanel(
   private val connectedDevice = AtomicReference<Device?>()
   private val logcatServiceChannel = Channel<LogcatServiceEvent>(1)
   private val clientListener = ProjectAppMonitor(this, packageNamesProvider)
+  @VisibleForTesting
+  internal var logcatServiceJob: Job? = null
 
   init {
     editor.apply {
@@ -284,12 +287,12 @@ internal class LogcatMainPanel(
     }
 
     coroutineScope.launch {
-      var job: Job? = null
       logcatServiceChannel.consumeEach {
-        job?.cancel()
-        job = when (it) {
-          is StartLogcat -> startLogcat(it.device)
+        logcatServiceJob?.cancel()
+        logcatServiceJob = when (it) {
+          is StartLogcat -> startLogcat(it.device).also { isLogcatPaused = false }
           StopLogcat -> connectedDevice.set(null).let { null }
+          PauseLogcat -> null.also { isLogcatPaused = true }
         }
       }
     }
@@ -357,10 +360,7 @@ internal class LogcatMainPanel(
       packages.add(applicationId)
       processNames.add(processName)
     }
-    if (!isLogcatPaused) {
-      // When paused, we don't send message to the document.
-      messageProcessor.appendMessages(messages)
-    }
+    messageProcessor.appendMessages(messages)
   }
 
   override fun getState(): String {
@@ -466,15 +466,19 @@ internal class LogcatMainPanel(
 
   @UiThread
   override fun pauseLogcat() {
-    isLogcatPaused = true
+    coroutineScope.launch {
+      logcatServiceChannel.send(PauseLogcat)
+    }
     pausedBanner.isVisible = true
   }
 
   @UiThread
   override fun resumeLogcat() {
-    isLogcatPaused = false
     pausedBanner.isVisible = false
-    reloadMessages()
+    val device = connectedDevice.get() ?: return
+    coroutineScope.launch {
+      logcatServiceChannel.send(StartLogcat(device))
+    }
   }
 
   @UiThread
@@ -617,6 +621,7 @@ internal class LogcatMainPanel(
   private sealed class LogcatServiceEvent {
     class StartLogcat(val device: Device) : LogcatServiceEvent()
     object StopLogcat : LogcatServiceEvent()
+    object PauseLogcat : LogcatServiceEvent()
   }
 }
 
