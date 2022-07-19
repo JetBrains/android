@@ -29,6 +29,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.FrameTimelineSelectionOverlayPanel.GrayOutMode
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.analysis.JankAnalysisModel
@@ -40,7 +41,8 @@ import java.awt.geom.Rectangle2D
 import java.util.function.BooleanSupplier
 import kotlin.math.min
 
-class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackRenderer<AndroidFrameTimelineModel> {
+class JankyFrameTrackRenderer(private val profilersView: StudioProfilersView,
+                              private val vsyncEnabler: BooleanSupplier): TrackRenderer<AndroidFrameTimelineModel> {
   override fun render(trackModel: TrackModel<AndroidFrameTimelineModel, *>) =
     StateChart(trackModel.dataModel, renderJankyFrame(trackModel.dataModel.multiSelectionModel)).apply {
       addRowIndexChangeListener {
@@ -48,7 +50,9 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
       }
       addItemClickedListener {
         it?.let {
-          trackModel.dataModel.multiSelectionModel.setSelection(it, setOf(JankAnalysisModel(it, trackModel.dataModel.capture)))
+          val runInBackground = profilersView.studioProfilers.ideServices.poolExecutor::execute
+          trackModel.dataModel.multiSelectionModel
+            .setSelection(it, setOf(JankAnalysisModel(it, trackModel.dataModel.capture, runInBackground)))
         }
       }
     }.let { VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(it, trackModel.dataModel.viewRange,

@@ -25,6 +25,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
@@ -60,7 +61,7 @@ class CaptureNodeSummaryDetailsViewTest {
       endGlobal = TimeUnit.SECONDS.toMicros(20)
     }
     val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), Cpu.CpuTraceType.PERFETTO).apply {
-      dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java)))
+      dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java), Utils::runOnUi))
     }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)
     val treeWalker = TreeWalker(view)

@@ -22,21 +22,23 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profilers.ProfilersApplicationRule;
+import com.android.tools.profilers.Utils;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import com.intellij.testFramework.ApplicationRule;
 import java.util.Arrays;
 import java.util.Collections;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class FlameChartTest {
 
-  @Rule
-  public ProfilersApplicationRule appRule = new ProfilersApplicationRule();
+  @ClassRule
+  public static final ApplicationRule rule = new ApplicationRule();
 
   /**
    * main [0..71]
@@ -68,8 +70,10 @@ public class FlameChartTest {
     CpuCapture capture = Mockito.mock(CpuCapture.class);
     Mockito.when(capture.getRange()).thenReturn(selection);
 
-    CaptureNode flameChartNode = new CaptureDetails.FlameChart(ClockType.GLOBAL, selection,
-                                                               Collections.singletonList(main), capture).getNode();
+    CaptureDetails.FlameChart flameChart = new CaptureDetails.FlameChart(ClockType.GLOBAL, selection,
+                                                                         Collections.singletonList(main), capture,
+                                                                         this::runOnUi);
+    CaptureNode flameChartNode = flameChart.getNode();
     main = flameChartNode.getFirstChild();
     // main [0..71]
     assertEquals(0, main.getStart());
@@ -124,8 +128,10 @@ public class FlameChartTest {
     CpuCapture capture = Mockito.mock(CpuCapture.class);
     Mockito.when(capture.getRange()).thenReturn(selection);
 
-    CaptureNode flameChartNode = new CaptureDetails.FlameChart(ClockType.GLOBAL, selection,
-                                                               Collections.singletonList(main), capture).getNode();
+    CaptureDetails.FlameChart flameChart = new CaptureDetails.FlameChart(ClockType.GLOBAL, selection,
+                                                                         Collections.singletonList(main), capture,
+                                                                         this::runOnUi);
+    CaptureNode flameChartNode = flameChart.getNode();
 
     main = flameChartNode.getFirstChild();
     assertEquals(0, main.getStart());
@@ -157,7 +163,8 @@ public class FlameChartTest {
     Mockito.when(capture.getRange()).thenReturn(selection);
 
     CaptureDetails.FlameChart flameChart = new CaptureDetails.FlameChart(ClockType.GLOBAL, selection,
-                                                                         Collections.singletonList(main), capture);
+                                                                         Collections.singletonList(main), capture,
+                                                                         this::runOnUi);
 
     CaptureNode root = flameChart.getNode();
     assertEquals(100, root.getDuration());
@@ -225,7 +232,8 @@ public class FlameChartTest {
 
     // Create a multi-node flame chart.
     CaptureDetails.FlameChart flameChart = new CaptureDetails.FlameChart(ClockType.GLOBAL, selection,
-                                                                         Arrays.asList(thread1, thread2), capture);
+                                                                         Arrays.asList(thread1, thread2), capture,
+                                                                         this::runOnUi);
 
     // Selecting outside all of the children's range should effectively return no intersection for the flame chart.
     selection.set(110, 120);
@@ -241,5 +249,10 @@ public class FlameChartTest {
     node.setStartThread(start);
     node.setEndThread(end);
     return node;
+  }
+
+  private Unit runOnUi(Runnable work) {
+    Utils.runOnUi(work);
+    return Unit.INSTANCE;
   }
 }

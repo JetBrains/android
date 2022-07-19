@@ -26,11 +26,13 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
@@ -60,7 +62,9 @@ class CpuAnalysisChartTest {
   @Test
   fun filterIsApplied() {
     val capture = CpuProfilerUITestUtils.validCapture()
-    val model = CpuAnalysisChartModel<CpuCapture>(CpuAnalysisTabModel.Type.TOP_DOWN, Range(capture.range), capture) { capture.captureNodes }
+    val model = CpuAnalysisChartModel<CpuCapture>(CpuAnalysisTabModel.Type.TOP_DOWN, Range(capture.range), capture,
+                                                  { capture.captureNodes },
+                                                  Utils::runOnUi)
     model.dataSeries.add(capture)
     val chart = CpuAnalysisChart(profilersView, model)
 

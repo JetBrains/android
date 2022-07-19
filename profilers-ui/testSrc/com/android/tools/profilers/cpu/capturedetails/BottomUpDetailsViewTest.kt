@@ -28,6 +28,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -58,7 +59,7 @@ class BottomUpDetailsViewTest {
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
     val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(), emptyList(),
-                                                       capture) as CaptureDetails.BottomUp
+                                                       capture, Utils::runOnUi) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {
@@ -73,7 +74,7 @@ class BottomUpDetailsViewTest {
   fun showsContentWhenNodeIsNotNull() {
     val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(),
                                                        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                       capture) as CaptureDetails.BottomUp
+                                                       capture, Utils::runOnUi) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructionsList = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
@@ -93,7 +94,7 @@ class BottomUpDetailsViewTest {
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
     val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, range,
                                                        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                       capture) as CaptureDetails.BottomUp
+                                                       capture, Utils::runOnUi) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {

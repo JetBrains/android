@@ -34,6 +34,8 @@ import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Function;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,10 +53,13 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull private final MultiSelectionModel<CpuAnalyzable<?>> myMultiSelectionModel;
   @Nullable private final DataSeries<ThreadState> myThreadStateSeries;
 
+  @NotNull private final Function1<Runnable, Unit> myRunInBackground;
+
   public CpuThreadTrackModel(@NotNull CpuCapture capture,
                              @NotNull CpuThreadInfo threadInfo,
                              @NotNull Timeline timeline,
-                             @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel) {
+                             @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel,
+                             @NotNull Function1<Runnable, Unit> runModelUpdate) {
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateTooltip = new CpuThreadsTooltip(timeline);
     // CallChart always uses wall-clock time, a.k.a. ClockType.GLOBAL
@@ -65,6 +70,7 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     myThreadInfo = threadInfo;
     myTimeline = timeline;
     myMultiSelectionModel = multiSelectionModel;
+    myRunInBackground = runModelUpdate;
 
     if (capture.getSystemTraceData() != null) {
       myThreadStateSeries = new LazyDataSeries<>(() -> capture.getSystemTraceData().getThreadStatesForThread(threadInfo.getId()));
@@ -105,19 +111,22 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
 
     // Flame Chart
     CpuAnalysisChartModel<CpuThreadTrackModel> flameChart =
-      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, myCapture,
+                                  CpuThreadTrackModel::getCaptureNode, myRunInBackground);
     flameChart.getDataSeries().add(this);
     model.addTabModel(flameChart);
 
     // Top Down
     CpuAnalysisChartModel<CpuThreadTrackModel> topDown =
-      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, myCapture,
+                                  CpuThreadTrackModel::getCaptureNode, myRunInBackground);
     topDown.getDataSeries().add(this);
     model.addTabModel(topDown);
 
     // Bottom Up
     CpuAnalysisChartModel<CpuThreadTrackModel> bottomUp =
-      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, selectionRange, myCapture,
+                                  CpuThreadTrackModel::getCaptureNode, myRunInBackground);
     bottomUp.getDataSeries().add(this);
     model.addTabModel(bottomUp);
 

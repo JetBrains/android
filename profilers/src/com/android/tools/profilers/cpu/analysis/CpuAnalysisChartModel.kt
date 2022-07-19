@@ -35,7 +35,8 @@ import com.google.common.annotations.VisibleForTesting
 class CpuAnalysisChartModel<T>(tabType: Type,
                                private val selectionRange: Range,
                                private val capture: CpuCapture,
-                               private val extractNodes: (T) -> Collection<CaptureNode>) : CpuAnalysisTabModel<T>(tabType) {
+                               private val extractNodes: (T) -> Collection<CaptureNode>,
+                               private val runModelUpdate: (Runnable) -> Unit) : CpuAnalysisTabModel<T>(tabType) {
   private val observer = AspectObserver()
   val aspectModel = AspectModel<Aspect>()
   val detailsType = when (tabType) {
@@ -87,7 +88,8 @@ class CpuAnalysisChartModel<T>(tabType: Type,
    */
   fun applyFilterAndCreateDetails(filter: Filter): CaptureDetailsWithFilterResult = collectCaptureNodes().let { nodes ->
     val combinedResult = nodes.fold(FilterResult.EMPTY_RESULT) { res, node -> res.combine(node.applyFilter(filter)) }
-    CaptureDetailsWithFilterResult(detailsType.build(clockType, captureConvertedRange, nodes, capture), combinedResult)
+    CaptureDetailsWithFilterResult(detailsType.build(clockType, captureConvertedRange, nodes, capture, runModelUpdate),
+                                   combinedResult)
   }
 
   /**

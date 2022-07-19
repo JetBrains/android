@@ -17,13 +17,14 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profilers.ProfilersApplicationRule;
+import com.android.tools.profilers.Utils;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.intellij.testFramework.ApplicationRule;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -40,8 +41,8 @@ public class CpuTreeSorterTest {
 
   private JTree myTree;
 
-  @Rule
-  public ProfilersApplicationRule appRule = new ProfilersApplicationRule();
+  @ClassRule
+  public static final ApplicationRule rule = new ApplicationRule();
 
   /**
    * Compares two topdown nodes by comparing their method names lexicographically.
@@ -128,7 +129,11 @@ public class CpuTreeSorterTest {
 
   private static CpuTreeModel createTreeModel(CaptureNode tree) {
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    return new CpuTreeModel(ClockType.GLOBAL, range, Aggregate.TopDown.rootAt(tree));
+    return new CpuTreeModel<Aggregate.TopDown>(ClockType.GLOBAL, range, Aggregate.TopDown.rootAt(tree),
+                                               work -> {
+                                                 Utils.runOnUi(work);
+                                                 return Unit.INSTANCE;
+                                               });
   }
 
   /**

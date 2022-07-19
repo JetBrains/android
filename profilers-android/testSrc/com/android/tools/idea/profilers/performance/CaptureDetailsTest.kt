@@ -34,6 +34,7 @@ import com.android.tools.profilers.cpu.capturedetails.ChartDetailsView.FlameChar
 import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView.BottomUpDetailsView
 import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView.TopDownDetailsView
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
 import org.junit.Test
@@ -82,13 +83,14 @@ class CaptureDetailsTest {
     benchmarkInitAndUpdate(benchmarkInit: BenchmarkRunner,
                            benchmarkRangeUpdate: BenchmarkRunner,
                            benchmarkFilterChange: BenchmarkRunner,
-                           initModel: (ClockType, Range, List<CaptureNode>, CpuCapture) -> CaptureDetails,
+                           initModel: (ClockType, Range, List<CaptureNode>, CpuCapture, (Runnable) -> Unit) -> CaptureDetails,
                            initTree: (StudioProfilersView, T) -> CaptureDetailsView) {
     withTestData { range, captureNodes, cpuCapture ->
       val profilersView = fakeProfilersView()
 
       val treeView = benchmarkInit("synthetic") {
-        initTree(profilersView, initModel(ClockType.GLOBAL, range, captureNodes, cpuCapture) as T)
+        initTree(profilersView, initModel(ClockType.GLOBAL, range, captureNodes, cpuCapture,
+                                          ApplicationManager.getApplication()::executeOnPooledThread) as T)
       }
 
       benchmarkRangeUpdate("synthetic") {

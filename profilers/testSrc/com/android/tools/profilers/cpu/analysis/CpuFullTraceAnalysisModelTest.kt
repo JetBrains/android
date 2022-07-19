@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.Range
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
 import com.google.common.truth.Truth.assertThat
@@ -29,7 +30,7 @@ class CpuFullTraceAnalysisModelTest {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
       whenever(this.range).thenReturn(Range())
     }
-    val model = CpuFullTraceAnalysisModel(capture, Range())
+    val model = CpuFullTraceAnalysisModel(capture, Range(), Utils::runOnUi)
     val analysisModels = model.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
     assertThat(analysisModels).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP)
   }

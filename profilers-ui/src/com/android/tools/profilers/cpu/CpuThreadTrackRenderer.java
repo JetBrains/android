@@ -46,11 +46,10 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
-import java.util.Map;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -141,7 +140,12 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
             if (node != null) {
               multiSelectionModel.setSelection(
                 node,
-                Collections.singleton(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture())));
+                Collections.singleton(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture(),
+                                                                   work -> {
+                                                                     myProfilersView.getStudioProfilers().getIdeServices()
+                                                                       .getPoolExecutor().execute(work);
+                                                                     return Unit.INSTANCE;
+                                                                   })));
             } else {
               multiSelectionModel.deselect();
             }
