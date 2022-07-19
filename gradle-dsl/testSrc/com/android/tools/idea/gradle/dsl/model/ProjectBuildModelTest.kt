@@ -26,6 +26,10 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.I
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
@@ -354,6 +358,55 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     assertEquals(pbm.context, buildModel.context)
     buildModel.involvedFiles.forEach {
       assertEquals(pbm.context, it.context)
+    }
+  }
+
+  @Test
+  fun testContextOrdering() {
+    writeToBuildFile("")
+    writeToSubModuleBuildFile("")
+    writeToNewSubModule("a", "", "")
+    writeToNewSubModule("b", "", "")
+    writeToVersionCatalogFile("")
+    writeToSettingsFile(subModuleSettingsText + getSubModuleSettingsText("a") + getSubModuleSettingsText("b"))
+
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+
+    try {
+      val pbm = projectBuildModel
+      pbm.getAllIncludedBuildModels()
+      val context = pbm.context
+      val allRequestedFiles = context.allRequestedFiles
+      assertSize(11, allRequestedFiles)
+      assertInstanceOf(allRequestedFiles[0], GradleSettingsFile::class.java)
+      assertInstanceOf(allRequestedFiles[1], GradlePropertiesFile::class.java)
+      assertInstanceOf(allRequestedFiles[2], GradleVersionCatalogFile::class.java)
+      assertInstanceOf(allRequestedFiles[3], GradleBuildFile::class.java)
+      assertEquals(":", (allRequestedFiles[3] as GradleBuildFile).name)
+      // buildSrc
+      assertInstanceOf(allRequestedFiles[4], GradleBuildFile::class.java)
+      // TODO(b/239564531)
+      //assertEquals(":buildSrc", (allRequestedFiles[4] as GradleBuildFile).name)
+      // gradleModelTest
+      assertInstanceOf(allRequestedFiles[5], GradlePropertiesFile::class.java)
+      assertInstanceOf(allRequestedFiles[6], GradleBuildFile::class.java)
+      // TODO(b/239564531)
+      //assertEquals(":gradleModelTest", (allRequestedFiles[5] as GradleBuildFile).name)
+      // a
+      assertInstanceOf(allRequestedFiles[7], GradlePropertiesFile::class.java)
+      assertInstanceOf(allRequestedFiles[8], GradleBuildFile::class.java)
+      // TODO(b/239564531)
+      //assertEquals(":a", (allRequestedFiles[5] as GradleBuildFile).name)
+      // b
+      assertInstanceOf(allRequestedFiles[9], GradlePropertiesFile::class.java)
+      assertInstanceOf(allRequestedFiles[10], GradleBuildFile::class.java)
+      // TODO(b/239564531)
+      //assertEquals(":b", (allRequestedFiles[5] as GradleBuildFile).name)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
     }
   }
 

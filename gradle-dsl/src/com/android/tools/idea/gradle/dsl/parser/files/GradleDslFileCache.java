@@ -27,7 +27,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GradleDslFileCache {
   @NotNull private Project myProject;
-  @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new HashMap<>();
+  @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new LinkedHashMap<>();
   @NotNull private Deque<VirtualFile> myParsingStack = new ArrayDeque<>();
 
   public GradleDslFileCache(@NotNull Project project) {
