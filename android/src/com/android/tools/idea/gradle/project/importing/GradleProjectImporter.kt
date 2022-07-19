@@ -208,7 +208,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     @JvmStatic
     fun configureNewProject(newProject: Project) {
       val gradleSettings = GradleSettings.getInstance(newProject).also { it.setupGradleSettings() }
-      val externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(newProject.basePath!!)
+      val externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(File(newProject.basePath!!).canonicalPath)
       if (!gradleSettings.linkedProjectsSettings.isEmpty()) {
         check(ApplicationManager.getApplication().isUnitTestMode) { "configureNewProject should be used with new projects only" }
         for (setting in gradleSettings.linkedProjectsSettings) {

@@ -86,7 +86,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
     with(ideModelDumper(this)) {
       // Android Studio projects always have just one Gradle root, and thus we dump the composite build structure of the root project of a
       // build located at the root of the IDE project.
-      GradleHolderProjectPath(projectRoot.path, ":")
+      GradleHolderProjectPath(projectRoot.canonicalPath, ":")
         .resolveIn(project)
         ?.findCompositeBuildMapModel()
         ?.let { dump(it) }

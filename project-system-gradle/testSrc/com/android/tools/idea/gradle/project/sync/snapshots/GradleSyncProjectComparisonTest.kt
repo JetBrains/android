@@ -82,6 +82,8 @@ data class ProjectStructureSnapshotTestDef(
   companion object {
     val tests: List<ProjectStructureSnapshotTestDef> = listOf(
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
       ProjectStructureSnapshotTestDef(TestProject.PURE_JAVA_PROJECT),
       ProjectStructureSnapshotTestDef(TestProject.MAIN_IN_ROOT),
       ProjectStructureSnapshotTestDef(TestProject.NESTED_MODULE),

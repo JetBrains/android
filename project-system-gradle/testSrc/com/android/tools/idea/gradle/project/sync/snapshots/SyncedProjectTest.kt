@@ -93,6 +93,12 @@ abstract class SyncedProjectTest(
   fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
 
   @Test
+  fun testSimpleApplication_viaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK)
+
+  @Test
+  fun testSimpleApplication_appViaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK)
+
+  @Test
   fun testAppWithMlModels() = testProject(TestProject.APP_WITH_ML_MODELS)
 
   @Test

@@ -53,18 +53,8 @@ data class GradleSourceSetProjectPath constructor(
 val GradleProjectPath.buildRootDir: File get() = File(buildRoot)
 fun GradleProjectPath.toHolder(): GradleHolderProjectPath = GradleHolderProjectPath(buildRoot, path)
 
-internal fun Module.internalGetGradleProjectPath(useCanonicalPath: Boolean = false): GradleProjectPath? {
-  val rootFolder = File(GradleRunnerUtil.resolveProjectPath(this) ?: return null).let {
-    if (useCanonicalPath) {
-      try {
-        it.canonicalFile
-      } catch (e: IOException) {
-        it
-      }
-    } else {
-      it.absoluteFile
-    }
-  }
+internal fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
+  val rootFolder = File(GradleRunnerUtil.resolveProjectPath(this) ?: return null)
   // The external system projectId is:
   // <projectName-uniqualized-by-Gradle> for the root module of a main or only build in a composite build
   // :gradle:path for a non-root module of a main or only build in a composite build

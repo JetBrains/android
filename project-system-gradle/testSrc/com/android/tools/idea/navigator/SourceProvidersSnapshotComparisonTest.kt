@@ -70,6 +70,8 @@ data class SourceProvidersTestDef(
   companion object {
     val tests: List<SourceProvidersTestDef> = listOf(
       SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION),
+      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK),
+      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK),
       SourceProvidersTestDef(TestProject.APP_WITH_ML_MODELS),
       SourceProvidersTestDef(TestProject.MULTI_FLAVOR),
       SourceProvidersTestDef(TestProject.PSD_SAMPLE_GROOVY),

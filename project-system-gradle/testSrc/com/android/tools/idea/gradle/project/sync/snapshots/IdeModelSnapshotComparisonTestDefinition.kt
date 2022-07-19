@@ -62,6 +62,8 @@ data class IdeModelSnapshotComparisonTestDefinition(
   companion object {
     fun tests(): List<IdeModelSnapshotComparisonTestDefinition> = listOf(
       IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK),
       IdeModelSnapshotComparisonTestDefinition(
         TestProject.SIMPLE_APPLICATION_WITH_ADDITIONAL_GRADLE_SOURCE_SETS,
         skipV1toV2Comparison = true,
