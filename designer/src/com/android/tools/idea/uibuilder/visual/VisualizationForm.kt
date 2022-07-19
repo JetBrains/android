@@ -28,7 +28,6 @@ import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.error.IssuePanelSplitter
-import com.android.tools.idea.common.error.getDesignSurface
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
@@ -39,9 +38,7 @@ import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeList
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler.updateVisualLintIssues
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -50,8 +47,6 @@ import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.ConfigurationSetProvider.getConfigurationSets
 import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
@@ -137,8 +132,6 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
    */
   private var myCancelPendingModelLoad = AtomicBoolean(false)
   private val myProgressIndicator = EmptyProgressIndicator()
-  private val myBaseConfigIssues = VisualLintBaseConfigIssues()
-  private val myLintIssueProvider = VisualLintService.getInstance(project).issueProvider
   private val analyticsManager: NlAnalyticsManager
     get() = surface.analyticsManager
   var editor: FileEditor?
@@ -151,6 +144,8 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
       }
     }
   val component: JComponent = myRoot
+
+  private val visualLintHandler: VisualizationFormVisualLintHandler
 
   init {
     Disposer.register(parentDisposable, this)
@@ -220,6 +215,8 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     myUpdateQueue = MergingUpdateQueue("visualization.form.update", NlModel.DELAY_AFTER_TYPING_MS, true,
                                        null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
     myUpdateQueue.setRestartTimerOnAdd(true)
+
+    visualLintHandler = VisualizationFormVisualLintHandler(project, surface.issueModel)
   }
 
   private fun createToolbarPanel(): JComponent {
@@ -309,7 +306,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
   }
 
   private fun removeAndDisposeModels(models: List<NlModel>) {
-    myLintIssueProvider.clear()
+    visualLintHandler.clearIssueProvider()
     for (model in models) {
       surface.removeModel(model)
       Disposer.dispose(model)
@@ -579,34 +576,13 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
       myCancelRenderingTaskLock.unlock()
     }
     var renderFuture = CompletableFuture.completedFuture<Void?>(null)
-    myLintIssueProvider.clear()
-    myBaseConfigIssues.clear()
+
+    visualLintHandler.clearIssueProviderAndBaseConfigurationIssue()
+
     // This render the added components.
     for (manager in surface.sceneManagers) {
       if (StudioFlags.NELE_VISUAL_LINT.get() && manager is LayoutlibSceneManager) {
-        val renderListener: RenderListener = object : RenderListener {
-          override fun onRenderCompleted() {
-            val model = manager.model
-            val result = manager.renderResult
-            if (result != null) {
-              ApplicationManager.getApplication().executeOnPooledThread {
-                VisualLintService.getInstance(project).analyzeAfterModelUpdate(result, model, myBaseConfigIssues)
-                if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
-                  updateVisualLintIssues(model.file, myLintIssueProvider)
-                }
-              }
-            }
-
-            // Remove self. This will not cause ConcurrentModificationException.
-            // Callback iteration creates copy of a list. (see {@link ListenerCollection.kt#foreach})
-            manager.removeRenderListener(this)
-          }
-
-          override fun onRenderFailed(e: Throwable) {
-            manager.removeRenderListener(this)
-          }
-        }
-        manager.addRenderListener(renderListener)
+        visualLintHandler.setupForLayoutlibSceneManager(manager)
       }
       renderFuture = renderFuture.thenCompose {
         if (isRenderingCanceled.get()) {
@@ -654,10 +630,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     }
     surface.activate()
     analyticsManager.trackVisualizationToolWindow(true)
-    surface.issueModel.addIssueProvider(myLintIssueProvider)
-    FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface()?.let {
-      VisualLintService.getInstance(project).removeIssues(it)
-    }
+    visualLintHandler.onActivate()
   }
 
   /**
@@ -677,8 +650,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
       setNoActiveModel()
     }
     analyticsManager.trackVisualizationToolWindow(false)
-    surface.issueModel.removeIssueProvider(myLintIssueProvider)
-    (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() as? NlDesignSurface)?.updateErrorDisplay()
+    visualLintHandler.onDeactivate()
   }
 
   override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) {
