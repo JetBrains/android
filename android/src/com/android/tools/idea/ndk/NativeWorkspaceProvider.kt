@@ -20,7 +20,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
-import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 import kotlin.streams.asStream
@@ -53,26 +52,32 @@ data class NativeCompilerSetting(
 /** Provider of native configurations. */
 interface NativeWorkspaceProvider {
   companion object {
-    private val EP_NAME = ExtensionPointName.create<NativeWorkspaceProvider>("com.android.tools.idea.ndk.nativeWorkspaceProvider")
+    private val EP_NAME = ExtensionPointName<NativeWorkspaceProvider>("com.android.tools.idea.ndk.nativeWorkspaceProvider")
 
     /** Gets additional native files that are not under any source roots for each module. */
-    fun getAdditionalNativeFiles(module: Module): Set<VirtualFile> =
-      EP_NAME.extensions().flatMap {
-        it.getAdditionalNativeFiles(module).stream()
-      }.collect(Collectors.toSet())
+    fun getAdditionalNativeFiles(module: Module): Set<VirtualFile> {
+      return EP_NAME.extensionList.asSequence().flatMap {
+        it.getAdditionalNativeFiles(module)
+      }.toSet()
+    }
 
-    fun getNativeHeaderDirs(project: Project, moduleVariantAbi: ModuleVariantAbi): Set<NativeHeaderDir> =
-      EP_NAME.extensions().flatMap {
-        it.getNativeHeaderDirs(project, moduleVariantAbi).stream()
-      }.collect(Collectors.toSet())
+    fun getNativeHeaderDirs(project: Project, moduleVariantAbi: ModuleVariantAbi): Set<NativeHeaderDir> {
+      return EP_NAME.extensionList.asSequence().flatMap {
+        it.getNativeHeaderDirs(project, moduleVariantAbi)
+      }.toSet()
+    }
 
-    fun getCompilerSettings(project: Project, filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting> =
-      EP_NAME.extensions().asSequence().flatMap {
-        it.getCompilerSettings(project, filter).asSequence()
-      }.asStream()
+    fun getCompilerSettings(project: Project, filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting> {
+      return EP_NAME.extensionList.asSequence()
+        .flatMap {
+          it.getCompilerSettings(project, filter).asSequence()
+        }
+        .asStream()
+    }
 
-    fun shouldShowInProjectView(module: Module,
-                                file: File): Boolean = EP_NAME.extensions().anyMatch { it.shouldShowInProjectView(module, file) }
+    fun shouldShowInProjectView(module: Module, file: File): Boolean {
+      return EP_NAME.extensionList.any { it.shouldShowInProjectView(module, file) }
+    }
   }
 
   /** Gets additional native files that are not under any source roots for each module. */

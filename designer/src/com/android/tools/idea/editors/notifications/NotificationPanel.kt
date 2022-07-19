@@ -24,7 +24,6 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import javax.swing.Box
 import javax.swing.JPanel
-import kotlin.streams.asSequence
 
 /**
  * A panel that displays notifications or hides itself if there are none. It is intended to be used together with a [FileEditor] and
@@ -47,7 +46,7 @@ class NotificationPanel(
 
   fun updateNotifications(virtualFile: VirtualFile, parentEditor: FileEditor, project: Project) {
     notificationsPanel.removeAll()
-    NOTIFICATIONS_EP_NAME.extensions()
+    NOTIFICATIONS_EP_NAME.extensionList
       .asSequence()
       .mapNotNull { it.createNotificationPanel(virtualFile, parentEditor, project) }
       .forEach {

@@ -1,27 +1,11 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.run;
-
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionSettings;
-import com.android.tools.idea.run.editor.AndroidDebugger;
-import com.android.tools.idea.run.editor.AndroidDebuggerContext;
-import com.android.tools.idea.run.editor.AndroidDebuggerState;
-import com.android.tools.idea.run.editor.AndroidJavaDebugger;
-import com.android.tools.idea.run.editor.DeployTarget;
-import com.android.tools.idea.run.editor.DeployTargetContext;
-import com.android.tools.idea.run.editor.DeployTargetProvider;
-import com.android.tools.idea.run.editor.DeployTargetState;
-import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -34,14 +18,7 @@ import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.JavaRunConfigurationModule;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
-import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction;
-import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.configurations.RuntimeConfigurationError;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
-import com.intellij.execution.configurations.RuntimeConfigurationWarning;
+import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
@@ -53,13 +30,6 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
@@ -69,6 +39,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParserException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+
+import static com.android.AndroidProjectTypes.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Base {@link com.intellij.execution.configurations.RunConfiguration} for all Android run configs.
@@ -365,7 +341,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                         @NotNull ApplicationIdProvider applicationIdProvider,
                                                         @NotNull ApkProvider apkProvider,
                                                         @NotNull LaunchOptions launchOptions) {
-    Optional<LaunchTasksProvider> provided = LaunchTasksProvider.Provider.EP_NAME.extensions()
+    Optional<LaunchTasksProvider> provided = LaunchTasksProvider.Provider.EP_NAME.getExtensionList().stream()
       .map(it -> it.createLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions))
       .filter(Objects::nonNull)
       .findFirst();
