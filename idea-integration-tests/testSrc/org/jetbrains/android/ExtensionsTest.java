@@ -1,4 +1,4 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android;
 
 import com.android.tools.idea.project.AndroidRunConfigurations;
@@ -20,7 +20,7 @@ public class ExtensionsTest extends LightPlatformTestCase {
   }
 
   public void testErrorReportSubmitterNotInstalled() {
-    List<ErrorReportSubmitter> androidEPs = ExtensionPoints.ERROR_HANDLER_EP.extensions()
+    List<ErrorReportSubmitter> androidEPs = ExtensionPoints.ERROR_HANDLER_EP.getExtensionList().stream()
       .filter(e -> e.toString().contains("android"))
       .collect(Collectors.toList());
 
