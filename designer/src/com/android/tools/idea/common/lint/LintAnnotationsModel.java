@@ -167,8 +167,8 @@ public class LintAnnotationsModel {
      * Compare the issue by comparing the following properties, sorted by Highest priority first
      * <ul>
      * <li> {@link HighlightDisplayLevel#getSeverity()}
-     * <li> {@link Issue#priority}
-     * <li> {@link Issue#severity}
+     * <li> {@link Issue#getPriority()}
+     * <li> {@link Issue#getDefaultSeverity()}
      * </ul>
      */
     @Override
@@ -176,7 +176,7 @@ public class LintAnnotationsModel {
       return ComparisonChain.start()
         .compare(this.level.getSeverity(), o.level.getSeverity())
         .compare(this.issue.getPriority(), o.issue.getPriority())
-        .compare(o.issue.getDefaultSeverity(), this.issue.getDefaultSeverity()) // Inverted on purpose
+        .compare(this.issue.getDefaultSeverity(), o.issue.getDefaultSeverity())
         .result();
     }
   }
