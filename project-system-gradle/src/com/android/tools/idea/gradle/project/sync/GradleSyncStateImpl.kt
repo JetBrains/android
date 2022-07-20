@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("RemoveRedundantQualifierName")
+
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.annotations.concurrency.UiThread
@@ -31,7 +33,6 @@ import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
-import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.BuildProgressListener
@@ -104,7 +105,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
   }
 
   private enum class LastSyncState(val isInProgress: Boolean = false, val isSuccessful: Boolean = false, val isFailed: Boolean = false) {
-    UNKNOWN(),
+    UNKNOWN,
     SKIPPED(isSuccessful = true),
     IN_PROGRESS(isInProgress = true),
     SUCCEEDED(isSuccessful = true),
@@ -143,7 +144,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
   fun generateSyncEvent(eventKind: AndroidStudioEvent.EventKind) = eventLogger.generateSyncEvent(project, eventKind)
 
-  var lastSyncFinishedTimeStamp = -1L; protected set
+  var lastSyncFinishedTimeStamp = -1L; private set
 
   /**
    * Triggered at the start of a sync.
@@ -222,7 +223,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     }
     val resultMessage = "Gradle sync failed in ${formatDuration(millisTook)}"
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.ERROR, null)
-    LOG.warn(resultMessage + ". " + causeMessage)
+    LOG.warn("$resultMessage. $causeMessage")
 
     // Log the error to ideas log
     // Note: we log this as well as message above so the stack trace is present in the logs.
