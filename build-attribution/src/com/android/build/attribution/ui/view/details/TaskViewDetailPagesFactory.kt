@@ -17,7 +17,6 @@ package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.data.TaskUiData
-import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
@@ -75,11 +74,7 @@ class TaskViewDetailPagesFactory(
     name = nodeDescriptor.pageId.id
   }
 
-  private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = taskDetailsPage(
-    descriptor.taskData,
-    helpLinkListener = actionHandlers::helpLinkClicked,
-    generateReportClickedListener = actionHandlers::generateReportClicked
-  )
+  private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = taskDetailsPage(descriptor.taskData, actionHandlers)
 
   private fun createPluginDetailsPage(descriptor: PluginDetailsNodeDescriptor): JComponent {
     fun inlinedTaskInfo(taskUiData: TaskUiData) = JPanel().apply {

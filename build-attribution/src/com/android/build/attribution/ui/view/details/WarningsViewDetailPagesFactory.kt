@@ -151,11 +151,7 @@ class WarningsViewDetailPagesFactory(
     add(htmlTextLabelWithFixedLines(content), BorderLayout.NORTH)
   }
 
-  private fun createWarningDetailsPage(taskData: TaskUiData) = taskDetailsPage(
-    taskData,
-    helpLinkListener = actionHandlers::helpLinkClicked,
-    generateReportClickedListener = actionHandlers::generateReportClicked
-  )
+  private fun createWarningDetailsPage(taskData: TaskUiData) = taskDetailsPage(taskData, actionHandlers)
 
   private fun createAnnotationProcessorsRootDetailsPage(annotationProcessorsReport: AnnotationProcessorsReport) = JPanel().apply {
     layout = BorderLayout()

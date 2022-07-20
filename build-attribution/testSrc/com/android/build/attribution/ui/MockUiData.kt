@@ -195,6 +195,6 @@ class TestTaskUiData(
   override var onLogicalCriticalPath: Boolean = true
   override var onExtendedCriticalPath: Boolean = true
   override var sourceType: PluginSourceType = PluginSourceType.ANDROID_PLUGIN
-  override val reasonsToRun: List<String> = emptyList()
+  override var reasonsToRun: List<String> = emptyList()
   override var issues: List<TaskIssueUiData> = emptyList()
 }
