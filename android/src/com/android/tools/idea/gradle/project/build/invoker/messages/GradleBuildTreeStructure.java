@@ -45,7 +45,7 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
   private final ListMultimap<String, NavigatableMessageElement> myGroupNameToMessagesMap = ArrayListMultimap.create();
 
   @NotNull private final Project myProject;
-  @NotNull private final GradleBuildTreeViewConfiguration myConfiguration;
+  @NotNull final GradleBuildTreeViewConfiguration myConfiguration;
 
   GradleBuildTreeStructure(@NotNull Project project, @NotNull GradleBuildTreeViewConfiguration configuration) {
     super(project, false);

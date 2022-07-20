@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.build.invoker.messages;
 
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.util.ui.UIUtil.getParentOfType;
 import static com.intellij.util.ui.tree.TreeUtil.promiseSelectFirst;
 
@@ -24,11 +23,10 @@ import com.google.common.base.Joiner;
 import com.intellij.ide.errorTreeView.ErrorTreeElement;
 import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
 import com.intellij.ide.errorTreeView.ErrorTreeNodeDescriptor;
+import com.intellij.ide.errorTreeView.ErrorViewStructure;
 import com.intellij.ide.errorTreeView.ErrorViewTreeBuilder;
 import com.intellij.ide.errorTreeView.NavigatableMessageElement;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -40,7 +38,6 @@ import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.containers.Convertor;
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.util.Locale;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -54,20 +51,15 @@ import org.jetbrains.annotations.Nullable;
  * they appear in the console. The original implementation sorts the messages by type.
  */
 public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
-  private final GradleBuildTreeStructure myTreeStructure;
   private final ErrorViewTreeBuilder myBuilder;
-  private final GradleBuildTreeViewConfiguration myConfiguration;
 
   private volatile boolean myDisposed;
 
   public GradleBuildTreeViewPanel(@NotNull Project project) {
     super(project, null);
 
-    myConfiguration = GradleBuildTreeViewConfiguration.getInstance(project);
-    myTreeStructure = new GradleBuildTreeStructure(myProject, myConfiguration);
-
     DefaultTreeModel model = (DefaultTreeModel)myTree.getModel();
-    myBuilder = new ErrorViewTreeBuilder(myTree, model, myTreeStructure);
+    myBuilder = new ErrorViewTreeBuilder(myTree, model, getErrorViewStructure());
     super.dispose();
 
     // We need to remove the JTree from the JScrollPane to register a new cell renderer. The reason is that the superclass calls
@@ -103,9 +95,14 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     });
   }
 
-  @Nullable
-  private GradleBuildTreeViewConfiguration getConfiguration() {
-    return myConfiguration;
+  @NotNull
+  @Override
+  protected ErrorViewStructure createErrorViewStructure(@Nullable Project project, boolean canHideWarnings) {
+    return new GradleBuildTreeStructure(myProject, GradleBuildTreeViewConfiguration.getInstance(project));
+  }
+
+  private @NotNull GradleBuildTreeViewConfiguration getConfiguration() {
+    return ((GradleBuildTreeStructure)getErrorViewStructure()).myConfiguration;
   }
 
   @Override
@@ -116,7 +113,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
   @Override
   public void dispose() {
     myDisposed = true;
-    myTreeStructure.clear();
+    getErrorViewStructure().clear();
     Disposer.dispose(myBuilder);
   }
 
@@ -144,7 +141,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
       return;
     }
     ErrorTreeElementKind kind = ErrorTreeElementKind.convertMessageFromCompilerErrorType(type);
-    myTreeStructure.addMessage(kind, text, underFileGroup, file, line, column, data);
+    getErrorViewStructure().addMessage(kind, text, underFileGroup, file, line, column, data);
     myBuilder.updateTree();
   }
 
@@ -164,19 +161,14 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
       file = ((OpenFileDescriptor)navigatable).getFile();
     }
     ErrorTreeElementKind kind = ErrorTreeElementKind.convertMessageFromCompilerErrorType(type);
-    myTreeStructure.addNavigatableMessage(groupName, navigatable, kind, text, data, nullToEmpty(exportTextPrefix),
+    getErrorViewStructure().addNavigatableMessage(groupName, navigatable, kind, text, data, nullToEmpty(exportTextPrefix),
                                           nullToEmpty(rendererTextPrefix), file);
     myBuilder.updateTree();
   }
 
   @Override
-  public GradleBuildTreeStructure getErrorViewStructure() {
-    return myTreeStructure;
-  }
-
-  @Override
   public void selectFirstMessage() {
-    ErrorTreeElement firstError = myTreeStructure.getFirstMessage(ErrorTreeElementKind.ERROR);
+    ErrorTreeElement firstError = getErrorViewStructure().getFirstMessage(ErrorTreeElementKind.ERROR);
     if (firstError != null) {
       selectElement(firstError, new Runnable() {
         @Override
@@ -216,29 +208,5 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
   private NavigatableMessageElement getSelectedMessageElement() {
     ErrorTreeElement selectedElement = getSelectedErrorTreeElement();
     return selectedElement instanceof NavigatableMessageElement ? (NavigatableMessageElement)selectedElement : null;
-  }
-
-  private class FilterMessagesByKindAction extends ToggleAction {
-    @NotNull private final ErrorTreeElementKind myElementKind;
-
-    FilterMessagesByKindAction(@NotNull ErrorTreeElementKind elementKind) {
-      super(capitalize(elementKind.toString().toLowerCase(Locale.getDefault())));
-      myElementKind = elementKind;
-    }
-
-    @Override
-    public boolean isSelected(@NotNull AnActionEvent e) {
-      GradleBuildTreeViewConfiguration configuration = getConfiguration();
-      if (configuration == null) {
-        return false;
-      }
-      return configuration.canShow(myElementKind);
-    }
-
-    @Override
-    public void setSelected(@NotNull AnActionEvent e, boolean state) {
-      myConfiguration.update(myElementKind, state);
-      myBuilder.updateTree();
-    }
   }
 }
