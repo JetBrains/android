@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.lint.checks.GooglePlaySdkIndex
@@ -91,6 +92,17 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
       })
     else
       null
+  }
+
+  /***
+   * Initialize the SDK index and set flags according to StudioFlags
+   */
+  fun initializeAndSetFlags() {
+    initialize();
+    showCriticalIssues = StudioFlags.SHOW_SDK_INDEX_CRITICAL_ISSUES.get()
+    showMessages = StudioFlags.SHOW_SDK_INDEX_MESSAGES.get()
+    showLinks = StudioFlags.INCLUDE_LINKS_TO_SDK_INDEX.get()
+    showPolicyIssues = StudioFlags.SHOW_SDK_INDEX_POLICY_ISSUES.get()
   }
 
   private fun findProject(file: File): Project? {

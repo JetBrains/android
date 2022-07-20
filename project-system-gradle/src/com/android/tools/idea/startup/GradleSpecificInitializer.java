@@ -365,11 +365,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   private void useIdeGooglePlaySdkIndexInGradleDetector() {
     GradleDetector.setPlaySdkIndexFactory((path, client) -> {
       IdeGooglePlaySdkIndex playIndex = IdeGooglePlaySdkIndex.INSTANCE;
-      playIndex.initialize();
-      playIndex.setShowCriticalIssues(StudioFlags.SHOW_SDK_INDEX_CRITICAL_ISSUES.get());
-      playIndex.setShowMessages(StudioFlags.SHOW_SDK_INDEX_MESSAGES.get());
-      playIndex.setShowLinks(StudioFlags.INCLUDE_LINKS_TO_SDK_INDEX.get());
-      playIndex.setShowPolicyIssues(StudioFlags.SHOW_SDK_INDEX_POLICY_ISSUES.get());
+      playIndex.initializeAndSetFlags();
       return playIndex;
     });
   }
