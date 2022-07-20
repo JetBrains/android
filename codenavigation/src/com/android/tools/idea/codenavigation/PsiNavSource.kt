@@ -21,6 +21,7 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.util.ClassUtil
 
 /**
@@ -85,7 +86,12 @@ class PsiNavSource(private val project: Project): NavSource {
       return null
     }
 
-    val methods = psiClass.findMethodsByName(location.methodName, true)
-    return methods.firstOrNull{ location.signature == TraceSignatureConverter.getTraceSignature(it) }
+    return psiClass.findMethodsByName(location.methodName, true).firstOrNull{
+      val signature = TraceSignatureConverter.getTraceSignature(
+        it.returnType,
+        it.getSignature(PsiSubstitutor.EMPTY).parameterTypes)
+
+      return@firstOrNull location.signature == signature
+    }
   }
 }

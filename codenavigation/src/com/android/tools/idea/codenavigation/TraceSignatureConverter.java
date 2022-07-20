@@ -18,16 +18,15 @@ package com.android.tools.idea.codenavigation;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClassType;
-import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPrimitiveType;
-import com.intellij.psi.PsiSubstitutor;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.util.TypeConversionUtil;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
-final class TraceSignatureConverter {
+public final class TraceSignatureConverter {
   /**
    * Mapping from java primitive type encoding to PsiPrimitiveType
    * More about java primitive type encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
@@ -54,15 +53,18 @@ final class TraceSignatureConverter {
    * void => "V"
    */
   @Nullable
-  private static String convertToString(@NotNull PsiType psiType) {
-    if (psiType instanceof PsiArrayType) {
-      return '[' + convertToString(((PsiArrayType)psiType).getComponentType());
+  @VisibleForTesting
+  public static String convertToString(@NotNull PsiType psiType) {
+    PsiType sanitizedType = TypeConversionUtil.erasure(psiType);
+
+    if (sanitizedType instanceof PsiArrayType) {
+      return '[' + convertToString(((PsiArrayType)sanitizedType).getComponentType());
     }
-    else if (psiType instanceof PsiPrimitiveType) {
-      return String.valueOf(PRIMITIVE_TYPES.get(psiType));
+    else if (sanitizedType instanceof PsiPrimitiveType) {
+      return String.valueOf(PRIMITIVE_TYPES.get(sanitizedType));
     }
-    else if (psiType instanceof PsiClassType) {
-      return "L" + psiType.getCanonicalText().replace('.', '/') + ";";
+    else if (sanitizedType instanceof PsiClassType) {
+      return "L" + sanitizedType.getCanonicalText().replace('.', '/') + ";";
     }
     return null;
   }
@@ -75,18 +77,15 @@ final class TraceSignatureConverter {
    * returns (Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I
    */
   @NotNull
-  public static String getTraceSignature(@NotNull PsiMethod method) {
+  public static String getTraceSignature(@Nullable PsiType returnType, @NotNull PsiType[] parameterTypes) {
     StringBuilder signature = new StringBuilder("(");
-    for (PsiType type : method.getSignature(PsiSubstitutor.EMPTY).getParameterTypes()) {
-      String converted = convertToString(TypeConversionUtil.erasure(type));
-      signature.append(converted);
+    for (PsiType type : parameterTypes) {
+      signature.append(convertToString(type));
     }
     signature.append(")");
 
-    PsiType returnType = method.getReturnType();
     if (returnType != null) {
-      String converted = convertToString(TypeConversionUtil.erasure(returnType));
-      signature.append(converted);
+      signature.append(convertToString(returnType));
     }
     return signature.toString();
   }
