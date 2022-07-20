@@ -33,7 +33,6 @@ import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpAndroidProjectView
-import com.android.tools.idea.testing.dumpSourceProviders
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.intellij.ide.util.treeView.AbstractTreeNode
@@ -132,11 +131,6 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   override fun setUp() {
     super.setUp()
     IconLoader.activate()
-  }
-
-  override fun tearDown() {
-    IconLoader.deactivate()
-    super.tearDown()
   }
 
   fun testKotlinKapt() {

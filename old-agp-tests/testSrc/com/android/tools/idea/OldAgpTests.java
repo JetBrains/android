@@ -30,6 +30,9 @@ import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
 import com.android.tools.tests.MavenRepoRule;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.CoreIconManager;
+import com.intellij.ui.IconManager;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
@@ -57,4 +60,14 @@ public class OldAgpTests extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   @ClassRule public static MavenRepoRule mavenRepos = MavenRepoRule.fromTestSuiteSystemProperty();
+
+  static {
+    IconLoader.activate();
+    try {
+      IconManager.activate(new CoreIconManager());
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+    }
+  }
 }
