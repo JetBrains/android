@@ -106,7 +106,7 @@ fun Module.findCompositeBuildMapModel(): IdeCompositeBuildMap {
   return find(projectDataNode, AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP)?.data ?: IdeCompositeBuildMap.EMPTY
 }
 
-private fun Module.compositeBuildMap(): CompositeBuildMap {
+internal fun Module.compositeBuildMap(): CompositeBuildMap {
   val gradleProjectPath = getGradleProjectPath() ?: return CompositeBuildMap.EMPTY
   val rootProjectGradleProjectPath = GradleHolderProjectPath(gradleProjectPath.buildRoot, ":")
   val rootModule = rootProjectGradleProjectPath.resolveIn(project) ?: error("Cannot find root module for $rootProjectGradleProjectPath")

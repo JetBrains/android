@@ -1529,3 +1529,12 @@ MODULE: project.lib
                     file://./lib/src/testFixturesDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/testFixturesDebug/shaders
+Build configuration files:
+    file://./build.gradle : Project: project [0]
+    file://./app/build.gradle : Module :app [2000004]
+    file://./app/proguard-rules.pro : ProGuard Rules for ":app" [2000004]
+    file://./lib/build.gradle : Module :lib [2000009]
+    file://./settings.gradle : Project Settings [3000000]
+    file://./gradle.properties : Project Properties [3000000]
+    file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]
+    file://./local.properties : SDK Location [3000000]

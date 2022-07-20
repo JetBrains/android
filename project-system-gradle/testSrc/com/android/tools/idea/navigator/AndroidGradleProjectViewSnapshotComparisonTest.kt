@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.SnapshotContext
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidGradleTests.addJdk8ToTableButUseCurrent
@@ -59,7 +61,8 @@ import java.io.File
  */
 data class AndroidProjectViewSnapshotComparisonTestDef(
   override val testProject: TestProject,
-  override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+  override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
+  val compatibleWith: Set<AgpVersionSoftwareEnvironmentDescriptor> = setOf(AGP_CURRENT),
   private val projectViewSettings: ProjectViewSettings = ProjectViewSettings()
 ) : SyncedProjectTest.TestDef {
   override val name: String = testProject.projectName
@@ -71,7 +74,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
   }
 
   override fun isCompatible(): Boolean {
-    return agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+    return agpVersion in compatibleWith
   }
 
   override fun runTest(root: File, project: Project) {
@@ -94,6 +97,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPOSITE_BUILD),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.APP_WITH_BUILDSRC),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.TEST_FIXTURES),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_VERSION_CATALOG),

@@ -119,6 +119,11 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   fun getSourceProvidersFactory(): SourceProvidersFactory
 
   /**
+   * Returns a source provider describing build configuration files.
+   */
+  fun getBuildConfigurationSourceProvider(): BuildConfigurationSourceProvider? = null
+
+  /**
    * @return A provider for finding .class output files and external .jars.
    */
   fun getClassJarProvider(): ClassJarProvider

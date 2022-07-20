@@ -41,6 +41,7 @@ import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
@@ -75,11 +76,14 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createIdeaSourceProviderFromModelSourceProvider
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -219,6 +223,15 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
       val model = GradleAndroidModel.get(facet)
       return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
+    }
+  }
+
+  override fun getBuildConfigurationSourceProvider(): BuildConfigurationSourceProvider {
+    return CachedValuesManager.getManager(project).getCachedValue(project) {
+      CachedValueProvider.Result.create(
+        GradleBuildConfigurationSourceProvider(project),
+        ProjectRootModificationTracker.getInstance(project)
+      )
     }
   }
 

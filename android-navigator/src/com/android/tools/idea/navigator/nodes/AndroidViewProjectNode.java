@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes;
 
 import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedByNativeNodes;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 import com.android.tools.idea.flags.StudioFlags;
@@ -24,6 +25,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.ExternalBuildFilesGroupNode;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.ide.projectView.PresentationData;
@@ -70,17 +72,16 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
 
     // If this is a gradle project, and its sync failed, then we attempt to show project root as a folder so that the files
     // are still visible. See https://code.google.com/p/android/issues/detail?id=76564
-    boolean buildWithGradle = GradleProjectInfo.getInstance(myProject).isBuildWithGradle();
     boolean lastSyncFailed = !ProjectSystemUtil.getSyncManager(myProject).getLastSyncResult().isSuccessful();
 
-    if (children.isEmpty() && buildWithGradle && lastSyncFailed) {
+    if (children.isEmpty()) {
       PsiDirectory folder = PsiManager.getInstance(myProject).findDirectory(myProject.getBaseDir());
       if (folder != null) {
         children.add(new PsiDirectoryNode(myProject, folder, settings));
       }
     }
 
-    if (buildWithGradle) {
+    if (getProjectSystem(myProject).getBuildConfigurationSourceProvider() != null) {
       children.add(new AndroidBuildScriptsGroupNode(myProject, settings));
     }
 

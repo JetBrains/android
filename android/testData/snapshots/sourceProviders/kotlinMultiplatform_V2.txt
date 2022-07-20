@@ -1600,3 +1600,11 @@ MODULE: kotlinMultiPlatform.module2
                 ResourcesDirectoryUrls:
                     file://./module2/src/androidDebugAndroidTest/resources
         CurrentTestFixturesSourceProviders:
+Build configuration files:
+    file://./build.gradle : Project: kotlinMultiPlatform [0]
+    file://./app/build.gradle : Module :app [2000004]
+    file://./module2/build.gradle : Module :module2 [2000010]
+    file://./settings.gradle : Project Settings [3000000]
+    file://./gradle.properties : Project Properties [3000000]
+    file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]
+    file://./local.properties : SDK Location [3000000]

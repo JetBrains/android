@@ -4180,3 +4180,27 @@ MODULE: project.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
+Build configuration files:
+    file://./build.gradle : Project: project [0]
+    file://./TestCompositeLib2/build.gradle : Included build: TestCompositeLib2 [1000011]
+    file://./TestCompositeLib2/settings.gradle : Included build: TestCompositeLib2 [1000011]
+    file://./TestCompositeLib3/build.gradle : Included build: TestCompositeLib3 [1000012]
+    file://./TestCompositeLib3/settings.gradle : Included build: TestCompositeLib3 [1000012]
+    file://./TestCompositeLib4/build.gradle : Included build: TestCompositeLib4 [1000023]
+    file://./TestCompositeLib4/settings.gradle : Included build: TestCompositeLib4 [1000023]
+    file://./TestCompositeLib1/TestCompositeLibNested_1/build.gradle : Included build: TestCompositeLibNested_1 [1000026]
+    file://./TestCompositeLib1/TestCompositeLibNested_1/settings.gradle : Included build: TestCompositeLibNested_1 [1000026]
+    file://./TestCompositeLib3/TestCompositeLibNested_3/build.gradle : Included build: TestCompositeLibNested_3 [1000029]
+    file://./TestCompositeLib3/TestCompositeLibNested_3/settings.gradle : Included build: TestCompositeLibNested_3 [1000029]
+    file://./TestCompositeLib1/build.gradle : Included build: includedLib1 [1000030]
+    file://./TestCompositeLib1/settings.gradle : Included build: includedLib1 [1000030]
+    file://./app/build.gradle : Module :app [2000004]
+    file://./lib/build.gradle : Module :lib [2000008]
+    file://./TestCompositeLib3/app/build.gradle : Module :TestCompositeLib3:app [2000016]
+    file://./TestCompositeLib3/lib/build.gradle : Module :TestCompositeLib3:lib [2000020]
+    file://./TestCompositeLib1/app/build.gradle : Module :includedLib1:app [2000034]
+    file://./TestCompositeLib1/lib/build.gradle : Module :includedLib1:lib [2000038]
+    file://./settings.gradle : Project Settings [3000000]
+    file://./gradle.properties : Project Properties [3000000]
+    file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]
+    file://./local.properties : SDK Location [3000000]
