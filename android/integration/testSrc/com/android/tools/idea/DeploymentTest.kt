@@ -45,7 +45,7 @@ class DeploymentTest {
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.minapp",
             60, TimeUnit.SECONDS)
-          adb.runCommand("logcat").use { logcat ->
+          adb.runCommand("logcat") { logcat ->
             logcat.waitForLog(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS);
           }
         }

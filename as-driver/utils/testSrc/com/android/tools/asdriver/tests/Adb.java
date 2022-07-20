@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class Adb implements AutoCloseable {
   private final AndroidSdk sdk;
@@ -99,6 +100,19 @@ public class Adb implements AutoCloseable {
 
   public Adb runCommand(String... command) throws IOException {
     return exec(sdk, home, command);
+  }
+
+  /**
+   * Kotlin-friendly shorthand for an ADB command without params. If a parameterized version is desired (and only with very limited number
+   * of options), more of these exact-numbered methods may be created. E.g. runCommand(cmd, param0, consumer),
+   * runCommand(cmd, param0, param1, consumer), ....
+   *
+   * If many parameters are needed, please use the generic version {@link #runCommand(String...)}.
+   */
+  public void runCommand(String command, Consumer<Adb> consumer) throws IOException {
+    try (Adb cmd = runCommand(command)) {
+      consumer.accept(cmd);
+    }
   }
 
   private static Adb exec(AndroidSdk sdk, Path home, String... params) throws IOException {
