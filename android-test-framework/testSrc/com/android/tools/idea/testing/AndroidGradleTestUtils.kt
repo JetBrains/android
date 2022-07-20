@@ -169,6 +169,8 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
+import com.intellij.util.messages.MessageBus
+import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
@@ -1835,7 +1837,8 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val syncExceptionHandler: (Exception) -> Unit = { e ->
     println(e.message)
     e.printStackTrace()
-  }
+  },
+  val subscribe: (MessageBusConnection) -> Unit = {},
 )
 
 /**
@@ -1868,40 +1871,48 @@ private fun <T> openPreparedProject(
   }
 
   fun body(): T {
-    val project = runInEdtAndGet {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-
-      // This method is used to simulate what happens when the IDE is restarted before re-opening a project in order to catch issues
-      // that cannot be reproduced otherwise.
-      clearKotlinPluginCompilerArgumentCaches()
-
-      val project = GradleProjectImporter.withAfterCreate(
-        afterCreate = { project -> injectSyncOutputDumper(project, project, options.outputHandler, options.syncExceptionHandler) }
-      ) {
-        ProjectUtil.openOrImport(
-          projectPath.toPath(),
-          OpenProjectTask(
-            projectToClose = null,
-            forceOpenInNewFrame = true
-          )
-        )!!
-      }
-      // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
-      emulateStartupActivityForTest(project)
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-      project.maybeOutputDiagnostics()
-      project
-    }
+    val disposable = Disposer.newDisposable()
     try {
-      options.verifyOpened(project)
-      return action(project)
+      val project = runInEdtAndGet {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+
+        // This method is used to simulate what happens when the IDE is restarted before re-opening a project in order to catch issues
+        // that cannot be reproduced otherwise.
+        clearKotlinPluginCompilerArgumentCaches()
+
+        val project = GradleProjectImporter.withAfterCreate(
+          afterCreate = { project ->
+            project.messageBus.connect(disposable).let { options.subscribe(it) }
+            injectSyncOutputDumper(project, project, options.outputHandler, options.syncExceptionHandler)
+          }
+        ) {
+          ProjectUtil.openOrImport(
+            projectPath.toPath(),
+            OpenProjectTask(
+              projectToClose = null,
+              forceOpenInNewFrame = true
+            )
+          )!!
+        }
+        // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
+        emulateStartupActivityForTest(project)
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+        project.maybeOutputDiagnostics()
+        project
+      }
+      try {
+        options.verifyOpened(project)
+        return action(project)
+      } finally {
+        runInEdtAndWait {
+          PlatformTestUtil.saveProject(project, true)
+          ProjectUtil.closeAndDispose(project)
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+        }
+      }
     }
     finally {
-      runInEdtAndWait {
-        PlatformTestUtil.saveProject(project, true)
-        ProjectUtil.closeAndDispose(project)
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-      }
+      Disposer.dispose(disposable)
     }
   }
 
@@ -2157,4 +2168,3 @@ private fun Project.maybeOutputDiagnostics() {
       .forEach { println(it.name) }
   }
 }
-

@@ -103,6 +103,8 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
           projectWorkspaceId = null,
           isProjectCreatedWithWizard = false,
           beforeInit = null,
+          // Note that `beforeOpen` does not work with already created projects (i.e. project = newProject) and thus it cannot be used
+          // to replace `beforeOpen(project)` inside `createProject` method.
           beforeOpen = null,
           preparedToOpen = null
         )
@@ -181,9 +183,13 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         )
       ) ?: throw NullPointerException("Failed to create a new project")
       configureNewProject(newProject)
-      ApplicationManager.getApplication().getUserData(AFTER_CREATE)?.invoke(newProject)
+      beforeOpen(newProject)
       return newProject
     }
+  }
+
+  internal fun beforeOpen(project: Project) {
+    ApplicationManager.getApplication().getUserData(AFTER_CREATE)?.invoke(project)
   }
 
   class Request(@JvmField val project: Project) {

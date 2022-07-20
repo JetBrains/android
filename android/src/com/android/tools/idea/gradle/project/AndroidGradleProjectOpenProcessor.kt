@@ -50,6 +50,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
         if (importTarget.isDirectory)importTarget
         else importTarget.parent
 
+    val gradleImporter = GradleProjectImporter.getInstance()
     if (!canOpenAsExistingProject(adjustedOpenTarget)) {
       if (!forceOpenInNewFrame) {
         if (!promptToCloseIfNecessary(projectToClose)) {
@@ -57,11 +58,19 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
         }
       }
 
-      val gradleImporter = GradleProjectImporter.getInstance()
       val projectFolder = if (virtualFile.isDirectory) virtualFile else virtualFile.parent
       return gradleImporter.importAndOpenProjectCore(projectToClose, forceOpenInNewFrame, projectFolder)
     }
-    return ProjectManagerEx.getInstanceEx().openProject(adjustedOpenTarget.toNioPath(), OpenProjectTask(forceOpenInNewFrame = forceOpenInNewFrame, projectToClose = projectToClose))
+    return ProjectManagerEx.getInstanceEx().openProject(
+      adjustedOpenTarget.toNioPath(), OpenProjectTask(
+        forceOpenInNewFrame = forceOpenInNewFrame,
+        projectToClose = projectToClose,
+        beforeOpen = {
+          gradleImporter.beforeOpen(it)
+          true
+        },
+      )
+    )
   }
 
   private fun promptToCloseIfNecessary(project: Project?): Boolean {
