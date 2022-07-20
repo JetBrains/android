@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.isVisualLintErrorSuppressed
 import com.google.common.collect.Ordering
+import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.CompoundIconProvider
@@ -255,8 +256,7 @@ open class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerC
 
   override fun updatePresentation(presentation: PresentationData) {
     val nodeDisplayText: String = createNodeDisplayText()
-    val severity = issue.severity
-    val icon = if (severity.myVal >= HighlightSeverity.ERROR.myVal) StudioIcons.Common.ERROR else StudioIcons.Common.WARNING
+    val icon = HighlightDisplayLevel.find(issue.severity).icon
     presentation.setIcon(icon)
 
     presentation.addText(nodeDisplayText, SimpleTextAttributes.REGULAR_ATTRIBUTES)

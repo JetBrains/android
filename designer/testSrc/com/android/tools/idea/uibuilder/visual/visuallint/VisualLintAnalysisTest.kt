@@ -32,9 +32,12 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnal
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection
+import com.intellij.codeHighlighting.HighlightDisplayLevel
+import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.profile.codeInspection.InspectionProfileManager
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
@@ -44,7 +47,6 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.fail
 
 class VisualLintAnalysisTest {
@@ -60,6 +62,8 @@ class VisualLintAnalysisTest {
                                         TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
                                         ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection)
     projectRule.fixture.enableInspections(*visualLintInspections)
+    InspectionProfileManager.getInstance(projectRule.project).currentProfile.setErrorLevel(
+      HighlightDisplayKey.find(VisualLintErrorType.BOUNDS.shortName), HighlightDisplayLevel.ERROR, projectRule.project)
   }
 
   @After
@@ -103,7 +107,6 @@ class VisualLintAnalysisTest {
 
     issues.forEach {
       assertEquals("Visual Lint Issue", it.category)
-      assertEquals(HighlightSeverity.WARNING, it.severity)
       when ((it as VisualLintRenderIssue).type) {
         VisualLintErrorType.OVERLAP -> {
           assertEquals(3, it.models.size)
@@ -112,6 +115,7 @@ class VisualLintAnalysisTest {
             "Content of text_dashboard &lt;TextView> is partially covered by imageView &lt;ImageView> in 3 preview configurations." +
             "<BR/>This may affect text readability. Fix this issue by adjusting widget positioning.",
             it.description)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
         VisualLintErrorType.BOTTOM_NAV -> {
           assertEquals(3, it.models.size)
@@ -123,6 +127,7 @@ class VisualLintAnalysisTest {
             "<A HREF=\"https://material.io/components/navigation-drawer/android\">navigation drawer</A> for breakpoints >= 600dp.",
             it.description)
           assertNotNull(it.hyperlinkListener)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
         VisualLintErrorType.LONG_TEXT -> {
           assertEquals(2, it.models.size)
@@ -134,6 +139,7 @@ class VisualLintAnalysisTest {
             "breakpoints >= 600dp.",
             it.description)
           assertNotNull(it.hyperlinkListener)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
         VisualLintErrorType.BOUNDS -> {
           assertEquals(2, it.models.size)
@@ -142,6 +148,7 @@ class VisualLintAnalysisTest {
             "ImageView is partially hidden in layout because it is not contained within the bounds of its parent in 2 preview " +
             "configurations.<BR/>Fix this issue by adjusting the size or position of ImageView.",
             it.description)
+          assertEquals(HighlightSeverity.ERROR, it.severity)
         }
         VisualLintErrorType.BUTTON_SIZE -> {
           assertEquals(4, it.models.size)
@@ -150,6 +157,7 @@ class VisualLintAnalysisTest {
             "The button Button is wider than 320dp in 4 preview configurations." +
             "<BR/>Material Design recommends buttons to be no wider than 320dp",
             it.description)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
         VisualLintErrorType.TEXT_FIELD_SIZE -> {
           assertEquals(3, it.models.size)
@@ -158,6 +166,7 @@ class VisualLintAnalysisTest {
             "The text field EditText is wider than 488dp in 3 preview configurations." +
             "<BR/>Material Design recommends text fields to be no wider than 488dp",
             it.description)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
         else -> fail("Unexpected visual lint error")
       }
@@ -198,7 +207,6 @@ class VisualLintAnalysisTest {
     assertEquals(5, wearIssues.size)
     wearIssues.forEach {
       assertEquals("Visual Lint Issue", it.category)
-      assertEquals(HighlightSeverity.WARNING, it.severity)
       when (it.components.first().id) {
         "image_view" -> {
           assertEquals(3, it.models.size)
@@ -207,6 +215,7 @@ class VisualLintAnalysisTest {
             "In 3 preview configurations, the view ImageView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
             it.description)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
         "textview1" -> {
           assertEquals(4, it.models.size)
@@ -215,6 +224,7 @@ class VisualLintAnalysisTest {
             "In 4 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
             it.description)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
         "textview2" -> {
           assertEquals(1, it.models.size)
@@ -223,6 +233,7 @@ class VisualLintAnalysisTest {
             "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
             it.description)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
         "textview3" -> {
           assertEquals(3, it.models.size)
@@ -231,6 +242,7 @@ class VisualLintAnalysisTest {
             "In 3 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
             it.description)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
         "textview4" -> {
           assertEquals(1, it.models.size)
@@ -239,6 +251,7 @@ class VisualLintAnalysisTest {
             "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
             "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
             it.description)
+          assertEquals(HighlightSeverity.WARNING, it.severity)
         }
       }
     }

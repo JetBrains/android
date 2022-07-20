@@ -42,6 +42,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAn
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInspection.InspectionProfile
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -65,7 +66,7 @@ private val visualLintAnalyzerExecutorService = AppExecutorUtil.createBoundedApp
  * Service that runs visual lints
  */
 @Service
-class VisualLintService(project: Project) {
+class VisualLintService(val project: Project) {
 
   companion object {
     @JvmStatic
@@ -186,7 +187,7 @@ class VisualLintService(project: Project) {
       runAnalyzers(adaptiveAnalyzers, result, model, runningInBackground)
       if (VisualLintErrorType.LOCALE_TEXT !in ignoredTypes) {
         LocaleAnalyzer(baseConfigIssues).let {
-          issueProvider.addAllIssues(it.type, it.analyze(result, model, runningInBackground))
+          issueProvider.addAllIssues(it.type, it.analyze(result, model, getSeverity(it.type), runningInBackground))
         }
       }
       if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes) {
@@ -200,9 +201,15 @@ class VisualLintService(project: Project) {
                            model: NlModel,
                            runningInBackground: Boolean) {
     analyzers.filter { !ignoredTypes.contains(it.type) }.forEach {
-      val issues = it.analyze(result, model, runningInBackground)
+      val issues = it.analyze(result, model, getSeverity(it.type), runningInBackground)
       issueProvider.addAllIssues(it.type, issues)
     }
+  }
+
+  private fun getSeverity(type: VisualLintErrorType): HighlightSeverity {
+    val key = HighlightDisplayKey.find(type.shortName)
+    return key?.let { InspectionProfileManager.getInstance(project).currentProfile.getErrorLevel(it, null).severity }
+           ?: HighlightSeverity.WARNING
   }
 }
 

@@ -39,12 +39,13 @@ abstract class VisualLintAnalyzer {
   /**
    * Analyze the given [RenderResult] for visual lint issues and return found [VisualLintRenderIssue]s
    */
-  fun analyze(renderResult: RenderResult, model: NlModel, runningInBackground: Boolean): List<VisualLintRenderIssue> {
+  fun analyze(renderResult: RenderResult, model: NlModel, severity: HighlightSeverity,
+              runningInBackground: Boolean): List<VisualLintRenderIssue> {
     if (runningInBackground && !backgroundEnabled) {
       return emptyList()
     }
     val issueContents = findIssues(renderResult, model)
-    return issueContents.map { createIssue(it, model) }.toList()
+    return issueContents.map { createIssue(it, model, severity) }.toList()
   }
 
   abstract fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent>
@@ -60,12 +61,12 @@ abstract class VisualLintAnalyzer {
   }
 
   /** Create [VisualLintRenderIssue] for the given [VisualLintIssueContent]. */
-  private fun createIssue(content: VisualLintIssueContent, model: NlModel): VisualLintRenderIssue {
+  private fun createIssue(content: VisualLintIssueContent, model: NlModel, severity: HighlightSeverity): VisualLintRenderIssue {
     val component = componentFromViewInfo(content.view, model)
     VisualLintUsageTracker.getInstance().trackIssueCreation(type, model.facet)
     return VisualLintRenderIssue.builder()
       .summary(content.message)
-      .severity(HighlightSeverity.WARNING)
+      .severity(severity)
       .model(model)
       .components(if (component == null) mutableListOf() else mutableListOf(component))
       .contentDescriptionProvider(content.descriptionProvider)

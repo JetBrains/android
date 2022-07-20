@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
@@ -23,7 +24,6 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.SimpleTextAttributes
-import icons.StudioIcons
 import junit.framework.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -77,7 +77,7 @@ class IssueNodeTest {
     node.update()
 
     val expected = PresentationData()
-    expected.setIcon(StudioIcons.Common.WARNING)
+    expected.setIcon(HighlightDisplayLevel.find(HighlightSeverity.INFORMATION).icon)
     expected.addText("Test summary", SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.tooltip = "Test summary"
 
