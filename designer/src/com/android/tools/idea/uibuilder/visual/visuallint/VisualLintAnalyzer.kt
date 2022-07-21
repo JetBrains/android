@@ -91,10 +91,10 @@ abstract class VisualLintAnalyzer {
     return id?.let { "$id <$name>" } ?: "<$name>"
   }
 
-  protected fun componentFromViewInfo(viewInfo: ViewInfo, model: NlModel): NlComponent? {
-    val tag = (viewInfo.cookie as? TagSnapshot)?.tag ?: return null
+  protected fun componentFromViewInfo(viewInfo: ViewInfo?, model: NlModel): NlComponent? {
+    val tag = (viewInfo?.cookie as? TagSnapshot)?.tag ?: return null
     return model.findViewByTag(tag)
   }
 
-  data class VisualLintIssueContent(val view: ViewInfo, val message: String, val descriptionProvider: (Int) -> HtmlBuilder)
+  data class VisualLintIssueContent(val view: ViewInfo?, val message: String, val descriptionProvider: (Int) -> HtmlBuilder)
 }

@@ -16,33 +16,46 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfAnalysis
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
+import com.android.utils.HtmlBuilder
 import com.google.android.apps.common.testing.accessibility.framework.checks.DuplicateClickableBoundsCheck
 
 /**
  * [VisualLintAnalyzer] for issues coming from the Accessibility Testing Framework.
  */
-object AtfAnalyzer {
+object AtfAnalyzer : VisualLintAnalyzer() {
+  override val type: VisualLintErrorType
+    get() = VisualLintErrorType.ATF
+
+  override val backgroundEnabled: Boolean
+    get() = AtfAnalyzerInspection.atfBackground
+
   /**
    * Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint.
    * For now, it only runs [DuplicateClickableBoundsCheck] among all other atf checks.
    *
    * To run more checks, update the policy in [VisualLintAtfAnalysis.validateAndUpdateLint]
    */
-  fun analyze(renderResult: RenderResult, model: NlModel, issueProvider: VisualLintIssueProvider, runningInBackground: Boolean) {
-    if (runningInBackground && !AtfAnalyzerInspection.atfBackground) {
-      return
+  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+    if (!StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {
+      return emptyList()
     }
     val atfAnalyzer = VisualLintAtfAnalysis(model)
-    val atfIssues: List<VisualLintAtfIssue> = atfAnalyzer.validateAndUpdateLint(renderResult)
-    // TODO: Equals and hashcode might need to change here.
-    issueProvider.addAllIssues(VisualLintErrorType.ATF, atfIssues)
+    val atfIssues = atfAnalyzer.validateAndUpdateLint(renderResult)
+    return atfIssues.map { createVisualLintIssueContent(it) }.toList()
+  }
+
+  private fun createVisualLintIssueContent(issue: VisualLintAtfIssue): VisualLintIssueContent {
+    val content = { _: Int -> HtmlBuilder().addHtml(issue.description) }
+    return VisualLintIssueContent(issue.component.viewInfo, issue.summary, content)
   }
 }
 

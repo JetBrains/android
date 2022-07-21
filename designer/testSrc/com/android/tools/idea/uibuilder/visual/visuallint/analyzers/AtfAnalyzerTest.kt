@@ -91,18 +91,15 @@ class AtfAnalyzerTest {
     RenderTestUtil.withRenderTask(facet, file, configuration, true) { task: RenderTask ->
       task.setDecorations(false)
       try {
-        val issueProvider = VisualLintIssueProvider(projectRule.testRootDisposable)
         val result = task.render().get()
         NlModelHierarchyUpdater.updateHierarchy(result, nlModel)
-        AtfAnalyzer.analyze(result, nlModel, issueProvider, false)
-        val issues = issueProvider.getIssues()
+        val issues = AtfAnalyzer.findIssues(result, nlModel)
         assertEquals(1, issues.size)
         issues.forEach {
-          assertEquals("Duplicated clickable Views", it.summary)
-          assertEquals(HighlightSeverity.ERROR, it.severity)
+          assertEquals("Duplicated clickable Views", it.message)
           assertEquals("This clickable item has the same on-screen location ([0,0][358,96]) as 1 other item(s) with those " +
                        "properties.<br><br>Learn more at <a href=\"https://support.google.com/accessibility/android/answer/6378943\">" +
-                       "https://support.google.com/accessibility/android/answer/6378943</a>", it.description)
+                       "https://support.google.com/accessibility/android/answer/6378943</a>", it.descriptionProvider.invoke(1).html)
         }
       }
       catch (ex: java.lang.Exception) {

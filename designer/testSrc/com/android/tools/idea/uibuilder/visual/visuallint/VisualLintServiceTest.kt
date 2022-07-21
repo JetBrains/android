@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection
@@ -61,7 +62,7 @@ class VisualLintServiceTest {
     DesignerTypeRegistrar.register(LayoutFileType)
     val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
                                         TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
-                                        ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection)
+                                        ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection, AtfAnalyzerInspection)
     projectRule.fixture.enableInspections(*visualLintInspections)
   }
 
@@ -90,6 +91,20 @@ class VisualLintServiceTest {
     issues.forEach {
       assertEquals("Visual Lint Issue", it.category)
     }
+
+    val atfLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/atf_layout.xml")!!
+    val atfModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, atfLayout)
+    VisualLintService.getInstance(projectRule.project)
+      .runVisualLintAnalysis(listOf(atfModel), surface, MoreExecutors.newDirectExecutorService())
+
+    val atfIssues = surface.issueModel.issues
+    assertEquals(2, atfIssues.size)
+    atfIssues.forEach {
+      assertEquals("Visual Lint Issue", it.category)
+    }
+    val clickIssue = atfIssues.filterIsInstance<VisualLintRenderIssue>()
+      .filter { it.type == VisualLintErrorType.ATF }
+    assertEquals(1, clickIssue.size)
 
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")

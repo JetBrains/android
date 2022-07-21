@@ -130,7 +130,7 @@ class VisualLintAtfAnalysis(
 
 class VisualLintAtfIssue(
   result: ValidatorData.Issue,
-  component: NlComponent,
+  val component: NlComponent,
   private val sourceModel: NlModel) :
   NlAtfIssue(result, IssueSource.fromNlComponent(component), sourceModel), VisualLintHighlightingIssue {
 

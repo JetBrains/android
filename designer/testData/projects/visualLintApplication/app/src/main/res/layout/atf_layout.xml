@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AbsoluteLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+  <Button
+      android:id="@+id/button133"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_x="202dp"
+      android:layout_y="313dp"
+      android:text="Button"/>
+
+  <Button
+      android:id="@+id/button109"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_x="202dp"
+      android:layout_y="313dp"
+      android:text="Button"/>
+</AbsoluteLayout>
