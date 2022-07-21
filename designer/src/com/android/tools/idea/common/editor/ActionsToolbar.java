@@ -30,6 +30,8 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.google.common.collect.Iterables;
+import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.notebook.editor.BackedVirtualFile;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -165,7 +167,12 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
       myToolbarComponent.add(northPanel, BorderLayout.NORTH);
     }
 
-    myToolbarComponent.add(centerToolbarComponentWrapper, BorderLayout.CENTER);
+    NlModel model = mySurface.getModels().stream().findFirst().orElse(null);
+    // Only add center toolbar for XML files.
+    //noinspection UnstableApiUsage
+    if (model != null && BackedVirtualFile.getOriginFileIfBacked(model.getVirtualFile()).getFileType() instanceof XmlFileType) {
+      myToolbarComponent.add(centerToolbarComponentWrapper, BorderLayout.CENTER);
+    }
     myToolbarComponent.add(eastToolbarComponent, BorderLayout.EAST);
   }
 
