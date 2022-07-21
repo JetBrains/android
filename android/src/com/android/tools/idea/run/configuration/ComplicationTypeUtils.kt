@@ -44,8 +44,7 @@ internal fun parseRawComplicationTypes(supportedTypesStr: List<String>): List<Co
       Complication.ComplicationType.valueOf(it)
     }
     catch (e: IllegalArgumentException) {
-      null
-      // Ignore unrecognised types, a warning is shows by the [checkRawComplicationTypes] method.
+      null // Ignore unrecognised types, a warning is shows by the [checkRawComplicationTypes] method.
     }
   }
 }
@@ -62,14 +61,13 @@ internal fun checkRawComplicationTypes(supportedTypesStr: List<String>) {
 }
 
 internal fun getComplicationSourceTypes(apks: Collection<ApkInfo>, componentName: String): List<String> {
-  val xmlFileNode = extractXmlNodeFromApk(apks)
-  val complicationService = extractServiceFromXmlFileNode(xmlFileNode, componentName)
+  val complicationService = extractServiceXmlNodeFromApks(apks, componentName)
   return extractSupportedComplicationTypes(complicationService)
 }
 
 private fun getChildrenWithName(node: XmlNode, name: String) = node.children().filter { it.name() == name }
 
-private fun extractXmlNodeFromApk(apks: Collection<ApkInfo>): XmlNode {
+private fun extractServiceXmlNodeFromApks(apks: Collection<ApkInfo>, componentName: String): XmlNode {
   for (apk in apks) {
     for (apkFileUnit in apk.files) {
       val file = apkFileUnit.apkFile
@@ -77,20 +75,19 @@ private fun extractXmlNodeFromApk(apks: Collection<ApkInfo>): XmlNode {
       if (!ext.endsWith(".apk")) {
         continue
       }
-      ZipRepo(file.absolutePath).use { repo ->
+      val parsedXml = ZipRepo(file.absolutePath).use { repo ->
         val manifestEntry = repo.getInputStream(SdkConstants.FN_ANDROID_MANIFEST_XML)
-        manifestEntry.use { inputStream -> return BinaryXmlParser.parse(inputStream) }
+        manifestEntry.use { inputStream -> BinaryXmlParser.parse(inputStream) }
+      }
+      val application = getChildrenWithName(parsedXml, "application").singleOrNull() ?: continue
+      val serviceNode = getChildrenWithName(application, "service").find { it.attributes()["name"] == componentName }
+      if (serviceNode != null) {
+        // Return the first service entry with given [componentName].
+        return serviceNode
       }
     }
   }
-  throw IllegalStateException("Manifest file not found.")
-}
-
-private fun extractServiceFromXmlFileNode(parsedXml: XmlNode, componentName: String): XmlNode {
-  for (application in getChildrenWithName(parsedXml, "application")) {
-    return getChildrenWithName(application, "service").find { it.attributes()["name"] == componentName } ?: continue
-  }
-  throw IllegalStateException("Complication service not found in the manifest.")
+  throw IllegalStateException("Complication service $componentName is not found in the manifest.")
 }
 
 private fun extractSupportedComplicationTypes(service: XmlNode): List<String> {
