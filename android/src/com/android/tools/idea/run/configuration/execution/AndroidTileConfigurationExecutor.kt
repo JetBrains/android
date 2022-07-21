@@ -44,13 +44,14 @@ import java.time.Duration
 private const val TILE_MIN_DEBUG_SURFACE_VERSION = 2
 private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
-class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
-                                       deployTarget: DeployTarget,
-                                       appRunSettings: AppRunSettings,
-                                       applicationIdProvider: ApplicationIdProvider,
-                                       apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
-                                                                                                    appRunSettings,
-                                                                                                    applicationIdProvider, apkProvider) {
+open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
+                                            deployTarget: DeployTarget,
+                                            appRunSettings: AppRunSettings,
+                                            applicationIdProvider: ApplicationIdProvider,
+                                            apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
+                                                                                                         appRunSettings,
+                                                                                                         applicationIdProvider,
+                                                                                                         apkProvider) {
   private val tileLaunchOptions = appRunSettings.componentLaunchOptions as TileLaunchOptions
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
     val tileName = AppComponent.getFQEscapedName(appId, tileLaunchOptions.componentName!!)

@@ -37,14 +37,14 @@ import org.jetbrains.android.util.AndroidBundle
 
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
 
-class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment,
-                                            deployTarget: DeployTarget,
-                                            appRunSettings: AppRunSettings,
-                                            applicationIdProvider: ApplicationIdProvider,
-                                            apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
-                                                                                                         appRunSettings,
-                                                                                                         applicationIdProvider,
-                                                                                                         apkProvider) {
+open class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment,
+                                                 deployTarget: DeployTarget,
+                                                 appRunSettings: AppRunSettings,
+                                                 applicationIdProvider: ApplicationIdProvider,
+                                                 apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
+                                                                                                              appRunSettings,
+                                                                                                              applicationIdProvider,
+                                                                                                              apkProvider) {
   private val watchFaceLaunchOptions = appRunSettings.componentLaunchOptions as WatchFaceLaunchOptions
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean) = getStopWatchFaceCallback(console, isDebug)
 
