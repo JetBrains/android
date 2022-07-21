@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.run.AndroidProcessHandler
@@ -81,11 +82,16 @@ abstract class AndroidConfigurationExecutorBase(
       processHandler.addTargetDevice(device)
       terminatePreviousAppInstance(device)
 
-      val result = applicationInstaller.fullDeploy(device, apkProvider.getApks(device), appRunSettings.deployOptions)
+      val result = try {
+        applicationInstaller.fullDeploy(device, apkProvider.getApks(device), appRunSettings.deployOptions)
+      }
+      catch (e: DeployerException) {
+        throw ExecutionException("Failed to install app '$appId'. ${e.details.orEmpty()}", e)
+      }
       launch(device, result.app, console, false)
     }
 
-    val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(this::class.simpleName!!, 5)
+    val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("AndroidConfigurationExecutorBase", 5)
 
     val futures = devices.map {
       CompletableFuture.supplyAsync({ onDevice(it) }, executor)
@@ -199,7 +205,8 @@ abstract class AndroidConfigurationExecutorBase(
     throw ExecutionException("Device didn't come online")
   }
 
-  fun getApplicationInstaller(console: ConsoleView): ApplicationDeployer {
+  @Throws(ExecutionException::class)
+  open fun getApplicationInstaller(console: ConsoleView): ApplicationDeployer {
     return ApplicationDeployerImpl(project, console)
   }
 

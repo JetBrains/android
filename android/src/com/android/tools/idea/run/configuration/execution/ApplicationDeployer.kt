@@ -23,7 +23,6 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkFileUnit
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.tasks.DeployTask
-import com.intellij.execution.ExecutionException
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
@@ -31,8 +30,13 @@ import com.intellij.openapi.project.Project
 import java.util.stream.Collectors
 
 interface ApplicationDeployer {
+  @Throws(DeployerException::class)
   fun fullDeploy(device: IDevice, packages: Collection<ApkInfo>, deployOptions: DeployOptions): Deployer.Result
+
+  @Throws(DeployerException::class)
   fun applyChangesDeploy(device: IDevice, packages: Collection<ApkInfo>, deployOptions: DeployOptions): Deployer.Result
+
+  @Throws(DeployerException::class)
   fun applyCodeChangesDeploy(device: IDevice, packages: Collection<ApkInfo>, deployOptions: DeployOptions): Deployer.Result
 }
 
@@ -62,13 +66,9 @@ class ApplicationDeployerImpl(private val project: Project,
       deployOptions.pmInstallFlags,
       deployOptions.installOnAllUsers,
       deployOptions.alwaysInstallWithPm)
+
     //TODO: figure out in what cases we have more than one app
-    try {
-      return deployTask.run(device, console, AdbCommandCaptureLoggerWithConsole(LOG, console)).first()
-    }
-    catch (e: DeployerException) {
-      throw ExecutionException("Failed to install app '${filtered.first().applicationId}'. ${e.details ?: ""}", e)
-    }
+    return deployTask.run(device, console, AdbCommandCaptureLoggerWithConsole(LOG, console)).first()
   }
 
   override fun applyChangesDeploy(device: IDevice, packages: Collection<ApkInfo>, deployOptions: DeployOptions): Deployer.Result {
