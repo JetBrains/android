@@ -22,7 +22,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
-import com.google.protobuf.InvalidProtocolBufferException
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.notification.NotificationDisplayType

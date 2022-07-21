@@ -25,8 +25,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.utp.plugins.host.device.info.proto.AndroidTestDeviceInfoProto.AndroidTestDeviceInfo
-import com.google.protobuf.TextFormat
-import com.google.protobuf.Timestamp
+import com.android.tools.idea.protobuf.TextFormat
+import com.android.tools.idea.protobuf.Timestamp
 import com.google.testing.platform.proto.api.core.TestArtifactProto.Artifact
 import com.google.testing.platform.proto.api.core.TestResultProto.TestResult
 import com.google.testing.platform.proto.api.core.TestStatusProto.TestStatus

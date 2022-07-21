@@ -18,7 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
-import com.google.protobuf.TextFormat
+import com.android.tools.idea.protobuf.TextFormat
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.actionSystem.ActionManager

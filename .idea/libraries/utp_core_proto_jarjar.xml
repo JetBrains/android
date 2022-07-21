@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="utp-core-proto-jarjar">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/bazel/utp-core-proto-jarjar.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
+

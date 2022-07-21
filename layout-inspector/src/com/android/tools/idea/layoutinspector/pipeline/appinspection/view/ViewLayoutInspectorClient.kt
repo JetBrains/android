@@ -45,7 +45,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
-import com.google.protobuf.InvalidProtocolBufferException
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.application.ApplicationInfo

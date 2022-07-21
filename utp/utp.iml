@@ -22,15 +22,8 @@
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module-library">
-      <library name="utp-core-proto">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha08/core-proto-0.0.8-alpha08.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="library" name="utp-core-proto-jarjar" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
   </component>
 </module>

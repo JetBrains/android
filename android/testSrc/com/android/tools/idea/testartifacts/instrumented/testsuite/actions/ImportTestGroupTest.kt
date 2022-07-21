@@ -20,7 +20,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.protobuf.TextFormat
+import com.android.tools.idea.protobuf.TextFormat
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration

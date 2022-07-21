@@ -33,7 +33,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.utp.TaskOutputProcessorListener
-import com.google.protobuf.Timestamp
+import com.android.tools.idea.protobuf.Timestamp
 import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
