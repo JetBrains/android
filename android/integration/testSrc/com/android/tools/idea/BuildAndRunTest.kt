@@ -20,10 +20,9 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.util.concurrent.TimeUnit
 
-class DeploymentTest {
+class BuildAndRunTest {
   @JvmField @Rule
   val system = AndroidSystem.standard()
 

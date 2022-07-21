@@ -114,7 +114,7 @@ iml_test(
 )
 
 iml_test(
-    name = "DeploymentTest",
+    name = "BuildAndRunTest",
     timeout = "long",
     data = select({
         "@platforms//os:linux": [
@@ -138,7 +138,7 @@ iml_test(
         "no_mac",  # Untested
         "no_windows",  # Untested
     ],
-    test_class = "com.android.tools.idea.DeploymentTest",
+    test_class = "com.android.tools.idea.BuildAndRunTest",
 )
 
 maven_repository(
