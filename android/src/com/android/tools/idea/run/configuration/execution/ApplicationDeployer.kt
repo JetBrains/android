@@ -64,7 +64,7 @@ class ApplicationDeployerImpl(private val project: Project,
       deployOptions.alwaysInstallWithPm)
     //TODO: figure out in what cases we have more than one app
     try {
-      return deployTask.run(device, console, LogWithConsole(LOG, console)).first()
+      return deployTask.run(device, console, AdbCommandCaptureLoggerWithConsole(LOG, console)).first()
     }
     catch (e: DeployerException) {
       throw ExecutionException("Failed to install app '${filtered.first().applicationId}'. ${e.details ?: ""}", e)
@@ -72,11 +72,11 @@ class ApplicationDeployerImpl(private val project: Project,
   }
 
   override fun applyChangesDeploy(device: IDevice, packages: Collection<ApkInfo>, deployOptions: DeployOptions): Deployer.Result {
-     throw RuntimeException("Unsupported operation")
+    throw RuntimeException("Unsupported operation")
   }
 
   override fun applyCodeChangesDeploy(device: IDevice, packages: Collection<ApkInfo>, deployOptions: DeployOptions): Deployer.Result {
-     throw RuntimeException("Unsupported operation")
+    throw RuntimeException("Unsupported operation")
   }
 
   private fun filterDisabledFeatures(apkInfo: ApkInfo, disabledFeatures: List<String>): ApkInfo {
@@ -93,19 +93,19 @@ class ApplicationDeployerImpl(private val project: Project,
       apkInfo
     }
   }
+}
 
-  private class LogWithConsole(logger: Logger, val console: ConsoleView) : LogWrapper(logger) {
-    override fun info(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
-      if (msgFormat.contains("$ adb")) {
-        console.print(msgFormat + "\n")
-      }
-      super.info(msgFormat, *args)
+class AdbCommandCaptureLoggerWithConsole(logger: Logger, val console: ConsoleView) : LogWrapper(logger) {
+  override fun info(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
+    if (msgFormat.contains("$ adb")) {
+      console.print(msgFormat + "\n")
     }
+    super.info(msgFormat, *args)
+  }
 
-    override fun warning(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
-      console.printError(msgFormat + "\n")
-      super.info(msgFormat, *args)
-    }
+  override fun warning(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
+    console.printError(msgFormat + "\n")
+    super.info(msgFormat, *args)
   }
 }
 
