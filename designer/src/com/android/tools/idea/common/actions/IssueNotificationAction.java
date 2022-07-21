@@ -113,7 +113,7 @@ public class IssueNotificationAction extends ToggleAction {
     if (surface == null) {
       return;
     }
-    IssuePanelServiceKt.setIssuePanelVisibility(surface, state, true);
+    IssuePanelServiceKt.setIssuePanelVisibility(surface, state, true, null);
   }
 
   @NotNull

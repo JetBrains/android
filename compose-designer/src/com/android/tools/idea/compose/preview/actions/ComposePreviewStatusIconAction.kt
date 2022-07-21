@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
@@ -25,8 +27,6 @@ import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.ui.AnimatedIcon
 import icons.StudioIcons
 
@@ -73,6 +73,13 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true, userInvoked = true)
+    e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true, userInvoked = true) {
+      if (sceneView == null) {
+        return@setIssuePanelVisibility
+      }
+      val project = e.project ?: return@setIssuePanelVisibility
+      val service = IssuePanelService.getInstance(project)
+      service.setSelectedNode(SceneViewIssueNodeVisitor(sceneView))
+    }
   }
 }

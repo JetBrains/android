@@ -165,6 +165,10 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     }
   }
 
+  fun setSelectedNode(visitor: TreeVisitor) {
+    TreeUtil.promiseSelect(tree, visitor)
+  }
+
   private fun updateEmptyMessageIfNeed() {
     if (issueProvider.getFilteredIssues().isEmpty()) {
       val newEmptyString = emptyMessageProvider()

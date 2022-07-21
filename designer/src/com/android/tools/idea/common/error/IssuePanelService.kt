@@ -48,6 +48,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
 import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
+import com.intellij.ui.tree.TreeVisitor
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -254,8 +255,9 @@ class IssuePanelService(private val project: Project) {
   /**
    * Set the visibility of shared issue panel.
    * When [visible] is true, this opens the problem panel and switch the tab to shared issue panel tab.
+   * The optional given [onAfterSettingVisibility] is executed after the visibility is changed.
    */
-  fun setSharedIssuePanelVisibility(visible: Boolean) {
+  fun setSharedIssuePanelVisibility(visible: Boolean, onAfterSettingVisibility: Runnable? = null) {
     val tab = sharedIssueTab ?: return
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
     if (visible) {
@@ -263,11 +265,14 @@ class IssuePanelService(private val project: Project) {
         problemsViewPanel.show {
           updateSharedIssuePanelTabName()
           selectSharedIssuePanelTab()
+          onAfterSettingVisibility?.run()
         }
       }
     }
     else {
-      problemsViewPanel.hide()
+      problemsViewPanel.hide {
+        onAfterSettingVisibility?.run()
+      }
     }
   }
 
@@ -439,6 +444,13 @@ class IssuePanelService(private val project: Project) {
     fileToSurfaceMap.remove(file)
   }
 
+  /**
+   * Select the node by using the given [TreeVisitor]
+   */
+  fun setSelectedNode(nodeVisitor: TreeVisitor) {
+    sharedIssuePanel?.setSelectedNode(nodeVisitor)
+  }
+
   companion object {
     @JvmStatic
     fun getInstance(project: Project): IssuePanelService = project.getService(IssuePanelService::class.java)
@@ -451,10 +463,11 @@ class IssuePanelService(private val project: Project) {
  * Helper function to set the issue panel in [DesignSurface] without tracking it into the layout editor metrics.
  * @param show whether to show or hide the issue panel.
  * @param userInvoked if true, this was the direct consequence of a user action.
+ * @param onAfterSettingVisibility optional task to execute after the visibility of issue panel is changed.
  */
-fun DesignSurface<*>.setIssuePanelVisibilityNoTracking(show: Boolean, userInvoked: Boolean) {
+fun DesignSurface<*>.setIssuePanelVisibilityNoTracking(show: Boolean, userInvoked: Boolean, onAfterSettingVisibility: Runnable? = null) {
   if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-    IssuePanelService.getInstance(project).setSharedIssuePanelVisibility(show)
+    IssuePanelService.getInstance(project).setSharedIssuePanelVisibility(show, onAfterSettingVisibility)
   }
   else
     UIUtil.invokeLaterIfNeeded {
@@ -462,6 +475,7 @@ fun DesignSurface<*>.setIssuePanelVisibilityNoTracking(show: Boolean, userInvoke
       if (userInvoked) {
         issuePanel.disableAutoSize()
       }
+      onAfterSettingVisibility?.run()
       revalidate()
       repaint()
     }
@@ -471,10 +485,11 @@ fun DesignSurface<*>.setIssuePanelVisibilityNoTracking(show: Boolean, userInvoke
  * Helper function to set the issue panel in [DesignSurface].
  * @param show whether to show or hide the issue panel.
  * @param userInvoked if true, this was the direct consequence of a user action.
+ * @param runnable optional task to execute after the visibility of issue panel is changed.
  */
-fun DesignSurface<*>.setIssuePanelVisibility(show: Boolean, userInvoked: Boolean) {
+fun DesignSurface<*>.setIssuePanelVisibility(show: Boolean, userInvoked: Boolean, runnable: Runnable? = null) {
   analyticsManager.trackShowIssuePanel()
-  setIssuePanelVisibilityNoTracking(show, userInvoked)
+  setIssuePanelVisibilityNoTracking(show, userInvoked, runnable)
 }
 
 /**
