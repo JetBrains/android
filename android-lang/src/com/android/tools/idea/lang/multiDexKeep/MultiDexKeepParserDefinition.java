@@ -31,8 +31,12 @@ import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
 public class MultiDexKeepParserDefinition implements ParserDefinition {
-  public static final TokenSet WHITE_SPACES = TokenSet.create(MultiDexKeepPsiTypes.EOL);
-  public static final TokenSet STRING_LITERALS = TokenSet.create(MultiDexKeepPsiTypes.STRING);
+
+  private static class TokenSets {
+    static final TokenSet WHITE_SPACES = TokenSet.create(MultiDexKeepPsiTypes.EOL);
+    static final TokenSet STRING_LITERALS = TokenSet.create(MultiDexKeepPsiTypes.STRING);
+  }
+
   public static final IFileElementType FILE = new IFileElementType(MultiDexKeepLanguage.INSTANCE);
 
   @NotNull
@@ -56,7 +60,7 @@ public class MultiDexKeepParserDefinition implements ParserDefinition {
   @NotNull
   @Override
   public TokenSet getWhitespaceTokens() {
-    return WHITE_SPACES;
+    return TokenSets.WHITE_SPACES;
   }
 
   @NotNull
@@ -68,7 +72,7 @@ public class MultiDexKeepParserDefinition implements ParserDefinition {
   @NotNull
   @Override
   public TokenSet getStringLiteralElements() {
-    return STRING_LITERALS;
+    return TokenSets.STRING_LITERALS;
   }
 
   @NotNull
