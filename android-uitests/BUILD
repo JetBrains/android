@@ -846,21 +846,6 @@ java_test(
 )
 
 java_test(
-    name = "RunOnEmulatorTest",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    flaky = True,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.RunOnEmulatorTest"],
-    tags = COMMON_TAGS + [
-        "no_mac",
-        "ui_test",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "AddKotlinTest",
     size = "large",
     data = COMMON_DATA + glob([
