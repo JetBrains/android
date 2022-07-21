@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
@@ -22,7 +23,10 @@ import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.ManualDisabledReason
+import com.android.tools.idea.rendering.RenderLogger
+import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.MapDataContext
@@ -34,6 +38,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
+import org.mockito.Mockito
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -66,6 +71,18 @@ class ComposePreviewStatusIconActionTest {
   private val tf = listOf(true, false)
   private val fastPreviewDisableReasons = listOf(null, ManualDisabledReason, DisableReason("Auto-Disabled"))
 
+  private val sceneViewMock = Mockito.mock(SceneView::class.java)
+  private val sceneManagerMock = Mockito.mock(LayoutlibSceneManager::class.java)
+  private val renderResultMock = Mockito.mock(RenderResult::class.java)
+  private val renderLoggerMock = Mockito.mock(RenderLogger::class.java)
+  private var renderError = false
+  init {
+    Mockito.`when`(sceneViewMock.sceneManager).then { return@then sceneManagerMock }
+    Mockito.`when`(sceneManagerMock.renderResult).then { return@then renderResultMock }
+    Mockito.`when`(renderResultMock.logger).then { return@then renderLoggerMock }
+    Mockito.`when`(renderLoggerMock.hasErrors()).then { return@then renderError }
+  }
+
   @After
   fun tearDown() {
     // Make sure to always re-enable fast preview
@@ -74,22 +91,78 @@ class ComposePreviewStatusIconActionTest {
 
   @Test
   fun testIconState_SyntaxError() {
-    val action = ComposePreviewStatusIconAction(null)
+    val action = ComposePreviewStatusIconAction(sceneViewMock)
     val event = TestActionEvent(context)
 
     // Syntax error has priority over the other properties
     for (runtimeError in tf) {
-      for (outOfDate in tf) {
-        for (refreshing in tf) {
-          for (fastPreviewDisableReason in fastPreviewDisableReasons) {
-            updateFastPreviewStatus(fastPreviewDisableReason)
+      for (renderError in tf) {
+        for (outOfDate in tf) {
+          for (refreshing in tf) {
+            for (fastPreviewDisableReason in fastPreviewDisableReasons) {
+              updateFastPreviewStatus(fastPreviewDisableReason)
+              this.renderError = renderError
+              composePreviewManager.currentStatus = originStatus.copy(
+                hasRuntimeErrors = runtimeError,
+                hasSyntaxErrors = true,
+                isOutOfDate = outOfDate,
+                isRefreshing = refreshing)
+              action.update(event)
+              // When there is a syntax error, the icon is hidden
+              assertFalse(event.presentation.isEnabled)
+              assertFalse(event.presentation.isVisible)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  fun testIconState_FastPreview() {
+    val action = ComposePreviewStatusIconAction(sceneViewMock)
+    val event = TestActionEvent(context)
+
+    // When no syntax error, FastPreview has priority over the other properties
+    FastPreviewManager.getInstance(projectRule.project).enable()
+    for(runtimeError in tf) {
+      for (renderError in tf) {
+        for (outOfDate in tf) {
+          for (refreshing in tf) {
+            this.renderError = renderError
+            composePreviewManager.currentStatus = originStatus.copy(
+              hasRuntimeErrors = runtimeError,
+              hasSyntaxErrors = false,
+              isOutOfDate = outOfDate,
+              isRefreshing = refreshing)
+            action.update(event)
+            // When no syntax error and FastPreview enabled, the icon is always visible
+            assertTrue(event.presentation.isVisible)
+            testIconPriorities(event, fastPreview = true, renderError, outOfDate, refreshing)
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  fun testIconState_FastPreviewAutoDisabled() {
+    val action = ComposePreviewStatusIconAction(sceneViewMock)
+    val event = TestActionEvent(context)
+
+    FastPreviewManager.getInstance(projectRule.project).disable(DisableReason("Auto-Disabled"))
+    for(runtimeError in tf) {
+      for (renderError in tf) {
+        for (outOfDate in tf) {
+          for (refreshing in tf) {
+            this.renderError = renderError
             composePreviewManager.currentStatus = originStatus.copy(
               hasRuntimeErrors = runtimeError,
               hasSyntaxErrors = true,
               isOutOfDate = outOfDate,
               isRefreshing = refreshing)
             action.update(event)
-            // When there is a syntax error, the icon is hidden
+            // When no syntax error, and FastPreview auto-disabled, the icon is never visible
             assertFalse(event.presentation.isEnabled)
             assertFalse(event.presentation.isVisible)
           }
@@ -99,69 +172,25 @@ class ComposePreviewStatusIconActionTest {
   }
 
   @Test
-  fun testIconState_FastPreview() {
-    val action = ComposePreviewStatusIconAction(null)
-    val event = TestActionEvent(context)
-
-    // When no syntax error, FastPreview has priority over the other properties
-    FastPreviewManager.getInstance(projectRule.project).enable()
-    for (runtimeError in tf) {
-      for (outOfDate in tf) {
-        for (refreshing in tf) {
-          composePreviewManager.currentStatus = originStatus.copy(
-            hasRuntimeErrors = runtimeError,
-            hasSyntaxErrors = false,
-            isOutOfDate = outOfDate,
-            isRefreshing = refreshing)
-          action.update(event)
-          // When no syntax error and FastPreview enabled, the icon is always visible
-          assertTrue(event.presentation.isVisible)
-          testIconPriorities(event, fastPreview = true, runtimeError, outOfDate, refreshing)
-        }
-      }
-    }
-  }
-
-  @Test
-  fun testIconState_FastPreviewAutoDisabled() {
-    val action = ComposePreviewStatusIconAction(null)
-    val event = TestActionEvent(context)
-
-    FastPreviewManager.getInstance(projectRule.project).disable(DisableReason("Auto-Disabled"))
-    for (runtimeError in tf) {
-      for (outOfDate in tf) {
-        for (refreshing in tf) {
-          composePreviewManager.currentStatus = originStatus.copy(
-            hasRuntimeErrors = runtimeError,
-            hasSyntaxErrors = true,
-            isOutOfDate = outOfDate,
-            isRefreshing = refreshing)
-          action.update(event)
-          // When no syntax error, and FastPreview auto-disabled, the icon is never visible
-          assertFalse(event.presentation.isEnabled)
-          assertFalse(event.presentation.isVisible)
-        }
-      }
-    }
-  }
-
-  @Test
   fun testIconState_FastPreviewManuallyDisabled() {
-    val action = ComposePreviewStatusIconAction(null)
+    val action = ComposePreviewStatusIconAction(sceneViewMock)
     val event = TestActionEvent(context)
 
     // When no syntax error and FastPreview manually disabled
     FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
-    for (runtimeError in tf) {
-      for (outOfDate in tf) {
-        for (refreshing in tf) {
-          composePreviewManager.currentStatus = originStatus.copy(
-            hasRuntimeErrors = runtimeError,
-            hasSyntaxErrors = false,
-            isOutOfDate = outOfDate,
-            isRefreshing = refreshing)
-          action.update(event)
-          testIconPriorities(event, fastPreview = false, runtimeError, outOfDate, refreshing)
+    for(runtimeError in tf) {
+      for (renderError in tf) {
+        for (outOfDate in tf) {
+          for (refreshing in tf) {
+            this.renderError = renderError
+            composePreviewManager.currentStatus = originStatus.copy(
+              hasRuntimeErrors = runtimeError,
+              hasSyntaxErrors = false,
+              isOutOfDate = outOfDate,
+              isRefreshing = refreshing)
+            action.update(event)
+            testIconPriorities(event, fastPreview = false, renderError, outOfDate, refreshing)
+          }
         }
       }
     }
@@ -169,7 +198,7 @@ class ComposePreviewStatusIconActionTest {
 
   private fun testIconPriorities(event: TestActionEvent,
                                  fastPreview: Boolean,
-                                 runtimeError: Boolean,
+                                 renderError: Boolean,
                                  outOfDate: Boolean,
                                  refreshing: Boolean) {
     // Out of date has priority over the rest, but only matters when FastPreview is disabled
@@ -184,14 +213,14 @@ class ComposePreviewStatusIconActionTest {
       assertTrue(event.presentation.disabledIcon is AnimatedIcon.Default)
       assertEquals(null, event.presentation.text)
     }
-    // Then render/runtime errors
-    else if (runtimeError) {
+    // Then render errors
+    else if (renderError) {
       assertTrue(event.presentation.isVisible)
       assertTrue(event.presentation.isEnabled)
       assertEquals(StudioIcons.Common.WARNING, event.presentation.icon)
       assertTrue(event.presentation.text != null)
     }
-    // When not refreshing and no render/runtime errors, then ok
+    // When not refreshing and no render errors, then ok
     else {
       assertTrue(event.presentation.isVisible)
       assertFalse(event.presentation.isEnabled)

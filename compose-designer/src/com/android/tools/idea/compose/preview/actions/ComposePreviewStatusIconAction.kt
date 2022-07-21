@@ -46,7 +46,7 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
         previewStatus.interactiveMode.isStartingOrStopping() || previewStatus.isRefreshing ||
           project.fastPreviewManager.isCompiling -> AnimatedIcon.Default()
         // errors
-        previewStatus.hasRuntimeErrors || sceneView?.hasRenderErrors() == true -> StudioIcons.Common.WARNING
+        sceneView?.hasRenderErrors() == true -> StudioIcons.Common.WARNING
         // ok
         else -> AllIcons.General.InspectionsOK
       }
