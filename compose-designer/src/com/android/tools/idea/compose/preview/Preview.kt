@@ -99,7 +99,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.problems.ProblemListener
 import com.intellij.problems.WolfTheProblemSolver
@@ -1168,27 +1167,42 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       fastPreviewCompilationLauncher = it
     }
 
-    // We delay the reporting of compilationSucceded until we have the amount of time the refresh took.
+    // We delay the reporting of compilationSucceded until we have the amount of time the refresh took. Either refreshSucceeded or
+    // refreshFailed should be called.
     val delegateRequestTracker = FastPreviewTrackerManager.getInstance(project).trackRequest()
     val requestTracker = object: FastPreviewTrackerManager.Request by delegateRequestTracker {
       private var compilationDurationMs: Long = -1
       private var compiledFiles: Int = -1
+      private var compilationSuccess: Boolean? = null
       override fun compilationSucceeded(compilationDurationMs: Long, compiledFiles: Int, refreshTimeMs: Long) {
+        compilationSuccess = true
         this.compilationDurationMs = compilationDurationMs
         this.compiledFiles = compiledFiles
       }
 
       override fun compilationFailed(compilationDurationMs: Long, compiledFiles: Int) {
+        compilationSuccess = false
         this.compilationDurationMs = compilationDurationMs
         this.compiledFiles = compiledFiles
       }
 
+      /**
+       * Reports that the refresh has completed. If [refreshTimeMs] is -1, the refresh has failed.
+       */
+      private fun reportRefresh(refreshTimeMs: Long = -1) {
+        when (compilationSuccess) {
+          true -> delegateRequestTracker.compilationSucceeded(compilationDurationMs, compiledFiles, refreshTimeMs)
+          false -> delegateRequestTracker.compilationFailed(compilationDurationMs, compiledFiles)
+          null -> Unit
+        }
+      }
+
       fun refreshSucceeded(refreshTimeMs: Long) {
-        delegateRequestTracker.compilationSucceeded(compilationDurationMs, compiledFiles, refreshTimeMs)
+        reportRefresh(refreshTimeMs)
       }
 
       fun refreshFailed() {
-        delegateRequestTracker.compilationSucceeded(compilationDurationMs, compiledFiles)
+        reportRefresh()
       }
     }
     launcher.launch {
@@ -1207,9 +1221,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               composeWorkBench.updateVisibilityAndNotifications()
             }
           }
+          else {
+            // Compilation failed, report the refresh as failed too
+            requestTracker.refreshFailed()
+          }
         }
       }
-
     }?.join()
 
     return result

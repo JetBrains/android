@@ -458,8 +458,12 @@ class FastPreviewManager private constructor(
 
     return@withLock Pair(result, outputDir.toAbsolutePath().toString()).also {
       synchronized(requestTracker) {
+        if (result !is CompilationResult.Success && result !is CompilationResult.CompilationError) {
+          // Only cache user induced results. Avoid caching of internal errors or aborted compilations.
+          requestTracker.invalidate(requestId)
+        }
         pendingRequest.complete(it)
-      }
+    }
       try {
         project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onCompilationComplete(result, files)
         if (result == CompilationResult.Success) {
