@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.google.common.util.concurrent.Futures;
 import java.awt.Component;
 import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
@@ -79,6 +80,7 @@ public final class DeleteItemTest {
     // Arrange
     VirtualDevice virtualDevice = TestVirtualDevices.pixel5Api31(myAvd);
     Mockito.when(myEditor.getDevice()).thenReturn(virtualDevice);
+    Mockito.when(myModel.remove(virtualDevice)).thenReturn(Futures.immediateFuture(true));
 
     AbstractButton item = new DeleteItem(myEditor, DeleteItemTest::showCannotDeleteRunningAvdDialog, (device, component) -> true);
 

@@ -36,8 +36,10 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.ArrayList;
@@ -158,14 +160,16 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     fireTableRowsUpdated(modelRowIndex, modelRowIndex);
   }
 
-  void remove(@NotNull VirtualDevice device) {
+  @SuppressWarnings("UnstableApiUsage")
+  @NotNull ListenableFuture<Boolean> remove(@NotNull VirtualDevice device) {
     FutureCallback<Boolean> callback =
       new DeviceManagerFutureCallback<>(VirtualDeviceTableModel.class, deletionSuccessful -> remove(deletionSuccessful, device));
 
-    // noinspection UnstableApiUsage
-    FluentFuture.from(getDefaultAvdManagerConnection())
-      .transform(connection -> connection.deleteAvd(device.getAvdInfo()), AppExecutorUtil.getAppExecutorService())
-      .addCallback(callback, EdtExecutorService.getInstance());
+    ListenableFuture<Boolean> future = FluentFuture.from(getDefaultAvdManagerConnection())
+      .transform(connection -> connection.deleteAvd(device.getAvdInfo()), AppExecutorUtil.getAppExecutorService());
+
+    Futures.addCallback(future, callback, EdtExecutorService.getInstance());
+    return future;
   }
 
   private void remove(boolean deletionSuccessful, @NotNull VirtualDevice device) {
