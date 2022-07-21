@@ -252,7 +252,7 @@ private class FakeDeviceComboBoxDeviceTracker : IDeviceComboBoxDeviceTracker, Cl
     events.forEach { eventChannel.send(it) }
   }
 
-  override suspend fun trackDevices(): Flow<DeviceEvent> = eventChannel.consumeAsFlow()
+  override suspend fun trackDevices(retryOnException: Boolean): Flow<DeviceEvent> = eventChannel.consumeAsFlow()
 
   override fun close() {
     eventChannel.close()

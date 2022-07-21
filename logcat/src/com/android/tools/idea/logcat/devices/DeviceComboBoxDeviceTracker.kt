@@ -46,7 +46,9 @@ internal class DeviceComboBoxDeviceTracker(
   private val coroutineContext: CoroutineContext = Dispatchers.IO,
 ) : IDeviceComboBoxDeviceTracker {
 
-  override suspend fun trackDevices(): Flow<DeviceEvent> {
+  override suspend fun trackDevices(
+    /* For test only. Temporary until we switch to the new trackDevices API */ retryOnException: Boolean
+  ): Flow<DeviceEvent> {
     return flow {
       while (true) {
         // TODO(b/228224334): This should be handled internally by AdbLib
@@ -54,9 +56,11 @@ internal class DeviceComboBoxDeviceTracker(
           trackDevicesInternal()
         }
         catch (e: IOException) {
-          LOGGER.info("Device tracker exception, restarting it...", e)
           emit(TrackingReset(e))
-          continue
+          if (retryOnException) {
+            LOGGER.info("Device tracker exception, restarting it...", e)
+            continue
+          }
         }
         break
       }
@@ -88,7 +92,7 @@ internal class DeviceComboBoxDeviceTracker(
     // We only care about devices that are online.
     // If a previously unknown device comes online, we emit Added
     // If a previously known device comes online, we emit StateChanged
-    // If previously online device is missing from the kist, we emit a StateChanged.
+    // If previously online device is missing from the list, we emit a StateChanged.
     adbSession.hostServices.trackDevices().collect { deviceList ->
       val devices = deviceList.entries.filter { it.isOnline() }.associateBy { it.serialNumber }
       devices.values.forEach {

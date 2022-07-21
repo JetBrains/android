@@ -26,6 +26,7 @@
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.logcat" />
 </module>

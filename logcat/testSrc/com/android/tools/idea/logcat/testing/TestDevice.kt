@@ -35,9 +35,9 @@ internal class TestDevice(
   state: DeviceState,
   val release: Int,
   val sdk: Int,
-  val manufacturer: String,
-  val model: String,
-  val avdName: String,
+  val manufacturer: String = "",
+  val model: String = "",
+  val avdName: String = "",
   val avdNamePre31: String = "",
 ) {
 
