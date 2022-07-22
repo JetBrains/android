@@ -109,14 +109,6 @@ class AndroidProcessHandler @JvmOverloads constructor(
   fun addTargetDevice(device: IDevice) {
     myMonitorManager.add(device)
 
-    // Keep track of the lowest API level among the monitored devices by this handler.
-    synchronized(this) {
-      val lowestApiLevel = getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)
-      if (lowestApiLevel == null || device.version < lowestApiLevel) {
-        putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, device.version)
-      }
-    }
-
     LOG.info("Adding device ${device.name} to monitor for launched app: ${targetApplicationId}")
   }
 

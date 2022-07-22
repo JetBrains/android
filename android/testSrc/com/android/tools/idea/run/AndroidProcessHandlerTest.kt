@@ -135,11 +135,9 @@ class AndroidProcessHandlerTest {
 
     val inOrder = inOrder(mockProcessListener)
     inOrder.verify(mockProcessListener).startNotified(any())
-    assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isNull()
 
     val mockDevice = createMockDevice(28)
     handler.addTargetDevice(mockDevice)
-    assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(28))
     verify(mockMonitorManager).add(eq(mockDevice))
 
     monitorManagerListener.onAllTargetProcessesTerminated()
@@ -158,17 +156,10 @@ class AndroidProcessHandlerTest {
 
     val inOrder = inOrder(mockProcessListener)
     inOrder.verify(mockProcessListener).startNotified(any())
-    assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isNull()
 
     handler.addTargetDevice(createMockDevice(28))
-    assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(28))
-
     handler.addTargetDevice(createMockDevice(27))
-    // AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL should return the lowest API level among all managed devices.
-    assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(27))
-
     handler.addTargetDevice(createMockDevice(29))
-    assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(27))
 
     monitorManagerListener.onAllTargetProcessesTerminated()
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
