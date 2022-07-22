@@ -65,7 +65,7 @@ internal class LogcatMessageAssembler(
 ) : Disposable {
   private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
 
-  private val previousState = AtomicReference<PartialMessage?>()
+  private val previousState = AtomicPendingMessage()
 
   private val headerParser = LogcatHeaderParser(logcatFormat, processNameMonitor)
 
@@ -98,7 +98,7 @@ internal class LogcatMessageAssembler(
    */
   suspend fun processNewLines(newLines: List<String>) {
     // New batch has arrived so effectively cancel the pending job by resetting previousState
-    val state = previousState.getAndSet(null)
+    val state = previousState.getAndReset()
 
     // Parse new lines and send log messages
     val batch: Batch = parseNewLines(state, newLines)
@@ -107,13 +107,14 @@ internal class LogcatMessageAssembler(
     }
 
     // Save the last header/lines to handle in the next batch or in the delayed job
-    previousState.set(PartialMessage(batch.lastHeader, batch.lastLines))
+    val partialMessage = PartialMessage(batch.lastHeader, batch.lastLines)
+    previousState.set(partialMessage)
 
     // If there is a valid last message in the batch, queue it for sending in case there is no imminent next batch coming
     if (batch.lastHeader != null && batch.lastLines.isNotEmpty()) {
       coroutineScope.launch {
         delay(DELAY_MILLIS)
-        val message = getAndResetPendingMessage()
+        val message = getAndResetPendingMessage(partialMessage)
         if (message != null) {
           channel.send(listOf(message))
         }
@@ -121,13 +122,9 @@ internal class LogcatMessageAssembler(
     }
   }
 
-  fun getAndResetPendingMessage(): LogcatMessage? {
-    val pendingState = previousState.getAndSet(null)
-    return when {
-      pendingState?.header != null -> LogcatMessage(pendingState.header, pendingState.lines.toMessage())
-      else -> null
-    }
-  }
+  fun getAndResetLastMessage(): LogcatMessage? = previousState.getAndReset()?.toLogcatMessage()
+
+  private fun getAndResetPendingMessage(expected: PartialMessage): LogcatMessage? = previousState.getAndResetIf(expected)?.toLogcatMessage()
 
   override fun dispose() {}
 
@@ -169,7 +166,24 @@ internal class LogcatMessageAssembler(
   /**
    * A header and lines of a possibly unfinished message.
    */
-  private class PartialMessage(val header: LogcatHeader?, val lines: List<String>)
+  private class PartialMessage(val header: LogcatHeader?, val lines: List<String>) {
+    fun toLogcatMessage() = header?.let { LogcatMessage(header, lines.toMessage()) }
+  }
+
+  private class AtomicPendingMessage {
+    private val data: AtomicReference<PartialMessage?> = AtomicReference<PartialMessage?>()
+
+    fun getAndReset(): PartialMessage? = data.getAndSet(null)
+
+    fun getAndResetIf(expected: PartialMessage): PartialMessage? {
+      val actual = data.compareAndExchange(expected, null)
+      return if (actual === expected) actual else null
+    }
+
+    fun set(value: PartialMessage?) {
+      data.set(value)
+    }
+  }
 }
 
 private fun String.isSystemLine(): Boolean {

@@ -46,7 +46,7 @@ internal class LogcatServiceImpl(
       // If the Logcat process quit`s with an error, there will be a pending message still left in the MessageAssembler.
       // This pending message will contain the last legitimate message terminated by a `\n\n` followed by the error text.
       // Here we extract the error message if it exists and log it as a system message.
-      val message = messageAssembler.getAndResetPendingMessage()
+      val message = messageAssembler.getAndResetLastMessage()
       if (message != null) {
         val split = message.message.split("\n\n", limit = 2)
         if (split.size == 1) {

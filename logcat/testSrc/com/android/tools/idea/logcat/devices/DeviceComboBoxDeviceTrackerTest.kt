@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.adblib.AdbChannelProviderFactory
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceState.OFFLINE
 import com.android.adblib.DeviceState.ONLINE
+import com.android.adblib.ddmlibcompatibility.testutils.createAdbSession
 import com.android.adblib.testingutils.CloseablesRule
-import com.android.adblib.testingutils.TestingAdbSessionHost
+import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
@@ -29,20 +29,18 @@ import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
 import com.android.tools.idea.logcat.testing.TestDevice
+import com.android.tools.idea.logcat.testing.attachDevice
+import com.android.tools.idea.logcat.testing.attachDevices
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.yield
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.net.Socket
-import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -85,25 +83,10 @@ class DeviceComboBoxDeviceTrackerTest {
   }
 
   @Test
-  fun name(): Unit = runBlocking {
-    fakeAdb.attachDevices(device1)
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession())
-
-    launch {
-      deviceTracker.trackDevices(retryOnException = false).toList(events)
-    }
-
-    yieldUntil { events.size == 1 }
-    //waitForCondition(5, SECONDS) { events.size == 1 }
-    println(events)
-    fakeAdb.stop()
-  }
-
-  @Test
   fun initialDevices(): Unit = runBlocking {
     val initialDevices = arrayOf(device1, emulator1, emulator2, emulator3)
     fakeAdb.attachDevices(*initialDevices)
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession())
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(closeables))
 
     val job = launch { deviceTracker.trackDevices(retryOnException = false).toList(events) }
 
@@ -121,7 +104,7 @@ class DeviceComboBoxDeviceTrackerTest {
   @Test
   fun initialDevices_ignoresOffline(): Unit = runBlocking {
     fakeAdb.attachDevices(device1, device2.withState(OFFLINE))
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession())
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(closeables))
 
     val job = launch { deviceTracker.trackDevices(retryOnException = false).toList(events) }
 
@@ -137,7 +120,7 @@ class DeviceComboBoxDeviceTrackerTest {
   fun initialDevices_withInitialPreexistingDevice(): Unit = runBlocking {
     val preexistingEmulator = emulator1.withState(OFFLINE).withSerialNumber("")
     fakeAdb.attachDevices(device1)
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(), preexistingDevice = preexistingEmulator.device)
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(closeables), preexistingDevice = preexistingEmulator.device)
 
     val job = launch { deviceTracker.trackDevices(retryOnException = false).toList(events) }
 
@@ -155,7 +138,7 @@ class DeviceComboBoxDeviceTrackerTest {
   fun initialDevices_withInitialPreexistingDeviceMatchingOnlineDevice(): Unit = runBlocking {
     val preexistingEmulator = emulator1.withState(OFFLINE).withSerialNumber("")
     fakeAdb.attachDevices(emulator1, device1)
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(), preexistingDevice = preexistingEmulator.device)
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(closeables), preexistingDevice = preexistingEmulator.device)
 
     val job = launch { deviceTracker.trackDevices(retryOnException = false).toList(events) }
 
@@ -172,7 +155,7 @@ class DeviceComboBoxDeviceTrackerTest {
   @Test
   fun deviceAdded(): Unit = runBlocking {
     val preexistingDevice = device1.withState(OFFLINE).device
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(), preexistingDevice = preexistingDevice)
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(closeables), preexistingDevice = preexistingDevice)
     val job = launch { deviceTracker.trackDevices(retryOnException = false).toList(events) }
     yieldUntil { events.size == 1 }
 
@@ -192,7 +175,7 @@ class DeviceComboBoxDeviceTrackerTest {
   @Test
   fun changeState_goesOffline(): Unit = runBlocking {
     val deviceState = fakeAdb.attachDevice(device1)
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession())
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(closeables))
     val job = launch { deviceTracker.trackDevices(retryOnException = false).toList(events) }
     yieldUntil { events.size == 1 }
 
@@ -211,7 +194,7 @@ class DeviceComboBoxDeviceTrackerTest {
   @Test
   fun changeState_goesOfflineComesOnline(): Unit = runBlocking {
     val deviceState = fakeAdb.attachDevice(device1)
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession())
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(closeables))
     val job = launch { deviceTracker.trackDevices(retryOnException = false).toList(events) }
     yieldUntil { events.size == 1 }
 
@@ -232,7 +215,7 @@ class DeviceComboBoxDeviceTrackerTest {
   @Test
   fun changeState_disconnects(): Unit = runBlocking {
     fakeAdb.attachDevice(device1)
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession())
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(closeables))
     val job = launch { deviceTracker.trackDevices(retryOnException = false).toList(events) }
     yieldUntil { events.size == 1 }
 
@@ -252,7 +235,7 @@ class DeviceComboBoxDeviceTrackerTest {
   fun changeState_emulatorComesOnlineWithDifferentSerialNumber(): Unit = runBlocking {
     val emulator = emulator1.withSerialNumber("emulator-1")
     fakeAdb.attachDevice(emulator)
-    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession())
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = fakeAdb.createAdbSession(closeables))
     val job = launch { deviceTracker.trackDevices(retryOnException = false).toList(events) }
     yieldUntil { events.size == 1 }
 
@@ -274,7 +257,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
   private fun deviceComboBoxDeviceTracker(
     preexistingDevice: Device? = null,
-    adbSession: AdbSession = fakeAdb.createAdbSession(),
+    adbSession: AdbSession = fakeAdb.createAdbSession(closeables),
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
   ) = DeviceComboBoxDeviceTracker(projectRule.project, preexistingDevice, adbSession, coroutineContext)
 
@@ -335,40 +318,4 @@ class DeviceComboBoxDeviceTrackerTest {
 private fun <E> MutableList<E>.dropTrackingReset(): List<E> {
   assertThat(last()).isInstanceOf(TrackingReset::class.java)
   return dropLast(1)
-}
-
-private fun FakeAdbRule.attachDevices(vararg devices: TestDevice): List<DeviceState> = devices.map(::attachDevice)
-
-private fun FakeAdbRule.attachDevice(device: TestDevice): DeviceState {
-  // Since we handle the response to the getprop commands ourselves, we don't really need to provide them to attachDevice
-  val deviceState = attachDevice(device.serialNumber, manufacturer = "", model = "", release = "", sdk = "")
-  if (!device.device.isOnline) {
-    deviceState.deviceStatus = DeviceState.DeviceStatus.OFFLINE
-  }
-  return deviceState
-}
-
-private fun FakeAdbRule.createAdbSession(): AdbSession {
-  val host = TestingAdbSessionHost()
-  val channelProvider = AdbChannelProviderFactory.createOpenLocalHost(host) { fakeAdbServerPort }
-  return AdbSession.create(host, channelProvider)
-}
-
-suspend fun yieldUntil(
-  timeout: Duration = Duration.ofSeconds(5),
-  predicate: suspend () -> Boolean
-) {
-  try {
-    withTimeout(timeout.toMillis()) {
-      while (!predicate()) {
-        yield()
-      }
-    }
-  }
-  catch (e: TimeoutCancellationException) {
-    throw AssertionError(
-      "A yieldUntil condition was not satisfied within " +
-      "5 seconds, there is a bug somewhere (in the test or in the tested code)", e
-    )
-  }
 }
