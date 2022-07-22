@@ -70,6 +70,7 @@ import com.android.tools.idea.logcat.service.LogcatServiceImpl
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
+import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
@@ -101,6 +102,8 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
+import com.intellij.openapi.editor.event.CaretEvent
+import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
@@ -180,6 +183,7 @@ internal class LogcatMainPanel(
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, DataProvider, Disposable {
 
   private var isLogcatPaused: Boolean = false
+  private var caretLine = 0
 
   @VisibleForTesting
   internal val editor: EditorEx = createLogcatEditor(project)
@@ -227,6 +231,7 @@ internal class LogcatMainPanel(
   private val connectedDevice = AtomicReference<Device?>()
   private val logcatServiceChannel = Channel<LogcatServiceEvent>(1)
   private val clientListener = ProjectAppMonitor(this, packageNamesProvider)
+
   @VisibleForTesting
   internal var logcatServiceJob: Job? = null
 
@@ -239,6 +244,13 @@ internal class LogcatMainPanel(
       if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
         addFilterHintHandlers()
       }
+
+      // Keep track of the caret because calling caretModel.getOffset() is not reliable (b/239095674).
+      caretModel.addCaretListener(object : CaretListener {
+        override fun caretPositionChanged(event: CaretEvent) {
+          caretLine = event.newPosition.line
+        }
+      }, this@LogcatMainPanel)
     }
 
     toolbar.targetComponent = this
@@ -378,7 +390,7 @@ internal class LogcatMainPanel(
       return@withContext
     }
     // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
-    val shouldStickToEnd = !ignoreCaretAtBottom && editor.isCaretAtBottom()
+    val shouldStickToEnd = !ignoreCaretAtBottom && isCaretAtBottom()
     ignoreCaretAtBottom = false // The 'ignore' only needs to last for one update. Next time, isCaretAtBottom() will be false.
     // Mark the end for post-processing. Adding text changes the lines due to the cyclic buffer.
     val endMarker: RangeMarker = document.createRangeMarker(document.textLength, document.textLength)
@@ -537,7 +549,7 @@ internal class LogcatMainPanel(
   @UiThread
   private fun updateScrollToEndState(useImmediatePosition: Boolean) {
     val scrollAtBottom = editor.isScrollAtBottom(useImmediatePosition)
-    val caretAtBottom = editor.isCaretAtBottom()
+    val caretAtBottom = isCaretAtBottom()
     if (!scrollAtBottom && caretAtBottom) {
       ignoreCaretAtBottom = true
     }
@@ -561,6 +573,7 @@ internal class LogcatMainPanel(
 
   private fun scrollToEnd() {
     EditorUtil.scrollToTheEnd(editor, true)
+    caretLine = document.lineCount
     ignoreCaretAtBottom = false
   }
 
@@ -625,6 +638,16 @@ internal class LogcatMainPanel(
     class StartLogcat(val device: Device) : LogcatServiceEvent()
     object StopLogcat : LogcatServiceEvent()
     object PauseLogcat : LogcatServiceEvent()
+  }
+
+  private fun isCaretAtBottom(): Boolean {
+    return try {
+      editor.isCaretAtBottom()
+    } catch (t: Throwable) {
+      // Logging as error in order to see how prevalent this is in the wild. See b/239095674
+      LOGGER.error("Failed to check caret position directly. Using backup method.", t)
+      caretLine >= document.lineCount - 1
+    }
   }
 }
 
