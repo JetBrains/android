@@ -45,6 +45,7 @@ import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ScopeType
@@ -85,8 +86,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.createIdeaSourceProviderFromModelSourceProvider
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import java.io.File
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
@@ -117,7 +118,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       .mapNotNull { GradleAndroidModel.get(it) }
       .filter { it.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }
       .flatMap { androidModel ->
-        @Suppress("DEPRECATION")
         if (androidModel.features.isBuildOutputFileSupported) {
           androidModel
             .selectedVariant
@@ -302,7 +302,6 @@ private val IdeAndroidArtifact.scopeType: ScopeType
 
 fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   val all =
-    @Suppress("DEPRECATION")
     (
       model.allSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.MAIN) } +
       model.allUnitTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.UNIT_TEST) } +
@@ -366,12 +365,11 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
 
   return SourceProvidersImpl(
     mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
-    currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() },
-    currentUnitTestSourceProviders = @Suppress("DEPRECATION") model.unitTestSourceProviders.map { it.toIdeaSourceProvider() },
-    currentAndroidTestSourceProviders = @Suppress("DEPRECATION") model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
-    currentTestFixturesSourceProviders = @Suppress("DEPRECATION") model.testFixturesSourceProviders.map { it.toIdeaSourceProvider() },
-    currentAndSomeFrequentlyUsedInactiveSourceProviders = @Suppress(
-      "DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
+    currentSourceProviders = model.activeSourceProviders.map { it.toIdeaSourceProvider() },
+    currentUnitTestSourceProviders = model.unitTestSourceProviders.map { it.toIdeaSourceProvider() },
+    currentAndroidTestSourceProviders = model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
+    currentTestFixturesSourceProviders = model.testFixturesSourceProviders.map { it.toIdeaSourceProvider() },
+    currentAndSomeFrequentlyUsedInactiveSourceProviders = model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
     run {
       val flavorNames = model.selectedVariant.productFlavors.toSet()
@@ -389,6 +387,31 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
       ScopeType.TEST_FIXTURES)
   )
 }
+
+private fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvider, scopeType: ScopeType = ScopeType.MAIN): NamedIdeaSourceProvider {
+  return NamedIdeaSourceProviderImpl(
+    it.name,
+    scopeType,
+    core = object : NamedIdeaSourceProviderImpl.Core {
+      override val manifestFileUrl: String get() = VfsUtil.fileToUrl(it.manifestFile)
+      override val javaDirectoryUrls: Sequence<String> get() = it.javaDirectories.asSequence().toUrls()
+      override val kotlinDirectoryUrls: Sequence<String> get() = it.kotlinDirectories.asSequence().toUrls()
+      override val resourcesDirectoryUrls: Sequence<String> get() = it.resourcesDirectories.asSequence().toUrls()
+      override val aidlDirectoryUrls: Sequence<String> get() = it.aidlDirectories.asSequence().toUrls()
+      override val renderscriptDirectoryUrls: Sequence<String> get() = it.renderscriptDirectories.asSequence().toUrls()
+      override val jniLibsDirectoryUrls: Sequence<String> get() = it.jniLibsDirectories.asSequence().toUrls()
+      override val resDirectoryUrls: Sequence<String> get() = it.resDirectories.asSequence().toUrls()
+      override val assetsDirectoryUrls: Sequence<String> get() = it.assetsDirectories.asSequence().toUrls()
+      override val shadersDirectoryUrls: Sequence<String> get() = it.shadersDirectories.asSequence().toUrls()
+      override val mlModelsDirectoryUrls: Sequence<String> get() = it.mlModelsDirectories.asSequence().toUrls()
+      override val customSourceDirectories: Map<String, Sequence<String>>
+        get() = it.customSourceDirectories.associateBy({ it.sourceTypeName }) { f -> sequenceOf(f.directory).toUrls() }
+    }
+  )
+}
+
+/** Convert a set of IO files into a set of IDEA file urls referring to equivalent virtual files  */
+private fun Sequence<File>.toUrls(): Sequence<String> = map { VfsUtil.fileToUrl(it) }
 
 fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: AndroidFacet, forTests: Boolean = false): List<ApkInfo>? {
   val projectSystem = androidFacet.module.project.getProjectSystem() as? GradleProjectSystem

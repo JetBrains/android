@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.projectmodel.DynamicResourceValue
+import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -24,6 +25,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
+import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
@@ -39,10 +41,12 @@ import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.model.TestOptions
 import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugaring
 import com.android.tools.lint.detector.api.Desugaring
+import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
 import com.jetbrains.rd.util.getOrCreate
+import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
@@ -267,4 +271,16 @@ class GradleAndroidModel constructor(
       }
     }
   }
+}
+
+@VisibleForTesting
+fun classFieldsToDynamicResourceValues(classFields: Map<String, IdeClassField>): Map<String, DynamicResourceValue> {
+  val result = HashMap<String, DynamicResourceValue>()
+  for (field in classFields.values) {
+    val resourceType = ResourceType.fromClassName(field.type)
+    if (resourceType != null) {
+      result[field.name] = DynamicResourceValue(resourceType, field.value)
+    }
+  }
+  return ImmutableMap.copyOf(result)
 }
