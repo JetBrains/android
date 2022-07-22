@@ -24,7 +24,8 @@ import com.intellij.pom.Navigatable
  * project.
  */
 class IntelliJNavSource(project: Project, symbolizer: NativeSymbolizer): NavSource {
-  private val sources = listOf(ApkNavSource(project),
+  private val sources = listOf(FileLineNavigable(project),
+                               ApkMappingNavigable(project),
                                NativeNavSource(project, symbolizer),
                                PsiNavSource(project),
                                ComposeTracingNavSource(project))
