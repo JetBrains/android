@@ -16,6 +16,8 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.google.common.truth.Expect
 import org.junit.Rule
@@ -33,7 +35,7 @@ class GradleProjectPathTest {
     expect.that(createGradleProjectPath("project", false, File(buildRoot)))
       .isEqualTo(GradleHolderProjectPath(buildRoot, ":"))
     expect.that(createGradleProjectPath("project:main", true, File(buildRoot)))
-      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":", IdeModuleWellKnownSourceSet.MAIN))
+      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":", MAIN))
     expect.that(createGradleProjectPath("project:androidTest", true, File(buildRoot)))
       .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":", IdeModuleWellKnownSourceSet.ANDROID_TEST))
     expect.that(createGradleProjectPath("project:other", true, File(buildRoot)))
@@ -45,7 +47,7 @@ class GradleProjectPathTest {
     expect.that(createGradleProjectPath(":app", false, File(buildRoot)))
       .isEqualTo(GradleHolderProjectPath(buildRoot, ":app"))
     expect.that(createGradleProjectPath(":app:main", true, File(buildRoot)))
-      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":app", IdeModuleWellKnownSourceSet.MAIN))
+      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":app", MAIN))
     expect.that(createGradleProjectPath(":app:androidTest", true, File(buildRoot)))
       .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":app", IdeModuleWellKnownSourceSet.ANDROID_TEST))
     expect.that(createGradleProjectPath(":app:other", true, File(buildRoot)))
@@ -58,7 +60,7 @@ class GradleProjectPathTest {
     expect.that(createGradleProjectPath("project", false, File(buildRoot)))
       .isEqualTo(GradleHolderProjectPath(buildRoot, ":"))
     expect.that(createGradleProjectPath("project:main", true, File(buildRoot)))
-      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":", IdeModuleWellKnownSourceSet.MAIN))
+      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":", MAIN))
     expect.that(createGradleProjectPath("project:androidTest", true, File(buildRoot)))
       .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":", IdeModuleWellKnownSourceSet.ANDROID_TEST))
     expect.that(createGradleProjectPath("project:other", true, File(buildRoot)))
@@ -70,10 +72,38 @@ class GradleProjectPathTest {
     expect.that(createGradleProjectPath("project:app", false, File(buildRoot)))
       .isEqualTo(GradleHolderProjectPath(buildRoot, ":app"))
     expect.that(createGradleProjectPath("project:app:main", true, File(buildRoot)))
-      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":app", IdeModuleWellKnownSourceSet.MAIN))
+      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":app", MAIN))
     expect.that(createGradleProjectPath("project:app:androidTest", true, File(buildRoot)))
       .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":app", IdeModuleWellKnownSourceSet.ANDROID_TEST))
     expect.that(createGradleProjectPath("project:app:other", true, File(buildRoot)))
       .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":app", IdeModuleSourceSetImpl("other", true)))
+  }
+
+  @Test
+  fun `resolve absolute`() {
+    expect.that(GradleHolderProjectPath(buildRoot, ":some").resolve(":other"))
+      .isEqualTo(GradleHolderProjectPath(buildRoot, ":other"))
+    expect.that(GradleSourceSetProjectPath(buildRoot, ":some", MAIN).resolve(":other"))
+      .isEqualTo(GradleHolderProjectPath(buildRoot, ":other"))
+  }
+
+  @Test
+  fun `resolve relative`() {
+    expect.that(GradleHolderProjectPath(buildRoot, ":").resolve("other"))
+      .isEqualTo(GradleHolderProjectPath(buildRoot, ":other"))
+    expect.that(GradleSourceSetProjectPath(buildRoot, ":", MAIN).resolve("other"))
+      .isEqualTo(GradleHolderProjectPath(buildRoot, ":other"))
+    expect.that(GradleHolderProjectPath(buildRoot, ":some").resolve("other"))
+      .isEqualTo(GradleHolderProjectPath(buildRoot, ":some:other"))
+    expect.that(GradleSourceSetProjectPath(buildRoot, ":some", MAIN).resolve("other"))
+      .isEqualTo(GradleHolderProjectPath(buildRoot, ":some:other"))
+  }
+
+  @Test
+  fun `to source set`() {
+    expect.that(GradleHolderProjectPath(buildRoot, ":app").toSourceSetPath(TEST_FIXTURES))
+      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":app", TEST_FIXTURES))
+    expect.that(GradleSourceSetProjectPath(buildRoot, ":app", MAIN).toSourceSetPath(TEST_FIXTURES))
+      .isEqualTo(GradleSourceSetProjectPath(buildRoot, ":app", TEST_FIXTURES))
   }
 }

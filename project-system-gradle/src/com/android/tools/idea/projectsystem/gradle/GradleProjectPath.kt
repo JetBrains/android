@@ -32,7 +32,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.execution.GradleRunnerUtil
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
-import java.io.IOException
 
 sealed class GradleProjectPath {
   abstract val buildRoot: @SystemIndependent String
@@ -52,6 +51,21 @@ data class GradleSourceSetProjectPath constructor(
 
 val GradleProjectPath.buildRootDir: File get() = File(buildRoot)
 fun GradleProjectPath.toHolder(): GradleHolderProjectPath = GradleHolderProjectPath(buildRoot, path)
+
+fun GradleProjectPath.resolve(absoluteOrRelativeGradlePath: String): GradleHolderProjectPath {
+  return GradleHolderProjectPath(
+    buildRoot = buildRoot,
+    path = when {
+      absoluteOrRelativeGradlePath.startsWith(":") -> absoluteOrRelativeGradlePath
+      path == ":" -> ":$absoluteOrRelativeGradlePath"
+      else -> "$path:$absoluteOrRelativeGradlePath"
+    }
+  )
+}
+
+fun GradleProjectPath.toSourceSetPath(sourceSet: IdeModuleSourceSet): GradleSourceSetProjectPath {
+  return GradleSourceSetProjectPath(buildRoot, path, sourceSet)
+}
 
 internal fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
   val rootFolder = File(GradleRunnerUtil.resolveProjectPath(this) ?: return null)
