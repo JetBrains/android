@@ -24,10 +24,14 @@ import com.intellij.pom.Navigatable
  * project.
  */
 class IntelliJNavSource(project: Project, symbolizer: NativeSymbolizer): NavSource {
+  // Order matters. First match will be used. If a nav source as more requirements to match a code
+  // location, it should come earlier in the list.
   private val sources = listOf(FileLineNavigable(project),
                                ApkMappingNavigable(project),
                                NativeNavSource(project, symbolizer),
-                               PsiNavSource(project),
+                               PsiOuterClassAndLine(project),
+                               PsiMethod(project),
+                               PsiInnerClass(project),
                                ComposeTracingNavSource(project))
 
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
