@@ -609,6 +609,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
                                                       : EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES;
   }
 
+  private boolean shouldEnableDeviceFrameCheckbox() {
+    // Don't add a device frame to foldable.
+    if (getModel().device().get().isPresent() && getModel().device().getValue().getDefaultHardware().getScreen().isFoldable()) {
+      return false;
+    }
+
+    // Enable the checkbox iff the AVD has the custom skin to use when the checkbox is turned on.
+    return !FileUtil.filesEqual(getModel().getAvdDeviceData().customSkinFile().getValueOr(AvdWizardUtils.NO_SKIN), AvdWizardUtils.NO_SKIN);
+  }
+
   @VisibleForTesting
   void addListeners() {
     myAvdId.addMouseListener(new MouseAdapter() {
@@ -679,17 +689,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
             myDeviceFrameCheckbox.setSelected(false);
           }
         }
-        Device device = getModel().device().getValueOrNull();
-        boolean enabled = true;
-        if (device != null && device.getDefaultHardware().getScreen().isFoldable()) {
-          enabled = false;
-          // Only override the value for Folded device; otherwise, respect the assignment from above
+        final Device device = getModel().device().getValueOrNull();
+        final boolean comboBoxEnabled = device == null || !device.getDefaultHardware().getScreen().isFoldable();
+        if (!comboBoxEnabled) {
           myDeviceFrameCheckbox.setSelected(false);
         }
-        myDeviceFrameCheckbox.setEnabled(enabled);
-        myDeviceFrameTitle.setEnabled(enabled);
-        mySkinDefinitionLabel.setEnabled(enabled);
-        mySkinComboBox.setEnabled(enabled);
+        final boolean checkBoxEnabled = shouldEnableDeviceFrameCheckbox();
+        myDeviceFrameCheckbox.setEnabled(checkBoxEnabled);
+        myDeviceFrameTitle.setEnabled(checkBoxEnabled);
+        mySkinDefinitionLabel.setEnabled(comboBoxEnabled);
+        mySkinComboBox.setEnabled(comboBoxEnabled);
       }
     });
 
@@ -1403,10 +1412,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     }
 
+    myDeviceFrameCheckbox.setEnabled(shouldEnableDeviceFrameCheckbox());
+
     if (customSkin != null) {
       mySkinComboBox.getComboBox().setSelectedItem(customSkin);
       getModel().getAvdDeviceData().customSkinFile().setValue(customSkin);
     }
+
     enforcePlayStore();
   }
 
