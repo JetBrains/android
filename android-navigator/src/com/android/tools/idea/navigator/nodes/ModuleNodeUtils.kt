@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
-import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode
 import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode
@@ -52,8 +51,6 @@ fun createChildModuleNodes(
       }
       androidFacet != null && AndroidModel.isRequired(androidFacet) ->
         children.add(AndroidModuleNode(project, module, settings))
-      ndkFacet != null ->
-        children.add(NdkModuleNode(project, module, settings))
       else ->
         children.add(NonAndroidModuleNode(project, module, settings))
     }

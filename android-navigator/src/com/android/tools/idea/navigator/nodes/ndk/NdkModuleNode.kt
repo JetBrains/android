@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk
 
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V1NdkModel
-import com.android.tools.idea.fileTypes.AndroidIconProvider.getModuleIcon
-import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes
 import com.android.tools.idea.ndk.ModuleVariantAbi
@@ -29,57 +27,15 @@ import com.android.tools.idea.ndk.NativeWorkspaceService
 import com.android.tools.idea.ndk.NativeWorkspaceService.Companion.getInstance
 import com.android.tools.idea.util.toIoFile
 import com.google.common.collect.HashMultimap
-import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Queryable
 import com.intellij.openapi.util.text.StringUtil.trimEnd
 import com.intellij.openapi.util.text.StringUtil.trimStart
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import java.util.ArrayList
-
-class NdkModuleNode(
-  project: Project,
-  value: Module,
-  settings: ViewSettings) : AndroidViewModuleNode(project, value, settings) {
-
-  override fun getModuleChildren(): Collection<AbstractTreeNode<*>> {
-    val module = value ?: return emptyList()
-
-    val facet = NdkFacet.getInstance(module)
-    if (facet?.ndkModuleModel == null) {
-      return emptyList()
-    }
-
-    assert(myProject != null)
-    return getNativeSourceNodes(myProject, facet.ndkModuleModel!!, settings)
-  }
-
-  override fun getSortKey(): Comparable<*>? {
-    val module = value ?: return null
-    return module.name
-  }
-
-  override fun getTypeSortKey(): Comparable<*>? {
-    return sortKey
-  }
-
-  override fun toTestString(printInfo: Queryable.PrintInfo?): String? {
-    return String.format("%1\$s (Native-Android-Gradle)", super.toTestString(printInfo))
-  }
-
-  override fun update(presentation: PresentationData) {
-    super.update(presentation)
-    val module = value
-    if (module != null) {
-      presentation.setIcon(getModuleIcon(module))
-    }
-  }
-}
 
 fun getNativeSourceNodes(project: Project,
                          ndkModuleModel: NdkModuleModel,

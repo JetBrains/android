@@ -16,7 +16,6 @@
 package com.android.tools.idea.navigator.nodes.other;
 
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode;
-import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import org.jetbrains.android.AndroidTestCase;
@@ -32,16 +31,11 @@ public class AndroidViewNodeEqualityTest extends AndroidTestCase {
     ViewSettings viewSettings = mock(ViewSettings.class);
     ProjectViewNode<?> androidModuleNode = new AndroidModuleNode(getProject(), myModule, viewSettings);
     ProjectViewNode<?> nonAndroidModuleNode = new NonAndroidModuleNode(getProject(), myModule, viewSettings);
-    ProjectViewNode<?> ndkModuleNode = new NdkModuleNode(getProject(), myModule, viewSettings);
     // Do not attempt fixing https://issuetracker.google.com/70635980 by breaking equality semantics. Different node types return different
     // children and are not interchangeable. Any issues with module type detection should be resolved at the place where the incorrect
     // module type is inferred.
     assertFalse(androidModuleNode.equals(nonAndroidModuleNode));
     assertFalse(nonAndroidModuleNode.equals(androidModuleNode));
-    assertFalse(androidModuleNode.equals(ndkModuleNode));
-    assertFalse(ndkModuleNode.equals(androidModuleNode));
-    assertFalse(nonAndroidModuleNode.equals(ndkModuleNode));
-    assertFalse(ndkModuleNode.equals(nonAndroidModuleNode));
     ProjectViewNode<?> nonAndroidSourceTypeNode =
         new NonAndroidSourceTypeNode(getProject(), myModule, viewSettings, NonAndroidSourceType.JAVA);
     // Check inequality related to https://issuetracker.google.com/37003106.
@@ -49,7 +43,5 @@ public class AndroidViewNodeEqualityTest extends AndroidTestCase {
     assertFalse(nonAndroidSourceTypeNode.equals(androidModuleNode));
     assertFalse(nonAndroidModuleNode.equals(nonAndroidSourceTypeNode));
     assertFalse(nonAndroidSourceTypeNode.equals(nonAndroidModuleNode));
-    assertFalse(ndkModuleNode.equals(nonAndroidSourceTypeNode));
-    assertFalse(nonAndroidSourceTypeNode.equals(ndkModuleNode));
   }
 }
