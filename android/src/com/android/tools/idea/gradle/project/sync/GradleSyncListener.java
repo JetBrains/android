@@ -57,4 +57,13 @@ public interface GradleSyncListener extends EventListener {
    */
   default void syncSkipped(@NotNull Project project) {
   }
+
+  /**
+   * Invoked when sync was cancelled.
+   */
+  default void syncCancelled(@NotNull Project project) {
+    // Each sync must finish with one of these events and since this method is added later we need to re-interpret it as a different already
+    // known sync outcome.
+    syncFailed(project, "Cancelled");
+  }
 }
