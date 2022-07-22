@@ -179,7 +179,7 @@ class ComposePreviewRepresentationGradleTest {
     assertTrue("FastPreviewManager must be enabled", fastPreviewManager.isEnabled)
 
     val compileDeferred = CompletableDeferred<Unit>()
-    val compileListener = object: FastPreviewManager.Companion.CompileListener {
+    val fastPreviewManagerListener = object: FastPreviewManager.Companion.FastPreviewManagerListener {
       override fun onCompilationStarted(files: Collection<PsiFile>) {}
 
       override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
@@ -187,7 +187,7 @@ class ComposePreviewRepresentationGradleTest {
       }
 
     }
-    fastPreviewManager.addCompileListener(fixture.testRootDisposable, compileListener)
+    fastPreviewManager.addListener(fixture.testRootDisposable, fastPreviewManagerListener)
     withTimeout(timeout.toMillis()) {
       while (FastPreviewManager.getInstance(project).isCompiling) delay(50)
       runnable()

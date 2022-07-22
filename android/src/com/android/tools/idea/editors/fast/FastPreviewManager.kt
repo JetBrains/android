@@ -489,9 +489,9 @@ class FastPreviewManager private constructor(
     compileRequest(listOf(file), module, indicator, tracker)
 
   /**
-   * Adds a [CompileListener] that will be notified when this manager has completed a build.
+   * Adds a [FastPreviewManagerListener] that will be notified when this manager has completed a build.
    */
-  fun addCompileListener(parentDisposable: Disposable, listener: CompileListener) {
+  fun addListener(parentDisposable: Disposable, listener: FastPreviewManagerListener) {
     project.messageBus.connect(parentDisposable).subscribe(FAST_PREVIEW_MANAGER_TOPIC, listener)
   }
 
@@ -499,6 +499,7 @@ class FastPreviewManager private constructor(
    * Disables the Fast Preview. Optionally, receive a reason to be disabled that might be displayed to the user.
    */
   fun disable(reason: DisableReason) {
+    val wasEnabled = isEnabled
     val newReason = disableReason != reason
     disableReason = reason
 
@@ -518,14 +519,23 @@ class FastPreviewManager private constructor(
       tracker.userDisabled()
     else
       tracker.autoDisabled()
+
+    if (wasEnabled) {
+      project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onFastPreviewStatusChanged(isEnabled)
+    }
   }
 
   /** Enables the Fast Preview. */
   fun enable() {
+    val wasEnabled = isEnabled
     disableReason = null
     disableForThisSession = false
     FastPreviewTrackerManager.getInstance(project).userEnabled()
     FastPreviewConfiguration.getInstance().isEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
+
+    if (!wasEnabled && isEnabled) {
+      project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onFastPreviewStatusChanged(isEnabled)
+    }
   }
 
   override fun dispose() {
@@ -552,12 +562,13 @@ class FastPreviewManager private constructor(
                          moduleRuntimeVersionLocator = moduleRuntimeVersionLocator,
                          maxCachedRequests = maxCachedRequests)
 
-    interface CompileListener {
+    interface FastPreviewManagerListener {
       fun onCompilationStarted(files: Collection<PsiFile>)
       fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>)
+      fun onFastPreviewStatusChanged(isFastPreviewEnabled: Boolean) {}
     }
 
-    private val FAST_PREVIEW_MANAGER_TOPIC = Topic("Fast Preview Manager Topic", CompileListener::class.java)
+    private val FAST_PREVIEW_MANAGER_TOPIC = Topic("Fast Preview Manager Topic", FastPreviewManagerListener::class.java)
   }
 }
 

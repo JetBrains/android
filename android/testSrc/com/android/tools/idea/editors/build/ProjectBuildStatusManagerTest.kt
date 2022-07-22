@@ -21,8 +21,14 @@ import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewRule
+import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.executeAndSave
+import com.android.tools.idea.testing.insertText
+import com.android.tools.idea.ui.ApplicationUtils.invokeWriteActionAndWait
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SimpleModificationTracker
@@ -53,10 +59,17 @@ class ProjectBuildStatusManagerTest {
    * [PsiFileSnapshotFilter] that allows changing the filter on the fly. Alter the [filter] is updated or when the filter changes behaviour,
    * [incModificationCount] should be called.
    */
-  class TestFilter: PsiFileSnapshotFilter, SimpleModificationTracker() {
+  class TestFilter : PsiFileSnapshotFilter, SimpleModificationTracker() {
     var filter: (PsiElement) -> Boolean = { true }
 
     override fun accepts(element: PsiElement): Boolean = filter(element)
+  }
+
+  private fun ProjectBuildStatusManagerForTests.simulateProjectSystemBuild(buildMode: ProjectSystemBuildManager.BuildMode = ProjectSystemBuildManager.BuildMode.COMPILE,
+                                                                           buildStatus: ProjectSystemBuildManager.BuildStatus) {
+    getBuildListenerForTest().buildStarted(buildMode)
+    getBuildListenerForTest().buildCompleted(
+      ProjectSystemBuildManager.BuildResult(buildMode, buildStatus, 1L))
   }
 
   @Test
@@ -101,10 +114,10 @@ class ProjectBuildStatusManagerTest {
   }
 
   @Test
-  fun testFastPreviewStatusChangeInvalidatesFile() {
+  fun testFastPreviewEnableLeavesFileAsUpToDateForSuccessfulGradleBuild() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val fileFilter = ProjectBuildStatusManagerTest.TestFilter()
+    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
@@ -112,19 +125,88 @@ class ProjectBuildStatusManagerTest {
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     try {
-      FastPreviewConfiguration.getInstance().isEnabled = true
+      FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      (statusManager as ProjectBuildStatusManagerForTests).getBuildListenerForTest().buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE)
-      (statusManager as ProjectBuildStatusManagerForTests).getBuildListenerForTest().buildCompleted(
-        ProjectSystemBuildManager.BuildResult(ProjectSystemBuildManager.BuildMode.COMPILE, ProjectSystemBuildManager.BuildStatus.SUCCESS, 1L))
+      (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
+        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
 
       assertEquals(ProjectStatus.Ready, statusManager.status)
 
       // Disabling Live Edit will bring the out of date state
-      FastPreviewConfiguration.getInstance().isEnabled = false
+      FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
+      assertEquals(ProjectStatus.Ready, statusManager.status)
+    }
+    finally {
+      FastPreviewConfiguration.getInstance().resetDefault()
+    }
+  }
+
+  @Test
+  fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedGradleBuild() {
+    val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
+
+    val fileFilter = TestFilter()
+    val statusManager = ProjectBuildStatusManager.create(
+      projectRule.fixture.testRootDisposable,
+      psiFile,
+      fileFilter,
+      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+
+    try {
+      FastPreviewManager.getInstance(project).enable()
+
+      // Simulate a successful build
+      (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
+        buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED)
+
+      assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
+
+      // Disabling Live Edit will bring the out of date state
+      FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
+      assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
+    }
+    finally {
+      FastPreviewConfiguration.getInstance().resetDefault()
+    }
+  }
+
+  @Test
+  fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedFastPreviewCompilation() {
+    val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
+
+    val fileFilter = TestFilter()
+    val statusManager = ProjectBuildStatusManager.create(
+      projectRule.fixture.testRootDisposable,
+      psiFile,
+      fileFilter,
+      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+
+    try {
+      FastPreviewManager.getInstance(project).enable()
+
+      // Simulate a successful build
+      (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
+        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
+
+      assertEquals(ProjectStatus.Ready, statusManager.status)
+
+      // Add an error that will fail a compilation
+      invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+        projectRule.fixture.openFileInEditor(psiFile.virtualFile)
+      }
+      runBlocking {
+        WriteCommandAction.runWriteCommandAction(project) {
+          projectRule.fixture.editor.executeAndSave { insertText("BrokenText") }
+        }
+        FastPreviewManager.getInstance(project).compileRequest(psiFile, projectRule.fixture.module)
+      }
+
+      // Disabling Live Edit will bring the out of date state
+      FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
       assertEquals(ProjectStatus.OutOfDate, statusManager.status)
-    } finally {
+    }
+    finally {
       FastPreviewConfiguration.getInstance().resetDefault()
     }
   }

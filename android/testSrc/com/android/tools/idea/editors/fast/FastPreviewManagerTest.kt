@@ -471,7 +471,7 @@ internal class FastPreviewManagerTest {
       Disposer.register(projectRule.testRootDisposable, it)
     }
     val parentDisposable = Disposer.newDisposable()
-    manager.addCompileListener(parentDisposable, object: FastPreviewManager.Companion.CompileListener {
+    manager.addListener(parentDisposable, object: FastPreviewManager.Companion.FastPreviewManagerListener {
       override fun onCompilationStarted(files: Collection<PsiFile>) {}
       override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {}
     })
@@ -536,7 +536,7 @@ internal class FastPreviewManagerTest {
     }
 
     val compilationCounter = AtomicInteger(0)
-    manager.addCompileListener(projectRule.testRootDisposable, object : FastPreviewManager.Companion.CompileListener {
+    manager.addListener(projectRule.testRootDisposable, object : FastPreviewManager.Companion.FastPreviewManagerListener {
       override fun onCompilationStarted(files: Collection<PsiFile>) {
         compilationCounter.incrementAndGet()
       }

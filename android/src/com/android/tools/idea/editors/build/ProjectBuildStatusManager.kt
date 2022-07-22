@@ -37,7 +37,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.application.runReadAction
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * This represents the build status of the project without taking into account any file modifications.
@@ -234,12 +233,21 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     })
 
     if (FastPreviewManager.getInstance(project).isAvailable) {
-      FastPreviewManager.getInstance(project).addCompileListener(parentDisposable, object : FastPreviewManager.Companion.CompileListener {
+      FastPreviewManager.getInstance(project).addListener(parentDisposable, object : FastPreviewManager.Companion.FastPreviewManagerListener {
+        var lastCompilationResult: CompilationResult = CompilationResult.Success
+
         override fun onCompilationStarted(files: Collection<PsiFile>) { }
 
         override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
           val file = editorFile.element ?: return
+          lastCompilationResult = result
           if (result == CompilationResult.Success && files.any { it.isEquivalentTo(file) }) onSuccessfulBuild()
+        }
+
+        override fun onFastPreviewStatusChanged(isFastPreviewEnabled: Boolean) {
+          // When Fast Preview is disabled, the fileChangeDetector will be restored. This will automatically mark the file as out of date.
+          // This check, verifies if the last fast build was successful and, only in that case, will mark the file as being up to date.
+          if (!isFastPreviewEnabled && lastCompilationResult == CompilationResult.Success) onSuccessfulBuild()
         }
       })
     }

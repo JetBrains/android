@@ -669,7 +669,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     })
 
-    FastPreviewManager.getInstance(project).addCompileListener(this, object: FastPreviewManager.Companion.CompileListener {
+    FastPreviewManager.getInstance(project).addListener(this, object: FastPreviewManager.Companion.FastPreviewManagerListener {
       override fun onCompilationStarted(files: Collection<PsiFile>) {
         psiFilePointer.element?.let { editorFile ->
           if (files.any { it.isEquivalentTo(editorFile) }) afterBuildStarted()
