@@ -82,7 +82,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
       }
 
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         AndroidDataSource result = new AndroidDataSource();
         result.setName(getTemplatePresentation().getText());
         result.resolveDriver();

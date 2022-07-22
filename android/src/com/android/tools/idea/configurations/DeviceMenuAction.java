@@ -344,7 +344,7 @@ public class DeviceMenuAction extends DropDownAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       // Always disable, do nothing
     }
   }
