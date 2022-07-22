@@ -26,6 +26,8 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.JBPopupListener
+import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.AnActionLink
@@ -35,11 +37,14 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Point
 import java.awt.event.InputEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -107,7 +112,8 @@ private fun createContentPanel(
     .anchor(GridBagConstraints.LINE_START)
     .fillCellHorizontally()
     .weightx(1.0)
-    .insets(POPUP_DESCRIPTION_TOP_AND_BOTTOM_INDENT, POPUP_DESCRIPTION_LEFT_INDENT, POPUP_DESCRIPTION_TOP_AND_BOTTOM_INDENT, POPUP_DESCRIPTION_RIGHT_INDENT)
+    .insets(POPUP_DESCRIPTION_TOP_AND_BOTTOM_INDENT, POPUP_DESCRIPTION_LEFT_INDENT, POPUP_DESCRIPTION_TOP_AND_BOTTOM_INDENT,
+            POPUP_DESCRIPTION_RIGHT_INDENT)
   content.add(JLabel(XmlStringUtil.wrapInHtml(details)), gc)
 
   if (additionalActions.isNotEmpty()) {
@@ -149,8 +155,37 @@ class InformationPopup(
   description: String,
   additionalActions: List<AnAction>,
   links: Collection<AnActionLink>
-): Disposable {
-  private val content: JComponent by lazy { createContentPanel(title, description, additionalActions, links, hidePopup = ::hidePopup) }
+) : Disposable {
+  /**
+   * This tracks if the mouse has been over the popup.
+   */
+  @VisibleForTesting
+  internal var hasMouseHoveredOverPopup = false
+  private val content: JComponent by lazy {
+    createContentPanel(title, description, additionalActions, links, hidePopup = ::hidePopup).apply {
+      addMouseListener(object : MouseAdapter() {
+        override fun mouseEntered(e: MouseEvent?) {
+          hasMouseHoveredOverPopup = true
+        }
+
+        override fun mouseExited(e: MouseEvent?) {
+          // If the mouse exits the popup and the mouse has already been over it, close the popup.
+          // If the mouse has not been over the popup, keep it open since the user might be moving the mouse towards it.
+          if (hasMouseHoveredOverPopup) hidePopup()
+        }
+      })
+    }
+  }
+
+  /**
+   * [JBPopupListener] to reset [hasMouseHoveredOverPopup] when the popup is dismissed.
+   */
+  private val popupListener = object : JBPopupListener {
+    override fun onClosed(event: LightweightWindowEvent) {
+      // When the popup is closed, reset the hover tracking
+      hasMouseHoveredOverPopup = false
+    }
+  }
   private var popup: JBPopup? = null
 
   /**
@@ -172,6 +207,8 @@ class InformationPopup(
 
     val newPopup = JBPopupFactory.getInstance().createComponentPopupBuilder(content, null)
       .setCancelOnClickOutside(true)
+      .setCancelOnWindowDeactivation(true)
+      .addListener(popupListener)
       .createPopup()
     popup = newPopup
     Disposer.register(this, newPopup)

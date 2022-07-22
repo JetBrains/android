@@ -2,14 +2,6 @@
 <issues format="5" by="lint 7.4.0-dev">
 
     <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/main/java/com/android/tools/adtui/InformationPopup.kt"
-            line="153"/>
-    </issue>
-
-    <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location

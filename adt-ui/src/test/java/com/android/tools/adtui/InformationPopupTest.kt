@@ -27,6 +27,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.AnActionLink
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -131,5 +132,31 @@ class InformationPopupTest {
       "Action 1, Action 2",
       fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text }
     )
+  }
+
+  @Test
+  fun testHoverOnContentIsDetected() {
+    val popup = InformationPopup(
+      "Title",
+      "A Description",
+      listOf(),
+      listOf()
+    )
+
+    val fakeUi = FakeUi(JPanel().apply {
+      layout = BorderLayout()
+      size = Dimension(200, 100)
+      add(popup.component(), BorderLayout.CENTER)
+    }, 1.0, true)
+
+    assertFalse(popup.hasMouseHoveredOverPopup)
+    // Move mouse but not inside the popup
+    fakeUi.mouse.moveTo(popup.component().x + popup.component().width * 2, 0)
+    assertFalse(popup.hasMouseHoveredOverPopup)
+    fakeUi.mouse.moveTo(popup.component().x + popup.component().width / 2, popup.component().y + popup.component().height / 2)
+    assertTrue(popup.hasMouseHoveredOverPopup)
+    // Move back out
+    fakeUi.mouse.moveTo(popup.component().x + popup.component().width * 2, 0)
+    assertTrue(popup.hasMouseHoveredOverPopup)
   }
 }
