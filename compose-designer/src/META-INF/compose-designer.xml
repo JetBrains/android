@@ -70,6 +70,14 @@
                      key="inspection.preview.font.scale.name"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewApiLevelMustBeValid"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.api.level.name"
+                     level="ERROR"/>
+
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMultipleParameterProvidersInspection"
                      language="kotlin"
                      enabledByDefault="true"

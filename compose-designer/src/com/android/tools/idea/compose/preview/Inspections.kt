@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
@@ -22,6 +23,7 @@ import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
 import com.android.tools.idea.compose.preview.util.MAX_WIDTH
 import com.android.tools.idea.compose.preview.util.isInUnitTestFile
 import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
@@ -32,7 +34,9 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtImportDirective
@@ -40,6 +44,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
+import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
@@ -321,6 +326,51 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
       if (fontScale <= 0) {
         holder.registerProblem(it.psiOrParent as PsiElement,
                                message("inspection.preview.font.scale.description"),
+                               ProblemHighlightType.ERROR)
+      }
+    }
+  }
+}
+
+/**
+ * Inspection that checks if `@Preview` apiLevel is valid.
+ */
+class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder,
+                                      function: KtNamedFunction,
+                                      previewAnnotation: KtAnnotationEntry,
+                                      isMultiPreview: Boolean) {
+    checkApiLevelIsValid(holder, previewAnnotation, isMultiPreview)
+  }
+
+  override fun visitPreviewAnnotation(holder: ProblemsHolder,
+                                      annotationClass: KtClass,
+                                      previewAnnotation: KtAnnotationEntry,
+                                      isMultiPreview: Boolean) {
+    checkApiLevelIsValid(holder, previewAnnotation, isMultiPreview)
+  }
+
+  private fun checkApiLevelIsValid(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry, isMultiPreview: Boolean) {
+    // MultiPreview parameters don't affect the Previews
+    if (isMultiPreview) return
+
+    val supportedApiLevels = previewAnnotation.module?.let { module ->
+      ConfigurationManager.findExistingInstance(module)
+        ?.targets
+        ?.filter { ConfigurationManager.isLayoutLibTarget(it) }
+        ?.map { it.version.apiLevel }
+    } ?: listOf(SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION, SdkVersionInfo.HIGHEST_SUPPORTED_API)
+
+    val (min, max) = supportedApiLevels.minOrNull()!! to supportedApiLevels.maxOrNull()!!
+
+    previewAnnotation.findValueArgument(PARAMETER_API_LEVEL)?.let {
+      val argumentExpression = it.getArgumentExpression() ?: return
+      val apiLevel = (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
+        ?.getValue(org.jetbrains.kotlin.types.TypeUtils.DONT_CARE) as? Int) ?: return
+
+      if (apiLevel < min || apiLevel > max) {
+        holder.registerProblem(it.psiOrParent as PsiElement,
+                               message("inspection.preview.api.level.description", min, max),
                                ProblemHighlightType.ERROR)
       }
     }

@@ -23,6 +23,7 @@ import com.intellij.util.containers.toArray
 import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -465,6 +466,62 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       """3: Preview fontScale value must be greater than zero.
         |17: Preview fontScale value must be greater than zero.
       """.trimMargin(), inspections)
+  }
+
+  @Test
+  fun testInvalidApiLevel() {
+    fixture.enableInspections(PreviewApiLevelMustBeValid() as InspectionProfileEntry)
+
+    @Suppress("TestFunctionName")
+    @Language("kotlin")
+    val fileContent = """
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+
+      private const val badApiLevel = 0
+
+      private const val goodApiLevel = 30
+
+      @Preview(apiLevel = badApiLevel) // error
+      annotation class BadAnnotation
+
+      @Preview(apiLevel = 30)
+      annotation class GoodAnnotation(val apiLevel: Int = 0) // MultiPreview annotation parameters have no effect
+
+      @Composable
+      @BadAnnotation
+      @Preview(name = "Preview 1", apiLevel = goodApiLevel)
+      fun Preview1() {
+      }
+
+      @Composable
+      @GoodAnnotation
+      @Preview(name = "Preview 2", apiLevel = -1) // error
+      fun Preview2() {
+      }
+
+      @Composable
+      @GoodAnnotation
+      @Preview(name = "Preview 3", apiLevel = 1000000) // error
+      fun Preview3() {
+      }
+
+      @Composable
+      @Preview(name = "Preview 4", apiLevel = 30)
+      fun Preview4() {
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    val inspections = fixture.doHighlighting(HighlightSeverity.ERROR)
+      .sortedByDescending { -it.startOffset }
+      .map { it.descriptionWithLineNumber() }
+
+    val apiLevelErrorMessagePrefix = "Preview apiLevel must be set to an integer between "
+    assertEquals(3, inspections.size)
+    assertTrue(inspections[0].startsWith("7: $apiLevelErrorMessagePrefix")) // BadAnnotation error
+    assertTrue(inspections[1].startsWith("21: $apiLevelErrorMessagePrefix")) // Preview 2 error
+    assertTrue(inspections[2].startsWith("27: $apiLevelErrorMessagePrefix")) // Preview 3 error
   }
 
   @Test
