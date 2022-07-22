@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.sourcePsiElement
 import org.jetbrains.uast.toUElement
@@ -110,13 +111,19 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
         deviceValueElement,
         message,
         ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
-        PreviewParametersQuickFix(deviceValueElement, result.proposedFix)
+        DeviceParameterQuickFix(deviceValueElement, result.proposedFix)
       )
     }
   }
 }
 
-private class PreviewParametersQuickFix(
+/**
+ * QuickFix implementation for the `device` parameter of the Preview Annotation.
+ *
+ * Whenever there's an incorrect value for the `device` parameter, suggests replacing the expression of the original value to
+ * [resultingString]. Which should be a correct value for the parameter.
+ */
+private class DeviceParameterQuickFix(
   deviceValueElement: PsiElement,
   private val resultingString: String
 ) : LocalQuickFixOnPsiElement(deviceValueElement) {
@@ -126,7 +133,13 @@ private class PreviewParametersQuickFix(
 
   override fun invoke(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement) {
     try {
-      startElement.replace(KtPsiFactory(project, true).createLiteralStringTemplateEntry(resultingString))
+      // Find the element that corresponds to the Argument value, this is needed in case the original expression is composed by more than
+      // one element. E.g: device = "spec:width=100dp," + "height=" + heightDp
+      var replaceableElement = startElement
+      while(replaceableElement.parent !is KtValueArgument) {
+        replaceableElement = replaceableElement.parent
+      }
+      replaceableElement.replace(KtPsiFactory(project = project, markGenerated = true).createExpression("\"$resultingString\""))
     }
     catch (e: IncorrectOperationException) {
       Logger.getInstance(PreviewPickerAnnotationInspection::class.java).error("Unable to apply fix to @Preview 'device' parameter", e)

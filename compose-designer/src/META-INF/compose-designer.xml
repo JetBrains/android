@@ -125,7 +125,10 @@
               extensions="dspec"/>
     <lang.parserDefinition language="DeviceSpec"
                            implementationClass="com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition"/>
-    <languageInjector implementation="com.android.tools.idea.compose.preview.util.device.DeviceSpecInjector"/>
+    <languageInjectionContributor language="kotlin"
+                                  implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecInjectionContributor"/>
+    <languageInjectionPerformer language="kotlin"
+                                implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecInjectionPerformer"/>
     <completion.contributor language="DeviceSpec"
                             id="DeviceSpecContributor"
                             implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecCompletionContributor"/>
