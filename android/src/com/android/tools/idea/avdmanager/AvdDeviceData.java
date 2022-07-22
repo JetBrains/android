@@ -104,6 +104,7 @@ public final class AvdDeviceData {
 
   private BoolValueProperty myIsTv = new BoolValueProperty();
   private BoolValueProperty myIsWear = new BoolValueProperty();
+  private BoolValueProperty myIsDesktop = new BoolValueProperty();
   private BoolValueProperty myIsScreenRound = new BoolValueProperty();
   private IntValueProperty myScreenChinSize = new IntValueProperty();
   private State myDefaultState;
@@ -396,6 +397,9 @@ public final class AvdDeviceData {
   }
 
   @NotNull
+  public BoolProperty isDesktop() { return myIsDesktop; }
+
+  @NotNull
   public BoolProperty isScreenRound() {
     return myIsScreenRound;
   }
@@ -554,6 +558,7 @@ public final class AvdDeviceData {
 
     myIsTv.set(HardwareConfigHelper.isTv(device));
     myIsWear.set(HardwareConfigHelper.isWear(device));
+    myIsDesktop.set(HardwareConfigHelper.isDesktop(device));
     myIsScreenRound.set(device.isScreenRound());
     myScreenChinSize.set(device.getChinSize());
 
@@ -600,12 +605,15 @@ public final class AvdDeviceData {
    */
   @NotNull
   public ScreenOrientation getDefaultDeviceOrientation() {
-    if (myDefaultState != null && myDefaultState.getOrientation() == ScreenOrientation.LANDSCAPE && mySupportsLandscape.get()) {
-      return ScreenOrientation.LANDSCAPE;
+    if (mySupportsLandscape.get()) {
+      if ((myDefaultState != null && myDefaultState.getOrientation() == ScreenOrientation.LANDSCAPE) ||
+          myIsTv.get() || myIsDesktop.get() || !mySupportsPortrait.get()) {
+        return ScreenOrientation.LANDSCAPE;
+      }
     }
-
-    return (mySupportsPortrait.get())
-           ? ScreenOrientation.PORTRAIT
-           : (mySupportsLandscape.get()) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.SQUARE;
+    if (mySupportsPortrait.get()) {
+      return ScreenOrientation.PORTRAIT;
+    }
+    return ScreenOrientation.SQUARE;
   }
 }
