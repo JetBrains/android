@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.testFramework",
     data = ["//prebuilts/studio/jdk:mock-jdk17"],
     iml_files = ["intellij.android.testFramework.iml"],
+    test_agents = ["//tools/base/threading-agent:threading_agent.jar"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

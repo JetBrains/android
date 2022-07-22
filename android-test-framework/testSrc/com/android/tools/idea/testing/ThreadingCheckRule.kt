@@ -60,6 +60,7 @@ class ThreadingCheckRule : TestRule {
           }
         }
 
+        maybeCheckThreadingAgentIsRunning()
         ThreadingCheckerTrampoline.installHook(hook)
         base.evaluate()
         ThreadingCheckerTrampoline.removeHook(hook)
@@ -74,5 +75,27 @@ class ThreadingCheckRule : TestRule {
         }
       }
     }
+  }
+
+  private fun maybeCheckThreadingAgentIsRunning() {
+    if (!System.getProperties().containsKey("bazel.test_suite")) {
+      // At this time we only assert that the threading java agent has been loaded
+      // when running the tests from bazel and not the IDE
+      return
+    }
+
+    // Java agent is loaded by the bootstrap class loader and so the findBootstrapClassOrNull
+    // method should be used instead of the findLoadedClass method which can only be used
+    // with a non-bootstrap class loader
+    val findBootstrapClassOrNullMethod =
+      ClassLoader::class.java.getDeclaredMethod("findBootstrapClassOrNull", String::class.java)
+    findBootstrapClassOrNullMethod.isAccessible = true
+    findBootstrapClassOrNullMethod.invoke(
+      ThreadingCheckRule::class.java.classLoader,
+      "com.android.tools.instrumentation.threading.agent.Agent")
+    ?: throw RuntimeException(
+      "ThreadingCheckRule works in conjunction with the threading java agent which can be "
+      + "loaded by adding 'test_agents = [\"//tools/base/threading-agent:threading_agent.jar\"]' "
+      + "argument to an iml_module build rule.")
   }
 }
