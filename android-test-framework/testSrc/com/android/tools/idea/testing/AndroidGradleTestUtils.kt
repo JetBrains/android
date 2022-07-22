@@ -119,9 +119,12 @@ import com.android.utils.combineAsCamelCase
 import com.android.utils.cxx.CompileCommandsEncoder
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.build.BuildProgressListener
 import com.intellij.build.BuildViewManager
+import com.intellij.build.SyncViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.internal.DummySyncViewManager
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
@@ -169,7 +172,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
-import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
@@ -190,6 +192,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import kotlin.reflect.full.memberProperties
@@ -1833,8 +1836,8 @@ fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatc
 
 data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val verifyOpened: (Project) -> Unit = ::verifySyncedSuccessfully,
-  val outputHandler: (String) -> Unit = {},
-  val syncExceptionHandler: (Exception) -> Unit = { e ->
+  val outputHandler: (Project.(String) -> Unit)? = null,
+  val syncExceptionHandler: (Project.(Exception) -> Unit)? = { e ->
     println(e.message)
     e.printStackTrace()
   },
@@ -1883,7 +1886,12 @@ private fun <T> openPreparedProject(
         val project = GradleProjectImporter.withAfterCreate(
           afterCreate = { project ->
             project.messageBus.connect(disposable).let { options.subscribe(it) }
-            injectSyncOutputDumper(project, project, options.outputHandler, options.syncExceptionHandler)
+            val outputHandler = options.outputHandler
+            val syncExceptionHandler = options.syncExceptionHandler
+            if (outputHandler != null || syncExceptionHandler != null) {
+              injectSyncOutputDumper(project, project, options.outputHandler ?: {}, options.syncExceptionHandler ?: {})
+            }
+            fixDummySyncViewManager(project, disposable)
           }
         ) {
           ProjectUtil.openOrImport(
@@ -2088,23 +2096,52 @@ fun injectBuildOutputDumpingBuildViewManager(
   )
 }
 
+@Suppress("UnstableApiUsage")
+private fun fixDummySyncViewManager(project: Project, disposable: Disposable) {
+  if (project.getService(SyncViewManager::class.java) is DummySyncViewManager) {
+    val listeners = CopyOnWriteArrayList<BuildProgressListener>()
+    project.replaceService(
+      SyncViewManager::class.java,
+      object : DummySyncViewManager(project) {
+
+        override fun addListener(listener: BuildProgressListener, disposable: Disposable) {
+          listeners.add(listener)
+          Disposer.register(disposable) {
+            listeners.remove(listener)
+          }
+        }
+
+        override fun onEvent(buildId: Any, event: BuildEvent) {
+          if (event is MessageEvent) {
+            println(event.result.details)
+          }
+          listeners.forEach {
+            it.onEvent(buildId, event)
+          }
+        }
+      },
+      disposable
+    )
+  }
+}
+
 fun injectSyncOutputDumper(
   project: Project,
   disposable: Disposable,
-  outputHandler: (String) -> Unit,
-  syncExceptionHandler: (Exception) -> Unit
+  outputHandler: Project.(String) -> Unit,
+  syncExceptionHandler: Project.(Exception) -> Unit
 ) {
   val projectId = ExternalSystemTaskId.getProjectId(project)
   ExternalSystemProgressNotificationManager.getInstance().addNotificationListener(
     object : ExternalSystemTaskNotificationListenerAdapter() {
       override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
         if (id.ideProjectId != projectId) return
-        outputHandler(text)
+        outputHandler(project, text)
       }
 
       override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
         if (id.ideProjectId != projectId) return
-        syncExceptionHandler(e)
+        syncExceptionHandler(project, e)
       }
     },
     disposable

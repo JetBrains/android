@@ -47,7 +47,7 @@ public class SyncWithUnsupportedAGPPluginTest implements GradleIntegrationTest {
     String[] exceptionTest = new String[1];
     prepareGradleProject(this, SIMPLE_APPLICATION, "root", "5.3.1", "3.1.4");
     openPreparedProject(this, "root",
-                        new OpenPreparedProjectOptions(project -> null, String -> null, e -> {
+                        new OpenPreparedProjectOptions(project -> null, (project, string) -> null, (project, e) -> {
                           exceptionTest[0] = e.getMessage();
                           return null;
                         }  )
