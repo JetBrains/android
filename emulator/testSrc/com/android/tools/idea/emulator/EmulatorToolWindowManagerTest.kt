@@ -33,11 +33,17 @@ import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.ui.LafManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -75,6 +81,13 @@ class EmulatorToolWindowManagerTest {
 
   private val project get() = agentRule.project
   private val testRootDisposable get() = agentRule.testRootDisposable
+  private val dataContext = DataContext {
+    when(it) {
+      CommonDataKeys.PROJECT.name -> project
+      PlatformDataKeys.TOOL_WINDOW.name -> toolWindow
+      else -> null
+    }
+  }
 
   @Before
   fun setUp() {
@@ -312,6 +325,35 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(2, TimeUnit.SECONDS) { !device.agent.running }
   }
 
+  @Test
+  fun testWindowViewModeActionSetTypeWhenPerformed() {
+    windowFactory.init(toolWindow)
+    toolWindow.setType(ToolWindowType.DOCKED) {}
+
+    val windowAction = (toolWindow as TestToolWindow).titleActions.find { it.templateText == "Window" }!!
+    windowAction.actionPerformed(AnActionEvent.createFromAnAction(windowAction, null, "", dataContext))
+
+    assertThat(toolWindow.type).isEqualTo(ToolWindowType.WINDOWED)
+  }
+
+  @Test
+  fun testWindowViewModeActionUnavailableWhenTypeIsWindowedOrFloat() {
+    windowFactory.init(toolWindow)
+    val windowAction = (toolWindow as TestToolWindow).titleActions.find { it.templateText == "Window" }!!
+
+    toolWindow.setType(ToolWindowType.FLOATING) {}
+    AnActionEvent.createFromAnAction(windowAction, null, "", dataContext).also(windowAction::update).let {
+      assertThat(it.presentation.isVisible).isFalse()
+      assertThat(it.presentation.isEnabled).isFalse()
+    }
+
+    toolWindow.setType(ToolWindowType.WINDOWED) {}
+    AnActionEvent.createFromAnAction(windowAction, null, "", dataContext).also(windowAction::update).let {
+      assertThat(it.presentation.isVisible).isFalse()
+      assertThat(it.presentation.isEnabled).isFalse()
+    }
+  }
+
   private val FakeEmulator.avdName
     get() = avdId.replace('_', ' ')
 
@@ -340,10 +382,9 @@ class EmulatorToolWindowManagerTest {
 
     private var available = true
     private var visible = false
-
-    override fun setAvailable(available: Boolean, runnable: Runnable?) {
-      this.available = available
-    }
+    var titleActions: List<AnAction> = emptyList()
+      private set
+    private var type = ToolWindowType.DOCKED
 
     override fun setAvailable(available: Boolean) {
       this.available = available
@@ -368,6 +409,19 @@ class EmulatorToolWindowManagerTest {
     }
 
     override fun isVisible() = visible
+
+    override fun setTitleActions(actions: List<AnAction>) {
+      this.titleActions = actions
+    }
+
+    override fun setType(type: ToolWindowType, runnable: Runnable?) {
+      this.type = type
+      runnable?.run()
+    }
+
+    override fun getType(): ToolWindowType {
+      return this.type
+    }
 
     private fun notifyStateChanged() {
       project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager)
