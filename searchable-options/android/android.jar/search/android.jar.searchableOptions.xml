@@ -40,6 +40,9 @@
     <option name="to" path="ActionManager" hit="Adds a new module to the project" />
     <option name="analyze" path="ActionManager" hit="Analyze APK..." />
     <option name="apk" path="ActionManager" hit="Analyze APK..." />
+    <option name="analyze" path="ActionManager" hit="Analyze Build Performance" />
+    <option name="build" path="ActionManager" hit="Analyze Build Performance" />
+    <option name="performance" path="ActionManager" hit="Analyze Build Performance" />
     <option name="analyze" path="ActionManager" hit="Analyze Memory Usage" />
     <option name="memory" path="ActionManager" hit="Analyze Memory Usage" />
     <option name="usage" path="ActionManager" hit="Analyze Memory Usage" />
@@ -405,9 +408,6 @@
     <option name="open" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="studio" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="to" path="ActionManager" hit="Open Asset Studio to create an image asset" />
-    <option name="analyzer" path="ActionManager" hit="Open Build Analyzer" />
-    <option name="build" path="ActionManager" hit="Open Build Analyzer" />
-    <option name="open" path="ActionManager" hit="Open Build Analyzer" />
     <option name="device" path="ActionManager" hit="Open Device Explorer help" />
     <option name="explorer" path="ActionManager" hit="Open Device Explorer help" />
     <option name="help" path="ActionManager" hit="Open Device Explorer help" />

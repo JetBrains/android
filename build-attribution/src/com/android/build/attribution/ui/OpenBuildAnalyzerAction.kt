@@ -19,7 +19,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class OpenBuildAnalyzerAction : AnAction("Open Build Analyzer") {
+class OpenBuildAnalyzerAction : AnAction("Analyze Build Performance") {
   override fun update(e: AnActionEvent) {
     val project = e.project
     if(project == null) {
