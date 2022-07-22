@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
+import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.KnownGradlePluginsService
 import com.android.build.attribution.data.GradlePluginsData
@@ -306,9 +307,10 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
   private fun runBuildAndGetAnalyzerResult(): ConfigurationCachingCompatibilityProjectResult {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
-    return (myProjectRule.project.getService(
-      BuildAttributionManager::class.java
-    ) as BuildAttributionManagerImpl).analyzersProxy.getConfigurationCachingCompatibility()
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+
+    return results.getConfigurationCachingCompatibility()
   }
 
   private fun kotlinPluginInfo(): GradlePluginsData.PluginInfo = ApplicationManager.getApplication()

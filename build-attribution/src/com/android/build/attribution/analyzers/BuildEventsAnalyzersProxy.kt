@@ -102,7 +102,9 @@ class BuildEventsAnalyzersProxy(
   val jetifierUsageAnalyzer = JetifierUsageAnalyzer()
   val downloadsAnalyzer = StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get().ifTrue { DownloadsAnalyzer() }
 
-
+  fun getBuildFinishedTimestamp(): Long {
+    return criticalPathAnalyzer.result.buildFinishedTimestamp
+  }
 
   val buildAnalyzers: List<BaseAnalyzer<*>>
     get() = listOfNotNull(
@@ -117,108 +119,4 @@ class BuildEventsAnalyzersProxy(
       jetifierUsageAnalyzer,
       downloadsAnalyzer
     )
-
-  fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
-    return annotationProcessorsAnalyzer.result.annotationProcessorsData
-  }
-
-  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
-    return annotationProcessorsAnalyzer.result.nonIncrementalAnnotationProcessorsData
-  }
-
-  /** Time that includes task graph computation and other configuration activities before the tasks execution starts. */
-  fun getConfigurationPhaseTimeMs(): Long {
-    return criticalPathAnalyzer.result.run {
-      val firstTaskStartTime = tasksDeterminingBuildDuration.minByOrNull { it.executionStartTime } ?.executionStartTime
-      // TODO (b/183590011): also change starting point based on first configuration event
-      // If there are no tasks on critical path (no-op build?) let's use buildFinishedTimestamp.
-      (firstTaskStartTime ?: buildFinishedTimestamp) - buildStartedTimestamp
-    }
-  }
-
-  fun getTotalBuildTimeMs(): Long {
-    return criticalPathAnalyzer.result.run { buildFinishedTimestamp - buildStartedTimestamp }
-  }
-
-  fun getBuildFinishedTimestamp(): Long {
-    return criticalPathAnalyzer.result.buildFinishedTimestamp
-  }
-
-  fun getCriticalPathTasks(): List<TaskData> {
-    return criticalPathAnalyzer.result.tasksDeterminingBuildDuration.filter(TaskData::isOnTheCriticalPath)
-  }
-
-  fun getTasksDeterminingBuildDuration(): List<TaskData> {
-    return criticalPathAnalyzer.result.tasksDeterminingBuildDuration
-  }
-
-  fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> {
-    return criticalPathAnalyzer.result.pluginsDeterminingBuildDuration
-  }
-
-  fun getGarbageCollectionData(): List<GarbageCollectionData> {
-    return garbageCollectionAnalyzer.result.garbageCollectionData
-  }
-
-  fun getTotalGarbageCollectionTimeMs(): Long {
-    return garbageCollectionAnalyzer.result.totalGarbageCollectionTimeMs
-  }
-
-  fun getJavaVersion(): Int? {
-    return garbageCollectionAnalyzer.result.javaVersion
-  }
-
-  fun isGCSettingSet(): Boolean? {
-    return garbageCollectionAnalyzer.result.isSettingSet
-  }
-
-  fun getTotalConfigurationData(): ProjectConfigurationData = projectConfigurationAnalyzer.result.run {
-    val totalConfigurationTime = projectsConfigurationData.sumByLong { it.totalConfigurationTimeMs }
-
-    val totalPluginConfiguration = pluginsConfigurationDataMap.map { entry ->
-      PluginConfigurationData(entry.key, entry.value)
-    }
-
-    val totalConfigurationSteps = projectsConfigurationData.flatMap { it.configurationSteps }.groupBy { it.type }.map { entry ->
-      ProjectConfigurationData.ConfigurationStep(entry.key, entry.value.sumByLong { it.configurationTimeMs })
-    }
-
-    return ProjectConfigurationData("Total Configuration Data", totalConfigurationTime, totalPluginConfiguration, totalConfigurationSteps)
-  }
-
-  fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
-    return projectConfigurationAnalyzer.result.projectsConfigurationData
-  }
-
-  fun getAppliedPlugins(): Map<String, List<PluginData>> {
-    return projectConfigurationAnalyzer.result.allAppliedPlugins.toImmutableMap()
-  }
-
-  fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult {
-    return configurationCachingCompatibilityAnalyzer.result
-  }
-
-  fun buildUsesConfigurationCache(): Boolean = configurationCachingCompatibilityAnalyzer.result.let {
-    it == ConfigurationCachingTurnedOn || it == ConfigurationCacheCompatibilityTestFlow
-  }
-
-  fun getJetifierUsageResult(): JetifierUsageAnalyzerResult {
-    return jetifierUsageAnalyzer.result
-  }
-
-  fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {
-    return alwaysRunTasksAnalyzer.result.alwaysRunTasks
-  }
-
-  fun getNonCacheableTasks(): List<TaskData> {
-    return noncacheableTasksAnalyzer.result.noncacheableTasks
-  }
-
-  fun getTasksSharingOutput(): List<TasksSharingOutputData> {
-    return tasksConfigurationIssuesAnalyzer.result.tasksSharingOutput
-  }
-
-  fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {
-    return downloadsAnalyzer?.result ?: DownloadsAnalyzer.AnalyzerIsDisabled
-  }
 }

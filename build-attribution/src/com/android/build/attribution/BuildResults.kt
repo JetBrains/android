@@ -134,7 +134,6 @@ data class BuildAnalysisResults(private val requestHolder: BuildRequestHolder,
   override fun buildUsesConfigurationCache(): Boolean = configurationCachingCompatibilityAnalyzerResult.let {
     it == ConfigurationCachingTurnedOn || it == ConfigurationCacheCompatibilityTestFlow
   }
-
   override fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {
     return downloadsAnalyzerResult
   }

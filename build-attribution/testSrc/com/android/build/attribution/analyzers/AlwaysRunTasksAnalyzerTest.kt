@@ -16,11 +16,11 @@
 package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
+import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC
@@ -28,8 +28,6 @@ import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
-import org.junit.After
-import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -76,10 +74,9 @@ class AlwaysRunTasksAnalyzerTest {
 
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
-
-    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
-
-    val alwaysRunTasks = buildAttributionManager.analyzersProxy.getAlwaysRunTasks().sortedBy { it.taskData.taskName }
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val alwaysRunTasks = results.getAlwaysRunTasks().sortedBy { it.taskData.taskName }
 
     assertThat(alwaysRunTasks).hasSize(2)
 
@@ -105,7 +102,7 @@ class AlwaysRunTasksAnalyzerTest {
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
-    assertThat(buildAttributionManager.analyzersProxy.getAlwaysRunTasks()).isEmpty()
+    assertThat(buildAttributionManager.analyzersProxy.alwaysRunTasksAnalyzer.result.alwaysRunTasks).isEmpty()
   }
 
   @Test
@@ -176,9 +173,9 @@ class AlwaysRunTasksAnalyzerTest {
 
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
-    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
-
-    val alwaysRunTasks = buildAttributionManager.analyzersProxy.getAlwaysRunTasks()
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val alwaysRunTasks = results.getAlwaysRunTasks()
 
     assertThat(alwaysRunTasks).hasSize(1)
 
@@ -199,8 +196,9 @@ class AlwaysRunTasksAnalyzerTest {
 
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
-    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
-
-    assertThat(buildAttributionManager.analyzersProxy.getAlwaysRunTasks()).isEmpty()
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val alwaysRunTasks = results.getAlwaysRunTasks()
+    assertThat(alwaysRunTasks.isEmpty())
   }
 }
