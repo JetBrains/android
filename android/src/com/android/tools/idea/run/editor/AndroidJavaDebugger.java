@@ -25,7 +25,6 @@ import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.debug.StartJavaDebuggerKt;
-import com.android.tools.idea.run.debug.VMExitedNotifier;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
@@ -128,76 +127,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       return;
     }
 
-    if (StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) {
-      StartJavaDebuggerKt.attachJavaDebuggerToClientAndShowTab(project, client);
-      return;
-    }
-
-    // Create run configuration
-    RunnerAndConfigurationSettings runSettings =
-      RunManager.getInstance(project).createConfiguration(runConfigName, RemoteConfigurationType.class);
-
-    RemoteConfiguration configuration = (RemoteConfiguration)runSettings.getConfiguration();
-    configuration.HOST = "localhost";
-    configuration.PORT = debugPort;
-    configuration.USE_SOCKET_TRANSPORT = true;
-    configuration.SERVER_MODE = false;
-
-    ProgramRunner.Callback callback = new ProgramRunner.Callback() {
-      @Override
-      public void processStarted(RunContentDescriptor descriptor) {
-        // Callback to add a termination listener after the process handler gets created.
-        ProcessHandler handler = descriptor.getProcessHandler();
-        if (handler == null) {
-          return;
-        }
-        VMExitedNotifier notifier = new VMExitedNotifier(client);
-        ProcessAdapter processAdapter = new ProcessAdapter() {
-          @Override
-          public void processTerminated(@NotNull ProcessEvent event) {
-            handler.removeProcessListener(this);
-            notifier.notifyClient();
-          }
-        };
-        // Add the handler first, then check, as to avoid race condition where process terminates between checking then adding.
-        handler.addProcessListener(processAdapter);
-        if (handler.isProcessTerminated()) {
-          handler.removeProcessListener(processAdapter);
-          notifier.notifyClient();
-        }
-      }
-    };
-
-    ExecutionEnvironment executionEnvironment;
-    try {
-      // Code lifted out of ProgramRunnerUtil. We do this because we need to access the callback field.
-      executionEnvironment =
-        ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), runSettings)
-          .contentToReuse(null)
-          .dataContext(null)
-          .build();
-    }
-    catch (ExecutionException e) {
-      Logger.getInstance(AndroidJavaDebugger.class).error(e);
-      return;
-    }
-
-    // Need to execute on the EDT since the associated tool window may be created internally by IJ
-    // (we may be not be on the EDT at this point in the code).
-    ApplicationManager.getApplication().invokeLater(
-      () -> ProgramRunnerUtil.executeConfigurationAsync(executionEnvironment, /*showSettings=*/true, /*assignNewId=*/true, callback));
-  }
-
-  public DebuggerSession getDebuggerSession(@NotNull Client client) {
-    String debugPort = getClientDebugPort(client);
-
-    for (Project openProject : ProjectManager.getInstance().getOpenProjects()) {
-      DebuggerSession debuggerSession = findJdwpDebuggerSession(openProject, debugPort);
-      if (debuggerSession != null) {
-        return debuggerSession;
-      }
-    }
-    return null;
+    StartJavaDebuggerKt.attachJavaDebuggerToClientAndShowTab(project, client);
   }
 
   @NotNull

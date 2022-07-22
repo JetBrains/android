@@ -66,7 +66,7 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
 
   override fun perform(
     launchInfo: LaunchInfo, device: IDevice, status: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter): ProcessHandler? {
-    if (StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get() && base is ConnectJavaDebuggerTask) {
+    if (base is ConnectJavaDebuggerTask) {
       val processHandler: ProcessHandler = status.processHandler
       // Reuse the current ConsoleView to retain the UI state and not to lose test results.
       val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)

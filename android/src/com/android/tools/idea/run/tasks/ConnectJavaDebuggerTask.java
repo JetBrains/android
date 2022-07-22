@@ -65,7 +65,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
 
-  public ConnectJavaDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider, //Set<String> applicationIds,
+  public ConnectJavaDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                  @NotNull Project project,
                                  boolean attachToRunningProcess) {
     super(applicationIdProvider, project, attachToRunningProcess);
@@ -82,101 +82,26 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
     Object androidTestResultListener = processHandler.getCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY);
 
-    if (StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) {
-      logger.info("Attaching Java debugger");
-      StartJavaDebuggerKt.attachJavaDebuggerToClient(
-        myProject,
-        client,
-        currentLaunchInfo.env,
-        (ConsoleView)androidTestResultListener,
-        () -> {
-          processHandler.detachProcess();
-          return null;
-        },
-        (device) -> {
-          device.forceStop(myApplicationIds.get(0));
-          return Unit.INSTANCE;
-        }
-      ).onSuccess(session -> {
-        ProcessHandler debugProcessHandler = session.getDebugProcess().getProcessHandler();
-        captureLogcatOutput(client, debugProcessHandler);
-        session.showSessionTab();
-      });
-      return null;
-    }
-
-    String debugPort = Integer.toString(client.getDebuggerListenPort());
-    final int pid = client.getClientData().getPid();
-    logger.info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
-
-    RunContentDescriptor descriptor =
-      RunContentManager.getInstance(myProject).findContentDescriptor(currentLaunchInfo.executor, processHandler);
-
-    // create a new process handler
-    RemoteConnection connection = new RemoteConnection(true, "localhost", debugPort, false);
-    ProcessHandler debugProcessHandler = new AndroidRemoteDebugProcessHandler(myProject, client, false);
-
-    // switch the launch status and console printers to point to the new process handler
-    // this is required, esp. for AndroidTestListener which holds a reference to the launch status and printers, and those should
-    // be updated to point to the new process handlers, otherwise test results will not be forwarded appropriately
-    launchStatus.setProcessHandler(debugProcessHandler);
-    printer.setProcessHandler(debugProcessHandler);
-
-    // detach after the launch status has been updated to point to the new process handler
-    processHandler.detachProcess();
-
-    final AndroidDebugState debugState;
-
-    if (androidTestResultListener instanceof ConsoleView) {
-      ConsoleView consoleViewToReuse = (ConsoleView)androidTestResultListener;
-      debugState = new AndroidDebugState(myProject, debugProcessHandler, connection, (parent, handler, executor) -> {
-        consoleViewToReuse.attachToProcess(handler);
-        return consoleViewToReuse;
-      });
-    }
-    else {
-      debugState = new AndroidDebugState(myProject, debugProcessHandler, connection, currentLaunchInfo.consoleProvider);
-    }
-
-    RunContentDescriptor debugDescriptor;
-    try {
-      // @formatter:off
-      ExecutionEnvironment debugEnv = new ExecutionEnvironmentBuilder(currentLaunchInfo.env)
-        .executor(currentLaunchInfo.executor)
-        .runner(currentLaunchInfo.runner)
-        .contentToReuse(descriptor)
-        .build();
-      debugDescriptor = DebuggerPanelsManager.getInstance(myProject).attachVirtualMachine(debugEnv, debugState, connection, false);
-      // @formatter:on
-    }
-    catch (ExecutionException e) {
-      processHandler.notifyTextAvailable("ExecutionException: " + e.getMessage() + '.', STDERR);
-      return null;
-    }
-
-    if (debugDescriptor == null) {
-      processHandler.notifyTextAvailable("Unable to connect debugger to Android application", STDERR);
-      return null;
-    }
-
-    // re-run the collected text from the old process handler to the new
-    // TODO: is there a race between messages received once the debugger has been connected, and these messages that are printed out?
-    final AndroidProcessText oldText = AndroidProcessText.get(processHandler);
-    if (oldText != null) {
-      oldText.printTo(debugProcessHandler);
-    }
-
-    RunProfile runProfile = currentLaunchInfo.env.getRunProfile();
-    RunConfiguration runConfiguration = runProfile instanceof RunConfiguration ? (RunConfiguration)runProfile : null;
-    AndroidSessionInfo.create(debugProcessHandler, runConfiguration, currentLaunchInfo.executor.getId(),
-                              currentLaunchInfo.executor.getActionName(),
-                              currentLaunchInfo.env.getExecutionTarget()
-    );
-    debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
-
-    captureLogcatOutput(client, debugProcessHandler);
-
-    return debugProcessHandler;
+    logger.info("Attaching Java debugger");
+    StartJavaDebuggerKt.attachJavaDebuggerToClient(
+      myProject,
+      client,
+      currentLaunchInfo.env,
+      (ConsoleView)androidTestResultListener,
+      () -> {
+        processHandler.detachProcess();
+        return null;
+      },
+      (device) -> {
+        device.forceStop(myApplicationIds.get(0));
+        return Unit.INSTANCE;
+      }
+    ).onSuccess(session -> {
+      ProcessHandler debugProcessHandler = session.getDebugProcess().getProcessHandler();
+      captureLogcatOutput(client, debugProcessHandler);
+      session.showSessionTab();
+    });
+    return null;
   }
 
   private static void captureLogcatOutput(@NotNull Client client,

@@ -58,9 +58,6 @@ class StartReattachingDebuggerTest {
   @get:Rule
   val projectRule = ProjectRule()
 
-  @get:Rule
-  val setFlagRule = SetFlagRule(StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER, true)
-
   val project
     get() = projectRule.project
 

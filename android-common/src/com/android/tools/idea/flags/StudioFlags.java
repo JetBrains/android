@@ -469,14 +469,6 @@ public final class StudioFlags {
     "If enabled, AS executes Run Configuration via new.AndroidRunProfileState",
     false);
 
-  /**
-   * Details: go/decouple-android-debuggers-from-android-configurations, "Android Java Debugger refactoring" section .
-   */
-  public static final Flag<Boolean> NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER = Flag.create(
-    RUNDEBUG, "android.new.execution.flow.for.java.debugger.enabled", "Enable new Execution flow for debuggers",
-    "If enabled, AS executes Run Java debugger via com.android.tools.idea.run.debug.StartJavaDebuggerKt.attachJavaDebuggerToClient",
-    true);
-
   public static final Flag<Boolean> ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER = Flag.create(
     RUNDEBUG, "run.wear.configuration.gutter.enabled", "Run Wear Configurations from gutter",
     "If enabled, allow to Run Wear Configurations from the gutter.",

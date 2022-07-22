@@ -52,7 +52,6 @@ fun startJavaReattachingDebugger(
   consoleViewToReuse: ConsoleView? = null,
   onDebugProcessStarted: (() -> Unit)? = null,
 ): Promise<XDebugSessionImpl> {
-  check(StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) { "New execution flow must be enabled." }
 
   fun startJavaSession(client: Client, onDebugProcessStarted: (() -> Unit)?) =
     attachJavaDebuggerToClient(project, client, environment, consoleViewToReuse, onDebugProcessStarted,

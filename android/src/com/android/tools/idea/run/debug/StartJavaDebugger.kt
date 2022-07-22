@@ -48,7 +48,7 @@ import org.jetbrains.concurrency.catchError
  * [ProgramRunner.execute](ExecutionEnvironment) method. Otherwise, use [attachJavaDebuggerToClientAndShowTab] method.
  * It's a replacement for ConnectJavaDebuggerTask.
  *
- * This method will be moved inside AndroidJavaDebugger, when [StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER] is enabled by default in stable.
+ * This method will be moved inside AndroidJavaDebugger, when all debuggers detached from RunConfigurations.
  */
 @AnyThread
 fun attachJavaDebuggerToClient(
@@ -96,7 +96,7 @@ fun attachJavaDebuggerToClient(
  *
  * It's a replacement for AndroidJavaDebugger.attachToClient.
  *
- * This method will be moved inside AndroidJavaDebugger, when [StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER] is enabled by default in stable.
+ * This method will be moved inside AndroidJavaDebugger, when all debuggers detached from RunConfigurations.
  */
 @AnyThread
 fun attachJavaDebuggerToClientAndShowTab(

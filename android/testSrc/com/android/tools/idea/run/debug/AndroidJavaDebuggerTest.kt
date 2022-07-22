@@ -44,8 +44,6 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Tests for [attachJavaDebuggerToClient], method will eventually replace all [AndroidJavaDebugger] code.
- *
- * See [StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER].
  */
 class AndroidJavaDebuggerTest {
   @get:Rule
@@ -63,7 +61,6 @@ class AndroidJavaDebuggerTest {
 
   @Before
   fun setUp() {
-    StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.override(true)
     // Connect a test device.
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
 
@@ -85,7 +82,6 @@ class AndroidJavaDebuggerTest {
     XDebuggerManager.getInstance(project).debugSessions.forEach {
       it.stop()
     }
-    StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.clearOverride()
   }
 
   @Test
