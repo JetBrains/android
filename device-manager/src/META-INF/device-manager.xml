@@ -22,4 +22,8 @@
 
     <applicationService serviceImplementation="com.android.tools.idea.devicemanager.virtualtab.VirtualTabPersistentStateComponent" />
   </extensions>
+  <extensionPoints>
+    <extensionPoint qualifiedName="org.jetbrains.android.deviceManagerTab"
+                    interface="com.android.tools.idea.devicemanager.DeviceManagerTab"/>
+  </extensionPoints>
 </idea-plugin>
