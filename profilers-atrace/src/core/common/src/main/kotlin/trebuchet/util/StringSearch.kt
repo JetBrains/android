@@ -45,7 +45,7 @@ class StringSearch(val lookFor: String) {
     init {
         val last = lookFor.length - 1
         for (i in 0..last - 1) {
-            skipLut[lookFor[i].toInt() and 0xFF] = (last - i).toByte()
+            skipLut[lookFor[i].code and 0xFF] = (last - i).toByte()
         }
 
         var lastPrefix = last
