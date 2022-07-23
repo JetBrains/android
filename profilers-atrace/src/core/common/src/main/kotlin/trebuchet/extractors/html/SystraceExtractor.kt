@@ -34,7 +34,7 @@ class SystraceExtractor : Extractor {
             if (startIndex == -1) return
             startIndex += START.length
             if (!stream.loadIndex(startIndex)) return
-            if (stream[startIndex] == '\n'.toByte()) startIndex++
+            if (stream[startIndex] == '\n'.code.toByte()) startIndex++
             endIndex = Int.MAX_VALUE
 
             val pipe = Pipe<DataSlice>()

@@ -112,7 +112,7 @@ class MockDeviceFileSystem(val service: MockDeviceFileSystemService, override va
       // Write ascii characters to that the file is easily auto-detected as a text file
       // in unit tests.
       for (i in 0 until count) {
-        bytes[i] = (if (i % 80 == 0) '\n' else '0' + i % 10).toByte()
+        bytes[i] = (if (i % 80 == 0) '\n' else '0' + i % 10).code.toByte()
       }
       outputStream.write(bytes)
     }

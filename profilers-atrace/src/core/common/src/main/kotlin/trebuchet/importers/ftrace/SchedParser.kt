@@ -85,26 +85,26 @@ object SchedParser : FunctionHandlerRegistry() {
     private fun PreviewReader.readSchedulingState(): SchedulingState {
         val byte = readByte()
         return when (byte) {
-            'S'.toByte() -> SchedulingState.SLEEPING
-            'R'.toByte() -> SchedulingState.RUNNABLE
-            'D'.toByte() -> {
-                if (peek() == '|'.toByte()) {
+            'S'.code.toByte() -> SchedulingState.SLEEPING
+            'R'.code.toByte() -> SchedulingState.RUNNABLE
+            'D'.code.toByte() -> {
+                if (peek() == '|'.code.toByte()) {
                     skip()
                     return when (readByte()) {
-                        'K'.toByte() -> SchedulingState.UNINTR_SLEEP_WAKE_KILL
-                        'W'.toByte() -> SchedulingState.UNINTR_SLEEP_WAKING
+                        'K'.code.toByte() -> SchedulingState.UNINTR_SLEEP_WAKE_KILL
+                        'W'.code.toByte() -> SchedulingState.UNINTR_SLEEP_WAKING
                         else -> SchedulingState.UNINTR_SLEEP
                     }
                 }
                 SchedulingState.UNINTR_SLEEP
             }
-            'T'.toByte() -> SchedulingState.STOPPED
-            't'.toByte() -> SchedulingState.DEBUG
-            'Z'.toByte() -> SchedulingState.ZOMBIE
-            'X'.toByte() -> SchedulingState.EXIT_DEAD
-            'x'.toByte() -> SchedulingState.TASK_DEAD
-            'K'.toByte() -> SchedulingState.WAKE_KILL
-            'W'.toByte() -> SchedulingState.WAKING
+            'T'.code.toByte() -> SchedulingState.STOPPED
+            't'.code.toByte() -> SchedulingState.DEBUG
+            'Z'.code.toByte() -> SchedulingState.ZOMBIE
+            'X'.code.toByte() -> SchedulingState.EXIT_DEAD
+            'x'.code.toByte() -> SchedulingState.TASK_DEAD
+            'K'.code.toByte() -> SchedulingState.WAKE_KILL
+            'W'.code.toByte() -> SchedulingState.WAKING
             else -> SchedulingState.UNKNOWN
         }
     }

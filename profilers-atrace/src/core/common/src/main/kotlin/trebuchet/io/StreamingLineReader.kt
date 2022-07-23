@@ -51,7 +51,7 @@ class StreamingLineReader(val maxLineLength: Int, val stream: StreamingReader) {
             val nextStart = foundAt + 1
 
             // Handle CLRF
-            if (stream[foundAt - 1] == '\r'.toByte()) foundAt -= 1
+            if (stream[foundAt - 1] == '\r'.code.toByte()) foundAt -= 1
 
             val lineEndIndexInclusive = foundAt - 1
             if (lineEndIndexInclusive - lineStartIndex < maxLineLength) {
@@ -72,7 +72,7 @@ class StreamingLineReader(val maxLineLength: Int, val stream: StreamingReader) {
 
     fun findNewlineInWindow(window: StreamingReader.Window, startIndex: Int): Int {
         for (i in startIndex..window.globalEndIndex) {
-            if (window[i] == '\n'.toByte()) return i
+            if (window[i] == '\n'.code.toByte()) return i
         }
         return -1
     }

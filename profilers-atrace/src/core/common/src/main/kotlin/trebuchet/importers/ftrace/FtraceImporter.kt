@@ -51,7 +51,7 @@ class FtraceImporter(val feedback: ImportFeedback) : Importer {
         }
         // The format of the line buffer should be either a series of comments, or a tracer line. Null and empty are handled
         // at a higher level.
-        if (line[1] == '#'.toByte() && coreStartedRegex.matcher(line.toString()).matches()) {
+        if (line[1] == '#'.code.toByte() && coreStartedRegex.matcher(line.toString()).matches()) {
             // Fix inconsistencies in traces due to circular buffering.
             //
             //  The circular buffers are kept per CPU, so it is not guaranteed that the
@@ -60,7 +60,7 @@ class FtraceImporter(val feedback: ImportFeedback) : Importer {
             state = FtraceImporterState(feedback)
             ftraceParserCallback = state::importLine
         }
-        else if (line[0] == '#'.toByte()) {
+        else if (line[0] == '#'.code.toByte()) {
             foundHeader = true
         } else if (foundHeader) {
             try {

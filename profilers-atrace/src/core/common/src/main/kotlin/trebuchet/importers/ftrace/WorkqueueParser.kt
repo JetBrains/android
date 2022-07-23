@@ -26,7 +26,7 @@ object WorkqueueParser : FunctionHandlerRegistry() {
                 val thread = data.importer.threadFor(data.line)
                 skipTo(StartFunction)
                 skipCount(StartFunction.length + 1)
-                val function = stringTo { skipUntil { it == ' '.toByte() } }
+                val function = stringTo { skipUntil { it == ' '.code.toByte() } }
                 thread.slicesBuilder.beginSlice {
                     it.name = function
                     it.startTime = data.line.timestamp

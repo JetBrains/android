@@ -87,30 +87,30 @@ class FtraceLine private constructor() {
         fun parseLine(line: DataSlice, callback: (FtraceLine) -> Unit) =
                 _reader.read(line, stringCache) {
             var tgid: Int = InvalidId
-            skipChar(' '.toByte())
+            skipChar(' '.code.toByte())
             val taskName = stringTo {
-                skipUntil { it == '-'.toByte() }
-                skipUntil { it == '('.toByte() || it == '['.toByte() }
-                rewindUntil { it == '-'.toByte() }
+                skipUntil { it == '-'.code.toByte() }
+                skipUntil { it == '('.code.toByte() || it == '['.code.toByte() }
+                rewindUntil { it == '-'.code.toByte() }
             }
             val pid = readInt()
-            skipChar(' '.toByte())
-            if (peek() == '('.toByte()) {
+            skipChar(' '.code.toByte())
+            if (peek() == '('.code.toByte()) {
                 skip()
-                if (peek() != '-'.toByte()) {
+                if (peek() != '-'.code.toByte()) {
                     tgid = readInt()
                 }
-                skipUntil { it == ')'.toByte() }
+                skipUntil { it == ')'.code.toByte() }
             }
             val cpu = readInt()
             skipCount(2)
-            if (peek() == '.'.toByte() || peek() > '9'.toByte()) {
+            if (peek() == '.'.code.toByte() || peek() > '9'.code.toByte()) {
                 skipCount(5)
             }
-            skipChar(' '.toByte())
+            skipChar(' '.code.toByte())
             val timestamp = readDouble()
-            skipCount(1); skipChar(' '.toByte())
-            val func = sliceTo(ftraceLine.function) { skipUntil { it == ':'.toByte() } }
+            skipCount(1); skipChar(' '.code.toByte())
+            val func = sliceTo(ftraceLine.function) { skipUntil { it == ':'.code.toByte() } }
             skipCount(2)
             ftraceLine.set(if (taskName === NullTaskName) null else taskName, pid, tgid, cpu,
                     timestamp, func, _reader)
