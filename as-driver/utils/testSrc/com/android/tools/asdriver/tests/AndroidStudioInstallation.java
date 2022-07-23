@@ -248,12 +248,25 @@ public class AndroidStudioInstallation {
     System.out.println("Creating " + dest);
 
     Files.createDirectories(dest.getParent());
+    String registryChanges = "";
+    if (SystemInfo.isWindows) {
+      // When run in a Windows Docker container, we hit this issue:
+      // https://youtrack.jetbrains.com/issue/IDEA-270104. The resulting error doesn't seem to
+      // crash Android Studio, but the stack traces take up more than 100 lines in the log, so we
+      // work around the issue by disabling jump lists on Windows.
+      registryChanges =
+        "  <component name=\"Registry\">\n" +
+        "    <entry key=\"windows.jumplist\" value=\"false\" />\n" +
+        "  </component>\n";
+    }
+
     String generalPropertyContents =
       "<application>\n" +
       "  <component name=\"GeneralSettings\">\n" +
       "    <option name=\"confirmExit\" value=\"false\" />\n" +
       "    <option name=\"processCloseConfirmation\" value=\"TERMINATE\" />\n" +
       "  </component>\n" +
+      registryChanges +
       "</application>";
     Files.writeString(dest, generalPropertyContents, StandardCharsets.UTF_8);
   }
