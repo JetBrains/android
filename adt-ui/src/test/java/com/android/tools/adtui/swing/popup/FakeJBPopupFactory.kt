@@ -121,6 +121,12 @@ class FakeJBPopupFactory : JBPopupFactory() {
 
   override fun getChildPopups(parent: Component): MutableList<JBPopup> = popups
 
+  override fun <T> createPopupComponentAdapter(
+    builder: PopupChooserBuilder<T>,
+    list: JList<T>
+  ): PopupChooserBuilder.PopupComponentAdapter<T> = FakePopupListAdapter(builder,
+                                                                                                                                    list)
+
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELLOW THIS COMMENT
 
   override fun createConfirmation(title: String?, onYes: Runnable?, defaultOptionIndex: Int): ListPopup {
@@ -224,11 +230,6 @@ class FakeJBPopupFactory : JBPopupFactory() {
   }
 
   override fun getParentBalloonFor(c: Component?): Balloon? {
-    TODO("Not yet implemented")
-  }
-
-  override fun <T : Any?> createPopupComponentAdapter(builder: PopupChooserBuilder<T>,
-                                                      list: JList<T>): PopupChooserBuilder.PopupComponentAdapter<T> {
     TODO("Not yet implemented")
   }
 
