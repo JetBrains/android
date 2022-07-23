@@ -135,7 +135,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       } else {
         myLogger.warn(e);
       }
-      launchStatus.terminateLaunch("Unable to determine application id: " + e, /*destroyProcess=*/terminateLaunchOnError);
+      launchStatus.terminateLaunch(e.getMessage(), /*destroyProcess=*/terminateLaunchOnError);
       return Collections.emptyList();
     }
     catch (IllegalStateException e) {
