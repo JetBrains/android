@@ -18,6 +18,7 @@ package com.android.tools.asdriver.tests;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.google.common.collect.Sets;
 import java.io.BufferedWriter;
@@ -165,6 +166,10 @@ public class AndroidStudioInstallation {
     Path consentOptions = workDir.resolve("data/Google/consentOptions/accepted");
     if (SystemInfo.isMac) {
       consentOptions = fileSystem.getHome().resolve("Library/Application Support/Google/consentOptions/accepted");
+    } else if (SystemInfo.isWindows) {
+      // Since we're running from outside of Android Studio, getCommonDataPath() will have a vendor
+      // name of "null" instead of "Google", so we work around that here.
+      consentOptions = PathManager.getCommonDataPath().getParent().resolve("Google/consentOptions/accepted");
     }
     Files.createDirectories(consentOptions.getParent());
     Files.writeString(consentOptions, combinedString);
