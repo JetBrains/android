@@ -369,7 +369,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
   @Nullable
   public static File getLintProjectDirectory(@NonNull Module module, @Nullable AndroidFacet facet) {
 
-    if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleUtil.GRADLE_SYSTEM_ID, module)) {
+    if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleUtil.GRADLE_SYSTEM_ID, module)
+        && ModuleSystemUtil.isLinkedAndroidModule(module)) {
       String externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
       if (!Strings.isNullOrEmpty(externalProjectPath)) {
         return new File(externalProjectPath);
