@@ -44,7 +44,7 @@ public class MemorySettingsRecommendationTest extends PlatformTestCase {
     Project project = mock(Project.class);
     ModuleManager moduleManager = mock(ModuleManager.class);
 
-    when(project.getComponent(ModuleManager.class)).thenReturn(moduleManager);
+    when(project.getService(ModuleManager.class)).thenReturn(moduleManager);
     Module[] modules = new Module[moduleCount];
     when(moduleManager.getModules()).thenReturn(modules);
     stubHostData(machineMemInMB);

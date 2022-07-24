@@ -85,7 +85,7 @@ class BuildAttributionAnalyticsManagerTest {
 
     `when`(project.basePath).thenReturn("test")
     val moduleManager = Mockito.mock(ModuleManager::class.java)
-    `when`(project.getComponent(ModuleManager::class.java)).thenReturn(moduleManager)
+    `when`(project.getService(ModuleManager::class.java)).thenReturn(moduleManager)
     `when`(moduleManager.modules).thenReturn(emptyArray<Module>())
   }
 

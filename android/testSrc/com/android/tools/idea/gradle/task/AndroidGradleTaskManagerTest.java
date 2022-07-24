@@ -1,3 +1,4 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.task;
 
 import static org.mockito.Mockito.mock;
@@ -59,7 +60,7 @@ b/144931276 */
     when(picoContainer.getComponentInstance(GradleBuildInvoker.class.getName())).thenReturn(gradleBuildInvoker);
     when(gradleBuildInvoker.getProject()).thenReturn(project);
     ModuleManager moduleManager = mock(ModuleManager.class);
-    when(project.getComponent(ModuleManager.class)).thenReturn(moduleManager);
+    when(project.getService(ModuleManager.class)).thenReturn(moduleManager);
     Module module = mock(Module.class);
     when(moduleManager.getModules()).thenReturn(new Module[]{module});
     when(module.getPicoContainer()).thenReturn(picoContainer);
