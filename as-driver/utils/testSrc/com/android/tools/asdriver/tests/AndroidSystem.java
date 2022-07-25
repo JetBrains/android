@@ -17,8 +17,10 @@ package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
 import com.android.utils.PathUtils;
+import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -182,6 +184,17 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   @Override
   public void close() throws Exception {
     display.close();
-    PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
+    try {
+      PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
+    } catch (AccessDeniedException e) {
+      // TODO(b/240166122): on Windows, there seems to be a race condition preventing deletions, so
+      // we try again after waiting for a bit.
+      if (SystemInfo.isWindows) {
+        Thread.sleep(5000);
+        PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
+      } else {
+        throw e;
+      }
+    }
   }
 }
