@@ -181,6 +181,35 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   @Suppress("UnstableApiUsage")
+  fun testCorrectSyncEventsPublished_dataImporterCrashesAfterSuccessfulOpen() {
+    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+
+    val log = openProjectWithEventLogging("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+
+      (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
+        .getExtensionPoint(ProjectDataService.EP_NAME)
+        .registerExtension(FailingService(), projectRule.testRootDisposable)
+      project.requestSyncAndWait()
+
+      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
+    }
+
+    assertThat(log).isEqualTo(
+      """
+     |started
+     |succeeded
+     |ended: SUCCESS
+     |started
+     |failed: Failed to import project structure
+     |ended: FAILURE
+      """.trimMargin()
+    )
+  }
+
+  @Test
+  @Suppress("UnstableApiUsage")
   fun testCorrectSyncEventsPublished_gradleCancelled() {
     val path = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
     path.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
