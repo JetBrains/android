@@ -70,6 +70,7 @@ import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
+import com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.LibraryReference
@@ -94,6 +95,7 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
@@ -771,6 +773,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
       isTestArtifact = name == IdeArtifactName.ANDROID_TEST,
       modelSyncFiles = artifact.modelSyncFiles.map { modelSyncFileFrom(it) },
+      privacySandboxSdkInfo = if (agpVersion.isAtLeast(7, 4, 0, "alpha", 10, false))
+        artifact.privacySandboxSdkInfo?.let { IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile) }
+      else
+        null
     )
   }
 

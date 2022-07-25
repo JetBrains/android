@@ -179,13 +179,21 @@ class GradleTaskFinderWorker private constructor(
     return when {
       moduleToProcess.androidModel != null -> {
         when (moduleToProcess.buildMode) {
-          BuildMode.REBUILD -> moduleToProcess.getTaskBy { it.assembleTaskName }.copy(cleanTasks = setOf("clean"))
+          BuildMode.REBUILD ->
+            moduleToProcess.getTasksBy { listOfNotNull(
+              it.assembleTaskName,
+              it.getPrivacySandboxSdkTask())
+            }.copy( cleanTasks = setOf("clean"))
           // Note, this should eventually include ":clean" tasks, but it is dangerous right now as it might run in a separate but second
           // invocation.
           // TODO(b/235567998): Move all "clean" processing here.
           BuildMode.CLEAN -> moduleToProcess.getTasksBy(isClean = true) { it.ideSetupTaskNames }
-          BuildMode.ASSEMBLE -> moduleToProcess.getTaskBy { it.assembleTaskName }
-
+          BuildMode.ASSEMBLE ->
+            moduleToProcess.getTasksBy {
+              listOfNotNull(
+                it.assembleTaskName,
+                it.getPrivacySandboxSdkTask())
+            }
           BuildMode.COMPILE_JAVA ->
             moduleToProcess
               // TODO(b/235567998): Review. This is to exclude main artifact compile task when building unit tests, but probably applies to
@@ -194,7 +202,13 @@ class GradleTaskFinderWorker private constructor(
               .getTaskBy(implicitMain = moduleToProcess.testCompileMode == TestCompileType.UNIT_TESTS) { it.compileTaskName }
 
           BuildMode.SOURCE_GEN -> moduleToProcess.getTasksBy { it.ideSetupTaskNames }
-          BuildMode.BUNDLE -> moduleToProcess.getTaskBy { (it as? IdeAndroidArtifact)?.buildInformation?.bundleTaskName }
+          BuildMode.BUNDLE -> {
+            moduleToProcess.getTasksBy {
+              listOfNotNull(
+                (it as? IdeAndroidArtifact)?.buildInformation?.bundleTaskName,
+                it.getPrivacySandboxSdkTask())
+            }
+          }
           BuildMode.APK_FROM_BUNDLE -> {
             ModuleTasks(
               moduleToProcess.gradleProjectPath,
@@ -225,6 +239,10 @@ class GradleTaskFinderWorker private constructor(
       else -> null
     }
   }
+
+  private fun IdeBaseArtifact.getPrivacySandboxSdkTask() =
+    (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.task
+
 
   private fun GradleProjectPath.toModuleAndMode(
     buildMode: BuildMode,

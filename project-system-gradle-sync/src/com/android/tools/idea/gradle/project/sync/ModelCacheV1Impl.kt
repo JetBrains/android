@@ -783,7 +783,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       ),
       codeShrinker = convertCodeShrinker(copyNewProperty(artifact::getCodeShrinker)),
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST,
-      modelSyncFiles = listOf()
+      modelSyncFiles = listOf(),
+      privacySandboxSdkInfo = null
     )
     return IdeModelWithPostProcessor(
       androidArtifactCoreImpl,
