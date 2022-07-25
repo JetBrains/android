@@ -29,7 +29,7 @@ fun Long.toFormattedTimeString(): String {
   return if (this == -1L) "-" else formatter.format(Date(this))
 }
 
-fun State.capitalizedName() = name[0] + name.substring(1).toLowerCase(Locale.getDefault())
+fun State.capitalizedName() = name[0] + name.substring(1).lowercase(Locale.getDefault())
 
 fun State.isFinished() = this == State.SUCCEEDED || this == State.FAILED || this == State.CANCELLED
 

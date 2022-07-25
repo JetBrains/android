@@ -37,7 +37,7 @@ sealed class HttpHeader {
    */
   @VisibleForTesting
   fun getField(key: String): String {
-    return fields.getOrDefault(key.toLowerCase(Locale.getDefault()), "")
+    return fields.getOrDefault(key.lowercase(Locale.getDefault()), "")
   }
 
   val contentType: HttpData.ContentType
@@ -59,7 +59,7 @@ private fun parseHeaderFields(fields: String): Map<String, String> {
     .map { line ->
       val keyAndValue = line.split('=', limit = 2)
       assert(keyAndValue.size == 2) { "Unexpected http header field ($line)" }
-      keyAndValue[0].trim { it <= ' ' }.toLowerCase(Locale.getDefault()) to keyAndValue[1].trim { it <= ' ' }.trimEnd(';')
+      keyAndValue[0].trim { it <= ' ' }.lowercase(Locale.getDefault()) to keyAndValue[1].trim { it <= ' ' }.trimEnd(';')
     }
     .groupingBy { it.first }
     .aggregate { _, accumulator: String?, element, first ->

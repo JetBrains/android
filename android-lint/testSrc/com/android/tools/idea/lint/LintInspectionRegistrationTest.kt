@@ -499,8 +499,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
     }
 
     private fun getMessageKey(issue: Issue): String {
-      return camelCaseToUnderlines(issue.id).replace('_', '.').toLowerCase(
-        Locale.US)
+      return camelCaseToUnderlines(issue.id).replace('_', '.').lowercase(Locale.US)
     }
 
     private fun camelCaseToUnderlines(string: String): String {

@@ -300,7 +300,7 @@ val PARENT_DIRECTORY_NOT_WRITABLE = createRecursiveRule(
  * Note: This should be an error only under Windows (for other platforms should be a warning)
  */
 val ILLEGAL_WINDOWS_FILENAME = createRecursiveRule(
-  { path -> RESERVED_WINDOWS_FILENAMES.contains(path.fileName?.toString()?.toLowerCase(Locale.US) ?: "") },
+  { path -> RESERVED_WINDOWS_FILENAMES.contains(path.fileName?.toString()?.lowercase(Locale.US) ?: "") },
   { path, fieldName -> "Illegal (Windows) filename in $fieldName path: ${path.fileName}." }
 )
 

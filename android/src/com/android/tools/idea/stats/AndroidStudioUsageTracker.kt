@@ -367,7 +367,7 @@ object AndroidStudioUsageTracker {
       UIUtil.isUnderDarcula() ->
         // IJ's custom theme are based off of Darcula. We look at the LafManager to determine whether the actual selected theme is
         // darcular, high contrast, or some other custom theme
-        when (LafManager.getInstance().currentLookAndFeel?.name?.toLowerCase(Locale.US)) {
+        when (LafManager.getInstance().currentLookAndFeel?.name?.lowercase(Locale.US)) {
           "darcula" -> ProductDetails.IdeTheme.DARCULA
           "high contrast" -> ProductDetails.IdeTheme.HIGH_CONTRAST
           else -> ProductDetails.IdeTheme.CUSTOM

@@ -57,7 +57,7 @@ private fun ThreeStateCheckBox.State.stateToBoolean(): String {
 }
 
 private fun String.toState(): ThreeStateCheckBox.State {
-  return when (this.toLowerCase(Locale.US)) {
+  return when (this.lowercase(Locale.US)) {
     "true" -> ThreeStateCheckBox.State.SELECTED
     "false" -> ThreeStateCheckBox.State.NOT_SELECTED
     else -> ThreeStateCheckBox.State.DONT_CARE

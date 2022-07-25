@@ -22,7 +22,7 @@ import java.util.Locale
  * ends up in the beginning of the list.
  */
 class ProcessListSorter(nameHint: String) {
-  private val nameHintLower = nameHint.toLowerCase(Locale.getDefault())
+  private val nameHintLower = nameHint.lowercase(Locale.getDefault())
 
   private companion object {
     // Valid package names needs at least one separator and each part can contain letter, digits or '_' but needs to start with a letter.
@@ -51,6 +51,6 @@ class ProcessListSorter(nameHint: String) {
   }
 
   private fun ProcessModel.getLowerName(): String {
-    return getSafeProcessName().toLowerCase(Locale.getDefault())
+    return getSafeProcessName().lowercase(Locale.getDefault())
   }
 }

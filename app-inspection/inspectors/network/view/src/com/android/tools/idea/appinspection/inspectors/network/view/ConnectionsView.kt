@@ -97,7 +97,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
     };
 
     fun toDisplayString(): String {
-      return name.toLowerCase(Locale.getDefault()).capitalize()
+      return name.lowercase(Locale.getDefault()).capitalize()
     }
 
     abstract fun getValueFrom(data: HttpData): Any

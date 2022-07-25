@@ -567,7 +567,7 @@ class ResourceExplorerListView(
   private fun createEmptySection() = AssetSection<ResourceAssetSet>(
     viewModel.facet.module.name, null,
     AssetListView(emptyList(), null).apply {
-      setEmptyText("No ${viewModel.selectedTabName.toLowerCase(Locale.US)} available")
+      setEmptyText("No ${viewModel.selectedTabName.lowercase(Locale.US)} available")
       background = this@ResourceExplorerListView.background
     })
 

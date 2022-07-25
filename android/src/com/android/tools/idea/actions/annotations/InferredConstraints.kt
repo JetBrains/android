@@ -1268,7 +1268,7 @@ class InferredConstraints private constructor(
         NAVIGATION_RES_ANNOTATION.newName() -> "a navigation resource"
         else -> {
           val type = ResourceEvaluator.getTypeFromAnnotation(qualifiedName)
-          val name = (type?.displayName ?: qualifiedName.substringAfterLast('.')).toLowerCase(Locale.US)
+          val name = (type?.displayName ?: qualifiedName.substringAfterLast('.')).lowercase(Locale.US)
           val article = when (name[0]) {
             // it's more complicated in reality but works for the limited set of ResourceType descriptions
             'a', 'e', 'i', 'o' -> "an"

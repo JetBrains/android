@@ -404,7 +404,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         FileInputStream(snapshotFile).use { inputStream ->
           var gzipInputStream: InputStream? = null
           if (FileNameUtils.getExtension(
-              snapshotFile.name.toLowerCase(
+              snapshotFile.name.lowercase(
                 Locale.getDefault())) == "gz") {
             gzipInputStream = GzipCompressorInputStream(
               inputStream)

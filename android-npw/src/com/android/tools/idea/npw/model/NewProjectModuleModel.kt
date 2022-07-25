@@ -161,4 +161,4 @@ private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateMo
 
 private fun getModuleName(formFactor: FormFactor): String =
   // Form factors like Android Auto build upon another form factor
-  formFactor.name.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
+  formFactor.name.replace("\\s".toRegex(), "_").lowercase(Locale.US)

@@ -59,7 +59,7 @@ object MaterialIconsUtils {
    *
    * Eg: 'Material Icons Outlined' -> 'materialiconsoutlined'
    */
-  fun String.toDirFormat(): String = this.toLowerCase(Locale.US).replace(" ", "")
+  fun String.toDirFormat(): String = this.lowercase(Locale.US).replace(" ", "")
 
   /**
    * The Android/Sdk path where Material Icons are expected to be stored.

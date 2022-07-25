@@ -114,7 +114,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
    * @return The [ResourceType] that should be selected by default for the provided property name.
    */
   private fun getDefaultResourceType(propertyName: String): ResourceType? {
-    val lowerCaseProperty = propertyName.toLowerCase(Locale.getDefault())
+    val lowerCaseProperty = propertyName.lowercase(Locale.getDefault())
     return when {
       lowerCaseProperty.contains("color") || lowerCaseProperty.contains("tint")
       -> ResourceType.COLOR

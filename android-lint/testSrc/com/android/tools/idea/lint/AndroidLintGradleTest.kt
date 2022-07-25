@@ -165,7 +165,7 @@ fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLi
     }
     val description = highlight.description
     val severity = highlight.severity
-    sb.append(severity.name.toLowerCase(Locale.ROOT).capitalize()).append(": ")
+    sb.append(severity.name.lowercase(Locale.ROOT).capitalize()).append(": ")
     sb.append(description).append("\n")
 
     val lineStart = fileText.lastIndexOf("\n", startIndex).let { if (it == -1) 0 else it + 1 }

@@ -34,7 +34,7 @@ fun Long.toFormattedTimeString(): String {
   return if (this == -1L) "-" else formatter.format(Date(this))
 }
 
-fun String.capitalizedName() = toLowerCase(Locale.getDefault()).capitalize(Locale.getDefault())
+fun String.capitalizedName() = lowercase(Locale.getDefault()).capitalize(Locale.getDefault())
 
 fun WorkInfo.State.isFinished() = this == WorkInfo.State.SUCCEEDED || this == WorkInfo.State.FAILED || this == WorkInfo.State.CANCELLED
 

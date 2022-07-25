@@ -281,7 +281,7 @@ private class MyEditingSupport : EditingSupport {
     get() = { ApplicationManager.getApplication().executeOnPooledThread(it) }
 
   override val validation: EditingValidation = { text ->
-    if (text?.toLowerCase(Locale.US) == "error") {
+    if (text?.lowercase(Locale.US) == "error") {
       Pair(EditingErrorCategory.ERROR, "")
     }
     else {

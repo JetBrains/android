@@ -93,7 +93,7 @@ class PsProjectImpl(
     moduleCollection.firstOrNull { it -> it.gradlePath == gradlePath }
 
   override fun forEachModule(consumer: Consumer<PsModule>) {
-    moduleCollection.sortedBy { it.name.toLowerCase(Locale.US) }.forEach(consumer)
+    moduleCollection.sortedBy { it.name.lowercase(Locale.US) }.forEach(consumer)
   }
 
   override fun removeModule(gradlePath: String) {

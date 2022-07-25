@@ -39,7 +39,7 @@ fun parse(lineText: String, reader: OutputLineReader, messages: MutableList<Mess
         val path = lineWoSeverity.substringBeforeAndTrim(colonIndex2)
         val file = File(path)
 
-        val fileExtension = file.extension.toLowerCase(Locale.US)
+        val fileExtension = file.extension.lowercase(Locale.US)
         if (!file.isFile || (fileExtension != "kt" && fileExtension != "java")) {
             return addMessage(createMessage(getMessageKind(severity), lineWoSeverity.amendNextLinesIfNeeded(reader)), messages)
         }

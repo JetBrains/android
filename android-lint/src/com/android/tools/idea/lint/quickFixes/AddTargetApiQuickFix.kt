@@ -96,7 +96,7 @@ class AddTargetApiQuickFix(private val api: Int,
     val file = PsiTreeUtil.getParentOfType(element, XmlFile::class.java, false)
     if (file != null) {
       ensureNamespaceImported(file, TOOLS_URI)
-      val codeName = SdkVersionInfo.getBuildCode(api)?.toLowerCase(Locale.US) ?: api.toString()
+      val codeName = SdkVersionInfo.getBuildCode(api)?.lowercase(Locale.US) ?: api.toString()
       element.setAttribute(ATTR_TARGET_API, TOOLS_URI, codeName)
     }
   }

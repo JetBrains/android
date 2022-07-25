@@ -348,11 +348,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     fun nameToJavaPackage(name: String): String {
       val res = name.replace('-', '_').run {
         MODULE_NAME_GROUP.matcher(this).replaceAll("").run {
-          DISALLOWED_IN_DOMAIN.matcher(this).replaceAll("").toLowerCase(Locale.US)
+          DISALLOWED_IN_DOMAIN.matcher(this).replaceAll("").lowercase(Locale.US)
         }
       }
       if (res.isNotEmpty() && AndroidUtils.isReservedKeyword(res) != null) {
-        return StringUtil.fixVariableNameDerivedFromPropertyName(res).toLowerCase(Locale.US)
+        return StringUtil.fixVariableNameDerivedFromPropertyName(res).lowercase(Locale.US)
       }
       return res
     }

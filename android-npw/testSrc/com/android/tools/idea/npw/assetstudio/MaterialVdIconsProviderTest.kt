@@ -141,7 +141,7 @@ private class MaterialIconsTestUrlProvider : MaterialIconsUrlProvider {
   }
 
   private fun getStylePath(style: String): String {
-    return "$TEST_PATH${style.toLowerCase(Locale.US).replace(" ", "")}/"
+    return "$TEST_PATH${style.lowercase(Locale.US).replace(" ", "")}/"
   }
 }
 

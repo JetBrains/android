@@ -147,7 +147,7 @@ object PropertyMapper {
       "getTranslationX()" to PropertyDefinition("translationX", Type.DIMENSION_FLOAT),
       "getTranslationY()" to PropertyDefinition("translationY", Type.DIMENSION_FLOAT),
       "getTranslationZ()" to PropertyDefinition("translationZ", Type.DIMENSION_FLOAT),
-      "getVisibility()" to PropertyDefinition(ATTR_VISIBILITY, Type.STRING) { it.toLowerCase(Locale.US) },
+      "getVisibility()" to PropertyDefinition(ATTR_VISIBILITY, Type.STRING) { it.lowercase(Locale.US) },
       "getWidth()" to PropertyDefinition(ATTR_WIDTH, Type.DIMENSION),
       "getX()" to PropertyDefinition(ATTR_X, Type.DIMENSION_FLOAT),
       "getY()" to PropertyDefinition(ATTR_Y, Type.DIMENSION_FLOAT),
