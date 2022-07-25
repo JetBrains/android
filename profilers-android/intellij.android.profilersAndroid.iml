@@ -49,5 +49,14 @@
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="module" module-name="app-inspection.ide" />
     <orderEntry type="module" module-name="codenavigation" />
+    <orderEntry type="module-library">
+      <library name="trace-perfetto-library">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/tracing/tracing-perfetto-common/1.0.0-alpha01/tracing-perfetto-common-1.0.0-alpha01.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

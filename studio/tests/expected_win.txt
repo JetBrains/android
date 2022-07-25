@@ -1407,6 +1407,7 @@ android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar
 android-studio/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 android-studio/plugins/android/lib/traceprocessor_protos.jar
+android-studio/plugins/android/lib/tracing-perfetto-common-1.0.0-alpha01.jar
 android-studio/plugins/android/lib/transport_java_proto.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
 android-studio/plugins/android/lib/util-2.5.2.jar

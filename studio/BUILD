@@ -20,6 +20,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:jetifier-core",
         "//prebuilts/tools/common/m2:flatbuffers-java",
         "//prebuilts/tools/common/m2:tensorflow-lite-metadata",
+        "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:aia-proto",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
