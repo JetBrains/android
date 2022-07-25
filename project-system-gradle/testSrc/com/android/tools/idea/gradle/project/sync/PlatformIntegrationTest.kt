@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.GRADLE_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -89,7 +91,9 @@ class PlatformIntegrationTest : GradleIntegrationTest {
   @Test
   fun testCorrectSyncEventsPublished_successfulSync() {
     prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
-    val log = openProjectWithEventLogging("project")
+    val log = openProjectWithEventLogging("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+    }
 
     expect.that(log).isEqualTo("""
       |started
@@ -101,8 +105,12 @@ class PlatformIntegrationTest : GradleIntegrationTest {
   fun testCorrectSyncEventsPublished_reopen() {
     prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
 
-    openPreparedProject("project") {}
-    val log = openProjectWithEventLogging("project")
+    openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+    }
+    val log = openProjectWithEventLogging("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+    }
 
     expect.that(log).isEqualTo(
       """
@@ -116,7 +124,9 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     val path = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
     path.resolve("settings.gradle").writeText("***BAD FILE***")
 
-    val log = openProjectWithEventLogging("project")
+    val log = openProjectWithEventLogging("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
+    }
 
     expect.that(log).startsWith(
       """
@@ -147,7 +157,9 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       .registerExtension(FailingService(), projectRule.testRootDisposable)
     prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
 
-    val log = openProjectWithEventLogging("project")
+    val log = openProjectWithEventLogging("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
+    }
 
     assertThat(log).isEqualTo(
       """
@@ -171,6 +183,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       }
     }) { project ->
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
+      // Cancelling initial sync results in FAILURE to avoid blocking the UI waiting for UNKNOWN state to be gone.
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
     }
 
     expect.that(log).startsWith(
@@ -199,6 +213,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
       // Cancelling sync does not change the current state.
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+      // However, currently cancellation is translated into `SyncResult.FAILURE`.
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
     }
 
     expect.that(log).startsWith(
@@ -242,6 +258,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     val log = openProjectWithEventLogging("project") { project ->
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
+      // Cancelling initial sync results in FAILURE to avoid blocking the UI waiting for UNKNOWN state to be gone.
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
     }
 
     assertThat(log).isEqualTo(
@@ -259,6 +277,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     val log = openProjectWithEventLogging("project") { project ->
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
 
       (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
         .getExtensionPoint(ProjectDataService.EP_NAME)
@@ -268,6 +287,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
       // Cancelling sync does not change the current state.
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+      // However, currently cancellation is translated into `SyncResult.FAILURE`.
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
     }
 
     assertThat(log).isEqualTo(
