@@ -118,51 +118,51 @@ class LogcatFilterCompletionContributorTest {
   }
 
   /**
-   * This test uses the tag key, but it represents the behavior of the other keys as well.
+   * This test uses the message key, but it represents the behavior of the other keys as well.
    *
    * This is not ideal but having a pair of tests for each key seems like overkill and a generic test will be unreadable.
    */
   @Test
-  fun complete_tag() {
-    fixture.configure("ta$caret")
+  fun complete_message() {
+    fixture.configure("mes$caret")
 
     fixture.completeBasic()
 
     assertThat(fixture.lookupElementStrings).containsExactly(
-      "tag:",
-      "tag~:",
-      "-tag:",
-      "-tag~:",
-      "tag=:",
-      "-tag=:",
+      "message:",
+      "message~:",
+      "-message:",
+      "-message~:",
+      "message=:",
+      "-message=:",
     )
   }
 
   /**
-   * This test uses the tag key, but it represents the behavior of the other keys as well.
+   * This test uses the message key, but it represents the behavior of the other keys as well.
    *
    * This is not ideal but having a pair of tests for each key seems like overkill and a generic test will be unreadable.
    */
   @Test
-  fun complete_tag_withHistory() {
+  fun complete_message_withHistory() {
     settings.filterHistoryAutocomplete = true
     history.favorites.add("favorite item")
-    history.favorites.add("tag:favorite")
+    history.favorites.add("message:favorite")
     history.nonFavorites.add("history item")
-    history.nonFavorites.add("tag:history")
-    fixture.configure("ta$caret")
+    history.nonFavorites.add("message:history")
+    fixture.configure("mes$caret")
 
     fixture.completeBasic()
 
     assertThat(fixture.lookupElementStrings).containsExactly(
-      "tag:",
-      "tag~:",
-      "-tag:",
-      "-tag~:",
-      "tag=:",
-      "-tag=:",
-      "tag:favorite",
-      "tag:history",
+      "message:",
+      "message~:",
+      "-message:",
+      "-message~:",
+      "message=:",
+      "-message=:",
+      "message:favorite",
+      "message:history",
     )
   }
 
@@ -259,6 +259,22 @@ class LogcatFilterCompletionContributorTest {
   }
 
   @Test
+  fun complete_levels_withoutColon() {
+    fixture.configure("le$caret")
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).containsExactly(
+      "level:verbose ",
+      "level:debug ",
+      "level:info ",
+      "level:warn ",
+      "level:error ",
+      "level:assert ",
+    )
+  }
+
+  @Test
   fun complete_is_withoutWhitespace() {
     fixture.configure("is:$caret")
 
@@ -274,6 +290,18 @@ class LogcatFilterCompletionContributorTest {
     fixture.completeBasic()
 
     assertThat(fixture.lookupElementStrings).named("is with no whitespace").containsExactlyElementsIn(IS_VALUES)
+  }
+
+  @Test
+  fun complete_is_withoutColon() {
+    fixture.configure("is$caret")
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).containsExactly(
+      "is:crash ",
+      "is:stacktrace ",
+    )
   }
 
   @Test
