@@ -213,8 +213,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
       // Cancelling sync does not change the current state.
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
-      // However, currently cancellation is translated into `SyncResult.FAILURE`.
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
     }
 
     expect.that(log).startsWith(
@@ -287,8 +286,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
       // Cancelling sync does not change the current state.
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
-      // However, currently cancellation is translated into `SyncResult.FAILURE`.
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
     }
 
     assertThat(log).isEqualTo(

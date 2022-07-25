@@ -29,9 +29,6 @@ import com.intellij.openapi.project.Project
  * regardless of whether or not a project system method has been called.
  */
 class GradleSyncResultPublisher(val project: Project) : GradleSyncListener {
-  var lastSyncResult: ProjectSystemSyncManager.SyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN
-    private set
-
   init {
     GradleSyncState.subscribe(project, this)
   }
@@ -44,7 +41,6 @@ class GradleSyncResultPublisher(val project: Project) : GradleSyncListener {
 
   private fun syncFinished(project: Project, result: ProjectSystemSyncManager.SyncResult) {
     if (!project.isDisposed) {
-      lastSyncResult = result
       project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(result)
     }
   }

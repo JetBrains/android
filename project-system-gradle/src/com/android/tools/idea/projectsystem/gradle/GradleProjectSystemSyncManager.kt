@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
@@ -88,5 +89,5 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
 
   override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress
   override fun isSyncNeeded() = GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.NO
-  override fun getLastSyncResult() = syncResultPublisher.lastSyncResult
+  override fun getLastSyncResult() = GradleSyncStateHolder.getInstance(project).syncResult
 }

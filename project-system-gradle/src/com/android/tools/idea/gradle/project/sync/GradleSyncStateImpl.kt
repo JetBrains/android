@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResult
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -138,6 +139,13 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
   private var state: LastSyncState = LastSyncState.UNKNOWN
     get() = lock.withLock { return field }
     set(value) = lock.withLock { field = value }
+
+  val syncResult: ProjectSystemSyncManager.SyncResult
+    get() = when(state) {
+      LastSyncState.IN_PROGRESS -> stateBeforeSyncStarted.toSyncResult()
+      else -> state.toSyncResult()
+    }
+
   private var stateBeforeSyncStarted: LastSyncState = LastSyncState.UNKNOWN
     get() = lock.withLock { return field }
     set(value) = lock.withLock { field = value }
@@ -542,6 +550,16 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     private fun stopTrackingTask(project: Project, buildId: ExternalSystemTaskId): Boolean {
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       return syncStateUpdaterService.stopTrackingTask(buildId)
+    }
+  }
+
+  private fun GradleSyncStateHolder.LastSyncState.toSyncResult(): ProjectSystemSyncManager.SyncResult {
+    return when (this) {
+      LastSyncState.UNKNOWN -> ProjectSystemSyncManager.SyncResult.UNKNOWN
+      GradleSyncStateHolder.LastSyncState.SKIPPED -> ProjectSystemSyncManager.SyncResult.SKIPPED
+      GradleSyncStateHolder.LastSyncState.IN_PROGRESS -> ProjectSystemSyncManager.SyncResult.UNKNOWN
+      GradleSyncStateHolder.LastSyncState.SUCCEEDED -> ProjectSystemSyncManager.SyncResult.SUCCESS
+      GradleSyncStateHolder.LastSyncState.FAILED -> ProjectSystemSyncManager.SyncResult.FAILURE
     }
   }
 }

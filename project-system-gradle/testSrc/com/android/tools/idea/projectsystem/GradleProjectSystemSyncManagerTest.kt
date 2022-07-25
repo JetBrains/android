@@ -92,17 +92,4 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
 
     assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.UNKNOWN)
   }
-
-  fun testGetLastSyncResult_sameAsSyncResult() {
-    ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, object: GradleSyncInvoker.FakeInvoker() {
-      override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
-        project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(project)
-      }
-    })
-
-    syncManager.syncProject(SyncReason.PROJECT_MODIFIED)
-    ApplicationManager.getApplication().invokeAndWait { gradleBuildState.buildFinished(BuildStatus.SUCCESS) }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS)
-  }
 }
