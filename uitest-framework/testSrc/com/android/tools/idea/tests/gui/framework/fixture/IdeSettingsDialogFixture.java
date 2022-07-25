@@ -22,8 +22,13 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
+import com.intellij.openapi.options.newEditor.SettingsTreeView;
+import com.intellij.ui.TabbedPaneWrapper;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
+import java.awt.event.KeyEvent;
+import javax.swing.JLabel;
 import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -45,6 +50,7 @@ import java.awt.*;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
@@ -91,6 +97,44 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
   }
 
   @NotNull
+  public IdeSettingsDialogFixture selectCodeStylePage(@NotNull String codeLangauge) throws InterruptedException {
+    GuiTests.waitForBackgroundTasks(robot());
+    robot().waitForIdle();
+
+    SettingsTreeView settingsTreeView = robot().finder().findByType(SettingsTreeView.class);
+    JTree settingsList = robot().finder().findByType(settingsTreeView, JTree.class, true);
+
+    new JTreeFixture(robot(), settingsList)
+      .expandPath("Editor")
+      .expandPath("Editor/Code Style")
+      .clickPath("Editor/Code Style/"+codeLangauge);
+
+    GuiTests.waitForBackgroundTasks(robot());
+    robot().waitForIdle();
+
+    return this;
+  }
+
+  @NotNull
+  public void changeTextFieldContent(@NotNull String textFieldName, @NotNull String OldValue, @NotNull String newValue) {
+    TabbedPaneWrapper.TabWrapper tabWrapper = robot().finder().findByType(TabbedPaneWrapper.TabWrapper.class);
+    JLabel jLabel = robot().finder().find(
+      tabWrapper, Matchers.byText(JLabel.class, textFieldName));
+
+    Collection<JBTextField> allFound = robot().finder().findAll(
+      jLabel.getParent(),
+      Matchers.byText(JBTextField.class, OldValue));
+
+    JBTextField textField = allFound.iterator().next();
+    //Select and delete old content
+    textField.grabFocus();
+    textField.selectAll();
+    robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
+
+    robot().enterText(newValue);
+  }
+
+  @NotNull
   public IdeSettingsDialogFixture selectExperimentalPage() {
     return selectPage("Experimental");
   }
@@ -122,6 +166,14 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   public void clickOK() {
     findAndClickOkButton(this);
+  }
+
+
+  public void clickButton(@NotNull String buttonText) {
+    findAndClickButton(this, buttonText);
+    // Wait for processing project usages to finish as running in background.
+    GuiTests.waitForBackgroundTasks(robot());
+    robot().waitForIdle();
   }
 
   public void selectShowPackageDetails() {
