@@ -146,6 +146,7 @@ maven_repository(
         "@maven//:androidx.fragment.fragment_1.3.0-rc01",
         "@maven//:androidx.leanback.leanback_1.0.0",
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-extensions_2.2.0",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.1",
         "@maven//:androidx.media.media_1.5.0",
