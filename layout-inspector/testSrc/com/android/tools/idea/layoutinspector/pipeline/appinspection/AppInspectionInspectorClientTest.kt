@@ -40,6 +40,7 @@ import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.someRoot
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.componenttree.treetable.TreeTableHeader
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
@@ -91,6 +92,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.execution.RunManager
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.HyperlinkLabel
@@ -105,6 +107,7 @@ import org.junit.rules.RuleChain
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.`when`
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
@@ -154,6 +157,23 @@ class AppInspectionInspectorClientTest {
   @Test
   fun treeRecompositionVisibilitySetAtConnectTime() {
     val panel = LayoutInspectorTreePanel(disposableRule.disposable)
+    var updateActionsCalled = 0
+    var enabledActions = 0
+    panel.registerCallbacks(object : ToolWindowCallback {
+      override fun updateActions() {
+        enabledActions = 0
+        panel.additionalActions.forEach {
+          val event: AnActionEvent = mock()
+          val presentation = it.templatePresentation.clone()
+          `when`(event.presentation).thenReturn(presentation)
+          it.update(event)
+          if (event.presentation.isEnabled) {
+            enabledActions++
+          }
+        }
+        updateActionsCalled++
+      }
+    })
     panel.setToolContext(inspectorRule.inspector)
     FakeUi(panel.component, createFakeWindow = true)
     inspectorRule.inspector.treeSettings.showRecompositions = true
@@ -179,6 +199,11 @@ class AppInspectionInspectorClientTest {
     assertThat(table.columnCount).isEqualTo(3)
     assertThat(table.getColumn(table.getColumnName(1)).maxWidth).isGreaterThan(0)
     assertThat(table.getColumn(table.getColumnName(2)).maxWidth).isGreaterThan(0)
+
+    // Check that all 3 actions were enabled initially:
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { updateActionsCalled > 0 }
+    assertThat(updateActionsCalled).isEqualTo(1)
+    assertThat(enabledActions).isEqualTo(3)
   }
 
   @Test

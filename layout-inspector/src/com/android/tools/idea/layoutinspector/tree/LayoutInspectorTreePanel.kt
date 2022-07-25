@@ -441,6 +441,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     inspectorModel?.let { model ->
       layoutInspector?.stats?.updateRecompositionStats(model.maxRecomposition, model.maxHighlight)
     }
+    // Make an explicit update of the toolbar now (the tree expand actions may have been enabled/disabled)
+    invokeLater { toolWindowCallback?.updateActions() }
   }
 
   private fun addToRoot(window: AndroidWindow): TreeViewNode {

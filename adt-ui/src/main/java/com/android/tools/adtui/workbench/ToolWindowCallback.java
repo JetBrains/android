@@ -41,4 +41,9 @@ public interface ToolWindowCallback {
    * Hides the search box and stops an existing search.
    */
   default void stopFiltering() {}
+
+  /**
+   * Update all actions on the toolbar immediately.
+   */
+  default void updateActions() {}
 }
