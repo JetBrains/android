@@ -372,7 +372,8 @@ public class AndroidStudioInstallation {
     boolean hasThreadingViolations =
       ideaLog.hasMatchingLine(".*Threading violation.+(@UiThread|@WorkerThread).*");
     if (hasThreadingViolations) {
-      throw new RuntimeException("One or more methods called on a wrong thread. See the idea.log for more info");
+      throw new RuntimeException("One or more methods called on a wrong thread. " +
+                                 "See go/android-studio-threading-checks for more info.");
     }
   }
 }
