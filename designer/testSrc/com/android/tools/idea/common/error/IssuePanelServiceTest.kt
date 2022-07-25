@@ -254,6 +254,15 @@ class IssuePanelServiceTest {
     FileEditorManager.getInstance(rule.project).openFile(layoutFile.virtualFile, true)
     assertEquals("Layout and Qualifiers", service.getSharedIssuePanelTabTitle())
   }
+
+  @Test
+  fun testIssuePanelNotPinnable() {
+    service.setSharedIssuePanelVisibility(true)
+
+    val manager = toolWindow.contentManager
+    val tab = manager.getContent(manager.contentCount - 1)!!
+    assertFalse(tab.isPinnable)
+  }
 }
 
 class TestToolWindowManager(private val project: Project)

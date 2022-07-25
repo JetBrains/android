@@ -124,6 +124,7 @@ class IssuePanelService(private val project: Project) {
 
       sharedIssuePanel = issuePanel
       contentFactory.createContent(issuePanel.getComponent(), "Design Issue", true).apply {
+        isPinnable = false
         sharedIssueTab = this
         isCloseable = false
         contentManager.addContent(this@apply)
