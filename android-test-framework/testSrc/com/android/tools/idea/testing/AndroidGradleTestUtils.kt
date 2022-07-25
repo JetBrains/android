@@ -2128,11 +2128,6 @@ private fun <T> openPreparedProject(
           ProjectUtil.openOrImport(
             projectPath.toPath(),
             OpenProjectTask(
-              beforeOpen =
-              {
-                afterCreate(it)
-                true
-              },
               projectToClose = null,
               forceOpenInNewFrame = true
             )

@@ -70,10 +70,6 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       adjustedOpenTarget.toNioPath(), OpenProjectTask(
         forceOpenInNewFrame = forceOpenInNewFrame,
         projectToClose = projectToClose,
-        beforeOpen = {
-          GradleProjectImporter.beforeOpen(it)
-          true
-        },
       )
     )
   }
