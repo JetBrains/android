@@ -67,6 +67,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.BorderLayout
@@ -308,6 +309,7 @@ class ComposePreviewRepresentationGradleTest {
     ImageDiffUtil.assertImageSimilar("testImage", firstRender, thirdRender, 10.0, 20)
   }
 
+  @Ignore("b/240180797")
   @Test
   fun `MultiPreview annotation changes are reflected in the previews without rebuilding`() {
     val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
