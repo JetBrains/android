@@ -23,10 +23,12 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,6 +59,11 @@ public class IdeaSyncPopulateProjectTask {
       myDataManager.importData(projectInfo, myProject, true /* synchronous */);
     }
     catch (ProcessCanceledException ex) {
+      if (syncListener != null) {
+        ProgressManager.getInstance()
+          .executeNonCancelableSection(
+            () -> ApplicationManager.getApplication().invokeLater(() -> syncListener.syncCancelled(myProject)));
+      }
       throw ex;
     }
     catch (Exception ex) {

@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -180,6 +181,36 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     )
   }
 
+  @Test
+  @Suppress("UnstableApiUsage")
+  fun testCorrectSyncEventsPublished_gradleCancelledAfterSuccessfulOpen() {
+    val path = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+
+    val log = openProjectWithEventLogging("project", outputHandler = { output ->
+      if (output.contains("waiting!")) {
+        CoreProgressManager.getCurrentIndicators()
+          .single { it.text.contains("Gradle:") }
+          .cancel()
+      }
+    }) { project ->
+
+      path.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
+      project.requestSyncAndWait()
+
+      // Cancelling sync does not change the current state.
+      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+    }
+
+    expect.that(log).startsWith(
+      """
+      |started
+      |succeeded
+      |started
+      |cancelled
+      """.trimMargin()
+    )
+  }
+
   /**
    * A data service which simulates cancellation of import at data services phase.
    *
@@ -209,10 +240,40 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       .registerExtension(CancellingService(), projectRule.testRootDisposable)
     prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
 
-    val log = openProjectWithEventLogging("project")
+    val log = openProjectWithEventLogging("project") { project ->
+      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
+    }
 
     assertThat(log).isEqualTo(
       """
+      |started
+      |cancelled
+      """.trimMargin()
+    )
+  }
+
+  @Suppress("UnstableApiUsage")
+  @Test
+  fun testCorrectSyncEventsPublished_dataImporterCancelledAfterSuccessfulOpen() {
+    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+
+    val log = openProjectWithEventLogging("project") { project ->
+      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+
+      (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
+        .getExtensionPoint(ProjectDataService.EP_NAME)
+        .registerExtension(CancellingService(), projectRule.testRootDisposable)
+
+      project.requestSyncAndWait()
+
+      // Cancelling sync does not change the current state.
+      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+    }
+
+    assertThat(log).isEqualTo(
+      """
+      |started
+      |succeeded
       |started
       |cancelled
       """.trimMargin()
@@ -263,6 +324,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
             })
           })
       ) { project ->
+        // When sync is cancelled, and it is detected by handling `FinishBuildEvent` with `SuccessResult` the `syncCancelled` event might be
+        // delivered after we reach this point.
         completedChanged.awaitSecondsOrThrow(10)
         expect.that(GradleSyncState.getInstance(project).isSyncInProgress).isFalse()
         body(project)
@@ -277,6 +340,6 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 }
 
 fun CountDownLatch.awaitSecondsOrThrow(seconds: Long): Boolean {
-  return await(seconds, TimeUnit.MINUTES)
+  return await(seconds, TimeUnit.SECONDS)
     .also { if (!it) error("Timeout waiting for $this") }
 }

@@ -56,6 +56,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
@@ -431,10 +432,18 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       LOG.info("onImportFailed($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       if (syncStateUpdaterService.stopTrackingTask(projectPath!!)) {
-        // Unfortunately, the exact exception is not passed but this is an unexpected error indicating a bug in the code, and it is logged
-        // as an error by the handler calling this callback in the IntelliJ platform. The error message below is used for logging and in
-        // tests only, while the user still sees the actual exception in the build output window.
-        GradleSyncStateHolder.getInstance(project).syncFailed("Failed to import project structure", null)
+        // If `onImportFailed` is called because of `ProcessCancelledException`, it results in `isCancelled == true`, and this is the way
+        // we detect this case since we don't have access to the exception instance itself here.
+        if (ProgressManager.getGlobalProgressIndicator()?.isCanceled == true) {
+          ProgressManager.getInstance().executeNonCancelableSection {
+            GradleSyncStateHolder.getInstance(project).syncCancelled()
+          }
+        } else {
+          // Unfortunately, the exact exception is not passed but this is an unexpected error indicating a bug in the code, and it is logged
+          // as an error by the handler calling this callback in the IntelliJ platform. The error message below is used for logging and in
+          // tests only, while the user still sees the actual exception in the build output window.
+          GradleSyncStateHolder.getInstance(project).syncFailed("Failed to import project structure", null)
+        }
       }
     }
   }
