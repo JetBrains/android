@@ -81,8 +81,6 @@ interface ProjectSystemSyncManager {
     FAILURE(false),
     /** The user has compilation errors or errors in build system files */
     PARTIAL_SUCCESS(true),
-    /** The sync failed due to problems with source generation */
-    SOURCE_GENERATION_FAILURE(false),
     /**
      * The project state was loaded from the cached result of the last successful sync, but may not reflect the current state of the project
      * (e.g. the initial project sync was skipped without checking to see if the cached state was valid).
