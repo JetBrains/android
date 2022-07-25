@@ -810,6 +810,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     assertThat(compose2.recompositions.skips).isEqualTo(33)
 
     setToolContext(tree, inspector)
+    UIUtil.pump()
     val table = tree.focusComponent as JTable
     val scrollPane = tree.component as JBScrollPane
     scrollPane.size = Dimension(800, 1000)

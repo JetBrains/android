@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.fakeadbserver.DeviceState
+import com.android.flags.junit.SetFlagRule
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
@@ -37,8 +38,10 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.someRoot
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.componenttree.treetable.TreeTableHeader
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCannotFindAdbDeviceException
@@ -51,6 +54,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -69,8 +73,10 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PRO
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.DEFAULT_FONT_SCALE
+import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.protobuf.ByteString
@@ -104,6 +110,7 @@ import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import javax.swing.JTable
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 
@@ -119,11 +126,12 @@ class AppInspectionInspectorClientTest {
   private var preferredProcess: ProcessDescriptor? = MODERN_PROCESS
 
   private val disposableRule = DisposableRule()
+  private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
   private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor))) { it == preferredProcess}
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(treeRule).around(disposableRule)!!
 
   @Before
   fun before() {
@@ -141,6 +149,36 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+  }
+
+  @Test
+  fun treeRecompositionVisibilitySetAtConnectTime() {
+    val panel = LayoutInspectorTreePanel(disposableRule.disposable)
+    panel.setToolContext(inspectorRule.inspector)
+    FakeUi(panel.component, createFakeWindow = true)
+    inspectorRule.inspector.treeSettings.showRecompositions = true
+
+    val modelUpdatedLatch = ReportingCountDownLatch(1)
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    // Wait for the model to be done notifying about the first update
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { !inspectorRule.inspectorModel.updating }
+
+    // Make sure all UI events are done
+    UIUtil.pump()
+
+    // Check that the table header for showing recompositions are shown initially:
+    val header = ComponentUtil.flatten(panel.component).filterIsInstance<TreeTableHeader>().single()
+    val table = panel.focusComponent as JTable
+    assertThat(header.isVisible).isTrue()
+    assertThat(table.columnCount).isEqualTo(3)
+    assertThat(table.getColumn(table.getColumnName(1)).maxWidth).isGreaterThan(0)
+    assertThat(table.getColumn(table.getColumnName(2)).maxWidth).isGreaterThan(0)
   }
 
   @Test
