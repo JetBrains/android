@@ -60,6 +60,7 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
     else {
       val sceneSize = screenView.scaledContentSize
       gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
+      gc.setClip(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
     }
     relevantComponents.forEach {
       gc.drawRect(
