@@ -32,6 +32,8 @@ import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
+import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
+import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.ProjectApplicationIdsListener
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
@@ -175,7 +177,6 @@ internal class LogcatMainPanel(
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
-  packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
   adbSession: AdbSession = AdbLibService.getInstance(project).session,
   private val logcatService: LogcatService =
     LogcatServiceImpl(project, { AdbLibService.getInstance(project).session.deviceServices }, ProcessNameMonitor.getInstance(project)),
@@ -205,18 +206,19 @@ internal class LogcatMainPanel(
   private val tags = MostRecentlyAddedSet<String>(MAX_TAGS)
   private val packages = MostRecentlyAddedSet<String>(MAX_PACKAGE_NAMES)
   private val processNames = MostRecentlyAddedSet<String>(MAX_PROCESS_NAMES)
+  private val packageNamesProvider: ProjectApplicationIdsProvider = ProjectApplicationIdsProvider.getInstance(project)
+  private val logcatFilterParser = LogcatFilterParser(project, packageNamesProvider, androidProjectDetector)
 
   @VisibleForTesting
   val headerPanel = LogcatHeaderPanel(
     project,
     logcatPresenter = this,
-    packageNamesProvider,
+    logcatFilterParser,
     state?.filter ?: getDefaultFilter(project, androidProjectDetector),
     state?.device,
     adbSession,
   )
 
-  private val logcatFilterParser = LogcatFilterParser(project, packageNamesProvider, androidProjectDetector)
 
   @VisibleForTesting
   internal val messageProcessor = MessageProcessor(
@@ -283,11 +285,18 @@ internal class LogcatMainPanel(
             .setFilter(logcatFilterParser.getUsageTrackingEvent(headerPanel.filter))
             .setFormatConfiguration(state?.formattingConfig.toUsageTracking())))
 
-    project.messageBus.connect(this).subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener {
-      if (connectedDevice.get()?.serialNumber == it) {
-        clearMessageView()
-      }
-    })
+    project.messageBus.let { messageBus ->
+      messageBus.connect(this).subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener {
+        if (connectedDevice.get()?.serialNumber == it) {
+          clearMessageView()
+        }
+      })
+      messageBus.connect(this).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
+        if (getFilter().contains(LogcatFilter.MY_PACKAGE)) {
+          reloadMessages()
+        }
+      })
+    }
 
     coroutineScope.launch(workerThread) {
       headerPanel.trackSelectedDevice().collect { device ->

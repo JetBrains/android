@@ -46,7 +46,7 @@ import javax.swing.JPanel
 internal class LogcatHeaderPanel(
   project: Project,
   val logcatPresenter: LogcatPresenter,
-  packageNamesProvider: PackageNamesProvider,
+  private val filterParser: LogcatFilterParser,
   filter: String,
   initialDevice: Device?,
   adbSession: AdbSession,
@@ -55,7 +55,6 @@ internal class LogcatHeaderPanel(
     logcatPresenter,
     initialDevice,
     DeviceComboBoxDeviceTracker(project, initialDevice, adbSession))
-  private val filterParser = LogcatFilterParser(project, packageNamesProvider)
 
   private val filterComponent: FilterTextComponent = FilterTextComponent.createComponent(project, logcatPresenter, filterParser, filter)
 
