@@ -548,10 +548,13 @@ internal class LogcatMainPanel(
       document.setText("")
     }
     messageBacklog.get().clear()
-    connectedDevice.set(device)
+
     return coroutineScope.launch(Dispatchers.IO) {
-      logcatService.readLogcat(device).collect {
-        processMessages(it)
+      logcatService.readLogcat(device).also {
+        // Set the device after we start the service so that the service will be running when we
+        // are reporting an active device.
+        connectedDevice.set(device)
+        it.collect { message -> processMessages(message) }
       }
     }
   }
