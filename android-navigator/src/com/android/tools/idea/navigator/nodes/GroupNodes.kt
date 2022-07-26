@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("GroupNodes")
 package com.android.tools.idea.navigator.nodes
 
 import com.intellij.psi.PsiDirectory
@@ -41,10 +40,16 @@ interface FolderGroupNode {
 
 }
 
-fun FolderGroupNode.canRepresent(element: Any?): Boolean {
-  return folders.any { it == element || it.virtualFile == element }
-}
+object GroupNodes {
 
-fun FileGroupNode.canRepresent(element: Any?): Boolean {
-  return files.any { it == element || it.virtualFile == element }
+  @JvmStatic
+  fun canRepresent(node: FolderGroupNode, element: Any?): Boolean {
+    return node.folders.any { it == element || it.virtualFile == element }
+  }
+
+  @JvmStatic
+  fun canRepresent(node: FileGroupNode, element: Any?): Boolean {
+    return node.files.any { it == element || it.virtualFile == element }
+  }
+
 }
