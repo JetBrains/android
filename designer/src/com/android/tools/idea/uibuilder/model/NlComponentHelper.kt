@@ -23,7 +23,6 @@ import com.android.SdkConstants.ANDROID_WEBKIT_PKG
 import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
-import com.android.SdkConstants.ATTR_MOCKUP
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.PreferenceTags
 import com.android.SdkConstants.REQUEST_FOCUS
@@ -402,12 +401,6 @@ fun NlComponent.createChild(tagName: String,
 
 val NlComponent.hasNlComponentInfo: Boolean
   get() = NlComponentHelper.hasNlComponentInfo(this)
-
-/**
- * @return true if the receiver can be safely morphed into a view group
- */
-val NlComponent.isMorphableToViewGroup: Boolean
-  get() = VIEW == tagName && getAttribute(TOOLS_URI, ATTR_MOCKUP) != null
 
 val NlComponent.componentClassName: String?
   get() = viewInfo?.className

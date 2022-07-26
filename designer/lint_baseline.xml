@@ -394,38 +394,6 @@
     </issue>
 
     <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/mockup/editor/creators/WidgetCreator.java"
-            line="233"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/mockup/editor/creators/WidgetCreator.java"
-            line="235"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/mockup/editor/creators/WidgetCreator.java"
-            line="247"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/mockup/editor/creators/WidgetCreator.java"
-            line="249"/>
-    </issue>
-
-    <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
@@ -885,14 +853,6 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/uibuilder/mockup/colorextractor/DoublesColorExtractor.java"
-            line="145"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
             file="src/com/android/tools/idea/common/surface/Interactable.kt"
             line="35"/>
     </issue>
@@ -1143,14 +1103,6 @@
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
             line="176"/>
-    </issue>
-
-    <issue
-        id="SwingWorker"
-        message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/uibuilder/mockup/colorextractor/DoublesColorExtractor.java"
-            line="132"/>
     </issue>
 
 </issues>

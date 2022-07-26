@@ -17,15 +17,12 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.util.ActionToolbarUtil;
-import com.android.tools.idea.actions.MockupDeleteAction;
-import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.common.actions.GotoComponentAction;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
@@ -47,7 +44,6 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.base.Strings;
@@ -233,12 +229,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
     group.add(createRefactoringMenu());
 
-    if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
-      group.add(new MockupEditAction(mySurface));
-    }
-    if (leafComponent != null && StudioFlags.NELE_MOCKUP_EDITOR.get() && Mockup.hasMockupAttribute(leafComponent)) {
-      group.add(new MockupDeleteAction(leafComponent));
-    }
     group.addSeparator();
   }
 

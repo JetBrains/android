@@ -35,9 +35,6 @@ import static com.android.SdkConstants.ATTR_LISTFOOTER;
 import static com.android.SdkConstants.ATTR_LISTHEADER;
 import static com.android.SdkConstants.ATTR_LISTITEM;
 import static com.android.SdkConstants.ATTR_MENU;
-import static com.android.SdkConstants.ATTR_MOCKUP;
-import static com.android.SdkConstants.ATTR_MOCKUP_CROP;
-import static com.android.SdkConstants.ATTR_MOCKUP_OPACITY;
 import static com.android.SdkConstants.ATTR_OPEN_DRAWER;
 import static com.android.SdkConstants.ATTR_PARENT_TAG;
 import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
@@ -551,13 +548,6 @@ public class AttributeProcessingUtil {
           registerToolsAttribute(ATTR_ITEM_COUNT, callback);
           registerToolsAttribute(ATTR_LISTITEM, callback);
         }
-      }
-
-      // Mockup attributes can be associated with any View, even include tag
-      if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
-        registerToolsAttribute(ATTR_MOCKUP, callback);
-        registerToolsAttribute(ATTR_MOCKUP_CROP, callback);
-        registerToolsAttribute(ATTR_MOCKUP_OPACITY, callback);
       }
     }
 

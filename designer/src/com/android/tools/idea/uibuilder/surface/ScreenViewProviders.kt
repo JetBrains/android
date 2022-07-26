@@ -164,7 +164,6 @@ internal fun blueprintProvider(surface: NlDesignSurface, manager: LayoutlibScene
         if (it.hasBorderLayer()) {
           add(BorderLayer(it))
         }
-        add(MockupLayer(it))
         if (!isSecondary) {
           add(CanvasResizeLayer(it.surface, it))
         }
@@ -291,7 +290,6 @@ internal fun composeBlueprintProvider(surface: NlDesignSurface,
         if (it.hasBorderLayer()) {
           add(BorderLayer(it))
         }
-        add(MockupLayer(it))
         add(SceneLayer(it.surface, it, true))
       }.build()
     }

@@ -198,10 +198,6 @@ public final class StudioFlags {
     NELE, "animated.motion.horizontal", "Display motion editor horizontally",
     "Controls the placement of the motion editor (horizontal versus vertical).",
     false);
-  public static final Flag<Boolean> NELE_MOCKUP_EDITOR = Flag.create(
-    NELE, "mockup.editor", "Enable the Mockup Editor",
-    "Enable the Mockup Editor to ease the creation of Layouts from a design file.",
-    false);
 
   public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
     NELE, "diagnostics", "Enable rendering on-screen stats",

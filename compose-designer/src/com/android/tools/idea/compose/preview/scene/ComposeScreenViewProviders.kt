@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.BorderLayer
 import com.android.tools.idea.uibuilder.surface.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.DiagnosticsLayer
-import com.android.tools.idea.uibuilder.surface.MockupLayer
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
@@ -80,7 +79,6 @@ internal val COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER = object : ScreenViewProvide
           if (it.hasBorderLayer()) {
             add(BorderLayer(it))
           }
-          add(MockupLayer(it))
           add(SceneLayer(it.surface, it, true))
         }.build()
       }

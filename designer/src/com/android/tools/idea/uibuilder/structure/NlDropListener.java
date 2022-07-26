@@ -203,12 +203,6 @@ public class NlDropListener extends DropTargetAdapter {
         model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0), true)) {
       performNormalDrop(event, insertType, model);
     }
-    else if (!myDragReceiver.isRoot()
-             && !NlComponentUtil.isDescendant(myDragReceiver, myDragged)
-             && NlComponentHelperKt.isMorphableToViewGroup(myDragReceiver)) {
-      morphReceiverIntoViewGroup();
-      performNormalDrop(event, insertType, model);
-    }
     else {
       // Not a viewgroup, but let's give a chance to the handler to do something with the drop event
       ViewHandler handler = NlComponentHelperKt.getViewHandler(myDragReceiver);
@@ -255,27 +249,5 @@ public class NlDropListener extends DropTargetAdapter {
       Logger.getInstance(NlDropListener.class).warn(exception);
       event.reject();
     }
-  }
-
-  /**
-   * Morph the receiver into a constraint layout and add the dragged component to it.
-   */
-  private void morphReceiverIntoViewGroup() {
-
-    final AttributesTransaction transaction = myDragReceiver.startAttributeTransaction();
-    for (AttributeSnapshot attribute : myDragReceiver.getAttributes()) {
-      if (!TOOLS_PREFIX.equals(attribute.prefix) && !ourCopyableAttributes.contains(attribute.name)
-          && attribute.namespace != null) {
-        transaction.removeAttribute(attribute.namespace, attribute.name);
-      }
-    }
-
-    NlWriteCommandActionUtil.run(myDragReceiver, "", () -> {
-      XmlTag tag = myDragReceiver.getTagDeprecated();
-      tag.setName(DependencyManagementUtil.mapAndroidxName(ModuleUtilCore.findModuleForPsiElement(tag), CONSTRAINT_LAYOUT));
-
-      myDragReceiver.setTag(tag);
-      transaction.commit();
-    });
   }
 }
