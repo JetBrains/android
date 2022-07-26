@@ -1,0 +1,284 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.device
+
+import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.MouseEvent
+import com.android.tools.idea.emulator.AbstractDisplayView
+import com.android.tools.idea.emulator.EmulatorView
+import com.android.tools.idea.emulator.scaledUnbiased
+import com.android.tools.idea.util.fsm.StateMachine
+import com.google.common.math.Quantiles
+import com.intellij.openapi.diagnostic.Logger
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
+import java.awt.image.BufferedImage
+import java.util.Timer
+import kotlin.concurrent.scheduleAtFixedRate
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
+
+/** Class that conducts a generic benchmarking operation for device mirroring. */
+@OptIn(ExperimentalTime::class)
+class DeviceMirroringBenchmarker(
+    private val abstractDisplayView: AbstractDisplayView,
+    touchRateHz: Int = 60,
+    maxTouches: Int = 10_000,
+    private val timeSource: TimeSource = TimeSource.Monotonic,
+    timer: Timer = Timer(),
+  ): AbstractDisplayView.FrameListener {
+
+  private val frameDurationMillis: Long = (1000 / touchRateHz.toDouble()).roundToLong()
+  private val deviceDisplaySize: Dimension by abstractDisplayView::deviceDisplaySize
+
+  init {
+    require(maxTouches > 0) { "Must specify a positive value for maxTouches!" }
+  }
+
+  // ┌───────┐  ┌───────┐  ┌───────┐  ┌───────┐  ┌────────┐
+  // │INITIAL├─►│FINDING├─►│SENDING├─►│WAITING├─►│COMPLETE│
+  // └───┬───┘  └───┬───┘  └───┬───┘  └───┬───┘  └────────┘
+  //     │          │          │          │
+  //     │          │          │          │       ┌───────┐
+  //     └──────────┴──────────┴──────────┴──────►│STOPPED│
+  //                                              └───────┘
+  // TODO(b/243841143): Convert to suspend function/coroutines.
+  private val stateMachine = StateMachine.stateMachine(
+    State.INITIALIZED, StateMachine.Config(logger = LOG, timeSource = timeSource)) {
+    State.INITIALIZED.transitionsTo(State.FINDING_TOUCHABLE_AREA, State.STOPPED)
+    State.FINDING_TOUCHABLE_AREA {
+      transitionsTo(State.SENDING_TOUCHES, State.STOPPED)
+      onEnter {
+        abstractDisplayView.addFrameListener(this@DeviceMirroringBenchmarker)
+        abstractDisplayView.repaint() // Make sure get the first frame.
+      }
+    }
+    State.SENDING_TOUCHES {
+      transitionsTo(State.WAITING_FOR_OUTSTANDING_TOUCHES, State.STOPPED)
+      onEnter {
+        timer.scheduleAtFixedRate(delay = 0, period = frameDurationMillis) {
+          dispatchNextTouch()
+        }
+      }
+      onExit { timer.cancel() }
+    }
+    State.WAITING_FOR_OUTSTANDING_TOUCHES.transitionsTo(State.STOPPED, State.COMPLETE)
+    State.STOPPED.onEnter {
+      abstractDisplayView.removeFrameListener(this@DeviceMirroringBenchmarker)
+      onStoppedCallbacks.forEach { it() }
+    }
+    State.COMPLETE.onEnter {
+      abstractDisplayView.removeFrameListener(this@DeviceMirroringBenchmarker)
+      onStoppedCallbacks.forEach { it() }
+      onCompleteCallbacks.forEach { it(BenchmarkResults(touchRoundTrips, computePercentiles())) }
+    }
+  }
+  private var state by stateMachine::state
+
+  private val onCompleteCallbacks: MutableList<(BenchmarkResults) -> Unit> = mutableListOf()
+  private val onStoppedCallbacks: MutableList<() -> Unit> = mutableListOf()
+
+  @Volatile private lateinit var touchableArea: Rectangle
+  private val pointsToTouch: Iterator<Point> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    val step = (touchableArea.width * touchableArea.height / maxTouches.toDouble()).toInt().coerceIn(1, MAX_STEP)
+    touchableArea.spiralIn().chunked(step) {it.first()}.take(maxTouches).iterator()
+  }
+  private val outstandingTouches: MutableMap<Point, TimeMark> = LinkedHashMap()
+  private val touchRoundTrips: MutableMap<Point, Duration> = mutableMapOf()
+
+  @Synchronized
+  fun addOnStoppedCallback(callback: () -> Unit) {
+    onStoppedCallbacks.add(callback)
+  }
+
+  @Synchronized
+  fun addOnCompleteCallback(callback: (BenchmarkResults) -> Unit) {
+    onCompleteCallbacks.add(callback)
+  }
+
+  @Synchronized
+  fun start() {
+    state = State.FINDING_TOUCHABLE_AREA
+    abstractDisplayView.dispatchKey(AKEYCODE_VOLUME_UP)
+  }
+
+  @Synchronized
+  fun stop() {
+    state = State.STOPPED
+  }
+
+  @Synchronized
+  private fun dispatchNextTouch() {
+    if (pointsToTouch.hasNext()) {
+      pointsToTouch.next().let {
+        outstandingTouches[it] = timeSource.markNow()
+        LOG.trace("Dispatching touch at $it.")
+        abstractDisplayView.dispatchTouch(it)
+      }
+      if (!pointsToTouch.hasNext()) state = State.WAITING_FOR_OUTSTANDING_TOUCHES
+    }
+  }
+
+  @Synchronized
+  fun isDone(): Boolean = state == State.COMPLETE
+
+  @Synchronized
+  override fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage) {
+    when (state) {
+      State.FINDING_TOUCHABLE_AREA -> {
+        val touchable = displayImage.findTouchableArea()
+        if (touchable != null) {
+          touchableArea = touchable
+          state = State.SENDING_TOUCHES
+          return
+        }
+        if (stateMachine.getDurationInCurrentState() > MAX_DURATION_FIND_TOUCHABLE_AREA) {
+          LOG.warn("Unable to find touchable area within $MAX_DURATION_FIND_TOUCHABLE_AREA.")
+          state = State.STOPPED
+        }
+      }
+      State.SENDING_TOUCHES, State.WAITING_FOR_OUTSTANDING_TOUCHES -> onTouchReturned(displayImage.decodeToPoint())
+      else -> LOG.debug("Got frame for ${displayImage.decodeToPoint()} but not expecting touch. Ignoring.")
+    }
+  }
+
+  @Synchronized
+  private fun onTouchReturned(p: Point) {
+    if (state in listOf(State.INITIALIZED, State.STOPPED, State.COMPLETE)) return
+    LOG.trace("Got touch at $p")
+    if (outstandingTouches.contains(p)) {
+      val iterator = outstandingTouches.iterator()
+      while (iterator.hasNext()) {
+        // Complete all previously dispatched touches.
+        val cur = iterator.next()
+        iterator.remove()
+        touchRoundTrips[cur.key] = cur.value.elapsedNow()
+        if (cur.key == p) break
+      }
+    }
+    if (state == State.WAITING_FOR_OUTSTANDING_TOUCHES && outstandingTouches.isEmpty()) {
+      state = State.COMPLETE
+    }
+  }
+
+  /**
+   * Returns a map of percentile to that percentile touch-to-video latency.
+   *
+   * e.g. the key 50, if present, will map to the value for the median latency, while the key
+   * 95 will map to the 95-th percentile latency.
+   */
+  private fun computePercentiles(): Map<Int, Double> {
+    check(isDone()) { "Cannot compute statistics until benchmarking is complete." }
+    return Quantiles.percentiles().indexes(IntRange(1, 100).toList()).compute(touchRoundTrips.values.map { it.inWholeMilliseconds })
+  }
+
+  /** Extracts the [Color] of the pixel at ([x], [y]) in the image. */
+  private fun BufferedImage.extract(x: Int, y: Int): Color {
+    if (width == deviceDisplaySize.width && height == deviceDisplaySize.height) return Color(getRGB(x, y))
+    val scaledX = x.scaledUnbiased(deviceDisplaySize.width, width).coerceAtMost(width - 1)
+    val scaledY = y.scaledUnbiased(deviceDisplaySize.height, height).coerceAtMost(height - 1)
+    return Color(getRGB(scaledX,scaledY))
+  }
+
+  /**
+   * Finds a [Rectangle] of touchable area of the screen, which should be colored green.
+   *
+   * This method assumes that the marked touchable area overlaps the center of the screen.
+   */
+  private fun BufferedImage.findTouchableArea(): Rectangle? {
+    val threshold = 0x1F
+    val centerY = deviceDisplaySize.height / 2
+    val centerX = deviceDisplaySize.width / 2
+
+    fun Color.isGreenish() = red < threshold && green > 0xFF - threshold && blue < threshold
+
+    val left = (0 until deviceDisplaySize.width).find { extract(it, centerY).isGreenish() } ?: return null
+    val right = (0 until deviceDisplaySize.width).reversed().find { extract(it, centerY).isGreenish() } ?: return null
+    val top = (0 until deviceDisplaySize.height).find { extract(centerX, it).isGreenish() } ?: return null
+    val bottom = (0 until deviceDisplaySize.height).reversed().find { extract(centerX, it).isGreenish() } ?: return null
+    val width = right - left + 1
+    val height = bottom - top + 1
+    return Rectangle(left, top, width, height).also { LOG.info("Found touchable area: $it") }
+  }
+
+  /** Decode the pixel at ([x],[y]) to an [Int] value. */
+  private fun BufferedImage.decode(x: Int, y: Int): Int {
+    val c = extract(x, y)
+    val ignoredBits = 8 - BITS_PER_CHANNEL
+    // Need to round the lower "ignored" bits. I.e. 0b10001111 -> 0b10010000 -> 0b1001
+    val roundingFactor = (1 shl ignoredBits).toDouble()
+    val r = (c.red / roundingFactor).roundToInt()
+    val g = (c.green / roundingFactor).roundToInt()
+    val b = (c.blue / roundingFactor).roundToInt()
+    return (((r shl BITS_PER_CHANNEL) or g) shl BITS_PER_CHANNEL) or b
+  }
+
+  /** Decode the frame to a [Point]. */
+  private fun BufferedImage.decodeToPoint(): Point {
+    val sampleY = deviceDisplaySize.height / 4
+    val sampleX1 = deviceDisplaySize.width / 4
+    val sampleX2 = deviceDisplaySize.width * 3 / 4
+    return Point(decode(sampleX1, sampleY), decode(sampleX2, sampleY))
+  }
+
+  data class BenchmarkResults(val raw: Map<Point, Duration>, val percentiles: Map<Int, Double>)
+
+  private enum class State {
+    INITIALIZED,
+    FINDING_TOUCHABLE_AREA,
+    SENDING_TOUCHES,
+    WAITING_FOR_OUTSTANDING_TOUCHES,
+    STOPPED,
+    COMPLETE,
+  }
+
+  companion object {
+    private val LOG = Logger.getInstance(DeviceMirroringBenchmarker::class.java)
+    private const val BITS_PER_CHANNEL = 4
+    private const val MAX_STEP = 50
+    private val MAX_DURATION_FIND_TOUCHABLE_AREA = Duration.seconds(1)
+
+    /**
+     * Returns a [Sequence] of [Point]s spiraling clockwise into the center of the [Rectangle], starting from
+     * the top left corner.
+     */
+    private fun Rectangle.spiralIn(): Sequence<Point> = sequence {
+      val p = Point(x - 1, y)
+      repeat(width) {
+        p.x += 1
+        yield(Point(p))
+      }
+      for (i in 1..min(width, height)) {
+        // Odd means down and left, even means up and right
+        repeat(height - i) {
+          p.y += -1 + 2 * (i % 2)
+          yield(Point(p))
+        }
+        repeat(width - i) {
+          p.x += 1 - 2 * (i % 2)
+          yield(Point(p))
+        }
+      }
+    }
+  }
+}

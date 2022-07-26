@@ -25,6 +25,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.executeCapturingLoggedErrors
@@ -97,6 +98,32 @@ internal class DeviceViewTest {
   @After
   fun tearDown() {
     DeviceMirroringSettings.getInstance().synchronizeClipboard = savedClipboardSynchronizationState
+  }
+
+  @Test
+  fun testFrameListener() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    createDeviceView(200, 300, 2.0)
+    var frameListenerCalls = 0
+
+    val frameListener = AbstractDisplayView.FrameListener { _, _, _, _ -> ++frameListenerCalls }
+
+    view.addFrameListener(frameListener)
+    waitForCondition(2, TimeUnit.SECONDS) { fakeUi.render(); view.frameNumber == agent.frameNumber }
+
+    assertThat(frameListenerCalls).isGreaterThan(0)
+    assertThat(frameListenerCalls).isEqualTo(view.frameNumber)
+    val framesBeforeRemoving = view.frameNumber
+    view.removeFrameListener(frameListener)
+
+    runBlocking { agent.renderDisplay(1) }
+    waitForCondition(2, TimeUnit.SECONDS) { fakeUi.render(); view.frameNumber == agent.frameNumber }
+
+    // If removal didn't work, the frame number part would fail here.
+    assertThat(view.frameNumber).isGreaterThan(framesBeforeRemoving)
+    assertThat(frameListenerCalls).isEqualTo(framesBeforeRemoving)
   }
 
   @Test

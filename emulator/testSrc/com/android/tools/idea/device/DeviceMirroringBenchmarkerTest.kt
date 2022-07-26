@@ -1,0 +1,288 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.device
+
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.argumentCaptor
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.emulator.AbstractDisplayView
+import com.google.common.truth.Truth.assertThat
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.anyLong
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
+import java.awt.image.BufferedImage
+import java.util.Timer
+import java.util.TimerTask
+import kotlin.test.assertFailsWith
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.TestTimeSource
+
+/** Tests the [DeviceMirroringBenchmarker] class. */
+@OptIn(ExperimentalTime::class)
+@RunWith(JUnit4::class)
+class DeviceMirroringBenchmarkerTest {
+  private val view = TestDisplayView(Dimension(WIDTH, HEIGHT))
+  private val dispatchedTouches: MutableList<Point> = mutableListOf()
+  private val dispatchedKeys: MutableList<Int> = mutableListOf()
+  private val benchmarkResults: MutableList<DeviceMirroringBenchmarker.BenchmarkResults> = mutableListOf()
+  private val testTimeSource = TestTimeSource()
+  private val mockTimer: Timer = mock()
+  private val benchmarker = createBenchmarker()
+  private var stopCallbackCalled = false
+  private var completeCallbackCalled = false
+
+  @Test
+  fun zeroMaxTouches_throwsIllegalArgumentException() {
+    assertFailsWith<IllegalArgumentException> { createBenchmarker(maxTouches = 0) }
+  }
+
+  @Test
+  fun timerSchedulingStarted() {
+    benchmarker.start()
+
+    // We shouldn't start sending events until we have the touchable area.
+    verifyNoInteractions(mockTimer)
+
+    // Currently in FINDING_TOUCHABLE_AREA, so give it one.
+    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+
+    // Should now be in SENDING_TOUCHES
+    val expectedFrameDurationMillis = (Duration.seconds(1) / TOUCH_RATE_HZ).inWholeMilliseconds
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), eq(0), eq(expectedFrameDurationMillis))
+    assertThat(dispatchedTouches).isEmpty()
+    taskCaptor.value.run()
+    assertThat(dispatchedTouches).hasSize(1)
+    verifyNoMoreInteractions(mockTimer)
+  }
+
+  @Test
+  fun stop_callsCallbacksAndCancelsTimer() {
+    benchmarker.start()
+    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+    verify(mockTimer).scheduleAtFixedRate(any(), anyLong(), anyLong())
+
+    benchmarker.stop()
+
+    verify(mockTimer).cancel()
+    verifyNoMoreInteractions(mockTimer)
+    assertThat(stopCallbackCalled).isTrue()
+  }
+
+  @Test
+  fun timerSchedulingStopped_maxTouchesReached() {
+    benchmarker.start()
+    view.notifyFrame(TOUCHABLE_AREA_FRAME)
+
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    assertThat(dispatchedTouches).isEmpty()
+
+    repeat(MAX_TOUCHES) {taskCaptor.value.run() }
+
+    assertThat(dispatchedTouches).hasSize(MAX_TOUCHES)
+    verify(mockTimer).cancel()
+  }
+
+  @Test
+  fun timerSchedulingStopped_allPointsTouched() {
+    val allPointsBenchmarker = createBenchmarker(maxTouches = Int.MAX_VALUE)
+    val numTouchablePixels = WIDTH * HEIGHT
+    allPointsBenchmarker.start()
+    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    assertThat(dispatchedTouches).isEmpty()
+    repeat(numTouchablePixels) { taskCaptor.value.run() }
+    assertThat(dispatchedTouches).hasSize(numTouchablePixels)
+
+    verify(mockTimer).cancel()
+  }
+
+  @Test
+  fun failedToFindTouchableArea() {
+    benchmarker.start()
+
+    repeat(10) {
+      view.notifyFrame(NONE_TOUCHABLE_FRAME)
+    }
+
+    assertThat(stopCallbackCalled).isFalse()
+
+    // This should be plenty of time to hit the limit
+    testTimeSource += Duration.hours(1)
+    // Need a frame to trigger this (one that doesn't have a touchable area)
+    view.notifyFrame(NONE_TOUCHABLE_FRAME)
+
+    assertThat(stopCallbackCalled).isTrue()
+  }
+
+  @Test
+  fun onlyTouchesTouchableArea() {
+    val allPointsBenchmarker = createBenchmarker(maxTouches = Int.MAX_VALUE)
+    allPointsBenchmarker.start()
+    view.notifyFrame(TOUCHABLE_AREA_FRAME)
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    assertThat(dispatchedTouches).isEmpty()
+    val numTouchablePixels = (WIDTH - 2) * (HEIGHT - 2)
+
+    repeat(numTouchablePixels) { taskCaptor.value.run() }
+
+    assertThat(dispatchedTouches).hasSize(numTouchablePixels)
+    // Shouldn't include any points on the border.
+    dispatchedTouches.forEach {
+      assertThat(it.x).isIn(1 until WIDTH - 1)
+      assertThat(it.y).isIn(1 until HEIGHT - 1)
+    }
+    assertThat(dispatchedTouches).containsNoDuplicates()
+  }
+
+  @Test
+  fun isDone() {
+    benchmarker.start()
+    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+
+    repeat(MAX_TOUCHES + 1) { taskCaptor.value.run() }
+
+    assertThat(dispatchedTouches).hasSize(MAX_TOUCHES)
+    dispatchedTouches.forEach {
+      view.notifyFrame(it.toBufferedImage(WIDTH, HEIGHT))
+    }
+    // All touches should be received now, so we should be in state COMPLETE.
+    assertThat(benchmarker.isDone()).isTrue()
+    assertThat(stopCallbackCalled).isTrue()
+    assertThat(completeCallbackCalled).isTrue()
+    verify(mockTimer).cancel()
+    assertThat(benchmarkResults).hasSize(1)
+    assertThat(benchmarkResults[0].raw).hasSize(MAX_TOUCHES)
+    assertThat(benchmarkResults[0].raw.values.toSet()).containsExactly(Duration.ZERO)
+    benchmarkResults[0].percentiles.values.forEach {
+      assertThat(it).isWithin(0.0000000001).of(0.0)
+    }
+  }
+
+  @Test
+  fun computesResultsCorrectly() {
+    val allPointsBenchmarker = createBenchmarker(maxTouches = Int.MAX_VALUE)
+    allPointsBenchmarker.start()
+    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    assertThat(dispatchedTouches).isEmpty()
+
+    val numTouchablePixels = WIDTH * HEIGHT
+    repeat(numTouchablePixels) {
+      taskCaptor.value.run()
+      testTimeSource += Duration.seconds(it)  // Each touch will take 1s longer than the last.
+      view.notifyFrame(dispatchedTouches.last().toBufferedImage(WIDTH, HEIGHT))
+    }
+    assertThat(dispatchedTouches).hasSize(numTouchablePixels)
+    assertThat(allPointsBenchmarker.isDone()).isTrue()
+    val expectedRawResults = (0 until numTouchablePixels).associate { dispatchedTouches[it] to Duration.seconds(it) }
+    assertThat(benchmarkResults[0].raw).containsExactlyEntriesIn(expectedRawResults)
+    // This distribution just increases linearly, so each percentile is a relative fraction of the max.
+    val maxDurationMillis = Duration.seconds(numTouchablePixels - 1).toDouble(DurationUnit.MILLISECONDS)
+    benchmarkResults[0].percentiles.forEach { (k, v) ->
+      assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100)
+    }
+  }
+
+  private fun createBenchmarker(maxTouches: Int = MAX_TOUCHES) : DeviceMirroringBenchmarker {
+    return DeviceMirroringBenchmarker(
+      abstractDisplayView = view,
+      touchRateHz = TOUCH_RATE_HZ,
+      maxTouches = maxTouches,
+      timeSource = testTimeSource,
+      timer = mockTimer)
+      .apply {
+        addOnStoppedCallback { stopCallbackCalled = true }
+        addOnCompleteCallback {
+          benchmarkResults.add(it)
+          completeCallbackCalled = true
+        }
+      }
+  }
+
+  inner class TestDisplayView(override val deviceDisplaySize: Dimension) : AbstractDisplayView(0) {
+    override val displayOrientationQuadrants = 0
+    override fun canZoom() = false
+    override fun computeActualSize() = deviceDisplaySize
+    override fun dispose() {}
+    override fun dispatchTouch(p: Point) {
+      dispatchedTouches.add(p)
+    }
+    override fun dispatchKey(keyCode: Int) {
+      dispatchedKeys.add(keyCode)
+    }
+    fun notifyFrame(frame: BufferedImage) {
+      notifyFrameListeners(Rectangle(), frame)
+    }
+  }
+
+  companion object {
+    private const val BITS_PER_CHANNEL = 4
+    private const val MAX_TOUCHES = 10
+    private const val TOUCH_RATE_HZ = 5
+    private const val WIDTH = 5
+    private const val HEIGHT = 10
+    private val ALL_TOUCHABLE_FRAME = bufferedImage(WIDTH, HEIGHT) {_, _ -> Color.GREEN}
+    private val NONE_TOUCHABLE_FRAME = bufferedImage(WIDTH, HEIGHT) {_, _ -> Color.RED}
+    private val TOUCHABLE_AREA_FRAME = bufferedImage(WIDTH, HEIGHT) {i, j ->
+        if ((i in 1 until WIDTH - 1) && (j in 1 until HEIGHT - 1)) Color.GREEN else Color.RED
+    }
+
+    private fun Int.toColor() : Color {
+      val bitmask = (1 shl BITS_PER_CHANNEL) - 1
+      val emptyBits = 8 - BITS_PER_CHANNEL
+      val r = ((this shr (BITS_PER_CHANNEL* 2)) and bitmask) shl emptyBits
+      val g = ((this shr BITS_PER_CHANNEL) and bitmask) shl emptyBits
+      val b = (this and bitmask) shl emptyBits
+      return Color(r, g, b)
+    }
+
+    private fun Point.toBufferedImage(width: Int, height: Int): BufferedImage {
+      val xColor = x.toColor()
+      val yColor = y.toColor()
+      return bufferedImage(width, height) { i, _ -> if (i < width / 2) xColor else yColor }
+    }
+
+    private fun bufferedImage(width: Int, height: Int, pixelColorSupplier: (Int, Int) -> Color): BufferedImage {
+      val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+      repeat(width) { i ->
+        repeat(height) { j ->
+          bufferedImage.setRGB(i, j, pixelColorSupplier(i,j).rgb)
+        }
+      }
+      return bufferedImage
+    }
+  }
+}

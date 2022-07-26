@@ -21,9 +21,11 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.Disposable
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
@@ -37,6 +39,7 @@ import java.awt.event.KeyEvent
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.AbstractAction
 import javax.swing.Box
 import javax.swing.JButton
@@ -59,6 +62,8 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     protected set
   /** Orientation of the device display in quadrants counterclockwise. */
   abstract val displayOrientationQuadrants: Int
+  /** Size of the device's native display. */
+  internal abstract val deviceDisplaySize: Dimension
   /** The number of the last rendered display frame. */
   @get:VisibleForTesting
   var frameNumber: Int = 0
@@ -78,7 +83,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     add(Box.createVerticalGlue())
   }
 
-  private val frameListeners = mutableListOf<FrameListener>()
+  private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
 
   init {
     background = primaryPanelBackground
@@ -253,8 +258,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
    * Adds a [listener] to receive callbacks when the display view has a new frame rendered.
    *
    * The [listener] must return very quickly as it is invoked on the UI thread inside the painting method
-   * of the view. The listener is not allowed to call [addFrameListener] or [removeFrameListener] from its
-   * [FrameListener.frameRendered] method.
+   * of the view.
    */
   internal fun addFrameListener(listener: FrameListener) {
     frameListeners.add(listener)
@@ -265,11 +269,17 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     frameListeners.remove(listener)
   }
 
-  internal interface FrameListener {
+  internal fun interface FrameListener {
     fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
   }
 
-  /** Attempts to restore a lost device connection. */
+  // TODO(b/243838958): Remove these methods after figuring out how to unify event dispatch.
+  /** Dispatches a touch to the [Point] [p] in the device's native coordinates. */
+  internal abstract fun dispatchTouch(p: Point)
+  /** Dispatches a keystroke to the device. */
+  internal abstract fun dispatchKey(keyCode: Int)
+
+ /** Attempts to restore a lost device connection. */
   protected inner class Reconnector(val reconnectLabel: String, val progressMessage: String, val reconnect: suspend () -> Unit) {
 
     /** Starts the reconnection attempt. */

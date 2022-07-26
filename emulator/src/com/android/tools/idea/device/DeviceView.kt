@@ -116,8 +116,7 @@ class DeviceView(
   private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
   private val connectionStateListeners = mutableListOf<ConnectionStateListener>()
 
-  /** Size of the device display in device pixels. */
-  private val deviceDisplaySize = Dimension()
+  override val deviceDisplaySize = Dimension()
 
   private val displayTransform = AffineTransform()
   private var disposed = false
@@ -342,6 +341,14 @@ class DeviceView(
     }
   }
 
+  override fun dispatchTouch(p: Point) {
+    sendMotionEventDisplayCoordinates(p.x, p.y, MotionEventMessage.ACTION_DOWN)
+  }
+
+  override fun dispatchKey(keyCode: Int) {
+    deviceController?.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, metaState = 0))
+  }
+
   private fun sendMotionEvent(x: Int, y: Int, action: Int) {
     val displayRectangle = displayRectangle ?: return
     // Mouse pointer coordinates compensated for the device display rotation.
@@ -397,7 +404,7 @@ class DeviceView(
     }
   }
 
-  private fun sendMotionEventDisplayCoordinates(displayX: Int, displayY: Int, action: Int) {
+  internal fun sendMotionEventDisplayCoordinates(displayX: Int, displayY: Int, action: Int) {
     val deviceController = deviceController ?: return
     val message = when {
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->

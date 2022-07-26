@@ -157,14 +157,14 @@ class EmulatorView(
     get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
   private val initialOrientation: Int
     get() = if (displayId == PRIMARY_DISPLAY_ID) emulatorConfig.initialOrientation.number else SkinRotation.PORTRAIT.number
-  private val deviceDisplaySize: Dimension
-    get() = displaySize ?: emulatorConfig.displaySize
   private val currentDisplaySize: Dimension
     get() = screenshotShape.activeDisplayRegion?.size ?: deviceDisplaySize
   private val deviceDisplayRegion: Rectangle
     get() = screenshotShape.activeDisplayRegion ?: Rectangle(deviceDisplaySize)
   internal val displayMode: DisplayMode?
     get() = screenshotShape.displayMode ?: emulatorConfig.displayModes.firstOrNull()
+  override val deviceDisplaySize: Dimension
+    get() = displaySize ?: emulatorConfig.displaySize
 
   @get:VisibleForTesting
   var frameTimestampMillis = 0L
@@ -346,6 +346,15 @@ class EmulatorView(
     EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
       updateConnectionState(connectionState)
     }
+  }
+
+  override fun dispatchTouch(p: Point) {
+    // Not sure why the +1 is needed here - for some reason when I send (x,y) the device sees (x,y-1)
+    emulator.sendMouse(com.android.emulator.control.MouseEvent.newBuilder().setX(p.x).setY(p.y + 1).setButtons(1).build())
+  }
+
+  override fun dispatchKey(keyCode: Int) {
+    emulator.sendKey(KeyboardEvent.newBuilder().setKeyCode(keyCode).build())
   }
 
   private fun updateConnectionState(connectionState: ConnectionState) {
