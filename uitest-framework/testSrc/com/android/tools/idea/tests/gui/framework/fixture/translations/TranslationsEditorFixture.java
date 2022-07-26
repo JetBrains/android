@@ -107,6 +107,8 @@ public final class TranslationsEditorFixture {
 
   public void addNewLocale(@NotNull String newLocale) {
     getAddLocaleButton().click();
+    GuiTests.waitForBackgroundTasks(myRobot);
+    myRobot.waitForIdle();
     JListFixture listFixture = new JListFixture(myRobot, getLocaleList());
     listFixture.replaceCellReader((jList, index) -> jList.getModel().getElementAt(index).toString());
     listFixture.clickItem(newLocale);
