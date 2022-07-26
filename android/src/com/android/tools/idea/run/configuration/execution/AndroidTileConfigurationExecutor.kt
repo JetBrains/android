@@ -122,6 +122,12 @@ class TileLaunchOptions : WearSurfaceLaunchOptions {
   override var componentName: String? = null
   override val userVisibleComponentTypeName: String = AndroidBundle.message("android.run.configuration.tile")
   override val componentBaseClassesFqNames = WearBaseClasses.TILES
+
+  fun clone() : TileLaunchOptions {
+    val clone = TileLaunchOptions()
+    clone.componentName = componentName
+    return clone
+  }
 }
 
 private fun getStopTileCallback(tileName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->

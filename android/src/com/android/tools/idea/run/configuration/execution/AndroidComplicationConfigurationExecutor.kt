@@ -151,6 +151,13 @@ class ComplicationLaunchOptions : WearSurfaceLaunchOptions {
       }
     }
   }
+
+  fun clone() : ComplicationLaunchOptions {
+    val clone = ComplicationLaunchOptions()
+    clone.componentName = componentName
+    clone.chosenSlots = chosenSlots.map { it.copy() }
+    return clone
+  }
 }
 
 private fun getStopComplicationCallback(complicationComponentName: String,

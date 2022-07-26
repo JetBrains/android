@@ -614,6 +614,14 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> ASWB_RUN_WEAR_ENABLE = Flag.create(
+    RUNDEBUG,
+    "aswb.run.wear",
+    "Enable launching wear surfaces in ASwB.",
+    "Enable launching wear surfaces in ASwB, by enabling the UI option in the Blaze Android Binary Editor.",
+    false
+  );
+
   //endregion
 
   //region Logcat

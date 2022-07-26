@@ -44,7 +44,7 @@ private fun getApksBaseDir(): Path? {
 /**
  * Includes metadata required to work with the ComplicationWatchFaceApk
  */
-internal object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
+object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
   override val complicationSlots = listOf(
     ComplicationSlot(
       "Top",

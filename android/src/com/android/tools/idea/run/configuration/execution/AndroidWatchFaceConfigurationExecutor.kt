@@ -79,6 +79,12 @@ class WatchFaceLaunchOptions : WearSurfaceLaunchOptions {
   override val userVisibleComponentTypeName: String = AndroidBundle.message("android.run.configuration.watchface")
   override val componentBaseClassesFqNames = WearBaseClasses.WATCH_FACES
   override var componentName: String? = null
+
+  fun clone() : WatchFaceLaunchOptions {
+    val clone = WatchFaceLaunchOptions()
+    clone.componentName = componentName
+    return clone
+  }
 }
 
 private fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
