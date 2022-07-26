@@ -50,6 +50,7 @@ import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
 private const val POPUP_PADDING = 6
 private const val POPUP_MIN_WIDTH = 296
@@ -167,12 +168,6 @@ class InformationPopup(
         override fun mouseEntered(e: MouseEvent?) {
           hasMouseHoveredOverPopup = true
         }
-
-        override fun mouseExited(e: MouseEvent?) {
-          // If the mouse exits the popup and the mouse has already been over it, close the popup.
-          // If the mouse has not been over the popup, keep it open since the user might be moving the mouse towards it.
-          if (hasMouseHoveredOverPopup) hidePopup()
-        }
       })
     }
   }
@@ -208,6 +203,18 @@ class InformationPopup(
     val newPopup = JBPopupFactory.getInstance().createComponentPopupBuilder(content, null)
       .setCancelOnClickOutside(true)
       .setCancelOnWindowDeactivation(true)
+      .setCancelOnMouseOutCallback { mouseCancelEvent ->
+        // If the mouse exits the popup and the mouse has already been over it, close the popup.
+        // If the mouse has not been over the popup, keep it open since the user might be moving the mouse towards it.
+        hasMouseHoveredOverPopup &&
+        popup?.let { openPopup ->
+          // Verify that the mouse is not currently over the popup window or any of the owned windows (sub-popups)
+          val popupWindow =  SwingUtilities.getWindowAncestor(openPopup.content) ?: return@setCancelOnMouseOutCallback true
+          val currentWindow = SwingUtilities.getWindowAncestor(mouseCancelEvent.component) ?: return@setCancelOnMouseOutCallback true
+
+          currentWindow != popupWindow && !popupWindow.ownedWindows.contains(currentWindow)
+        } ?: true
+      }
       .addListener(popupListener)
       .createPopup()
     popup = newPopup
