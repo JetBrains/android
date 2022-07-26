@@ -3,22 +3,23 @@ package com.android.tools.idea.uibuilder.options
 import com.android.tools.idea.IdeInfo
 import com.intellij.ide.ui.search.SearchableOptionContributor
 import com.intellij.ide.ui.search.SearchableOptionProcessor
-import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.SimpleListCellRenderer
-import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.Row
+import com.intellij.ui.dsl.builder.bindItem
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.labelTable
+import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.uipreview.AndroidEditorSettings
-import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.GraphicsEnvironment
-import java.util.Hashtable
-import javax.swing.DefaultBoundedRangeModel
-import javax.swing.JComboBox
-import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JSlider
@@ -31,56 +32,37 @@ private val DISPLAY_NAME = if (IdeInfo.getInstance().isAndroidStudio) "Design To
 
 private val MAGNIFY_SUPPORTED = SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
 
-class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
+class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigurable {
 
-  private class EditorModeComboBox : JComboBox<AndroidEditorSettings.EditorMode>(AndroidEditorSettings.EditorMode.values()) {
-    init {
-      setRenderer(EditorModeCellRenderer())
-    }
-
-    private class EditorModeCellRenderer : SimpleListCellRenderer<AndroidEditorSettings.EditorMode>() {
-      override fun customize(list: JList<out AndroidEditorSettings.EditorMode>,
-                             value: AndroidEditorSettings.EditorMode?,
-                             index: Int,
-                             selected: Boolean,
-                             hasFocus: Boolean) {
-        value?.let {
-          text = it.displayName
-          icon = it.icon
-        }
+  private class EditorModeCellRenderer : SimpleListCellRenderer<AndroidEditorSettings.EditorMode>() {
+    override fun customize(
+      list: JList<out AndroidEditorSettings.EditorMode>,
+      value: AndroidEditorSettings.EditorMode?,
+      index: Int,
+      selected: Boolean,
+      hasFocus: Boolean,
+    ) {
+      value?.let {
+        text = it.displayName
+        icon = it.icon
       }
     }
   }
 
-  private val showLint = JBCheckBox("Show lint icons on design surface")
-  private val preferredComposableEditorMode = EditorModeComboBox()
-  private val preferredDrawablesEditorMode = EditorModeComboBox()
-  private val preferredEditorMode = EditorModeComboBox()
-  private val preferredKotlinEditorMode = EditorModeComboBox()
-  private val magnifySensitivity = JSlider(JSlider.HORIZONTAL).apply {
-    model = DefaultBoundedRangeModel()
-    val qualityLabels = Hashtable<Int, JComponent>()
-    val minSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.MIN_MAGNIFY_SENSITIVITY)
-    val defaultSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.DEFAULT_MAGNIFY_SENSITIVITY)
-    val maxSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.MAX_MAGNIFY_SENSITIVITY)
+  private lateinit var preferredDrawablesEditorMode: ComboBox<AndroidEditorSettings.EditorMode>
+  private lateinit var preferredEditorMode: ComboBox<AndroidEditorSettings.EditorMode>
 
-    qualityLabels[minSensitivityPercentage] = JLabel("Slow")
-    qualityLabels[defaultSensitivityPercentage] = JLabel("Default")
-    qualityLabels[maxSensitivityPercentage] = JLabel("Fast")
-    labelTable = qualityLabels
-    paintLabels = true
-    paintTicks = true
-    // The default value doesn't matter here because it will be overwrote by state value.
-    model = DefaultBoundedRangeModel(minSensitivityPercentage, 0, minSensitivityPercentage, maxSensitivityPercentage)
-    // Show the ticks on the slider.
-    majorTickSpacing = (maxSensitivityPercentage - minSensitivityPercentage) / 4
-  }
+  private var magnifySensitivity: JSlider? = null
 
   private val state = AndroidEditorSettings.getInstance().globalState
 
   override fun getId() = CONFIGURABLE_ID
 
-  override fun createComponent(): JComponent {
+  private fun Row.editorModeComboBox(): Cell<ComboBox<AndroidEditorSettings.EditorMode>> {
+    return comboBox(AndroidEditorSettings.EditorMode.values().asList(), EditorModeCellRenderer())
+  }
+
+  override fun createPanel(): DialogPanel {
     // The bazel test //tools/adt/idea/searchable-options:searchable_options_test compares the created option list with a static xml file,
     // which doesn't include the options added at runtime.
     // We disable magnify support in headless environment to make this bazel test passes on all platform. In thee meanwhile, we use the unit
@@ -88,42 +70,69 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
     val showMagnify = MAGNIFY_SUPPORTED && !GraphicsEnvironment.isHeadless()
 
     return panel {
-      row { showLint() }
-      titledRow("Default Editor Mode") {
-        row("Drawables:") { preferredDrawablesEditorMode() }
-        row("Other Resources (e.g. Layout, Menu, Navigation):") { preferredEditorMode() }
-        row("Compose files:") { preferredComposableEditorMode() }
-        row("Other Kotlin files:") { preferredKotlinEditorMode() }
+      row {
+        checkBox("Show lint icons on design surface")
+          .bindSelected(state::isShowLint, state::setShowLint)
+      }
+      group("Default Editor Mode") {
+        row("Drawables:") {
+          preferredDrawablesEditorMode = editorModeComboBox().component
+        }
+        row("Other Resources (e.g. Layout, Menu, Navigation):") {
+          preferredEditorMode = editorModeComboBox().component
+        }
+        row("Compose files:") {
+          editorModeComboBox()
+            .bindItem({ state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
+                      state::setPreferredComposableEditorMode)
+        }
+        row("Other Kotlin files:") {
+          editorModeComboBox()
+            .bindItem({ state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
+                      state::setPreferredKotlinEditorMode)
+        }
       }
       if (showMagnify) {
         val percentageValue = doubleToPercentageValue(state.magnifySensitivity)
-        titledRow(LABEL_TRACK_PAD) {
-          row(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) { magnifySensitivity.apply { magnifySensitivity.value = percentageValue }() }
+        group(LABEL_TRACK_PAD) {
+          row(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) {
+            val minSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.MIN_MAGNIFY_SENSITIVITY)
+            val defaultSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.DEFAULT_MAGNIFY_SENSITIVITY)
+            val maxSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.MAX_MAGNIFY_SENSITIVITY)
+            magnifySensitivity = slider(minSensitivityPercentage, maxSensitivityPercentage, 0, (maxSensitivityPercentage - minSensitivityPercentage) / 4)
+              .labelTable(mapOf(
+                minSensitivityPercentage to JLabel("Slow"),
+                defaultSensitivityPercentage to JLabel("Default"),
+                maxSensitivityPercentage to JLabel("Fast")
+              )).applyToComponent {
+                value = percentageValue
+              }.component
+          }
         }
       }
     }
   }
 
-  override fun isModified() =
-    showLint.isSelected != state.isShowLint
-    || preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode
-    || preferredEditorMode.selectedItem != state.preferredEditorMode
-    || preferredComposableEditorMode.selectedItem != state.preferredComposableEditorMode
-    || preferredKotlinEditorMode.selectedItem != state.preferredKotlinEditorMode
-    || magnifySensitivity.value != doubleToPercentageValue(state.magnifySensitivity)
+  override fun isModified(): Boolean {
+    val magnifySensitivityValue = magnifySensitivity?.value
+    return super<BoundConfigurable>.isModified()
+      || preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode
+      || preferredEditorMode.selectedItem != state.preferredEditorMode
+      || (magnifySensitivityValue != null && magnifySensitivityValue != doubleToPercentageValue(state.magnifySensitivity))
+  }
 
   @Throws(ConfigurationException::class)
   override fun apply() {
-    state.isShowLint = showLint.isSelected
+    super.apply()
     state.preferredDrawableEditorMode = preferredDrawablesEditorMode.selectedItem as AndroidEditorSettings.EditorMode
     state.preferredEditorMode = preferredEditorMode.selectedItem as AndroidEditorSettings.EditorMode
-    state.preferredComposableEditorMode = preferredComposableEditorMode.selectedItem as AndroidEditorSettings.EditorMode
-    state.preferredKotlinEditorMode = preferredKotlinEditorMode.selectedItem as AndroidEditorSettings.EditorMode
-    state.magnifySensitivity = percentageValueToDouble(magnifySensitivity.value)
+    magnifySensitivity?.let {
+      state.magnifySensitivity = percentageValueToDouble(it.value)
+    }
   }
 
   override fun reset() {
-    showLint.isSelected = state.isShowLint
+    super<BoundConfigurable>.reset()
 
     // Handle the case where preferredDrawableEditorMode and preferredEditorMode were not set for the first time yet.
     if (state.preferredDrawableEditorMode == null && state.preferredEditorMode == null) {
@@ -143,14 +152,8 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
       preferredEditorMode.selectedItem = state.preferredEditorMode
     }
 
-    preferredComposableEditorMode.selectedItem = state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT
-    preferredKotlinEditorMode.selectedItem = state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE
-
-    magnifySensitivity.value = doubleToPercentageValue(state.magnifySensitivity)
+    magnifySensitivity?.value = doubleToPercentageValue(state.magnifySensitivity)
   }
-
-  @Nls
-  override fun getDisplayName() = DISPLAY_NAME
 }
 
 /**
