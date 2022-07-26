@@ -190,10 +190,12 @@ internal class DeviceUtilsKtTest {
     val device2 = deviceFromDeviceSpec("spec:shape=Normal,width=100,height=200,unit=dp,dpi=300")
     assertNotNull(device2)
     val screen2 = device2.defaultHardware.screen
-    assertEquals(188, screen2.xDimension)
-    assertEquals(375, screen2.yDimension)
+
+    // Note: these dimensions are calculated with the closest Density bucket for dpi=300: XHDPI (320)
+    assertEquals(200, screen2.xDimension)
+    assertEquals(400, screen2.yDimension)
     assertEquals(320, screen2.pixelDensity.dpiValue) // Adjusted Density bucket
-    assertEquals(1.31, (screen2.diagonalLength * 100).toInt() / 100.0)
+    assertEquals(1.39, (screen2.diagonalLength * 100).toInt() / 100.0)
   }
 
   @Test
