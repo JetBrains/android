@@ -83,7 +83,9 @@ abstract class AndroidConfigurationExecutorBase(
       terminatePreviousAppInstance(device)
 
       val result = try {
-        applicationInstaller.fullDeploy(device, apkProvider.getApks(device), appRunSettings.deployOptions)
+        // ApkProvider provides multiple ApkInfo only for instrumented tests.
+        val app = apkProvider.getApks(device).single()
+        applicationInstaller.fullDeploy(device, app, appRunSettings.deployOptions)
       }
       catch (e: DeployerException) {
         throw ExecutionException("Failed to install app '$appId'. ${e.details.orEmpty()}", e)
@@ -129,7 +131,9 @@ abstract class AndroidConfigurationExecutorBase(
 
     terminatePreviousAppInstance(device)
 
-    val deployResult = getApplicationInstaller(console).fullDeploy(device, apkProvider.getApks(device), appRunSettings.deployOptions)
+    // ApkProvider provides multiple ApkInfo only for instrumented tests.
+    val app = apkProvider.getApks(device).single()
+    val deployResult = getApplicationInstaller(console).fullDeploy(device, app, appRunSettings.deployOptions)
 
     executeOnPooledThread {
       promise.catchError {

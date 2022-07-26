@@ -70,16 +70,16 @@ internal class TestApplicationInstaller : ApplicationDeployer {
     this.appIdToApp = appIdToApp
   }
 
-  override fun fullDeploy(device: IDevice, packages: Collection<ApkInfo>, deployOptions: DeployOptions): Deployer.Result {
-    val appId = packages.first().applicationId
+  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
+    val appId = app.applicationId
     return Deployer.Result(false, false, false, appIdToApp[appId]!!)
   }
 
-  override fun applyChangesDeploy(device: IDevice, packages: Collection<ApkInfo>, deployOptions: DeployOptions): Deployer.Result {
+  override fun applyChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
     TODO("Not yet implemented")
   }
 
-  override fun applyCodeChangesDeploy(device: IDevice, packages: Collection<ApkInfo>, deployOptions: DeployOptions): Deployer.Result {
+  override fun applyCodeChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result {
     TODO("Not yet implemented")
   }
 }
