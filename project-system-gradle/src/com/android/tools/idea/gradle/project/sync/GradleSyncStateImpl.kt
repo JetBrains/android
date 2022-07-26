@@ -28,10 +28,10 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarn
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
-import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -178,15 +178,10 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
     addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
 
-    // If this is the first Gradle sync for this project this session, make sure that GradleSyncResultPublisher
-    // has been initialized so that it will begin broadcasting sync results on PROJECT_SYSTEM_SYNC_TOPIC.
-    // TODO(b/133154939): Move this out of GradleSyncState, possibly to AndroidProjectComponent.
-    if (lastSyncFinishedTimeStamp < 0) GradleSyncResultPublisher.getInstance(project)
-
     GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
-    syncPublisher { syncStarted(project) }
+    syncPublisher() { syncStarted(project) }
     return true
   }
 
@@ -368,12 +363,18 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
   }
 
   private fun syncPublisher(block: GradleSyncListener.() -> Unit) {
-    val runnable = { block.invoke(project.messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) }
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      runnable()
+    fun publish() {
+      with(project.messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) { block() }
+      // Publish to the project-system-wide topic after publishing to our internal topic unless it is an in-progress-state. There is no
+      // reason for our callers to handle in-progress states and `SyncResultListener` has `syncEnded()` method only.
+      if (!state.isInProgress) {
+        project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(syncResult)
+      }
     }
-    else {
-      invokeLaterIfProjectAlive(project, runnable)
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      publish()
+    } else {
+      invokeLaterIfProjectAlive(project, ::publish)
     }
   }
 

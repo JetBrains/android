@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
-import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -34,8 +33,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.ThreeState
 
 class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncManager {
-  private val syncResultPublisher = GradleSyncResultPublisher.getInstance(project)
-
   private fun requestSync(project: Project, reason: SyncReason): ListenableFuture<SyncResult> {
     val trigger = reason.forStats
     val syncResult = SettableFuture.create<SyncResult>()

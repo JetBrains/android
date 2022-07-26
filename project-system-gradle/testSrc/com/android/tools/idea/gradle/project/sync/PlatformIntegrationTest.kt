@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.GRADLE_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
@@ -98,6 +100,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     expect.that(log).isEqualTo("""
       |started
       |succeeded
+      |ended: SUCCESS
       """.trimMargin())
   }
 
@@ -115,6 +118,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     expect.that(log).isEqualTo(
       """
       |skipped
+      |ended: SKIPPED
       """.trimMargin()
     )
   }
@@ -135,6 +139,11 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       """.trimMargin()
     )
     expect.that(log).contains("***BAD FILE***")
+    expect.that(log).endsWith(
+      """
+      |ended: FAILURE
+      """.trimMargin()
+    )
   }
 
   class FailingService: AbstractModuleDataService<ModuleData>() {
@@ -165,6 +174,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       """
       |started
       |failed: Failed to import project structure
+      |ended: FAILURE
       """.trimMargin()
     )
   }
@@ -191,6 +201,11 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       """
       |started
       |cancelled
+      """.trimMargin()
+    )
+    expect.that(log).endsWith(
+      """
+      |ended: FAILURE
       """.trimMargin()
     )
   }
@@ -220,8 +235,10 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       """
       |started
       |succeeded
+      |ended: SUCCESS
       |started
       |cancelled
+      |ended: SUCCESS
       """.trimMargin()
     )
   }
@@ -265,6 +282,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       """
       |started
       |cancelled
+      |ended: FAILURE
       """.trimMargin()
     )
   }
@@ -293,8 +311,10 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       """
       |started
       |succeeded
+      |ended: SUCCESS
       |started
       |cancelled
+      |ended: SUCCESS
       """.trimMargin()
     )
   }
@@ -338,6 +358,11 @@ class PlatformIntegrationTest : GradleIntegrationTest {
               }
 
               private fun completed() {
+              }
+            })
+            it.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: ProjectSystemSyncManager.SyncResultListener {
+              override fun syncEnded(result: SyncResult) {
+                appendLine("ended: $result")
                 completedChanged.countDown()
               }
             })
