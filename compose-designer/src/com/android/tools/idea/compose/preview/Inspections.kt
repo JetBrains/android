@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
+import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
@@ -322,7 +323,10 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
     if (isMultiPreview) return
 
     previewAnnotation.findValueArgument(PARAMETER_FONT_SCALE)?.let {
-      val fontScale = (it.getArgumentExpression() as? PsiElement)?.node?.text?.toFloatOrNull() ?: return
+      val argumentExpression = it.getArgumentExpression() ?: return
+      val fontScale = (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
+        ?.getValue(TypeUtils.DONT_CARE) as? Float) ?: return
+
       if (fontScale <= 0) {
         holder.registerProblem(it.psiOrParent as PsiElement,
                                message("inspection.preview.font.scale.description"),
@@ -366,7 +370,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
     previewAnnotation.findValueArgument(PARAMETER_API_LEVEL)?.let {
       val argumentExpression = it.getArgumentExpression() ?: return
       val apiLevel = (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-        ?.getValue(org.jetbrains.kotlin.types.TypeUtils.DONT_CARE) as? Int) ?: return
+        ?.getValue(TypeUtils.DONT_CARE) as? Int) ?: return
 
       if (apiLevel < min || apiLevel > max) {
         holder.registerProblem(it.psiOrParent as PsiElement,
@@ -403,6 +407,8 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
 }
 
 private fun KtValueArgument.exceedsLimit(limit: Int): Boolean {
-  (getArgumentExpression() as? PsiElement)?.node?.text?.toIntOrNull()?.let { return it > limit }
-  return false
+  val argumentExpression = getArgumentExpression() ?: return false
+  val dimension = (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
+    ?.getValue(TypeUtils.DONT_CARE) as? Int) ?: return false
+  return dimension > limit
 }
