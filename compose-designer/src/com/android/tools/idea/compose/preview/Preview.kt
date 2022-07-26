@@ -50,7 +50,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewSurface
+import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.fastCompile
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager

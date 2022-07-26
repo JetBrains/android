@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.fast
+package com.android.tools.idea.compose.preview.fast
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.editors.fast.BlockingDaemonClient
+import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.FastPreviewRule
+import com.android.tools.idea.editors.fast.fastCompile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
