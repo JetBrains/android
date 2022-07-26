@@ -38,6 +38,7 @@ internal fun invokeLater(modalityState: ModalityState = ModalityState.any(), f: 
  * Creates a [JLabel], sets [JLabel.labelFor] and an optional [ContextHelpLabel].
  * It is recommended to create it inside of a cell if context help is used.
  */
+@Deprecated("Use contextLabel method and Kotlin UI DSL")
 internal fun Cell.labelFor(text: String, forComponent: Component, contextHelpText: String? = null): JLabel {
   val label = if (contextHelpText == null) {
     JBLabel(text)
@@ -55,6 +56,14 @@ internal fun Cell.labelFor(text: String, forComponent: Component, contextHelpTex
   return label
 }
 
+internal fun contextLabel(text: String, contextHelpText: String): JLabel {
+  return ContextHelpLabel.create(contextHelpText).apply {
+    setText(text)
+    horizontalTextPosition = SwingConstants.LEFT
+  }
+}
+
+@Deprecated("Use Kotlin UI DSL Version 2")
 internal fun LayoutBuilder.verticalGap() {
   row {
     label("")
