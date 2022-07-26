@@ -1,4 +1,4 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.importDependencies;
 
 import com.intellij.CommonBundle;
@@ -71,10 +71,13 @@ public class ImportDependenciesUtil {
               final MessageBusConnection connection = project.getMessageBus().connect(module);
               connection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
                 @Override
-                public void moduleAdded(@NotNull final Project project, @NotNull final Module addedModule) {
-                  if (module.equals(addedModule)) {
-                    connection.disconnect();
-                    importDependenciesForMarkedModules(project, updateBackwardDependencies);
+                public void modulesAdded(@NotNull Project project, @NotNull List<Module> modules) {
+                  for (Module addedModule : modules) {
+                    if (module.equals(addedModule)) {
+                      connection.disconnect();
+                      importDependenciesForMarkedModules(project, updateBackwardDependencies);
+                      break;
+                    }
                   }
                 }
               });

@@ -84,7 +84,7 @@ public class AndroidDependenciesCache implements Disposable {
 
     busConnection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
       @Override
-      public void moduleAdded(@NotNull Project project, @NotNull Module module) {
+      public void modulesAdded(@NotNull Project project, @NotNull List<Module> modules) {
         dropCache();
       }
 
