@@ -325,8 +325,8 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     FULL(1, "Full");        // Sample every allocation
 
     companion object {
-      private val SamplingRateMap = values().map { it.value to it }.toMap()
-      private val NameMap = values().map { it.displayName to it }.toMap()
+      private val SamplingRateMap = values().associateBy { it.value }
+      private val NameMap = values().associateBy { it.displayName }
 
       @JvmStatic
       fun getModeFromFrequency(frequency: Int): LiveAllocationSamplingMode = SamplingRateMap[frequency] ?: SAMPLED

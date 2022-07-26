@@ -121,7 +121,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
       .flatMap { h -> h.classes.stream().filter { ClassDb.JAVA_LANG_CLASS == it.className } }
       .map { createClassObjectInstance(null, it) }
       .findAny().orElse(null)
-    val heapSetMappings = snapshot.heaps.map { it to HeapSet(this, it.name, it.id) }.toMap()
+    val heapSetMappings = snapshot.heaps.associateWith { HeapSet(this, it.name, it.id) }
     val addInstanceToRightHeap: (HeapSet, Long, InstanceObject) -> Unit =
       AllHeapSet(this, heapSetMappings.values.toTypedArray()).let { superHeap ->
         superHeap.clearClassifierSets() // forces sub-classifier creation

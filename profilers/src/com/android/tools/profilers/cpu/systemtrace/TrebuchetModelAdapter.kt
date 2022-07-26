@@ -86,9 +86,8 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.C
       for (counter in process.counters) {
         counterMap[counter.name] = CounterModel(counter.name,
                                                 counter.events
-                                                  .asSequence()
-                                                  .map { convertToUserTimeUs(it.timestamp) to it.count.toDouble() }
-                                                  .toMap().toSortedMap())
+                                                  .associate { convertToUserTimeUs(it.timestamp) to it.count.toDouble() }
+                                                  .toSortedMap())
       }
       processById[process.id] = ProcessModel(process.id, process.name, threadMap, counterMap)
     }

@@ -139,7 +139,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val schedData = mutableMapOf<Int, List<SeriesData<CpuThreadSliceInfo>>>()
 
     // Create a lookup table for thread names, to be used when the full process info is missing
-    val threadNames = model.getProcesses().flatMap { it.getThreads() }.map { it.id to it.name }.toMap()
+    val threadNames = model.getProcesses().flatMap { it.getThreads() }.associate { it.id to it.name }
 
     for (cpu in model.getCpuCores()) {
       val processList: MutableList<SeriesData<CpuThreadSliceInfo>> = ArrayList()
@@ -204,16 +204,13 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
   private fun buildMainProcessMemoryCountersData(mainProcessModel: ProcessModel): Map<String, List<SeriesData<Long>>> {
     return mainProcessModel.counterByName.entries
       .filter { it.key.startsWith("mem.") }
-      .map { it.key to convertCounterToSeriesData(it.value) }
-      .toMap()
+      .associate { it.key to convertCounterToSeriesData(it.value) }
       .toSortedMap()
   }
 
   private fun buildCpuCountersData(): List<Map<String, List<SeriesData<Long>>>> {
-    return model.getCpuCores().map { cpuCoreModel ->
-      cpuCoreModel.countersMap.map {
-        it.key to convertCounterToSeriesData(it.value)
-      }.toMap()
+    return model.getCpuCores().map {
+      cpuCoreModel -> cpuCoreModel.countersMap.asSequence().associate { it.key to convertCounterToSeriesData(it.value) }
     }
   }
 

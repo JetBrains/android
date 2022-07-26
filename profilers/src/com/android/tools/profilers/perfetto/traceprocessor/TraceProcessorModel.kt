@@ -61,9 +61,9 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
           schedulingEvents = builder.threadToScheduling.getOrDefault(entry.key, listOf())
         )
       }.toSortedMap()
+
       val counterMap = builder.processToCounters.getOrDefault(process.id, listOf())
-        .map { it.name to it }
-        .toMap()
+        .associateBy { it.name }
       processMapBuilder[process.id] = process.copy(threadById = updatedThreadMap, counterByName = counterMap)
     }
     processMap = processMapBuilder.toSortedMap()
@@ -71,8 +71,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     // Build cpuCores
     cpuCores = (0 until builder.cpuCoresCount).map {
       val cpuCountersMap = builder.coreToCpuCounters.getOrDefault(it, listOf())
-        .map { counterModel -> counterModel.name to counterModel }
-        .toMap()
+        .associateBy { counter -> counter.name }
       CpuCoreModel(it, builder.coreToScheduling.getOrDefault(it, listOf()), cpuCountersMap)
     }
     androidFrameTimelineEvents = builder.androidFrameTimelineEvents
@@ -118,8 +117,11 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
         processById[process.id.toInt()] = ProcessModel(
           process.id.toInt(),
           process.name,
-          process.threadList.map { t -> t.id.toInt() to ThreadModel(t.id.toInt(), process.id.toInt(), t.name, listOf(), listOf()) }
-            .toMap().toSortedMap(),
+          process.threadList.associate {t -> t.id.toInt() to ThreadModel(t.id.toInt(),
+                                                                         process.id.toInt(),
+                                                                         t.name,
+                                                                         listOf(),
+                                                                         listOf()) }.toSortedMap(),
           mapOf())
       }
 
@@ -283,18 +285,18 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
       result.countersPerCoreList.forEach { countersPerCore ->
         coreToCpuCounters[countersPerCore.cpu] = countersPerCore.counterList.map { counter ->
-          CounterModel(counter.name,
-                       counter.valueList.map { convertToUs(it.timestampNanoseconds) to it.value }
-                         .toMap().toSortedMap())
+          CounterModel(counter.name, counter.valueList.associate {
+            convertToUs(it.timestampNanoseconds) to it.value
+          }.toSortedMap())
         }
       }
     }
 
     fun addProcessCounters(counters: TraceProcessor.ProcessCountersResult) {
       processToCounters[counters.processId.toInt()] = counters.counterList.map { counter ->
-        CounterModel(counter.name,
-                     counter.valueList.map { convertToUs(it.timestampNanoseconds) to it.value }
-                       .toMap().toSortedMap())
+        CounterModel(counter.name, counter.valueList.associate {
+          convertToUs(it.timestampNanoseconds) to it.value
+        }.toSortedMap())
       }
     }
 
@@ -409,12 +411,13 @@ private fun mapFrameNumber(layers: List<Layer>,
       }
     }
   }
-  return timelineEvents.asSequence()
-    .mapNotNull { appEvent ->
-      val surfaceflingerEndNs = surfaceflingerDisplayTokenToEndNs[appEvent.displayFrameToken]
-      lifeCycleEventStartNsToNumber[surfaceflingerEndNs]?.let { lifecycleFrameNumber ->
-        lifecycleFrameNumber to appEvent.surfaceFrameToken
-      }
-    }
-    .toMap()
+
+  fun getLifecycleFrameNumber(event: AndroidFrameTimelineEvent) : Int? {
+    val surfaceflingerEndNs = surfaceflingerDisplayTokenToEndNs[event.displayFrameToken]
+    return lifeCycleEventStartNsToNumber[surfaceflingerEndNs]
+  }
+
+  return timelineEvents
+    .filter { event -> getLifecycleFrameNumber(event) != null }
+    .associate{ event -> getLifecycleFrameNumber(event)!! to event.surfaceFrameToken }
 }
