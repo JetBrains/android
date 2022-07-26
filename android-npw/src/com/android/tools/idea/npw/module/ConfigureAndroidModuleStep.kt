@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.labelFor
+import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromModuleModel
@@ -24,14 +24,15 @@ import com.android.tools.idea.npw.template.ChooseActivityTypeStep
 import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
 import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.npw.validator.ProjectNameValidator
-import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
@@ -49,45 +50,37 @@ class ConfigureAndroidModuleStep(
 
   override fun createMainPanel(): DialogPanel = panel {
     if (!model.isLibrary) {
-      row {
-        labelFor("Application/Library name", appName)
-        appName(pushX)
+      row("Application/Library name") {
+        cell(appName).horizontalAlign(HorizontalAlign.FILL)
       }
     }
 
-    row {
-      labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
-      moduleName(pushX)
+    row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
+      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Package name", packageName)
-      packageName(pushX)
+    row("Package name") {
+      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Language", languageCombo)
-      languageCombo(growX)
+    row("Language") {
+      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
     if (model.isLibrary) {
-      row {
-        labelFor("Bytecode Level", bytecodeCombo)
-        bytecodeCombo(growX)
+      row("Bytecode Level") {
+        cell(bytecodeCombo).horizontalAlign(HorizontalAlign.FILL)
       }
     }
 
-    row {
-      labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo(growX)
+    row("Minimum SDK") {
+      cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()  || model.useGradleKts.get()) {
-      verticalGap()
-
       row {
-        gradleKtsCheck()
-      }
+        cell(gradleKtsCheck)
+      }.topGap(TopGap.SMALL)
     }
   }.withBorder(empty(6))
 
