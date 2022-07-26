@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.device
 
-import com.android.emulator.control.KeyboardEvent
-import com.android.emulator.control.MouseEvent
 import com.android.tools.idea.emulator.AbstractDisplayView
-import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.scaledUnbiased
 import com.android.tools.idea.util.fsm.StateMachine
 import com.google.common.math.Quantiles
@@ -37,6 +34,8 @@ import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
+
+typealias ProgressCallback = (Double, Double) -> Unit
 
 /** Class that conducts a generic benchmarking operation for device mirroring. */
 @OptIn(ExperimentalTime::class)
@@ -95,6 +94,7 @@ class DeviceMirroringBenchmarker(
   }
   private var state by stateMachine::state
 
+  private val onProgressCallbacks: MutableList<ProgressCallback> = mutableListOf()
   private val onCompleteCallbacks: MutableList<(BenchmarkResults) -> Unit> = mutableListOf()
   private val onStoppedCallbacks: MutableList<() -> Unit> = mutableListOf()
 
@@ -102,6 +102,9 @@ class DeviceMirroringBenchmarker(
   private val pointsToTouch: Iterator<Point> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     val step = (touchableArea.width * touchableArea.height / maxTouches.toDouble()).toInt().coerceIn(1, MAX_STEP)
     touchableArea.spiralIn().chunked(step) {it.first()}.take(maxTouches).iterator()
+  }
+  private val numPointsToTouch by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    min(touchableArea.width * touchableArea.height, maxTouches)
   }
   private val outstandingTouches: MutableMap<Point, TimeMark> = LinkedHashMap()
   private val touchRoundTrips: MutableMap<Point, Duration> = mutableMapOf()
@@ -114,6 +117,11 @@ class DeviceMirroringBenchmarker(
   @Synchronized
   fun addOnCompleteCallback(callback: (BenchmarkResults) -> Unit) {
     onCompleteCallbacks.add(callback)
+  }
+
+  @Synchronized
+  fun addOnProgressCallback(callback: (Double, Double) -> Unit) {
+    onProgressCallbacks.add(callback)
   }
 
   @Synchronized
@@ -176,6 +184,9 @@ class DeviceMirroringBenchmarker(
         if (cur.key == p) break
       }
     }
+    val dispatchedProgress = (touchRoundTrips.size + outstandingTouches.size) / numPointsToTouch.toDouble()
+    val receivedProgress = touchRoundTrips.size / numPointsToTouch.toDouble()
+    onProgressCallbacks.forEach { it(dispatchedProgress, receivedProgress) }
     if (state == State.WAITING_FOR_OUTSTANDING_TOUCHES && outstandingTouches.isEmpty()) {
       state = State.COMPLETE
     }

@@ -216,6 +216,36 @@ class DeviceMirroringBenchmarkerTest {
     }
   }
 
+  @Test
+  fun callsOnProgressCallbacks() {
+    val progressValues: MutableList<Pair<Double, Double>> = mutableListOf()
+    benchmarker.addOnProgressCallback { sentProgress, receivedProgress ->
+      progressValues.add(sentProgress to receivedProgress)
+    }
+
+    benchmarker.start()
+    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+
+    repeat(MAX_TOUCHES + 1) { taskCaptor.value.run() }
+
+    assertThat(dispatchedTouches).hasSize(MAX_TOUCHES)
+
+    dispatchedTouches.forEach {
+      view.notifyFrame(it.toBufferedImage(WIDTH, HEIGHT))
+    }
+
+    assertThat(progressValues).hasSize(dispatchedTouches.size)
+    assertThat(progressValues.map{it.second}).isStrictlyOrdered()
+    assertThat(progressValues.first().second).isWithin(0.000001).of(1 / dispatchedTouches.size.toDouble())
+    assertThat(progressValues.last().second).isWithin(0.000001).of(1.0)
+    progressValues.map{it.first}.forEach {
+      assertThat(it).isWithin(0.000001).of(1.0)
+    }
+  }
+
   private fun createBenchmarker(maxTouches: Int = MAX_TOUCHES) : DeviceMirroringBenchmarker {
     return DeviceMirroringBenchmarker(
       abstractDisplayView = view,
