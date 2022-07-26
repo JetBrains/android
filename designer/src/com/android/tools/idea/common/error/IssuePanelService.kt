@@ -426,6 +426,16 @@ class IssuePanelService(private val project: Project) {
   }
 
   /**
+   * Focus IJ's problems pane if Problems Panel is visible. Or do nothing otherwise.
+   */
+  fun focusIssuePanelIfVisible() {
+    val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
+    if (problemsViewPanel.isVisible) {
+      problemsViewPanel.activate(null, true)
+    }
+  }
+
+  /**
    * Get the selected issues from shared issue panel.
    */
   fun getSelectedIssues(): List<Issue> {

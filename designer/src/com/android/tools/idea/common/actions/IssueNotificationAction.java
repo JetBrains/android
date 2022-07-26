@@ -21,12 +21,15 @@ import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.error.IssuePanelServiceKt;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.IconUtil;
 import icons.StudioIcons;
 import javax.swing.Icon;
@@ -113,7 +116,15 @@ public class IssueNotificationAction extends ToggleAction {
     if (surface == null) {
       return;
     }
-    IssuePanelServiceKt.setIssuePanelVisibility(surface, state, true, null);
+    IssuePanelServiceKt.setIssuePanelVisibility(surface, state, true, () -> {
+      if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
+        Project project = e.getData(PlatformDataKeys.PROJECT);
+        if (project != null) {
+          IssuePanelService.getInstance(project).focusIssuePanelIfVisible();
+        }
+      }
+    });
+
   }
 
   @NotNull

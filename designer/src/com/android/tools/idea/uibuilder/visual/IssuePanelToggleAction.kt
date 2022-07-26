@@ -17,8 +17,10 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
 
@@ -31,7 +33,13 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    surface.setIssuePanelVisibilityNoTracking(state, true)
+    surface.setIssuePanelVisibilityNoTracking(state, true) {
+      if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
+        e.getData(PlatformDataKeys.PROJECT)?.let { project ->
+          IssuePanelService.getInstance(project).focusIssuePanelIfVisible()
+        }
+      }
+    }
   }
 
   override fun update(e: AnActionEvent) {

@@ -263,6 +263,20 @@ class IssuePanelServiceTest {
     val tab = manager.getContent(manager.contentCount - 1)!!
     assertFalse(tab.isPinnable)
   }
+
+  @Test
+  fun testFocusingIssuePanelWhenVisible() {
+    val window = toolWindow as TestToolWindow
+
+    service.setSharedIssuePanelVisibility(true)
+    assertFalse(window.isFocused())
+    service.focusIssuePanelIfVisible()
+    assertTrue(window.isFocused())
+
+    // Hide issue panel will lose the focus because the component is no longer visible.
+    service.setSharedIssuePanelVisibility(false)
+    assertFalse(window.isFocused())
+  }
 }
 
 class TestToolWindowManager(private val project: Project)
@@ -286,22 +300,37 @@ class TestToolWindowManager(private val project: Project)
 class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private var _isAvailable = false
   private var _isVisible = false
+  private var _isFocused = false
+  private var _isActivated = false
 
   override fun setAvailable(available: Boolean, runnable: Runnable?) {
     _isAvailable = available
   }
 
   override fun setAvailable(value: Boolean) {
-    _isAvailable = value
+    setAvailable(value, null)
   }
 
   override fun isAvailable() = _isAvailable
 
   override fun isVisible() = _isVisible
 
+  override fun isActive(): Boolean {
+    return _isActivated
+  }
+
   override fun show() {
     show(null)
   }
+
+  override fun activate(runnable: Runnable?, autoFocusContents: Boolean) {
+    _isActivated = true
+    runnable?.run()
+    _isFocused = autoFocusContents
+  }
+
+  override fun activate(runnable: Runnable?, autoFocusContents: Boolean, forced: Boolean) =
+    activate(runnable, autoFocusContents)
 
   override fun show(runnable: Runnable?) {
     _isVisible = true
@@ -315,6 +344,10 @@ class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolW
   override fun hide(runnable: Runnable?) {
     _isVisible = false
     runnable?.run()
+  }
+
+  fun isFocused(): Boolean {
+    return isVisible && _isFocused
   }
 
   override fun isDisposed(): Boolean {
