@@ -21,6 +21,7 @@ import com.android.tools.asdriver.tests.MavenRepo
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 
 /**
  * Note: the "Kotlin" in the name of this is because the test ensures Compose Preview works on
@@ -39,6 +40,9 @@ class ComposePreviewKotlin {
 
     system.installRepo(MavenRepo("tools/adt/idea/compose-designer/compose_preview_deps.manifest"))
 
+    // Enable ComposePreviewKotlin
+    system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.compose.preview.ComposePreviewRepresentation")
+
     system.runStudio(project) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
@@ -52,6 +56,9 @@ class ComposePreviewKotlin {
       // A build is necessary for Compose Preview to show.
       studio.executeAction("MakeGradleProject")
       studio.waitForComponent("DefaultPreview")
+
+      val matcher = system.installation.ideaLog.waitForMatchingLine(".*Render completed (.*)", 30, TimeUnit.SECONDS)
+      println("Render took ${matcher.group()}")
     }
   }
 }
