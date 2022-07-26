@@ -177,6 +177,7 @@ class AppInspectionInspectorClientTest {
     panel.setToolContext(inspectorRule.inspector)
     FakeUi(panel.component, createFakeWindow = true)
     inspectorRule.inspector.treeSettings.showRecompositions = true
+    inspectorRule.inspector.treeSettings.hideSystemNodes = false
 
     val modelUpdatedLatch = ReportingCountDownLatch(1)
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->

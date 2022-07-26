@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors
 
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
@@ -57,7 +58,13 @@ class FakeViewLayoutInspector(connection: Connection<Event>)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT)
         connection.sendEvent {
-          layoutEvent = LayoutEvent.newBuilder().apply { rootViewBuilder.id = 123 }.build()
+          layoutEvent = LayoutEvent.newBuilder().apply {
+            rootViewBuilder.id = 123
+            rootViewBuilder.packageName = 40
+            rootViewBuilder.className = 41
+            ViewString(40, "android.view")
+            ViewString(41, "TextView")
+          }.build()
         }
         if (!command.startFetchCommand.continuous) {
           connection.sendEvent {
