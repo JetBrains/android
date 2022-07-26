@@ -220,6 +220,9 @@ public class AndroidStudioInstallation {
 
     // This is more brittle than using XPath, but it's sufficient for now.
     xmlContent = xmlContent.replaceAll("(.*<build number=\")(.*?)(\".*)", String.format("$1%s$3", buildNumber));
+
+    // The important part of this line is "full" being set to "dev build".
+    xmlContent = xmlContent.replaceAll("(.*<version major=\".*)", "<version major=\"9999\" minor=\"99\" micro=\"99\" patch=\"99\" full=\"dev build\" eap=\"false\"/>");
     Files.write(appInfoXml, xmlContent.getBytes(charset));
     Path newJarPath = tempDir.resolve("resources.jar");
     TestUtils.zipDirectory(unzippedDir, newJarPath);
