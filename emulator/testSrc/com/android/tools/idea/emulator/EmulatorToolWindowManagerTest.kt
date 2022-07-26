@@ -151,7 +151,7 @@ class EmulatorToolWindowManagerTest {
     // Stop the second emulator.
     emulator3.stop()
 
-    // The panel corresponding the the second emulator goes away.
+    // The panel corresponding to the second emulator goes away.
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
     assertThat(contentManager.contents[0].isSelected).isTrue()
