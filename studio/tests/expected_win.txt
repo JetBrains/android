@@ -433,7 +433,7 @@ android-studio/jbr/lib/jvm.lib
 android-studio/jbr/lib/modules
 android-studio/jbr/lib/psfont.properties.ja
 android-studio/jbr/lib/psfontj2d.properties
-android-studio/jbr/lib/security/blacklisted.certs
+android-studio/jbr/lib/security/blocked.certs
 android-studio/jbr/lib/security/cacerts
 android-studio/jbr/lib/security/default.policy
 android-studio/jbr/lib/security/public_suffix_list.dat

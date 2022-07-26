@@ -43,7 +43,7 @@ class MemoryProbeTest {
   fun testBufferedImage() {
     @Suppress("UndesirableClassUsage")
     val image = BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB)
-    assertThat(check(image)).isEqualTo(968L)
+    assertThat(check(image)).isEqualTo(936L)
   }
 
   @Test

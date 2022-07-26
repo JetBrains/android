@@ -417,7 +417,7 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libzip.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/modules
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/psfont.properties.ja
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/psfontj2d.properties
-Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/blacklisted.certs
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/blocked.certs
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/cacerts
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/default.policy
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/public_suffix_list.dat
