@@ -2545,6 +2545,8 @@ android-studio/plugins/design-tools/resources/layoutlib/data/linux/lib64/libandr
 android-studio/plugins/design-tools/resources/layoutlib/data/linux/lib64/libc++.so
 android-studio/plugins/devkit/lib/devkit-jps.jar
 android-studio/plugins/devkit/lib/devkit.jar
+android-studio/plugins/directaccess/lib/directaccess-client.jar
+android-studio/plugins/directaccess/lib/directaccess.jar
 android-studio/plugins/editorconfig/lib/editorconfig.jar
 android-studio/plugins/emojipicker/lib/emojipicker.jar
 android-studio/plugins/firebase-testing/lib/firebase-testing.jar

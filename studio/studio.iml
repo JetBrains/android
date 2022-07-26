@@ -14,6 +14,7 @@
     <orderEntry type="module" module-name="android-ndk" />
     <orderEntry type="module" module-name="google-cloud-tools-as" />
     <orderEntry type="module" module-name="firebase" />
+    <orderEntry type="module" module-name="directaccess" />
     <orderEntry type="module" module-name="firebase-testing" />
     <orderEntry type="module" module-name="google-appindexing" />
     <orderEntry type="module" module-name="google-cloud-tools-core-as" />

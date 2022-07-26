@@ -397,6 +397,20 @@ studio_plugin(
 )
 
 studio_plugin(
+    name = "com.google.gct.directaccess",
+    directory = "directaccess",
+    modules = {
+        "directaccess.jar": ["//tools/studio/google/cloud/testing/directaccess:directaccess"],
+        "directaccess-client.jar": ["//tools/studio/google/cloud/testing/directaccess-client:directaccess-client"],
+    },
+    deps = [
+        ":com.google.gct.login",
+        ":com.google.gct.testing",
+        ":org.jetbrains.android",
+    ],
+)
+
+studio_plugin(
     name = "com.google.gct.testing",
     directory = "firebase-testing",
     libs = [
@@ -554,6 +568,7 @@ android_studio(
         ":com.android.tools.design",
         ":androidx.compose.plugins.idea",
         ":com.google.services.firebase",
+        ":com.google.gct.directaccess",
         ":com.google.gct.testing",
         ":com.google.appindexing",
         ":com.google.gct",
@@ -675,6 +690,7 @@ iml_module(
         "//tools/vendor/google/android-ndk[module]",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as[module]",
         "//tools/vendor/google/firebase[module]",
+        "//tools/studio/google/cloud/testing/directaccess[module]",
         "//tools/studio/google/cloud/testing/firebase-testing[module]",
         "//tools/studio/google/appindexing:google-appindexing[module]",
         "//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as[module]",
