@@ -152,13 +152,13 @@ public class AndroidDomUtil {
   private static final Logger LOG = Logger.getInstance(AndroidDomUtil.class);
 
   private static final AndroidxName RECYCLER_VIEW_LAYOUT_MANAGER_NAME =
-    AndroidxName.of("android.support.v7.widget.", "RecyclerView$LayoutManager");
+    new AndroidxName("android.support.v7.widget.RecyclerView$LayoutManager", "androidx.recyclerview.widget.RecyclerView$LayoutManager");
   private static final String[] RECYCLER_VIEW_LAYOUT_MANAGER_NAMES =
     {RECYCLER_VIEW_LAYOUT_MANAGER_NAME.oldName(), RECYCLER_VIEW_LAYOUT_MANAGER_NAME.newName()};
   private static final String[] RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES =
     {"android.support.v7.widget.", "androidx.recyclerview.widget."};
   private static final AndroidxName COORDINATOR_LAYOUT_BEHAVIOR_NAME =
-    AndroidxName.of("android.support.design.widget.", "CoordinatorLayout$Behavior");
+    new AndroidxName("android.support.design.widget.CoordinatorLayout$Behavior", "androidx.coordinatorlayout.widget.CoordinatorLayout$Behavior");
   private static final String[] COORDINATOR_LAYOUT_BEHAVIOR_NAMES =
     {COORDINATOR_LAYOUT_BEHAVIOR_NAME.oldName(), COORDINATOR_LAYOUT_BEHAVIOR_NAME.newName()};
 

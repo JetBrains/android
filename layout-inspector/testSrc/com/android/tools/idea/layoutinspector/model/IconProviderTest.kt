@@ -22,7 +22,7 @@ import com.google.common.truth.Truth.assertThat
 import icons.StudioIcons
 import org.junit.Test
 
-private val FQCN_CONTENT_FRAME_LAYOUT =  AndroidxName.of("android.support.v7.widget.", "ContentFrameLayout")
+private val FQCN_CONTENT_FRAME_LAYOUT = AndroidxName("android.support.v7.widget.ContentFrameLayout", "androidx.appcompat.widget.ContentFrameLayout")
 
 class IconProviderTest {
 

@@ -57,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBase {
-  private static final AndroidxName NEW_EXIT_INTERFACE = AndroidxName.of("android.support.media.", "ExifInterface");
+  private static final AndroidxName NEW_EXIT_INTERFACE = new AndroidxName("android.support.media.ExifInterface", "androidx.exifinterface.media.ExifInterface");
 
   public AndroidLintExifInterfaceInspection() {
     super(AndroidLintBundle.message("android.lint.inspections.exif.interface"), ExifInterfaceDetector.ISSUE);
