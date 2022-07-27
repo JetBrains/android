@@ -21,11 +21,13 @@ import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_RECTANGULAR_WEAR_API;
 import static com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 
 import com.android.repository.Revision;
+import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
@@ -48,6 +50,7 @@ import com.intellij.util.system.CpuArch;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ListTableModel;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -286,6 +289,16 @@ public class ChooseSystemImagePanel extends JPanel
     // Android TV / Google TV and vice versa
     if (deviceTagId.equals(SystemImage.ANDROID_TV_TAG.getId()) || deviceTagId.equals(SystemImage.GOOGLE_TV_TAG.getId())) {
       return imageTag.equals(SystemImage.ANDROID_TV_TAG) || imageTag.equals(SystemImage.GOOGLE_TV_TAG);
+    }
+
+    // Non-square rectangular Wear OS requires at least P (API 28)
+    if (imageTag.equals(SystemImage.WEAR_TAG) && !device.isScreenRound()) {
+      Dimension screenSize = device.getScreenSize(ScreenOrientation.PORTRAIT);
+      if (screenSize != null && screenSize.getWidth() != screenSize.getHeight()) {
+        if (image.getVersion().getFeatureLevel() < MIN_RECTANGULAR_WEAR_API) {
+          return false;
+        }
+      }
     }
 
     return deviceTagId.equals(imageTag.getId());
