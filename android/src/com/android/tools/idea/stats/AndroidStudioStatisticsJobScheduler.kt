@@ -1,4 +1,4 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.stats
 
 import com.intellij.concurrency.JobScheduler
@@ -12,6 +12,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
+import kotlinx.coroutines.runBlocking
 import java.util.Collections
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -36,8 +37,9 @@ internal object AndroidStudioStatisticsJobScheduler : ApplicationInitializedList
 
   override fun componentsInitialized() {
     if (!StatisticsUploadAssistant.isSendAllowed()) return
-    JobScheduler.getScheduler().scheduleWithFixedDelay(
-      { FUStateUsagesLogger.create().logApplicationStates() },
+    JobScheduler.getScheduler().scheduleWithFixedDelay({
+                                                         runBlocking { FUStateUsagesLogger.create().logApplicationStates() }
+                                                       },
       LOG_APPLICATION_STATES_INITIAL_DELAY_IN_MIN.toLong(),
       LOG_APPLICATION_STATES_DELAY_IN_MIN.toLong(), TimeUnit.MINUTES)
 
@@ -51,7 +53,7 @@ internal object AndroidStudioStatisticsJobScheduler : ApplicationInitializedList
               val future = JobScheduler.getScheduler()
                 .scheduleWithFixedDelay(
                   {
-                    FUStateUsagesLogger.create().logProjectStates(project, EmptyProgressIndicator())
+                    runBlocking { FUStateUsagesLogger.create().logProjectStates(project, EmptyProgressIndicator()) }
                   },
                   0, LOG_PROJECTS_STATES_DELAY_IN_MIN.toLong(), TimeUnit.MINUTES)
               persistStatisticsSessionsMap[project] = future
