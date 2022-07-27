@@ -40,7 +40,7 @@ class DesignToolsIssueProviderTest {
   fun testProvideIssues() {
     val messageBus = rule.project.messageBus
 
-    val provider = DesignToolsIssueProvider(rule.project)
+    val provider = DesignToolsIssueProvider(rule.project, EmptyFilter)
     assertTrue(provider.getFilteredIssues().isEmpty())
 
     val source1 = Any()
@@ -59,13 +59,13 @@ class DesignToolsIssueProviderTest {
   }
 
   @Test
-  fun testIssueFilter() {
+  fun testViewOptionFilter() {
     val messageBus = rule.project.messageBus
 
-    val provider = DesignToolsIssueProvider(rule.project)
+    val provider = DesignToolsIssueProvider(rule.project, EmptyFilter)
     assertTrue(provider.getFilteredIssues().isEmpty())
 
-    provider.filter = { issue -> issue.summary.contains("keyword") }
+    provider.viewOptionFilter = DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("keyword") }
 
     val issue1 = TestIssue(summary = "I have keyword")
     val issue2 = TestIssue(summary = "I have something")
@@ -75,10 +75,10 @@ class DesignToolsIssueProviderTest {
     messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, issueList)
     assertEquals(2, provider.getFilteredIssues().size)
 
-    provider.filter = { issue -> issue.summary.contains("have") }
+    provider.viewOptionFilter = DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("have") }
     assertEquals(3, provider.getFilteredIssues().size)
 
-    provider.filter = { issue -> issue.summary.contains("something") }
+    provider.viewOptionFilter = DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("something") }
     assertEquals(1, provider.getFilteredIssues().size)
 
     val anotherSource = Any()
@@ -93,7 +93,7 @@ class DesignToolsIssueProviderTest {
   @Test
   fun testFileClosed() {
     val messageBus = rule.project.messageBus
-    val provider = DesignToolsIssueProvider(rule.project)
+    val provider = DesignToolsIssueProvider(rule.project, SelectedEditorFilter(rule.project))
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
     val file = runInEdtAndGet {
@@ -113,7 +113,7 @@ class DesignToolsIssueProviderTest {
   @Test
   fun testDoNotShowVisualLintIssueWhenTheirSourceFilesAreNotSelected() {
     val messageBus = rule.project.messageBus
-    val provider = DesignToolsIssueProvider(rule.project)
+    val provider = DesignToolsIssueProvider(rule.project, SelectedEditorFilter(rule.project))
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
     val ktFile = rule.fixture.addFileToProject("src/KtFile.kt", "").virtualFile

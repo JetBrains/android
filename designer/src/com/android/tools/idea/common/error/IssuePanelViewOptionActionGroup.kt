@@ -78,7 +78,7 @@ private fun updateIssuePanelFilter(project: Project) {
   val hiddenSeverities = ProblemsViewState.getInstance(project).hideBySeverity
   val showVisualLint = VisualLintSettings.getInstance(project).isVisualLintFilterSelected
 
-  val filter: (Issue) -> Boolean = { issue ->
+  val filter = DesignerCommonIssueProvider.Filter { issue ->
     when {
       issue is VisualLintRenderIssue -> showVisualLint
       hiddenSeverities.contains(issue.severity.myVal) -> false

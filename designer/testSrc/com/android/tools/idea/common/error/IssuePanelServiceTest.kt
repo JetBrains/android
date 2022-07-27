@@ -24,10 +24,12 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.After
@@ -185,12 +187,13 @@ class IssuePanelServiceTest {
     rule.projectRule.initAndroid(true)
     val messageBus = rule.project.messageBus
     val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
-    runInEdtAndWait {
-      val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
-      rule.fixture.openFileInEditor(layoutFile.virtualFile)
+    val layoutFile = runInEdtAndGet {
+      val file = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />").virtualFile
+      rule.fixture.openFileInEditor(file)
       service.setSharedIssuePanelVisibility(true)
+      file
     }
-
+    val issueSource = IssueSourceWithFile(layoutFile)
     val content = toolWindow.contentManager.selectedContent!!
     val source = Any()
 
@@ -201,12 +204,13 @@ class IssuePanelServiceTest {
     assertEquals("Layout and Qualifiers", content.displayName)
 
     runInEdtAndWait {
-      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue()))
+      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(source = issueSource)))
     }
     assertEquals("<html><body>Layout and Qualifiers <font color=\"#999999\">1</font></body></html>", content.displayName)
 
     runInEdtAndWait {
-      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(summary = "1"), TestIssue(summary = "2")))
+      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(summary = "1", source = issueSource),
+                                                                                        TestIssue(summary = "2", source = issueSource)))
     }
     assertEquals("<html><body>Layout and Qualifiers <font color=\"#999999\">2</font></body></html>", content.displayName)
 

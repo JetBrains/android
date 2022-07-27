@@ -191,8 +191,8 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     }
   }
 
-  fun setViewOptionFilter(filter: (Issue) -> Boolean) {
-    issueProvider.filter = filter
+  fun setViewOptionFilter(filter: DesignerCommonIssueProvider.Filter) {
+    issueProvider.viewOptionFilter = filter
     updateTree()
   }
 
