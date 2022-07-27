@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
@@ -84,6 +85,7 @@ internal class LogcatFilterParser(
    * @param filterString a string in the Logcat filter language
    * @return A [LogcatFilter] representing the provided string or null if the filter is empty.
    */
+  @UiThread
   fun parse(filterString: String): LogcatFilter? {
     return try {
       parseInternal(filterString)
