@@ -97,7 +97,7 @@ public class Patcher {
 
     long startTime = System.currentTimeMillis();
     Process p = pb.start();
-    p.waitFor(90, TimeUnit.SECONDS);
+    p.waitFor(1, TimeUnit.DAYS);
     long elapsedTime = System.currentTimeMillis() - startTime;
     System.out.println("Creating the patch took " + elapsedTime + "ms");
 
