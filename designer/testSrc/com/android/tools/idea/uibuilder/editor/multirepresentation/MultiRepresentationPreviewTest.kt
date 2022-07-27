@@ -41,6 +41,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -572,6 +573,7 @@ class MultiRepresentationPreviewTest {
     assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
   }
 
+  @Ignore("http://b/240355870")
   @Test
   fun testRepresentationsAreDisposedInTime() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
