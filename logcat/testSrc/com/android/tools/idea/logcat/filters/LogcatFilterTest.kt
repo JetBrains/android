@@ -217,7 +217,7 @@ class LogcatFilterTest {
   fun appFilter_emptyMatchesNone() {
     val message1 = logcatMessage(appId = "foo")
     val message2 = logcatMessage(appId = "bar")
-    val message3 = logcatMessage(appId = "foobar")
+    val message3 = logcatMessage(appId = "error", logLevel = ERROR)
 
     assertThat(ProjectAppFilter(FakePackageNamesProvider()).filter(listOf(message1, message2, message3))).isEmpty()
   }

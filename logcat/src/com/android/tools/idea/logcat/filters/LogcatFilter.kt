@@ -162,17 +162,17 @@ internal data class AgeFilter(val age: Duration, private val clock: Clock) : Log
  */
 internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesProvider) : LogcatFilter {
   private var packageNames: Set<String> = emptySet()
-  private lateinit var packageNamesRegex: Regex
+  private var packageNamesRegex: Regex? = null
 
   override fun prepare() {
     packageNames = packageNamesProvider.getPackageNames()
-    packageNamesRegex = packageNames.joinToString("|") { it.replace(".", "\\.") }.toRegex()
+    packageNamesRegex = if (packageNames.isNotEmpty()) packageNames.joinToString("|") { it.replace(".", "\\.") }.toRegex() else null
   }
 
   override fun matches(message: LogcatMessageWrapper): Boolean {
     val header = message.logcatMessage.header
     return packageNames.contains(header.getAppName())
-           || (header.logLevel >= ERROR && packageNamesRegex.containsMatchIn(message.logcatMessage.message))
+           || (header.logLevel >= ERROR && packageNamesRegex?.containsMatchIn(message.logcatMessage.message) == true)
   }
 
   override fun equals(other: Any?) = other is ProjectAppFilter && packageNamesProvider == other.packageNamesProvider
