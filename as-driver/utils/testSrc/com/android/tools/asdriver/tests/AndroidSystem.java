@@ -18,6 +18,7 @@ package com.android.tools.asdriver.tests;
 import com.android.testutils.TestUtils;
 import com.android.utils.PathUtils;
 import com.intellij.openapi.util.SystemInfo;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.AccessDeniedException;
@@ -188,16 +189,34 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   public void close() throws Exception {
     display.close();
     try {
-      PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
-    } catch (AccessDeniedException e) {
-      // TODO(b/240166122): on Windows, there seems to be a race condition preventing deletions, so
-      // we try again after waiting for a bit.
-      if (SystemInfo.isWindows) {
-        Thread.sleep(5000);
+      try {
         PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
-      } else {
-        throw e;
+      }
+      catch (AccessDeniedException e) {
+        // TODO(b/240166122): on Windows, there seems to be a race condition preventing deletions, so
+        // we try again after waiting for a bit.
+        if (SystemInfo.isWindows) {
+          Thread.sleep(5000);
+          PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
+        }
+        else {
+          throw e;
+        }
       }
     }
+    catch (RuntimeException | IOException e) {
+      System.out.printf("*** Files being written while shutting down system: ***%n");
+      printContents(fileSystem.getRoot().toFile());
+      throw e;
+    }
+  }
+
+  private static void printContents(File root) throws IOException {
+    if (root.isDirectory()) {
+      for (File subPath : root.listFiles()) {
+        printContents(subPath);
+      }
+    }
+    System.out.printf("%s%n", root.getCanonicalPath());
   }
 }
