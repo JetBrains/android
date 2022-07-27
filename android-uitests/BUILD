@@ -563,6 +563,23 @@ java_test(
 )
 
 java_test(
+    name = "AltEnterSuggestionsTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.AltEnterSuggestionsTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "GradleBuildTest",
     size = "large",
     data = COMMON_DATA + [

@@ -35,6 +35,7 @@ import com.android.tools.idea.common.editor.SplitEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.io.TestFileUtils;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.VisualizationFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
@@ -677,6 +678,23 @@ public class EditorFixture {
     FileFixture file = getCurrentFileFixture();
     file.waitForCodeAnalysisHighlightCount(severity, expected);
     return this;
+  }
+
+  public List<String> moreActionsOptions() {
+    JBList list = getList();
+    final JListFixture listFixture = new JListFixture(robot, list);
+    final ImmutableList<String> result = ImmutableList.copyOf(listFixture.contents());
+    return result;
+  }
+
+  @NotNull
+  private JBList getList() {
+    return GuiTests.waitUntilShowingAndEnabled(robot, null, new GenericTypeMatcher<JBList>(JBList.class) {
+      @Override
+      protected boolean isMatching(@NotNull JBList list) {
+        return list.getClass().getName().equals("com.intellij.ui.popup.list.ListPopupImpl$MyList");
+      }
+    });
   }
 
   @NotNull
