@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.RegisterToolWindowTask
@@ -64,8 +65,11 @@ class IssuePanelServiceTest {
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
 
-    service = IssuePanelService.getInstance(rule.project)
-    service.initIssueTabs(toolWindow)
+    invokeAndWaitIfNeeded {
+      service = IssuePanelService.getInstance(rule.project)
+      service.initIssueTabs(toolWindow)
+    }
+
   }
 
   @After
@@ -210,7 +214,7 @@ class IssuePanelServiceTest {
     }
     assertEquals("Layout and Qualifiers", content.displayName)
   }
-
+  
   @Test
   fun testSelectFirstTabWhenSharedIssuePanelIsRemoved() {
     service.setSharedIssuePanelVisibility(true)

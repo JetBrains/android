@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.SplitEditor
@@ -101,6 +102,7 @@ class IssuePanelService(private val project: Project) {
     }
   }
 
+  @UiThread
   fun initIssueTabs(problemsViewWindow: ToolWindow) {
     synchronized(initLock) {
       if (inited) {
