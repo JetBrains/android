@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
@@ -60,12 +59,8 @@ class ImageViewAssistantTest {
     val assistant = ImageViewAssistant(ComponentAssistantFactory.Context(nlComponent) {}, imageHandler)
     val content = assistant.component.content
 
-    with(object : WaitFor(200) {
-      override fun condition(): Boolean {
-        // Enabled ComboBox means it finished loading the sample data into the ui
-        return UIUtil.findComponentOfType(content, JComboBox::class.java)?.isEnabled == true
-      }
-    }) { assertTrue(isConditionRealized) }
+    assistant.sampleDataLoaded.get()
+    assertTrue(UIUtil.findComponentOfType(content, JComboBox::class.java)?.isEnabled == true)
 
     val useAllCheckBox = UIUtil.findComponentOfType(content, JCheckBox::class.java)!!
     val sampleSetComboBox = UIUtil.findComponentOfType(content, JComboBox::class.java)!!
