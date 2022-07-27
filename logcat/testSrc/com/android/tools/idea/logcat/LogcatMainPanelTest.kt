@@ -45,6 +45,7 @@ import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.DEBUG
 import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.message.LogcatHeader
@@ -883,21 +884,23 @@ class LogcatMainPanelTest {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel().apply {
         size = Dimension(100, 100)
-        headerPanel.filter = "foo"
       }
     }
     val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
-
-    logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "foo"),
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "bar"),
     ))
-
+    runInEdtAndWait { logcatMainPanel.setFilter("foo") }
+    waitForCondition { logcatMainPanel.editor.document.text.endsWith("foo\n") }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
-        val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf("app2")
+        val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf("app1")
         val point = logcatMainPanel.editor.offsetToXY(offset)
+
         fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
-        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo package:app2")
+
+        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo package:app1")
       }
     }
   }
@@ -907,21 +910,21 @@ class LogcatMainPanelTest {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel().apply {
         size = Dimension(100, 100)
-        headerPanel.filter = "package:mine level:INFO"
       }
     }
     val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
-
-    logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "foo"),
+      LogcatMessage(LogcatHeader(DEBUG, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "bar"),
     ))
-
+    runInEdtAndWait { logcatMainPanel.setFilter("foo level:INFO") }
+    waitForCondition { logcatMainPanel.editor.document.text.endsWith("foo\n") }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
         val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf(" I ")
         val point = logcatMainPanel.editor.offsetToXY(offset)
         fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
-        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:mine")
+        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
       }
     }
   }
@@ -931,21 +934,21 @@ class LogcatMainPanelTest {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel().apply {
         size = Dimension(100, 100)
-        headerPanel.filter = "level:INFO package:mine level:INFO"
       }
     }
     val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
-
-    logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "foo"),
+      LogcatMessage(LogcatHeader(DEBUG, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "bar"),
     ))
-
+    runInEdtAndWait { logcatMainPanel.setFilter(" level:INFO foo level:INFO") }
+    waitForCondition { logcatMainPanel.editor.document.text.endsWith("foo\n") }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
         val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf(" I ")
         val point = logcatMainPanel.editor.offsetToXY(offset)
         fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
-        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:mine")
+        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
       }
     }
   }
