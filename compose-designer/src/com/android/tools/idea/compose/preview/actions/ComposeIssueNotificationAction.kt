@@ -99,7 +99,8 @@ private fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(
 /**
  * Represents the Compose Preview status to be notified to the user.
  */
-private sealed class ComposePreviewStatusNotification(
+@VisibleForTesting
+internal sealed class ComposePreviewStatusNotification(
   val icon: Icon?,
   val title: String,
   val description: String,
@@ -182,7 +183,10 @@ private sealed class ComposePreviewStatusNotification(
   object RenderIssues : ComposePreviewStatusNotification(
     AllIcons.General.Warning,
     message("notification.preview.render.issues.title"),
-    message("notification.preview.render.issues.description"))
+    message("notification.preview.render.issues.description"),
+    true,
+    Presentation.Warning
+  )
 
   /**
    * The Preview has failed to compile a fast change.
@@ -203,7 +207,8 @@ private sealed class ComposePreviewStatusNotification(
     message("notification.preview.up.to.date.description"))
 }
 
-private fun ComposePreviewManager.getStatusInfo(project: Project): ComposePreviewStatusNotification {
+@VisibleForTesting
+internal fun ComposePreviewManager.getStatusInfo(project: Project): ComposePreviewStatusNotification {
   val previewStatus = status()
   val fastPreviewEnabled = project.fastPreviewManager.isEnabled
   return when {

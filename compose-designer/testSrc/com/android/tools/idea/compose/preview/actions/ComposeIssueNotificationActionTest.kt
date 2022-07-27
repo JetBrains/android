@@ -35,6 +35,7 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
 import com.intellij.xml.util.XmlStringUtil
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -124,6 +125,9 @@ internal class ComposeIssueNotificationActionTest {
       hasRuntimeErrors = true
     )
     action.update(event)
+    val statusInfo = event.getData(COMPOSE_PREVIEW_MANAGER)?.getStatusInfo(projectRule.project)!!
+    assertTrue(statusInfo.hasRefreshIcon)
+    assertEquals(ComposePreviewStatusNotification.Presentation.Warning, statusInfo.presentation)
     assertEquals("Render Issues (Some problems were found while rendering the preview)", event.presentation.toString())
   }
 
