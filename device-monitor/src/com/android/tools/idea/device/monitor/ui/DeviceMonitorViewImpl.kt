@@ -44,13 +44,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.ui.treeStructure.Tree
 import icons.AndroidIcons
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.concurrent.CancellationException
 import java.util.function.Consumer
-import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeWillExpandListener
@@ -67,10 +65,11 @@ class DeviceMonitorViewImpl(
   private val myListeners: MutableList<DeviceMonitorViewListener> = ArrayList()
   private val myProgressListeners: MutableList<DeviceMonitorProgressListener> = ArrayList()
   private val myDeviceRenderer: DeviceRenderer
-  private val myPanel = DeviceMonitorPanel()
+  private val myPanel: DeviceMonitorPanel = DeviceMonitorPanel()
 
   @get:TestOnly
   val loadingPanel: JBLoadingPanel
+  private var myTreeLoadingCount = 0
 
   init {
     model.addListener(ModelListener())
@@ -92,22 +91,20 @@ class DeviceMonitorViewImpl(
   val component: JComponent
     get() = loadingPanel
 
-  @TestOnly
-  fun getDeviceCombo(): JComboBox<Device?> {
-    return myPanel.deviceCombo
-  }
-
-  @TestOnly
-  fun getTree(): Tree {
-    return myPanel.tree
-  }
-
   override fun addListener(listener: DeviceMonitorViewListener) {
     myListeners.add(listener)
   }
 
   override fun removeListener(listener: DeviceMonitorViewListener) {
     myListeners.remove(listener)
+  }
+
+  override fun addProgressListener(listener: DeviceMonitorProgressListener) {
+    myProgressListeners.add(listener)
+  }
+
+  override fun removeProgressListener(listener: DeviceMonitorProgressListener) {
+    myProgressListeners.remove(listener)
   }
 
   override fun setup() {
@@ -126,12 +123,31 @@ class DeviceMonitorViewImpl(
     myPanel.showErrorMessageLayer(errorMessage, false)
   }
 
+  override fun reportErrorRelatedToDevice(fileSystem: Device, message: String, t: Throwable) {
+    var errorMessage = message
+    if (t.message != null) {
+      errorMessage += ": " + t.message
+    }
+
+    // If there is an error related to a device, show the error "layer", hiding the other
+    // controls, until the user takes some action to fix the issue.
+    myPanel.showErrorMessageLayer(errorMessage, true)
+  }
+
+  override fun reportErrorRelatedToNode(node: ProcessTreeNode, message: String, t: Throwable) {
+    reportError(message, t)
+  }
+
   override fun reportErrorGeneric(message: String, t: Throwable) {
     reportError(message, t)
   }
 
   override fun reportMessageRelatedToDevice(fileSystem: Device, message: String) {
     myPanel.showMessageLayer(message, true)
+  }
+
+  override fun reportMessageRelatedToNode(node: ProcessTreeNode, message: String) {
+    reportMessage(message)
   }
 
   override fun refreshNodes(treeNodes: List<ProcessTreeNode>) {
@@ -232,12 +248,84 @@ class DeviceMonitorViewImpl(
     myPanel.showTree()
   }
 
+  fun setRootFolder(treeModel: DefaultTreeModel?, treeSelectionModel: DefaultTreeSelectionModel?) {
+    val tree = myPanel.tree
+    tree.model = treeModel
+    tree.selectionModel = treeSelectionModel
+    if (treeModel != null) {
+      myPanel.showTree()
+      val rootNode = ProcessTreeNode.fromNode(treeModel.root)
+      if (rootNode != null) {
+        tree.isRootVisible = false
+        expandTreeNode(rootNode)
+      }
+      else {
+        // Show root, since it contains an error message (ErrorNode)
+        tree.isRootVisible = true
+      }
+    }
+  }
+
+  override fun startTreeBusyIndicator() {
+    incrementTreeLoading()
+  }
+
+  override fun stopTreeBusyIndicator() {
+    decrementTreeLoading()
+  }
+
   override fun expandNode(treeNode: ProcessTreeNode) {
     myPanel.tree.expandPath(TreePath(treeNode.path))
   }
 
+  override fun startProgress() {
+    myPanel.progressPanel.start()
+  }
+
+  override fun setProgressIndeterminate(indeterminate: Boolean) {
+    myPanel.progressPanel.setIndeterminate(indeterminate)
+  }
+
+  override fun setProgressValue(fraction: Double) {
+    myPanel.progressPanel.setProgress(fraction)
+  }
+
+  override fun setProgressOkColor() {
+    myPanel.progressPanel.setOkStatusColor()
+  }
+
+  override fun setProgressWarningColor() {
+    myPanel.progressPanel.setWarningStatusColor()
+  }
+
+  override fun setProgressErrorColor() {
+    myPanel.progressPanel.setErrorStatusColor()
+  }
+
+  override fun setProgressText(text: String) {
+    myPanel.progressPanel.setText(text)
+  }
+
+  override fun stopProgress() {
+    myPanel.progressPanel.stop()
+  }
+
   private fun expandTreeNode(node: ProcessTreeNode) {
     myListeners.forEach(Consumer { x: DeviceMonitorViewListener -> x.treeNodeExpanding(node) })
+  }
+
+  private fun incrementTreeLoading() {
+    if (myTreeLoadingCount == 0) {
+      myPanel.tree.setPaintBusy(true)
+    }
+    myTreeLoadingCount++
+  }
+
+  private fun decrementTreeLoading() {
+    myTreeLoadingCount--
+    if (myTreeLoadingCount == 0) {
+      myPanel.tree.setPaintBusy(false)
+    }
   }
 
   private inner class ModelListener : DeviceMonitorModelListener {
@@ -267,17 +355,6 @@ class DeviceMonitorViewImpl(
 
     override fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?) {
       setRootFolder(newTreeModel, newTreeSelectionModel)
-    }
-
-    private fun setRootFolder(treeModel: DefaultTreeModel?, treeSelectionModel: DefaultTreeSelectionModel?) {
-      val tree = myPanel.tree
-      tree.model = treeModel
-      tree.selectionModel = treeSelectionModel
-      if (treeModel != null) {
-        myPanel.showTree()
-        val rootNode = ProcessTreeNode.fromNode(treeModel.root)
-        tree.isRootVisible = rootNode == null
-      }
     }
   }
 

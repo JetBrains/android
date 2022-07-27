@@ -60,29 +60,37 @@ class AdbDeviceListServiceTest {
   }
 
   @Test
-  fun testInitialDeviceList() = runBlocking(AndroidDispatchers.uiThread) {
+  fun testInitialDeviceList() = runBlocking {
 
     // Prepare
     val service = getInstance(project)
 
     // Act
-    service.start()
-    // Assert
-    // We should see the connected device immediately after start returns.
-    // (FakeAdbRule waits for AndroidDebugBridge to be fully initialized.)
-    Assert.assertEquals(service.devices.size, 1)
+    val job = launch(AndroidDispatchers.uiThread) {
+      service.start()
+      // Assert
+      // We should see the connected device immediately after start returns.
+      // (FakeAdbRule waits for AndroidDebugBridge to be fully initialized.)
+      Assert.assertEquals(service.devices.size, 1)
+    }
+
+    job.join()
   }
 
   @Test
-  fun testDebugBridgeListenersRemovedOnDispose() = runBlocking(AndroidDispatchers.uiThread) {
+  fun testDebugBridgeListenersRemovedOnDispose() = runBlocking {
     // Prepare
     val service = getInstance(project)
-    service.start()
-    Assert.assertEquals(2, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
-    Assert.assertEquals(1, AndroidDebugBridge.getDeviceChangeListenerCount())
 
-    // Act
-    Disposer.dispose(service)
+    val job = launch(AndroidDispatchers.uiThread) {
+      service.start()
+      Assert.assertEquals(2, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
+      Assert.assertEquals(1, AndroidDebugBridge.getDeviceChangeListenerCount())
+
+      // Act
+      Disposer.dispose(service)
+    }
+    job.join()
 
     // Assert
     Assert.assertEquals(1, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
@@ -90,16 +98,20 @@ class AdbDeviceListServiceTest {
   }
 
   @Test
-  fun testStartAlreadyStartedService() = runBlocking(AndroidDispatchers.uiThread) {
+  fun testStartAlreadyStartedService() = runBlocking {
     // Prepare
     val service = getInstance(project)
 
     // Act
-    service.start()
-    service.start()
+    val job = launch(AndroidDispatchers.uiThread) {
+      service.start()
+      service.start()
 
-    // Assert
-    Assert.assertEquals(service.devices.size, 1)
+      // Assert
+      Assert.assertEquals(service.devices.size, 1)
+    }
+
+    job.join()
   }
 
   @Test
