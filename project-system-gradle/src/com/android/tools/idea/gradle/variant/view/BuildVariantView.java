@@ -257,7 +257,7 @@ public class BuildVariantView {
     private final AbisCellRenderer myAbisCellRenderer = new AbisCellRenderer();
 
     BuildVariantTable() {
-      super(BuildVariantTableModel.EMPTY);
+      super(BuildVariantTableModel.createEmpty());
       addKeyListener(new KeyAdapter() {
         @Override
         public void keyPressed(KeyEvent e) {
@@ -310,7 +310,7 @@ public class BuildVariantView {
     void setLoading() {
       ModalityUiUtil.invokeLaterIfNeeded(ModalityState.NON_MODAL, () -> {
         updateLoadingStatus(true);
-        setModel(BuildVariantTableModel.EMPTY);
+        setModel(BuildVariantTableModel.createEmpty());
       });
     }
 

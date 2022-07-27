@@ -73,14 +73,14 @@ private constructor(
 
   companion object {
 
-    @JvmField
-    val EMPTY: BuildVariantTableModel =  create(emptyList())
+    @JvmStatic
+    fun createEmpty(): BuildVariantTableModel = create(emptyList())
 
     @JvmStatic
     fun create(project: Project ): BuildVariantTableModel {
       val rows = buildVariantTableModelRows(project)
       val hasVariants = rows.any { it.buildVariants.isNotEmpty() }
-      return if (hasVariants) create(rows) else EMPTY
+      return if (hasVariants) create(rows) else createEmpty()
     }
 
     private fun create(rows: List<BuildVariantTableRow>): BuildVariantTableModel {
