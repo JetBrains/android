@@ -32,6 +32,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -214,7 +215,8 @@ class IssuePanelServiceTest {
     }
     assertEquals("Layout and Qualifiers", content.displayName)
   }
-  
+
+  @Ignore("http://b/240368809")
   @Test
   fun testSelectFirstTabWhenSharedIssuePanelIsRemoved() {
     service.setSharedIssuePanelVisibility(true)
