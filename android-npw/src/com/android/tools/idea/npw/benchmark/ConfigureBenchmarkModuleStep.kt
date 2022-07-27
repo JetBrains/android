@@ -25,24 +25,25 @@ import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MACROBENCHMARK
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MICROBENCHMARK
-import com.android.tools.idea.npw.labelFor
+import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
-import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.Row
+import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
-import javax.swing.JLabel
 import javax.swing.JRadioButton
 
 private const val MACRO_AGP_MIN_VERSION = "7.0.0"
@@ -65,7 +66,7 @@ class ConfigureBenchmarkModuleStep(
     macrobenchmarkRadioButton,
     microbenchmarkRadioButton,
   )
-  private var targetModuleLabel: JLabel? = null
+  private var targetModuleRow: Row? = null
   private val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
 
   init {
@@ -78,9 +79,7 @@ class ConfigureBenchmarkModuleStep(
 
     bindings.bindTwoWay(benchmarkModuleType, model.benchmarkModuleType)
     listeners.listenAndFire(model.benchmarkModuleType) {
-      val isMacrobenchmark = model.benchmarkModuleType.get() == MACROBENCHMARK
-      targetModuleLabel?.isVisible = isMacrobenchmark
-      targetModuleCombo.isVisible = isMacrobenchmark
+      targetModuleRow?.visible(model.benchmarkModuleType.get() == MACROBENCHMARK)
     }
 
     // Only allow min SDK >= 23 for macrobenchmarks.
@@ -109,48 +108,37 @@ class ConfigureBenchmarkModuleStep(
   }
 
   override fun createMainPanel(): DialogPanel = panel {
-    row {
-      labelFor("Benchmark module type", microbenchmarkRadioButton, message("android.wizard.module.help.benchmark.module.type"))
-      buttonGroup {
-        macrobenchmarkRadioButton(pushX)
-        microbenchmarkRadioButton(pushX)
+    buttonsGroup {
+      row(contextLabel("Benchmark module type", message("android.wizard.module.help.benchmark.module.type"))) {
+        cell(macrobenchmarkRadioButton)
+        cell(microbenchmarkRadioButton)
       }
     }
 
-    row {
-      labelFor("Target application", targetModuleCombo, message("android.wizard.module.help.benchmark.target.module")).also {
-        it.isVisible = benchmarkModuleType.get() == MACROBENCHMARK
-        targetModuleLabel = it
-      }
-      targetModuleCombo(pushX)
+    targetModuleRow = row(contextLabel("Target application", message("android.wizard.module.help.benchmark.target.module"))) {
+      cell(targetModuleCombo).horizontalAlign(HorizontalAlign.FILL)
+    }.visible(benchmarkModuleType.get() == MACROBENCHMARK)
+
+    row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
+      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
-      moduleName(pushX)
+    row("Package name") {
+      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Package name", packageName)
-      packageName(pushX)
+    row("Language") {
+      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Language", languageCombo)
-      languageCombo(growX)
-    }
-
-    row {
-      labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo(growX)
+    row("Minimum SDK") {
+      cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
-      verticalGap()
-
       row {
-        gradleKtsCheck()
-      }
+        cell(gradleKtsCheck)
+      }.topGap(TopGap.SMALL)
     }
   }.withBorder(empty(6))
 

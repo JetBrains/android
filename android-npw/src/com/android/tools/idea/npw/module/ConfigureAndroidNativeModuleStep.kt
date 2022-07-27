@@ -17,15 +17,16 @@ package com.android.tools.idea.npw.module
 
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.labelFor
+import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewAndroidNativeModuleModel
 import com.android.tools.idea.npw.template.components.CppStandardComboProvider
-import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
@@ -49,36 +50,30 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
   override fun getPreferredFocusComponent(): JComponent? = appName
 
   override fun createMainPanel(): JPanel = panel {
-    row {
-      labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
-      moduleName(pushX)
+    row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
+      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Package name", packageName)
-      packageName(pushX)
+    row("Package name") {
+      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Language", languageCombo)
-      languageCombo(growX)
+    row("Language") {
+      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("C++ Standard", cppStandard)
-      cppStandard(growX)
+    row("C++ Standard") {
+      cell(cppStandard).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo(growX)
+    row("Minimum SDK") {
+      cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
-      verticalGap()
       row {
-        gradleKtsCheck(growX)
-      }
+        cell(gradleKtsCheck)
+      }.topGap(TopGap.SMALL)
     }
   }
 }
