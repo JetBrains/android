@@ -16,6 +16,7 @@
 package com.android.ide.gradle.model.composites
 
 import java.io.File
+import java.io.Serializable
 
 interface BuildMap {
   val buildIdMap: Map<String, File>
@@ -23,4 +24,4 @@ interface BuildMap {
 
 data class BuildMapImpl(
   override val buildIdMap: Map<String, File>
-): BuildMap
+): BuildMap, Serializable
