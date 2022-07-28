@@ -237,6 +237,7 @@
       <module fileurl="file://$PROJECT_DIR$/project-system-gradle/intellij.android.projectSystem.gradle.tests.iml" filepath="$PROJECT_DIR$/project-system-gradle/intellij.android.projectSystem.gradle.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/project-system-gradle-upgrade/intellij.android.projectSystem.gradle.upgrade.iml" filepath="$PROJECT_DIR$/project-system-gradle-upgrade/intellij.android.projectSystem.gradle.upgrade.iml" />
       <module fileurl="file://$PROJECT_DIR$/project-system-gradle-upgrade/intellij.android.projectSystem.gradle.upgrade.tests.iml" filepath="$PROJECT_DIR$/project-system-gradle-upgrade/intellij.android.projectSystem.gradle.upgrade.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/project-system-integration-tests/intellij.android.projectSystem.integration.tests.iml" filepath="$PROJECT_DIR$/project-system-integration-tests/intellij.android.projectSystem.integration.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/room/intellij.android.room.iml" filepath="$PROJECT_DIR$/room/intellij.android.room.iml" />
       <module fileurl="file://$PROJECT_DIR$/room/intellij.android.room.tests.iml" filepath="$PROJECT_DIR$/room/intellij.android.room.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/rt/intellij.android.rt.iml" filepath="$PROJECT_DIR$/rt/intellij.android.rt.iml" />

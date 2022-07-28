@@ -1,0 +1,29 @@
+buildscript {
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.0"
+     }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+android {
+    compileSdk 32
+    defaultConfig {
+        applicationId "com.example.sdkindexapp"
+        minSdk 26
+    }
+}
+
+dependencies {
+    // SDK Index (real snapshot)
+    // Outdated
+    implementation 'com.mopub:mopub-sdk:4.16.0'
+    // Policy
+    implementation 'com.stripe:stripe-android:9.3.2'
+    // Critical
+    implementation 'com.snowplowanalytics:snowplow-android-tracker:1.4.1'
+    // Outdated + critical
+    implementation 'com.startapp:inapp-sdk:3.9.1'
+}
