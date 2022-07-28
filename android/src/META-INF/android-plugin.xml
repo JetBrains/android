@@ -719,6 +719,8 @@
     <projectService
         serviceInterface="com.android.tools.idea.sdk.sources.SdkSourcePositionFinder"
         serviceImplementation="com.android.tools.idea.sdk.sources.SdkSourcePositionFinderImpl"/>
+
+    <postStartupActivity implementation="com.android.tools.idea.startup.ProjectMetricsInitializer$MyStartupActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">

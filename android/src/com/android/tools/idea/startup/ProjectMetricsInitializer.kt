@@ -36,7 +36,7 @@ private const val INITIAL_DELAY = 10L
 class ProjectMetricsInitializer : ProjectManagerListener {
   private val persistStatisticsSessionsMap = Collections.synchronizedMap(HashMap<Project, Future<*>>())
 
-  override fun projectOpened(project: Project) {
+  override suspend fun execute(project: Project) {
     // Need to set up ToolWindowTrackerService here after project is initialized so service can be retrieved.
     val service = ToolWindowTrackerService.getInstance(project)
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, service)
