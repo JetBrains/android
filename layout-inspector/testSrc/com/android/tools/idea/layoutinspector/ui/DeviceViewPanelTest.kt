@@ -30,10 +30,8 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
-import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
@@ -773,6 +771,8 @@ class MyViewportLayoutManagerTest {
   private var layerSpacing = INITIAL_LAYER_SPACING
 
   private var rootPosition: Point? = Point(400, 500)
+  private var rootLocationCompute: () -> Point? = { rootPosition }
+  private var rootLocation: () -> Point? = { rootLocationCompute() }
 
   @get:Rule
   val edtRule = EdtRule()
@@ -792,7 +792,7 @@ class MyViewportLayoutManagerTest {
     scrollPane.size = Dimension(502, 202)
     scrollPane.preferredSize = Dimension(502, 202)
     contentPanel.preferredSize = Dimension(1000, 1000)
-    layoutManager = MyViewportLayoutManager(scrollPane.viewport, { layerSpacing }, { rootPosition })
+    layoutManager = MyViewportLayoutManager(scrollPane.viewport, { layerSpacing }, rootLocation)
     layoutManager.layoutContainer(scrollPane.viewport)
     scrollPane.layout.layoutContainer(scrollPane)
   }
@@ -880,6 +880,45 @@ class MyViewportLayoutManagerTest {
 
     // scroll goes back to origin
     assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(0, 0))
+  }
+
+  @Test
+  fun testScrollPaneShouldNotOscillateInPlace() {
+    // This is a regression test for a bug that happened frequently on Mac (see b/240289276)
+    // First make the scrollbars opaque (that affect the viewport size when scrollbars are needed)
+    // This will emulate how scrollbars act on a Mac
+    scrollPane.horizontalScrollBar.isOpaque = true
+    scrollPane.verticalScrollBar.isOpaque = true
+
+    // Mimic the real location computation which involves the size of the view (DeviceViewContentPanel)
+    val modelLocation = Point(-500, 0)
+    rootLocationCompute = { Point(modelLocation).apply { translate(contentPanel.width / 2, contentPanel.height / 2) } }
+
+    // Set the size such that the scrollpane can hold the preferred size of the DeviceViewContentPanel if there
+    // are no horizontal scrollbar, but is too small if the horizontal scrollbar is present:
+    scrollPane.size = Dimension(1500, 1010)
+    scrollPane.preferredSize = scrollPane.size
+    scrollPane.layout.layoutContainer(scrollPane)
+    layoutManager.layoutContainer(scrollPane.viewport)
+    scrollPane.viewport.viewPosition = Point(7, 0)
+
+    // Init the cached data:
+    scrollPane.layout.layoutContainer(scrollPane)
+    layoutManager.layoutContainer(scrollPane.viewport)
+    scrollPane.layout.layoutContainer(scrollPane)
+    layoutManager.layoutContainer(scrollPane.viewport)
+    val pos = scrollPane.viewport.viewPosition
+    val positions = mutableListOf<Point>()
+    val expected = mutableListOf<Point>()
+
+    // If the bug is still present the viewPosition will oscillate between 2 points:
+    for (i in 1..20) {
+      scrollPane.layout.layoutContainer(scrollPane)
+      layoutManager.layoutContainer(scrollPane.viewport)
+      positions.add(scrollPane.viewport.viewPosition)
+      expected.add(pos)
+    }
+    assertThat(positions).isEqualTo(expected)
   }
 }
 

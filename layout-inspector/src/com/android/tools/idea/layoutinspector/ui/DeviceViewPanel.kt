@@ -700,14 +700,24 @@ class MyViewportLayoutManager(
         currentZoomOperation = null
       }
       else -> {
+        // Normal layout: Attempt to keep the image root location in place.
         origLayout.layoutContainer(parent)
         val lastRoot = lastRootLocation
         val currentRootLocation = rootLocation()
-        if (viewport.view.size != lastViewSize && lastRoot != null && currentRootLocation != null) {
-          val newRootLocation = SwingUtilities.convertPoint(viewport.view, currentRootLocation, viewport)
-          viewport.viewPosition = Point(viewport.viewPosition).apply {
-            translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y)
+        val view = viewport.view
+        if (view.size != lastViewSize && lastRoot != null && currentRootLocation != null) {
+          val newRootLocation = SwingUtilities.convertPoint(view, currentRootLocation, viewport)
+          val preferredSize = view.preferredSize
+          val newPosition = viewport.viewPosition.apply { translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y) }
+          if (view.width > preferredSize.width) {
+            // If there is room for the entire image set x position to 0 (required to remove the horizontal scrollbar).
+            newPosition.x = 0
           }
+          if (view.height > preferredSize.height) {
+            // If there is room for the entire image set y position to 0 (required to remove the vertical scrollbar).
+            newPosition.y = 0
+          }
+          viewport.viewPosition = newPosition
         }
       }
     }
