@@ -136,7 +136,8 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
         configBuilder.getCommonBuilder()
           .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
           .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get())
-          .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get()))
+          .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get())
+          .setProfilerKeyboardEvent(StudioFlags.PROFILER_KEYBOARD_EVENT.get()))
       .setMem(
         Agent.AgentConfig.MemoryConfig.newBuilder()
           .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
