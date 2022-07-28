@@ -24,9 +24,9 @@ import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
 import org.jetbrains.kotlin.idea.debugger.base.util.KotlinSourceMapCache
-import org.jetbrains.kotlin.idea.debugger.SourceLineKind
+import org.jetbrains.kotlin.idea.debugger.core.SourceLineKind
 import org.jetbrains.kotlin.idea.debugger.base.util.isInlineFrameLineNumber
-import org.jetbrains.kotlin.idea.debugger.mapStacktraceLineToSource
+import org.jetbrains.kotlin.idea.debugger.core.mapStacktraceLineToSource
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import kotlin.math.absoluteValue

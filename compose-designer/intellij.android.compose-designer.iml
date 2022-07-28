@@ -66,6 +66,7 @@
     <orderEntry type="module" module-name="kotlin.core" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.util" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.base.util" />
+    <orderEntry type="module" module-name="kotlin.jvm-debugger.core" />
     <orderEntry type="module" module-name="intellij.platform.execution.impl" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.platform.uast" />
