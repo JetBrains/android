@@ -441,7 +441,8 @@ class LogcatMessageAssemblerTest {
       EPOCH_FORMAT,
       channel,
       processNameMonitor,
-      coroutineContext)
+      coroutineContext,
+      lastMessageDelayMs = 100)
 }
 
 private fun logcatMessage(

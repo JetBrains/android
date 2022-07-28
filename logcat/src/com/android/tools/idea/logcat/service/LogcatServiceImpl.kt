@@ -16,16 +16,28 @@ import com.intellij.openapi.Disposable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
+import org.jetbrains.annotations.VisibleForTesting
 import java.time.Duration
+
+/**
+ * Last message in batch will be posted after a delay, to allow for more log lines if another batch is pending.
+ */
+private const val LOGCAT_IDLE_TIMEOUT_MILLIS = 100L
 
 /**
  * Implementation of a [LogcatService]
  */
-internal class LogcatServiceImpl(
+internal class LogcatServiceImpl @VisibleForTesting constructor (
   private val disposableParent: Disposable,
   private val deviceServicesFactory: () -> AdbDeviceServices,
   private val processNameMonitor: ProcessNameMonitor,
+  private val lastMessageDelayMs: Long,
 ) : LogcatService {
+  constructor(
+    disposableParent: Disposable,
+    deviceServicesFactory: () -> AdbDeviceServices,
+    processNameMonitor: ProcessNameMonitor,
+  ): this(disposableParent, deviceServicesFactory, processNameMonitor, LOGCAT_IDLE_TIMEOUT_MILLIS)
 
   override suspend fun readLogcat(device: Device): Flow<List<LogcatMessage>> {
     val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
@@ -38,7 +50,8 @@ internal class LogcatServiceImpl(
         logcatFormat,
         channel,
         processNameMonitor,
-        coroutineContext)
+        coroutineContext,
+        lastMessageDelayMs)
       deviceServicesFactory().shell(deviceSelector, buildLogcatCommand(logcatFormat), LineBatchShellCollector()).collect {
         messageAssembler.processNewLines(it)
       }

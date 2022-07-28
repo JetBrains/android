@@ -33,11 +33,6 @@ import kotlin.coroutines.CoroutineContext
 private const val SYSTEM_LINE_PREFIX = "--------- beginning of "
 
 /**
- * Last message in batch will be posted after a delay, to allow for more log lines if another batch is pending.
- */
-private const val DELAY_MILLIS = 100L
-
-/**
  * Receives batches of lines from an `adb logcat -v long` process and assembles them into complete [LogcatMessage]'s.
  *
  * A logcat entry starts with a header:
@@ -53,6 +48,9 @@ private const val DELAY_MILLIS = 100L
  * To avoid this delay, after finishing precessing a batch of lines, we schedule a delayed task to flush the last message if nothing arrives
  * in time.
  *
+ * Note:
+ * This is flaky by definition but given the Logcat ambiguous format, it's the best we can do.
+ *
  * This class is derived from [com.android.tools.idea.logcat.AndroidLogcatReceiver]
  */
 internal class LogcatMessageAssembler(
@@ -62,6 +60,7 @@ internal class LogcatMessageAssembler(
   private val channel: SendChannel<List<LogcatMessage>>,
   processNameMonitor: ProcessNameMonitor,
   coroutineContext: CoroutineContext,
+  private val lastMessageDelayMs: Long,
 ) : Disposable {
   private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
 
@@ -113,7 +112,8 @@ internal class LogcatMessageAssembler(
     // If there is a valid last message in the batch, queue it for sending in case there is no imminent next batch coming
     if (batch.lastHeader != null && batch.lastLines.isNotEmpty()) {
       coroutineScope.launch {
-        delay(DELAY_MILLIS)
+        // This is flaky by definition but given the Logcat ambiguous format, it's the best we can do. See class KDoc
+        delay(lastMessageDelayMs)
         val message = getAndResetPendingMessage(partialMessage)
         if (message != null) {
           channel.send(listOf(message))

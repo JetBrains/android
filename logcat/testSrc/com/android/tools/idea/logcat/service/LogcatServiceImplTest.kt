@@ -49,7 +49,7 @@ import java.net.Socket
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit.MILLISECONDS
-
+import java.util.concurrent.TimeUnit.SECONDS
 
 /**
  * A Logcat message that's sent as the last message to a device so that we can wait for it before terminating FakeAdbRule
@@ -113,7 +113,8 @@ class LogcatServiceImplTest {
     val job = launch {
       try {
         service.readLogcat(device.device).collect {}
-      } catch (e: EOFException) {
+      }
+      catch (e: EOFException) {
         // We sometimes (~1%) get an EOFException when the ADB Server terminates
       }
     }
@@ -210,9 +211,16 @@ class LogcatServiceImplTest {
 
       More error information
     """.trimIndent()
-    val service = logcatServiceImpl(
+    // This test is flaky because the underlying code has a 100ms delay before consuming the last log entry from the server. If the server
+    // takes a bit too long to terminate, the delay expires and the error message is consumed as a normal message rather than an error
+    // message. We pass a longer delay to LogcatServiceImpl to prevent LogcatMessageAssembler from consuming the last message before the
+    // server terminates.
+    val service = LogcatServiceImpl(
+      projectRule.project,
       deviceServicesFactory = { fakeAdb.createAdbSession(closeables).deviceServices },
-      processNameMonitor = fakeProcessNameMonitor)
+      processNameMonitor = fakeProcessNameMonitor,
+      lastMessageDelayMs = SECONDS.toMillis(10),
+    )
     val deviceState = fakeAdb.attachDevice(device30)
     deviceState.addLogcatMessage(logcat)
 
