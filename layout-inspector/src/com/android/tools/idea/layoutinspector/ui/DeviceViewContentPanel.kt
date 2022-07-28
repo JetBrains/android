@@ -31,7 +31,6 @@ import com.android.tools.idea.layoutinspector.model.getEmphasizedBorderOutlineTh
 import com.android.tools.idea.layoutinspector.model.getFoldStroke
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
