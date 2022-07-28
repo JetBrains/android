@@ -38,7 +38,6 @@ import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
-import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -79,6 +78,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.idea.util.toDisplayString
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
 import com.intellij.notification.Notification
