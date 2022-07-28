@@ -68,11 +68,10 @@ class IssuePanelServiceTest {
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
 
-    invokeAndWaitIfNeeded {
+    runInEdtAndWait {
       service = IssuePanelService.getInstance(rule.project)
       service.initIssueTabs(toolWindow)
     }
-
   }
 
   @After
@@ -162,7 +161,7 @@ class IssuePanelServiceTest {
   fun testSetVisibility() {
     val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
     toolWindow.hide()
-    val service = IssuePanelService.getInstance(rule.project).apply { initIssueTabs(toolWindow) }
+    val service = IssuePanelService.getInstance(rule.project).apply { runInEdtAndWait { initIssueTabs(toolWindow) } }
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
 
     runInEdtAndWait {
@@ -220,7 +219,7 @@ class IssuePanelServiceTest {
     assertEquals("Layout and Qualifiers", content.displayName)
   }
 
-  @Ignore("http://b/240368809")
+  @RunsInEdt
   @Test
   fun testSelectFirstTabWhenSharedIssuePanelIsRemoved() {
     service.setSharedIssuePanelVisibility(true)
@@ -234,14 +233,14 @@ class IssuePanelServiceTest {
     }
 
     service.setSharedIssuePanelVisibility(true)
-    // It should select the shared issue panel, which should be the last content.
+    // It should select the shared issue panel.
     assertEquals(contentManager.selectedContent,
-                 contentManager.getContent(contentManager.contentCount - 1))
+                 contentManager.findContent("Designer"))
 
     service.removeSharedIssueTabFromProblemsPanel()
-    // It should select the first tab, because the shared issue panel is gone.
+    // It should select the first tab, which is the "Current File" tab.
     assertEquals(contentManager.selectedContent,
-                 contentManager.getContent(0))
+                 contentManager.findContent("Current File"))
   }
 
   @RunsInEdt
@@ -265,12 +264,13 @@ class IssuePanelServiceTest {
     assertEquals("Layout and Qualifiers", service.getSharedIssuePanelTabTitle())
   }
 
+  @RunsInEdt
   @Test
   fun testIssuePanelNotPinnable() {
     service.setSharedIssuePanelVisibility(true)
 
     val manager = toolWindow.contentManager
-    val tab = manager.getContent(manager.contentCount - 1)!!
+    val tab = manager.findContent("Designer")
     assertFalse(tab.isPinnable)
   }
 
