@@ -155,7 +155,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
   @Test
   fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() {
     val inspector = createAndOpenInspector()
-
+    UIUtil.pump() // Wait for UI to dispatch all events
     // When first opening the inspector, we show the panel informing there are no supported animations to be displayed
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane.parent)
