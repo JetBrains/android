@@ -29,7 +29,6 @@ import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.FileUtils;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -61,7 +60,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JComponent;
@@ -410,10 +408,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       return Optional.empty();
     }
 
-    FileEditorProvider[] providers = FileEditorProviderManager.getInstance().getProviders(myProject, file);
-
+    List<FileEditorProvider> providers = FileEditorProviderManager.getInstance().getProviderList(myProject, file);
     // Skip 9 patch editor since nine patch information has been stripped out.
-    return Arrays.stream(providers).filter(
+    return providers.stream().filter(
       fileEditorProvider -> !fileEditorProvider.getClass().getName().equals("com.android.tools.idea.editors.NinePatchEditorProvider")).findFirst();
   }
 }

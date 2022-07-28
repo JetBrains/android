@@ -399,8 +399,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private @NotNull FileEditorProvider getImageFileEditorProvider() {
-    FileEditorProvider[] providers = FileEditorProviderManager.getInstance().getProviders(myProject, myBackingFile);
-    assert providers.length > 0;
+    List<FileEditorProvider> providers = FileEditorProviderManager.getInstance().getProviderList(myProject, myBackingFile);
+    assert providers.size() > 0;
 
     // Note: In case there are multiple providers for image files, we'd prefer to get the bundled
     // image editor, but we don't have access to any of its implementation details so we rely
@@ -411,7 +411,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       }
     }
 
-    return providers[0];
+    return providers.get(0);
   }
 
   @Override
