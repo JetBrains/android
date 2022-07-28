@@ -1,2 +1,3 @@
 rootProject.name='kotlinMultiPlatform'
 include ':app', ':module2'
+//include ':jsModule' // Do not remove - used in TestProjectKt.patchMppProject.

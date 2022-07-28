@@ -127,6 +127,12 @@ enum class TestProject(
     isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true) }
   ),
+  KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "hierarchical_withjs",
+    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { patchMppProject(it, enableHierarchicalSupport = true, addJsModule = true) }
+  ),
   KOTLIN_MULTIPLATFORM_JVM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm",
@@ -235,7 +241,8 @@ private fun patchMppProject(
   enableHierarchicalSupport: Boolean,
   convertAppToKmp: Boolean = false,
   addJvmTo: List<String> = emptyList(),
-  addIntermediateTo: List<String> = emptyList()
+  addIntermediateTo: List<String> = emptyList(),
+  addJsModule: Boolean = false
 ) {
   if (enableHierarchicalSupport) {
     projectRoot.resolve("gradle.properties").replaceInContent(
@@ -282,6 +289,13 @@ private fun patchMppProject(
         |  }
       """.trimMargin()
     )
+  }
+  if (addJsModule) {
+    projectRoot.resolve("settings.gradle")
+      .replaceInContent("//include ':jsModule'", "include ':jsModule'")
+    // "org.jetbrains.kotlin.js" conflicts with "clean" task.
+    projectRoot.resolve("build.gradle")
+      .replaceInContent("task clean(type: Delete)", "task clean1(type: Delete)")
   }
 }
 

@@ -104,6 +104,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL),
+      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP),

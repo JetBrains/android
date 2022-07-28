@@ -137,7 +137,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   private val myModuleDataByGradlePath: MutableMap<GradleProjectPath, DataNode<out ModuleData>> = mutableMapOf()
   private val myGradlePathByModuleId: MutableMap<String?, GradleProjectPath> = mutableMapOf()
   private var myResolvedModuleDependencies: IdeResolvedLibraryTable? = null
-  private val myKotlinCacheOriginIdentifiers: MutableList<Long> = mutableListOf()
+  private val myKotlinCacheOriginIdentifiers: MutableSet<Long> = mutableSetOf()
 
   constructor() : this(CommandLineArgs())
 
@@ -227,14 +227,11 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   private fun recordKotlinCacheOriginIdentifiers(gradleModule: IdeaModule) {
     val mppModel = resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java)
     val kotlinModel = resolverCtx.getExtraProject(gradleModule, KotlinGradleModel::class.java)
-    if (mppModel != null && kotlinModel != null) {
-      check(mppModel.cacheAware.cacheOriginIdentifier == kotlinModel.cacheAware.cacheOriginIdentifier) { "Mpp and Kotlin model cacheOriginIdentifier's do not match" }
+    if (mppModel != null) {
+      myKotlinCacheOriginIdentifiers.add(mppModel.cacheAware.cacheOriginIdentifier)
     }
-    var cacheOriginIdentifier = 0L
-    if (mppModel != null) cacheOriginIdentifier = mppModel.cacheAware.cacheOriginIdentifier
-    if (kotlinModel != null) cacheOriginIdentifier = kotlinModel.cacheAware.cacheOriginIdentifier
-    if (cacheOriginIdentifier != 0L) {
-      myKotlinCacheOriginIdentifiers.add(cacheOriginIdentifier)
+    if (kotlinModel != null) {
+      myKotlinCacheOriginIdentifiers.add(kotlinModel.cacheAware.cacheOriginIdentifier)
     }
   }
 

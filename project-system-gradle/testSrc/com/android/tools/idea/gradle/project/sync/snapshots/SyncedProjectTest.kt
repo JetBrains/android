@@ -156,6 +156,9 @@ abstract class SyncedProjectTest(
   fun testKotlinMultiplatform_hierarchical() = testProject(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL)
 
   @Test
+  fun testKotlinMultiplatform_hierarchical_withJs() = testProject(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS)
+
+  @Test
   fun testKotlinMultiplatform_jvm() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM)
 
   @Test

@@ -37,7 +37,7 @@ class KotlinProperties(private val data: Map<Long, Map<Int, String?>>) {
 
   companion object {
     @JvmStatic
-    fun createKotlinProperties(cacheOriginIdentifiers: List<Long>): KotlinProperties {
+    fun createKotlinProperties(cacheOriginIdentifiers: Collection<Long>): KotlinProperties {
       return KotlinProperties(
         cacheOriginIdentifiers
           .mapNotNull {
@@ -51,7 +51,7 @@ class KotlinProperties(private val data: Map<Long, Map<Int, String?>>) {
   }
 }
 
-fun DataNode<ProjectData>.preserveKotlinUserDataInDataNodes(cacheOriginIdentifiers: List<Long>) {
+fun DataNode<ProjectData>.preserveKotlinUserDataInDataNodes(cacheOriginIdentifiers: Collection<Long>) {
   createChild(AndroidGradleProjectResolver.KOTLIN_PROPERTIES, KotlinProperties.createKotlinProperties(cacheOriginIdentifiers))
 }
 
