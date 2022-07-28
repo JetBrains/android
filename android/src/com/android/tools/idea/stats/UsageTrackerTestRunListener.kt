@@ -18,18 +18,11 @@ package com.android.tools.idea.stats
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.android.tools.idea.gradle.model.IdeTestOptions.Execution
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.model.TestExecutionOption
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
-
-fun Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
-  Execution.ANDROID_TEST_ORCHESTRATOR, Execution.ANDROIDX_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
-  Execution.HOST, null -> TestRun.TestExecution.HOST
-  else -> TestRun.TestExecution.UNKNOWN_TEST_EXECUTION
-}
 
 /**
  * [ITestRunListener] that builds an [AndroidStudioEvent] and logs it once the run is finished.

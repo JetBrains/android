@@ -27,7 +27,6 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.stats.UsageTrackerTestRunListener
-import com.android.tools.idea.stats.toProtoValue
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.gradleModule
@@ -153,12 +152,6 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
         testLibraries = TestLibraries.getDefaultInstance()
         build()
       })
-    }
-  }
-
-  fun testExecutionMapping() {
-    for (execution in IdeTestOptions.Execution.values()) {
-      assertThat(execution.toProtoValue()).isNotEqualTo(TestRun.TestExecution.UNKNOWN_TEST_EXECUTION)
     }
   }
 }

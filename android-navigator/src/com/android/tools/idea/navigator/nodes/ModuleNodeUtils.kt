@@ -18,7 +18,6 @@
 package com.android.tools.idea.navigator.nodes
 
 import com.android.tools.idea.apk.ApkFacet
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
@@ -29,7 +28,6 @@ import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.ArrayList
 
 /**
  * Creates Android project view nodes for a given [project].
@@ -43,7 +41,6 @@ fun createChildModuleNodes(
   submodules.forEach { module ->
     val apkFacet = ApkFacet.getInstance(module)
     val androidFacet = AndroidFacet.getInstance(module)
-    val ndkFacet = NdkFacet.getInstance(module)
     when {
       androidFacet != null && apkFacet != null -> {
         children.add(ApkModuleNode(project, module, androidFacet, apkFacet, settings))

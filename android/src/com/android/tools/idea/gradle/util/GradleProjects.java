@@ -18,19 +18,14 @@ package com.android.tools.idea.gradle.util;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Objects;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -116,27 +111,5 @@ public final class GradleProjects {
     VirtualFile target = findGradleTarget(importSource);
     return target != null && (GradleConstants.EXTENSION.equals(target.getExtension()) ||
                               target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
-  }
-
-  public static boolean isIdeaAndroidModule(@NotNull Module module) {
-    if (GradleFacet.getInstance(module) != null) {
-      return true;
-    }
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet != null && AndroidModel.isRequired(androidFacet)) {
-      return true;
-    }
-    return false;
-  }
-
-  /** Checks if the given project contains a module that contains code built by Android Studio's C++ support. */
-  public static boolean containsExternalCppProjects(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-      if (ndkModuleModel != null) {
-        return true;
-      }
-    }
-    return false;
   }
 }
