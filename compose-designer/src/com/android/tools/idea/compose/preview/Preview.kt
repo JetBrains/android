@@ -755,7 +755,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }
         )
           .conflate()
-          .collectLatest {
+          .collect {
             if (FastPreviewManager.getInstance(project).isEnabled) {
               try {
                 requestFastPreviewRefresh()
@@ -763,7 +763,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               catch (_: Throwable) {
                 // Ignore any cancellation exceptions
               }
-              return@collectLatest
+              return@collect
             }
 
             if (!PreviewPowerSaveManager.isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
@@ -1211,7 +1211,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           result = fastCompile(this@ComposePreviewRepresentation, it, requestTracker = requestTracker)
           if (result is CompilationResult.Success) {
             val refreshStartMs = System.currentTimeMillis()
-            forceRefresh()?.invokeOnCompletion { throwable ->
+            val refreshJob = forceRefresh()
+            refreshJob?.invokeOnCompletion { throwable ->
               if (throwable == null) {
                 requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
               }
@@ -1220,6 +1221,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               }
               composeWorkBench.updateVisibilityAndNotifications()
             }
+            refreshJob?.join()
           }
           else {
             // Compilation failed, report the refresh as failed too
