@@ -103,6 +103,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JViewport
+import javax.swing.plaf.basic.BasicScrollBarUI
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
@@ -780,6 +781,14 @@ class MyViewportLayoutManagerTest {
   fun setUp() {
     contentPanel = JPanel()
     scrollPane = JBScrollPane(contentPanel)
+
+    // Avoid MacScrollBarUI setting making the scrollbars opaque.
+    // That would make these test fail if they are run multiple times on Mac.
+    scrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
+    scrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
+    scrollPane.horizontalScrollBar.isOpaque = false
+    scrollPane.verticalScrollBar.isOpaque = false
+
     scrollPane.size = Dimension(502, 202)
     scrollPane.preferredSize = Dimension(502, 202)
     contentPanel.preferredSize = Dimension(1000, 1000)
