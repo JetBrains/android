@@ -1,21 +1,22 @@
 // Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.stats
 
-import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.internal.statistic.service.fus.collectors.FUStateUsagesLogger
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.extensions.InternalIgnoreDependencyViolation
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.ProjectManagerListener
-import kotlinx.coroutines.runBlocking
-import java.util.Collections
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
+import com.intellij.openapi.startup.ProjectPostStartupActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * AndroidStudioStatisticsJobScheduler schedules a periodic task to log project
@@ -25,48 +26,45 @@ import java.util.concurrent.TimeUnit
  * with the IntelliJ specific code removed. This class will be removed once IntelliJ's scheduler
  * is split into multiple classes.
  */
-
 @InternalIgnoreDependencyViolation
-internal object AndroidStudioStatisticsJobScheduler : ApplicationInitializedListener {
-  private const val LOG_APPLICATION_STATES_INITIAL_DELAY_IN_MIN = 10
-  private const val LOG_APPLICATION_STATES_DELAY_IN_MIN = 24 * 60
-  private const val LOG_PROJECTS_STATES_INITIAL_DELAY_IN_MIN = 1
-  private const val LOG_PROJECTS_STATES_DELAY_IN_MIN = 12 * 60
-  private val persistStatisticsSessionsMap
-    = Collections.synchronizedMap(HashMap<Project, Future<*>>())
+private class AndroidStudioStatisticsJobScheduler : ApplicationInitializedListener {
+  override suspend fun execute(asyncScope: CoroutineScope) {
+    asyncScope.launch {
+      if (!StatisticsUploadAssistant.isSendAllowed()) {
+        return@launch
+      }
 
-  override fun componentsInitialized() {
-    if (!StatisticsUploadAssistant.isSendAllowed()) return
-    JobScheduler.getScheduler().scheduleWithFixedDelay({
-                                                         runBlocking { FUStateUsagesLogger.create().logApplicationStates() }
-                                                       },
-      LOG_APPLICATION_STATES_INITIAL_DELAY_IN_MIN.toLong(),
-      LOG_APPLICATION_STATES_DELAY_IN_MIN.toLong(), TimeUnit.MINUTES)
+      delay(10.minutes)
+      while (true) {
+        FUStateUsagesLogger.create().logApplicationStates()
+        delay((24 * 60).minutes)
+      }
+    }
+  }
 
-    val connection = ApplicationManager.getApplication().messageBus.connect()
-    connection.subscribe(ProjectManager.TOPIC, object : ProjectManagerListener {
-      override fun projectOpened(project: Project) {
-        val scheduledFuture = JobScheduler.getScheduler().schedule(
-          {
-            //wait until initial indexation will be finished
-            DumbService.getInstance(project).runWhenSmart {
-              val future = JobScheduler.getScheduler()
-                .scheduleWithFixedDelay(
-                  {
-                    runBlocking { FUStateUsagesLogger.create().logProjectStates(project, EmptyProgressIndicator()) }
-                  },
-                  0, LOG_PROJECTS_STATES_DELAY_IN_MIN.toLong(), TimeUnit.MINUTES)
-              persistStatisticsSessionsMap[project] = future
+  class MyStartupActivity : ProjectPostStartupActivity {
+    init {
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        throw ExtensionNotApplicableException.create()
+      }
+    }
+
+    override suspend fun execute(project: Project) {
+      coroutineScope {
+        delay(1.minutes)
+        // wait until initial indexation will be finished
+        DumbService.getInstance(project).runWhenSmart {
+          launch {
+            while (true) {
+              FUStateUsagesLogger.create().logProjectStates(project, EmptyProgressIndicator())
+              delay((12 * 60).minutes)
             }
-          }, LOG_PROJECTS_STATES_INITIAL_DELAY_IN_MIN.toLong(), TimeUnit.MINUTES)
-        persistStatisticsSessionsMap[project] = scheduledFuture
-      }
+          }
+        }
 
-      override fun projectClosed(project: Project) {
-        val future = persistStatisticsSessionsMap.remove(project)
-        future?.cancel(true)
+        awaitCancellation()
       }
-    })
+    }
   }
 }
 
