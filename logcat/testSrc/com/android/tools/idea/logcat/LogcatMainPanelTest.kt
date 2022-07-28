@@ -608,7 +608,7 @@ class LogcatMainPanelTest {
 
     logcatService.logMessages(message1)
 
-    assertThat(logcatMainPanel.logcatServiceJob).isNotNull()
+    waitForCondition { logcatMainPanel.logcatServiceJob != null }
     waitForCondition { logcatMainPanel.messageBacklog.get().messages.isNotEmpty() }
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
