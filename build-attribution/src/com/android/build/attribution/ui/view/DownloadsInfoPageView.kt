@@ -15,26 +15,14 @@
  */
 package com.android.build.attribution.ui.view
 
-import com.android.build.attribution.analyzers.DownloadsAnalyzer
-import com.android.build.attribution.ui.durationString
-import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.DownloadsInfoPageModel
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.setEmptyState
-import com.intellij.openapi.util.text.Formats
-import com.intellij.ui.CollectionListModel
-import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
-import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBList
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
-import java.awt.Component
-import javax.swing.BoxLayout
-import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 
@@ -58,7 +46,7 @@ class DownloadsInfoPageView(
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
     tableHeader.reorderingAllowed = false
-    setEmptyState("Select one or more repositories on the left to see requests info.")
+    setEmptyState("Select repositories on the left to read request details")
   }
 
   override val component: JPanel = JPanel().apply {
@@ -66,7 +54,7 @@ class DownloadsInfoPageView(
     border = JBUI.Borders.empty(20)
     layout = BorderLayout(0, JBUI.scale(10))
 
-    val pageHeaderText = "This table shows time Gradle took to download artifacts from repositories."
+    val pageHeaderText = "Time required for Grade to download artifacts from repositories"
     add(JBLabel(pageHeaderText), BorderLayout.NORTH)
     val splitter = OnePixelSplitter(0.4f)
     splitter.firstComponent = createScrollPane(resultsTable)
