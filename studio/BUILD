@@ -805,3 +805,6 @@ iml_test(
     module = ":intellij.android.studio.integration",
     test_class = "com.android.tools.idea.UpdateTest",
 )
+
+# TODO(b/239839457): Remove this export when a real metadata file is generated.
+exports_files(["metadata.textproto.template"])
