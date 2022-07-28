@@ -27,9 +27,8 @@ import javax.swing.JComponent
  *
  * TODO(b/239802877): add toolbar functionality similar for the Compose one.
  */
-internal class GlancePreviewActionManager(
-  private val surface: DesignSurface<LayoutlibSceneManager>
-) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
+class GlancePreviewActionManager(private val surface: DesignSurface<LayoutlibSceneManager>) :
+  ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
   override fun registerActionsShortcuts(component: JComponent) {}
 
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()

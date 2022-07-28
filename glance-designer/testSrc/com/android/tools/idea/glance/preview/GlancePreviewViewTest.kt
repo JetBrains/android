@@ -23,7 +23,6 @@ import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.glance.preview.mvvm.PreviewView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.project.Project
@@ -67,7 +66,7 @@ class GlancePreviewViewTest {
 
   private lateinit var fakeUi: FakeUi
 
-  private lateinit var previewView: PreviewView
+  private lateinit var previewView: GlancePreviewView
 
   @RunsInEdt
   @Before

@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.glance.preview.mvvm
 
-import com.android.annotations.concurrency.UiThread
-import com.android.tools.adtui.stdui.ActionData
-import com.android.tools.adtui.stdui.UrlData
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import javax.swing.JComponent
 
-/** Preview View interface in the MVVM pattern. Intended to be accessed by the ViewModel. */
-interface PreviewView {
-  @UiThread
-  fun showErrorMessage(message: String, recoveryUrl: UrlData?, actionToRecover: ActionData?)
+/**
+ * Interface that should be implemented by the view exposing the API that is accessed by the
+ * [PreviewRepresentation] implementation for updating the previews for the [PreviewElement]s.
+ */
+interface PreviewRepresentationView {
+  val component: JComponent
 
-  @UiThread fun showLoadingMessage(message: String)
-
-  @UiThread fun showContent()
-
-  @UiThread fun updateToolbar()
+  val surface: NlDesignSurface
 }

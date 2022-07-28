@@ -23,6 +23,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.glance.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.glance.preview.mvvm.PreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
@@ -38,7 +39,7 @@ class GlancePreviewView(
   private val project: Project,
   surfaceBuilder: NlDesignSurface.Builder,
   parentDisposable: Disposable,
-) : PreviewView {
+) : PreviewView, PreviewRepresentationView {
 
   override val surface = surfaceBuilder.build()
 
