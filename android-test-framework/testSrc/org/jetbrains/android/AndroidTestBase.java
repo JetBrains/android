@@ -115,9 +115,11 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     }
     myFixture = null;
 
-    super.tearDown();
-
-    mockitoCleaner.cleanupAndTearDown();
+    try {
+      super.tearDown();
+    } finally {
+      mockitoCleaner.cleanupAndTearDown();
+    }
     checkUndisposedAndroidRelatedObjects();
   }
 
