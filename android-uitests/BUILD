@@ -1487,7 +1487,7 @@ java_test(
 java_test(
     name = "NewComposeProjectTest",
     size = "large",
-    timeout = "moderate",
+    timeout = "long",
     data = COMMON_DATA,
     flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.NewComposeProjectTest"],
