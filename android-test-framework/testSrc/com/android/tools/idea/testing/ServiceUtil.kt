@@ -34,7 +34,7 @@ import com.intellij.testFramework.replaceService
 fun <T : Any> ComponentManager.registerServiceInstance(serviceInterface: Class<T>, instance: T, parentDisposable: Disposable) {
   if (getService(serviceInterface) == null) {
     registerServiceInstance(serviceInterface, instance)
-    Disposer.register(parentDisposable) { (this as ComponentManagerImpl).unregisterComponent(serviceInterface.name) }
+    Disposer.register(parentDisposable) { (this as ComponentManagerImpl).unregisterComponent(serviceInterface) }
     return
   }
 
