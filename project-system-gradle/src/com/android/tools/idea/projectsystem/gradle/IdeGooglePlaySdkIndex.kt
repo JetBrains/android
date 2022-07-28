@@ -21,7 +21,6 @@ import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex.Companion.GOOGLE_PLAY_SDK_INDEX_KEY
-import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.LintFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_CACHING_ERROR
@@ -45,6 +44,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
+  val logger = Logger.getInstance(this::class.java)
+
   override fun readUrlData(url: String, timeout: Int): ByteArray? = HttpRequests
     .request(URL(url).toExternalForm())
     .connectTimeout(timeout)
@@ -52,7 +53,7 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
     .readBytes(null)
 
   override fun error(throwable: Throwable, message: String?) =
-    Logger.getInstance(this::class.java).error(message, throwable)
+    logger.error(message, throwable)
 
   override fun logNonCompliant(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
@@ -71,16 +72,21 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
 
   override fun logIndexLoadedCorrectly() {
     super.logIndexLoadedCorrectly()
+    logger.info("SDK Index data loaded correctly")
     logTrackerEvent(SDK_INDEX_LOADED_CORRECTLY)
   }
 
   override fun logCachingError(message: String?) {
     super.logCachingError(message)
+    val warnMsg = if (message.isNullOrEmpty()) "" else ": $message"
+    logger.warn("Could not use data from cache$warnMsg")
     logTrackerEvent(SDK_INDEX_CACHING_ERROR)
   }
 
   override fun logErrorInDefaultData(message: String?) {
     super.logErrorInDefaultData(message)
+    val warnMsg = if (message.isNullOrEmpty()) "" else ": $message"
+    logger.warn("Could not use default SDK Index$warnMsg")
     logTrackerEvent(SDK_INDEX_DEFAULT_DATA_ERROR)
   }
 
@@ -98,7 +104,7 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
    * Initialize the SDK index and set flags according to StudioFlags
    */
   fun initializeAndSetFlags() {
-    initialize();
+    initialize()
     showCriticalIssues = StudioFlags.SHOW_SDK_INDEX_CRITICAL_ISSUES.get()
     showMessages = StudioFlags.SHOW_SDK_INDEX_MESSAGES.get()
     showLinks = StudioFlags.INCLUDE_LINKS_TO_SDK_INDEX.get()
