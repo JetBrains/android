@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.whatsnew.assistant
 
-import com.android.build.attribution.BuildAttributionStateReporter
-import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.tools.idea.whatsnew.assistant.actions.AppInspectionShowAction
-import com.android.tools.idea.whatsnew.assistant.actions.BuildAnalyzerShowAction
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantUpdateEvent.ActionButtonEvent
 import com.intellij.openapi.project.Project
 
@@ -49,7 +46,6 @@ class ActionButtonMetricsEventBuilder {
   ): ActionButtonEvent.Builder {
     createdActions.add(actionKey)
     return when (actionKey) {
-      BuildAnalyzerShowAction.ACTION_KEY -> buildAnalyzerActionEventBuilder(project, actionEventType)
       AppInspectionShowAction.ACTION_KEY -> appInspectionActionEventBuilder(project, actionEventType)
       else -> commonActionEventBuilder(ActionButtonEvent.ActionButtonType.UNKNOWN_BUTTON, actionEventType)
     }
@@ -62,20 +58,6 @@ class ActionButtonMetricsEventBuilder {
     return ActionButtonEvent.newBuilder().also {
       it.actionButtonType = actionButtonType
       it.eventType = actionEventType
-    }
-  }
-
-  private fun buildAnalyzerActionEventBuilder(project: Project, actionEventType: ActionButtonEvent.EventType): ActionButtonEvent.Builder {
-    return commonActionEventBuilder(ActionButtonEvent.ActionButtonType.BUILD_ANALYZER_SHOW, actionEventType).apply {
-      val featureState = BuildAttributionUiManager.getInstance(project).stateReporter.currentState()
-      actionButtonState = when (featureState) {
-        BuildAttributionStateReporter.State.REPORT_DATA_READY -> ActionButtonEvent.ActionButtonState.BUILD_ANALYZER_DATA_READY
-        BuildAttributionStateReporter.State.NO_DATA -> ActionButtonEvent.ActionButtonState.BUILD_ANALYZER_NO_DATA
-        BuildAttributionStateReporter.State.NO_DATA_BUILD_RUNNING -> ActionButtonEvent.ActionButtonState.BUILD_ANALYZER_BUILD_RUNNING
-        BuildAttributionStateReporter.State.NO_DATA_BUILD_FAILED_TO_FINISH -> ActionButtonEvent.ActionButtonState.BUILD_ANALYZER_BUILD_FAILED
-        BuildAttributionStateReporter.State.AGP_VERSION_LOW -> ActionButtonEvent.ActionButtonState.BUILD_ANALYZER_AGP_VERSION_LOW
-        BuildAttributionStateReporter.State.FEATURE_TURNED_OFF -> ActionButtonEvent.ActionButtonState.UNKNOWN_STATE
-      }
     }
   }
 
