@@ -142,9 +142,8 @@ class TestConnectDebuggerTask(project: Project, applicationIdProvider: Applicati
   override fun launchDebugger(currentLaunchInfo: LaunchInfo,
                               client: Client,
                               state: ProcessHandlerLaunchStatus,
-                              printer: ProcessHandlerConsolePrinter): ProcessHandler? {
+                              printer: ProcessHandlerConsolePrinter) {
     launchInvocations++
-    return null
   }
 }
 

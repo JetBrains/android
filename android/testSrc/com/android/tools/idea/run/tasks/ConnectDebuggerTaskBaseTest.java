@@ -20,7 +20,6 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
-import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.ApkProvisionException;
@@ -30,7 +29,6 @@ import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.project.Project;
 import java.util.Arrays;
@@ -258,13 +256,12 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
       myOnTick = onTick;
     }
 
-    @Nullable
     @Override
-    public ProcessHandler launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
-                                         @NotNull Client client,
-                                         @NotNull ProcessHandlerLaunchStatus state,
-                                         @NotNull ProcessHandlerConsolePrinter printer) {
-      return null;
+    public void launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
+                               @NotNull Client client,
+                               @NotNull ProcessHandlerLaunchStatus state,
+                               @NotNull ProcessHandlerConsolePrinter printer) {
+      return;
     }
 
     @Nullable

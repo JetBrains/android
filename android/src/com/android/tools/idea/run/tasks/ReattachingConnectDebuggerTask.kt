@@ -20,7 +20,6 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.executeOnPooledThread
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.debug.startJavaReattachingDebugger
@@ -65,7 +64,7 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
   private var myReattachingListener: AndroidDebugBridge.IClientChangeListener? = null
 
   override fun perform(
-    launchInfo: LaunchInfo, device: IDevice, status: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter): ProcessHandler? {
+    launchInfo: LaunchInfo, device: IDevice, status: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter) {
     if (base is ConnectJavaDebuggerTask) {
       val processHandler: ProcessHandler = status.processHandler
       // Reuse the current ConsoleView to retain the UI state and not to lose test results.
@@ -83,7 +82,6 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
         )
           .then { runInEdt { it.showSessionTab() } }
       }
-      return null
     }
 
     // Unregister the previous listener just in case there is the old one.
@@ -109,7 +107,6 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
 
     listener?.onStart(launchInfo, device, this)
 
-    return null  // Return value is not used
   }
 
   /**

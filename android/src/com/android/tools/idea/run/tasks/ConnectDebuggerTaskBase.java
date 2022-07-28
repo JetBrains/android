@@ -29,7 +29,6 @@ import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
@@ -99,17 +98,17 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
   }
 
   @Override
-  public ProcessHandler perform(@NotNull final LaunchInfo launchInfo,
-                                @NotNull IDevice device,
-                                @NotNull final ProcessHandlerLaunchStatus state,
-                                @NotNull final ProcessHandlerConsolePrinter printer) {
+  public void perform(@NotNull final LaunchInfo launchInfo,
+                      @NotNull IDevice device,
+                      @NotNull final ProcessHandlerLaunchStatus state,
+                      @NotNull final ProcessHandlerConsolePrinter printer) {
     final Client client = waitForClient(device, state, printer);
     if (client == null) {
       logger().warn("No client found, can not launch debugger.");
-      return null;
+      return;
     }
 
-    return UIUtil.invokeAndWaitIfNeeded(() -> launchDebugger(launchInfo, client, state, printer));
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> launchDebugger(launchInfo, client, state, printer));
   }
 
   @Nullable
@@ -194,9 +193,8 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
     return true;
   }
 
-  @Nullable
-  public abstract ProcessHandler launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
-                                                @NotNull Client client,
-                                                @NotNull ProcessHandlerLaunchStatus state,
-                                                @NotNull ProcessHandlerConsolePrinter printer);
+  public abstract void launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
+                                      @NotNull Client client,
+                                      @NotNull ProcessHandlerLaunchStatus state,
+                                      @NotNull ProcessHandlerConsolePrinter printer);
 }

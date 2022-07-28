@@ -19,9 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
-import com.intellij.execution.process.ProcessHandler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /** A {@link ConnectDebuggerTask} is similar to a {@link LaunchTask}, except that running it creates a new launch descriptor and process. */
 public interface ConnectDebuggerTask {
@@ -43,9 +41,8 @@ public interface ConnectDebuggerTask {
    */
   int getTimeoutSeconds();
 
-  @Nullable
-  ProcessHandler perform(@NotNull LaunchInfo launchInfo,
-                         @NotNull IDevice device,
-                         @NotNull ProcessHandlerLaunchStatus state,
-                         @NotNull ProcessHandlerConsolePrinter printer);
+  void perform(@NotNull LaunchInfo launchInfo,
+               @NotNull IDevice device,
+               @NotNull ProcessHandlerLaunchStatus state,
+               @NotNull ProcessHandlerConsolePrinter printer);
 }
