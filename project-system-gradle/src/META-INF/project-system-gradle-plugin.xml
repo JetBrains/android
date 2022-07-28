@@ -173,6 +173,9 @@
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <sendFeedbackDescriptionProvider implementation="com.android.tools.idea.feedback.GradleAndNdkSendFeedbackDescriptionProvider" />
+  </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
     <newResourceCreationHandler
       implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />

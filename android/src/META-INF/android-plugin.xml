@@ -724,6 +724,8 @@
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
     <extensionPoint qualifiedName="com.android.tools.idea.run.editor.androidDebuggerInfoProvider"
                     interface="com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.sendFeedbackDescriptionProvider"
+                    interface="com.android.tools.idea.actions.SendFeedbackDescriptionProvider" />
     <extensionPoint qualifiedName="com.android.logcat.filterProvider"
                     interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
     <extensionPoint qualifiedName="org.jetbrains.android.actions.newResourceCreationHandler"
