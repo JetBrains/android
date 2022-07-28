@@ -51,7 +51,7 @@ import kotlin.math.roundToInt
  */
 abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
 
-  private val disconnectedStateMessage = JBLabel("", SwingConstants.CENTER).apply { font = font.deriveFont(font.size * 1.2F) }
+  private val disconnectedStateMessage = JBLabel("", SwingConstants.CENTER)
   private val reconnectButton = JButton("Reconnect")
 
   private val disconnectedStatePanel = Box.createVerticalBox().apply {
