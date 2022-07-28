@@ -18,8 +18,6 @@ package com.android.build.attribution.ui
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.BuildAnalyzerNotificationManager
 import com.android.build.attribution.BuildAnalyzerStorageManager
-import com.android.build.attribution.BuildAttributionStateReporter
-import com.android.build.attribution.BuildAttributionStateReporterImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
@@ -63,11 +61,8 @@ import javax.swing.SwingConstants
 interface BuildAttributionUiManager : Disposable {
   fun onBuildFailure(buildSessionId: String)
   fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
-  fun requestOpenTabWhenDataReady(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
   fun hasDataToShow(): Boolean
   fun showNewReport(buildSessionId: String)
-
-  val stateReporter: BuildAttributionStateReporter
 
   companion object {
     fun getInstance(project: Project): BuildAttributionUiManager {
@@ -90,11 +85,7 @@ class BuildAttributionUiManagerImpl(
   @VisibleForTesting
   var buildContent: Content? = null
 
-  override val stateReporter: BuildAttributionStateReporterImpl by lazy { BuildAttributionStateReporterImpl(project, this) }
-
   private var contentManager: ContentManager? = null
-
-  private var openRequest: OpenRequest = OpenRequest.NO_REQUEST
 
   private val contentManagerListener = object : ContentManagerListener {
     override fun selectionChanged(event: ContentManagerEvent) {
@@ -121,16 +112,6 @@ class BuildAttributionUiManagerImpl(
 
   init {
     Disposer.register(project, this)
-    project.messageBus.connect(this).subscribe(
-      BuildAttributionStateReporter.FEATURE_STATE_TOPIC,
-      object : BuildAttributionStateReporter.Notifier {
-        override fun stateUpdated(newState: BuildAttributionStateReporter.State) {
-          if (newState == BuildAttributionStateReporter.State.REPORT_DATA_READY && openRequest.shouldOpen) {
-            openTab(openRequest.eventSource)
-            openRequest = OpenRequest.NO_REQUEST
-          }
-        }
-      })
     ApplicationManager.getApplication().messageBus.connect(this)
       .subscribe(LafManagerListener.TOPIC, LafManagerListener { reInitReportUI() })
   }
@@ -155,7 +136,6 @@ class BuildAttributionUiManagerImpl(
     invokeLaterIfNotDisposed {
       uiAnalytics.newReportSessionId(buildSessionId)
       updateReportUI()
-      stateReporter.setStateDataExist()
       notificationManager.showToolWindowBalloonIfNeeded(reportUiData) {
         openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BALLOON_LINK)
         (buildAttributionView as? NewViewComponentContainer)?.let {
@@ -285,15 +265,6 @@ class BuildAttributionUiManagerImpl(
     }
   }
 
-  override fun requestOpenTabWhenDataReady(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) {
-    if (stateReporter.currentState() == BuildAttributionStateReporter.State.REPORT_DATA_READY) {
-      openTab(eventSource)
-    }
-    else {
-      openRequest = OpenRequest.requestFrom(eventSource)
-    }
-  }
-
   override fun hasDataToShow(): Boolean = this::reportUiData.isInitialized && this.reportUiData.successfulBuild
 
   override fun dispose() = cleanUp()
@@ -345,16 +316,6 @@ private class BuildFailureViewComponentContainer : ComponentContainer {
   }
 
   override fun dispose() = Unit
-}
-
-private data class OpenRequest(
-  val shouldOpen: Boolean,
-  val eventSource: BuildAttributionUiAnalytics.TabOpenEventSource
-) {
-  companion object {
-    val NO_REQUEST = OpenRequest(false, BuildAttributionUiAnalytics.TabOpenEventSource.TAB_HEADER)
-    fun requestFrom(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) = OpenRequest(true, eventSource)
-  }
 }
 
 private fun BuildAttributionReportUiData.shouldAutoOpenTab() : Boolean = when {

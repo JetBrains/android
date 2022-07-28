@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <issues format="5" by="lint 7.4.0-dev">
 
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/build/attribution/ui/BuildAttributionUiManager.kt"
-            line="89"/>
-    </issue>
-
 </issues>
