@@ -105,7 +105,7 @@ public class AltEnterSuggestionsTest {
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
-
+    guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
 
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
@@ -121,7 +121,8 @@ public class AltEnterSuggestionsTest {
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
-
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
     List<String> options = editor.moreActionsOptions();
 
     assertEquals("Create class 'SomeClass'", options.get(0));
@@ -132,10 +133,11 @@ public class AltEnterSuggestionsTest {
 
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
 
-    DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Create Class SomeClass"))
-      .withTimeout(SECONDS.toMillis(90)).using(guiTest.robot());
-    convertCodeFromJavaDialog.button(withText("OK")).click();
+    DialogFixture createClassDialog = findDialog(withTitle("Create Class SomeClass"))
+      .withTimeout(SECONDS.toMillis(200)).using(guiTest.robot());
+    createClassDialog.button(withText("OK")).click();
 
+    guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
 
     ideFrame.getProjectView().assertFilesExist(
@@ -148,6 +150,8 @@ public class AltEnterSuggestionsTest {
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
 
     assertEquals("Create method 'someMethod' in 'MainActivity'", editor.moreActionsOptions().get(0));
     assertEquals("Rename reference", editor.moreActionsOptions().get(1));
