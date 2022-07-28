@@ -133,7 +133,7 @@ class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<A
     }
   }
 
-  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.values.flatten()
+  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.toMap().values.flatten()
     .filterNot { (it as? VisualLintRenderIssue)?.isSuppressed() ?: false }
     .filter(filter)
     .toList()
