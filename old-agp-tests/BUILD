@@ -213,7 +213,7 @@ local_old_agp_test(
 local_old_agp_test(
     agp_version = AGP_4_2,
     gradle_version = GRADLE_6_7_1,
-    shard_count = 3,
+    shard_count = 4,
     tags = [
         "block-network",
         "no_test_mac",
