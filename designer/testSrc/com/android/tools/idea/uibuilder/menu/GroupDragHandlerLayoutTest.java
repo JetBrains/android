@@ -28,14 +28,12 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
@@ -145,13 +143,14 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
   private static DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
     SyncNlModel model = (SyncNlModel)menu.getModel();
 
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
-    Scene scene = builder.getScene();
+    SyncLayoutlibSceneManager manager = NlModelBuilderUtil.getSyncLayoutlibSceneManagerForModel(model);
+    manager.setIgnoreRenderRequests(true);
+    Scene scene = manager.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     SceneComponent sceneComponent = scene.getSceneComponent(item);
     if (sceneComponent == null) {
-      sceneComponent = builder.createTemporaryComponent(item);
+      sceneComponent = manager.createTemporaryComponent(item);
     }
     List<NlComponent> itemAsList = Collections.singletonList(sceneComponent.getNlComponent());
     return new GroupDragHandler(mockViewEditor(model), new ViewGroupHandler(), scene.getSceneComponent(menu), itemAsList, DragType.MOVE);
