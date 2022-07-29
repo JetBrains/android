@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.ide.impl.ProjectUtilKt;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -392,10 +393,12 @@ public class GradleFiles {
       // do background ReadActions and wait for them will deadlock.  Schedule us for later on the EDT but without the write lock, for
       // consistent order of operations.
       ApplicationManager.getApplication().invokeLater(this::updateFileHashes);
-    } else {
+    }
+    else {
       // If we are not running in tests, schedule ourselves on a background thread so that we don't accidentally freeze the UI if our
       // disk IO is slow.
-      ApplicationManager.getApplication().executeOnPooledThread(this::updateFileHashes);
+      //noinspection deprecation
+      ProjectUtilKt.executeOnPooledIoThread(myProject, this::updateFileHashes);
     }
   }
 
