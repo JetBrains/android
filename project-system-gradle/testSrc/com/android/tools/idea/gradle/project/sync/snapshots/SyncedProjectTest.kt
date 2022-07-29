@@ -22,28 +22,31 @@ import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTest
 import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
 import com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.ModelVersion
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.util.IconLoader
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CoreIconManager
 import com.intellij.ui.IconManager
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesLibraryRootProvider
 import org.junit.Assume
-import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -77,7 +80,8 @@ abstract class SyncedProjectTest(
       IdeModelSnapshotComparisonTestDefinition.tests() +
         SourceProvidersTestDef.tests +
         ProjectStructureSnapshotTestDef.tests +
-        AndroidProjectViewSnapshotComparisonTestDef.tests
+        AndroidProjectViewSnapshotComparisonTestDef.tests +
+        selfChecks()
       ).groupBy { it.testProject }
   }
 
@@ -264,7 +268,12 @@ abstract class SyncedProjectTest(
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     try {
-      openPreparedProject("project${testProject.pathToOpen}") { project ->
+      openPreparedProject(
+        name = "project${testProject.pathToOpen}",
+        options = OpenPreparedProjectOptions(
+          disableKtsRelatedIndexing = true
+        )
+      ) { project ->
         waitForSourceFolderManagerToProcessUpdates(project)
         val exceptions = tests.mapNotNull {
           println("${it::class.java.simpleName}(${testProject.projectName})\n    $root")
@@ -283,17 +292,6 @@ abstract class SyncedProjectTest(
 
   private fun transformTest(testProject: TestDef): TestDef {
     return testProject.withAgpVersion(agpVersion)
-  }
-
-  @Before
-  fun before() {
-    // NOTE: We do not re-register the extensions since (1) we do not know whether we removed it and (2) there is no simple way to
-    //       re-register it by its class name. It means that this test might affect tests running after this one.
-
-    // [KotlinScriptDependenciesLibraryRootProvider] contributes a lot of classes/sources to index in order to provide Ctrl+Space
-    // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
-    // run faster.
-    AdditionalLibraryRootsProvider.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesLibraryRootProvider::class.java)
   }
 
   init {
@@ -340,4 +338,36 @@ class SelfCheck {
     val notTestedProjects = TestProject.values().filter { it !in testedProjects }
     assertThat(notTestedProjects).isEmpty()
   }
+}
+
+private fun selfChecks(): List<SyncedProjectTest.TestDef> {
+  return listOf(
+    KotlinScriptIndexingDisabled(AGP_CURRENT)
+  )
+}
+
+/**
+ * Verifies that classes normally contributed to the project scope by Gradle Kotlin scripting support are not indexed in tests.
+ */
+data class KotlinScriptIndexingDisabled(override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor) : SyncedProjectTest.TestDef {
+  override val testProject: TestProject
+    get() = TestProject.KOTLIN_GRADLE_DSL
+
+  override fun isCompatible(): Boolean {
+    return agpVersion >= AGP_70
+  }
+
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+    return copy(agpVersion = agpVersion)
+  }
+
+  override fun runTest(root: File, project: Project) {
+    assertThat(DumbService.isDumb(project)).isFalse()
+    // NOTE: This class is directly used in the test project to make sure this assertion is not outdated.
+    val files = FilenameIndex.getVirtualFilesByName("KotlinJvmCompilerArgumentsProvider.class", GlobalSearchScope.everythingScope(project))
+    assertThat(files.isEmpty()).isTrue()
+  }
+
+  override val name: String
+    get() = "KotlinScriptIndexingDisabled"
 }
