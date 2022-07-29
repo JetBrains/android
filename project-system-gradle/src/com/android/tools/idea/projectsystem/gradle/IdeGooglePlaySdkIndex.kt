@@ -57,16 +57,29 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
 
   override fun logNonCompliant(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
+    logger.warn(generatePolicyMessage(groupId, artifactId, versionString))
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, file, SDK_INDEX_LIBRARY_IS_NON_COMPLIANT)
   }
 
   override fun logHasCriticalIssues(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logHasCriticalIssues(groupId, artifactId, versionString, file)
+    val warnMsg =
+      if (hasLibraryBlockingIssues(groupId, artifactId, versionString))
+        generateBlockingCriticalMessage(groupId, artifactId, versionString)
+      else
+        generateCriticalMessage(groupId, artifactId, versionString)
+    logger.warn(warnMsg)
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, file, SDK_INDEX_LIBRARY_HAS_CRITICAL_ISSUES)
   }
 
   override fun logOutdated(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logOutdated(groupId, artifactId, versionString, file)
+    val warnMsg =
+      if (hasLibraryBlockingIssues(groupId, artifactId, versionString))
+        generateBlockingOutdatedMessage(groupId, artifactId, versionString)
+      else
+        generateOutdatedMessage(groupId, artifactId, versionString)
+    logger.warn(warnMsg)
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, file, SDK_INDEX_LIBRARY_IS_OUTDATED)
   }
 
