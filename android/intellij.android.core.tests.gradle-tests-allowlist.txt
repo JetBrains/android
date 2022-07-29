@@ -56,13 +56,9 @@ com.android.tools.idea.gradle.structure.model.PsModuleCollectionTest
 com.android.tools.idea.gradle.structure.model.PsModuleTest
 com.android.tools.idea.gradle.structure.model.PsProjectImplTest
 com.android.tools.idea.gradle.structure.model.PsVariablesTest
-com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptorsTest
 com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
-com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptorsTest
 com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest
-com.android.tools.idea.gradle.structure.model.android.PsBuildTypeTest
 com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependencyTest
-com.android.tools.idea.gradle.structure.model.android.PsProductFlavorTest
 com.android.tools.idea.gradle.structure.model.android.PsResolvedVariantCollectionTest
 com.android.tools.idea.gradle.structure.model.android.PsSigningConfigTest
 com.android.tools.idea.gradle.structure.model.helpers.ExtractVariableWorkerTest
