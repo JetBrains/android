@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb
 
+import com.android.adblib.DeviceSelector
 import com.android.adblib.ShellCollector
 import com.android.adblib.utils.TextShellCollector
 import com.android.ddmlib.AdbCommandRejectedException
@@ -33,32 +34,32 @@ import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.time.Duration
 
-class AdbShellCommandsUtil(private val myUseAdbLib: Boolean) {
+abstract class AdbShellCommandsUtil {
   private val logger = thisLogger()
 
   @Throws(TimeoutException::class, AdbCommandRejectedException::class, ShellCommandUnresponsiveException::class, IOException::class)
-  fun executeCommandBlocking(device: IDevice, command: String): AdbShellCommandResult {
+  fun executeCommandBlocking(command: String): AdbShellCommandResult {
     return runBlocking {
-      executeCommandImpl(device, command, true)
+      executeCommandImpl(command, true)
     }
   }
 
-  suspend fun executeCommand(device: IDevice, command: String): AdbShellCommandResult {
-    return executeCommandImpl(device, command, true)
+  suspend fun executeCommand(command: String): AdbShellCommandResult {
+    return executeCommandImpl(command, true)
   }
 
-  suspend fun executeCommandNoErrorCheck(device: IDevice, command: String): AdbShellCommandResult {
-    return executeCommandImpl(device, command, false)
+  suspend fun executeCommandNoErrorCheck(command: String): AdbShellCommandResult {
+    return executeCommandImpl(command, false)
   }
 
-  private suspend fun executeCommandImpl(device: IDevice, command: String, errorCheck: Boolean): AdbShellCommandResult {
+  private suspend fun executeCommandImpl(command: String, errorCheck: Boolean): AdbShellCommandResult {
     // Adding the " || echo xxx" command to the command allows us to detect non-zero status code
     // from the command by analysing the output and looking for the "xxx" marker.
     val fullCommand = if (errorCheck) command + COMMAND_ERROR_CHECK_SUFFIX else command
     val commandOutput: MutableList<String> = ArrayList()
     val stopwatch = Stopwatch.createStarted()
     val receiver = TextShellCollector()
-    commandOutput.addAll(executeCommandImpl(device, fullCommand, receiver).single().split("\r\n", "\n"))
+    commandOutput.addAll(executeCommandImpl(fullCommand, receiver).single().split("\r\n", "\n"))
     logger.info("Command took $stopwatch to execute: $command")
 
     // Look for error marker in the last 2 output lines
@@ -88,19 +89,26 @@ class AdbShellCommandsUtil(private val myUseAdbLib: Boolean) {
     return AdbShellCommandResult(command, commandOutput, isError)
   }
 
-  private fun <T> executeCommandImpl(device: IDevice, command: String, receiver: ShellCollector<T>): Flow<T> {
-    return if (myUseAdbLib) {
-      deviceServices.shell(device.toDeviceSelector(), command, receiver, commandTimeout = Duration.ofMillis(defaultDdmTimeoutMillis))
-    } else {
-      executeShellCommand(device, command, receiver)
-    }
-  }
+  abstract fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T>
 
   companion object {
     private const val ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR"
     private const val COMMAND_ERROR_CHECK_SUFFIX = " || echo $ERROR_LINE_MARKER"
 
     @JvmStatic
-    val instance = AdbShellCommandsUtil(false)
+    fun create(device: IDevice, useAdbLib: Boolean) =
+      if (useAdbLib) create(device.toDeviceSelector()) else create(device)
+
+    @JvmStatic
+    fun create(device: IDevice) = object : AdbShellCommandsUtil() {
+      override fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T> =
+        executeShellCommand(device, command, receiver)
+    }
+
+    @JvmStatic
+    fun create(device: DeviceSelector) = object : AdbShellCommandsUtil() {
+      override fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T> =
+        deviceServices.shell(device, command, receiver, commandTimeout = Duration.ofMillis(defaultDdmTimeoutMillis))
+    }
   }
 }
