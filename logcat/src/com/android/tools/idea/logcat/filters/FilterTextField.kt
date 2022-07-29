@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.logcat.LogcatBundle
@@ -56,10 +57,8 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED
 import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED_HOVER
-import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED_POPUP_HOVER
 import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE
 import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE_HOVER
-import icons.StudioIcons.Logcat.Input.FAVORITE_POPUP_HOVER
 import icons.StudioIcons.Logcat.Input.FILTER_HISTORY
 import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
 import kotlinx.coroutines.launch
@@ -632,8 +631,8 @@ internal class FilterTextField(
       override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
         // This can be mico optimized, but it's more readable like this
         favoriteLabel.icon = when {
-          isFavoriteHovered && isFavorite -> FAVORITE_FILLED_POPUP_HOVER
-          isFavoriteHovered && !isFavorite -> FAVORITE_POPUP_HOVER
+          isFavoriteHovered && isFavorite -> ColoredIconGenerator.generateWhiteIcon(FAVORITE_FILLED)
+          isFavoriteHovered && !isFavorite -> ColoredIconGenerator.generateWhiteIcon(FAVORITE_OUTLINE)
           !isFavoriteHovered && isFavorite -> FAVORITE_FILLED
           else -> BLANK_ICON
         }
