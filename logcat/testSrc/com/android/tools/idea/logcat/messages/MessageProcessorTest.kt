@@ -29,6 +29,7 @@ import com.android.tools.idea.logcat.onIdle
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.TextRange.EMPTY_RANGE
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.runBlocking
@@ -159,7 +160,7 @@ class MessageProcessorTest {
     val message2 = LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag2", timestamp), "message2")
     val messageProcessor = messageProcessor(fakeLogcatPresenter)
     val batch = listOf(message1, message2)
-    messageProcessor.logcatFilter = StringFilter("tag2", LINE)
+    messageProcessor.logcatFilter = StringFilter("tag2", LINE, EMPTY_RANGE)
     messageProcessor.appendMessages(batch)
 
     messageProcessor.onIdle {
@@ -173,7 +174,7 @@ class MessageProcessorTest {
     val message2 = LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag2", timestamp), "message2")
     val messageProcessor = messageProcessor(fakeLogcatPresenter)
     val batch = listOf(message1, message2)
-    messageProcessor.logcatFilter = StringFilter("no-such-line", LINE)
+    messageProcessor.logcatFilter = StringFilter("no-such-line", LINE, EMPTY_RANGE)
     messageProcessor.appendMessages(batch)
 
     messageProcessor.onIdle {

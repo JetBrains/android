@@ -44,6 +44,7 @@ import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
@@ -92,7 +93,7 @@ internal class LogcatFilterParser(
     }
     catch (e: LogcatFilterParseException) {
       // Any error in parsing results in a filter that matches the raw string with the entire line.
-      StringFilter(filterString, IMPLICIT_LINE)
+      StringFilter(filterString, IMPLICIT_LINE, TextRange(0, filterString.length))
     }
   }
 
@@ -118,7 +119,7 @@ internal class LogcatFilterParser(
    * It's possible to improve this method to be able to handle these cases, but it's non-trivial.
    *
    * TODO(b/236844042): Improve to Handle Complex Expressions
-￼   */
+  ￼   */
   fun removeFilterNames(filterString: String): String {
     return try {
       val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
@@ -128,7 +129,7 @@ internal class LogcatFilterParser(
         .sortedBy { it.first }
 
       val sb = StringBuilder(filterString)
-      offsets.reversed().forEach {(start, end) ->
+      offsets.reversed().forEach { (start, end) ->
         val endWithSpace = if (end < sb.length && sb[end] in arrayOf(' ', '\t')) end + 1 else end
         sb.replace(start, endWithSpace, "")
       }
@@ -144,7 +145,7 @@ internal class LogcatFilterParser(
   private fun parseInternal(filterString: String): LogcatFilter? {
     return when {
       filterString.isEmpty() -> null
-      filterString.isBlank() -> StringFilter(filterString, IMPLICIT_LINE)
+      filterString.isBlank() -> StringFilter(filterString, IMPLICIT_LINE, TextRange(0, filterString.length))
       else -> {
         val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
         if (PsiTreeUtil.hasErrorElements(psi)) {
@@ -273,7 +274,7 @@ internal class LogcatFilterParser(
       val expression = it as LogcatFilterLiteralExpression
       expression.firstChild.toText() + if (expression.nextSibling is PsiWhiteSpace) expression.nextSibling.text else ""
     }
-    return StringFilter(text.trim(), IMPLICIT_LINE)
+    return StringFilter(text.trim(), IMPLICIT_LINE, TextRange(expressions.first().startOffset, expressions.last().endOffset))
   }
 
   private fun LogcatFilterExpression.toFilter(): LogcatFilter {
@@ -288,7 +289,7 @@ internal class LogcatFilterParser(
 
   private fun LogcatFilterLiteralExpression.literalToFilter() =
     when (firstChild.elementType) {
-      VALUE -> StringFilter(firstChild.toText(), IMPLICIT_LINE)
+      VALUE -> StringFilter(firstChild.toText(), IMPLICIT_LINE, TextRange(startOffset, endOffset))
       KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock, packageNamesProvider, androidProjectDetector)
       else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1) // Should not happen
     }
@@ -299,9 +300,10 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
   packageNamesProvider: PackageNamesProvider,
   androidProjectDetector: AndroidProjectDetector,
 ): LogcatFilter {
+  val textRange = TextRange(startOffset, endOffset)
   return when (val key = firstChild.text.trim(':', '-', '~', '=')) {
-    "level" -> LevelFilter(lastChild.asLogLevel())
-    "age" -> AgeFilter(lastChild.asDuration(), clock)
+    "level" -> LevelFilter(lastChild.asLogLevel(), textRange)
+    "age" -> AgeFilter(lastChild.asDuration(), clock, textRange)
     "is" -> createIsFilter(lastChild.text)
     "name" -> createNameFilter(lastChild.toText())
     else -> {
@@ -321,30 +323,31 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
           }
         }
 
+      fun isAndroidProject() = androidProjectDetector.isAndroidProject(project)
       when {
-        isNegated && isRegex -> NegatedRegexFilter(value, field)
-        isNegated && isExact -> NegatedExactStringFilter(value, field)
-        isNegated -> NegatedStringFilter(value, field)
-        isRegex -> RegexFilter(value, field)
-        isExact -> ExactStringFilter(value, field)
-        // TODO(aalbert): Consider adding a NegatedProjectAppFilter for "-package:mine"
-        key == "package" && value == "mine" && androidProjectDetector.isAndroidProject(project) -> ProjectAppFilter(packageNamesProvider)
-        else -> StringFilter(value, field)
+        isNegated && isRegex -> NegatedRegexFilter(value, field, textRange)
+        isNegated && isExact -> NegatedExactStringFilter(value, field, textRange)
+        isNegated -> NegatedStringFilter(value, field, textRange)
+        isRegex -> RegexFilter(value, field, textRange)
+        isExact -> ExactStringFilter(value, field, textRange)
+        key == "package" && value == "mine" && isAndroidProject() -> ProjectAppFilter(packageNamesProvider, textRange)
+        else -> StringFilter(value, field, textRange)
+
       }
     }
   }
 }
 
-private fun createIsFilter(text: String): LogcatFilter {
+private fun LogcatFilterLiteralExpression.createIsFilter(text: String): LogcatFilter {
   return when {
     !StudioFlags.LOGCAT_IS_FILTER.get() -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid key: is"))
-    text == "crash" -> CrashFilter
-    text == "stacktrace" -> StackTraceFilter
+    text == "crash" -> CrashFilter(TextRange(startOffset, endOffset))
+    text == "stacktrace" -> StackTraceFilter(TextRange(startOffset, endOffset))
     else -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid filter: is:$text"))
   }
 }
 
-private fun createNameFilter(text: String): LogcatFilter = NameFilter(text)
+private fun LogcatFilterLiteralExpression.createNameFilter(text: String): LogcatFilter = NameFilter(text, TextRange(startOffset, endOffset))
 
 private fun PsiElement.asLogLevel(): LogLevel =
   LogLevel.getByString(text.lowercase())
@@ -420,8 +423,8 @@ private fun LogcatFilter.getFieldForImplicitOr(index: Int): FilterType {
     this is ExactStringFilter -> FilterType(field)
     this is LevelFilter -> FilterType("level")
     this is AgeFilter -> FilterType("age")
-    this == CrashFilter -> FilterType("is")
-    this == StackTraceFilter -> FilterType("is")
+    this is CrashFilter -> FilterType("is")
+    this is StackTraceFilter -> FilterType("is")
     else -> FilterType(index)
   }
 }

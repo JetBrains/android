@@ -85,6 +85,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.TextRange.EMPTY_RANGE
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -238,7 +240,7 @@ class LogcatMainPanelTest {
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
-      logcatMainPanel.applyFilter(StringFilter("tag1", LINE))
+      logcatMainPanel.applyFilter(StringFilter("tag1", LINE, EMPTY_RANGE))
     }
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
@@ -502,13 +504,13 @@ class LogcatMainPanelTest {
       state = LogcatPanelConfig(
         device = null,
         FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(17))),
-        "filter",
+        filter = "foo",
         isSoftWrap = true))
 
     // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow testing.
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
-    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("filter", IMPLICIT_LINE))
-    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("filter")
+    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("foo", IMPLICIT_LINE, TextRange(0, "foo".length)))
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
     assertThat(logcatMainPanel.editor.settings.isUseSoftWraps).isTrue()
   }
 
