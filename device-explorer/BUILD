@@ -27,6 +27,7 @@ iml_module(
 iml_module(
     name = "intellij.android.device-explorer.tests",
     iml_files = ["intellij.android.device-explorer.tests.iml"],
+    test_agents = ["//tools/base/threading-agent:threading_agent.jar"],
     test_class = "com.android.tools.idea.explorer.DeviceExplorerTestSuite",
     # keep sorted
     test_data = [
