@@ -316,11 +316,13 @@ class EmulatorToolWindowManagerTest {
     val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
     toolWindow.show()
 
-    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(10, TimeUnit.SECONDS) { device.agent.running }
+    assertThat(toolWindow.isVisible).isTrue()
+    assertThat(contentManager.contents.size).isEqualTo(1)
     assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
 
     agentRule.disconnectDevice(device)
-    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.running }
   }
 
   @Test

@@ -66,7 +66,6 @@ internal class DeviceClient(
   private val coroutineScope = AndroidCoroutineScope(this)
   private lateinit var controlChannel: SuspendingSocketChannel
   private lateinit var videoChannel: SuspendingSocketChannel
-  lateinit var videoDecoder: VideoDecoder
   lateinit var deviceController: DeviceController
     private set
   internal var startTime = 0L
@@ -79,18 +78,15 @@ internal class DeviceClient(
     Disposer.register(disposableParent, this)
   }
 
-  suspend fun startAgentAndConnect(maxVideoSize: Dimension, initialDisplayOrientation: Int, frameListener: VideoDecoder.FrameListener) {
+  suspend fun startAgentAndConnect(initialDisplayOrientation: Int) {
     startTime = System.currentTimeMillis()
     val adb = AdbLibService.getSession(project).deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
-    val agentPushed = coroutineScope {
-      async {
-        pushAgent(deviceSelector, adb)
-      }
-    }
+    val agentPushed = coroutineScope { async {
+      pushAgent(deviceSelector, adb)
+    }}
     pushTime = System.currentTimeMillis()
     val deviceSocket = SocketSpec.LocalAbstract("screen-sharing-agent")
-
     @Suppress("BlockingMethodInNonBlockingContext")
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
@@ -99,7 +95,7 @@ internal class DeviceClient(
       ClosableReverseForwarding(deviceSelector, deviceSocket, SocketSpec.Tcp(port), adb).use {
         it.startForwarding()
         agentPushed.await()
-        startAgent(deviceSelector, adb, maxVideoSize, initialDisplayOrientation)
+        startAgent(deviceSelector, adb, initialDisplayOrientation)
         videoChannel = serverSocketChannel.accept()
         connectionTime = System.currentTimeMillis()
         controlChannel = serverSocketChannel.accept()
@@ -108,10 +104,17 @@ internal class DeviceClient(
       }
     }
     deviceController = DeviceController(this, controlChannel)
-    videoDecoder = VideoDecoder(videoChannel, maxVideoSize)
-    videoDecoder.addFrameListener(frameListener)
-    videoDecoder.start(coroutineScope)
   }
+
+  fun createVideoDecoder(maxOutputSize: Dimension) : VideoDecoder =
+      VideoDecoder(videoChannel, maxOutputSize)
+
+  /**
+   * Starts decoding of the video stream. Video decoding continues until the video socket
+   * connection is closed, for example, by a [disconnect] call.
+   */
+  fun startVideoDecoding(decoder: VideoDecoder) =
+      decoder.start(coroutineScope)
 
   override fun dispose() {
     // Disconnect socket channels asynchronously.
@@ -154,7 +157,7 @@ internal class DeviceClient(
         val facet = project.allModules().firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
         soFile = projectDir.resolve(
-          "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+            "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
         val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
         jarFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
       }
@@ -190,13 +193,11 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices,
-                                 maxVideoSize: Dimension, initialDisplayOrientation: Int) {
+  private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices, initialDisplayOrientation: Int) {
     startAgentTime = System.currentTimeMillis()
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main" +
-                  " --max_size=${maxVideoSize.width},${maxVideoSize.height}" +
                   orientationArg +
                   " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}" +
                   " --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
@@ -226,7 +227,7 @@ internal class DeviceClient(
     val deviceSocket: SocketSpec,
     val localSocket: SocketSpec,
     val adb: AdbDeviceServices,
-  ) : SuspendingCloseable {
+    ) : SuspendingCloseable {
 
     var opened = false
 

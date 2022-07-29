@@ -31,14 +31,15 @@ import java.io.IOException
  * Synchronizes clipboards between the host and a connected device.
  */
 internal class DeviceClipboardSynchronizer(
-  private val deviceController: DeviceController
+  private val deviceController: DeviceController,
+  parentDisposable: Disposable
 ) : CopyPasteManager.ContentChangedListener, DeviceController.DeviceClipboardListener, Disposable {
 
   private val copyPasteManager = CopyPasteManager.getInstance()
   private var lastClipboardText = ""
 
   init {
-    Disposer.register(deviceController, this)
+    Disposer.register(parentDisposable, this)
     copyPasteManager.addContentChangedListener(this, this)
     deviceController.addDeviceClipboardListener(this)
     setDeviceClipboard()
