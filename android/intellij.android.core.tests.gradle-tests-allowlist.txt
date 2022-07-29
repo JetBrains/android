@@ -71,7 +71,6 @@ com.android.tools.idea.gradle.structure.model.java.PsJavaModuleTest
 com.android.tools.idea.gradle.structure.model.pom.MavenPomsTest
 com.android.tools.idea.gradle.util.BuildFileProcessorTest
 com.android.tools.idea.gradle.util.GradleProjectSettingsFinderTest
-com.android.tools.idea.gradle.util.GradleUtilAndroidGradleTest
 com.android.tools.idea.gradle.util.GradleVersionsTest
 com.android.tools.idea.imports.AndroidMavenImportFixTest
 com.android.tools.idea.navigator.AndroidProjectViewTest
