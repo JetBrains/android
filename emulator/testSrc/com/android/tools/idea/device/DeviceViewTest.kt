@@ -48,6 +48,7 @@ import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
+import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyEvent
@@ -67,7 +68,7 @@ internal class DeviceViewTest {
   val ruleChain: RuleChain = RuleChain.outerRule(agentRule).around(EdtRule())
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
-  private lateinit var ui: FakeUi
+  private lateinit var fakeUi: FakeUi
   private var savedClipboardSynchronizationState = false
 
   private val testRootDisposable
@@ -96,17 +97,16 @@ internal class DeviceViewTest {
     }
     createDeviceView(200, 300, 2.0)
     assertThat(agent.commandLine).isEqualTo("CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
-                                            " $DEVICE_PATH_BASE com.android.tools.screensharing.Main --log=debug --codec=vp8")
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(400, 600))
+                                            " $DEVICE_PATH_BASE com.android.tools.screensharing.Main" +
+                                            " --max_size=400,600 --log=debug --codec=vp8")
+    waitForFrame()
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(58, 0, 284, 600))
     assertThat(view.displayRotationQuadrants).isEqualTo(0)
-    assertThat(view.displayRectangle?.width).isEqualTo(284)
-    assertThat(view.displayRectangle?.height).isEqualTo(600)
 
     // Check resizing.
-    ui.resizeRoot(100, 90)
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(200, 180))
-    assertThat(view.displayRectangle?.width).isEqualTo(85)
-    assertThat(view.displayRectangle?.height).isEqualTo(180)
+    fakeUi.resizeRoot(100, 90)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(200, 180))
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(57, 0, 85, 180))
 
     // Check mouse input in various orientations.
     val expectedCoordinates = listOf(
@@ -120,48 +120,48 @@ internal class DeviceViewTest {
       MotionEventMessage.Pointer(775, 917, 0),
     )
     for (i in 0 until 4) {
-      assertAppearance(ui, "Rotation${i * 90}")
+      assertAppearance("Rotation${i * 90}")
       // Check mouse input.
-      ui.mouse.press(40, 30)
-      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+      fakeUi.mouse.press(40, 30)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
           MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_DOWN, 0))
 
-      ui.mouse.dragTo(60, 55)
-      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+      fakeUi.mouse.dragTo(60, 55)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
           MotionEventMessage(listOf(expectedCoordinates[i * 2 + 1]), MotionEventMessage.ACTION_MOVE, 0))
 
-      ui.mouse.release()
-      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+      fakeUi.mouse.release()
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
           MotionEventMessage(listOf(expectedCoordinates[i * 2 + 1]), MotionEventMessage.ACTION_UP, 0))
 
       executeDeviceAction("android.device.rotate.left", view, project)
-      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetDeviceOrientationMessage((i + 1) % 4))
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage((i + 1) % 4))
     }
 
     // Check dragging over the edge of the device screen.
-    ui.mouse.press(40, 50)
+    fakeUi.mouse.press(40, 50)
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(298, 1273, 0)), MotionEventMessage.ACTION_DOWN, 0))
-    ui.mouse.dragTo(90, 60)
+    fakeUi.mouse.dragTo(90, 60)
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_MOVE, 0))
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(1079, 1526, 0)), MotionEventMessage.ACTION_OUTSIDE, 0))
-    ui.mouse.release()
+    fakeUi.mouse.release()
 
     // Check mouse leaving the device view while dragging.
-    ui.mouse.press(50, 40)
+    fakeUi.mouse.press(50, 40)
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(552, 1019, 0)), MotionEventMessage.ACTION_DOWN, 0))
-    ui.mouse.dragTo(55, 10)
+    fakeUi.mouse.dragTo(55, 10)
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(679, 259, 0)), MotionEventMessage.ACTION_MOVE, 0))
-    ui.mouse.dragTo(60, -10)
+    fakeUi.mouse.dragTo(60, -10)
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(807, 0, 0)), MotionEventMessage.ACTION_MOVE, 0))
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(807, 0, 0)), MotionEventMessage.ACTION_OUTSIDE, 0))
-    ui.mouse.release()
+    fakeUi.mouse.release()
   }
 
   @Test
@@ -170,7 +170,8 @@ internal class DeviceViewTest {
       return
     }
     createDeviceView(50, 100, 2.0)
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(100, 200))
+    waitForFrame()
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(2, 0, 95, 200))
 
     val mousePosition = Point(30, 30)
     val pointerInfo = MockitoKt.mock<PointerInfo>()
@@ -178,33 +179,33 @@ internal class DeviceViewTest {
     val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
     mouseInfoMock.whenever<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
 
-    ui.keyboard.setFocus(view)
-    ui.mouse.moveTo(mousePosition)
-    ui.keyboard.press(KeyEvent.VK_CONTROL)
-    ui.layoutAndDispatchEvents()
-    assertAppearance(ui, "MultiTouch1")
+    fakeUi.keyboard.setFocus(view)
+    fakeUi.mouse.moveTo(mousePosition)
+    fakeUi.keyboard.press(KeyEvent.VK_CONTROL)
+    fakeUi.layoutAndDispatchEvents()
+    assertAppearance("MultiTouch1")
 
-    ui.mouse.press(mousePosition)
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+    fakeUi.mouse.press(mousePosition)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(665, 689, 0), MotionEventMessage.Pointer(415, 1591, 1)),
                            MotionEventMessage.ACTION_DOWN, 0))
-    assertAppearance(ui, "MultiTouch2")
+    assertAppearance("MultiTouch2")
 
     mousePosition.x -= 10
     mousePosition.y += 10
-    ui.mouse.dragTo(mousePosition)
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+    fakeUi.mouse.dragTo(mousePosition)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(437, 917, 0), MotionEventMessage.Pointer(643, 1363, 1)),
                            MotionEventMessage.ACTION_MOVE, 0))
-    assertAppearance(ui, "MultiTouch3")
+    assertAppearance("MultiTouch3")
 
-    ui.mouse.release()
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+    fakeUi.mouse.release()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
       MotionEventMessage(listOf(MotionEventMessage.Pointer(437, 917, 0), MotionEventMessage.Pointer(643, 1363, 1)),
                          MotionEventMessage.ACTION_UP, 0))
 
-    ui.keyboard.release(KeyEvent.VK_CONTROL)
-    assertAppearance(ui, "MultiTouch4")
+    fakeUi.keyboard.release(KeyEvent.VK_CONTROL)
+    assertAppearance("MultiTouch4")
   }
 
   @Test
@@ -213,12 +214,12 @@ internal class DeviceViewTest {
       return
     }
     createDeviceView(150, 250, 1.5)
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(225, 375))
+    waitForFrame()
 
     // Check keyboard input.
-    ui.keyboard.setFocus(view)
+    fakeUi.keyboard.setFocus(view)
     for (c in ' '..'~') {
-      ui.keyboard.type(c.code)
+      fakeUi.keyboard.type(c.code)
       assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(TextInputMessage(c.toString()))
     }
 
@@ -242,13 +243,13 @@ internal class DeviceViewTest {
       Pair(KeyEvent.VK_PAGE_UP, AKEYCODE_PAGE_UP),
     )
     for (case in controlCharacterCases) {
-      ui.keyboard.pressAndRelease(case.first)
+      fakeUi.keyboard.pressAndRelease(case.first)
       assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
           KeyEventMessage(AndroidKeyEventActionType.ACTION_DOWN_AND_UP, case.second, 0))
     }
 
     // Ctrl+Tab should be ignored.
-    with(ui.keyboard) {
+    with(fakeUi.keyboard) {
       press(KeyEvent.VK_CONTROL)
       pressAndRelease(KeyEvent.VK_TAB)
       release(KeyEvent.VK_CONTROL)
@@ -259,7 +260,7 @@ internal class DeviceViewTest {
     whenever(mockFocusManager.redispatchEvent(MockitoKt.any(Component::class.java), MockitoKt.any(KeyEvent::class.java))).thenCallRealMethod()
     replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
     // Shift+Tab should trigger a forward local focus traversal.
-    with(ui.keyboard) {
+    with(fakeUi.keyboard) {
       setFocus(view)
       press(KeyEvent.VK_SHIFT)
       pressAndRelease(KeyEvent.VK_TAB)
@@ -278,26 +279,26 @@ internal class DeviceViewTest {
       return
     }
     createDeviceView(100, 200, 2.0)
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
+    waitForFrame()
 
     // Check zoom.
-    assertThat(view.scale).isWithin(1e-4).of(ui.screenScale * ui.root.height / device.displaySize.height)
+    assertThat(view.scale).isWithin(1e-4).of(fakeUi.screenScale * fakeUi.root.height / device.displaySize.height)
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isFalse()
     assertThat(view.canZoomToActual()).isTrue()
     assertThat(view.canZoomToFit()).isFalse()
 
     view.zoom(ZoomType.IN)
-    ui.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(270, 570))
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(270, 570))
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
     assertThat(view.canZoomToFit()).isTrue()
 
     view.zoom(ZoomType.ACTUAL)
-    ui.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
         SetMaxVideoResolutionMessage(device.displaySize.width, device.displaySize.height))
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
@@ -305,8 +306,8 @@ internal class DeviceViewTest {
     assertThat(view.canZoomToFit()).isTrue()
 
     view.zoom(ZoomType.OUT)
-    ui.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
         SetMaxVideoResolutionMessage(device.displaySize.width / 2, device.displaySize.height / 2))
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
@@ -314,8 +315,8 @@ internal class DeviceViewTest {
     assertThat(view.canZoomToFit()).isTrue()
 
     view.zoom(ZoomType.FIT)
-    ui.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isFalse()
     assertThat(view.canZoomToActual()).isTrue()
@@ -324,19 +325,19 @@ internal class DeviceViewTest {
     // Check clockwise rotation in zoomed-in state.
     for (i in 0 until 4) {
       view.zoom(ZoomType.IN)
-      ui.layoutAndDispatchEvents()
+      fakeUi.layoutAndDispatchEvents()
       val expected = when {
         view.displayRotationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(270, 570)
         SystemInfo.isMac -> SetMaxVideoResolutionMessage(228, 372)
         else -> SetMaxVideoResolutionMessage(228, 400)
       }
-      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(expected)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(expected)
       executeDeviceAction("android.device.rotate.right", view, project)
-      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetDeviceOrientationMessage(3 - i))
-      ui.layoutAndDispatchEvents()
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(3 - i))
+      fakeUi.layoutAndDispatchEvents()
       assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
       assertThat(view.canZoomToFit()).isFalse()
-      assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(200, 400))
     }
   }
 
@@ -346,7 +347,7 @@ internal class DeviceViewTest {
       return
     }
     createDeviceView(100, 200, 1.5)
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(150, 300))
+    waitForFrame()
 
     val settings = DeviceMirroringSettings.getInstance()
     settings.synchronizeClipboard = true
@@ -366,24 +367,29 @@ internal class DeviceViewTest {
       return
     }
     createDeviceView(500, 1000, screenScale = 1.0)
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(500, 1000))
+    waitForFrame()
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(13, 0, 474, 1000))
+    assertThat(view.displayRotationQuadrants).isEqualTo(0)
+
     // Simulate crash of the screen sharing agent.
     runBlocking { agent.crash() }
-    val message = ui.getComponent<JLabel>()
-    waitForCondition(2, TimeUnit.SECONDS) { ui.isShowing(message) }
+    val message = fakeUi.getComponent<JLabel>()
+    waitForCondition(2, TimeUnit.SECONDS) { fakeUi.isShowing(message) }
     assertThat(message.text).isEqualTo("Lost connection to the device. See the error log.")
-    ui.layoutAndDispatchEvents()
-    val button = ui.getComponent<JButton>()
-    assertThat(ui.isShowing(button)).isTrue()
+    fakeUi.layoutAndDispatchEvents()
+    val button = fakeUi.getComponent<JButton>()
+    assertThat(fakeUi.isShowing(button)).isTrue()
     assertThat(button.text).isEqualTo("Reconnect")
-    ui.clickOn(button)
-    assertThat(getNextControlMessageAndWaitForFrame(agent, ui, view)).isEqualTo(SetMaxVideoResolutionMessage(500, 1000))
+    fakeUi.clickOn(button)
+    waitForFrame()
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(13, 0, 474, 1000))
+    assertThat(view.displayRotationQuadrants).isEqualTo(0)
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
     view = DeviceView(testRootDisposable, device.serialNumber, device.deviceState.cpuAbi, UNKNOWN_ORIENTATION, agentRule.project)
-    ui = FakeUi(wrapInScrollPane(view, width, height), screenScale)
-    waitForCondition(15, TimeUnit.SECONDS) { agent.running }
+    fakeUi = FakeUi(wrapInScrollPane(view, width, height), screenScale)
+    waitForCondition(15, TimeUnit.SECONDS) { agent.isRunning }
   }
 
   private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {
@@ -394,19 +400,28 @@ internal class DeviceViewTest {
     }
   }
 
-  private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
-    val image = ui.render()
+  private fun assertAppearance(goldenImageName: String) {
+    val image = fakeUi.render()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
   }
 
   private fun getGoldenFile(name: String): Path =
     TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
 
-  private fun getNextControlMessageAndWaitForFrame(agent: FakeScreenSharingAgent, fakeUi: FakeUi, deviceView: DeviceView): ControlMessage {
+  private fun getNextControlMessageAndWaitForFrame(): ControlMessage {
     val message = agent.getNextControlMessage(5, TimeUnit.SECONDS)
-    // Wait for all video frames to be received.
-    waitForCondition(2, TimeUnit.SECONDS) { fakeUi.render(); deviceView.frameNumber == agent.frameNumber }
+    waitForFrame()
     return message
+  }
+
+  /** Waits for all video frames to be received. */
+  private fun waitForFrame() {
+    waitForCondition(2, TimeUnit.SECONDS) { view.isConnected && agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
+  }
+
+  private fun renderAndGetFrameNumber(): Long {
+    fakeUi.render() // The frame number may get updated as a result of rendering.
+    return view.frameNumber
   }
 
   private fun FakeUi.resizeRoot(width: Int, height: Int) {

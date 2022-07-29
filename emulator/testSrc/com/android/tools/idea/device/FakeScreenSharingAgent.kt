@@ -121,10 +121,12 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
   var commandLine: String? = null
   val commandLog = LinkedBlockingDeque<ControlMessage>()
   @Volatile
-  var running = false
+  var isRunning = false
   @Volatile
   var frameNumber: Long = 0
 
+  private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+  private var displayOrientation = 0
   private var shellProtocol: ShellV2Protocol? = null
 
   /**
@@ -137,6 +139,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
       commandLog.clear()
       startTime = System.currentTimeMillis()
 
+      parseArgs(command)
       val videoChannel = SuspendingSocketChannel.open()
       val controlChannel = SuspendingSocketChannel.open()
       val socketAddress = InetSocketAddress("localhost", hostPort)
@@ -150,7 +153,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
       deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME")
       deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")
       deviceState.deleteFile(DEVICE_PATH_BASE)
-      running = true
+      isRunning = true
       controller.run()
     }
   }
@@ -170,6 +173,24 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
   suspend fun crash() {
     coroutineScope.run {
       terminateAgent(139)
+    }
+  }
+
+  private fun parseArgs(command: String) {
+    val args = command.split(Regex("\\s+"))
+    for (arg in args) {
+      when {
+        arg.startsWith("--max_size=") -> {
+          val dimensions = arg.substring("--max_size=".length).split(",")
+          if (dimensions.size == 2) {
+            maxVideoResolution = Dimension(dimensions[0].toInt(), dimensions[1].toInt())
+          }
+        }
+
+        arg.startsWith("--orientation=") -> {
+          displayOrientation = arg.substring("--orientation=".length).toInt()
+        }
+      }
     }
   }
 
@@ -207,7 +228,7 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
         displayStreamer = null
       }
       startTime = 0
-      running = false
+      isRunning = false
     }
   }
 
@@ -307,21 +328,17 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
   }
 
   private suspend fun setDeviceOrientation(message: SetDeviceOrientationMessage) {
-    displayStreamer?.let {
-      it.displayOrientation = message.orientation
-      it.renderDisplay()
-    }
+    displayOrientation = message.orientation
+    displayStreamer?.renderDisplay()
   }
 
   private suspend fun setMaxVideoResolutionMessage(message: SetMaxVideoResolutionMessage) {
-    displayStreamer?.let {
-      it.maxVideoResolution = Dimension(message.width, message.height)
-      it.renderDisplay()
-    }
+    maxVideoResolution = Dimension(message.width, message.height)
+    displayStreamer?.renderDisplay()
   }
 
   private fun startClipboardSync(message: StartClipboardSyncMessage) {
-    clipboard = message.text
+    clipboardInternal.set(message.text)
     clipboardSynchronizationActive.set(true)
   }
 
@@ -334,9 +351,6 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
   }
 
   private inner class DisplayStreamer(private val channel: SuspendingSocketChannel) : Disposable {
-
-    var maxVideoResolution: Dimension? = null
-    var displayOrientation: Int = 0
 
     private val codecName = StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()
     private val encoder: AVCodec
@@ -513,14 +527,13 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
     }
 
     private fun getScaledAndRotatedDisplaySize(): Dimension {
-      val maxResolution = maxVideoResolution ?: return displaySize
       val aspectRatio = displaySize.height.toDouble() / displaySize.width
       return if (displayOrientation % 2 == 0) {
-        val width = displaySize.width.coerceAtMost((maxResolution.height / aspectRatio).toInt()).roundUpToMultipleOf8()
+        val width = displaySize.width.coerceAtMost((maxVideoResolution.height / aspectRatio).toInt()).roundUpToMultipleOf8()
         Dimension(width, (width * aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.height))
       }
       else {
-        val width = displaySize.height.coerceAtMost((maxResolution.width * aspectRatio).toInt()).roundUpToMultipleOf8()
+        val width = displaySize.height.coerceAtMost((maxVideoResolution.width * aspectRatio).toInt()).roundUpToMultipleOf8()
         Dimension(width, (width / aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.width))
       }
     }

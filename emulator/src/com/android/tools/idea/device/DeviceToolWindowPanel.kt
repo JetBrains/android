@@ -155,7 +155,7 @@ internal class DeviceToolWindowPanel(
       DEVICE_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
       DEVICE_CONTROLLER_KEY.name -> primaryDeviceView?.deviceController
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
-          primaryDeviceView?.let { if (it.connected) DeviceScreenshotOptions(deviceSerialNumber, deviceProperties, it) else null }
+          primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceProperties, it) else null }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
           primaryDeviceView?.let { ScreenRecorderAction.Parameters(deviceSerialNumber, apiLevel, avdName, it) }
       else -> null
