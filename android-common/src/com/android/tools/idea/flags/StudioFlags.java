@@ -54,7 +54,7 @@ public final class StudioFlags {
 
   @TestOnly
   public static void validate() {
-      FLAGS.validate();
+    FLAGS.validate();
   }
 
   //region New Project Wizard
@@ -1375,7 +1375,7 @@ public final class StudioFlags {
     "Enable the new consent dialog for opting into metrics",
     true
   );
-  // endregion SERVER_FLAGS
+  // endregion METRICS
 
   // region Firebase Test Lab
   private static final FlagGroup FIREBASE_TEST_LAB = new FlagGroup(FLAGS, "firebasetestlab", "Firebase Test Lab");
@@ -1468,6 +1468,14 @@ public final class StudioFlags {
     false
   );
 
-  // endregion GOOGLE_PLAY_SDK_INDEX
+  // region NEW_SEND_FEEDBACK_DIALOG
+  private static final FlagGroup NEW_SEND_FEEDBACK_DIALOG = new FlagGroup(FLAGS, "new.send.feedback", "New Send Feedback Dialog");
+  public static final Flag<Boolean> ENABLE_NEW_SEND_FEEDBACK_DIALOG = Flag.create(
+    NEW_SEND_FEEDBACK_DIALOG, "enable.new.send.feedback.dialog", "Enable new send feedback dialog",
+    "Enable the new send feedback dialog",
+    false
+  );
+
+  // endregion NEW_SEND_FEEDBACK_DIALOG
   private StudioFlags() { }
 }
