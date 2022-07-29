@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.Disposable
@@ -171,6 +172,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
 
   protected fun showDisconnectedStateMessage(message: String, reconnector: Reconnector? = null) {
     hideLongRunningOperationIndicatorInstantly()
+    zoom(ZoomType.FIT)
     disconnectedStateMessage.text = message
     reconnectButton.apply {
       if (reconnector == null) {
