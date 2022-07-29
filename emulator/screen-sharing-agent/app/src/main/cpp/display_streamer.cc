@@ -348,6 +348,7 @@ void DisplayStreamer::StopCodecUnlocked() {
     Log::D("DisplayStreamer::StopCodecUnlocked: stopping codec");
     AMediaCodec_stop(running_codec_);
     running_codec_ = nullptr;
+    CodecOutputBuffer::consequent_error_count = 0;
   }
 }
 
