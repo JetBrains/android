@@ -587,10 +587,12 @@ android_studio(
         ":com.google.urlassistant",
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
-    version_eap = True,
-    version_full = "dev build",
-    version_micro = 0,
-    version_patch = 0,
+    version_code_name = "Electric Eel",
+    version_micro_patch = "1.10",
+    # This will get added to the end of the full-version string.
+    # TODO(b/240707039): automate this.
+    version_release_number = 10,
+    version_type = "Canary",
     visibility = ["//visibility:public"],
 )
 
