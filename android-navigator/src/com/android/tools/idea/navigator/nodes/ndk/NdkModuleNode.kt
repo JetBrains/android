@@ -15,25 +15,17 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths
-import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes
 import com.android.tools.idea.ndk.ModuleVariantAbi
 import com.android.tools.idea.ndk.NativeWorkspaceService
 import com.android.tools.idea.ndk.NativeWorkspaceService.Companion.getInstance
 import com.android.tools.idea.util.toIoFile
-import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.util.treeView.AbstractTreeNode
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.text.StringUtil.trimEnd
-import com.intellij.openapi.util.text.StringUtil.trimStart
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -43,76 +35,7 @@ fun getNativeSourceNodes(project: Project,
   val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)
                ?: return emptyList() // the module could be missing in case user changes project structure and sync
   val ndkModel = ndkModuleModel.ndkModel
-  if (!StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get() && ndkModel is V1NdkModel) {
-    val ndkFacet = NdkFacet.getInstance(module) ?: return emptyList()
-    return getLibraryBasedNativeNodes(ndkFacet, ndkModel, project, settings, module)
-  }
-  else {
-    return getContentRootBasedNativeNodes(module, settings)
-  }
-}
-
-/**
- * Gets nodes for project view and Android view populated by native targets (aka, native libraries, for example, declared by add_library in
- * CMakeLists.txt).
- */
-private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
-                                       v1NdkModel: V1NdkModel,
-                                       project: Project,
-                                       settings: ViewSettings,
-                                       module: Module): Collection<AbstractTreeNode<*>> {
-
-  val variant = v1NdkModel.getNdkVariant(ndkFacet.selectedVariantAbi) ?: return emptyList()
-  val nativeLibraries = HashMultimap.create<NativeLibraryKey, IdeNativeArtifact>()
-  for (artifact in variant.artifacts) {
-    val file = artifact.outputFile
-    var nativeLibraryName: String
-    val nativeLibraryType: NativeLibraryType
-    if (file == null) {
-      nativeLibraryName = artifact.targetName
-      nativeLibraryType = NativeLibraryType.OBJECT_LIBRARY
-    }
-    else {
-      val name = file.name
-      when {
-        name.endsWith(".so") -> {
-          nativeLibraryName = trimEnd(name, ".so")
-          nativeLibraryType = NativeLibraryType.SHARED_LIBRARY
-        }
-        name.endsWith(".a") -> {
-          nativeLibraryName = trimEnd(name, ".a")
-          nativeLibraryType = NativeLibraryType.STATIC_LIBRARY
-        }
-        else -> {
-          nativeLibraryName = name
-          nativeLibraryType = NativeLibraryType.OTHER
-        }
-      }
-      nativeLibraryName = trimStart(nativeLibraryName, "lib")
-    }
-    nativeLibraries.put(NativeLibraryKey(nativeLibraryName, nativeLibraryType), artifact)
-  }
-  val children = ArrayList<AbstractTreeNode<*>>()
-  val nativeWorkspaceService = NativeWorkspaceService.getInstance(module.project)
-  for (key in nativeLibraries.keySet()) {
-    val nativeLibraryType = key.type.displayText
-    val nativeLibraryName = key.name
-    val node = NdkLibraryEnhancedHeadersNode(
-      project,
-      nativeLibraryName,
-      nativeLibraryType,
-      nativeLibraries.get(key),
-      NativeIncludes({ v1NdkModel.findSettings(it) }, nativeLibraries.get(key)),
-      settings
-    ) { item ->
-      nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
-    }
-    children.add(node)
-  }
-  return if (children.size == 1) {
-    children[0].children
-  }
-  else children
+  return getContentRootBasedNativeNodes(module, settings)
 }
 
 fun containedByNativeNodes(project: Project, ndkModuleModel: NdkModuleModel, file: VirtualFile): Boolean {

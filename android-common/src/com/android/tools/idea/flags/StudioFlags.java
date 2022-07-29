@@ -855,12 +855,6 @@ public final class StudioFlags {
     "If enabled, C/C++ projects will have NDK side by side support",
     true);
 
-  public static final Flag<Boolean> USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW = Flag.create(
-    NDK, "use.content.roots.for.native.project.view", "Use content roots for native project view",
-    "If enabled, the C/C++ content roots are displayed in Android View and Project View. Otherwise, each individual native target " +
-    "is displayed.",
-    true);
-
   public static final Flag<Boolean> ENABLE_SHOW_FILES_UNKNOWN_TO_CMAKE = Flag.create(
     NDK, "ndk.projectview.showfilessunknowntocmake", "Enable option to show files unknown to CMake",
     "If enabled, for projects using CMake, Android project view menu would show an option to `Show Files Unknown To CMake`.",
