@@ -425,6 +425,7 @@ internal class FilterTextField(
 
     override fun getToolTipText(event: MouseEvent): String? {
       val index = selectedIndex
+      if (index < 0) return null
       val item = model.getElementAt(index) as? Item ?: return null
       val cellLocation = getCellBounds(index, index).location
       val favoriteIconBounds = item.getFavoriteIconBounds(cellLocation)
