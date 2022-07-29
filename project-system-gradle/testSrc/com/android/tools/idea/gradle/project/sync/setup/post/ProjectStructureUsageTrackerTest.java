@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_WATCHFACE;
+
 import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.LoggedUsage;
@@ -24,14 +28,13 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.wireless.android.sdk.stats.*;
-
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GradleAndroidModule;
+import com.google.wireless.android.sdk.stats.GradleBuildDetails;
+import com.google.wireless.android.sdk.stats.GradleLibrary;
+import com.google.wireless.android.sdk.stats.GradleModule;
+import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule;
 import java.util.List;
-
-import static com.android.tools.idea.model.AndroidModel.UNINITIALIZED_APPLICATION_ID;
-import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_WATCHFACE;
 
 /**
  * Tests for {@link ProjectStructureUsageTracker}.
@@ -102,7 +105,9 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                    .build(), usage.getStudioEvent().getGradleBuildDetails());
   }
 
-  public void testProductStructureUsageWithWearHardware() throws Exception {
+
+  // TODO(b/240662565): Test is flaky.
+  public void /*test*/ProductStructureUsageWithWearHardware() throws Exception {
     trackGradleProject(RUN_CONFIG_WATCHFACE);
 
     List<LoggedUsage> usages = myUsageTracker.getUsages();
