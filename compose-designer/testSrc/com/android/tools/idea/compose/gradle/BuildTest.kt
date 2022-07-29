@@ -61,12 +61,11 @@ class BuildTest {
 
     assertTrue(psiFilePointers.none { hasBeenBuiltSuccessfully(it) })
     assertTrue(psiFiles.none { hasExistingClassFile(it) })
-    val buildsTriggered = runAndWaitForBuildToComplete(projectRule) {
+    runAndWaitForBuildToComplete(projectRule) {
       // Regression test for http://b/192223556
       val files = activityFiles + activityFiles + activityFiles
       project.requestBuild(files)
     }
-    assertEquals(1, buildsTriggered)
     assertTrue(psiFilePointers.all { hasBeenBuiltSuccessfully(it) })
     assertTrue(psiFiles.all { hasExistingClassFile(it) })
 
