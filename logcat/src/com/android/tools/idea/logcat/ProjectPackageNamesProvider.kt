@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.tools.idea.model.AndroidModuleInfo
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.util.messages.Topic
 
-/**
- * Provides a set of application ids associated with the project
- */
-internal interface ProjectApplicationIdsProvider : PackageNamesProvider {
-  fun interface ProjectApplicationIdsListener {
-    fun applicationIdsChanged(applicationIds: Set<String>)
-  }
+class ProjectPackageNamesProvider(project: Project) : PackageNamesProvider {
+  private val moduleManager = ModuleManager.getInstance(project)
 
-  companion object {
-    fun getInstance(project: Project): ProjectApplicationIdsProvider = project.getService(ProjectApplicationIdsProvider::class.java)
-
-    val PROJECT_APPLICATION_IDS_CHANGED_TOPIC = Topic("ProjectApplicationIdsChanged", ProjectApplicationIdsListener::class.java)
-  }
+  // TODO(b/206675088): Maybe get package names from run configurations too?
+  // TODO(b/206675088): Maybe get notified when the set of package names might change?
+  override fun getPackageNames(): Set<String> =
+    moduleManager.modules.mapNotNullTo(mutableSetOf()) { AndroidModuleInfo.getInstance(it)?.`package` }
 }
