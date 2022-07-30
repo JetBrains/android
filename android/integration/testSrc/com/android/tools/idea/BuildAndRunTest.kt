@@ -26,6 +26,23 @@ class BuildAndRunTest {
   @JvmField @Rule
   val system = AndroidSystem.standard()
 
+  /**
+   * Verifies that a project can build and deploy on an emulator
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 579892c4-e1b6-48f7-a5a2-69a12c12ce83
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import minapp in the testData directory of this module
+   *   2. Add a few layout elements to the default activity
+   *   3. Click Run
+   *   4. From the device chooser dialog, select the running emulator and click Ok
+   *   Verify:
+   *   Project builds successfully and runs on the emulator
+   *   </pre>
+   */
   @Test
   fun deploymentTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
