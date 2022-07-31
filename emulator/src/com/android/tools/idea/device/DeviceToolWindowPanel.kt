@@ -137,7 +137,7 @@ internal class DeviceToolWindowPanel(
     mirroringEnded(DeviceMirroringSession.DeviceKind.PHYSICAL)
 
     val uiState = DeviceUiState()
-    uiState.orientation = primaryDeviceView?.displayRotationQuadrants ?: 0
+    uiState.orientation = primaryDeviceView?.displayOrientationQuadrants ?: 0
     uiState.zoomScrollState = displayPanel?.zoomScrollState
 
     contentDisposable?.let { Disposer.dispose(it) }

@@ -101,7 +101,7 @@ internal class DeviceViewTest {
                                             " --max_size=400,600 --log=debug --codec=vp8")
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(58, 0, 284, 600))
-    assertThat(view.displayRotationQuadrants).isEqualTo(0)
+    assertThat(view.displayOrientationQuadrants).isEqualTo(0)
 
     // Check resizing.
     fakeUi.resizeRoot(100, 90)
@@ -327,7 +327,7 @@ internal class DeviceViewTest {
       view.zoom(ZoomType.IN)
       fakeUi.layoutAndDispatchEvents()
       val expected = when {
-        view.displayRotationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(270, 570)
+        view.displayOrientationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(270, 570)
         SystemInfo.isMac -> SetMaxVideoResolutionMessage(228, 372)
         else -> SetMaxVideoResolutionMessage(228, 400)
       }
@@ -369,7 +369,7 @@ internal class DeviceViewTest {
     createDeviceView(500, 1000, screenScale = 1.0)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(13, 0, 474, 1000))
-    assertThat(view.displayRotationQuadrants).isEqualTo(0)
+    assertThat(view.displayOrientationQuadrants).isEqualTo(0)
 
     // Simulate crash of the screen sharing agent.
     runBlocking { agent.crash() }
@@ -383,7 +383,7 @@ internal class DeviceViewTest {
     fakeUi.clickOn(button)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(13, 0, 474, 1000))
-    assertThat(view.displayRotationQuadrants).isEqualTo(0)
+    assertThat(view.displayOrientationQuadrants).isEqualTo(0)
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {

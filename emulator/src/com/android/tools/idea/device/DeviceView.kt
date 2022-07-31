@@ -91,13 +91,10 @@ class DeviceView(
 
   val isConnected: Boolean
     get() = state == State.CONNECTED
-  /** Area of the window occupied by the device display image in physical pixels. */
-  var displayRectangle: Rectangle? = null
+  /** The difference between [displayOrientationQuadrants] and the orientation according to the DisplayInfo Android data structure. */
+  override var displayOrientationQuadrants: Int = 0
     private set
-  var displayRotationQuadrants: Int = 0
-    private set
-  /** The difference between [displayRotationQuadrants] and the orientation according to the DisplayInfo Android data structure. */
-  var displayRotationCorrectionQuadrants: Int = 0
+  internal var displayOrientationCorrectionQuadrants: Int = 0
     private set
 
   private var state = State.INITIAL
@@ -230,7 +227,7 @@ class DeviceView(
     state == State.CONNECTED
 
   override fun computeActualSize(): Dimension =
-    computeActualSize(displayRotationQuadrants)
+    computeActualSize(displayOrientationQuadrants)
 
   private fun computeActualSize(rotationQuadrants: Int): Dimension =
     deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
@@ -269,8 +266,8 @@ class DeviceView(
       }
 
       deviceDisplaySize.size = displayFrame.displaySize
-      displayRotationQuadrants = displayFrame.orientation
-      displayRotationCorrectionQuadrants = displayFrame.orientationCorrection
+      displayOrientationQuadrants = displayFrame.orientation
+      displayOrientationCorrectionQuadrants = displayFrame.orientationCorrection
       frameNumber = displayFrame.frameNumber
 
       deviceClient?.apply {
@@ -324,7 +321,7 @@ class DeviceView(
     val normalizedY: Int
     val imageWidth: Int
     val imageHeight: Int
-    when (displayRotationQuadrants) {
+    when (displayOrientationQuadrants) {
       0 -> {
         normalizedX = x.scaled(screenScale) - displayRectangle.x
         normalizedY = y.scaled(screenScale) - displayRectangle.y
@@ -350,7 +347,7 @@ class DeviceView(
         imageHeight = displayRectangle.width
       }
       else -> {
-        assert(false) { "Invalid display orientation: $displayRotationQuadrants" }
+        assert(false) { "Invalid display orientation: $displayOrientationQuadrants" }
         return
       }
     }

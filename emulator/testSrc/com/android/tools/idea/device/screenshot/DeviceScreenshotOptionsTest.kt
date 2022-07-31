@@ -40,8 +40,8 @@ class DeviceScreenshotOptionsTest {
   @Before
   fun setUp() {
     WebpMetadata.ensureWebpRegistered()
-    whenever(deviceView.displayRotationQuadrants).thenReturn(0)
-    whenever(deviceView.displayRotationCorrectionQuadrants).thenReturn(0)
+    whenever(deviceView.displayOrientationQuadrants).thenReturn(0)
+    whenever(deviceView.displayOrientationCorrectionQuadrants).thenReturn(0)
   }
 
   @Test
@@ -63,8 +63,8 @@ class DeviceScreenshotOptionsTest {
 
   @Test
   fun testCreateScreenshotImage() {
-    whenever(deviceView.displayRotationQuadrants).thenReturn(0)
-    whenever(deviceView.displayRotationCorrectionQuadrants).thenReturn(1)
+    whenever(deviceView.displayOrientationQuadrants).thenReturn(0)
+    whenever(deviceView.displayOrientationCorrectionQuadrants).thenReturn(1)
     val screenshotOptions = DeviceScreenshotOptions(serialNumber, mapOf(), deviceView)
     val image = createImage(1080, 2400, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1080 x 2400, ..., density 560, ...}"

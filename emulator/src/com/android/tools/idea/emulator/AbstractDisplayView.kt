@@ -52,6 +52,12 @@ import kotlin.math.roundToInt
  */
 abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
 
+  /** Area of the window occupied by the device display image in physical pixels. */
+  var displayRectangle: Rectangle? = null
+    protected set
+  /** Orientation of the device display in quadrants counterclockwise. */
+  abstract val displayOrientationQuadrants: Int
+
   private val disconnectedStateMessage = JBLabel("", SwingConstants.CENTER)
   private val reconnectButton = JButton("Reconnect")
 

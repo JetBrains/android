@@ -30,7 +30,7 @@ internal sealed class DeviceRotateAction(
   override fun actionPerformed(event: AnActionEvent) {
     val deviceController = getDeviceController(event) ?: return
     val deviceView = getDeviceView(event) ?: return
-    val orientation = (deviceView.displayRotationQuadrants + rotationQuadrants) and 0x03
+    val orientation = (deviceView.displayOrientationQuadrants + rotationQuadrants) and 0x03
     val controlMessage = SetDeviceOrientationMessage(orientation)
     deviceController.sendControlMessage(controlMessage)
   }

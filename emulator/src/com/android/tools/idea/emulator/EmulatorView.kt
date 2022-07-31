@@ -142,8 +142,15 @@ class EmulatorView(
   deviceFrameVisible: Boolean
 ) : AbstractDisplayView(displayId), ConnectionStateListener, Disposable {
 
+  override var displayOrientationQuadrants: Int
+    get() = screenshotShape.orientation
+    internal set(value) {
+      if (value != screenshotShape.orientation && deviceFrameVisible) {
+        requestScreenshotFeed(currentDisplaySize, value)
+      }
+    }
+
   private var lastScreenshot: Screenshot? = null
-  private var displayRectangle: Rectangle? = null
   private val displayTransform = AffineTransform()
   private val screenshotShape: DisplayShape
     get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
@@ -176,14 +183,6 @@ class EmulatorView(
   private var notificationReceiver: NotificationReceiver? = null
 
   private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
-
-  var displayOrientationQuadrants: Int
-    get() = screenshotShape.orientation
-    set(value) {
-      if (value != screenshotShape.orientation && deviceFrameVisible) {
-        requestScreenshotFeed(currentDisplaySize, value)
-      }
-    }
 
   var deviceFrameVisible: Boolean = deviceFrameVisible
     set(value) {

@@ -67,8 +67,8 @@ internal class DeviceScreenshotOptions(
   private var defaultFrameIndex: Int = 0
 
   override fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean): ScreenshotImage {
-    val rotatedImage = ImageUtils.rotateByQuadrants(image, deviceView.displayRotationCorrectionQuadrants)
-    return ScreenshotImage(rotatedImage, deviceView.displayRotationQuadrants, displayInfo, isTv)
+    val rotatedImage = ImageUtils.rotateByQuadrants(image, deviceView.displayOrientationCorrectionQuadrants)
+    return ScreenshotImage(rotatedImage, deviceView.displayOrientationQuadrants, displayInfo, isTv)
   }
 
   override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {
