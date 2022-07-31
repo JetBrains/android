@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedByNativeNodes;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
@@ -29,8 +27,6 @@ import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -118,13 +114,6 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       return true;
     }
 
-    // Include files may be out-of-project so check for them.
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      NdkFacet ndkFacet = NdkFacet.getInstance(module);
-      if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
-        return containedByNativeNodes(myProject, ndkFacet.getNdkModuleModel(), file);
-      }
-    }
-    return false;
+    return AndroidViewNodeProvider.getProviders().stream().anyMatch(it -> it.projectContainsExternalFile(myProject, file));
   }
 }
