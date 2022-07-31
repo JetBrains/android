@@ -23,5 +23,6 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
     <orderEntry type="module" module-name="intellij.android.adb.ui" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>

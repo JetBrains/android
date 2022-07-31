@@ -136,13 +136,14 @@ class LogcatMainPanelTest {
   private val mockFoldingDetector = mock<FoldingDetector>()
   private val fakeAdbSession = FakeAdbSession()
   private val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions()
+  private val project get() = projectRule.project
 
   @Before
   fun setUp() {
     ApplicationManager.getApplication().replaceService(
       AndroidLogcatFormattingOptions::class.java,
       androidLogcatFormattingOptions,
-      projectRule.project)
+      project)
   }
 
   @RunsInEdt
@@ -377,7 +378,7 @@ class LogcatMainPanelTest {
       }
     }
 
-    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device1")
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device1")
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
     runInEdtAndWait { }
@@ -399,7 +400,7 @@ class LogcatMainPanelTest {
       }
     }
 
-    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device2")
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device2")
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
     runInEdtAndWait { }
@@ -996,9 +997,9 @@ class LogcatMainPanelTest {
     val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
-    val fakePackageNamesProvider = FakePackageNamesProvider("myapp")
+    val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project, "myapp")
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbSession, packageNamesProvider = fakePackageNamesProvider).also {
+      logcatMainPanel(adbSession = fakeAdbSession, projectApplicationIdsProvider = fakePackageNamesProvider).also {
         waitForCondition { it.getConnectedDevice() != null }
       }
     }
@@ -1028,6 +1029,38 @@ class LogcatMainPanelTest {
     assertThat(AndroidDebugBridge.getDeviceChangeListenerCount() == 0)
   }
 
+  @Test
+  fun projectApplicationIdsChange_withPackageMine_reloadsMessages() = runBlocking {
+    val fakeProjectApplicationIdsProvider = FakeProjectApplicationIdsProvider(project)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(projectApplicationIdsProvider = fakeProjectApplicationIdsProvider)
+    }
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("package:mine | tag:tag2")
+    }
+    waitForCondition {
+      logcatMainPanel.editor.document.text.trim() == """
+        1970-01-01 04:00:01.000     1-2     tag2                    app2                                 W  message2
+      """.trimIndent()
+    }
+
+    runInEdtAndWait {
+      fakeProjectApplicationIdsProvider.setApplicationIds("app1")
+    }
+
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(logcatMainPanel.editor.document.text.trim()).isEqualTo("""
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+        1970-01-01 04:00:01.000     1-2     tag2                    app2                                 W  message2
+      """.trimIndent())
+    }
+  }
+
   private fun logcatMainPanel(
     splitterPopupActionGroup: ActionGroup = EMPTY_GROUP,
     logcatColors: LogcatColors = LogcatColors(),
@@ -1036,13 +1069,14 @@ class LogcatMainPanelTest {
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
-    packageNamesProvider: PackageNamesProvider = FakePackageNamesProvider(),
+    projectApplicationIdsProvider: ProjectApplicationIdsProvider = FakeProjectApplicationIdsProvider(project),
     adbSession: AdbSession = FakeAdbSession(),
     logcatService: LogcatService = FakeLogcatService(),
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
-  ) =
-    LogcatMainPanel(
-      projectRule.project,
+  ): LogcatMainPanel {
+    project.replaceService(ProjectApplicationIdsProvider::class.java, projectApplicationIdsProvider, project)
+    return LogcatMainPanel(
+      project,
       splitterPopupActionGroup,
       logcatColors,
       state,
@@ -1050,13 +1084,13 @@ class LogcatMainPanelTest {
       androidProjectDetector,
       hyperlinkDetector,
       foldingDetector,
-      packageNamesProvider,
       adbSession,
       logcatService,
       zoneId,
     ).also {
-      Disposer.register(projectRule.project, it)
+      Disposer.register(project, it)
     }
+  }
 }
 
 private fun LogcatMessage.length() = FormattingOptions().getHeaderWidth() + message.length
