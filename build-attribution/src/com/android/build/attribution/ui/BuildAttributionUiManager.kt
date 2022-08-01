@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui
 
 import com.android.annotations.concurrency.UiThread
+import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalyzerNotificationManager
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionWarningsFilter
@@ -37,6 +38,7 @@ import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuild
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.build.attribution.BuildAnalyzerStorageManager.Listener
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.ide.ui.LafManagerListener
@@ -62,12 +64,18 @@ interface BuildAttributionUiManager : Disposable {
   fun onBuildFailure(buildSessionId: String)
   fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
   fun hasDataToShow(): Boolean
-  fun showNewReport(buildSessionId: String)
+  fun showNewReport()
 
   companion object {
     fun getInstance(project: Project): BuildAttributionUiManager {
       return project.getService(BuildAttributionUiManager::class.java)
     }
+  }
+}
+
+class BuildAnalyzerStorageManagerListenerImpl(val project: Project) : Listener {
+  override fun newDataAvailable() {
+    BuildAttributionUiManager.getInstance(project).showNewReport()
   }
 }
 
@@ -77,8 +85,6 @@ interface BuildAttributionUiManager : Disposable {
 class BuildAttributionUiManagerImpl(
   private val project: Project
 ) : BuildAttributionUiManager {
-
-
   @VisibleForTesting
   var buildAttributionView: ComponentContainer? = null
 
@@ -116,9 +122,10 @@ class BuildAttributionUiManagerImpl(
       .subscribe(LafManagerListener.TOPIC, LafManagerListener { reInitReportUI() })
   }
 
-  override fun showNewReport(buildSessionId : String){
+  override fun showNewReport(){
     val buildResults = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
     val reportUiData = BuildAttributionReportBuilder(buildResults, buildResults.getBuildFinishedTimestamp(), buildResults.getRequestHolder()).build()
+    val buildSessionId = buildResults.getBuildSessionID()
     showNewReport(reportUiData, buildSessionId)
   }
 

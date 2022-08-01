@@ -31,20 +31,38 @@ class BuildAnalyzerStorageManagerTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @Test(expected = IllegalStateException::class)
-  fun testNullBuildResultsResponse(){
+  fun testNullBuildResultsResponse() {
     BuildAnalyzerStorageManager.getInstance(projectRule.project).getLatestBuildAnalysisResults()
   }
   @Test
-  fun testBuildResultsAreStored(){
+  fun testBuildResultsAreStored() {
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
     val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
     val request = GradleBuildInvoker.Request
       .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
       .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
-
     Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getLatestBuildAnalysisResults()).isNotNull()
   }
+
+  @Test
+  fun testListenerIsActive() {
+    var listenerInvocationCounter = 0
+    projectRule.project.messageBus.connect()
+      .subscribe(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC, object : BuildAnalyzerStorageManager.Listener {
+        override fun newDataAvailable() {
+          listenerInvocationCounter += 1
+        }
+      })
+    val taskContainer = TaskContainer()
+    val pluginContainer = PluginContainer()
+    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+    val request = GradleBuildInvoker.Request
+      .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+    BuildAnalyzerStorageManager.getInstance(projectRule.project)
+      .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
+    Truth.assertThat(listenerInvocationCounter).isEqualTo(1)
+    }
+
 }

@@ -36,4 +36,9 @@
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
   </actions>
+  <projectListeners>
+    <listener
+        class="com.android.build.attribution.ui.BuildAnalyzerStorageManagerListenerImpl"
+        topic="com.android.build.attribution.BuildAnalyzerStorageManager$Listener"/>
+  </projectListeners>
 </idea-plugin>

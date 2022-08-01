@@ -89,7 +89,6 @@ class BuildAttributionManagerImpl(
               .storeNewBuildResults(analyzersProxy, buildSessionId, BuildRequestHolder(currentBuildRequest))
             analyticsManager.logAnalyzersData(BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults())
             analyticsManager.logBuildSuccess(myCurrentBuildInvocationType)
-            BuildAttributionUiManager.getInstance(project).showNewReport(buildSessionId)
           }
           else {
             analyticsManager.logAnalysisFailure(myCurrentBuildInvocationType)

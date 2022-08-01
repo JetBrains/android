@@ -20,16 +20,14 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
 import com.intellij.openapi.project.Project
 
-
 class BuildAnalyzerStorageManagerImpl(
   val project: Project
-) : BuildAnalyzerStorageManager
-{
+) : BuildAnalyzerStorageManager {
   private var buildResults : BuildAnalysisResults? = null
 
-  private fun notifyUI(buildID : String)
-  {
-
+  private fun notifyDataListeners() {
+    var publisher = project.messageBus.syncPublisher(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC);
+    publisher.newDataAvailable();
   }
 
   private fun createBuildResultsObject(analyzersProxy: BuildEventsAnalyzersProxy, buildSessionID : String, requestHolder : BuildRequestHolder): BuildAnalysisResults {
@@ -61,10 +59,10 @@ class BuildAnalyzerStorageManagerImpl(
     else throw IllegalStateException("Storage Manager does not have data to return.")
   }
 
-  override fun storeNewBuildResults (analyzersProxy: BuildEventsAnalyzersProxy, buildID : String, requestHolder : BuildRequestHolder)
-  {
-    buildResults = createBuildResultsObject(analyzersProxy, buildID, requestHolder)
-    notifyUI(buildID)
+  override fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID : String, requestHolder : BuildRequestHolder) {
+    val buildResults = createBuildResultsObject(analyzersProxy, buildID, requestHolder)
+    this.buildResults = buildResults
+    notifyDataListeners()
   }
 
   override fun hasData(): Boolean {

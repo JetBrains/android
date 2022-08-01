@@ -15,24 +15,31 @@
  */
 package com.android.build.attribution
 
-import com.android.tools.idea.gradle.project.build.attribution.BasicBuildAttributionInfo
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import org.gradle.tooling.events.ProgressListener
-import com.android.build.attribution.analyzers.BuildAnalyzersWrapper
-import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
-import com.android.build.attribution.analyzers.CHECK_JETIFIER_TASK_NAME
 import com.android.build.attribution.data.BuildRequestHolder
-import com.android.build.attribution.ui.data.BuildAttributionReportUiData
-import com.android.ide.common.repository.GradleVersion
 import com.intellij.openapi.project.Project
-interface BuildAnalyzerStorageManager
-{
+import com.intellij.util.messages.Topic
+
+interface BuildAnalyzerStorageManager {
+  /**
+   * Returns the analysis results from the latest build in the form of a BuildAnalysisResults object. There are no arguments.
+   * If no build results have been stored, then an IllegalStatException is thrown as there is nothing to return.
+   *
+   * @return BuildAnalysisResults
+   * @exception IllegalStateException
+   */
   fun getLatestBuildAnalysisResults() : BuildAnalysisResults
   fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder)
   fun hasData() : Boolean
 
+  interface Listener {
+    fun newDataAvailable()
+  }
+
   companion object {
+    val DATA_IS_READY_TOPIC: Topic<Listener> =
+      Topic.create("com.android.build.attribution.BuildAnalyzerStorageManager", Listener::class.java)
+
     fun getInstance(project: Project): BuildAnalyzerStorageManager {
       return project.getService(BuildAnalyzerStorageManager::class.java)
     }
