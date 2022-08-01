@@ -60,13 +60,27 @@ class ThreadingCheckerHookImpl(
     val violationCount = threadingViolations.computeIfAbsent(methodSignature) { AtomicLong() }.incrementAndGet()
     val loggedStackTrace = Stream.of(*stackTrace).skip(annotatedMethodIndex.toLong()).map { it.toString() }
       .collect(Collectors.joining("\n  "))
-    logger.warn(
-      "$warningMessage\nViolating method: $methodSignature\nStack trace:\n$loggedStackTrace"
-    )
+    val message = "$warningMessage\nViolating method: $methodSignature\nStack trace:\n$loggedStackTrace"
+    if (shouldLogErrors()) {
+      logger.error(message)
+    }
+    else {
+      logger.warn(message)
+    }
 
     // Only show one notification per method signature
-    if (violationCount == 1L) {
+    if (violationCount == 1L && !shouldSuppressNotifications()) {
       threadingViolationNotifier.notify(warningMessage, methodSignature)
     }
+  }
+
+  private fun shouldLogErrors(): Boolean {
+    return System.getProperty("android.studio.instrumentation.threading.log-errors", "false")
+      .equals("true", ignoreCase = true)
+  }
+
+  private fun shouldSuppressNotifications(): Boolean {
+    return System.getProperty("android.studio.instrumentation.threading.suppress-notifications", "false")
+      .equals("true", ignoreCase = true)
   }
 }
