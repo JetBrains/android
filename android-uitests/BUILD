@@ -1049,6 +1049,24 @@ java_test(
 )
 
 java_test(
+    name = "AddDebugAndReleaseSourceSetToProjectTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddDebugAndReleaseSourceSetToProjectTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+        "no_mac",
+        "very_flaky",
+    ],  # b/240730295 - Flaky Product issues.
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "LaunchApkViewerTest",
     size = "large",
     data = COMMON_DATA + glob([
