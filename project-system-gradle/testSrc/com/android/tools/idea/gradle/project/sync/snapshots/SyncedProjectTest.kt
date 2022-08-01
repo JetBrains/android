@@ -99,6 +99,9 @@ abstract class SyncedProjectTest(
   fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
 
   @Test
+  fun testSimpleApplication_noParallelSync() = testProject(TestProject.SIMPLE_APPLICATION_NO_PARALLEL_SYNC)
+
+  @Test
   fun testSimpleApplication_viaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK)
 
   @Test
@@ -297,7 +300,13 @@ abstract class SyncedProjectTest(
         }
       }
 
-      val exceptions = setup() + run() + verify()
+      val tearDown = testProject.setup()
+      val exceptions = try {
+        setup() + run() + verify()
+      }
+      finally {
+        tearDown()
+      }
 
       when {
         exceptions.isEmpty() -> Unit

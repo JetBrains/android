@@ -81,6 +81,19 @@ data class GradleSyncLoggedEventsTestDef(
         )
       },
       GradleSyncLoggedEventsTestDef(
+        namePrefix = "logged_events",
+        testProject = TestProject.SIMPLE_APPLICATION_NO_PARALLEL_SYNC
+      ) { events ->
+        assertThat(events.dumpSyncEvents()).isEqualTo(
+          """
+            |GRADLE_SYNC_STARTED
+            |GRADLE_SYNC_SETUP_STARTED
+            |GRADLE_SYNC_ENDED
+            |GRADLE_BUILD_DETAILS
+          """.trimMargin()
+        )
+      },
+      GradleSyncLoggedEventsTestDef(
         namePrefix = "module_counts",
         testProject = TestProject.PSD_SAMPLE_GROOVY
       ) { events ->

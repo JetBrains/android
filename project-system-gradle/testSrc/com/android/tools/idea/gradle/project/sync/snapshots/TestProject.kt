@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.testutils.AssumeUtil.assumeNotWindows
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.FileSubject.file
@@ -43,6 +44,7 @@ enum class TestProject(
   val pathToOpen: String = "",
   val testName: String? = null,
   val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
+  val setup: () -> () -> Unit = { {} },
   val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {}
 ) {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
@@ -50,6 +52,20 @@ enum class TestProject(
   COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
   COMPATIBILITY_TESTS_AS_36_NO_IML(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML, patch = { updateProjectJdk(it) }),
   SIMPLE_APPLICATION(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
+  SIMPLE_APPLICATION_NO_PARALLEL_SYNC(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "noParallelSync",
+    setup =
+    fun(): () -> Unit {
+      val oldValue = GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC
+
+      GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC = false
+
+      return fun() {
+        GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC = oldValue
+      }
+    },
+  ),
   SIMPLE_APPLICATION_VIA_SYMLINK(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     testName = "viaSymLink",
