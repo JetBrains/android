@@ -115,9 +115,14 @@ public class GradleInitScripts {
   @NotNull
   private static File createInitScriptFile(@NotNull String fileName, @NotNull String content) throws IOException {
     File file = createTempFile(fileName, DOT_GRADLE);
-    file.deleteOnExit();
-    writeToFile(file, content);
-    getLogger().info(String.format("init script file %s contents %s", fileName, escapeAsStringLiteral(content)));
+    try {
+      file.deleteOnExit();
+      writeToFile(file, content);
+      getLogger().info(String.format("init script file %s contents %s", fileName, escapeAsStringLiteral(content)));
+    } catch (Exception ex) {
+      getLogger().error("Failed to create init script: " + fileName, ex);
+      throw ex;
+    }
     return file;
   }
 
