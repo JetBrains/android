@@ -70,8 +70,6 @@
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="intellij.android.smali" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module" module-name="android.sdktools.flags" />

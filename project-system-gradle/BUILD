@@ -48,6 +48,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
+        "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl[module]",
     ],
 )
 
