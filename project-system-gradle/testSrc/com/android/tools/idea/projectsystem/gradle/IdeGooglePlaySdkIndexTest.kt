@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.projectsystem.gradle
+package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
 import com.android.tools.lint.detector.api.LintFix
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
