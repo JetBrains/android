@@ -150,7 +150,7 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
     }
 
     @Override
-    public void renderElement(LookupElementPresentation presentation) {
+    public void renderElement(@NotNull LookupElementPresentation presentation) {
       super.renderElement(presentation);
       presentation.setStrikeout(false);
     }
