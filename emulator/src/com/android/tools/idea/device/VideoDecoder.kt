@@ -178,7 +178,8 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
 
     init {
       thisLogger().debug { "Receiving $codecName video stream" }
-      codec = avcodec_find_decoder_by_name(codecName) ?: throw VideoDecoderException("$codecName decoder not found")
+      val ffmpegCodecName = if (codecName == "avc") "h264" else codecName
+      codec = avcodec_find_decoder_by_name(ffmpegCodecName) ?: throw VideoDecoderException("$ffmpegCodecName decoder not found")
       codecContext = avcodec_alloc_context3(codec) ?: throw VideoDecoderException("Could not allocate decoder context")
       parserContext = av_parser_init(codec.id())?.apply {
         flags(flags() or PARSER_FLAG_COMPLETE_FRAMES)

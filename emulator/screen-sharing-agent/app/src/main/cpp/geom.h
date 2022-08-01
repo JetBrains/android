@@ -23,7 +23,7 @@
 namespace screensharing {
 
 struct Size {
-  Size(int32_t width, int32_t height) : width(width), height(height) {}
+  Size(int32_t width, int32_t height) noexcept : width(width), height(height) {}
 
   bool operator==(Size other) const {
     return width == other.width && height == other.height;

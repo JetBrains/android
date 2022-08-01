@@ -40,6 +40,7 @@ import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H264
+import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H265
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP9
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
@@ -366,7 +367,8 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
       val codecId = when (codecName) {
         "vp8" -> AV_CODEC_ID_VP8
         "vp9" -> AV_CODEC_ID_VP9
-        "h264" -> AV_CODEC_ID_H264
+        "avc" -> AV_CODEC_ID_H264
+        "hevc" -> AV_CODEC_ID_H265
         else -> throw RuntimeException("$codecName encoder not found")
       }
 

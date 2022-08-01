@@ -216,6 +216,7 @@ class JString : public JRef<JString, jstring> {
 public:
   using JRef::JRef;
   JString(JNIEnv* jni_env, const char* value);
+  JString(JNIEnv* jni_env, const std::string& value) : JString(jni_env, value.c_str()) {}
 
   JString& MakeGlobal() {
     return down_cast<JString&>(JRef::MakeGlobal());
