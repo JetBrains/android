@@ -41,6 +41,6 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.2.1'
     testImplementation 'androidx.navigation:navigation-ui-ktx:2.2.1'
     androidTestImplementation 'junit:junit:4.13'
-    testDebugImplementation 'androidx.test.ext:junit:1.1.1'
+    testDebugImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestReleaseImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
