@@ -71,7 +71,9 @@ abstract class SyncedProjectTest(
   interface TestDef : AgpIntegrationTestDefinition {
     val testProject: TestProject
     override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDef
+    fun setup(root: File) = Unit
     fun runTest(root: File, project: Project)
+    fun verifyAfterClosing(root: File) = Unit
   }
 
   companion object {
@@ -80,6 +82,7 @@ abstract class SyncedProjectTest(
         SourceProvidersTestDef.tests +
         ProjectStructureSnapshotTestDef.tests +
         AndroidProjectViewSnapshotComparisonTestDef.tests +
+        GradleSyncLoggedEventsTestDef.tests +
         selfChecks()
       ).groupBy { it.testProject }
   }
@@ -267,22 +270,39 @@ abstract class SyncedProjectTest(
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     try {
-      openPreparedProject(
-        name = "project${testProject.pathToOpen}",
-        options = OpenPreparedProjectOptions(
-          disableKtsRelatedIndexing = true
-        )
-      ) { project ->
-        waitForSourceFolderManagerToProcessUpdates(project)
-        val exceptions = tests.mapNotNull {
-          println("${it::class.java.simpleName}(${testProject.projectName})\n    $root")
-          kotlin.runCatching { it.runTest(root, project) }.exceptionOrNull()
+      fun setup(): List<Throwable> {
+        return tests.mapNotNull {
+          kotlin.runCatching { it.setup(root) }.exceptionOrNull()
         }
-        when {
-          exceptions.isEmpty() -> Unit
-          exceptions.size == 1 -> throw exceptions.single()
-          else -> throw MultipleFailureException(exceptions)
+      }
+
+      fun run(): List<Throwable> {
+        return openPreparedProject(
+          name = "project${testProject.pathToOpen}",
+          options = OpenPreparedProjectOptions(
+            disableKtsRelatedIndexing = true
+          )
+        ) { project ->
+          waitForSourceFolderManagerToProcessUpdates(project)
+          tests.mapNotNull {
+            println("${it::class.java.simpleName}(${testProject.projectName})\n    $root")
+            kotlin.runCatching { it.runTest(root, project) }.exceptionOrNull()
+          }
         }
+      }
+
+      fun verify(): List<Throwable> {
+        return tests.mapNotNull {
+          kotlin.runCatching { it.verifyAfterClosing(root) }.exceptionOrNull()
+        }
+      }
+
+      val exceptions = setup() + run() + verify()
+
+      when {
+        exceptions.isEmpty() -> Unit
+        exceptions.size == 1 -> throw exceptions.single()
+        else -> throw MultipleFailureException(exceptions)
       }
     } finally {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
