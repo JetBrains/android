@@ -38,6 +38,7 @@ import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
+import com.android.tools.idea.logcat.actions.LogcatScrollToTheEndToolbarAction
 import com.android.tools.idea.logcat.actions.LogcatSplitterActions
 import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarAction
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
@@ -103,7 +104,6 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
-import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.EditorMouseEvent
@@ -465,10 +465,7 @@ internal class LogcatMainPanel(
       add(ClearLogcatAction(this@LogcatMainPanel))
       add(PauseLogcatAction(this@LogcatMainPanel))
       add(RestartLogcatAction(this@LogcatMainPanel))
-      add(ScrollToTheEndToolbarAction(editor).apply {
-        @Suppress("DialogTitleCapitalization")
-        templatePresentation.text = LogcatBundle.message("logcat.scroll.to.end.action.text")
-      })
+      add(LogcatScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(LogcatToggleUseSoftWrapsToolbarAction(editor))
