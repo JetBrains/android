@@ -147,6 +147,7 @@ internal class FilterTextField(
   private val historyButton = InlineButton(FILTER_HISTORY)
   private val clearButton = JLabel(AllIcons.Actions.Close)
   private val favoriteButton = JLabel(FAVORITE_OUTLINE)
+  private var filter: LogcatFilter? = filterParser.parse(initialText)
 
   private var isFavorite: Boolean = false
     set(value) {
@@ -193,6 +194,7 @@ internal class FilterTextField(
     textField.apply {
       addDocumentListener(object : DocumentListener {
         override fun documentChanged(event: DocumentEvent) {
+          filter = filterParser.parse(text)
           isFavorite = false
           filterHistory.mostRecentlyUsed = textField.text
           notifyFilterChangedTask.reschedule(APPLY_FILTER_DELAY_MS) {
@@ -324,6 +326,15 @@ internal class FilterTextField(
             if (e.keyCode == KeyEvent.VK_ENTER) {
               e.consume()
               addToHistory()
+            }
+          }
+        })
+        contentComponent.addMouseMotionListener(object : MouseAdapter() {
+          override fun mouseMoved(e: MouseEvent) {
+            contentComponent.toolTipText = editor?.let {editor ->
+              val position = editor.xyToLogicalPosition(e.point)
+              // The editor is in a single line so we don't have to convert to an offset
+              filter?.findFilterForOffset(position.column)?.displayText
             }
           }
         })

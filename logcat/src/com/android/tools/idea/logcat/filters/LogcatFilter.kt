@@ -227,7 +227,7 @@ internal data class AgeFilter(
       throw LogcatFilterParseException(PsiErrorElementImpl("Invalid duration: $text"))
     }
 
-    fun pluralize(word: String, count: Long) : String = if (count == 1L) word else Strings.pluralize(word)
+    fun pluralize(word: String, count: Long): String = if (count == 1L) word else Strings.pluralize(word)
 
     val (seconds, display) = when (text.last()) {
       's' -> Pair(count, pluralize(message("logcat.filter.completion.hint.age.second"), count))
@@ -254,10 +254,13 @@ internal class ProjectAppFilter(
   private var packageNames: Set<String> = emptySet()
   private var packageNamesRegex: Regex? = null
 
-  override val displayText: String = when (packageNamesProvider.getPackageNames().size) {
-    0 -> message("logcat.filter.completion.hint.package.mine.empty")
-    else -> "${message("logcat.filter.completion.hint.package.mine")}:\n  ${packageNamesProvider.getPackageNames().joinToString("\n  ")}"
-  }
+  override val displayText: String
+    get() = when (packageNamesProvider.getPackageNames().size) {
+      0 -> message("logcat.filter.completion.hint.package.mine.empty")
+      else -> message(
+        "logcat.filter.completion.hint.package.mine.items",
+        packageNamesProvider.getPackageNames().joinToString("<br/>&nbsp;&nbsp;"))
+    }
 
   override fun prepare() {
     packageNames = packageNamesProvider.getPackageNames()

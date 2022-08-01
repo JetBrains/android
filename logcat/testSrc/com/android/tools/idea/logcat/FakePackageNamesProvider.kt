@@ -21,5 +21,5 @@ package com.android.tools.idea.logcat
 class FakePackageNamesProvider(vararg packageNames: String) : PackageNamesProvider {
   private val _packageNames = packageNames.toMutableSet()
 
-  override fun getPackageNames(): Set<String> = _packageNames
+  override fun getPackageNames(): MutableSet<String> = _packageNames
 }

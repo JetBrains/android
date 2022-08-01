@@ -422,13 +422,15 @@ class LogcatFilterTest {
 
   @Test
   fun displayText_projectAppFilter() {
-    assertThat(ProjectAppFilter(FakePackageNamesProvider("app1", "app2"), EMPTY_RANGE).displayText).isEqualTo("""
-      Filter logs from current project id(s):
-        app1
-        app2
-      """.trimIndent())
-    assertThat(ProjectAppFilter(FakePackageNamesProvider(), EMPTY_RANGE).displayText)
+    val packageNamesProvider = FakePackageNamesProvider()
+    val projectAppFilter = ProjectAppFilter(packageNamesProvider, EMPTY_RANGE)
+    assertThat(projectAppFilter.displayText)
       .isEqualTo("No project ids detected. Is the project synced?")
+
+    packageNamesProvider.getPackageNames().add("app1")
+    packageNamesProvider.getPackageNames().add("app2")
+    assertThat(projectAppFilter.displayText).isEqualTo(
+      "<html>Filter logs from current project id(s):<br/>&nbsp;&nbsp;app1<br/>&nbsp;&nbsp;app2<html>")
   }
 
   @Test
