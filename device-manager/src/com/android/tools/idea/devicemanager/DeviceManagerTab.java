@@ -24,6 +24,10 @@ public interface DeviceManagerTab {
   @NotNull
   ExtensionPointName<DeviceManagerTab> EP_NAME = new ExtensionPointName<>("org.jetbrains.android.deviceManagerTab");
 
+  default boolean isApplicable() {
+    return true;
+  }
+
   @NotNull
   String getName();
 

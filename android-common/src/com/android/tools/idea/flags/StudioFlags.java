@@ -1337,6 +1337,18 @@ public final class StudioFlags {
   );
   // endregion SERVER_FLAGS
 
+  // region Firebase Test Lab
+  private static final FlagGroup FIREBASE_TEST_LAB = new FlagGroup(FLAGS, "firebasetestlab", "Firebase Test Lab");
+
+  public static final Flag<Boolean> DIRECT_ACCESS =
+    Flag.create(
+      FIREBASE_TEST_LAB,
+      "direct.access",
+      "Direct Access",
+      "Enable FTL DirectAccess",
+      false);
+  // endregion Firebase Test Lab
+
   // region App Insights
   private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
   public static final Flag<Boolean> APP_INSIGHTS_ENABLED =
