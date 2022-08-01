@@ -57,8 +57,6 @@ import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import java.text.ParseException
 import java.time.Clock
-import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 private val DURATION_RE = "\\d+[smhd]".toRegex()
 
@@ -303,7 +301,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
   val textRange = TextRange(startOffset, endOffset)
   return when (val key = firstChild.text.trim(':', '-', '~', '=')) {
     "level" -> LevelFilter(lastChild.asLogLevel(), textRange)
-    "age" -> AgeFilter(lastChild.asDuration(), clock, textRange)
+    "age" -> createAgeFilter(lastChild.text, clock)
     "is" -> createIsFilter(lastChild.text)
     "name" -> createNameFilter(lastChild.toText())
     else -> {
@@ -338,6 +336,15 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
   }
 }
 
+private fun LogcatFilterLiteralExpression.createAgeFilter(text: String, clock: Clock): LogcatFilter {
+  return try {
+    AgeFilter(text, clock, TextRange(startOffset, endOffset))
+  }
+  catch (e: IllegalArgumentException) {
+    throw LogcatFilterParseException(PsiErrorElementImpl(e.message ?: "Parse error"))
+  }
+}
+
 private fun LogcatFilterLiteralExpression.createIsFilter(text: String): LogcatFilter {
   return when {
     !StudioFlags.LOGCAT_IS_FILTER.get() -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid key: is"))
@@ -355,24 +362,6 @@ private fun PsiElement.asLogLevel(): LogLevel =
 
 internal fun String.isValidLogLevel(): Boolean = LogLevel.getByString(lowercase()) != null
 internal fun String.isValidIsFilter(): Boolean = this == "crash" || this == "stacktrace"
-
-private fun PsiElement.asDuration(): Duration {
-  DURATION_RE.matchEntire(text) ?: throw LogcatFilterParseException(PsiErrorElementImpl("Invalid duration: $text"))
-  val count = try {
-    text.substring(0, text.length - 1).toLong()
-  }
-  catch (e: NumberFormatException) {
-    throw LogcatFilterParseException(PsiErrorElementImpl("Invalid duration: $text"))
-  }
-  val l = when (text.last()) {
-    's' -> count
-    'm' -> TimeUnit.MINUTES.toSeconds(count)
-    'h' -> TimeUnit.HOURS.toSeconds(count)
-    'd' -> TimeUnit.DAYS.toSeconds(count)
-    else -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid duration: $text")) // should not happen
-  }
-  return Duration.ofSeconds(l)
-}
 
 internal fun String.isValidLogAge(): Boolean {
   DURATION_RE.matchEntire(this) ?: return false

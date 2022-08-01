@@ -43,8 +43,6 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import java.time.Clock
-import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 private val KEYS = mapOf(
   "tag" to TAG,
@@ -53,11 +51,11 @@ private val KEYS = mapOf(
   "line" to LINE,
 )
 
-private val AGE_VALUES = mapOf(
-  "10s" to Duration.ofSeconds(10),
-  "10m" to Duration.ofSeconds(TimeUnit.MINUTES.toSeconds(10)),
-  "10h" to Duration.ofSeconds(TimeUnit.HOURS.toSeconds(10)),
-  "10d" to Duration.ofSeconds(TimeUnit.DAYS.toSeconds(10)),
+private val AGE_VALUES = listOf(
+  "10s",
+  "10m",
+  "10h",
+  "10d",
 )
 
 private val INVALID_AGES = listOf(
@@ -192,10 +190,10 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_age() {
-    for ((key, duration) in AGE_VALUES) {
+    for (key in AGE_VALUES) {
       val clock = Clock.systemUTC()
-      assertThat(logcatFilterParser(clock = clock).parse("age: $key")).isEqualTo(AgeFilter(duration, clock, "age: $key".asRange()))
-      assertThat(logcatFilterParser(clock = clock).parse("age:$key")).isEqualTo(AgeFilter(duration, clock, "age:$key".asRange()))
+      assertThat(logcatFilterParser(clock = clock).parse("age: $key")).isEqualTo(AgeFilter(key, clock, "age: $key".asRange()))
+      assertThat(logcatFilterParser(clock = clock).parse("age:$key")).isEqualTo(AgeFilter(key, clock, "age:$key".asRange()))
     }
   }
 
@@ -210,7 +208,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun isValidLogAge() {
-    for (age in AGE_VALUES.keys) {
+    for (age in AGE_VALUES) {
       assertThat(age.isValidLogAge()).named(age).isTrue()
     }
     for (age in INVALID_AGES) {
