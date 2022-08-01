@@ -28,7 +28,6 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -43,14 +42,35 @@ class AndroidLintIdeProjectGradleIntegrationTest : GradleIntegrationTest {
   var expect = Expect.createAndEnableStackTrace()
 
   @Test
-  @Ignore //TODO(b/231836975): Enable and finish when fixed and does not crash anymore.
   fun test() {
     val result: LintResult = LintIgnoredResult()
-    prepareGradleProject(TestProjectPaths.TRANSITIVE_DEPENDENCIES, "p")
-    openPreparedProject("p") { project ->
-      val client: LintIdeClient = AndroidLintIdeClient(project, result)
-      val projects = AndroidLintIdeProject.create(client, null, *ModuleManager.getInstance(project).modules)
-      assertThat(projects).isNotEmpty()
+    val root = prepareGradleProject(TestProjectPaths.TRANSITIVE_DEPENDENCIES, "p")
+    openPreparedProject("p") { ideProject ->
+      val client: LintIdeClient = AndroidLintIdeClient(ideProject, result)
+      val projects = AndroidLintIdeProject.create(client, null, *ModuleManager.getInstance(ideProject).modules)
+      assertThat(
+        projects
+          .map { lintProject ->
+            flattenDag(
+              lintProject,
+              getId = { it.dir },
+              getChildren = {
+                it.directLibraries.filter { dependency -> dependency.buildModule != null }
+              }
+            )
+          }
+          .flatten() // Modules may be repeated here if a dependency is shared between roots.
+          .map { it.dir }
+          .distinct()
+      )
+        .containsExactly(
+          root,
+          root.resolve("app"),
+          root.resolve("library1"),
+          root.resolve("library2"),
+          root.resolve("javalib1"),
+          root.resolve("javalib2"),
+        )
     }
   }
 
@@ -58,3 +78,18 @@ class AndroidLintIdeProjectGradleIntegrationTest : GradleIntegrationTest {
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()
 }
+
+private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {
+  val seen = HashSet<Any>()
+  val queue = ArrayDeque(listOf(root))
+
+  while (queue.isNotEmpty()) {
+    val item = queue.removeFirst()
+    if (seen.add(getId(item))) {
+      queue.addAll(getChildren(item))
+      yield(item)
+    }
+  }
+}
+  .toList()
+
