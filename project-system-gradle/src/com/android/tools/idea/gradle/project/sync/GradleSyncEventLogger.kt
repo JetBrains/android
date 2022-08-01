@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactDependency
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleVersions
@@ -99,6 +101,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     syncStats.syncType = syncType ?: GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_UNKNOWN
     syncStats.usesBuildGradle = buildFileTypes.contains(SdkConstants.DOT_GRADLE)
     syncStats.usesBuildGradleKts = buildFileTypes.contains(SdkConstants.DOT_KTS)
+    syncStats.updateUserRequestedParallelSyncMode()
 
     runReadAction {
       val lastKnownVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)
@@ -109,13 +112,14 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       // Set up the Android studio event
       event.category = AndroidStudioEvent.EventCategory.GRADLE_SYNC
       event.kind = kind
-      event.gradleSyncStats = syncStats.build()
 
       if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED) {
         event.gradleVersion = GradleVersions.getInstance().getGradleVersion(project)?.toString() ?: ""
         event.setKotlinSupport(generateKotlinSupport())
       }
       event.withProjectId(project)
+
+      event.gradleSyncStats = syncStats.build()
     }
     return event
   }
@@ -124,4 +128,16 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
 private fun Collection<IdeArtifactDependency<*>>.findVersion(artifact: String): GradleVersion? {
   val library = firstOrNull { library -> library.target.artifactAddress.startsWith(artifact) } ?: return null
   return GradleCoordinate.parseCoordinateString(library.target.artifactAddress)?.version
+}
+
+private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode() {
+  if (!StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
+    clearUserRequestedSyncType()
+    return
+  }
+
+  userRequestedSyncType = when (GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC) {
+    true -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_PARALLEL
+    false -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_SEQUENTIAL
+  }
 }

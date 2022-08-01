@@ -74,8 +74,11 @@ data class GradleSyncLoggedEventsTestDef(
         assertThat(events.dumpSyncEvents()).isEqualTo(
           """
             |GRADLE_SYNC_STARTED
+            |  USER_REQUESTED_PARALLEL
             |GRADLE_SYNC_SETUP_STARTED
+            |  USER_REQUESTED_PARALLEL
             |GRADLE_SYNC_ENDED
+            |  USER_REQUESTED_PARALLEL
             |GRADLE_BUILD_DETAILS
           """.trimMargin()
         )
@@ -87,8 +90,11 @@ data class GradleSyncLoggedEventsTestDef(
         assertThat(events.dumpSyncEvents()).isEqualTo(
           """
             |GRADLE_SYNC_STARTED
+            |  USER_REQUESTED_SEQUENTIAL
             |GRADLE_SYNC_SETUP_STARTED
+            |  USER_REQUESTED_SEQUENTIAL
             |GRADLE_SYNC_ENDED
+            |  USER_REQUESTED_SEQUENTIAL
             |GRADLE_BUILD_DETAILS
           """.trimMargin()
         )
