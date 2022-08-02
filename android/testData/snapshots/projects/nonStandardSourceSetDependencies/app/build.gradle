@@ -33,6 +33,7 @@ android {
 
 dependencies {
     implementation project(':feature-a')
+    implementation project(':feature-b')
     implementation project(path: ":javaLibrary")
     implementation project(path: ":javaLibrary", configuration: "testEnv")
     implementation project(':aarWrapperLib')

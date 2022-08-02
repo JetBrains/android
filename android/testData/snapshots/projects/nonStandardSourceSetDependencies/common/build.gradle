@@ -5,6 +5,10 @@ plugins {
 kotlin {
     jvm()
     sourceSets {
+        commonMain {
+            dependencies {
+            }
+        }
         jvmMain {
             dependencies {
             }
