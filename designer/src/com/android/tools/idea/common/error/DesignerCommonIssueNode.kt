@@ -126,9 +126,10 @@ class DesignerCommonIssueRoot(project: Project?, var issueProvider: DesignerComm
 
   override fun getLeafState(): LeafState = LeafState.NEVER
 
+  @Suppress("UnstableApiUsage")
   override fun getChildren(): Collection<DesignerCommonIssueNode> {
     val fileIssuesMap: MutableMap<VirtualFile?, List<Issue>> = issueProvider.getFilteredIssues()
-      .groupBy { it.source.file }.toMutableMap()
+      .groupBy { it.source.file?.let { file -> BackedVirtualFile.getOriginFileIfBacked(file) } }.toMutableMap()
     val otherIssues = fileIssuesMap.remove(null)
     val fileNodes = fileIssuesMap.toSortedMap(Ordering.usingToString())
       .map { (file, issues) -> IssuedFileNode(file!!, issues, this@DesignerCommonIssueRoot) }

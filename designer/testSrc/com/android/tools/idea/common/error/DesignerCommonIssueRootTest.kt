@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.common.BackedTestFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import junit.framework.Assert.assertEquals
 import org.junit.Rule
@@ -127,5 +128,26 @@ class DesignerCommonIssueRootTest {
                           IssuedFileNode(file2, listOf(file2IssueC, file2IssueA, file2IssueB), root),
                           NoFileNode(listOf(noFileIssueA, noFileIssueC, noFileIssueB), root))
     assertEquals(expected, root.getChildren())
+  }
+
+  @Test
+  fun testCreateFileNodeWithBackedFile() {
+    val file = projectRule.fixture.addFileToProject("path/to/file", "").virtualFile
+
+    val backedFile1 = BackedTestFile("path/to/backed/file1", file)
+    val backedFile2 = BackedTestFile("path/to/backed/file2", file)
+
+    val file1Issue = TestIssue(summary = "issue1", source = (IssueSourceWithFile(backedFile1, "")))
+    val file2Issue = TestIssue(summary = "issue2", source = (IssueSourceWithFile(backedFile2, "")))
+
+    val provider = DesignerCommonIssueTestProvider(listOf(file1Issue, file2Issue))
+    val root = DesignerCommonIssueRoot(null, provider)
+
+    // File from same backed file should belong to same parent node.
+    assertEquals(1, root.getChildren().size)
+    val childrenNodes = root.getChildren().single().getChildren().toList()
+    assertEquals(2, childrenNodes.size)
+    assertEquals("issue1", (childrenNodes[0] as IssueNode).issue.summary)
+    assertEquals("issue2", (childrenNodes[1] as IssueNode).issue.summary)
   }
 }
