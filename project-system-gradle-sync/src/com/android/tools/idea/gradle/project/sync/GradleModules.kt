@@ -16,38 +16,33 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.ProjectSyncIssues
-import com.android.builder.model.v2.models.Versions
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.LegacyApplicationIdModel
-import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
-import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.BuildModel
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
-import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 import com.android.builder.model.ProjectSyncIssues as ProjectSyncIssuesV1
 import com.android.builder.model.v2.models.ProjectSyncIssues as ProjectSyncIssuesV2
@@ -58,28 +53,6 @@ typealias IdeVariantFetcher = (
   module: AndroidModule,
   configuration: ModuleConfiguration
 ) -> IdeVariantWithPostProcessor?
-
-sealed interface GradleModelCollection {
-  fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
-}
-
-class GradleProject(
-  private val buildModel: BuildModel,
-  private val ideLibraryTable: IdeUnresolvedLibraryTableImpl
-) : GradleModelCollection {
-
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
-    with(ModelConsumer(consumer)) {
-      ideLibraryTable.deliver()
-    }
-  }
-
-  private inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
-    inline fun <reified T : Any> T.deliver() {
-      buildModelConsumer.consume(buildModel, this, T::class.java)
-    }
-  }
-}
 
 sealed class GradleModule(val gradleProject: BasicGradleProject) {
   val findModelRoot: Model get() = gradleProject
@@ -98,74 +71,6 @@ sealed class GradleModule(val gradleProject: BasicGradleProject) {
 }
 
 /**
- * The final collection of models representing [gradleProject] prepared for consumption by the IDE.
- */
-sealed class DeliverableGradleModule(
-  val gradleProject: BasicGradleProject,
-  val projectSyncIssues: List<IdeSyncIssue>
-) : GradleModelCollection {
-  protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
-    inline fun <reified T : Any> T.deliver() {
-      buildModelConsumer.consumeProjectModel(gradleProject, this, T::class.java)
-    }
-  }
-}
-
-/**
- * The container class of modules we couldn't fetch using parallel Gradle TAPI API.
- * For now this list has :
- *  - All the non-Android modules
- *  - The android modules using an older AGP version than the minimum supported for V2 sync
- */
-sealed class BasicIncompleteGradleModule(
-  val gradleProject: BasicGradleProject,
-  val buildName: String
-) {
-  val buildId: BuildId get() = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
-  val projectPath: String get() = gradleProject.path
-
-}
-
-/**
- * The container class of Android modules.
- */
-sealed class BasicIncompleteAndroidModule(gradleProject: BasicGradleProject, buildName: String)
-  :  BasicIncompleteGradleModule(gradleProject, buildName) {
-   abstract val agpVersion: String
-  }
-
-
-/**
- * The container class of Android modules that can be fetched using V2 builder models.
- */
-class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, buildName: String, val versions: Versions) :
-  BasicIncompleteAndroidModule(gradleProject, buildName)
-{
-  override val agpVersion: String
-    get() = versions.agp
-}
-
-/**
-*  The container class of Android modules that can be fetched using V1 builder models.
- *  legacyV1AgpVersion: The model that contains the agp version used by the AndroidProject. This can be null if the AndroidProject is using
- *  an AGP version lower than the minimum supported version by Android Studio
-*/
-class BasicV1AndroidModuleGradleProject(
-  gradleProject: BasicGradleProject,
-  buildName: String,
-  private val legacyV1AgpVersion: LegacyV1AgpVersionModel
-) :  BasicIncompleteAndroidModule(gradleProject, buildName) {
-  override val agpVersion: String
-    get() = legacyV1AgpVersion.agp
-}
-
-/**
- * The container class of non-Android modules.
- */
-class BasicNonAndroidIncompleteGradleModule(gradleProject: BasicGradleProject, buildName: String) :
-  BasicIncompleteGradleModule(gradleProject, buildName)
-
-/**
  * The container class for Java module, containing its Android models handled by the Android plugin.
  */
 class JavaModule(
@@ -177,20 +82,6 @@ class JavaModule(
 
   override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
     return DeliverableJavaModule(gradleProject, projectSyncIssues, kotlinGradleModel, kaptGradleModel)
-  }
-}
-
-class DeliverableJavaModule(
-  gradleProject: BasicGradleProject,
-  projectSyncIssues: List<IdeSyncIssue>,
-  private val kotlinGradleModel: KotlinGradleModel?,
-  private val kaptGradleModel: KaptGradleModel?
-): DeliverableGradleModule(gradleProject, projectSyncIssues) {
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
-    with(ModelConsumer(consumer)) {
-      kotlinGradleModel?.deliver()
-      kaptGradleModel?.deliver()
-    }
   }
 }
 
@@ -385,41 +276,6 @@ sealed class AndroidModule constructor(
   }
 }
 
-class DeliverableAndroidModule(
-  gradleProject: BasicGradleProject,
-  projectSyncIssues: List<IdeSyncIssue>,
-  val selectedVariantName: String,
-  val selectedAbiName: String?,
-  val androidProject: IdeAndroidProjectImpl,
-  val fetchedVariants: List<IdeVariantCoreImpl>,
-  val nativeModule: IdeNativeModule?,
-  val nativeAndroidProject: IdeNativeAndroidProject?,
-  val syncedNativeVariant: IdeNativeVariantAbi?,
-  val kotlinGradleModel: KotlinGradleModel?,
-  val kaptGradleModel: KaptGradleModel?,
-  val additionalClassifierArtifacts: AdditionalClassifierArtifactsModel?
-): DeliverableGradleModule(gradleProject, projectSyncIssues) {
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
-
-    val ideAndroidModels = IdeAndroidModels(
-      androidProject,
-      fetchedVariants,
-      selectedVariantName,
-      selectedAbiName,
-      projectSyncIssues,
-      nativeModule,
-      nativeAndroidProject,
-      syncedNativeVariant,
-      kaptGradleModel
-    )
-    with(ModelConsumer(consumer)) {
-      ideAndroidModels.deliver()
-      kotlinGradleModel?.deliver()
-      additionalClassifierArtifacts?.deliver()
-    }
-  }
-}
-
 private fun IdeAndroidProjectImpl.patchForKapt(kaptModel: KaptGradleModel?) = copy(isKaptEnabled = kaptModel?.isEnabled ?: false)
 
 private fun List<IdeVariantCoreImpl>.patchForKapt(kaptModel: KaptGradleModel?): List<IdeVariantCoreImpl> {
@@ -480,18 +336,6 @@ class NativeVariantsAndroidModule private constructor(
   }
 }
 
-class DeliverableNativeVariantsAndroidModule(
-  gradleProject: BasicGradleProject,
-  projectSyncIssues: List<IdeSyncIssue>,
-  private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
-) : DeliverableGradleModule(gradleProject, projectSyncIssues) {
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
-    with(ModelConsumer(consumer)) {
-      IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues).deliver()
-    }
-  }
-}
-
 fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
   if (contains(defaultValue)) defaultValue else minByOrNull { it }
 
@@ -516,4 +360,3 @@ private fun collectIdentifiers(
     .distinct()
     .toList()
 }
-
