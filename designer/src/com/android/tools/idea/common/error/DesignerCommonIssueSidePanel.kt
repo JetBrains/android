@@ -22,6 +22,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -36,6 +38,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Font
@@ -48,40 +51,74 @@ import javax.swing.ToolTipManager
 /**
  * The side panel to show the detail of issue and its source code if available
  */
-class DesignerCommonIssueSidePanel(private val project: Project,
-                                   issue: Issue,
-                                   private val file: VirtualFile?,
-                                   parentDisposable: Disposable) : JPanel(BorderLayout()), Disposable {
+class DesignerCommonIssueSidePanel(private val project: Project, parentDisposable: Disposable) : JPanel(BorderLayout()), Disposable {
 
   private val splitter: OnePixelSplitter = OnePixelSplitter(true, 0.5f, 0.1f, 0.9f)
-  val editor: Editor?
+
+  private val fileToEditorMap = mutableMapOf<VirtualFile, Editor>()
 
   init {
     Disposer.register(parentDisposable, this)
-    splitter.firstComponent = DesignerCommonIssueDetailPanel(project, issue)
-
-    editor = createEditor()
-    if (editor != null) {
-      editor.setBorder(JBUI.Borders.empty())
-      splitter.secondComponent = editor.component
-      splitter.setResizeEnabled(true)
-    }
+    splitter.firstComponent = null
+    splitter.secondComponent = null
+    splitter.setResizeEnabled(true)
     add(splitter, BorderLayout.CENTER)
+
+    project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+        fileToEditorMap.remove(file)?.let { editor -> EditorFactory.getInstance().releaseEditor(editor) }
+      }
+    })
   }
 
-  private fun createEditor(): Editor? {
-    if (file == null) {
-      return null
+  /**
+   * Load the data from the given [issueNode]. Return true if there is any content to display, or false otherwise.
+   */
+  fun loadIssueNode(issueNode: DesignerCommonIssueNode?): Boolean {
+    splitter.firstComponent = (issueNode as? IssueNode)?.let { node -> DesignerCommonIssueDetailPanel(project, node.issue) }
+
+    if (issueNode == null) {
+      splitter.secondComponent = null
+      return false
+    }
+    val editor = issueNode.getVirtualFile()?.let { getEditor(it) }
+    if (editor != null) {
+      editor.setBorder(JBUI.Borders.empty())
+      val navigable = issueNode.getNavigatable()
+      if (navigable is OpenFileDescriptor) {
+        navigable.navigateIn(editor)
+      }
+    }
+    splitter.secondComponent = editor?.component
+
+    return splitter.firstComponent != null || splitter.secondComponent != null
+  }
+
+  private fun getEditor(file: VirtualFile): Editor? {
+    val editor = fileToEditorMap[file]
+    if (editor != null) {
+      return editor
     }
     val document = ProblemsView.getDocument(project, file) ?: return null
-    return EditorFactory.getInstance().createEditor(document, project, file, false, EditorKind.PREVIEW)
+    val newEditor = EditorFactory.getInstance().createEditor(document, project, file, false, EditorKind.PREVIEW)
+    if (newEditor != null) {
+      fileToEditorMap[file] = newEditor
+    }
+    return newEditor
   }
 
   override fun dispose() {
-    if (editor != null) {
+    for (editor in fileToEditorMap.values) {
       EditorFactory.getInstance().releaseEditor(editor)
     }
+    fileToEditorMap.clear()
   }
+
+  @TestOnly
+  fun hasFirstComponent() = splitter.firstComponent != null
+
+  @TestOnly
+  fun hasSecondComponent() = splitter.secondComponent != null
 }
 
 

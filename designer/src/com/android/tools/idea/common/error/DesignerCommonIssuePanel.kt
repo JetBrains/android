@@ -30,7 +30,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
@@ -70,7 +69,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
   var sidePanelVisible = PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE, true)
     set(value) {
       field = value
-      setSidePanelVisibility(value)
+      updateSidePanel(getSelectedNode(), value)
       PropertiesComponent.getInstance(project).setValue(KEY_DETAIL_VISIBLE, value)
     }
 
@@ -101,6 +100,8 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
   private val tree: Tree
   private val splitter: OnePixelSplitter
 
+  private val sidePanel: DesignerCommonIssueSidePanel
+
   init {
     Disposer.register(parentDisposable, this)
     treeModel.root = DesignerCommonIssueRoot(project, issueProvider)
@@ -130,26 +131,23 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     UIUtil.addBorder(toolbar.component, CustomLineBorder(JBUI.insetsRight(1)))
     rootPanel.add(toolbar.component, BorderLayout.WEST)
 
+    sidePanel = DesignerCommonIssueSidePanel(project, this)
+
     splitter = OnePixelSplitter(false, 0.5f, 0.3f, 0.7f)
     splitter.proportion = 0.5f
     splitter.firstComponent = ScrollPaneFactory.createScrollPane(tree, true)
-    splitter.secondComponent = null
+    splitter.secondComponent = sidePanel
     splitter.setResizeEnabled(true)
     rootPanel.add(splitter, BorderLayout.CENTER)
 
     tree.addTreeSelectionListener {
       val newSelectedNode = it?.newLeadSelectionPath?.lastPathComponent
       if (newSelectedNode == null) {
-        splitter.secondComponent = null
-        splitter.revalidate()
+        updateSidePanel(null, false) // force hide the side panel even the sidePanelVisible is true.
         return@addTreeSelectionListener
       }
-      val selectedNode = newSelectedNode as? DesignerCommonIssueNode ?: return@addTreeSelectionListener
-      if (sidePanelVisible) {
-        val sidePanel = createSidePanel(selectedNode)
-        splitter.secondComponent = sidePanel
-        splitter.revalidate()
-      }
+      val selectedNode = newSelectedNode as DesignerCommonIssueNode
+      updateSidePanel(selectedNode, sidePanelVisible)
       // TODO(b/222110455): Can we have better way to trigger the refreshing of Layout Validation or other design tools?
       //                    Refactor to remove the dependency of VisualizationToolWindowFactory.
       val window = ToolWindowManager.getInstance(project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)
@@ -165,6 +163,8 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
         }
       }
     }
+
+    updateSidePanel(getSelectedNode(), sidePanelVisible)
   }
 
   fun setSelectedNode(visitor: TreeVisitor) {
@@ -207,27 +207,15 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     return TreeUtil.getLastUserObject(DesignerCommonIssueNode::class.java, tree.selectionPath)
   }
 
-  private fun setSidePanelVisibility(visible: Boolean) {
-    if (!visible) {
-      splitter.secondComponent = null
+  private fun updateSidePanel(node: DesignerCommonIssueNode?, visible: Boolean) {
+    if (visible && sidePanel.loadIssueNode(node)) {
+      splitter.secondComponent = sidePanel
+      sidePanel.invalidate()
     }
     else {
-      splitter.secondComponent = createSidePanel(tree.lastSelectedPathComponent as? DesignerCommonIssueNode)
+      splitter.secondComponent = null
     }
     splitter.revalidate()
-  }
-
-  private fun createSidePanel(node: DesignerCommonIssueNode?): JComponent? {
-    val issueNode = node as? IssueNode ?: return null
-
-    val sidePanel = DesignerCommonIssueSidePanel(project, issueNode.issue, issueNode.getVirtualFile(), this)
-    val previewEditor = sidePanel.editor
-    val navigable = issueNode.getNavigatable()
-    if (previewEditor != null && navigable is OpenFileDescriptor) {
-      navigable.navigateIn(previewEditor)
-    }
-
-    return sidePanel
   }
 
   override fun dispose() = Unit
