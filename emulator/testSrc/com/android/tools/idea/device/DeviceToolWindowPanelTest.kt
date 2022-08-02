@@ -105,7 +105,7 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.deviceView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(2, TimeUnit.SECONDS) { agent.isRunning }
+    waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     fakeUi.updateToolbars()
