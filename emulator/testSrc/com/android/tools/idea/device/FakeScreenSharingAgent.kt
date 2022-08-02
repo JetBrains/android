@@ -92,7 +92,7 @@ import kotlin.math.roundToInt
 /**
  * Fake Screen Sharing Agent for use in tests.
  */
-class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState: DeviceState) : Disposable {
+internal class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState: DeviceState) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeScreenSharingAgent", 1)
   private val coroutineScope = CoroutineScope(executor.asCoroutineDispatcher() + Job())
@@ -117,6 +117,8 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
       }
     }
 
+  @Volatile
+  var maxVideoEncoderResolution = 2048 // Many phones, for example Galaxy Z Fold3, have VP8 encoder limited to 2048x2048 resolution.
   @Volatile
   var commandLine: String? = null
   val commandLog = LinkedBlockingDeque<ControlMessage>()
@@ -527,13 +529,15 @@ class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState
     }
 
     private fun getScaledAndRotatedDisplaySize(): Dimension {
+      val maxResolutionX = maxVideoResolution.width.coerceAtMost(maxVideoEncoderResolution)
+      val maxResolutionY = maxVideoResolution.height.coerceAtMost(maxVideoEncoderResolution)
       val aspectRatio = displaySize.height.toDouble() / displaySize.width
       return if (displayOrientation % 2 == 0) {
-        val width = displaySize.width.coerceAtMost((maxVideoResolution.height / aspectRatio).toInt()).roundUpToMultipleOf8()
+        val width = displaySize.width.coerceAtMost((maxResolutionX / aspectRatio).toInt()).roundUpToMultipleOf8()
         Dimension(width, (width * aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.height))
       }
       else {
-        val width = displaySize.height.coerceAtMost((maxVideoResolution.width * aspectRatio).toInt()).roundUpToMultipleOf8()
+        val width = displaySize.height.coerceAtMost((maxResolutionY * aspectRatio).toInt()).roundUpToMultipleOf8()
         Dimension(width, (width / aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.width))
       }
     }

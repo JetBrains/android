@@ -42,6 +42,7 @@ import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.math.floor
+import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToInt
@@ -222,9 +223,17 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     return null
   }
 
-  /** Rounds the given value down to an integer if it is above 1, or to the nearest multiple of 1/128 if it is below 1. */
+  /**
+   * Rounds the given value down to an integer if it is above 1, or to the nearest multiple of
+   * a small fraction that is close to `value/128` and has the form of `1/2^n`.
+   */
   protected fun roundScale(value: Double): Double {
-    return if (value >= 1) floor(value) else round(value * 128) / 128
+    if (value >= 1) {
+      return floor(value)
+    }
+    val logScale = -log2(value).roundToInt() + 7
+    val multiplier = 2 shl logScale + 7
+    return round(value * multiplier) / multiplier
   }
 
   /** Attempts to restore a lost device connection. */

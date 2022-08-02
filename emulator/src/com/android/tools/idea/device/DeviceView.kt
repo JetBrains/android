@@ -251,9 +251,10 @@ class DeviceView(
       if (rect != null && !isSameAspectRatio(image.width, image.height, rect.width, rect.height, 0.01)) {
         zoom(ZoomType.FIT) // Dimensions of the display image changed - reset zoom level.
       }
-      val scale = roundScale(min(realWidth.toDouble() / image.width, realHeight.toDouble() / image.height))
-      val w = image.width.scaled(scale).coerceAtMost(realWidth)
-      val h = image.height.scaled(scale).coerceAtMost(realHeight)
+      val rotatedDisplaySize = displayFrame.displaySize.rotatedByQuadrants(displayFrame.orientation)
+      val scale = roundScale(min(realWidth.toDouble() / rotatedDisplaySize.width, realHeight.toDouble() / rotatedDisplaySize.height))
+      val w = rotatedDisplaySize.width.scaled(scale).coerceAtMost(realWidth)
+      val h = rotatedDisplaySize.height.scaled(scale).coerceAtMost(realHeight)
       val displayRect = Rectangle((realWidth - w) / 2, (realHeight - h) / 2, w, h)
       displayRectangle = displayRect
       if (displayRect.width == image.width && displayRect.height == image.height) {

@@ -19,6 +19,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
@@ -112,12 +113,12 @@ internal class DeviceViewTest {
     val expectedCoordinates = listOf(
       MotionEventMessage.Pointer(298, 766, 0),
       MotionEventMessage.Pointer(807, 1399, 0),
-      MotionEventMessage.Pointer(890, 917, 0),
-      MotionEventMessage.Pointer(315, 1373, 0),
+      MotionEventMessage.Pointer(881, 917, 0),
+      MotionEventMessage.Pointer(312, 1373, 0),
       MotionEventMessage.Pointer(794, 1526, 0),
       MotionEventMessage.Pointer(285, 892, 0),
-      MotionEventMessage.Pointer(200, 1373, 0),
-      MotionEventMessage.Pointer(775, 917, 0),
+      MotionEventMessage.Pointer(209, 1373, 0),
+      MotionEventMessage.Pointer(779, 917, 0),
     )
     for (i in 0 until 4) {
       assertAppearance("Rotation${i * 90}")
@@ -304,6 +305,8 @@ internal class DeviceViewTest {
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isFalse()
     assertThat(view.canZoomToFit()).isTrue()
+    val image = ImageUtils.scale(fakeUi.render(view), 0.125)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile("Zoom1"), image, 0.0)
 
     view.zoom(ZoomType.OUT)
     fakeUi.layoutAndDispatchEvents()
