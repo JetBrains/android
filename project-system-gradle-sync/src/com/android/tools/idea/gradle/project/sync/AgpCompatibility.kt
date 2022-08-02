@@ -20,8 +20,8 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 
-internal fun checkAgpVersionCompatibility(agpVersionString: String?, syncOptions: SyncActionOptions) {
-  val agpVersion = if (agpVersionString != null) GradleVersion.parse(agpVersionString) else return
+internal fun checkAgpVersionCompatibility(agpVersionString: String, syncOptions: SyncActionOptions) {
+  val agpVersion = GradleVersion.parse(agpVersionString)
   val latestKnown = GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
   when (computeAndroidGradlePluginCompatibility(agpVersion, latestKnown)) {
     // We want to report to the user that they are using an AGP version that is below the minimum supported version for Android Studio,

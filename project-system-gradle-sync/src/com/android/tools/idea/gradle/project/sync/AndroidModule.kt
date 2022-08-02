@@ -131,7 +131,7 @@ sealed class BasicIncompleteGradleModule(
  */
 sealed class BasicIncompleteAndroidModule(gradleProject: BasicGradleProject, buildName: String)
   :  BasicIncompleteGradleModule(gradleProject, buildName) {
-   abstract val agpVersion: String?
+   abstract val agpVersion: String
   }
 
 
@@ -153,10 +153,10 @@ class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, build
 class BasicV1AndroidModuleGradleProject(
   gradleProject: BasicGradleProject,
   buildName: String,
-  val legacyV1AgpVersion: LegacyV1AgpVersionModel?
+  private val legacyV1AgpVersion: LegacyV1AgpVersionModel
 ) :  BasicIncompleteAndroidModule(gradleProject, buildName) {
-  override val agpVersion: String?
-    get() = legacyV1AgpVersion?.agp
+  override val agpVersion: String
+    get() = legacyV1AgpVersion.agp
 }
 
 /**

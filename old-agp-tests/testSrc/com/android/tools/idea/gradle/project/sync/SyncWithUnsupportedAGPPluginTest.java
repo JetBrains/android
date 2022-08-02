@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertTrue;
 
@@ -52,8 +53,8 @@ public class SyncWithUnsupportedAGPPluginTest implements GradleIntegrationTest {
                           return null;
                         }  )
       , project -> null);
-    assertTrue(exceptionTest[0].contains("The project is using an incompatible version (AGP 3.1.4) of the Android " +
-                                                           "Gradle plugin. Minimum supported version is AGP 3.2.0."));
+    assertThat(exceptionTest[0]).contains("The project is using an incompatible version (AGP 3.1.4) of the Android " +
+                                                           "Gradle plugin. Minimum supported version is AGP 3.2.0.");
   }
 
   @NotNull
