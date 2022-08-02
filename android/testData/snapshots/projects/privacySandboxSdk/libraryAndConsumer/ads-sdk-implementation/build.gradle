@@ -1,0 +1,22 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.example.ads_sdk_implementation'
+    compileSdk = 33
+
+    defaultConfig {
+        minSdk 33
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+  implementation 'androidx.annotation:annotation:1.2.0-rc01'
+}

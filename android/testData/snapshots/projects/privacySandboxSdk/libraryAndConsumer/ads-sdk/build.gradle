@@ -1,0 +1,21 @@
+plugins {
+    id 'com.android.privacy-sandbox-sdk'
+}
+
+android {
+    compileSdk = 33
+    minSdk = 33
+    namespace = "com.example.adssdk"
+
+    bundle {
+        packageName = "com.myrbsdk"
+      // TODO(b/240533883): Import the T preview SDK and use the implementation class instead
+        sdkProviderClassName = "com.myrbsdk.MyAdsSdkEntryPointStub"
+        setVersion(1, 0, 0)
+    }
+}
+
+// TODO(b/240533883): Import the T preview SDK and use the implementation module instead.
+dependencies {
+    include project(':ads-sdk-stub')
+}
