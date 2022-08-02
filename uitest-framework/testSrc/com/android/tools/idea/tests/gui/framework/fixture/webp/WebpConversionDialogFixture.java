@@ -56,7 +56,7 @@ public class WebpConversionDialogFixture extends IdeaDialogFixture<WebpConversio
   }
 
   public WebpConversionDialogFixture selectLossless() {
-    clickRadioButton("Use lossless encoding");
+    clickRadioButton("Lossless encoding");
     return this;
   }
 
