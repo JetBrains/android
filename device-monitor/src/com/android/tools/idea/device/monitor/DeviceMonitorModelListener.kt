@@ -23,28 +23,28 @@ interface DeviceMonitorModelListener {
   /**
    * All devices were removed, for example during a service restart.
    */
-  fun allDevicesRemoved() {}
+  fun allDevicesRemoved()
 
   /**
    * A new device has been discovered, e.g. attached to a USB port.
    */
-  fun deviceAdded(device: Device) {}
+  fun deviceAdded(device: Device)
 
   /**
    * An existing device is not available anymore, e.g. disconnected
    * from the USB port.
    */
-  fun deviceRemoved(device: Device) {}
+  fun deviceRemoved(device: Device)
 
   /**
    * The state of an existing device has changed, e.g. online -> offline.
    */
-  fun deviceUpdated(device: Device) {}
+  fun deviceUpdated(device: Device)
 
   /**
    * The currently active device has changed.
    */
-  fun activeDeviceChanged(newActiveDevice: Device?) {}
+  fun activeDeviceChanged(newActiveDevice: Device?)
 
   /**
    * The tree model of the file system has just changed, e.g. just after
@@ -52,5 +52,5 @@ interface DeviceMonitorModelListener {
    *
    * If there is no active device, [newTreeModel] is `null`.
    */
-  fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?) {}
+  fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?)
 }
