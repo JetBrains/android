@@ -67,7 +67,6 @@ import com.android.tools.idea.stats.withProjectId
 import com.android.utils.appendCapitalized
 import com.android.utils.findGradleSettingsFile
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Preconditions
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.execution.configurations.SimpleJavaParameters
@@ -105,6 +104,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.android.configure.patchFromMppModel
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
@@ -491,17 +491,27 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     ideProject: DataNode<ProjectData>,
     ideLibraryTable: IdeUnresolvedLibraryTable
   ): IdeResolvedLibraryTable {
-    val artifactToModuleIdMap = ideProject.getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS)!!
-    val resolvedSourceSets = ideProject.getUserData(GradleProjectResolver.RESOLVED_SOURCE_SETS)!!
-    Preconditions.checkNotNull(artifactToModuleIdMap, "Implementation of GradleProjectResolver has changed")
-    Preconditions.checkNotNull(resolvedSourceSets, "Implementation of GradleProjectResolver has changed")
-    return ResolvedLibraryTableBuilder({ key: Any? -> myGradlePathByModuleId[key] }, { key: Any? -> myModuleDataByGradlePath[key] }
-    ) { artifact: File -> resolveArtifact(artifactToModuleIdMap, artifact) }.buildResolvedLibraryTable(ideLibraryTable)
+    val kmpArtifactToModuleIdMap =
+      ideProject
+        .getUserData(KotlinMPPGradleProjectResolver.MPP_CONFIGURATION_ARTIFACTS)
+        .orEmpty()
+    val artifactToModuleIdMap =
+      ideProject
+        .getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS)
+        ?.mapValues { listOf(it.value) }
+        .orEmpty()
+
+    val allArtifactModuleIdMap = artifactToModuleIdMap.plus(kmpArtifactToModuleIdMap)
+    return ResolvedLibraryTableBuilder(
+      { key: Any? -> myGradlePathByModuleId[key] },
+      { key: Any? -> myModuleDataByGradlePath[key] },
+      { artifact: File -> resolveArtifact(allArtifactModuleIdMap, artifact) }
+    ).buildResolvedLibraryTable(ideLibraryTable)
   }
 
-  private fun resolveArtifact(artifactToModuleIdMap: Map<String, String>, artifact: File): GradleProjectPath? {
-    return myGradlePathByModuleId[artifactToModuleIdMap[ExternalSystemApiUtil.toCanonicalPath(artifact.path)]]
-  }
+  private fun resolveArtifact(artifactToModuleIdMap: Map<String, List<String>>, artifact: File) =
+    artifactToModuleIdMap[ExternalSystemApiUtil.toCanonicalPath(artifact.path)]
+      ?.mapNotNull { artifactToModuleId -> myGradlePathByModuleId[artifactToModuleId] as? GradleSourceSetProjectPath }
 
   @Suppress("UnstableApiUsage")
   override fun resolveFinished(projectDataNode: DataNode<ProjectData>) {
