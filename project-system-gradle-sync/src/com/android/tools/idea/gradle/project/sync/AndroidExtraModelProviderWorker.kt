@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.Version
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
@@ -34,21 +33,13 @@ import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
-import com.android.tools.idea.gradle.model.IdeLibrary
-import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
-import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
-import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
-import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
-import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
-import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.BuildModel
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -486,7 +477,7 @@ internal class AndroidExtraModelProviderWorker(
         syncVariantResultCore?.let {
           SyncVariantResult(
             syncVariantResultCore,
-            syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants, internedModels::resolve),
+            syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants, androidModulesById, internedModels::resolve),
           )
         }
       }
@@ -664,26 +655,6 @@ internal class AndroidExtraModelProviderWorker(
     abstract val legacyApplicationIdModel: LegacyApplicationIdModel?
   }
 
-  private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
-    return gradlePluginVersion != null && gradlePluginVersion.isAtLeast(7, 2, 0, "alpha", 1, true)
-  }
-
-  /**
-   * Checks if we can request the V2 models in parallel.
-   * We need to make sure we only request the models in parallel if:
-   * - we are fetching android models
-   * - we are using Gradle 7.4.2+ (https://github.com/gradle/gradle/issues/18587)
-   * - using a stable AGP version higher than or equal to AGP 7.2.0 and lower than AGP 7.3.0-alpha01, or
-   * - using at least AGP 7.3.0-alpha-04.
-   *  @returns true if we can fetch the V2 models in parallel, otherwise, returns false.
-   */
-  private fun canUseParallelSync(agpVersion: GradleVersion?, gradleVersion: String): Boolean {
-    return org.gradle.util.GradleVersion.version(gradleVersion) >= org.gradle.util.GradleVersion.version("7.4.2") &&
-           agpVersion != null &&
-           ((agpVersion >= GradleVersion(7, 2, 0) && agpVersion < "7.3.0-alpha01") ||
-            agpVersion.isAtLeast(7, 3, 0, "alpha", 4, true))
-  }
-
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {
     return safeActionRunner.runActions(
       buildInfo.projects.map { gradleProject ->
@@ -727,19 +698,6 @@ internal class AndroidExtraModelProviderWorker(
         )
       }.toList()
     )
-  }
-
-  private fun checkAgpVersionCompatibility(agpVersionString: String?, syncOptions: SyncActionOptions) {
-    val agpVersion = if (agpVersionString != null) GradleVersion.parse(agpVersionString) else return
-    val latestKnown = GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
-    when (computeAndroidGradlePluginCompatibility(agpVersion, latestKnown)) {
-      // We want to report to the user that they are using an AGP version that is below the minimum supported version for Android Studio,
-      // and this is regardless of whether we want to trigger the upgrade assistant or not. Sync should always fail here.
-      BEFORE_MINIMUM -> throw AgpVersionTooOld(agpVersion)
-      DIFFERENT_PREVIEW -> if (!syncOptions.flags.studioFlagDisableForcedUpgrades) throw AgpVersionIncompatible(agpVersion)
-      AFTER_MAXIMUM -> if (!syncOptions.flags.studioFlagDisableForcedUpgrades) throw AgpVersionTooNew(agpVersion)
-      COMPATIBLE -> Unit
-    }
   }
 
   private fun prepareRequestedOrDefaultModuleConfigurations(
@@ -817,93 +775,6 @@ internal class AndroidExtraModelProviderWorker(
              // Check to see if we have a variant selected in the IDE, and that it is still a valid one.
              ?.takeIf { variantNames.contains(it) }
            ?: androidModule.defaultVariantName
-  }
-
-  private class SyncVariantResultCore(
-    val moduleConfiguration: ModuleConfiguration,
-    val module: AndroidModule,
-    val ideVariant: IdeVariantWithPostProcessor,
-    val nativeVariantAbi: NativeVariantAbiResult,
-    val unresolvedDependencies: List<IdeUnresolvedDependency>
-  )
-
-  private class SyncVariantResult(
-    val core: SyncVariantResultCore,
-    val moduleDependencies: List<ModuleConfiguration>
-  ) {
-    val moduleConfiguration: ModuleConfiguration get() = core.moduleConfiguration
-    val module: AndroidModule get() = core.module
-    val ideVariant: IdeVariantWithPostProcessor get() = core.ideVariant
-    val nativeVariantAbi: NativeVariantAbiResult get() = core.nativeVariantAbi
-    val unresolvedDependencies: List<IdeUnresolvedDependency> get() = core.unresolvedDependencies
-  }
-
-  private fun SyncVariantResultCore.getModuleDependencyConfigurations(
-    selectedVariants: SelectedVariants,
-    libraryResolver: (LibraryReference) -> IdeLibrary
-  ): List<ModuleConfiguration> {
-    val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
-
-    // Regardless of the current selection in the IDE we try to select the same ABI in all modules the "top" module depends on even
-    // when intermediate modules do not have native code.
-    val abiToPropagate = nativeVariantAbi.abi ?: moduleConfiguration.abi
-
-    val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant.variant, nativeVariantAbi.abi)
-    val variantDiffChange =
-      VariantSelectionChange.extractVariantSelectionChange(to = newlySelectedVariantDetails, from = selectedVariantDetails)
-
-
-    fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
-      val dependencyModule = androidModulesById[dependencyModuleId] ?: return null
-      val dependencyModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[dependencyModuleId]
-      val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
-
-      val newSelectedVariantDetails = dependencyModuleSelectedVariantDetails?.applyChange(
-        variantDiffChange ?: VariantSelectionChange.EMPTY, applyAbiMode = ApplyAbiSelectionMode.ALWAYS
-      )
-                                      ?: return null
-
-      // Make sure the variant name we guessed in fact exists.
-      if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
-
-      return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToPropagate)
-    }
-
-    fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): List<ModuleConfiguration> {
-      return (ideVariant.mainArtifact.compileClasspathCore.dependencies
-              + ideVariant.unitTestArtifact?.compileClasspathCore?.dependencies.orEmpty()
-              + ideVariant.androidTestArtifact?.compileClasspathCore?.dependencies.orEmpty()
-              + ideVariant.testFixturesArtifact?.compileClasspathCore?.dependencies.orEmpty()
-             )
-        .distinct()
-        .mapNotNull{ libraryResolver(it.target) as? IdePreResolvedModuleLibrary }
-        .mapNotNull { moduleDependency ->
-          val dependencyProject = moduleDependency.projectPath
-          val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId, dependencyProject)
-          val dependencyVariant = moduleDependency.variant
-          if (dependencyVariant != null) {
-            ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate)
-          }
-          else {
-            propagateVariantSelectionChangeFallback(dependencyModuleId)
-          }
-        }
-        .distinct()
-    }
-
-    /**
-     * Attempt to propagate variant changes to feature modules. This is not guaranteed to be correct, but since we do not know what the
-     * real dependencies of each feature module variant are we can only guess.
-     */
-    fun generateDynamicFeatureDependencies(): List<ModuleConfiguration> {
-      val rootProjectGradleDirectory = module.gradleProject.projectIdentifier.buildIdentifier.rootDir
-      return module.androidProject.dynamicFeatures.mapNotNull { featureModuleGradlePath ->
-        val featureModuleId = Modules.createUniqueModuleId(rootProjectGradleDirectory, featureModuleGradlePath)
-        propagateVariantSelectionChangeFallback(featureModuleId)
-      }
-    }
-
-    return generateDirectModuleDependencies(libraryResolver) + generateDynamicFeatureDependencies()
   }
 
   sealed class NativeVariantAbiResult {
@@ -1119,4 +990,24 @@ private fun verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules: List<Basi
   // Fail Sync if we do not use the same AGP version across all the android projects.
   if (agpVersionsAndGradleBuilds.isNotEmpty() && agpVersionsAndGradleBuilds.map { it.first }.distinct().singleOrNull() == null)
     throw AgpVersionsMismatch(agpVersionsAndGradleBuilds)
+}
+
+private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
+  return gradlePluginVersion != null && gradlePluginVersion.isAtLeast(7, 2, 0, "alpha", 1, true)
+}
+
+/**
+ * Checks if we can request the V2 models in parallel.
+ * We need to make sure we only request the models in parallel if:
+ * - we are fetching android models
+ * - we are using Gradle 7.4.2+ (https://github.com/gradle/gradle/issues/18587)
+ * - using a stable AGP version higher than or equal to AGP 7.2.0 and lower than AGP 7.3.0-alpha01, or
+ * - using at least AGP 7.3.0-alpha-04.
+ *  @returns true if we can fetch the V2 models in parallel, otherwise, returns false.
+ */
+private fun canUseParallelSync(agpVersion: GradleVersion?, gradleVersion: String): Boolean {
+  return org.gradle.util.GradleVersion.version(gradleVersion) >= org.gradle.util.GradleVersion.version("7.4.2") &&
+    agpVersion != null &&
+    ((agpVersion >= GradleVersion(7, 2, 0) && agpVersion < "7.3.0-alpha01") ||
+      agpVersion.isAtLeast(7, 3, 0, "alpha", 4, true))
 }
