@@ -20,7 +20,6 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeVariantAbi
-import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.SyncIssue
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.ide.BasicVariant
@@ -66,7 +65,6 @@ import java.util.LinkedList
 import java.util.concurrent.locks.ReentrantLock
 import com.android.builder.model.v2.ide.Variant as V2Variant
 import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
-import com.android.builder.model.v2.models.ProjectSyncIssues as V2ProjectSyncIssues
 
 internal class BuildInfo(
   buildModels: List<GradleBuild>, // Always not empty.
@@ -219,7 +217,7 @@ internal class AndroidExtraModelProviderWorker(
 
       // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
       // Note that "last" here means last among Android models since many non-Android models are requested after this point.
-      populateProjectSyncIssues(androidModules)
+      actionRunner.runActions(androidModules.mapNotNull { it.getFetchSyncIssuesAction() })
       internedModels.prepare(modelCacheLock)
       val indexedModels = indexModels(modules)
       return modules.map { it.prepare(indexedModels) } + GradleProject(buildModel, internedModels.createLibraryTable())
@@ -609,8 +607,7 @@ internal class AndroidExtraModelProviderWorker(
         }.toList()
       ).filterNotNull()
 
-      populateProjectSyncIssues(nativeModules)
-
+      actionRunner.runActions(nativeModules.mapNotNull { it.getFetchSyncIssuesAction() })
       return nativeModules.map { it.prepare(IndexedModels(dynamicFeatureToBaseFeatureMap = emptyMap())) }
     }
   }
@@ -762,54 +759,6 @@ internal class AndroidExtraModelProviderWorker(
       AFTER_MAXIMUM -> if (!syncOptions.flags.studioFlagDisableForcedUpgrades) throw AgpVersionTooNew(agpVersion)
       COMPATIBLE -> Unit
     }
-  }
-
-  private fun populateProjectSyncIssues(androidModules: List<GradleModule>) {
-    if (androidModules.isEmpty()) return
-
-    safeActionRunner.runActions(
-      androidModules.mapNotNull { module ->
-        when (module) {
-          is AndroidModule.V1, is NativeVariantsAndroidModule ->
-            ActionToRun(
-              fun(controller: BuildController) {
-                val syncIssues =
-                  controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)?.syncIssues?.toSyncIssueData()
-
-                if (syncIssues != null) {
-                  // These would have been attached above if there is no separate sync issue model.
-                  val legacyApplicationIdModelProblems = (module as? AndroidModule)?.legacyApplicationIdModel.getProblemsAsSyncIssues()
-                  module.setSyncIssues(syncIssues + legacyApplicationIdModelProblems)
-                }
-              },
-              fetchesV1Models = true
-            )
-
-          is AndroidModule.V2 ->
-            ActionToRun(
-              fun(controller: BuildController) {
-                val syncIssues =
-                  controller.findModel(module.findModelRoot, V2ProjectSyncIssues::class.java)?.syncIssues?.toV2SyncIssueData() ?: listOf()
-                val legacyApplicationIdModelProblems = module.legacyApplicationIdModel.getProblemsAsSyncIssues()
-                // For V2: we do not populate SyncIssues with Unresolved dependencies because we pass them through builder models.
-                val v2UnresolvedDependenciesIssues = module.unresolvedDependencies.map {
-                  IdeSyncIssueImpl(
-                    message = "Unresolved dependencies",
-                    data = it.name,
-                    multiLineMessage = it.cause?.lines(),
-                    severity = IdeSyncIssue.SEVERITY_ERROR,
-                    type = IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
-                  )
-                }
-                module.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues + legacyApplicationIdModelProblems)
-              },
-              fetchesV2Models = true,
-              fetchesKotlinModels = false
-            )
-          is JavaModule -> null
-        }
-      }
-    )
   }
 
   private fun prepareRequestedOrDefaultModuleConfigurations(
@@ -1011,7 +960,7 @@ internal class AndroidExtraModelProviderWorker(
   }
 }
 
-private fun Collection<SyncIssue>.toSyncIssueData(): List<IdeSyncIssue> {
+internal fun Collection<SyncIssue>.toSyncIssueData(): List<IdeSyncIssue> {
   return map { syncIssue ->
     IdeSyncIssueImpl(
       message = syncIssue.message,
@@ -1026,7 +975,7 @@ private fun Collection<SyncIssue>.toSyncIssueData(): List<IdeSyncIssue> {
 private fun Throwable.stackTraceAsMultiLineMessage(): List<String> =
   StringWriter().use { stringWriter -> PrintWriter(stringWriter).use { printStackTrace(it) }; stringWriter.toString().split(System.lineSeparator()) }
 
-private fun LegacyApplicationIdModel?.getProblemsAsSyncIssues(): List<IdeSyncIssue> {
+internal fun LegacyApplicationIdModel?.getProblemsAsSyncIssues(): List<IdeSyncIssue> {
   return this?.problems.orEmpty().map { problem ->
     IdeSyncIssueImpl(
       message = problem.message ?: "Unknown error in LegacyApplicationIdModelBuilder",
@@ -1038,7 +987,7 @@ private fun LegacyApplicationIdModel?.getProblemsAsSyncIssues(): List<IdeSyncIss
   }
 }
 
-private fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssueData(): List<IdeSyncIssue> {
+internal fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssueData(): List<IdeSyncIssue> {
   return map { syncIssue ->
     IdeSyncIssueImpl(
       message = syncIssue.message,

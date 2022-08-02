@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.v2.models.Versions
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
@@ -31,6 +32,7 @@ import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
@@ -47,6 +49,8 @@ import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
+import com.android.builder.model.ProjectSyncIssues as ProjectSyncIssuesV1
+import com.android.builder.model.v2.models.ProjectSyncIssues as ProjectSyncIssuesV2
 
 typealias IdeVariantFetcher = (
   controller: BuildController,
@@ -90,6 +94,7 @@ sealed class GradleModule(val gradleProject: BasicGradleProject) {
    * Prepares the final collection of models for delivery to the IDE.
    */
   abstract fun prepare(indexedModels: IndexedModels): DeliverableGradleModule
+  abstract fun getFetchSyncIssuesAction(): ActionToRun<Unit>?
 }
 
 /**
@@ -141,6 +146,8 @@ class JavaModule(
   private val kotlinGradleModel: KotlinGradleModel?,
   private val kaptGradleModel: KaptGradleModel?
 ) : GradleModule(gradleProject) {
+  override fun getFetchSyncIssuesAction(): ActionToRun<Unit>?= null
+
   override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
     return DeliverableJavaModule(gradleProject, projectSyncIssues, kotlinGradleModel, kaptGradleModel)
   }
@@ -248,7 +255,23 @@ sealed class AndroidModule constructor(
     /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
     nativeModule = nativeModule,
     legacyApplicationIdModel = legacyApplicationIdModel,
-  )
+  ) {
+    override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
+      return ActionToRun(
+        fun(controller: BuildController) {
+          val syncIssues =
+            controller.findModel(this.findModelRoot, ProjectSyncIssuesV1::class.java)?.syncIssues?.toSyncIssueData()
+
+          if (syncIssues != null) {
+            // These would have been attached above if there is no separate sync issue model.
+            val legacyApplicationIdModelProblems = this.legacyApplicationIdModel.getProblemsAsSyncIssues()
+            this.setSyncIssues(syncIssues + legacyApplicationIdModelProblems)
+          }
+        },
+        fetchesV1Models = true
+      )
+    }
+  }
 
   class V2(
     agpVersion: GradleVersion?,
@@ -278,7 +301,31 @@ sealed class AndroidModule constructor(
     nativeAndroidProject = null,
     nativeModule = nativeModule,
     legacyApplicationIdModel = legacyApplicationIdModel,
-  )
+  ) {
+    override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
+      return ActionToRun(
+        fun(controller: BuildController) {
+          val syncIssues =
+            controller.findModel(this.findModelRoot, ProjectSyncIssuesV2::class.java)?.syncIssues?.toV2SyncIssueData() ?: listOf()
+          val legacyApplicationIdModelProblems = this.legacyApplicationIdModel.getProblemsAsSyncIssues()
+          // For V2: we do not populate SyncIssues with Unresolved dependencies because we pass them through builder models.
+          val v2UnresolvedDependenciesIssues = this.unresolvedDependencies.map {
+            IdeSyncIssueImpl(
+              message = "Unresolved dependencies",
+              data = it.name,
+              multiLineMessage = it.cause?.lines(),
+              severity = IdeSyncIssue.SEVERITY_ERROR,
+              type = IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
+            )
+          }
+          this.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues + legacyApplicationIdModelProblems)
+        },
+        fetchesV2Models = true,
+        fetchesKotlinModels = false
+      )
+
+    }
+  }
 
   override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
     fun IdeAndroidProjectImpl.populateBaseFeature(): IdeAndroidProjectImpl {
@@ -385,6 +432,20 @@ class NativeVariantsAndroidModule private constructor(
     fun createV2(gradleProject: BasicGradleProject): NativeVariantsAndroidModule = NativeVariantsAndroidModule(gradleProject, null)
     fun createV1(gradleProject: BasicGradleProject, nativeVariants: List<IdeNativeVariantAbi>): NativeVariantsAndroidModule =
       NativeVariantsAndroidModule(gradleProject, nativeVariants)
+  }
+
+  override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
+    return ActionToRun(
+      fun(controller: BuildController) {
+        val syncIssues =
+          controller.findModel(this.findModelRoot, ProjectSyncIssues::class.java)?.syncIssues?.toSyncIssueData()
+
+        if (syncIssues != null) {
+          this.setSyncIssues(syncIssues)
+        }
+      },
+      fetchesV1Models = true
+    )
   }
 
   override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
