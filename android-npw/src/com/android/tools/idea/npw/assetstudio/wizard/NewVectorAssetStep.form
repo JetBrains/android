@@ -232,7 +232,7 @@
                   <text value="Color:"/>
                 </properties>
               </component>
-              <component id="28c1d" class="com.android.tools.idea.npw.assetstudio.ui.AssetColorPanel" binding="myColorPanel">
+              <component id="28c1d" class="com.intellij.ui.ColorPanel" binding="myColorPanel">
                 <constraints>
                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="78" height="-1"/>
