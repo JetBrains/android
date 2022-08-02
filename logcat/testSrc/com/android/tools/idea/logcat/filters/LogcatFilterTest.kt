@@ -303,39 +303,39 @@ class LogcatFilterTest {
 
   @Test
   fun getFilterName_nameFilter() {
-    assertThat(NameFilter("name", EMPTY_RANGE).getFilterName()).isEqualTo("name")
+    assertThat(NameFilter("name", EMPTY_RANGE).filterName).isEqualTo("name")
   }
 
   @Test
   fun getFilterName_simpleFilters() {
-    assertThat(StringFilter("string", TAG, EMPTY_RANGE).getFilterName()).isNull()
-    assertThat(NegatedStringFilter("string", TAG, EMPTY_RANGE).getFilterName()).isNull()
-    assertThat(ExactStringFilter("string", TAG, EMPTY_RANGE).getFilterName()).isNull()
-    assertThat(NegatedExactStringFilter("string", TAG, EMPTY_RANGE).getFilterName()).isNull()
-    assertThat(RegexFilter("string", TAG, EMPTY_RANGE).getFilterName()).isNull()
-    assertThat(NegatedRegexFilter("string", TAG, EMPTY_RANGE).getFilterName()).isNull()
-    assertThat(LevelFilter(INFO, EMPTY_RANGE).getFilterName()).isNull()
-    assertThat(AgeFilter("60s", Clock.systemDefaultZone(), EMPTY_RANGE).getFilterName()).isNull()
-    assertThat(CrashFilter(EMPTY_RANGE).getFilterName()).isNull()
-    assertThat(StackTraceFilter(EMPTY_RANGE).getFilterName()).isNull()
+    assertThat(StringFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
+    assertThat(NegatedStringFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
+    assertThat(ExactStringFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
+    assertThat(NegatedExactStringFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
+    assertThat(RegexFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
+    assertThat(NegatedRegexFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
+    assertThat(LevelFilter(INFO, EMPTY_RANGE).filterName).isNull()
+    assertThat(AgeFilter("60s", Clock.systemDefaultZone(), EMPTY_RANGE).filterName).isNull()
+    assertThat(CrashFilter(EMPTY_RANGE).filterName).isNull()
+    assertThat(StackTraceFilter(EMPTY_RANGE).filterName).isNull()
   }
 
   @Test
   fun getFilterName_compoundFilter() {
-    assertThat(AndLogcatFilter(StringFilter("string", TAG, EMPTY_RANGE), LevelFilter(INFO, EMPTY_RANGE)).getFilterName()).isNull()
-    assertThat(OrLogcatFilter(StringFilter("string", TAG, EMPTY_RANGE), LevelFilter(INFO, EMPTY_RANGE)).getFilterName()).isNull()
+    assertThat(AndLogcatFilter(StringFilter("string", TAG, EMPTY_RANGE), LevelFilter(INFO, EMPTY_RANGE)).filterName).isNull()
+    assertThat(OrLogcatFilter(StringFilter("string", TAG, EMPTY_RANGE), LevelFilter(INFO, EMPTY_RANGE)).filterName).isNull()
     assertThat(AndLogcatFilter(
       NameFilter("name1", EMPTY_RANGE),
       StringFilter("string", TAG, EMPTY_RANGE),
       LevelFilter(INFO, EMPTY_RANGE),
       NameFilter("name2", EMPTY_RANGE),
-    ).getFilterName()).isEqualTo("name2")
+    ).filterName).isEqualTo("name2")
     assertThat(OrLogcatFilter(
       NameFilter("name1", EMPTY_RANGE),
       StringFilter("string", TAG, EMPTY_RANGE),
       LevelFilter(INFO, EMPTY_RANGE),
       NameFilter("name2", EMPTY_RANGE),
-    ).getFilterName()).isEqualTo("name2")
+    ).filterName).isEqualTo("name2")
   }
 
   @Test

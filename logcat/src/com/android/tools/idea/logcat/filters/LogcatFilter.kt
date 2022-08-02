@@ -52,6 +52,8 @@ internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
  * Matches a [LogcatMessage]
  */
 internal abstract class LogcatFilter(open val textRange: TextRange) {
+  open val filterName: String? = null
+
   abstract val displayText: String
 
   /**
@@ -64,8 +66,6 @@ internal abstract class LogcatFilter(open val textRange: TextRange) {
 
   abstract fun matches(message: LogcatMessageWrapper): Boolean
 
-  open fun getFilterName(): String? = null
-
   open fun findFilterForOffset(offset: Int): LogcatFilter? {
     return if (textRange.contains(offset)) this else null
   }
@@ -75,15 +75,17 @@ internal abstract class LogcatFilter(open val textRange: TextRange) {
   }
 }
 
-internal abstract class ParentFilter(open val filters: List<LogcatFilter>)
-  : LogcatFilter(TextRange(filters.first().textRange.startOffset, filters.last().textRange.endOffset)) {
+internal abstract class ParentFilter(children: List<LogcatFilter>)
+  : LogcatFilter(TextRange(children.first().textRange.startOffset, children.last().textRange.endOffset)) {
+  open val filters: List<LogcatFilter> = children
+
+  override val filterName: String? = children.mapNotNull { it.filterName }.lastOrNull()
+
   override val displayText: String = ""
 
   override fun prepare() {
     filters.forEach(LogcatFilter::prepare)
   }
-
-  override fun getFilterName(): String? = filters.mapNotNull { it.getFilterName() }.lastOrNull()
 
   override fun findFilterForOffset(offset: Int): LogcatFilter? {
     return if (textRange.contains(offset)) filters.firstNotNullOfOrNull { it.findFilterForOffset(offset) } else null
@@ -314,11 +316,11 @@ internal data class NameFilter(
   val name: String,
   override val textRange: TextRange,
 ) : LogcatFilter(textRange) {
+  override val filterName: String = name
+
   override val displayText: String = message("logcat.filter.completion.hint.name.value", name)
 
   override fun matches(message: LogcatMessageWrapper): Boolean = true
-
-  override fun getFilterName(): String = name
 }
 
 private val EXCEPTION_LINE_PATTERN = Regex("\n\\s*at .+\\(.+\\)\n")

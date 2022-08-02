@@ -617,11 +617,11 @@ internal class FilterTextField(
       }
 
       init {
-        val filterName = filterParser.parse(filter)?.getFilterName()
+        val filterName = filterParser.parse(filter)?.filterName
         if (filterName != null) {
           val history = AndroidLogcatFilterHistory.getInstance().items
           // If there is more than one Item with the same filterName, show the name and the filter.
-          val sameName = history.count { filterParser.parse(it)?.getFilterName() == filterName }
+          val sameName = history.count { filterParser.parse(it)?.filterName == filterName }
           filterLabel.append(filterName, NAMED_FILTER_HISTORY_ITEM_COLOR)
           val filterWithoutName = filterParser.removeFilterNames(filter)
           if (sameName > 1) {
