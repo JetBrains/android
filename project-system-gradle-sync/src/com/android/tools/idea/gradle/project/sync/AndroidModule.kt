@@ -117,26 +117,53 @@ sealed class DeliverableGradleModule(
  *  - All the non-Android modules
  *  - The android modules using an older AGP version than the minimum supported for V2 sync
  */
-sealed class BasicIncompleteGradleModule(val gradleProject: BasicGradleProject)
+sealed class BasicIncompleteGradleModule(
+  val gradleProject: BasicGradleProject,
+  val buildName: String
+) {
+  val buildId: BuildId get() = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
+  val projectPath: String get() = gradleProject.path
+
+}
+
+/**
+ * The container class of Android modules.
+ */
+sealed class BasicIncompleteAndroidModule(gradleProject: BasicGradleProject, buildName: String)
+  :  BasicIncompleteGradleModule(gradleProject, buildName) {
+   abstract val agpVersion: String?
+  }
+
 
 /**
  * The container class of Android modules that can be fetched using V2 builder models.
  */
-class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, val versions: Versions) :
-  BasicIncompleteGradleModule(gradleProject)
+class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, buildName: String, val versions: Versions) :
+  BasicIncompleteAndroidModule(gradleProject, buildName)
+{
+  override val agpVersion: String
+    get() = versions.agp
+}
 
 /**
 *  The container class of Android modules that can be fetched using V1 builder models.
  *  legacyV1AgpVersion: The model that contains the agp version used by the AndroidProject. This can be null if the AndroidProject is using
  *  an AGP version lower than the minimum supported version by Android Studio
 */
-class BasicV1AndroidModuleGradleProject(gradleProject: BasicGradleProject, val legacyV1AgpVersion: LegacyV1AgpVersionModel?) :
-  BasicIncompleteGradleModule(gradleProject)
+class BasicV1AndroidModuleGradleProject(
+  gradleProject: BasicGradleProject,
+  buildName: String,
+  val legacyV1AgpVersion: LegacyV1AgpVersionModel?
+) :  BasicIncompleteAndroidModule(gradleProject, buildName) {
+  override val agpVersion: String?
+    get() = legacyV1AgpVersion?.agp
+}
 
 /**
  * The container class of non-Android modules.
  */
-class BasicNonAndroidIncompleteGradleModule(gradleProject: BasicGradleProject) : BasicIncompleteGradleModule(gradleProject)
+class BasicNonAndroidIncompleteGradleModule(gradleProject: BasicGradleProject, buildName: String) :
+  BasicIncompleteGradleModule(gradleProject, buildName)
 
 /**
  * The container class for Java module, containing its Android models handled by the Android plugin.
