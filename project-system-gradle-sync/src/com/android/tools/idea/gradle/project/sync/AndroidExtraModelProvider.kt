@@ -62,11 +62,14 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       AndroidExtraModelProviderWorker(
         controller,
         syncOptions,
-        buildModels!!.toList(),
-        // Consumers for different build models are all equal except they aggregate statistics to different targets. We cannot request all
-        // models we need until we have enough information to do it. In the case of a composite builds all model fetching time will be
-        // reported against the last included build.
-        buildMap!!,
+        BuildInfo(
+          buildModels!!.toList(),
+          // Consumers for different build models are all equal except they aggregate statistics to different targets. We cannot request all
+          // models we need until we have enough information to do it. In the case of a composite builds all model fetching time will be
+          // reported against the last included build.
+          buildMap!!,
+          ModelConverter.populateModuleBuildDirs(controller),
+        ),
         consumer
       ).populateBuildModels()
     }

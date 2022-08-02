@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.LibraryReference
+import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
@@ -58,6 +59,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.LinkedList
@@ -66,16 +68,26 @@ import com.android.builder.model.v2.ide.Variant as V2Variant
 import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
 import com.android.builder.model.v2.models.ProjectSyncIssues as V2ProjectSyncIssues
 
+internal class BuildInfo(
+  buildModels: List<GradleBuild>, // Always not empty.
+  buildMap: IdeCompositeBuildMap,
+  val buildFolderPaths: BuildFolderPaths,
+) {
+  val buildNameMap = buildMap.builds.associate { it.buildName to BuildId(it.buildId) }
+  val buildIdMap = buildMap.builds.associate { BuildId(it.buildId) to it.buildName }
+
+  val rootBuild: GradleBuild = buildModels.first()
+  val projects: Sequence<BasicGradleProject> = buildModels.asSequence().flatMap { it.projects.asSequence() }
+  val buildRootDirectory: File get() = buildFolderPaths.buildRootDirectory!!
+}
+
 internal class AndroidExtraModelProviderWorker(
   controller: BuildController, // NOTE: Do not make it a property. [controller] should be accessed via [SyncActionRunner]'s only.
   private val syncOptions: SyncActionOptions,
-  private val buildModels: List<GradleBuild>, // Always not empty.
-  private val buildMap: IdeCompositeBuildMap,
+  private val buildInfo: BuildInfo,
   private val consumer: ProjectImportModelProvider.BuildModelConsumer
 ) {
   private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
-  private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(
-    controller)
   private val safeActionRunner = SyncActionRunner.create(controller, syncOptions.flags.studioFlagParallelSyncEnabled)
 
   fun populateBuildModels() {
@@ -96,14 +108,13 @@ internal class AndroidExtraModelProviderWorker(
             val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(v2ModelBuildersSupportParallelSync)
             SyncProjectActionWorker(
               syncOptions,
-              buildModels.first(),
-              canFetchV2Models,
+              buildInfo.rootBuild,
               configuredSyncActionRunner
             ).populateAndroidModels(modules)
           }
           is NativeVariantsSyncActionOptions -> {
             consumer.consume(
-              buildModels.first(),
+              buildInfo.rootBuild,
               // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
               safeActionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
               IdeaProject::class.java
@@ -116,7 +127,7 @@ internal class AndroidExtraModelProviderWorker(
     }
     catch (e: AndroidSyncException) {
       consumer.consume(
-        buildModels.first(),
+        buildInfo.rootBuild,
         IdeAndroidSyncError(e.message.orEmpty(), e.stackTrace.map { it.toString() }),
         IdeAndroidSyncError::class.java
       )
@@ -150,12 +161,11 @@ internal class AndroidExtraModelProviderWorker(
   inner class SyncProjectActionWorker(
     private val syncOptions: SyncProjectActionOptions,
     private val buildModel: BuildModel,
-    private val canFetchV2Models: Boolean,
     private val actionRunner: SyncActionRunner
   )
   {
     private val modelCacheLock = ReentrantLock()
-    private val internedModels = InternedModels(buildFolderPaths.buildRootDirectory)
+    private val internedModels = InternedModels(buildInfo.buildRootDirectory)
 
     /**
      * Requests Android project models for the given [buildModels]
@@ -174,10 +184,7 @@ internal class AndroidExtraModelProviderWorker(
      * [ProjectImportModelProvider.BuildModelConsumer] callback.
      */
     fun populateAndroidModels(basicIncompleteModules: List<BasicIncompleteGradleModule>): List<GradleModelCollection> {
-      val buildNameMap = buildMap.builds.associate { it.buildName to BuildId(it.buildId) }
-      val buildIdMap = buildMap.builds.associate { BuildId(it.buildId) to it.buildName }
-
-      val modules = fetchGradleModulesAction(basicIncompleteModules, buildNameMap, buildIdMap)
+      val modules = fetchGradleModulesAction(basicIncompleteModules, buildInfo.buildNameMap, buildInfo.buildIdMap)
 
       val androidModules = modules.filterIsInstance<AndroidModule>()
       androidModules.forEach { androidModulesById[it.id] = it }
@@ -212,7 +219,7 @@ internal class AndroidExtraModelProviderWorker(
 
       // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
       // Note that "last" here means last among Android models since many non-Android models are requested after this point.
-      populateProjectSyncIssues(androidModules, canFetchV2Models)
+      populateProjectSyncIssues(androidModules)
       internedModels.prepare(modelCacheLock)
       val indexedModels = indexModels(modules)
       return modules.map { it.prepare(indexedModels) } + GradleProject(buildModel, internedModels.createLibraryTable())
@@ -298,7 +305,7 @@ internal class AndroidExtraModelProviderWorker(
                   val legacyApplicationIdModel = controller.findModel(it.gradleProject, LegacyApplicationIdModel::class.java)
 
                   checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions)
-                  val modelCache = modelCacheV1Impl(internedModels, buildFolderPaths, modelCacheLock)
+                  val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock)
                   val buildId = BuildId(it.gradleProject.projectIdentifier.buildIdentifier.rootDir)
                   val buildName = buildIdMap[buildId] ?: error("Unknown build id: $buildId")
                   val rootBuildDir = buildNameMap[":"] ?: error("Root build (':') not found")
@@ -533,7 +540,7 @@ internal class AndroidExtraModelProviderWorker(
 
         abiToRequest = chooseAbiToRequest(module, variantName, moduleConfiguration.abi)
         nativeVariantAbi = abiToRequest?.let {
-          controller.findNativeVariantAbiModel(modelCacheV1Impl(internedModels, buildFolderPaths, modelCacheLock), module, variantName, it)
+          controller.findNativeVariantAbiModel(modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock), module, variantName, it)
         } ?: NativeVariantAbiResult.None
 
         fun getUnresolvedDependencies(): List<IdeUnresolvedDependency> {
@@ -560,14 +567,14 @@ internal class AndroidExtraModelProviderWorker(
     private val syncOptions: NativeVariantsSyncActionOptions
   ) {
     private val modelCacheLock = ReentrantLock()
-    private val internedModels = InternedModels(buildFolderPaths.buildRootDirectory)
+    private val internedModels = InternedModels(buildInfo.buildRootDirectory)
     // NativeVariantsSyncAction is only used with AGPs not supporting v2 models and thus not supporting parallel sync.
     private val actionRunner = safeActionRunner
 
     fun fetchNativeVariantsAndroidModels(): List<GradleModelCollection> {
-      val modelCache = modelCacheV1Impl(internedModels, buildFolderPaths, modelCacheLock)
+      val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock)
       val nativeModules = actionRunner.runActions(
-        buildModels.projects.map { gradleProject ->
+        buildInfo.projects.map { gradleProject ->
           ActionToRun(fun(controller: BuildController): GradleModule? {
             val projectIdentifier = gradleProject.projectIdentifier
             val moduleId = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, projectIdentifier.projectPath)
@@ -652,10 +659,9 @@ internal class AndroidExtraModelProviderWorker(
           androidDsl = androidDsl,
           legacyApplicationIdModel = legacyApplicationIdModel
         )
-      val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
-      private val agpParsedVersion = GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion)
+      private val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
 
-      val v2Variants: List<IdeVariantCoreImpl> = let {
+      private val v2Variants: List<IdeVariantCoreImpl> = let {
         val v2Variants: List<V2Variant> = androidProject.variants.toList()
         val basicVariantMap = basicVariants.associateBy { it.name }
 
@@ -709,36 +715,38 @@ internal class AndroidExtraModelProviderWorker(
 
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {
     return safeActionRunner.runActions(
-      buildModels.projects.map { gradleProject ->
-        ActionToRun(fun(controller: BuildController): BasicIncompleteGradleModule {
-          // Request V2 models if flag is enabled.
-          if (syncOptions.flags.studioFlagUseV2BuilderModels) {
-            // First request the Versions model to make sure we can fetch V2 models.
-            val versions = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
-            if (versions?.also { checkAgpVersionCompatibility(versions.agp, syncOptions) } != null &&
+      buildInfo.projects.map { gradleProject ->
+        ActionToRun(
+          fun(controller: BuildController): BasicIncompleteGradleModule {
+            // Request V2 models if flag is enabled.
+            if (syncOptions.flags.studioFlagUseV2BuilderModels) {
+              // First request the Versions model to make sure we can fetch V2 models.
+              val versions = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
+              if (versions?.also { checkAgpVersionCompatibility(versions.agp, syncOptions) } != null &&
                 canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(versions.agp))) {
-              // This means we can request V2.
-              return BasicV2AndroidModuleGradleProject(gradleProject, versions)
-            }
-          }
-          // We cannot request V2 models.
-          // Check if we have android projects that cannot be requested using V2, but can be requested using V1.
-          controller.findModel(gradleProject, GradlePluginModel::class.java)?.also {
-            if (it.gradlePluginList.contains("com.android.build.gradle.api.AndroidBasePlugin")) {
-              try {
-                val legacyV1AgpVersionModel = controller.findModel(gradleProject, LegacyV1AgpVersionModel::class.java)
-                if (legacyV1AgpVersionModel != null) return BasicV1AndroidModuleGradleProject(gradleProject, legacyV1AgpVersionModel)
-              } catch (e: Exception) {
-                // We just can't get the AGP version and this means we are using an unsupported AGP version, so we should carry on.
-                return BasicV1AndroidModuleGradleProject(gradleProject, null)
+                // This means we can request V2.
+                return BasicV2AndroidModuleGradleProject(gradleProject, versions)
               }
             }
-          }
+            // We cannot request V2 models.
+            // Check if we have android projects that cannot be requested using V2, but can be requested using V1.
+            controller.findModel(gradleProject, GradlePluginModel::class.java)?.also {
+              if (it.gradlePluginList.contains("com.android.build.gradle.api.AndroidBasePlugin")) {
+                try {
+                  val legacyV1AgpVersionModel = controller.findModel(gradleProject, LegacyV1AgpVersionModel::class.java)
+                  if (legacyV1AgpVersionModel != null) return BasicV1AndroidModuleGradleProject(gradleProject, legacyV1AgpVersionModel)
+                } catch (e: Exception) {
+                  // We just can't get the AGP version and this means we are using an unsupported AGP version, so we should carry on.
+                  return BasicV1AndroidModuleGradleProject(gradleProject, null)
+                }
+              }
+            }
 
-          return BasicNonAndroidIncompleteGradleModule(gradleProject) // Check here tha Version does not return anything.
-        },
-        fetchesV2Models = true,
-        fetchesV1Models = true)
+            return BasicNonAndroidIncompleteGradleModule(gradleProject) // Check here tha Version does not return anything.
+          },
+          fetchesV2Models = true,
+          fetchesV1Models = true
+        )
       }.toList()
     )
   }
@@ -756,7 +764,7 @@ internal class AndroidExtraModelProviderWorker(
     }
   }
 
-  private fun populateProjectSyncIssues(androidModules: List<GradleModule>, canFetchV2Models: Boolean = false) {
+  private fun populateProjectSyncIssues(androidModules: List<GradleModule>) {
     if (androidModules.isEmpty()) return
 
     safeActionRunner.runActions(
@@ -1003,8 +1011,6 @@ internal class AndroidExtraModelProviderWorker(
   }
 }
 
-private val List<GradleBuild>.projects: Sequence<BasicGradleProject> get() = asSequence().flatMap { it.projects.asSequence() }
-
 private fun Collection<SyncIssue>.toSyncIssueData(): List<IdeSyncIssue> {
   return map { syncIssue ->
     IdeSyncIssueImpl(
@@ -1171,7 +1177,7 @@ fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVariantCoreI
       variant,
       variantDependencies,
       androidProjectPathResolver,
-      module.buildNameMap ?: error("Build name map not available for: ${module.id}")
+      module.buildNameMap
     )
   }
 }
