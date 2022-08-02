@@ -162,9 +162,9 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.componentCount).isEqualTo(3)
     assertThat(borderLayout.getLayoutComponent(NORTH)).isInstanceOf(LogcatHeaderPanel::class.java)
     val centerComponent: JPanel = borderLayout.getLayoutComponent(CENTER) as JPanel
-    assertThat(centerComponent.components[0]).isInstanceOf(EditorNotificationPanel::class.java)
-    assertThat(centerComponent.components[0].isVisible).isFalse()
-    assertThat(centerComponent.components[1]).isSameAs(logcatMainPanel.editor.component)
+    assertThat(logcatMainPanel.findBanner("Logcat is paused").isVisible).isFalse()
+    assertThat(logcatMainPanel.findBanner("Could not detect project package names. Is the project synced?").isVisible).isFalse()
+    assertThat(centerComponent.components.find { it === logcatMainPanel.editor.component }).isNotNull()
     assertThat(borderLayout.getLayoutComponent(WEST)).isInstanceOf(ActionToolbar::class.java)
     val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
     assertThat(toolbar.actions.mapToStrings()).containsExactly(
@@ -986,10 +986,46 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.pauseLogcat()
 
-    val banner = TreeWalker(logcatMainPanel).descendants().first { it is EditorNotificationPanel } as EditorNotificationPanel
+    assertThat(logcatMainPanel.findBanner("Logcat is paused").isVisible).isTrue()
+  }
+
+  @Test
+  fun missingApplicationIds_showsBanner(): Unit = runBlocking {
+    val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(projectApplicationIdsProvider = fakePackageNamesProvider, filter = "package:mine")
+    }
+
+    assertThat(logcatMainPanel.findBanner("Could not detect project package names. Is the project synced?").isVisible).isTrue()
+  }
+
+  @Test
+  fun hasApplicationIds_doesNotShowBanner(): Unit = runBlocking {
+    val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project, "app1")
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(projectApplicationIdsProvider = fakePackageNamesProvider, filter = "package:mine")
+    }
+
+    assertThat(logcatMainPanel.findBanner("Could not detect project package names. Is the project synced?").isVisible).isFalse()
+  }
+
+  @Test
+  fun applicationIdsChange_bannerUpdates(): Unit = runBlocking {
+    val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(projectApplicationIdsProvider = fakePackageNamesProvider, filter = "package:mine")
+    }
+    val banner = logcatMainPanel.findBanner("Could not detect project package names. Is the project synced?")
 
     assertThat(banner.isVisible).isTrue()
-    assertThat(banner.text).isEqualTo("Logcat is paused")
+
+    runInEdtAndWait { fakePackageNamesProvider.setApplicationIds("app1") }
+    assertThat(banner.isVisible).isFalse()
+
+    runInEdtAndWait {
+      fakePackageNamesProvider.setApplicationIds()
+    }
+    assertThat(banner.isVisible).isTrue()
   }
 
   @Test
@@ -1064,7 +1100,8 @@ class LogcatMainPanelTest {
   private fun logcatMainPanel(
     splitterPopupActionGroup: ActionGroup = EMPTY_GROUP,
     logcatColors: LogcatColors = LogcatColors(),
-    state: LogcatPanelConfig? = LogcatPanelConfig(device = null, FormattingConfig.Preset(STANDARD), filter = "", isSoftWrap = false),
+    filter: String = "",
+    state: LogcatPanelConfig? = LogcatPanelConfig(device = null, FormattingConfig.Preset(STANDARD), filter = filter, isSoftWrap = false),
     logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings(),
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     hyperlinkDetector: HyperlinkDetector? = null,
@@ -1122,3 +1159,6 @@ private fun List<AnAction>.mapToStrings(indent: String = ""): List<String> {
 }
 
 private fun waitForCondition(condition: () -> Boolean) = waitForCondition(TIMEOUT_SEC, SECONDS, condition)
+
+private fun LogcatMainPanel.findBanner(text: String) =
+  TreeWalker(this).descendants().first { it is EditorNotificationPanel && it.text == text } as EditorNotificationPanel

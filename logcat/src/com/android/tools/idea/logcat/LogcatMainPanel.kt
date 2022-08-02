@@ -49,6 +49,7 @@ import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilter
+import com.android.tools.idea.logcat.filters.LogcatFilter.Companion.MY_PACKAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
 import com.android.tools.idea.logcat.folding.EditorFoldingDetector
@@ -80,6 +81,8 @@ import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.USER_REQUEST
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.DeviceArtScreenshotOptions
@@ -134,8 +137,10 @@ import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.BorderFactory
+import javax.swing.GroupLayout
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlin.math.max
 
 // This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
@@ -157,6 +162,8 @@ class LogcatMainPanelFactory {
   }
 }
 
+private val BANNER_BORDER = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 1), Borders.empty(0, 5, 0, 0))
+
 /**
  * The top level Logcat panel.
  *
@@ -174,7 +181,7 @@ internal class LogcatMainPanel(
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
   private var logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings.getInstance(),
-  androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
+  private var androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
   adbSession: AdbSession = AdbLibService.getInstance(project).session,
@@ -189,6 +196,7 @@ internal class LogcatMainPanel(
   @VisibleForTesting
   internal val editor: EditorEx = createLogcatEditor(project)
   private val pausedBanner = EditorNotificationPanel()
+  private val noApplicationIdsBanner = EditorNotificationPanel()
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
   private val coroutineScope = AndroidCoroutineScope(this)
@@ -266,12 +274,34 @@ internal class LogcatMainPanel(
     addToTop(headerPanel)
     addToLeft(toolbar.component)
 
-    val centerPanel = BorderLayoutPanel()
-    pausedBanner.text = LogcatBundle.message("logcat.main.panel.pause.banner.text")
-    pausedBanner.border = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 1), Borders.empty(0, 5, 0, 0))
-    centerPanel.addToTop(pausedBanner)
-    centerPanel.addToCenter(editor.component)
-    pausedBanner.isVisible = false
+    pausedBanner.apply {
+      text = LogcatBundle.message("logcat.main.panel.pause.banner.text")
+      border = BANNER_BORDER
+      isVisible = false
+    }
+    noApplicationIdsBanner.apply {
+      text = LogcatBundle.message("logcat.main.panel.no.application.ids.banner.text")
+      createActionLabel(LogcatBundle.message("logcat.main.panel.no.application.ids.banner.sync.now")) {
+        ProjectSystemService.getInstance(project).projectSystem.getSyncManager().syncProject(USER_REQUEST)
+      }
+      border = BANNER_BORDER
+      isVisible = isMissingApplicationIds()
+    }
+    val centerPanel = JPanel(null).apply {
+      layout = GroupLayout(this).apply {
+        val height = pausedBanner.preferredSize.height
+        setVerticalGroup(
+          createSequentialGroup()
+            .addComponent(noApplicationIdsBanner, height, height, height)
+            .addComponent(pausedBanner, height, height, height)
+            .addComponent(editor.component))
+        setHorizontalGroup(
+          createParallelGroup(GroupLayout.Alignment.CENTER)
+            .addComponent(noApplicationIdsBanner)
+            .addComponent(pausedBanner)
+            .addComponent(editor.component))
+      }
+    }
     addToCenter(centerPanel)
 
     initScrollToEndStateHandling()
@@ -292,7 +322,8 @@ internal class LogcatMainPanel(
         }
       })
       messageBus.connect(this).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
-        if (getFilter().contains(LogcatFilter.MY_PACKAGE)) {
+        if (getFilter().contains(MY_PACKAGE)) {
+          noApplicationIdsBanner.isVisible = isMissingApplicationIds()
           reloadMessages()
         }
       })
@@ -433,7 +464,16 @@ internal class LogcatMainPanel(
   @UiThread
   override fun applyFilter(logcatFilter: LogcatFilter?) {
     messageProcessor.logcatFilter = logcatFilter
+    noApplicationIdsBanner.isVisible = isMissingApplicationIds()
     reloadMessages()
+  }
+
+  private fun isMissingApplicationIds(): Boolean {
+    return when {
+      !androidProjectDetector.isAndroidProject(project) -> false
+      getFilter().contains(MY_PACKAGE) && packageNamesProvider.getPackageNames().isEmpty() -> true
+      else -> false
+    }
   }
 
   @UiThread
@@ -649,7 +689,8 @@ internal class LogcatMainPanel(
   private fun isCaretAtBottom(): Boolean {
     return try {
       editor.isCaretAtBottom()
-    } catch (t: Throwable) {
+    }
+    catch (t: Throwable) {
       // Logging as error in order to see how prevalent this is in the wild. See b/239095674
       LOGGER.error("Failed to check caret position directly. Using backup method.", t)
       caretLine >= document.lineCount - 1
