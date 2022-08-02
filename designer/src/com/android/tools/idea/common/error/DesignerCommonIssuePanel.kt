@@ -37,6 +37,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.ui.tree.AsyncTreeModel
 import com.intellij.ui.tree.TreeVisitor
@@ -119,6 +120,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     tree.isRootVisible = false
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
 
+    TreeSpeedSearch(tree)
     EditSourceOnDoubleClickHandler.install(tree)
     EditSourceOnEnterKeyHandler.install(tree)
 
