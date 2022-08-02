@@ -247,6 +247,9 @@ abstract class SyncedProjectTest(
   @Test
   fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
 
+  @Test
+  fun testPrivacySandboxSdkProject() = testProject(TestProject.PRIVACY_SANDBOX_SDK)
+
   private fun testProject(testProject: TestProject) {
     if (selfTest) throw ReportUsedProjectException(testProject)
 
