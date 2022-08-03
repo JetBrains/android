@@ -420,6 +420,14 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "directaccess-artifacts",
+    srcs = [
+        "//tools/vendor/google/directaccess-client:ftl_client_java_proto",
+        "//tools/vendor/google/directaccess-client/reverse-daemon:daemon",
+    ],
+)
+
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
@@ -428,6 +436,7 @@ filegroup(
         ":android-core-proto-test",
         ":app-inspection-artifacts",
         ":deploy-artifacts",
+        ":directaccess-artifacts",
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",

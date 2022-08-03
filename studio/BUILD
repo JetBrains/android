@@ -399,9 +399,15 @@ studio_plugin(
 studio_plugin(
     name = "com.google.gct.directaccess",
     directory = "directaccess",
+    libs = [
+        "//tools/vendor/google/directaccess-client:ftl_client_java_proto",
+    ],
     modules = {
         "directaccess.jar": ["//tools/studio/google/cloud/testing/directaccess:directaccess"],
         "directaccess-client.jar": ["//tools/vendor/google/directaccess-client:directaccess-client"],
+    },
+    resources = {
+        "resources": ["//tools/vendor/google/directaccess-client/reverse-daemon:daemon"],
     },
     deps = [
         ":com.google.gct.login",

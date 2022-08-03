@@ -1979,6 +1979,8 @@ android-studio/plugins/devkit/lib/devkit-jps.jar
 android-studio/plugins/devkit/lib/devkit.jar
 android-studio/plugins/directaccess/lib/directaccess-client.jar
 android-studio/plugins/directaccess/lib/directaccess.jar
+android-studio/plugins/directaccess/lib/ftl_client_java_proto.jar
+android-studio/plugins/directaccess/resources/reverse_daemon.dex
 android-studio/plugins/editorconfig/lib/editorconfig.jar
 android-studio/plugins/firebase-testing/lib/firebase-testing.jar
 android-studio/plugins/firebase-testing/lib/google-api-services-storage-v1-rev1-1.18.0-rc.jar
