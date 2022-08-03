@@ -64,8 +64,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager;
@@ -246,7 +244,8 @@ public class AndroidGradleTests {
         contents = updateBuildToolsVersion(contents);
         contents = updateCompileSdkVersion(contents);
         contents = updateTargetSdkVersion(contents);
-        contents = updateMinSdkVersion(contents);
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion[ (](\\d+)");
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
 
         if (ndkVersion != null) {
@@ -284,8 +283,11 @@ public class AndroidGradleTests {
         contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
         contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
         contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", buildEnvironment.getCompileSdkVersion());
+        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", buildEnvironment.getCompileSdkVersion());
         contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", buildEnvironment.getTargetSdkVersion());
-        contents = replaceRegexGroup(contents, "minSdkVersion\\((.*)\\)", buildEnvironment.getMinSdkVersion());
+        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", buildEnvironment.getTargetSdkVersion());
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion[ (](\\d+)");
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
 
         if (ndkVersion != null) {
@@ -306,17 +308,20 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String updateCompileSdkVersion(@NotNull String contents) {
-    return replaceRegexGroup(contents, "compileSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getCompileSdkVersion());
+    contents = replaceRegexGroup(contents, "compileSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getCompileSdkVersion());
+    contents = replaceRegexGroup(contents, "compileSdk *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getCompileSdkVersion());
+    return contents;
   }
 
   @NotNull
   public static String updateTargetSdkVersion(@NotNull String contents) {
-    return replaceRegexGroup(contents, "targetSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+    contents = replaceRegexGroup(contents, "targetSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+    contents = replaceRegexGroup(contents, "targetSdk *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+    return contents;
   }
 
   @NotNull
-  public static String updateMinSdkVersion(@NotNull String contents) {
-    String regex = "minSdkVersion[ (](\\d+)";
+  public static String updateMinSdkVersionOnlyIfGreaterThanExisting(@NotNull String contents, String regex) {
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(contents);
     String minSdkVersion = BuildEnvironment.getInstance().getMinSdkVersion();
