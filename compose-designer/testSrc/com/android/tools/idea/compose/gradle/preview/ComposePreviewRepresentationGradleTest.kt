@@ -67,7 +67,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.BorderLayout
@@ -234,13 +233,10 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `removing preview makes it disappear without refresh`() {
-    invokeAndWaitIfNeeded {
-      fixture.openFileInEditor(psiMainFile.virtualFile)
-    }
-
     runAndWaitForRefresh(Duration.ofSeconds(30)) {
       // Remove the @Preview from the NavigatablePreview
       runWriteActionAndWait {
+        fixture.openFileInEditor(psiMainFile.virtualFile)
         fixture.moveCaret("NavigatablePreview|")
         // Move to the line with the annotation
         fixture.editor.moveCaretLines(-2)
@@ -265,14 +261,11 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `changes to code are reflected in the preview`() {
-    invokeAndWaitIfNeeded {
-      fixture.openFileInEditor(psiMainFile.virtualFile)
-    }
-
     val firstRender = findSceneViewRenderWithName("TwoElementsPreview")
 
     // Make a change to the preview
     runWriteActionAndWait {
+      fixture.openFileInEditor(psiMainFile.virtualFile)
       fixture.moveCaret("Text(\"Hello 2\")|")
       fixture.editor.executeAndSave {
         insertText("\nText(\"Hello 3\")\n")
@@ -309,16 +302,13 @@ class ComposePreviewRepresentationGradleTest {
     ImageDiffUtil.assertImageSimilar("testImage", firstRender, thirdRender, 10.0, 20)
   }
 
-  @Ignore("b/240180797")
   @Test
   fun `MultiPreview annotation changes are reflected in the previews without rebuilding`() {
     val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
     // Add an annotation class annotated with Preview in OtherPreviews.kt
-    invokeAndWaitIfNeeded {
-      fixture.openFileInEditor(otherPreviewsFile.virtualFile)
-    }
     runWriteActionAndWait {
+      fixture.openFileInEditor(otherPreviewsFile.virtualFile)
       fixture.moveCaret("|@Preview")
       fixture.editor.executeAndSave {
         insertText("@Preview\nannotation class MyAnnotation\n\n")
@@ -327,13 +317,10 @@ class ComposePreviewRepresentationGradleTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
 
-    invokeAndWaitIfNeeded {
-      fixture.openFileInEditor(psiMainFile.virtualFile)
-    }
-
     runAndWaitForRefresh(Duration.ofSeconds(30)) {
       // Annotate DefaultPreview with the new MultiPreview annotation class
       runWriteActionAndWait {
+        fixture.openFileInEditor(psiMainFile.virtualFile)
         fixture.moveCaret("|@Preview")
         fixture.editor.executeAndSave {
           insertText("@MyAnnotation\n")
@@ -358,10 +345,8 @@ class ComposePreviewRepresentationGradleTest {
         .filter { it.isShowing }.joinToString("\n") { it.displayName })
 
     // Modify the Preview annotating MyAnnotation
-    invokeAndWaitIfNeeded {
-      fixture.openFileInEditor(otherPreviewsFile.virtualFile)
-    }
     runWriteActionAndWait {
+      fixture.openFileInEditor(otherPreviewsFile.virtualFile)
       fixture.moveCaret("@Preview|")
       fixture.editor.executeAndSave {
         insertText("(name = \"newName\")")
@@ -370,16 +355,14 @@ class ComposePreviewRepresentationGradleTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
 
-    invokeAndWaitIfNeeded {
-      fixture.openFileInEditor(psiMainFile.virtualFile)
-    }
-
-    runAndWaitForRefresh(Duration.ofSeconds(30)) {
+    runAndWaitForRefresh(Duration.ofSeconds(35)) {
       // Simulate what happens when changing to the MainActivity.kt tab in the editor
       // TODO(b/232092986) This is actually not a tab change, but currently we don't have a better way
       //  of simulating it, and this is the only relevant consequence of changing tabs for this test.
+      runWriteActionAndWait { fixture.openFileInEditor(psiMainFile.virtualFile) }
       composePreviewRepresentation.onActivate()
     }
+
     invokeAndWaitIfNeeded {
       fakeUi.root.validate()
     }
@@ -485,11 +468,9 @@ class ComposePreviewRepresentationGradleTest {
 
     // Now both ComposePreviewRepresentation are active, so modifying otherPreviewsFile
     // should trigger a refresh in the main file representation.
-    invokeAndWaitIfNeeded {
-      fixture.openFileInEditor(otherPreviewsFile.virtualFile)
-    }
     runAndWaitForRefresh(Duration.ofSeconds(30)) {
       runWriteActionAndWait {
+        fixture.openFileInEditor(otherPreviewsFile.virtualFile)
         // Add a MultiPreview annotation that won't be used
         fixture.moveCaret("|@Preview")
         fixture.editor.executeAndSave {
