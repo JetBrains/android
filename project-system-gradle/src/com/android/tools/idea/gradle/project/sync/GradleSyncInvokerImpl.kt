@@ -80,10 +80,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
     private fun prepareProject(project: Project, listener: GradleSyncListener?): Boolean {
       val projectInfo = GradleProjectInfo.getInstance(project)
       if (project.requiresAndroidModel() || projectInfo.hasTopLevelGradleFile()) {
-        val isImportedProject = projectInfo.isImportedProject
-        if (!isImportedProject) {
-          FileDocumentManager.getInstance().saveAllDocuments()
-        }
+        FileDocumentManager.getInstance().saveAllDocuments()
         return true // continue with sync.
       }
       AppUIUtil.invokeLaterIfProjectAlive(project) {

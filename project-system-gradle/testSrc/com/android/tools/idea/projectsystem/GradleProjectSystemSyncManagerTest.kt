@@ -64,29 +64,6 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
   }
 
-  fun testSyncProject_uninitializedProject() {
-    ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, object: GradleSyncInvoker.FakeInvoker() {
-      override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
-        Assert.fail()
-      }
-    })
-
-    val startupManager = object : StartupManagerImpl(project) {
-      override fun startupActivityPassed(): Boolean {
-        return false // this will make Project.isInitialized return false;
-      }
-
-      override fun runWhenProjectIsInitialized(action: Runnable) {
-        action.run()
-      }
-    }
-    ideComponents.replaceProjectService(StartupManager::class.java, startupManager)
-    // http://b/62543184
-    whenever(gradleProjectInfo.isImportedProject).thenReturn(true)
-
-    project.getProjectSystem().getSyncManager().syncProject(SyncReason.PROJECT_LOADED)
-  }
-
   fun testGetLastSyncResult_unknownIfNeverSynced() {
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
 

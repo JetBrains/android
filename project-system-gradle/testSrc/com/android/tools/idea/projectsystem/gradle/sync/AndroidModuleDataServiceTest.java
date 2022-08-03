@@ -123,7 +123,6 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
   public void testOnSuccessSetsNewProjectToFalse() throws Exception {
     loadSimpleApplication();
     GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(getProject());
-    assertFalse(gradleProjectInfo.isImportedProject());
     assertFalse(gradleProjectInfo.isNewProject());
   }
 }

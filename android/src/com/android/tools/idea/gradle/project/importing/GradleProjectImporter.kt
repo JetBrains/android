@@ -147,7 +147,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     val newProject = request.project
     val projectInfo = GradleProjectInfo.getInstance(newProject)
     projectInfo.isNewProject = request.isNewProject
-    projectInfo.isImportedProject = true
     silenceUnlinkedGradleProjectNotificationIfNecessary(newProject)
     WriteAction.runAndWait<RuntimeException> {
       if (request.javaLanguageLevel != null) {

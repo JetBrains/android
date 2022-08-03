@@ -195,7 +195,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     modelsProvider: IdeModelsProvider
   ) {
     GradleProjectInfo.getInstance(project).isNewProject = false
-    GradleProjectInfo.getInstance(project).isImportedProject = false
 
     // TODO(b/200268010): this only triggers when we have actually run sync, as opposed to having loaded models from cache.  That means
     //  that we should be able to move this to some kind of sync listener.
