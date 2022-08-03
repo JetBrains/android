@@ -15,76 +15,37 @@
  */
 package com.android.tools.tests.memory;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.function.Predicate;
-
 /**
- * An utility class that can used to test reachability of objects from an object by following hard links.
+ * A utility class that can used to test reachability of objects from an object by following hard links.
  */
 public class ReferenceWalker {
   @NotNull private final Set<Object> myReachable;
-  @NotNull private final Map<Object, Object> myParentObject;
   @NotNull private final Object myRoot;
 
   public ReferenceWalker(@NotNull Object object) throws IllegalAccessException {
     myRoot = object;
     myReachable = Sets.newIdentityHashSet();
-    myParentObject = Maps.newIdentityHashMap();
     collectReachable(myRoot, null);
-  }
-
-  /**
-   * Ensured that no object which satisfied the {@code predicate} callback is reachable from {@link #myRoot}.
-   */
-  private void assertNotReachable(@NotNull Predicate<Object> predicate) {
-    Object object = findReachable(predicate);
-    if (object == null) {
-      return;
-    }
-
-    StringBuilder error = new StringBuilder("Found invalid object:\n");
-    error.append(" > \"").append(formatObject(object)).append("\n");
-    error.append(" Reference path:\n");
-
-    Object previous = myParentObject.get(object);
-    while (previous != null) {
-      error.append(" > \"").append(formatObject(previous)).append("\n");
-      previous = myParentObject.get(previous);
-    }
-    Assert.fail(error.toString());
-  }
-
-  /**
-   * Ensured that {@code objects} are not reachable from {@link #myRoot}.
-   */
-  public void assertNotReachable(@NotNull Object... objects) throws IllegalAccessException {
-    Set<Object> invalid = Sets.newIdentityHashSet();
-    invalid.addAll(Arrays.asList(objects));
-    assertNotReachable(invalid::contains);
-  }
-
-  /**
-   * Ensured that classes {@code classes} are not reachable from {@link #myRoot}.
-   */
-  public void assertNotReachable(@NotNull Class... classes) throws IllegalAccessException {
-    Set<Class> invalidClasses = new HashSet<>(Arrays.asList(classes));
-    assertNotReachable(o -> invalidClasses.contains(o.getClass()));
   }
 
   /**
    * Ensured that classes {@code classes } are reachable from {@link #myRoot}.
    */
   public void assertReachable(@NotNull Class... classes) throws IllegalAccessException {
-    for (Class clazz: classes) {
+    for (Class clazz : classes) {
       if (findReachable(o -> o.getClass().equals(clazz)) == null) {
         String error = String.format("The class %s is not reachable from %s", clazz.getCanonicalName(), formatObject(myRoot));
         Assert.fail(error);
@@ -121,7 +82,6 @@ public class ReferenceWalker {
     if (!myReachable.add(object)) {
       return;
     }
-    myParentObject.put(object, parent);
 
     if (object.getClass().isArray()) {
       for (int i = 0; i < Array.getLength(object); i++) {
@@ -138,7 +98,8 @@ public class ReferenceWalker {
             field.setAccessible(true);
             Object value = field.get(object);
             collectReachable(value, object);
-          } catch (RuntimeException ignored) {
+          }
+          catch (RuntimeException ignored) {
             // Under JDK9+, setAccessible can throw InaccessibleObjectException. If that happens, we just skip that field.
             // TODO(b/162916678): When we start compiling against JDK9+ (not only running under it), we can restrict this to catch
             // InaccessibleObjectException only.
