@@ -74,7 +74,6 @@ internal class AndroidExtraModelProviderWorker(
   private val buildInfo: BuildInfo,
   private val consumer: ProjectImportModelProvider.BuildModelConsumer
 ) {
-  private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
   private val safeActionRunner = SyncActionRunner.create(controller, syncOptions.flags.studioFlagParallelSyncEnabled)
 
   fun populateBuildModels() {
@@ -124,10 +123,11 @@ internal class AndroidExtraModelProviderWorker(
     private val syncOptions: SyncProjectActionOptions,
     private val buildModel: BuildModel,
     private val actionRunner: SyncActionRunner
-  )
-  {
+  ) {
+    private val buildInfo = this@AndroidExtraModelProviderWorker.buildInfo
     private val modelCacheLock = ReentrantLock()
     private val internedModels = InternedModels(buildInfo.buildRootDirectory)
+    private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
 
     /**
      * Requests Android project models for the given [buildModels]
@@ -152,7 +152,7 @@ internal class AndroidExtraModelProviderWorker(
       androidModules.forEach { androidModulesById[it.id] = it }
 
       val androidModulesByProjectPath = androidModules
-        .associate { (BuildId(it.gradleProject.projectIdentifier.buildIdentifier.rootDir) to it.gradleProject.path) to it }
+        .associateBy { (BuildId(it.gradleProject.projectIdentifier.buildIdentifier.rootDir) to it.gradleProject.path) }
 
       fun resolveAndroidProjectPath(buildId: BuildId, projectPath: String): AndroidModule? =
         androidModulesByProjectPath[buildId to projectPath]
@@ -418,15 +418,114 @@ internal class AndroidExtraModelProviderWorker(
         )
       }, fetchesV2Models = isV2Action, fetchesV1Models = !isV2Action)
     }
+
+    private fun prepareRequestedOrDefaultModuleConfigurations(
+      inputModules: List<AndroidModule>,
+      syncOptions: SingleVariantSyncActionOptions
+    ): LinkedList<ModuleConfiguration> {
+      // The module whose variant selection was changed from UI, the dependency modules should be consistent with this module. Achieve this by
+      // adding this module to the head of allModules so that its dependency modules are resolved first.
+      return inputModules
+        .asSequence()
+        .mapNotNull { module -> selectedOrDefaultModuleConfiguration(module, syncOptions)?.let { module to it } }
+        .sortedBy { (module, _) ->
+          when {
+            module.id == syncOptions.switchVariantRequest?.moduleId -> 0
+            // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
+            // The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
+            // dependencies of others and will be visited sooner and the configurations created below will be discarded. This is fine since
+            // `createRequestedModuleConfiguration()` is cheap.
+            module.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP -> 1
+            else -> 2
+          }
+        }
+        .map { it.second }
+        .toCollection(LinkedList<ModuleConfiguration>())
+    }
+
+    /**
+     * [selectedAbi] if null or the abi doesn't exist a default will be picked. This default will be "x86" if
+     *               it exists in the abi names returned by the [NativeAndroidProject] otherwise the first item of this list will be
+     *               chosen.
+     */
+    private fun chooseAbiToRequest(
+      module: AndroidModule,
+      variantName: String,
+      selectedAbi: String?
+    ): String? {
+      // This module is not a native one, nothing to do
+      if (module.nativeModelVersion == AndroidModule.NativeModelVersion.None) return null
+
+      // Attempt to get the list of supported abiNames for this variant from the NativeAndroidProject
+      // Otherwise return from this method with a null result as abis are not supported.
+      val abiNames = module.getVariantAbiNames(variantName) ?: return null
+
+      return (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
+        ?: throw AndroidSyncException("No valid Native abi found to request!")
+    }
+
+    private fun selectedOrDefaultModuleConfiguration(
+      module: AndroidModule,
+      syncOptions: SingleVariantSyncActionOptions
+    ): ModuleConfiguration? {
+      // TODO(b/181028873): Better predict variants that needs to be prefetched. Add a new field to record the predicted variant.
+      val selectedVariants = syncOptions.selectedVariants
+      val switchVariantRequest = syncOptions.switchVariantRequest
+      val selectedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return null
+      val selectedAbi = selectedVariants.getSelectedAbi(module.id)
+
+      fun variantContainsAbi(variantName: String, abi: String): Boolean {
+        return module.getVariantAbiNames(variantName)?.contains(abi) == true
+      }
+
+      fun firstVariantContainingAbi(abi: String): String? {
+        return (setOfNotNull(module.defaultVariantName) + module.allVariantNames.orEmpty())
+          .firstOrNull { module.getVariantAbiNames(it)?.contains(abi) == true }
+      }
+
+      return when (switchVariantRequest?.moduleId) {
+        module.id -> {
+          val requestedAbi = switchVariantRequest.abi
+          val selectedVariantName = when (requestedAbi) {
+            null -> switchVariantRequest.variantName
+            else ->
+              when {
+                variantContainsAbi(switchVariantRequest.variantName ?: selectedVariantName, requestedAbi) ->
+                  switchVariantRequest.variantName
+                else ->
+                  firstVariantContainingAbi(requestedAbi)
+              }
+          } ?: selectedVariantName
+          val selectedAbi = requestedAbi.takeIf { module.getVariantAbiNames(selectedVariantName)?.contains(it) == true } ?: selectedAbi
+          ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
+        }
+        else -> {
+          ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
+        }
+      }
+    }
+
+    private fun selectVariantForAppOrLeaf(
+      androidModule: AndroidModule,
+      selectedVariants: SelectedVariants
+    ): String? {
+      val variantNames = androidModule.allVariantNames ?: return null
+      return selectedVariants
+        .getSelectedVariant(androidModule.id)
+        // Check to see if we have a variant selected in the IDE, and that it is still a valid one.
+        ?.takeIf { variantNames.contains(it) }
+        ?: androidModule.defaultVariantName
+    }
   }
 
   inner class NativeVariantsSyncActionWorker(
     private val syncOptions: NativeVariantsSyncActionOptions
   ) {
+    private val buildInfo: BuildInfo = this@AndroidExtraModelProviderWorker.buildInfo
     private val modelCacheLock = ReentrantLock()
     private val internedModels = InternedModels(buildInfo.buildRootDirectory)
     // NativeVariantsSyncAction is only used with AGPs not supporting v2 models and thus not supporting parallel sync.
-    private val actionRunner = safeActionRunner
+    private val actionRunner: SyncActionRunner = safeActionRunner
 
     fun fetchNativeVariantsAndroidModels(): List<GradleModelCollection> {
       val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock)
@@ -587,83 +686,6 @@ internal class AndroidExtraModelProviderWorker(
     )
   }
 
-  private fun prepareRequestedOrDefaultModuleConfigurations(
-    inputModules: List<AndroidModule>,
-    syncOptions: SingleVariantSyncActionOptions
-  ): LinkedList<ModuleConfiguration> {
-    // The module whose variant selection was changed from UI, the dependency modules should be consistent with this module. Achieve this by
-    // adding this module to the head of allModules so that its dependency modules are resolved first.
-    return inputModules
-      .asSequence()
-      .mapNotNull { module -> selectedOrDefaultModuleConfiguration(module, syncOptions)?.let { module to it } }
-      .sortedBy { (module, _) ->
-        when {
-          module.id == syncOptions.switchVariantRequest?.moduleId -> 0
-          // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
-          // The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
-          // dependencies of others and will be visited sooner and the configurations created below will be discarded. This is fine since
-          // `createRequestedModuleConfiguration()` is cheap.
-          module.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP -> 1
-          else -> 2
-        }
-      }
-      .map { it.second }
-      .toCollection(LinkedList<ModuleConfiguration>())
-  }
-
-  private fun selectedOrDefaultModuleConfiguration(
-    module: AndroidModule,
-    syncOptions: SingleVariantSyncActionOptions
-  ): ModuleConfiguration? {
-    // TODO(b/181028873): Better predict variants that needs to be prefetched. Add a new field to record the predicted variant.
-    val selectedVariants = syncOptions.selectedVariants
-    val switchVariantRequest = syncOptions.switchVariantRequest
-    val selectedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return null
-    val selectedAbi = selectedVariants.getSelectedAbi(module.id)
-
-    fun variantContainsAbi(variantName: String, abi: String): Boolean {
-      return module.getVariantAbiNames(variantName)?.contains(abi) == true
-    }
-
-    fun firstVariantContainingAbi(abi: String): String? {
-      return (setOfNotNull(module.defaultVariantName) + module.allVariantNames.orEmpty())
-        .firstOrNull { module.getVariantAbiNames(it)?.contains(abi) == true }
-    }
-
-    return when (switchVariantRequest?.moduleId) {
-      module.id -> {
-        val requestedAbi = switchVariantRequest.abi
-        val selectedVariantName = when (requestedAbi) {
-          null -> switchVariantRequest.variantName
-          else ->
-            when {
-              variantContainsAbi(switchVariantRequest.variantName ?: selectedVariantName, requestedAbi) ->
-                switchVariantRequest.variantName
-              else ->
-                firstVariantContainingAbi(requestedAbi)
-            }
-        } ?: selectedVariantName
-        val selectedAbi = requestedAbi.takeIf { module.getVariantAbiNames(selectedVariantName)?.contains(it) == true } ?: selectedAbi
-        ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
-      }
-      else -> {
-        ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
-      }
-    }
-  }
-
-  private fun selectVariantForAppOrLeaf(
-    androidModule: AndroidModule,
-    selectedVariants: SelectedVariants
-  ): String? {
-    val variantNames = androidModule.allVariantNames ?: return null
-    return selectedVariants
-             .getSelectedVariant(androidModule.id)
-             // Check to see if we have a variant selected in the IDE, and that it is still a valid one.
-             ?.takeIf { variantNames.contains(it) }
-           ?: androidModule.defaultVariantName
-  }
-
   sealed class NativeVariantAbiResult {
     class V1(val variantAbi: IdeNativeVariantAbi) : NativeVariantAbiResult()
     class V2(val selectedAbiName: String) : NativeVariantAbiResult()
@@ -675,27 +697,6 @@ internal class AndroidExtraModelProviderWorker(
         is V2 -> selectedAbiName
         None -> null
       }
-  }
-
-  /**
-   * [selectedAbi] if null or the abi doesn't exist a default will be picked. This default will be "x86" if
-   *               it exists in the abi names returned by the [NativeAndroidProject] otherwise the first item of this list will be
-   *               chosen.
-   */
-  private fun chooseAbiToRequest(
-    module: AndroidModule,
-    variantName: String,
-    selectedAbi: String?
-  ): String? {
-    // This module is not a native one, nothing to do
-    if (module.nativeModelVersion == AndroidModule.NativeModelVersion.None) return null
-
-    // Attempt to get the list of supported abiNames for this variant from the NativeAndroidProject
-    // Otherwise return from this method with a null result as abis are not supported.
-    val abiNames = module.getVariantAbiNames(variantName) ?: return null
-
-    return (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
-           ?: throw AndroidSyncException("No valid Native abi found to request!")
   }
 }
 
