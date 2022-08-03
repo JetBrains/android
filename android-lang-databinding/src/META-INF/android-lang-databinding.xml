@@ -22,7 +22,7 @@
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.config.DbParserDefinition"/>
     <lang.syntaxHighlighter language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.highlight.DbSyntaxHighlighter" />
     <languageInjector implementation="com.android.tools.idea.lang.databinding.config.DbLanguageInjector"/>
-    <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.reference.DataBindingExprReferenceContributor"/>
+    <psi.referenceContributor language="AndroidDataBinding" implementation="com.android.tools.idea.lang.databinding.reference.DataBindingExprReferenceContributor"/>
     <psi.referenceContributor language="XML" implementation="com.android.tools.idea.lang.databinding.reference.DataBindingXmlAttributeReferenceContributor"/>
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.lang.databinding.folding.DataBindingFoldingBuilder"/>
     <annotator language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.validation.DataBindingExpressionAnnotator"/>
