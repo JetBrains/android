@@ -20,11 +20,9 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplay
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
-import com.android.SdkConstants;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
@@ -34,7 +32,6 @@ import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -756,95 +753,62 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
      */
     HtmlBuilder sb = new HtmlBuilder();
 
-    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(facet.getModule().getProject());
-    if (gradleVersion != null && gradleVersion.isAtLeast(3, 0, 0)) {
-      String versionPrefix = "to at least ";
-      int start = message.indexOf(versionPrefix) + versionPrefix.length();
-      if (start < 0) {
-        throw new IllegalArgumentException("unexpected use suggestion format " + message);
-      }
-      int end = message.indexOf(',', start);
-      if (end < 0) {
-        throw new IllegalArgumentException("unexpected use suggestion format " + message);
-      }
-      final String minSdkVersionString = message.substring(start, end);
-      int minSdkVersion;
-      try {
-        minSdkVersion = Integer.parseInt(minSdkVersionString);
-      } catch (NumberFormatException e) {
-        // Ignore this and just add the message, we don't want to add a link
-        sb.add(message);
-        return sb.getHtml();
-      }
+    String versionPrefix = "to at least ";
+    int start = message.indexOf(versionPrefix) + versionPrefix.length();
+    if (start < 0) {
+      throw new IllegalArgumentException("unexpected use suggestion format " + message);
+    }
+    int end = message.indexOf(',', start);
+    if (end < 0) {
+      throw new IllegalArgumentException("unexpected use suggestion format " + message);
+    }
+    final String minSdkVersionString = message.substring(start, end);
+    int minSdkVersion;
+    try {
+      minSdkVersion = Integer.parseInt(minSdkVersionString);
+    }
+    catch (NumberFormatException e) {
+      // Ignore this and just add the message, we don't want to add a link
+      sb.add(message);
+      return sb.getHtml();
+    }
 
-      final int finalMinSdk = minSdkVersion;
+    final int finalMinSdk = minSdkVersion;
 
-      Runnable link =
-        () -> {
-          Runnable linkAction = () -> {
-            // We reparse the buildModel as it is possible that it has change since this link was created.
-            ProjectBuildModel pbm = ProjectBuildModel.get(facet.getModule().getProject());
-            GradleBuildModel gbm = pbm.getModuleBuildModel(facet.getModule());
+    Runnable link =
+      () -> {
+        Runnable linkAction = () -> {
+          // We reparse the buildModel as it is possible that it has change since this link was created.
+          ProjectBuildModel pbm = ProjectBuildModel.get(facet.getModule().getProject());
+          GradleBuildModel gbm = pbm.getModuleBuildModel(facet.getModule());
 
-            if (gbm == null) {
-              return;
-            }
+          if (gbm == null) {
+            return;
+          }
 
-            gbm.android().defaultConfig().minSdkVersion().setValue(finalMinSdk);
-            ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction
-              .runWriteCommandAction(facet.getModule().getProject(), "Update build file minSdkVersion", null, () -> pbm.applyChanges(),
-                                     gbm.getPsiFile()));
-            // We must make sure that the files have been updated before we sync, we block above but not here.
-            Runnable syncRunnable = () -> requestSync(facet.getModule().getProject());
-            if (ApplicationManager.getApplication().isUnitTestMode()) {
-              syncRunnable.run();
-            }
-            else {
-              ApplicationManager.getApplication().invokeLater(syncRunnable);
-            }
-          };
-
+          gbm.android().defaultConfig().minSdkVersion().setValue(finalMinSdk);
+          ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction
+            .runWriteCommandAction(facet.getModule().getProject(), "Update build file minSdkVersion", null, () -> pbm.applyChanges(),
+                                   gbm.getPsiFile()));
+          // We must make sure that the files have been updated before we sync, we block above but not here.
+          Runnable syncRunnable = () -> requestSync(facet.getModule().getProject());
           if (ApplicationManager.getApplication().isUnitTestMode()) {
-            linkAction.run();
+            syncRunnable.run();
           }
           else {
-            ApplicationManager.getApplication().executeOnPooledThread(linkAction);
+            ApplicationManager.getApplication().invokeLater(syncRunnable);
           }
         };
-      sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
-      sb.add(message.substring(end));
-    } else {
-      // use tools override suggestion.
-      int eq = message.indexOf('=');
-      if (eq < 0) {
-        throw new IllegalArgumentException("unexpected use suggestion format " + message);
-      }
-      int end = message.indexOf('"', eq + 2);
-      if (end < 0 || message.charAt(eq + 1) != '\"') {
-        throw new IllegalArgumentException("unexpected use suggestion format " + message);
-      }
-      final String suggestion = message.substring(message.indexOf(' ') + 1, end + 1);
-      if (!SourcePosition.UNKNOWN.equals(position.getPosition())) {
-        XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
-        Element element = getElementAt(mainManifest, position.getPosition().getStartLine(), position.getPosition().getStartColumn());
-        if (element != null && SdkConstants.TAG_USES_SDK.equals(element.getTagName())) {
-          sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(() -> {
-            int eq1 = suggestion.indexOf('=');
-            String attributeName = suggestion.substring(suggestion.indexOf(':') + 1, eq1);
-            String attributeValue = suggestion.substring(eq1 + 2, suggestion.length() - 1);
-            addToolsAttribute(mainManifest, element, attributeName, attributeValue);
-          }));
-          sb.add(message.substring(end + 1));
+
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          linkAction.run();
         }
         else {
-          Logger.getInstance(ManifestPanel.class).warn("Can not find uses-sdk tag " + element);
-          sb.add(message);
+          ApplicationManager.getApplication().executeOnPooledThread(linkAction);
         }
-      } else {
-        sb.add(message);
-      }
-      sb.newlineIfNecessary().newline();
-    }
+      };
+    sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
+    sb.add(message.substring(end));
     return sb.getHtml();
   }
 
