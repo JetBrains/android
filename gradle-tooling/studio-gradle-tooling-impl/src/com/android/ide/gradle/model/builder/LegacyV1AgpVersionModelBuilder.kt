@@ -32,12 +32,19 @@ class LegacyV1AgpVersionModelBuilder : ToolingModelBuilder {
 
 
   override fun buildAll(modelName: String, project: Project): LegacyV1AgpVersionModel? {
-    check(modelName == LegacyV1AgpVersionModel::class.java.name) { "Only valid model is ${LegacyV1AgpVersionModel::class.java.name}" }
+    check(canBuild(modelName)) { "Unexpected model name requested: $modelName" }
+
+    // All Gradle projects that have any Android Gradle plugin applied get "com.android.base" applied to. This is the way to test
+    // whether a Gradle project is an Android Gradle project and if it is we promise to return a model.
+    // Note, that it might not be enough to check for a presence of "android" extensions as even though all existing Android Gradle plugin
+    // versions define it, nothing prevents other plugins to define it too.
     if (!project.plugins.hasPlugin("com.android.base")) return null
 
     return try {
       val extension = project.extensions.findByName("android")
         ?: return LegacyV1AgpVersionModelImpl("1.0") // Something wrong. Return an incompatible version.
+      // The following three cases are enough to support AGP versions ranging from 2.0 to 7.4 at least and this model builder is not
+      // supposed to be used with version 7.3 or later since we rely on `Versions` model in this case.
       try {
         val pluginClazz =
           Class.forName("com.android.build.api.extension.impl.CurrentAndroidGradlePluginVersionKt", true, extension.javaClass.classLoader)
