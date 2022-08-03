@@ -46,8 +46,6 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
-import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 import java.io.PrintWriter
@@ -148,7 +146,7 @@ internal class AndroidExtraModelProviderWorker(
      * [ProjectImportModelProvider.BuildModelConsumer] callback.
      */
     fun populateAndroidModels(basicIncompleteModules: List<BasicIncompleteGradleModule>): List<GradleModelCollection> {
-      val modules = fetchGradleModulesAction(basicIncompleteModules, buildInfo.buildNameMap, buildInfo.buildIdMap)
+      val modules = fetchGradleModulesAction(basicIncompleteModules)
 
       val androidModules = modules.filterIsInstance<AndroidModule>()
       androidModules.forEach { androidModulesById[it.id] = it }
@@ -205,116 +203,12 @@ internal class AndroidExtraModelProviderWorker(
     }
 
     private fun fetchGradleModulesAction(
-      incompleteBasicModules: List<BasicIncompleteGradleModule>,
-      buildNameMap: Map<String, BuildId>,
-      buildIdMap: Map<BuildId, String>
+      incompleteBasicModules: List<BasicIncompleteGradleModule>
     ): List<GradleModule> {
       return actionRunner.runActions(
-        incompleteBasicModules.map {
-          when (it) {
-            is BasicV2AndroidModuleGradleProject ->
-              ActionToRun(
-                fun(controller: BuildController): GradleModule {
-                  val basicAndroidProject = controller.findNonParameterizedV2Model(it.gradleProject, BasicAndroidProject::class.java)
-                                            ?: error("Cannot get BasicAndroidProject model for ${it.gradleProject}")
-                  val androidProject = controller.findNonParameterizedV2Model(it.gradleProject, V2AndroidProject::class.java)
-                                       ?: error("Cannot get V2AndroidProject model for ${it.gradleProject}")
-                  val androidDsl = controller.findNonParameterizedV2Model(it.gradleProject, AndroidDsl::class.java)
-                                   ?: error("Cannot get AndroidDsl model for ${it.gradleProject}")
-                  val agpVersion = GradleVersion.tryParse(it.versions.agp)
-                    ?: error("AGP returned incorrect version: ${it.versions.agp}")
-                  val modelIncludesApplicationId = agpVersion.agpModelIncludesApplicationId
-                  val legacyApplicationIdModel = if (!modelIncludesApplicationId) {
-                    controller.findModel(it.gradleProject, LegacyApplicationIdModel::class.java)
-                  } else { null }
-
-                  val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion)
-                  val rootBuildId = buildNameMap[":"] ?: error("Root build (':') not found")
-                  val buildId = buildNameMap[basicAndroidProject.buildName]
-                    ?: error("(Included) build named '${basicAndroidProject.buildName}' not found")
-                  val androidProjectResult =
-                    AndroidProjectResult.V2Project(
-                      modelCache = modelCache,
-                      rootBuildId = rootBuildId,
-                      buildId = buildId,
-                      basicAndroidProject = basicAndroidProject,
-                      androidProject = androidProject,
-                      modelVersions = it.versions,
-                      androidDsl = androidDsl,
-                      legacyApplicationIdModel = legacyApplicationIdModel
-                    )
-
-                  // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
-                  val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
-
-                  return createAndroidModule(
-                    it.gradleProject,
-                    androidProjectResult,
-                    nativeModule,
-                    buildNameMap,
-                    buildIdMap,
-                    modelCache
-                  )
-                },
-                fetchesV2Models = true)
-            is BasicV1AndroidModuleGradleProject ->
-              ActionToRun(
-                fun(controller: BuildController): GradleModule {
-                  val androidProject = controller.findParameterizedAndroidModel(
-                    it.gradleProject,
-                    AndroidProject::class.java,
-                    shouldBuildVariant = false
-                  ) ?: error("Cannot fetch AndroidProject models for V1 projects.")
-
-                  val legacyApplicationIdModel = controller.findModel(it.gradleProject, LegacyApplicationIdModel::class.java)
-
-                  val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock)
-                  val buildId = BuildId(it.gradleProject.projectIdentifier.buildIdentifier.rootDir)
-                  val buildName = buildIdMap[buildId] ?: error("Unknown build id: $buildId")
-                  val rootBuildDir = buildNameMap[":"] ?: error("Root build (':') not found")
-                  val androidProjectResult = AndroidProjectResult.V1Project(
-                    modelCache = modelCache,
-                    rootBuildId = rootBuildDir,
-                    buildId = buildId,
-                    buildName = buildName,
-                    projectPath = it.gradleProject.path,
-                    androidProject = androidProject,
-                    legacyApplicationIdModel = legacyApplicationIdModel
-                  )
-
-                  val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
-                  val nativeAndroidProject: NativeAndroidProject? =
-                    if (nativeModule == null)
-                      controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java,
-                                                               shouldBuildVariant = false)
-                    else null
-
-                  return createAndroidModule(
-                    it.gradleProject,
-                    androidProjectResult,
-                    nativeAndroidProject,
-                    nativeModule,
-                    buildNameMap,
-                    buildIdMap,
-                    modelCache
-                  )
-
-                },
-                fetchesV1Models = true,
-                fetchesKotlinModels = true
-              )
-            is BasicNonAndroidIncompleteGradleModule ->
-              ActionToRun(
-                fun(controller: BuildController): GradleModule {
-                  val kotlinGradleModel = controller.findModel(it.gradleProject, KotlinGradleModel::class.java)
-                  val kaptGradleModel = controller.findModel(it.gradleProject, KaptGradleModel::class.java)
-                  return JavaModule(it.gradleProject, kotlinGradleModel, kaptGradleModel)
-                },
-                fetchesV1Models = false,
-                fetchesKotlinModels = true
-              )
-          }
-        }.toList()
+        incompleteBasicModules
+          .map { it.getGradleModuleAction(internedModels, modelCacheLock, buildInfo) }
+          .toList()
       )
     }
 
@@ -842,84 +736,6 @@ internal fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssu
       type = syncIssue.type
     )
   }
-}
-
-private fun createAndroidModule(
-  gradleProject: BasicGradleProject,
-  androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project,
-  nativeAndroidProject: NativeAndroidProject?,
-  nativeModule: NativeModule?,
-  buildNameMap: Map<String, BuildId>,
-  buildIdMap: Map<BuildId, String>,
-  modelCache: ModelCache.V1
-): AndroidModule {
-  val agpVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectResult.agpVersion)
-
-  val ideAndroidProject = androidProjectResult.ideAndroidProject
-  val allVariantNames = androidProjectResult.allVariantNames
-  val defaultVariantName: String? = androidProjectResult.defaultVariantName
-
-  val ideNativeAndroidProject = nativeAndroidProject?.let {
-    modelCache.nativeAndroidProjectFrom(it, androidProjectResult.ndkVersion)
-  }
-  val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
-
-  val androidModule = AndroidModule.V1(
-    agpVersion = agpVersion,
-    buildName = androidProjectResult.buildName,
-    buildNameMap = buildNameMap,
-    buildIdMap = buildIdMap,
-    gradleProject = gradleProject,
-    androidProject = ideAndroidProject,
-    allVariantNames = allVariantNames,
-    defaultVariantName = defaultVariantName,
-    variantFetcher = androidProjectResult.createVariantFetcher(),
-    nativeAndroidProject = ideNativeAndroidProject,
-    nativeModule = ideNativeModule,
-    legacyApplicationIdModel = androidProjectResult.legacyApplicationIdModel,
-  )
-
-  val syncIssues = androidProjectResult.syncIssues
-  // It will be overridden if we receive something here but also a proper sync issues model later.
-  if (syncIssues != null) {
-    androidModule.setSyncIssues(syncIssues.toSyncIssueData() + androidModule.legacyApplicationIdModel.getProblemsAsSyncIssues())
-  }
-
-  return androidModule
-}
-
-private fun createAndroidModule(
-  gradleProject: BasicGradleProject,
-  androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project,
-  nativeModule: NativeModule?,
-  buildNameMap: Map<String, BuildId>,
-  buildIdMap: Map<BuildId, String>,
-  modelCache: ModelCache
-): AndroidModule {
-  val agpVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectResult.agpVersion)
-
-  val ideAndroidProject = androidProjectResult.ideAndroidProject
-  val allVariantNames = androidProjectResult.allVariantNames
-  val defaultVariantName: String? = androidProjectResult.defaultVariantName
-
-  val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
-
-  val androidModule = AndroidModule.V2(
-    agpVersion = agpVersion,
-    buildName = androidProjectResult.buildName,
-    buildNameMap = buildNameMap,
-    buildIdMap = buildIdMap,
-    gradleProject = gradleProject,
-    androidProject = ideAndroidProject,
-    allVariantNames = allVariantNames,
-    defaultVariantName = defaultVariantName,
-    androidVariantResolver = androidProjectResult.androidVariantResolver,
-    variantFetcher = androidProjectResult.createVariantFetcher(),
-    nativeModule = ideNativeModule,
-    legacyApplicationIdModel = androidProjectResult.legacyApplicationIdModel,
-  )
-
-  return androidModule
 }
 
 private fun AndroidModule.adjustForTestFixturesSuffix(variantName: String): String {
