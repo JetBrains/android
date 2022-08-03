@@ -26,6 +26,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.runBlocking
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -78,7 +79,8 @@ internal class FakeScreenSharingAgentRule : TestRule {
           if (args.contains("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")) {
             val device = devices.find { it.serialNumber == deviceState.deviceId }!!
             val shellProtocol = ShellV2Protocol(socket)
-            device.agent.start(shellProtocol, args, device.hostPort!!)
+            writeOkay(socket.outputStream)
+            runBlocking { device.agent.run(shellProtocol, args, device.hostPort!!) }
           }
           else {
             writeOkay(socket.outputStream)

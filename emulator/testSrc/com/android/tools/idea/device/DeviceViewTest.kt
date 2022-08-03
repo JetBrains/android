@@ -26,6 +26,7 @@ import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.emulator.EmulatorView
+import com.android.tools.idea.executeCapturingLoggedErrors
 import com.android.tools.idea.executeDeviceAction
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
@@ -365,7 +366,7 @@ internal class DeviceViewTest {
   }
 
   @Test
-  fun testReconnect() {
+  fun testAgentCrashAndReconnect() {
     if (!isFFmpegAvailableToTest()) {
       return
     }
@@ -376,13 +377,25 @@ internal class DeviceViewTest {
 
     // Simulate crash of the screen sharing agent.
     runBlocking { agent.crash() }
-    val message = fakeUi.getComponent<JLabel>()
-    waitForCondition(2, TimeUnit.SECONDS) { fakeUi.isShowing(message) }
-    assertThat(message.text).isEqualTo("Lost connection to the device. See the error log.")
+    val errorMessage = fakeUi.getComponent<JLabel>()
+    waitForCondition(2, TimeUnit.SECONDS) { fakeUi.isShowing(errorMessage) }
+    assertThat(errorMessage.text).isEqualTo("Lost connection to the device. See the error log.")
+
     fakeUi.layoutAndDispatchEvents()
     val button = fakeUi.getComponent<JButton>()
     assertThat(fakeUi.isShowing(button)).isTrue()
     assertThat(button.text).isEqualTo("Reconnect")
+    // Check handling of the agent crash on startup.
+    agent.crashOnStart = true
+    val loggedErrors = executeCapturingLoggedErrors {
+      fakeUi.clickOn(button)
+      waitForCondition(2, TimeUnit.SECONDS) { errorMessage.text == "Failed to initialize the device agent. See the error log." }
+      assertThat(button.text).isEqualTo("Retry")
+    }
+    assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
+
+    // Check reconnection.
+    agent.crashOnStart = false
     fakeUi.clickOn(button)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(13, 0, 474, 1000))

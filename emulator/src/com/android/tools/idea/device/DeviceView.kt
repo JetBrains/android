@@ -182,7 +182,11 @@ class DeviceView(
       deviceClient.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener(), object : AgentTerminationListener {
         override fun agentTerminated(exitCode: Int) {
           UIUtil.invokeLaterIfNeeded {
-            failedToConnect(initialDisplayOrientation, null)
+            when (state) {
+              State.CONNECTING -> failedToConnect(initialDisplayOrientation, null)
+              State.CONNECTED -> lostConnection()
+              else -> {}
+            }
           }
         }
       })
@@ -216,11 +220,16 @@ class DeviceView(
 
   private fun failedToConnect(initialDisplayOrientation: Int, e: Throwable?) {
     thisLogger().error("Failed to initialize the screen sharing agent", e)
-    lostConnection("Failed to initialize the device agent. See the error log.",
-                   Reconnector("Retry", "Connecting to the device") { initializeAgentAsync(initialDisplayOrientation) })
+    disconnected("Failed to initialize the device agent. See the error log.",
+                 Reconnector("Retry", "Connecting to the device") { initializeAgentAsync(initialDisplayOrientation) })
   }
 
-  private fun lostConnection(message: String, reconnector: Reconnector) {
+  private fun lostConnection() {
+    disconnected("Lost connection to the device. See the error log.",
+                 Reconnector("Reconnect", "Attempting to reconnect") { initializeAgentAsync(UNKNOWN_ORIENTATION) })
+  }
+
+  private fun disconnected(message: String, reconnector: Reconnector) {
     EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
       if (!disposed) {
         deviceClient?.let { Disposer.dispose(it) }
@@ -420,8 +429,7 @@ class DeviceView(
     }
 
     override fun onEndOfVideoStream() {
-      lostConnection("Lost connection to the device. See the error log.",
-                     Reconnector("Reconnect", "Attempting to reconnect") { initializeAgentAsync(UNKNOWN_ORIENTATION) })
+      lostConnection()
     }
   }
 

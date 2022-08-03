@@ -32,6 +32,7 @@ import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.bytedeco.ffmpeg.avcodec.AVCodec
@@ -122,21 +123,25 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
   var maxVideoEncoderResolution = 2048 // Many phones, for example Galaxy Z Fold3, have VP8 encoder limited to 2048x2048 resolution.
   @Volatile
   var commandLine: String? = null
+    private set
   val commandLog = LinkedBlockingDeque<ControlMessage>()
   @Volatile
   var isRunning = false
+    private set
   @Volatile
   var frameNumber: Long = 0
+    private set
+  var crashOnStart = false
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var displayOrientation = 0
   private var shellProtocol: ShellV2Protocol? = null
 
   /**
-   * Starts the agent. The agent is fully initialized when the method returns.
+   * Runs the agent. Returns when the agen terminates.
    */
-  fun start(protocol: ShellV2Protocol, command: String, hostPort: Int) {
-    coroutineScope.launch {
+  suspend fun run(protocol: ShellV2Protocol, command: String, hostPort: Int) {
+    coroutineScope.async {
       commandLine = command
       shellProtocol = protocol
       commandLog.clear()
@@ -148,6 +153,10 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
       val socketAddress = InetSocketAddress("localhost", hostPort)
       videoChannel.connect(socketAddress)
       controlChannel.connect(socketAddress)
+      if (crashOnStart) {
+        terminateAgent(139)
+        return@async
+      }
       val displayStreamer = DisplayStreamer(videoChannel)
       this@FakeScreenSharingAgent.displayStreamer = displayStreamer
       val controller = Controller(controlChannel)
@@ -158,7 +167,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
       deviceState.deleteFile(DEVICE_PATH_BASE)
       isRunning = true
       controller.run()
-    }
+    }.await()
   }
 
   /**
@@ -198,7 +207,6 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
   }
 
   private suspend fun terminateAgent(exitCode: Int) {
-    shutdown()
     try {
       shellProtocol?.writeExitCode(exitCode)
     }
@@ -208,6 +216,8 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
     catch(_: ClosedChannelException) {
       // Can happen if the shellProtocol's socket is already closed.
     }
+    shellProtocol = null
+    shutdown()
   }
 
   override fun dispose() {
@@ -220,6 +230,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
 
   private suspend fun shutdown() {
     if (startTime != 0L) {
+      startTime = 0
       controller?.let {
         it.shutdown()
         Disposer.dispose(it)
@@ -230,7 +241,6 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
         Disposer.dispose(it)
         displayStreamer = null
       }
-      startTime = 0
       isRunning = false
     }
   }
