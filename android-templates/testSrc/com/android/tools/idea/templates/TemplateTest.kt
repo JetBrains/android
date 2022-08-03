@@ -632,16 +632,61 @@ class TemplateTest {
 
   @TemplateCheck
   @Test
-  fun testNewFolders() {
+  fun testNewAidlFolders() {
     checkCreateTemplate("AIDL Folder", templateStateCustomizer = withNewLocation("foo"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewAssetsFolders() {
     checkCreateTemplate("Assets Folder", templateStateCustomizer = withNewLocation("src/main/assets"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewFontsFolders() {
     checkCreateTemplate("Font Folder", templateStateCustomizer = withNewLocation("src/main/res/font"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewJavaFolders() {
     checkCreateTemplate("Java Folder", templateStateCustomizer = withNewLocation("src/main/java"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewJniFolders() {
     checkCreateTemplate("JNI Folder", templateStateCustomizer = withNewLocation("src/main/jni"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewRawResourcesFolders() {
     checkCreateTemplate("Raw Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/raw"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewResFolders() {
     checkCreateTemplate("Res Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewJavaResFolders() {
     checkCreateTemplate("Java Resources Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewRenderscriptFolders() {
     checkCreateTemplate("RenderScript Folder", templateStateCustomizer = withNewLocation("src/main/rs"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewXmlRestFolders() {
     checkCreateTemplate("XML Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/xml"))
   }
 
