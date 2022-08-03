@@ -99,5 +99,6 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="kotlin.code-insight.api" />
+    <orderEntry type="module" module-name="kotlin.completion.impl-k1" />
   </component>
 </module>
