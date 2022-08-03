@@ -31,6 +31,15 @@ interface BuildAnalyzerStorageManager {
   fun getLatestBuildAnalysisResults() : BuildAnalysisResults
   fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder)
   fun hasData() : Boolean
+  /**
+   * Returns the analysis results from the build specified in the form of a BuildAnalysisResults object. There are no arguments.
+   * If no build results have been stored, then an IllegalStateException is thrown as there is nothing to return.
+   *
+   * @return BuildAnalysisResults
+   * @exception NoSuchElementException
+   */
+  fun getHistoricBuildResultByID(buildID : String) : BuildAnalysisResults
+  fun getListOfHistoricBuildIDs() : Set<String>
 
   interface Listener {
     fun newDataAvailable()

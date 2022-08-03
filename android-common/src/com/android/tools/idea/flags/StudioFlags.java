@@ -716,6 +716,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> BUILD_ANALYZER_DOWNLOADS_ANALYSIS = Flag.create(
     GRADLE_IDE, "build.analyzer.downloads.analysis", "Enable Downloads analysis",
     "Enable Downloads analysis in Build Analyzer.", true);
+
+  public static final Flag<Boolean> BUILD_ANALYZER_HISTORY = Flag.create(
+    GRADLE_IDE, "build.analyzer.history", "Enable access to historic build analysis",
+    "Enable access to historic build analysis in Build Analyzer.", false);
+
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false);

@@ -21,8 +21,10 @@ import com.google.common.truth.Truth
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.tools.idea.Projects
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidProjectRule
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
@@ -30,12 +32,19 @@ class BuildAnalyzerStorageManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  @After
+  fun cleanup() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.clearOverride()
+  }
+
   @Test(expected = IllegalStateException::class)
   fun testNullBuildResultsResponse() {
     BuildAnalyzerStorageManager.getInstance(projectRule.project).getLatestBuildAnalysisResults()
   }
+
   @Test
   fun testBuildResultsAreStored() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
     val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
@@ -43,7 +52,36 @@ class BuildAnalyzerStorageManagerTest {
       .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
       .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getLatestBuildAnalysisResults()).isNotNull()
+    Truth.assertThat(BuildAnalyzerStorageManager
+                       .getInstance(projectRule.project).getLatestBuildAnalysisResults().getBuildSessionID()).isEqualTo("some buildID")
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildIDs()).contains("some buildID")
+  }
+
+  @Test
+  fun testGetHistoricBuildByIDTrueFlag() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    val taskContainer = TaskContainer()
+    val pluginContainer = PluginContainer()
+    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+    val request = GradleBuildInvoker.Request
+      .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+    BuildAnalyzerStorageManager.getInstance(projectRule.project)
+      .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getHistoricBuildResultByID("some buildID")
+                       .getBuildSessionID()).isEqualTo("some buildID")
+  }
+
+  @Test
+  fun testDoesNotStoreResultsWithFalseFlag() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(false)
+    val taskContainer = TaskContainer()
+    val pluginContainer = PluginContainer()
+    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+    val request = GradleBuildInvoker.Request
+      .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+    BuildAnalyzerStorageManager.getInstance(projectRule.project)
+      .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildIDs()).isEmpty()
   }
 
   @Test
@@ -63,6 +101,5 @@ class BuildAnalyzerStorageManagerTest {
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
       .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
     Truth.assertThat(listenerInvocationCounter).isEqualTo(1)
-    }
-
+  }
 }

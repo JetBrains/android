@@ -19,11 +19,14 @@ import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
 import com.intellij.openapi.project.Project
+import com.android.tools.idea.flags.StudioFlags
+
 
 class BuildAnalyzerStorageManagerImpl(
   val project: Project
 ) : BuildAnalyzerStorageManager {
   private var buildResults : BuildAnalysisResults? = null
+  private var historicBuildResults : MutableMap<String, BuildAnalysisResults> = mutableMapOf()
 
   private fun notifyDataListeners() {
     var publisher = project.messageBus.syncPublisher(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC);
@@ -62,7 +65,16 @@ class BuildAnalyzerStorageManagerImpl(
   override fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID : String, requestHolder : BuildRequestHolder) {
     val buildResults = createBuildResultsObject(analyzersProxy, buildID, requestHolder)
     this.buildResults = buildResults
+    if(StudioFlags.BUILD_ANALYZER_HISTORY.get()) historicBuildResults[buildID] = buildResults
     notifyDataListeners()
+  }
+
+  override fun getHistoricBuildResultByID(buildID : String) : BuildAnalysisResults {
+    return historicBuildResults[buildID] ?: throw NoSuchElementException("No such build result was found.")
+  }
+
+  override fun getListOfHistoricBuildIDs() : Set<String> {
+    return historicBuildResults.keys
   }
 
   override fun hasData(): Boolean {
