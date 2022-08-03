@@ -802,7 +802,7 @@
     <listener class="com.android.tools.idea.project.SyncTimestampListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
   </projectListeners>
