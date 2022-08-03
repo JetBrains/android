@@ -18,6 +18,7 @@ package com.android.tools.idea.device
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
+import com.android.tools.idea.device.DeviceClient.AgentTerminationListener
 import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.emulator.DeviceMirroringSettingsListener
@@ -31,6 +32,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
@@ -177,7 +179,13 @@ class DeviceView(
   private suspend fun initializeAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
     try {
       val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
-      deviceClient.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener())
+      deviceClient.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener(), object : AgentTerminationListener {
+        override fun agentTerminated(exitCode: Int) {
+          UIUtil.invokeLaterIfNeeded {
+            failedToConnect(initialDisplayOrientation, null)
+          }
+        }
+      })
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (!disposed) {
           this.deviceClient = deviceClient
@@ -193,9 +201,7 @@ class DeviceView(
       // The view has been closed.
     }
     catch (e: Throwable) {
-      thisLogger().error("Failed to initialize the screen sharing agent", e)
-      lostConnection("Failed to initialize the device agent. See the error log.",
-                     Reconnector("Retry", "Connecting to the device")  { initializeAgentAsync(initialDisplayOrientation) })
+      failedToConnect(initialDisplayOrientation, e)
     }
   }
 
@@ -206,6 +212,12 @@ class DeviceView(
       videoDecoder.maxOutputSize = realSize
       deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
     }
+  }
+
+  private fun failedToConnect(initialDisplayOrientation: Int, e: Throwable?) {
+    thisLogger().error("Failed to initialize the screen sharing agent", e)
+    lostConnection("Failed to initialize the device agent. See the error log.",
+                   Reconnector("Retry", "Connecting to the device") { initializeAgentAsync(initialDisplayOrientation) })
   }
 
   private fun lostConnection(message: String, reconnector: Reconnector) {

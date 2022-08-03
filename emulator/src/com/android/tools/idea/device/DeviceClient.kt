@@ -79,7 +79,11 @@ internal class DeviceClient(
     Disposer.register(disposableParent, this)
   }
 
-  suspend fun startAgentAndConnect(maxVideoSize: Dimension, initialDisplayOrientation: Int, frameListener: VideoDecoder.FrameListener) {
+  suspend fun startAgentAndConnect(
+      maxVideoSize: Dimension,
+      initialDisplayOrientation: Int,
+      frameListener: VideoDecoder.FrameListener,
+      agentTerminationListener: AgentTerminationListener) {
     startTime = System.currentTimeMillis()
     val adb = AdbLibService.getSession(project).deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
@@ -99,7 +103,7 @@ internal class DeviceClient(
       ClosableReverseForwarding(deviceSelector, deviceSocket, SocketSpec.Tcp(port), adb).use {
         it.startForwarding()
         agentPushed.await()
-        startAgent(deviceSelector, adb, maxVideoSize, initialDisplayOrientation)
+        startAgent(deviceSelector, adb, maxVideoSize, initialDisplayOrientation, agentTerminationListener)
         videoChannel = serverSocketChannel.accept()
         connectionTime = System.currentTimeMillis()
         controlChannel = serverSocketChannel.accept()
@@ -190,8 +194,12 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices,
-                                 maxVideoSize: Dimension, initialDisplayOrientation: Int) {
+  private suspend fun startAgent(
+      deviceSelector: DeviceSelector,
+      adb: AdbDeviceServices,
+      maxVideoSize: Dimension,
+      initialDisplayOrientation: Int,
+      agentTerminationListener: AgentTerminationListener) {
     startAgentTime = System.currentTimeMillis()
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
@@ -210,8 +218,10 @@ internal class DeviceClient(
           when (it) {
             is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
             is ShellCommandOutputElement.StderrLine -> if (it.contents.isNotBlank()) log.warn(it.contents)
-            is ShellCommandOutputElement.ExitCode ->
+            is ShellCommandOutputElement.ExitCode -> {
               if (it.exitCode == 0) log.info("terminated") else log.warn("terminated with code ${it.exitCode}")
+              agentTerminationListener.agentTerminated(it.exitCode)
+            }
           }
         }
       }
@@ -219,6 +229,10 @@ internal class DeviceClient(
         // Device disconnected. This is not an error.
       }
     }
+  }
+
+  interface AgentTerminationListener {
+    fun agentTerminated(exitCode: Int)
   }
 
   private class ClosableReverseForwarding(
