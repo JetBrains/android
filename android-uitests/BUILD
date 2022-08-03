@@ -171,6 +171,8 @@ maven_repository(
         "@maven//:com.android.support.support-v13_28.0.0",
         "@maven//:com.android.support.support-v4_27.1.1",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
+        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:com.android.tools.build.gradle_7.2.0",
         "@maven//:com.android.tools.desugar_jdk_libs_1.0.5",
         "@maven//:com.android.tools.lint.lint-checks_26.5.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",
@@ -2421,6 +2423,19 @@ java_test(
         "testData/ApkDebug/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.CreateFromPreexistingApkTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "AgpUpgradeFromBuildGradleFile",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.AgpUpgradeFromBuildGradleFile"],
     tags = COMMON_TAGS + [
         "qa_fast",
     ],

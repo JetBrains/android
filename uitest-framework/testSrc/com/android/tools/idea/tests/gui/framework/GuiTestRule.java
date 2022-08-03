@@ -566,6 +566,11 @@ public class GuiTestRule implements TestRule {
     GuiTests.waitForBackgroundTasks(robot());
   }
 
+  public void waitForAllBackgroundTasksToBeCompleted() {
+    waitForBackgroundTasks();
+    robot().waitForIdle();
+  }
+
   public Robot robot() {
     return myRobotTestRule.getRobot();
   }
