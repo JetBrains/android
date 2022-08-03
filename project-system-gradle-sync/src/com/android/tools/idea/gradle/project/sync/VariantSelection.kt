@@ -24,7 +24,7 @@ internal class SyncVariantResultCore(
   val moduleConfiguration: ModuleConfiguration,
   val module: AndroidModule,
   val ideVariant: IdeVariantWithPostProcessor,
-  val nativeVariantAbi: AndroidExtraModelProviderWorker.NativeVariantAbiResult,
+  val nativeVariantAbi: NativeVariantAbiResult,
   val unresolvedDependencies: List<IdeUnresolvedDependency>
 )
 
@@ -35,7 +35,7 @@ internal class SyncVariantResult(
   val moduleConfiguration: ModuleConfiguration get() = core.moduleConfiguration
   val module: AndroidModule get() = core.module
   val ideVariant: IdeVariantWithPostProcessor get() = core.ideVariant
-  val nativeVariantAbi: AndroidExtraModelProviderWorker.NativeVariantAbiResult get() = core.nativeVariantAbi
+  val nativeVariantAbi: NativeVariantAbiResult get() = core.nativeVariantAbi
   val unresolvedDependencies: List<IdeUnresolvedDependency> get() = core.unresolvedDependencies
 }
 

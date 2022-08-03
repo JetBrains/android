@@ -97,7 +97,7 @@ internal fun BuildController.findNativeVariantAbiModel(
   module: AndroidModule,
   variantName: String,
   abiToRequest: String
-): AndroidExtraModelProviderWorker.NativeVariantAbiResult {
+): NativeVariantAbiResult {
   return if (module.nativeModelVersion == AndroidModule.NativeModelVersion.V2) {
     // V2 model is available, trigger the sync with V2 API
     // NOTE: Even though we drop the value returned the side effects of this code are important. Native sync creates file on the disk
@@ -106,7 +106,7 @@ internal fun BuildController.findNativeVariantAbiModel(
       parameter.variantsToGenerateBuildInformation = listOf(variantName)
       parameter.abisToGenerateBuildInformation = listOf(abiToRequest)
     }
-    if (model != null) AndroidExtraModelProviderWorker.NativeVariantAbiResult.V2(abiToRequest) else AndroidExtraModelProviderWorker.NativeVariantAbiResult.None
+    if (model != null) NativeVariantAbiResult.V2(abiToRequest) else NativeVariantAbiResult.None
   }
   else {
     // Fallback to V1 models otherwise.
@@ -114,7 +114,7 @@ internal fun BuildController.findNativeVariantAbiModel(
       parameter.setVariantName(variantName)
       parameter.setAbiName(abiToRequest)
     }
-    if (model != null) AndroidExtraModelProviderWorker.NativeVariantAbiResult.V1(modelCache.nativeVariantAbiFrom(model)) else AndroidExtraModelProviderWorker.NativeVariantAbiResult.None
+    if (model != null) NativeVariantAbiResult.V1(modelCache.nativeVariantAbiFrom(model)) else NativeVariantAbiResult.None
   }
 }
 

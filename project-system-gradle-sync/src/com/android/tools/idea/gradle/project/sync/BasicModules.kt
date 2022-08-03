@@ -69,7 +69,7 @@ internal class BasicV1AndroidModuleGradleProject(
   private val legacyV1AgpVersion: LegacyV1AgpVersionModel
 ) :  BasicIncompleteAndroidModule(gradleProject, buildName) {
   override val agpVersion: String
-    get() = legacyV1AgpVersion?.agp
+    get() = legacyV1AgpVersion.agp
 
   override fun getGradleModuleAction(
     internedModels: InternedModels,
@@ -90,7 +90,7 @@ internal class BasicV1AndroidModuleGradleProject(
         val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
         val buildName = buildInfo.buildIdMap[buildId] ?: error("Unknown build id: $buildId")
         val rootBuildDir = buildInfo.buildNameMap[":"] ?: error("Root build (':') not found")
-        val androidProjectResult = AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project(
+        val androidProjectResult = AndroidProjectResult.V1Project(
           modelCache = modelCache,
           rootBuildId = rootBuildDir,
           buildId = buildId,
@@ -162,7 +162,7 @@ internal class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProje
         val buildId = buildInfo.buildNameMap[basicAndroidProject.buildName]
           ?: error("(Included) build named '${basicAndroidProject.buildName}' not found")
         val androidProjectResult =
-          AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project(
+          AndroidProjectResult.V2Project(
             modelCache = modelCache,
             rootBuildId = rootBuildId,
             buildId = buildId,
@@ -214,7 +214,7 @@ internal class BasicNonAndroidIncompleteGradleModule(gradleProject: BasicGradleP
 
 private fun createAndroidModuleV1(
   gradleProject: BasicGradleProject,
-  androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project,
+  androidProjectResult: AndroidProjectResult.V1Project,
   nativeAndroidProject: NativeAndroidProject?,
   nativeModule: NativeModule?,
   buildNameMap: Map<String, BuildId>,
@@ -258,7 +258,7 @@ private fun createAndroidModuleV1(
 
 private fun createAndroidModuleV2(
   gradleProject: BasicGradleProject,
-  androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project,
+  androidProjectResult: AndroidProjectResult.V2Project,
   nativeModule: NativeModule?,
   buildNameMap: Map<String, BuildId>,
   buildIdMap: Map<BuildId, String>,

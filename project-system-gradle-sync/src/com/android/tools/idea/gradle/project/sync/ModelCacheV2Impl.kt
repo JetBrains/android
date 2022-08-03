@@ -32,7 +32,6 @@ import com.android.builder.model.v2.ide.GraphItem
 import com.android.builder.model.v2.ide.JavaArtifact
 import com.android.builder.model.v2.ide.JavaCompileOptions
 import com.android.builder.model.v2.ide.Library
-import com.android.builder.model.v2.ide.LibraryInfo
 import com.android.builder.model.v2.ide.LibraryType
 import com.android.builder.model.v2.ide.LintOptions
 import com.android.builder.model.v2.ide.ProjectType
@@ -71,6 +70,7 @@ import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
@@ -100,6 +100,7 @@ import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
@@ -1129,16 +1130,6 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     else -> error("Unknown Android project type: $projectType")
   }
 
-  fun basicVariantFrom(variant: Variant, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeBasicVariantImpl {
-    val variantName = variant.name
-    return IdeBasicVariantImpl(
-      variantName,
-      applicationId = variant.mainArtifact.applicationId ?: legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName),
-      testApplicationId = variant.androidTestArtifact?.applicationId
-        ?: legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName + "AndroidTest")
-    )
-  }
-
   fun androidProjectFrom(
     rootBuildId: BuildId,
     buildId: BuildId,
@@ -1288,26 +1279,14 @@ private inline fun <K, V, W, R> zip(
   return original1.map { mapper(it, original2Keyed[key1(it)]) }
 }
 
-private data class LibraryIdentity(
-  val group: String,
-  val name: String,
-  val version: String,
-  val attributesExceptUsage: Map<String, String>,
-  val capabilities: List<String>,
-)
-
-private fun Library.getJarFilesForRuntimeClasspath(): List<File> =
-  when (type) {
-    LibraryType.ANDROID_LIBRARY -> androidLibraryData?.runtimeJarFiles.orEmpty()
-    LibraryType.JAVA_LIBRARY -> listOfNotNull(artifact)
-    else -> emptyList()
+internal fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssueData(): List<IdeSyncIssue> {
+  return map { syncIssue ->
+    IdeSyncIssueImpl(
+      message = syncIssue.message,
+      data = syncIssue.data,
+      multiLineMessage = safeGet(syncIssue::multiLineMessage, null)?.filterNotNull()?.toList(),
+      severity = syncIssue.severity,
+      type = syncIssue.type
+    )
   }
-
-private fun LibraryInfo.toIdentity() =
-  LibraryIdentity(
-    name,
-    group,
-    version,
-    attributes.filterKeys { it != "org.gradle.usage" },
-    capabilities
-  )
+}
