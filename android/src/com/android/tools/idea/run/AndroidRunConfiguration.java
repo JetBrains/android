@@ -29,6 +29,7 @@ import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
+import com.android.tools.idea.run.configuration.AppRunConfiguration;
 import com.android.tools.idea.run.configuration.AppRunSettings;
 import com.android.tools.idea.run.configuration.ComponentLaunchOptions;
 import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
@@ -92,7 +93,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Run Configuration used for running Android Apps (and Instant Apps) locally on a device/emulator.
  */
-public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider {
+public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider,
+                                                                                    AppRunConfiguration {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
@@ -420,5 +422,17 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       return new AndroidConfigurationExecutorRunProfileState(getExecutor(env));
     }
     return super.getState(executor, env);
+  }
+
+  @Nullable
+  @Override
+  public String getAppId() {
+    try {
+      return getApplicationIdProvider().getPackageName();
+    }
+    catch (ApkProvisionException e) {
+      Logger.getInstance(AndroidRunConfiguration.class).error(e);
+      return null;
+    }
   }
 }

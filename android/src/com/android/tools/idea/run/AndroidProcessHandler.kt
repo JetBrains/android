@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.run.configuration.AppRunConfiguration
 import com.android.tools.idea.run.deployable.SwappableProcessHandler
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.intellij.execution.DefaultExecutionTarget
@@ -216,8 +217,8 @@ class AndroidProcessHandler @JvmOverloads constructor(
 
   @AnyThread
   override fun isRunningWith(runConfiguration: RunConfiguration, executionTarget: ExecutionTarget): Boolean {
-    val sessionInfo = getUserData(AndroidSessionInfo.KEY) ?: return false
-    if (sessionInfo.runConfiguration !== runConfiguration) {
+    val sameRunningApp = runConfiguration is AppRunConfiguration && runConfiguration.appId == targetApplicationId
+    if (!sameRunningApp) {
       return false
     }
 
@@ -225,7 +226,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
       return areAnyDevicesAssociated(executionTarget)
     }
 
-    return sessionInfo.executionTarget.id == executionTarget.id
+    return false
   }
 
   @AnyThread

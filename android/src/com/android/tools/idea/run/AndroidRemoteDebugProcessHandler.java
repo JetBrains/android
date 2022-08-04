@@ -19,6 +19,7 @@ package com.android.tools.idea.run;
 import com.android.annotations.NonNull;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.configuration.AppRunConfiguration;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.intellij.debugger.DebuggerManager;
@@ -33,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.OutputStream;
+import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import kotlin.Unit;
@@ -173,12 +175,9 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
 
   @Override
   public boolean isRunningWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget) {
-    AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
-    if (sessionInfo == null) {
-      return false;
-    }
-
-    if (sessionInfo.getRunConfiguration() != runConfiguration) {
+    boolean sameRunningApp = runConfiguration instanceof AppRunConfiguration &&
+                             Objects.equals(myClient.getClientData().getPackageName(), ((AppRunConfiguration)runConfiguration).getAppId());
+    if (!sameRunningApp) {
       return false;
     }
 
@@ -191,6 +190,6 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
       return ((AndroidExecutionTarget)executionTarget).getRunningDevices().stream().anyMatch(d -> d == device);
     }
 
-    return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId());
+    return false;
   }
 }
