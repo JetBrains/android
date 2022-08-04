@@ -34,7 +34,7 @@ public class OpenCloseVisualizationToolTest {
    *   This is run to qualify releases. Please involve the test team in substantial changes.
    * </p>
    *
-   * TT ID: TODO
+   * TT ID: 1aa49fe7-0b4c-4eb7-84ca-a1e4c1ba18ff
    * <p>
    *   <pre>
    *   This feature is for Android Studio 3.2 and above.
