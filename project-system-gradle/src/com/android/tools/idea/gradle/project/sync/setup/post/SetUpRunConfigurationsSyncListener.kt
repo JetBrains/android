@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
@@ -23,10 +23,11 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.SystemIndependent
 
 
-class SetUpRunConfigurationsSyncListener : GradleSyncListener {
-  override fun syncSucceeded(project: Project) {
+class SetUpRunConfigurationsSyncListener : GradleSyncListenerWithRoot {
+  override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
     if (ExternalSystemUtil.isNoBackgroundMode()) {
       setUpRunConfigurations(project)
     } else {

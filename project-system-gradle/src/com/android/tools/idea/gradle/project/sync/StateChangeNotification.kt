@@ -22,13 +22,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.EditorNotifications
+import org.jetbrains.annotations.SystemIndependent
 
 private val LOG = Logger.getInstance(StateChangeNotification::class.java)
-open class StateChangeNotification(private val project: Project) : GradleSyncListener {
+open class StateChangeNotification(private val project: Project) : GradleSyncListenerWithRoot {
 
-  override fun syncStarted(project: Project) = notifyStateChanged()
-  override fun syncSucceeded(project: Project) = notifyStateChanged()
-  override fun syncFailed(project: Project, errorMessage: String) = notifyStateChanged()
+  override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) = notifyStateChanged()
+  override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) = notifyStateChanged()
+  override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) = notifyStateChanged()
   override fun syncSkipped(project: Project) = Unit
 
   @VisibleForTesting

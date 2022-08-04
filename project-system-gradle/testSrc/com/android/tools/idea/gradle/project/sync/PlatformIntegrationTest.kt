@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.prepareTestProject
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -24,6 +27,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.nameToPath
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
@@ -49,6 +53,7 @@ import com.intellij.openapi.progress.impl.CoreProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -97,8 +102,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     }
 
     expect.that(log).isEqualTo("""
-      |started
-      |succeeded
+      |started(.)
+      |succeeded(.)
       |ended: SUCCESS
       """.trimMargin())
   }
@@ -133,8 +138,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     expect.that(log).startsWith(
       """
-      |started
-      |failed:
+      |started(.)
+      |failed(.):
       """.trimMargin()
     )
     expect.that(log).contains("***BAD FILE***")
@@ -171,8 +176,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     assertThat(log).isEqualTo(
       """
-      |started
-      |failed: Failed to import project structure
+      |started(.)
+      |failed(.): Failed to import project structure
       |ended: FAILURE
       """.trimMargin()
     )
@@ -197,11 +202,11 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     assertThat(log).isEqualTo(
       """
-     |started
-     |succeeded
+     |started(.)
+     |succeeded(.)
      |ended: SUCCESS
-     |started
-     |failed: Failed to import project structure
+     |started(.)
+     |failed(.): Failed to import project structure
      |ended: FAILURE
       """.trimMargin()
     )
@@ -227,8 +232,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     expect.that(log).startsWith(
       """
-      |started
-      |cancelled
+      |started(.)
+      |cancelled(.)
       """.trimMargin()
     )
     expect.that(log).endsWith(
@@ -261,11 +266,11 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     expect.that(log).startsWith(
       """
-      |started
-      |succeeded
+      |started(.)
+      |succeeded(.)
       |ended: SUCCESS
-      |started
-      |cancelled
+      |started(.)
+      |cancelled(.)
       |ended: SUCCESS
       """.trimMargin()
     )
@@ -308,8 +313,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     assertThat(log).isEqualTo(
       """
-      |started
-      |cancelled
+      |started(.)
+      |cancelled(.)
       |ended: FAILURE
       """.trimMargin()
     )
@@ -337,14 +342,28 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     assertThat(log).isEqualTo(
       """
-      |started
-      |succeeded
+      |started(.)
+      |succeeded(.)
       |ended: SUCCESS
-      |started
-      |cancelled
+      |started(.)
+      |cancelled(.)
       |ended: SUCCESS
       """.trimMargin()
     )
+  }
+
+  @Test
+  fun testSimpleApplicationNotAtRoot() {
+    val preparedProject = prepareTestProject(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT)
+    val log = openProjectWithEventLogging(preparedProject) {project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+    }
+
+    expect.that(log).isEqualTo("""
+      |started(gradle_project)
+      |succeeded(gradle_project)
+      |ended: SUCCESS
+      """.trimMargin())
   }
 
   private fun openProjectWithEventLogging(
@@ -352,40 +371,55 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     outputHandler: (Project.(String) -> Unit)? = null,
     body: (Project) -> Unit = {}
   ): String {
+    return openProjectWithEventLogging(
+      object: PreparedTestProject{
+        override val root: File = nameToPath(name)
+
+        override fun <T> open(options: OpenPreparedProjectOptions, body: (Project) -> T): T {
+          return openPreparedProject(name, options, body)
+        }
+
+      },
+      outputHandler,
+      body
+    )
+  }
+
+  private fun openProjectWithEventLogging(
+    preparedProject: PreparedTestProject,
+    outputHandler: (Project.(String) -> Unit)? = null,
+    body: (Project) -> Unit = {}
+  ): String {
+    val root = preparedProject.root
+
+    fun String.toLocalPath(): String = File(this).relativeToOrSelf(root).path.takeUnless { it.isEmpty() } ?: "."
+
     val completedChanged = CountDownLatch(1)
     val log = buildString {
-      openPreparedProject(
-        name,
+      preparedProject.open(
         options = OpenPreparedProjectOptions(
           verifyOpened = { /* do nothing */ },
           outputHandler = outputHandler,
           subscribe = {
-            it.subscribe(GRADLE_SYNC_TOPIC, object : GradleSyncListener {
-              override fun syncStarted(project: Project) {
-                appendLine("started")
+            it.subscribe(GRADLE_SYNC_TOPIC, object : GradleSyncListenerWithRoot {
+              override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
+                appendLine("started(${rootProjectPath.toLocalPath()})")
               }
 
-              override fun syncFailed(project: Project, errorMessage: String) {
-                appendLine("failed: $errorMessage")
-                completed()
+              override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) {
+                appendLine("failed(${rootProjectPath.toLocalPath()}): $errorMessage")
               }
 
-              override fun syncSucceeded(project: Project) {
-                appendLine("succeeded")
-                completed()
+              override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
+                appendLine("succeeded(${rootProjectPath.toLocalPath()})")
               }
 
               override fun syncSkipped(project: Project) {
                 appendLine("skipped")
-                completed()
               }
 
-              override fun syncCancelled(project: Project) {
-                appendLine("cancelled")
-                completed()
-              }
-
-              private fun completed() {
+              override fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) {
+                appendLine("cancelled(${rootProjectPath.toLocalPath()})")
               }
             })
             it.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: ProjectSystemSyncManager.SyncResultListener {

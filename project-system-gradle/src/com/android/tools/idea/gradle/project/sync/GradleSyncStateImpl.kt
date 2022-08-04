@@ -69,6 +69,7 @@ import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.util.concurrent.ConcurrentHashMap
@@ -101,7 +102,7 @@ class GradleSyncStateImpl constructor(project: Project) : GradleSyncState {
   override fun lastSyncFailed(): Boolean = delegate.lastSyncFailed()
   override fun isSyncNeeded(): ThreeState = delegate.isSyncNeeded()
 
-  override fun subscribe(project: Project, listener: GradleSyncListener, disposable: Disposable): MessageBusConnection {
+  override fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection {
     val connection = project.messageBus.connect(disposable)
     connection.subscribe(GRADLE_SYNC_TOPIC, listener)
     return connection
@@ -109,7 +110,7 @@ class GradleSyncStateImpl constructor(project: Project) : GradleSyncState {
 }
 
 @VisibleForTesting
-val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListener::class.java)
+val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListenerWithRoot::class.java)
 
 class GradleSyncStateHolder constructor(private val project: Project)  {
 
@@ -166,14 +167,16 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
   private val eventLogger = GradleSyncEventLogger()
 
-  fun generateSyncEvent(eventKind: AndroidStudioEvent.EventKind) = eventLogger.generateSyncEvent(project, eventKind)
+  fun generateSyncEvent(eventKind: AndroidStudioEvent.EventKind): AndroidStudioEvent.Builder {
+    return eventLogger.generateSyncEvent(project, eventKind)
+  }
 
   var lastSyncFinishedTimeStamp = -1L; private set
 
   /**
    * Triggered at the start of a sync.
    */
-  private fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
+  private fun syncStarted(trigger: GradleSyncStats.Trigger, rootProjectPath: @SystemIndependent String): Boolean {
     lock.withLock {
       if (state.isInProgress) {
         LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
@@ -191,26 +194,26 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
     GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
-    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
-    syncPublisher() { syncStarted(project) }
+    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED, rootProjectPath)
+    syncPublisher() { syncStarted(project, rootProjectPath) }
     return true
   }
 
   /**
    * Triggered at the start of setup, after the models have been fetched.
    */
-  private fun setupStarted() {
+  private fun setupStarted(rootProjectPath: @SystemIndependent String) {
     eventLogger.setupStarted()
 
     LOG.info("Started setup of project '${project.name}'.")
 
-    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SETUP_STARTED)
+    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SETUP_STARTED, rootProjectPath)
   }
 
   /**
    * Triggered at the end of a successful sync, once the models have been fetched.
    */
-  private fun syncSucceeded() {
+  private fun syncSucceeded(rootProjectPath: @SystemIndependent String) {
     val millisTook = eventLogger.syncEnded()
 
     val message = "Gradle sync finished in ${formatDuration(millisTook)}"
@@ -221,16 +224,16 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     )
     LOG.info(message)
 
-    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED)
+    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED, rootProjectPath)
 
     syncFinished(LastSyncState.SUCCEEDED)
-    syncPublisher { syncSucceeded(project) }
+    syncPublisher { syncSucceeded(project, rootProjectPath) }
   }
 
   /**
    * Triggered when a sync has been found to have failed.
    */
-  private fun syncFailed(message: String?, error: Throwable?) {
+  private fun syncFailed(message: String?, error: Throwable?, rootProjectPath: @SystemIndependent String) {
     val millisTook = eventLogger.syncEnded()
     val throwableMessage = error?.message
     // Find a none null message from either the provided message or the given throwable.
@@ -253,16 +256,16 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       println("***** sync error ${if (error == null) message else error.message}")
     }
 
-    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE, rootProjectPath)
 
     syncFinished(LastSyncState.FAILED)
-    syncPublisher { syncFailed(project, causeMessage) }
+    syncPublisher { syncFailed(project, causeMessage, rootProjectPath) }
   }
 
   /**
    * Triggered when a sync has been found to have been cancelled.
    */
-  private fun syncCancelled() {
+  private fun syncCancelled(@Suppress("UNUSED_PARAMETER") rootProjectPath: @SystemIndependent String) {
     val resultMessage = "Gradle sync cancelled"
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.INFO, null)
     LOG.info(resultMessage)
@@ -274,7 +277,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     val newStateAfterCancellation = stateBeforeSyncStarted.takeUnless { it == LastSyncState.UNKNOWN } ?: LastSyncState.FAILED
 
     syncFinished(newStateAfterCancellation)
-    syncPublisher { syncCancelled(project) }
+    syncPublisher { syncCancelled(project, rootProjectPath) }
   }
 
   /**
@@ -342,7 +345,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
   /**
    * Logs a sync event using [UsageTracker]
    */
-  private fun logSyncEvent(kind: AndroidStudioEvent.EventKind) {
+  private fun logSyncEvent(kind: AndroidStudioEvent.EventKind, rootProjectPath: @SystemIndependent String) {
     // Do not log an event if the project has been closed, working out the sync type for a disposed project results in
     // an error.
     if (project.isDisposed) return
@@ -373,7 +376,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     notification.notify(project)
   }
 
-  private fun syncPublisher(block: GradleSyncListener.() -> Unit) {
+  private fun syncPublisher(block: GradleSyncListenerWithRoot.() -> Unit) {
     fun publish() {
       with(project.messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) { block() }
       // Publish to the project-system-wide topic after publishing to our internal topic unless it is an in-progress-state. There is no
@@ -410,21 +413,21 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       return disposable
     }
 
-    fun stopTrackingTask(id: ExternalSystemTaskId): Boolean {
+    fun stopTrackingTask(id: ExternalSystemTaskId): @SystemIndependent String? {
       LOG.info("stopTrackingTask($id)")
       val info = runningTasks.remove(id)
       if (info == null) {
         LOG.warn("Unknown build $id finished")
-        return false
+        return null
       }
       Disposer.dispose(info.second) // Unsubscribe from notifications.
-      return true
+      return info.first
     }
 
-    fun stopTrackingTask(projectDir: String): Boolean {
+    fun stopTrackingTask(projectDir: String): @SystemIndependent String? {
       LOG.info("stopTrackingTask($projectDir)")
       val normalizedProjectPath = normalizePath(projectDir)
-      val task = runningTasks.entries.find { it.value.first == normalizedProjectPath }?.key ?: return false
+      val task = runningTasks.entries.find { it.value.first == normalizedProjectPath }?.key ?: return null
       return stopTrackingTask(task)
     }
 
@@ -442,8 +445,8 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     override fun onImportFinished(projectPath: String?) {
       LOG.info("onImportFinished($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
-      if (syncStateUpdaterService.stopTrackingTask(projectPath!!)) {
-        GradleSyncStateHolder.getInstance(project).syncSucceeded()
+      if (syncStateUpdaterService.stopTrackingTask(projectPath!!) != null) {
+        GradleSyncStateHolder.getInstance(project).syncSucceeded(projectPath)
       }
     }
 
@@ -451,18 +454,18 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     override fun onImportFailed(projectPath: String?) {
       LOG.info("onImportFailed($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
-      if (syncStateUpdaterService.stopTrackingTask(projectPath!!)) {
+      if (syncStateUpdaterService.stopTrackingTask(projectPath!!) != null) {
         // If `onImportFailed` is called because of `ProcessCancelledException`, it results in `isCancelled == true`, and this is the way
         // we detect this case since we don't have access to the exception instance itself here.
         if (ProgressManager.getGlobalProgressIndicator()?.isCanceled == true) {
           ProgressManager.getInstance().executeNonCancelableSection {
-            GradleSyncStateHolder.getInstance(project).syncCancelled()
+            GradleSyncStateHolder.getInstance(project).syncCancelled(projectPath)
           }
         } else {
           // Unfortunately, the exact exception is not passed but this is an unexpected error indicating a bug in the code, and it is logged
           // as an error by the handler calling this callback in the IntelliJ platform. The error message below is used for logging and in
           // tests only, while the user still sees the actual exception in the build output window.
-          GradleSyncStateHolder.getInstance(project).syncFailed("Failed to import project structure", null)
+          GradleSyncStateHolder.getInstance(project).syncFailed("Failed to import project structure", null, projectPath)
         }
       }
     }
@@ -489,7 +492,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       val trigger =
         project.getProjectSyncRequest(workingDir)?.trigger
       if (!GradleSyncStateHolder.getInstance(project)
-          .syncStarted(trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN)
+          .syncStarted(trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, rootProjectPath = workingDir)
       ) {
         stopTrackingTask(project, id)
         return
@@ -503,16 +506,16 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       LOG.info("onSuccess($id)")
       val project = id.findProjectOrLog() ?: return
       val runningTasks = project.getService(SyncStateUpdaterService::class.java).runningTasks
-      if (!runningTasks.containsKey(id)) return
-      GradleSyncStateHolder.getInstance(project).setupStarted()
+      val (rootProjectPath, _) = runningTasks[id] ?: return
+      GradleSyncStateHolder.getInstance(project).setupStarted(rootProjectPath)
     }
 
     override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
       if (!id.isGradleResolveProjectTask()) return
       LOG.info("onFailure($id, $e)")
       val project = id.findProjectOrLog() ?: return
-      if (!stopTrackingTask(project, id)) return
-      GradleSyncStateHolder.getInstance(project).syncFailed(null, e)
+      val rootProjectPath = stopTrackingTask(project, id) ?: return
+      GradleSyncStateHolder.getInstance(project).syncFailed(null, e, rootProjectPath)
     }
 
     override fun onStart(id: ExternalSystemTaskId) = error("Not expected to be called. onStart with a different signature is implemented")
@@ -526,9 +529,9 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       if (!id.isGradleResolveProjectTask()) return
       LOG.info("onCancel($id)")
       val project = id.findProjectOrLog() ?: return
-      if (!stopTrackingTask(project, id)) return
+      val rootProjectPath = stopTrackingTask(project, id) ?: return
 
-      GradleSyncStateHolder.getInstance(project).syncCancelled()
+      GradleSyncStateHolder.getInstance(project).syncCancelled(rootProjectPath)
     }
 
     override fun onEvent(buildId: Any, event: BuildEvent) {
@@ -538,12 +541,12 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
         return
       }
       val project = buildId.findProjectOrLog() ?: return
-      if (!stopTrackingTask(project, buildId)) return
+      val rootProjectPath = stopTrackingTask(project, buildId) ?: return
 
       if (event.result is SuccessResult) {
         // A successful result at this point without first reaching `onImportFinished` currently means that data import was cancelled.
         LOG.info("Unreported sync success detected. Sync cancelled?")
-        GradleSyncStateHolder.getInstance(project).syncCancelled()
+        GradleSyncStateHolder.getInstance(project).syncCancelled(rootProjectPath)
       } else {
 
         // Regardless of the result report sync failure. A successful sync would have already removed the task via ProjectDataImportListener.
@@ -555,11 +558,11 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
         // exceptions in data services are reported via `GradleSyncStateHolder.DataImportListener.onImportFailed`.
         LOG.error("Unreported sync failure detected", Throwable())
 
-        GradleSyncStateHolder.getInstance(project).syncFailed(message, throwable)
+        GradleSyncStateHolder.getInstance(project).syncFailed(message, throwable, rootProjectPath)
       }
     }
 
-    private fun stopTrackingTask(project: Project, buildId: ExternalSystemTaskId): Boolean {
+    private fun stopTrackingTask(project: Project, buildId: ExternalSystemTaskId): @SystemIndependent String? {
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       return syncStateUpdaterService.stopTrackingTask(buildId)
     }

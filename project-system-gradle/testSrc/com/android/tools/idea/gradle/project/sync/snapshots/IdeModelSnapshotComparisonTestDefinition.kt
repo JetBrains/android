@@ -69,6 +69,10 @@ data class IdeModelSnapshotComparisonTestDefinition(
         skipV1toV2Comparison = true,
         isCompatibleWith = { it.modelVersion == ModelVersion.V2 }),
       IdeModelSnapshotComparisonTestDefinition(
+        TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT,
+        skipV1toV2Comparison = true
+      ),
+      IdeModelSnapshotComparisonTestDefinition(
         TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS,
           isCompatibleWith = { it >= AGP_35 }
       ),

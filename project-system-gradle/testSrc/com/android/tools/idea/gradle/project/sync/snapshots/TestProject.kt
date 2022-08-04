@@ -98,7 +98,9 @@ enum class TestProject(
     }
   ),
   SIMPLE_APPLICATION_WITH_ADDITIONAL_GRADLE_SOURCE_SETS(
-    TestProjectToSnapshotPaths.SIMPLE_APPLICATION, testName = "additionalGradleSourceSets", patch = { root ->
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "additionalGradleSourceSets",
+    patch = { root ->
       val buildFile = root.resolve("app").resolve("build.gradle")
       buildFile.writeText(
         buildFile.readText() + """
@@ -107,7 +109,14 @@ enum class TestProject(
           }
         """.trimIndent()
       )
-    }),
+    }
+  ),
+  SIMPLE_APPLICATION_NOT_AT_ROOT(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "gradleNotAtRoot",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { moveGradleRootUnderGradleProjectDirectory(it) }
+  ),
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
   BASIC_CMAKE_APP(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
   PSD_SAMPLE_GROOVY(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
@@ -179,7 +188,15 @@ enum class TestProject(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm_hierarchical_kmpapp_withintermediate",
     isCompatibleWith = { it == AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = true, convertAppToKmp = true, addJvmTo = listOf("app", "module2"), addIntermediateTo = listOf("module2")) }
+    patch = {
+      patchMppProject(
+        it,
+        enableHierarchicalSupport = true,
+        convertAppToKmp = true,
+        addJvmTo = listOf("app", "module2"),
+        addIntermediateTo = listOf("module2")
+      )
+    }
   ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   MULTI_FLAVOR_WITH_FILTERING(
@@ -262,6 +279,45 @@ private fun truncateForV2(settingsFile: File) {
   val patchedText = settingsFile.readLines().takeWhile { !it.contains("//-v2:truncate-from-here") }.joinToString("\n")
   Truth.assertThat(patchedText.trim()).isNotEqualTo(settingsFile.readText().trim())
   settingsFile.writeText(patchedText)
+}
+
+private fun moveGradleRootUnderGradleProjectDirectory(root: File) {
+  val testJdkName = IdeSdks.getInstance().jdk?.name ?: error("No JDK in test")
+  val newRoot = root.resolve("gradle_project")
+  val tempRoot = File(root.path + "_tmp")
+  val ideaDirectory = root.resolve(".idea")
+  val gradleXml = ideaDirectory.resolve("gradle.xml")
+  val miscXml = ideaDirectory.resolve("misc.xml")
+  Files.move(root.toPath(), tempRoot.toPath())
+  Files.createDirectory(root.toPath())
+  Files.move(tempRoot.toPath(), newRoot.toPath())
+  Files.createDirectory(ideaDirectory.toPath())
+  gradleXml.writeText(
+    """
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <option name="testRunner" value="GRADLE" />
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="${'$'}PROJECT_DIR${'$'}/gradle_project" />
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>        
+    """.trim()
+  )
+
+  miscXml.writeText(
+    """
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+<component name="ProjectRootManager" version="2" project-jdk-name="$testJdkName" project-jdk-type="JavaSDK" />
+</project>
+    """.trim()
+  )
 }
 
 private fun patchMppProject(

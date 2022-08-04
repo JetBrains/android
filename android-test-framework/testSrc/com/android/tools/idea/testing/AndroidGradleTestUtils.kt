@@ -2044,7 +2044,7 @@ private fun <T> openPreparedProject(
   return body()
 }
 
-private fun GradleIntegrationTest.nameToPath(name: String) =
+fun GradleIntegrationTest.nameToPath(name: String) =
   File(toSystemDependentName(getBaseTestPath() + "/" + name))
 
 private fun verifySyncedSuccessfully(project: Project) {

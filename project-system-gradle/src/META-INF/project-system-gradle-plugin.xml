@@ -127,13 +127,13 @@
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
     <listener class="com.android.tools.idea.gradle.project.sync.setup.post.SetUpRunConfigurationsSyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.setup.post.RecordAgpVersionSyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.variant.view.BuildVariantView$SyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.StateChangeNotification"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <orderEnumerationHandlerFactory implementation="com.android.tools.idea.gradle.project.AndroidGradleOrderEnumeratorHandlerFactory"/>

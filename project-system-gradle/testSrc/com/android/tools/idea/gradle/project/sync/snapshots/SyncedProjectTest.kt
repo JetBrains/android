@@ -119,6 +119,9 @@ abstract class SyncedProjectTest(
   fun testSimpleApplicationWithAdditionalGradleSourceSets() = testProject(TestProject.SIMPLE_APPLICATION_WITH_ADDITIONAL_GRADLE_SOURCE_SETS)
 
   @Test
+  fun testSimpleApplicationNotAtRoot() = testProject(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT)
+
+  @Test
   fun testWithGradleMetadata() = testProject(TestProject.WITH_GRADLE_METADATA)
 
   @Test

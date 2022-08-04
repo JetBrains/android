@@ -31,6 +31,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.project.isDirectoryBased
 import com.intellij.ui.AppUIUtil
 import com.intellij.util.ui.UIUtil
 
@@ -79,7 +80,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
     private val LOG = Logger.getInstance(GradleSyncInvoker::class.java)
     private fun prepareProject(project: Project, listener: GradleSyncListener?): Boolean {
       val projectInfo = GradleProjectInfo.getInstance(project)
-      if (project.requiresAndroidModel() || projectInfo.hasTopLevelGradleFile()) {
+      if (projectInfo.isBuildWithGradle) {
         FileDocumentManager.getInstance().saveAllDocuments()
         return true // continue with sync.
       }
