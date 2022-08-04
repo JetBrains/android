@@ -48,7 +48,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -85,7 +85,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -93,7 +93,7 @@
     "name": "Jelly Bean",
     "version": "4.3",
     "apiLevel": 18,
-    "distributionPercentage": 0.001,
+    "distributionPercentage": 0.000,
     "url": "https://developer.android.com/about/versions/android-4.3.html",
     "descriptionBlocks" : [
       {
@@ -146,7 +146,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -154,7 +154,7 @@
     "name": "KitKat",
     "version": "4.4",
     "apiLevel": 19,
-    "distributionPercentage": 0.01,
+    "distributionPercentage": 0.009,
     "url": "https://developer.android.com/about/versions/android-4.4.html",
     "descriptionBlocks" : [
       {
@@ -191,7 +191,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -199,7 +199,7 @@
     "name": "Lollipop",
     "version": "5.0",
     "apiLevel": 21,
-    "distributionPercentage": 0.005,
+    "distributionPercentage": 0.004,
     "url": "https://developer.android.com/about/versions/android-5.0.html",
     "descriptionBlocks" : [
 
@@ -257,7 +257,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -265,7 +265,7 @@
     "name": "Lollipop",
     "version": "5.1",
     "apiLevel": 22,
-    "distributionPercentage": 0.025,
+    "distributionPercentage": 0.022,
     "url": "https://developer.android.com/about/versions/android-5.1.html",
     "descriptionBlocks" : [
       {
@@ -278,7 +278,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -286,7 +286,7 @@
     "name": "Marshmallow",
     "version": "6.0",
     "apiLevel": 23,
-    "distributionPercentage": 0.039,
+    "distributionPercentage": 0.035,
     "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
     "descriptionBlocks" : [
       {
@@ -319,7 +319,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -327,7 +327,7 @@
     "name": "Nougat",
     "version": "7.0",
     "apiLevel": 24,
-    "distributionPercentage": 0.026,
+    "distributionPercentage": 0.023,
     "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
     "descriptionBlocks" : [
       {
@@ -376,7 +376,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -384,7 +384,7 @@
     "name": "Nougat",
     "version": "7.1",
     "apiLevel": 25,
-    "distributionPercentage": 0.024,
+    "distributionPercentage": 0.022,
     "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
     "descriptionBlocks" : [
       {
@@ -413,7 +413,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -421,7 +421,7 @@
     "name": "Oreo",
     "version": "8.0",
     "apiLevel": 26,
-    "distributionPercentage": 0.032,
+    "distributionPercentage": 0.03,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
     "descriptionBlocks" : [
       {
@@ -450,7 +450,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -458,7 +458,7 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.084,
+    "distributionPercentage": 0.079,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
     "descriptionBlocks" : [
       {
@@ -479,7 +479,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -487,7 +487,7 @@
     "name": "Pie",
     "version": "9.0",
     "apiLevel": 28,
-    "distributionPercentage": 0.162,
+    "distributionPercentage": 0.145,
     "url": "https://developer.android.com/about/versions/pie/android-9.0",
     "descriptionBlocks" : [
       {
@@ -512,7 +512,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -520,7 +520,7 @@
     "name": "Q",
     "version": "10.0",
     "apiLevel": 29,
-    "distributionPercentage": 0.239,
+    "distributionPercentage": 0.223,
     "url": "https://developer.android.com/about/versions/10",
     "descriptionBlocks" : [
       {
@@ -541,7 +541,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   },
@@ -549,7 +549,7 @@
     "name": "R",
     "version": "11.0",
     "apiLevel": 30,
-    "distributionPercentage": 0.283,
+    "distributionPercentage": 0.27,
     "url": "https://developer.android.com/about/versions/11",
     "descriptionBlocks" : [
       {
@@ -566,7 +566,32 @@
       },
       {
         "title": "",
-        "body": "Last updated: May 9th, 2022"
+        "body": "Last updated: August 4th, 2022"
+      }
+    ]
+  },
+  {
+    "name": "S",
+    "version": "12.0",
+    "apiLevel": 31,
+    "distributionPercentage": 0.133,
+    "url": "https://developer.android.com/about/versions/12",
+    "descriptionBlocks" : [
+      {
+        "title": "New features",
+        "body": "Material You<br>Redesigned widgets<br><br>Game Mode<br>Rich content insertion<br>AppSearch API<br>Compatible media transcoding<br>Improved notifications"
+      },
+      {
+        "title": "Behavior changes",
+        "body": "Performance Classes<br>Stretch overscroll<br>App splash screens<br>Restricted App Standby Bucket<br>Improved refresh rate switching<br>Passpoint updates"
+      },
+      {
+        "title": "Security and privacy",
+        "body": "App hibernation<br>Nearby device permissions<br>Approximate location<br>Bluetooth permissions<br>Permission group lookup<br>Clipboard access notifications<br>Permission package visibility"
+      },
+      {
+        "title": "",
+        "body": "Last updated: August 4th, 2022"
       }
     ]
   }
