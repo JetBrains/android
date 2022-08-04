@@ -50,7 +50,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
       ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
   }
 
-  private val ideServices = object : AppInspectionIdeServices {
+  private val ideServices: AppInspectionIdeServices = object : AppInspectionIdeServices {
     private val notificationGroup =
       NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID, true, PluginId.getId("org.jetbrains.android"))
 
@@ -93,6 +93,10 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
           navigatable.navigate(true)
         }
       }
+    }
+
+    override fun isTabSelected(inspectorId: String): Boolean {
+      return appInspectionView.isTabSelected(inspectorId)
     }
   }
 

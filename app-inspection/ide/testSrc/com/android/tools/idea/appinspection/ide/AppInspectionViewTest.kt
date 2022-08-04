@@ -1068,4 +1068,34 @@ class AppInspectionViewTest {
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     timer.currentTimeNs += 1
   }
+
+  @Test
+  fun activeTabIsSelected() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    val inspectionView = withContext(uiDispatcher) {
+      AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+                        { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2()) },
+                        appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
+      }
+    }
+    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+    launch(uiDispatcher) {
+      inspectionView.tabsChangedFlow.first()
+      val inspectorTabsPane = inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane
+      assertThat(inspectorTabsPane.selectedIndex).isEqualTo(0)
+      assertThat(inspectionView.isTabSelected(INSPECTOR_ID)).isTrue()
+      assertThat(inspectionView.isTabSelected(INSPECTOR_ID_2)).isFalse()
+      inspectorTabsPane.selectedIndex = 1
+      assertThat(inspectorTabsPane.selectedIndex).isEqualTo(1)
+      assertThat(inspectionView.isTabSelected(INSPECTOR_ID)).isFalse()
+      assertThat(inspectionView.isTabSelected(INSPECTOR_ID_2)).isTrue()
+    }
+
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    timer.currentTimeNs += 1
+  }
 }
