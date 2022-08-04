@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.runconfiguration
+package com.android.tools.idea.compose.gradle.preview.runconfiguration
 
-import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
+import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer
+import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
@@ -59,8 +60,10 @@ class ComposePreviewRunConfigurationGradleTest {
 
   @Test
   fun testValidatePreview_app_androidTest() {
-    val errors = validatePreview(projectRule.project, SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,
-                                 expectedSetupResult = false)
+    val errors = validatePreview(
+      projectRule.project, SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,
+      expectedSetupResult = false
+    )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
   }
@@ -80,8 +83,10 @@ class ComposePreviewRunConfigurationGradleTest {
 
   @Test
   fun testValidatePreview_lib_androidTest() {
-    val errors = validatePreview(projectRule.project, SimpleComposeAppPaths.LIB_PREVIEWS_ANDROID_TEST.path,
-                                 expectedSetupResult = false)
+    val errors = validatePreview(
+      projectRule.project, SimpleComposeAppPaths.LIB_PREVIEWS_ANDROID_TEST.path,
+      expectedSetupResult = false
+    )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
   }
