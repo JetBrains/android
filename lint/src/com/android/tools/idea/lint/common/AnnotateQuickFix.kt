@@ -27,6 +27,9 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.ShortenReferences
+import org.jetbrains.kotlin.idea.util.findAnnotation
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunction
@@ -81,8 +84,14 @@ class AnnotateQuickFix(
         if (container !is KtModifierListOwner) return
         val psiFactory = KtPsiFactory(container)
         val annotationEntry = psiFactory.createAnnotationEntry(annotationSource)
-        val annotation = container.addAnnotationEntry(annotationEntry)
-        ShortenReferences.DEFAULT.process(annotation)
+        val fqName = annotationSource.removePrefix("@").substringAfter(':').substringBefore('(')
+        val existing = container.findAnnotation(FqName(fqName))
+        val addedAnnotation = if (existing != null && existing.isPhysical && replace) {
+          existing.replace(annotationEntry) as KtAnnotationEntry
+        } else {
+          container.addAnnotationEntry(annotationEntry)
+        }
+        ShortenReferences.DEFAULT.process(addedAnnotation)
       }
     }
   }
