@@ -28,6 +28,9 @@ interface ProcessDescriptor {
   /** The fully qualified name of the process. */
   val name: String
 
+  /** The package name of the process, which may diff from the process name. */
+  val packageName: String
+
   /** Whether this process is actively running or not. If not running, that implies it has been terminated. */
   val isRunning: Boolean
 

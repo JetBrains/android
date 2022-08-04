@@ -63,6 +63,7 @@ class ComposeLayoutInspectorClientTest {
     }
     override val abiCpuArch = "x86_64"
     override val name = "my name"
+    override val packageName = "my package name"
     override val isRunning = true
     override val pid = 1234
     override val streamId = 4321L

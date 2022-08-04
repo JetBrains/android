@@ -136,6 +136,7 @@ public class TransportServiceProxyTest {
     Map.Entry<Integer, Common.Process> cachedProcess = cachedProcesses.entrySet().iterator().next();
     assertThat(cachedProcess.getKey()).isEqualTo(client1.getClientData().getPid());
     assertThat(cachedProcess.getValue().getPid()).isEqualTo(1);
+    assertThat(cachedProcess.getValue().getPackageName()).isEqualTo("test1");
     assertThat(cachedProcess.getValue().getName()).isEqualTo("testClientDescription");
     assertThat(cachedProcess.getValue().getState()).isEqualTo(Common.Process.State.ALIVE);
     assertThat(cachedProcess.getValue().getAbiCpuArch()).isEqualTo(SdkConstants.CPU_ARCH_ARM);
@@ -155,6 +156,7 @@ public class TransportServiceProxyTest {
     assertThat(cachedProcesses.size()).isEqualTo(2);
     Common.Process process1 = cachedProcesses.get(1);
     assertThat(process1.getPid()).isEqualTo(1);
+    assertThat(process1.getPackageName()).isEqualTo("test1");
     assertThat(process1.getName()).isEqualTo("name1");
     assertThat(process1.getState()).isEqualTo(Common.Process.State.ALIVE);
     assertThat(process1.getAbiCpuArch()).isEqualTo(SdkConstants.CPU_ARCH_ARM);

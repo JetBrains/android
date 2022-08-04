@@ -94,6 +94,7 @@ internal suspend fun attachAppInspectionTarget(
       Commands.AttachAgent.newBuilder()
         .setAgentLibFileName("libjvmtiagent_${transport.process.abiCpuArch}.so")
         .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
+        .setPackageName(transport.process.packageName)
     )
     .build()
 

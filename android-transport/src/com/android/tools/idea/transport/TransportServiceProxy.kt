@@ -314,6 +314,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
       .setStartTimestampNs(timestampNs)
       .setAbiCpuArch(processAbiCpuArch)
       .setExposureLevel(level)
+      .setPackageName(client.packageName)
       .build()
     cachedProcesses[client.pid] = newProcess
     // New pipeline event - create a ProcessStarted event for each process.
@@ -445,12 +446,15 @@ private fun startThread(f: Runnable) = Thread(f).apply { start() }
 
 /**
  * Adapter for `Client` and `ProfileableClient`
+ *
+ * Package name is empty  for profileable processes because it comes from JDWP's HELO.
  */
-private data class ClientSummary(val pid: Int, val name: String, val abi: String?) {
+private data class ClientSummary(val pid: Int, val name: String, val packageName: String, val abi: String?) {
   companion object {
-    fun of(client: Client) = with (client.clientData) { of(pid, clientDescription, abi) }
+    fun of(client: Client) = with(client.clientData) { of(pid, clientDescription, packageName, abi) }
     fun of(client: ProfileableClient) =
-      with (client.profileableClientData) { of(pid, processName.takeUnless { it.isEmpty() }, abi ) }
-    fun of(pid: Int, name: String?, abi: String?) = name?.let { ClientSummary(pid, it, abi) }
+      with(client.profileableClientData) { of(pid, processName.takeUnless { it.isEmpty() }, null, abi) }
+
+    fun of(pid: Int, name: String?, packageName: String?, abi: String?) = name?.let { ClientSummary(pid, it, packageName ?: "", abi) }
   }
 }

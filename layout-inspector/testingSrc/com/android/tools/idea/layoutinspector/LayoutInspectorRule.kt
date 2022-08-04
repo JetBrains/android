@@ -92,6 +92,7 @@ fun DeviceDescriptor.createProcess(
     override val device = device
     override val abiCpuArch = "x86_64"
     override val name = name
+    override val packageName = name
     override val isRunning = isRunning
     override val pid = pid
     override val streamId = streamId

@@ -68,6 +68,7 @@ class LayoutInspectorLaunchTaskContributor : AndroidLaunchTaskContributor {
         override val device: DeviceDescriptor = descriptor
         override val abiCpuArch: String = ""
         override val name: String = packageName
+        override val packageName: String = packageName
         override val isRunning: Boolean = true
         override val pid: Int = 0
         override val streamId: Long = 0L

@@ -85,7 +85,8 @@ public class DeviceProcessPoller extends PollRunner {
           liveProcesses.add(process);
 
           AgentStatusRequest agentStatusRequest =
-            AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(deviceId).build();
+            AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(deviceId)
+              .setPackageName(process.getPackageName()).build();
           AgentData cachedData = myTable.getAgentStatus(agentStatusRequest);
           if (cachedData.getStatus() == AgentData.Status.UNSPECIFIED) {
             AgentData agentData = myPollingService.getAgentStatus(agentStatusRequest);

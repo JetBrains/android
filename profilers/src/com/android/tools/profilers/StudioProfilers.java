@@ -778,6 +778,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     if (!myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
       // In legacy pipeline we don't have streams so we set device ID to session's stream ID.
+      // No need to set package name here because this piece of code is talking to the datastore
+      // for a given session, not to a live device.
       AgentStatusRequest statusRequest =
         AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getStreamId()).build();
       return myClient.getTransportClient().getAgentStatus(statusRequest);

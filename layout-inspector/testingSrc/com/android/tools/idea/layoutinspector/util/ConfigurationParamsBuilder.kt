@@ -45,6 +45,7 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
       override val device = MODERN_DEVICE
       override val abiCpuArch = "x86"
       override val name = getAppPackageName(project)
+      override val packageName = getAppPackageName(project)
       override val isRunning = true
       override val pid = 123
       override val streamId = 123456L

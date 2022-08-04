@@ -330,7 +330,8 @@ public class TransportPipelineDialog extends DialogWrapper {
             .setAttachAgent(
               Commands.AttachAgent.newBuilder()
                 .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
-                .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
+                .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
+                .setPackageName(process.getPackageName()))
             .build();
           // TODO(b/150503095)
           Transport.ExecuteResponse response =

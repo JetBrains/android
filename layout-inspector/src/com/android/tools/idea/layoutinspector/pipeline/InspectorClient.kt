@@ -251,6 +251,7 @@ object DisconnectedClient : InspectorClient {
     }
     override val abiCpuArch: String = ""
     override val name: String = ""
+    override val packageName: String = ""
     override val isRunning: Boolean = false
     override val pid: Int = 0
     override val streamId: Long = 0
