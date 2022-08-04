@@ -89,6 +89,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       ActionPlaces.ANDROID_TEST_SUITE_DETAILS_VIEW_LOG,
       DefaultActionGroup(*myLogsView.createConsoleActions()),
       false)
+    logViewToolbar.setTargetComponent(myLogsView.component)
     logsViewWithVerticalToolbar.add(logViewToolbar.component, BorderLayout.EAST)
     val logsTab = TabInfo(logsViewWithVerticalToolbar)
     logsTab.text = "Logs"

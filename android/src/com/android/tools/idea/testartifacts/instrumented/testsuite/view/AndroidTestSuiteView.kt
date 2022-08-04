@@ -273,7 +273,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         }
       }
     }
-
+    myFocusableActionToolbar.setTargetComponent(myResultsTableView.getComponent())
     val contentPanel = JPanel(BorderLayout()).apply {
       add(JPanel().apply {
         layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
