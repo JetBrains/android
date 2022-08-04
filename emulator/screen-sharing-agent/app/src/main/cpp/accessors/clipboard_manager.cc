@@ -169,13 +169,13 @@ void ClipboardManager::OnPrimaryClipChanged() const {
   }
 }
 
-}  // namespace screensharing
-
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_ClipboardListener_dispatchPrimaryClipChanged(JNIEnv* env, jobject thiz) {
-  screensharing::Log::D("ClipboardListener.dispatchPrimaryClipChanged");
-  if (screensharing::clipboard_manager_instance != nullptr) {
-    screensharing::clipboard_manager_instance->OnPrimaryClipChanged();
+  Log::D("ClipboardListener.dispatchPrimaryClipChanged");
+  if (clipboard_manager_instance != nullptr) {
+    clipboard_manager_instance->OnPrimaryClipChanged();
   }
 }
+
+}  // namespace screensharing
