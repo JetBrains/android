@@ -47,10 +47,11 @@ class DesignerCommonIssueProviderTest {
     val listener = mock(Runnable::class.java)
     provider.registerUpdateListener(listener)
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), emptyList())
+    val source = Any()
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
     verify(listener).run()
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), emptyList())
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
     verify(listener, times(2)).run()
   }
 

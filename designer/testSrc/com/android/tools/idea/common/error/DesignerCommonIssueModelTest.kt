@@ -66,7 +66,7 @@ class TestNode(private val name: String = "", parentDescriptor: NodeDescriptor<D
 
   override fun getName(): String = this.name
 
-  override fun getChildren(): Collection<DesignerCommonIssueNode> = children
+  override fun getChildren(): List<DesignerCommonIssueNode> = children
 
   override fun getLeafState(): LeafState = LeafState.DEFAULT
 

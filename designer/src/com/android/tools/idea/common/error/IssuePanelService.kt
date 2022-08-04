@@ -51,9 +51,12 @@ import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
 import com.intellij.ui.tree.TreeVisitor
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.tree.TreeModelAdapter
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import javax.swing.event.TreeModelEvent
+import javax.swing.event.TreeModelListener
 
 private const val DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME = "Designer"
 
@@ -119,9 +122,11 @@ class IssuePanelService(private val project: Project) {
       val issueProvider = DesignToolsIssueProvider(project, NotSuppressedFilter + SelectedEditorFilter(project))
       val treeModel = DesignerCommonIssuePanelModelProvider.getInstance(project).model
       val issuePanel = DesignerCommonIssuePanel(project, project, treeModel, issueProvider, ::getEmptyMessage)
-      issueProvider.registerUpdateListener {
-        updateSharedIssuePanelTabName()
-      }
+      treeModel.addTreeModelListener(object : TreeModelAdapter() {
+        override fun process(event: TreeModelEvent, type: EventType) {
+          updateSharedIssuePanelTabName()
+        }
+      })
 
       sharedIssuePanel = issuePanel
       contentFactory.createContent(issuePanel.getComponent(), "Design Issue", true).apply {

@@ -39,16 +39,20 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.ui.tree.AsyncTreeModel
+import com.intellij.ui.tree.RestoreSelectionListener
+import com.intellij.ui.tree.TreePathUtil
 import com.intellij.ui.tree.TreeVisitor
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 
@@ -87,8 +91,8 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
       }
       if (SELECTED_ISSUES.`is`(dataId)) {
         return when (node) {
-          is IssuedFileNode -> node.issues
-          is NoFileNode -> node.issues
+          is IssuedFileNode -> node.getChildren().map { it.issue }.toList()
+          is NoFileNode -> node.getChildren().map { it.issue }.toList()
           is IssueNode -> listOf(node.issue)
           else -> emptyList()
         }
@@ -140,6 +144,14 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     splitter.setResizeEnabled(true)
     rootPanel.add(splitter, BorderLayout.CENTER)
 
+    treeModel.addTreeModelListener(object : TreeModelAdapter() {
+      override fun treeNodesInserted(event: TreeModelEvent) {
+        // Make sure the new inserted node (e.g. Layout Validation node) is expanded.
+        TreeUtil.promiseExpand(tree, event.treePath)
+      }
+    })
+
+    tree.addTreeSelectionListener(RestoreSelectionListener())
     tree.addTreeSelectionListener {
       val newSelectedNode = it?.newLeadSelectionPath?.lastPathComponent
       if (newSelectedNode == null) {
@@ -183,19 +195,12 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
   fun getComponent(): JComponent = rootPanel
 
   private fun updateTree() {
-    val selectedNode = tree.lastSelectedPathComponent as? DesignerCommonIssueNode
     treeModel.structureChanged(null)
-    val promiseExpand = TreeUtil.promiseExpandAll(tree)
-    if (selectedNode != null) {
-      promiseExpand.onSuccess {
-        TreeUtil.promiseSelect(tree, DesignerIssueNodeVisitor(selectedNode))
-      }
-    }
+    TreeUtil.promiseExpandAll(tree)
   }
 
   fun setViewOptionFilter(filter: DesignerCommonIssueProvider.Filter) {
     issueProvider.viewOptionFilter = filter
-    updateTree()
   }
 
   fun setIssueNodeOrder(sortedBySeverity: Boolean, sortedByName: Boolean) {

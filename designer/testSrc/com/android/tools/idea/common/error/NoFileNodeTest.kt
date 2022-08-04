@@ -26,7 +26,7 @@ class NoFileNodeTest {
   @Test
   fun testPresentationWithoutIssue() {
     // no issue case
-    val node = NoFileNode(emptyList(), null)
+    val node = NoFileNode(null)
     node.update()
 
     val expected = PresentationData()
@@ -40,7 +40,8 @@ class NoFileNodeTest {
   @Test
   fun testPresentationWithSingleIssue() {
     // single issue case
-    val node = NoFileNode(listOf(TestIssue()), null)
+    val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue())))
+    val node = NoFileNode(root)
     node.update()
 
     val expected = PresentationData()
@@ -54,7 +55,8 @@ class NoFileNodeTest {
   @Test
   fun testPresentationWithMultipleIssues() {
     // multiple issues case
-    val node = NoFileNode(listOf(TestIssue(), TestIssue()), null)
+    val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue("a"), TestIssue("b"))))
+    val node = NoFileNode(root)
     node.update()
 
     val expected = PresentationData()
@@ -67,8 +69,17 @@ class NoFileNodeTest {
 
   @Test
   fun testSameNode() {
-    val node1 = NoFileNode(listOf(TestIssue(), TestIssue()), null)
-    val node2 = NoFileNode(listOf(TestIssue(), TestIssue()), null)
-    Assert.assertEquals(node1, node2)
+    run {
+      val node1 = NoFileNode(null)
+      val node2 = NoFileNode(null)
+      Assert.assertEquals(node1, node2)
+    }
+
+    run {
+      val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(emptyList()))
+      val node1 = NoFileNode(root)
+      val node2 = NoFileNode(root)
+      Assert.assertEquals(node1, node2)
+    }
   }
 }

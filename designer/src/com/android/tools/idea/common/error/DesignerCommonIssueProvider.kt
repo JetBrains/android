@@ -75,7 +75,10 @@ class DesignToolsIssueProvider(project: Project, private val issueFilter: Design
   private var _viewOptionFilter: DesignerCommonIssueProvider.Filter = EmptyFilter
   override var viewOptionFilter: DesignerCommonIssueProvider.Filter
     get() = _viewOptionFilter
-    set(value) { _viewOptionFilter = value }
+    set(value) {
+      _viewOptionFilter = value
+      listeners.forEach { it.run() }
+    }
 
   init {
     Disposer.register(project, this)

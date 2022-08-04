@@ -33,7 +33,7 @@ class IssuedFileNodeTest {
   fun testPresentationWithoutIssue() {
     val file = projectRule.fixture.addFileToProject("path/to/fileName", "content").virtualFile
     // no issue case
-    val node = IssuedFileNode(file, emptyList(), null)
+    val node = IssuedFileNode(file, null)
     node.update()
 
     val expected = PresentationData()
@@ -49,7 +49,8 @@ class IssuedFileNodeTest {
   fun testPresentationWithSingleIssue() {
     // single issue case
     val file = projectRule.fixture.addFileToProject("path/to/fileName", "content").virtualFile
-    val node = IssuedFileNode(file, listOf(TestIssue()), null)
+    val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue(source = IssueSourceWithFile(file)))))
+    val node = IssuedFileNode(file, root)
     node.update()
 
     val expected = PresentationData()
@@ -65,7 +66,10 @@ class IssuedFileNodeTest {
   fun testPresentationWithMultipleIssues() {
     // multiple issues case
     val file = projectRule.fixture.addFileToProject("path/to/fileName", "content").virtualFile
-    val node = IssuedFileNode(file, listOf(TestIssue(), TestIssue()), null)
+    val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(
+      listOf(TestIssue(source = IssueSourceWithFile(file)), TestIssue(source = IssueSourceWithFile(file))))
+    )
+    val node = IssuedFileNode(file, root)
     node.update()
 
     val expected = PresentationData()
@@ -81,8 +85,8 @@ class IssuedFileNodeTest {
   fun testSameNode() {
     val file = projectRule.fixture.addFileToProject("path/to/file", "content").virtualFile
 
-    val node1 = IssuedFileNode(file, listOf(TestIssue(), TestIssue()), null)
-    val node2 = IssuedFileNode(file, listOf(TestIssue(), TestIssue()), null)
+    val node1 = IssuedFileNode(file, null)
+    val node2 = IssuedFileNode(file, null)
     Assert.assertEquals(node1, node2)
   }
 }

@@ -65,7 +65,7 @@ internal class CommonIssueTestParentNode(project: Project) : DesignerCommonIssue
 
   override fun getName(): String = ""
 
-  override fun getChildren(): Collection<DesignerCommonIssueNode> = emptyList()
+  override fun getChildren(): List<DesignerCommonIssueNode> = emptyList()
 
   override fun getLeafState(): LeafState = LeafState.ALWAYS
 }

@@ -18,15 +18,12 @@ package com.android.tools.idea.common.error
 import com.android.SdkConstants
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.assertInstanceOf
 import com.intellij.ui.tree.TreePathUtil
 import com.intellij.ui.tree.TreeVisitor
 import org.junit.Rule
@@ -70,66 +67,49 @@ class DesignerIssueNodeVisitorTest {
 
   @Test
   fun testVisitIssuedFileNode() {
+    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = { it?.parentDescriptor as? DesignerCommonIssueNode }
+
     val mockedFile = mock<VirtualFile>()
-    val comparedNode = IssuedFileNode(mockedFile, emptyList(), null)
+    val comparedNode = IssuedFileNode(mockedFile, null)
     val visitor = DesignerIssueNodeVisitor(comparedNode)
 
     run {
-      val testNode = IssuedFileNode(mockedFile, emptyList(), null)
-      val path = TreePathUtil.pathToCustomNode(testNode) { null }
-      assertEquals(TreeVisitor.Action.INTERRUPT, visitor.visit(path))
-    }
-
-    run {
-      // IssuedFileNode only cares if the file is same or not.
-      val testNode = IssuedFileNode(mockedFile, listOf(TestIssue()), null)
-      val path = TreePathUtil.pathToCustomNode(testNode) { null }
+      val testNode = IssuedFileNode(mockedFile, null)
+      val path = TreePathUtil.pathToCustomNode(testNode, getParentFunc)
       assertEquals(TreeVisitor.Action.INTERRUPT, visitor.visit(path))
     }
 
     run {
       // Test node with different file
-      val testNode = IssuedFileNode(mock(), listOf(TestIssue()), null)
-      val path = TreePathUtil.pathToCustomNode(testNode) { null }
+      val testNode = IssuedFileNode(mock(), null)
+      val path = TreePathUtil.pathToCustomNode(testNode, getParentFunc)
       assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
     }
 
     run {
       // Test node with different parent
-      val testNode = IssuedFileNode(mock(), listOf(TestIssue()), TestNode())
-      val path = TreePathUtil.pathToCustomNode(testNode) { null }
+      val testNode = IssuedFileNode(mock(), TestNode())
+      val path = TreePathUtil.pathToCustomNode(testNode as DesignerCommonIssueNode, getParentFunc)
       assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
     }
   }
 
   @Test
   fun testVisitNoFileNode() {
-    val comparedNode = NoFileNode(emptyList(), null)
+    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = { it?.parentDescriptor as? DesignerCommonIssueNode }
+    val comparedNode = NoFileNode(null)
     val visitor = DesignerIssueNodeVisitor(comparedNode)
 
     run {
-      val testNode = NoFileNode(emptyList(), null)
-      val path = TreePathUtil.pathToCustomNode(testNode) { null }
+      val testNode = NoFileNode(null)
+      val path = TreePathUtil.pathToCustomNode(testNode, getParentFunc)
       assertEquals(TreeVisitor.Action.INTERRUPT, visitor.visit(path))
-    }
-
-    run {
-      // Test node with has different parent
-      val testNode = NoFileNode(listOf(TestIssue()), null)
-      val path = TreePathUtil.pathToCustomNode(testNode) { null }
-      assertEquals(TreeVisitor.Action.INTERRUPT, visitor.visit(path))
-    }
-
-    run {
-      val testNode = IssuedFileNode(mock(), listOf(TestIssue()), null)
-      val path = TreePathUtil.pathToCustomNode(testNode) { null }
-      assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
     }
 
     run {
       // Test node with different parent
-      val testNode = NoFileNode(listOf(TestIssue()), TestNode())
-      val path = TreePathUtil.pathToCustomNode(testNode) { null }
+      val testNode = IssuedFileNode(mock(), TestNode())
+      val path = TreePathUtil.pathToCustomNode(testNode, getParentFunc)
       assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
     }
   }
@@ -158,7 +138,7 @@ class DesignerIssueNodeVisitorTest {
     }
 
     run {
-      val testNode = NoFileNode(emptyList(), null)
+      val testNode = NoFileNode(null)
       val path = TreePathUtil.pathToCustomNode(testNode) { null }
       assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
     }
@@ -169,9 +149,9 @@ class DesignerIssueNodeVisitorTest {
   @Test
   fun testVisitDifferentNodeTypes() {
     val mockedFile = mock<VirtualFile>()
-    val node1 = IssuedFileNode(mockedFile, emptyList(), null)
+    val node1 = IssuedFileNode(mockedFile, null)
     val visitor = DesignerIssueNodeVisitor(node1)
-    val node2 = NoFileNode(emptyList(), null)
+    val node2 = NoFileNode(null)
 
     val path = TreePathUtil.pathToCustomNode(node2) { null }
     assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
@@ -179,7 +159,7 @@ class DesignerIssueNodeVisitorTest {
 
   @Test
   fun testVisitOtherNodeTypes() {
-    val node1 = NoFileNode(emptyList(), null)
+    val node1 = NoFileNode(null)
     val visitor = DesignerIssueNodeVisitor(node1)
     val node2: DesignerCommonIssueNode = mock()
     val path = TreePathUtil.pathToCustomNode(node2) { null }
