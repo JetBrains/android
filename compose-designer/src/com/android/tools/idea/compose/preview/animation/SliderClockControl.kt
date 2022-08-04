@@ -31,20 +31,6 @@ class SliderClockControl(val slider: JSlider) {
    */
   var playInLoop = false
 
-  /**
-   * 0-based count representing the current loop the timeline is in. This should be used as a multiplier of the |windowSize| (slider
-   * maximum) offset applied when setting the clock time.
-   */
-  var loopCount = 0L
-    set(value) {
-      field = value % maxLoopCount
-    }
-
-  /**
-   * The maximum amount of loops the timeline has. When [loopCount] reaches this value, it needs to be reset.
-   */
-  var maxLoopCount = 1L
-
   fun isAtStart() = slider.value <= slider.minimum
 
   fun isAtEnd() = slider.value >= slider.maximum

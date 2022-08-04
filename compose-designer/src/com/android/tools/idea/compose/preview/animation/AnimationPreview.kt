@@ -232,12 +232,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
 
   private fun setClockTime(newValue: Int, longTimeout: Boolean = false) {
     animationClock?.apply {
-      var clockTimeMs = newValue.toLong()
-      if (clockControl.playInLoop) {
-        // When playing in loop, we need to add an offset to slide the window and take repeatable animations into account when necessary
-        clockTimeMs += timeline.maximum * clockControl.loopCount
-      }
-
+      val clockTimeMs = newValue.toLong()
       if (!executeOnRenderThread(longTimeout) {
           if (coordinationIsSupported())
             setClockTimes(animationsMap.mapValues {
@@ -289,17 +284,6 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
     if (!executeOnRenderThread(longTimeout) {
         maxDurationPerIteration = clock.getMaxDurationMsPerIteration()
       }) return
-
-    var maxDuration = DEFAULT_MAX_DURATION_MS
-    if (!executeOnRenderThread(longTimeout) { maxDuration = clock.getMaxDurationMs() }) return
-
-    clockControl.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
-      // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
-      // so we need to add as many loops to the timeline as necessary to display all the iterations.
-      ceil(maxDuration / maxDurationPerIteration.toDouble()).toLong()
-    }
-    // Otherwise, the max duration fits the window, so we just need one loop that keeps repeating when loop mode is active.
-    else 1
   }
 
   /** Replaces the [tabbedPane] with [noAnimationsPanel]. */
