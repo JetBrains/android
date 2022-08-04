@@ -19,7 +19,6 @@
 #include <unistd.h>
 
 #include <cstdio>
-#include <thread>
 
 #include "accessors/input_manager.h"
 #include "accessors/key_event.h"

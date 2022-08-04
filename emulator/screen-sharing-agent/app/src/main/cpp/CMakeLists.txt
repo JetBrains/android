@@ -16,6 +16,7 @@ add_library(
 
         accessors/clipboard_manager.cc
         accessors/display_info.cc
+        accessors/display_listener_dispatcher.cc
         accessors/display_manager.cc
         accessors/input_manager.cc
         accessors/key_character_map.cc

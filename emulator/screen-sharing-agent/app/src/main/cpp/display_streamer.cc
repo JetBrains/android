@@ -218,6 +218,7 @@ void DisplayStreamer::Run() {
   write(socket_fd_, header.c_str(), header.length());
 
   WindowManager::WatchRotation(jni, &display_rotation_watcher_);
+  DisplayManager::RegisterDisplayListener(jni, this);
   SurfaceControl surface_control(jni);
   VideoPacketHeader packet_header = { .frame_number = 1 };
 
@@ -304,10 +305,24 @@ DisplayInfo DisplayStreamer::GetDisplayInfo() {
   return display_info_;
 }
 
+void DisplayStreamer::OnDisplayAdded(int32_t display_id) {
+}
+
+void DisplayStreamer::OnDisplayRemoved(int32_t display_id) {
+}
+
+void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
+  Log::D("DisplayStreamer::OnDisplayChanged(%d)", display_id);
+  if (display_id == DEFAULT_DISPLAY) {
+    StopCodec();
+  }
+}
+
 void DisplayStreamer::Shutdown() {
   if (socket_fd_ > 0) {
     close(socket_fd_);
     StopCodec();
+    DisplayManager::UnregisterDisplayListener( Jvm::GetJni(), this);
   }
 }
 
@@ -388,3 +403,4 @@ void DisplayStreamer::DisplayRotationWatcher::OnRotationChanged(int32_t new_rota
 }
 
 }  // namespace screensharing
+
