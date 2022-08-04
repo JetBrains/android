@@ -43,6 +43,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.containers.getIfSingle
@@ -248,30 +249,32 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     }
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    // We can get any of the combo boxes, since "from" and "to" states should be the same.
-    val stateComboBoxes = TreeWalker(inspector.component).descendantStream().filter { it is ComboBox<*> }.collect(Collectors.toList())
-    assertEquals(2, stateComboBoxes.size) // "start" combobox and  "end" combobox.
-    val startStateComboBox = stateComboBoxes[0] as ComboBox<*>
-    val endStateComboBox = stateComboBoxes[1] as ComboBox<*>
+    invokeAndWaitIfNeeded {
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+      // We can get any of the combo boxes, since "from" and "to" states should be the same.
+      val stateComboBoxes = TreeWalker(inspector.component).descendantStream().filter { it is ComboBox<*> }.collect(Collectors.toList())
+      assertEquals(2, stateComboBoxes.size) // "start" combobox and  "end" combobox.
+      val startStateComboBox = stateComboBoxes[0] as ComboBox<*>
+      val endStateComboBox = stateComboBoxes[1] as ComboBox<*>
 
-    assertEquals(3, startStateComboBox.itemCount)
-    assertEquals("State1", startStateComboBox.getItemAt(0))
-    assertEquals("State2", startStateComboBox.getItemAt(1))
-    assertEquals("State3", startStateComboBox.getItemAt(2))
+      assertEquals(3, startStateComboBox.itemCount)
+      assertEquals("State1", startStateComboBox.getItemAt(0))
+      assertEquals("State2", startStateComboBox.getItemAt(1))
+      assertEquals("State3", startStateComboBox.getItemAt(2))
 
-    assertEquals("State1", startStateComboBox.selectedItem)
-    // The "end" combo box does not display the same state as the "start" combo box if possible
-    assertEquals("State2", endStateComboBox.selectedItem)
+      assertEquals("State1", startStateComboBox.selectedItem)
+      // The "end" combo box does not display the same state as the "start" combo box if possible
+      assertEquals("State2", endStateComboBox.selectedItem)
 
-    // Change state of the comboBox.
-    startStateComboBox.selectedItem = "State2"
-    UIUtil.pump() // Wait for all changes in UI thread
+      // Change state of the comboBox.
+      startStateComboBox.selectedItem = "State2"
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
 
-    // Change state of the comboBox back to previous state - cached transition info should be used.
-    startStateComboBox.selectedItem = "State1"
-    UIUtil.pump() // Wait for all changes in UI thread
+      // Change state of the comboBox back to previous state - cached transition info should be used.
+      startStateComboBox.selectedItem = "State1"
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+    }
   }
 
   @Test
@@ -457,11 +460,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     val inspector = createAndOpenInspector()
     val clock = getClock()
     animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
-    UIUtil.pump() // Wait for cards to be added on the UI thread
-    val cards = TestUtils.findAllCards(inspector.component)
-    val timeline = TestUtils.findTimeline(inspector.component)
 
     invokeAndWaitIfNeeded {
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+      val cards = TestUtils.findAllCards(inspector.component)
+      val timeline = TestUtils.findTimeline(inspector.component)
       // 11 cards and 11 TimelineElements are added to coordination panel.
       assertEquals(11, cards.size)
       assertInstanceOf<AnimationCard>(cards[0])
