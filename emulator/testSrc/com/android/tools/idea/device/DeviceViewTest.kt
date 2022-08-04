@@ -389,7 +389,7 @@ internal class DeviceViewTest {
     agent.crashOnStart = true
     val loggedErrors = executeCapturingLoggedErrors {
       fakeUi.clickOn(button)
-      waitForCondition(2, TimeUnit.SECONDS) { errorMessage.text == "Failed to initialize the device agent. See the error log." }
+      waitForCondition(5, TimeUnit.SECONDS) { errorMessage.text == "Failed to initialize the device agent. See the error log." }
       assertThat(button.text).isEqualTo("Retry")
     }
     assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
