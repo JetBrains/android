@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
+import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs
@@ -181,6 +182,10 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
           )
         )
       }
+    }
+    val syncExecutionReport = resolverCtx.models.getModel(IdeSyncExecutionReport::class.java)
+    if (syncExecutionReport != null) {
+      projectDataNode.createChild(AndroidProjectKeys.SYNC_EXECUTION_REPORT, syncExecutionReport)
     }
     if (isAndroidGradleProject) {
       projectDataNode.createChild(AndroidProjectKeys.PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance())

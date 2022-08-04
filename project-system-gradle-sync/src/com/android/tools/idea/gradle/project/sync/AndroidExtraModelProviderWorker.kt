@@ -20,9 +20,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
-import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
-import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.BasicGradleProject
@@ -30,8 +28,6 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
-import java.io.PrintWriter
-import java.io.StringWriter
 
 internal class BuildInfo(
   buildModels: List<GradleBuild>, // Always not empty.
@@ -72,24 +68,32 @@ internal class AndroidExtraModelProviderWorker(
 
   fun populateBuildModels() {
     try {
-      val modules: List<GradleModelCollection> =
+      val modelCollections: List<GradleModelCollection> =
         when (syncOptions) {
           is SyncProjectActionOptions -> {
             val modules: List<BasicIncompleteGradleModule> = getBasicIncompleteGradleModules()
+            val v2AndroidGradleModules = modules.filterIsInstance<BasicV2AndroidModuleGradleProject>()
+
             modules.filterIsInstance<BasicIncompleteAndroidModule>().forEach { checkAgpVersionCompatibility(it.agpVersion, syncOptions) }
             verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules)
 
             val gradleVersion = safeActionRunner.runAction { it.getModel(BuildEnvironment::class.java).gradle.gradleVersion }
             val v2ModelBuildersSupportParallelSync =
-              modules
-                .filterIsInstance<BasicV2AndroidModuleGradleProject>()
+              v2AndroidGradleModules
                 .all { canUseParallelSync(GradleVersion.tryParseAndroidGradlePluginVersion(it.versions.agp), gradleVersion) }
+
             val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(v2ModelBuildersSupportParallelSync)
-            SyncProjectActionWorker(
-              buildInfo,
-              syncOptions,
-              configuredSyncActionRunner
-            ).populateAndroidModels(modules)
+
+            val models =
+              SyncProjectActionWorker(buildInfo, syncOptions, configuredSyncActionRunner)
+                .populateAndroidModels(modules)
+
+            val syncExecutionReport = IdeSyncExecutionReport(
+              parallelFetchForV2ModelsEnabled =
+              configuredSyncActionRunner.parallelActionsForV2ModelsSupported && v2AndroidGradleModules.isNotEmpty()
+            )
+
+            models + StandaloneDeliverableModel.createModel(syncExecutionReport, buildInfo.rootBuild)
           }
           is NativeVariantsSyncActionOptions -> {
             consumer.consume(
@@ -102,7 +106,7 @@ internal class AndroidExtraModelProviderWorker(
           }
           // Note: No more cases.
         }
-      modules.forEach { it.deliverModels(consumer) }
+      modelCollections.forEach { it.deliverModels(consumer) }
     }
     catch (e: AndroidSyncException) {
       consumer.consume(

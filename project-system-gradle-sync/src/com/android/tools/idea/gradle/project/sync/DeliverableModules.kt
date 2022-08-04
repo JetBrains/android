@@ -28,6 +28,7 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import java.io.Serializable
 
 sealed interface GradleModelCollection {
   fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
@@ -126,3 +127,19 @@ class DeliverableNativeVariantsAndroidModule(
   }
 }
 
+class StandaloneDeliverableModel<T : Serializable>(
+  private val clazz: Class<*>,
+  private val model: T,
+  private val modelFor: BuildModel
+  ) : GradleModelCollection {
+
+  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    consumer.consume(modelFor, model, clazz)
+  }
+
+  companion object {
+    inline fun <reified T: Serializable> createModel(model: T, modelFor: BuildModel): StandaloneDeliverableModel<T> {
+      return StandaloneDeliverableModel(T::class.java, model, modelFor)
+    }
+  }
+}

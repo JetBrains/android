@@ -167,8 +167,8 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
   private val eventLogger = GradleSyncEventLogger()
 
-  fun generateSyncEvent(eventKind: AndroidStudioEvent.EventKind): AndroidStudioEvent.Builder {
-    return eventLogger.generateSyncEvent(project, eventKind)
+  fun generateSyncEvent(eventKind: AndroidStudioEvent.EventKind, rootProjectPath: @SystemIndependent String): AndroidStudioEvent.Builder {
+    return eventLogger.generateSyncEvent(project, rootProjectPath, eventKind)
   }
 
   var lastSyncFinishedTimeStamp = -1L; private set
@@ -350,7 +350,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     // an error.
     if (project.isDisposed) return
 
-    val event = eventLogger.generateSyncEvent(project, kind)
+    val event = eventLogger.generateSyncEvent(project, rootProjectPath, kind)
 
     UsageTracker.log(event)
   }

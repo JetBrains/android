@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemIndependent;
 
 public class SyncIssuesReporter {
   @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(12);
@@ -66,7 +67,7 @@ public class SyncIssuesReporter {
   /**
    * Reports all sync errors for the provided collection of modules.
    */
-  public void report(@NotNull Map<Module, List<IdeSyncIssue>> issuesByModules) {
+  public void report(@NotNull Map<Module, List<IdeSyncIssue>> issuesByModules, @SystemIndependent String rootProjectPath) {
     if (issuesByModules.isEmpty()) {
       return;
     }
@@ -107,7 +108,7 @@ public class SyncIssuesReporter {
     }
     Project finalProject = project;
     Runnable reportTask = () -> {
-      SyncIssueUsageReporter.Companion.getInstance(finalProject).reportToUsageTracker();
+      SyncIssueUsageReporter.Companion.getInstance(finalProject).reportToUsageTracker(rootProjectPath);
     };
     if (ApplicationManager.getApplication().isUnitTestMode())
       reportTask.run();

@@ -20,6 +20,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.project.Project
 import junit.framework.Assert.assertSame
+import org.jetbrains.annotations.SystemIndependent
 
 class TestSyncIssueUsageReporter(
     val collectedIssue: MutableList<GradleSyncIssue> = mutableListOf(),
@@ -38,7 +39,7 @@ class TestSyncIssueUsageReporter(
     collectedIssue.add(issue.build())
   }
 
-  override fun reportToUsageTracker() = Unit
+  override fun reportToUsageTracker(rootProjectPath: @SystemIndependent String) = Unit
 
   companion object {
     @JvmStatic

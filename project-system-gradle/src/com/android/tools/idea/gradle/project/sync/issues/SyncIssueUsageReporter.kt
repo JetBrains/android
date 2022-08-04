@@ -22,6 +22,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.SystemIndependent
 
 private val LOG = Logger.getInstance(SyncIssueUsageReporter::class.java)
 
@@ -49,7 +50,7 @@ interface SyncIssueUsageReporter {
    * Logs collected usages to the usage tracker as a [AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES] and/or
    * [AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS] event. This method is supposed to be called on EDT only.
    */
-  fun reportToUsageTracker()
+  fun reportToUsageTracker(rootProjectPath: @SystemIndependent String)
 
   companion object {
     fun getInstance(project: Project): SyncIssueUsageReporter {

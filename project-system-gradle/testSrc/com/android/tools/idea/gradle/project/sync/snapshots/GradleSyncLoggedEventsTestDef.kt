@@ -20,6 +20,8 @@ import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
+import com.android.tools.idea.testing.ModelVersion
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.TextFormat
 import com.intellij.openapi.project.Project
@@ -30,7 +32,7 @@ data class GradleSyncLoggedEventsTestDef(
   val namePrefix: String,
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-  val verify: (events: List<LoggedUsage>) -> Unit = {}
+  val verify: GradleSyncLoggedEventsTestDef.(events: List<LoggedUsage>) -> Unit = {}
 ) : SyncedProjectTest.TestDef {
 
   override val name: String
@@ -40,10 +42,6 @@ data class GradleSyncLoggedEventsTestDef(
 
   override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
     return copy(agpVersion = agpVersion)
-  }
-
-  override fun isCompatible(): Boolean {
-    return agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
   }
 
   private val testUsageTracker = TestUsageTracker(VirtualTimeScheduler())
@@ -72,15 +70,32 @@ data class GradleSyncLoggedEventsTestDef(
         testProject = TestProject.SIMPLE_APPLICATION
       ) { events ->
         assertThat(events.dumpSyncEvents()).isEqualTo(
-          """
-            |GRADLE_SYNC_STARTED
-            |  USER_REQUESTED_PARALLEL
-            |GRADLE_SYNC_SETUP_STARTED
-            |  USER_REQUESTED_PARALLEL
-            |GRADLE_SYNC_ENDED
-            |  USER_REQUESTED_PARALLEL
-            |GRADLE_BUILD_DETAILS
-          """.trimMargin()
+          buildString {
+            val expectedMode = if (shouldSupportParallelSync()) "PARALLEL" else "SEQUENTIAL"
+            appendLine(
+              """
+              |GRADLE_SYNC_STARTED
+              |  USER_REQUESTED_PARALLEL
+              |GRADLE_SYNC_SETUP_STARTED
+              |  USER_REQUESTED_PARALLEL""".trim()
+            )
+            if (agpVersion == AGP_70) {
+              appendLine(
+                """
+              |GRADLE_SYNC_ISSUES
+              |  USER_REQUESTED_PARALLEL
+              |  STUDIO_REQUESTD_$expectedMode
+              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH""".trim()
+              )
+            }
+            appendLine(
+              """
+              |GRADLE_SYNC_ENDED
+              |  USER_REQUESTED_PARALLEL
+              |  STUDIO_REQUESTD_$expectedMode
+              |GRADLE_BUILD_DETAILS""".trim()
+            )
+          }.trimMargin()
         )
       },
       GradleSyncLoggedEventsTestDef(
@@ -88,15 +103,31 @@ data class GradleSyncLoggedEventsTestDef(
         testProject = TestProject.SIMPLE_APPLICATION_NO_PARALLEL_SYNC
       ) { events ->
         assertThat(events.dumpSyncEvents()).isEqualTo(
-          """
-            |GRADLE_SYNC_STARTED
-            |  USER_REQUESTED_SEQUENTIAL
-            |GRADLE_SYNC_SETUP_STARTED
-            |  USER_REQUESTED_SEQUENTIAL
-            |GRADLE_SYNC_ENDED
-            |  USER_REQUESTED_SEQUENTIAL
-            |GRADLE_BUILD_DETAILS
-          """.trimMargin()
+          buildString {
+            appendLine(
+              """
+              |GRADLE_SYNC_STARTED
+              |  USER_REQUESTED_SEQUENTIAL
+              |GRADLE_SYNC_SETUP_STARTED
+              |  USER_REQUESTED_SEQUENTIAL""".trim()
+            )
+            if (agpVersion == AGP_70) {
+              appendLine(
+                """
+              |GRADLE_SYNC_ISSUES
+              |  USER_REQUESTED_SEQUENTIAL
+              |  STUDIO_REQUESTD_SEQUENTIAL
+              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH""".trim()
+              )
+            }
+            appendLine(
+              """
+              |GRADLE_SYNC_ENDED
+              |  USER_REQUESTED_SEQUENTIAL
+              |  STUDIO_REQUESTD_SEQUENTIAL
+              |GRADLE_BUILD_DETAILS""".trim()
+            )
+          }.trimMargin()
         )
       },
       GradleSyncLoggedEventsTestDef(
@@ -132,7 +163,14 @@ data class GradleSyncLoggedEventsTestDef(
           buildString {
             appendLine(it.kind.toString())
             if (it.gradleSyncStats.hasUserRequestedSyncType()) {
-              appendLine("  ${it.gradleSyncStats.userRequestedSyncType}")
+              if (it.gradleSyncStats.hasUserRequestedSyncType()) appendLine("  ${it.gradleSyncStats.userRequestedSyncType}")
+              if (it.gradleSyncStats.hasStudioRequestedSyncType()) appendLine("  ${it.gradleSyncStats.studioRequestedSyncType}")
+              it.gradleSyncIssuesList.forEach { issue ->
+                appendLine("  ${issue.type}")
+                issue.offeredQuickFixesList.forEach { fix ->
+                  appendLine("    $fix")
+                }
+              }
             }
           }
         }
@@ -148,3 +186,6 @@ data class GradleSyncLoggedEventsTestDef(
     }
   }
 }
+
+private fun GradleSyncLoggedEventsTestDef.shouldSupportParallelSync() =
+  agpVersion > AgpVersionSoftwareEnvironmentDescriptor.AGP_72 && agpVersion.modelVersion == ModelVersion.V2
