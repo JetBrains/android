@@ -22,7 +22,6 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
-import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.GRADLE_SYNC_TOPIC
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -67,7 +66,10 @@ import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.util.PathUtil.toSystemIndependentName
 import com.intellij.util.ThreeState
+import com.intellij.util.messages.MessageBusConnection
+import com.intellij.util.messages.Topic
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -98,7 +100,16 @@ class GradleSyncStateImpl constructor(project: Project) : GradleSyncState {
 
   override fun lastSyncFailed(): Boolean = delegate.lastSyncFailed()
   override fun isSyncNeeded(): ThreeState = delegate.isSyncNeeded()
+
+  override fun subscribe(project: Project, listener: GradleSyncListener, disposable: Disposable): MessageBusConnection {
+    val connection = project.messageBus.connect(disposable)
+    connection.subscribe(GRADLE_SYNC_TOPIC, listener)
+    return connection
+  }
 }
+
+@VisibleForTesting
+val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListener::class.java)
 
 class GradleSyncStateHolder constructor(private val project: Project)  {
 

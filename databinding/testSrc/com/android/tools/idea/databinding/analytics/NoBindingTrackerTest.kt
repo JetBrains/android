@@ -18,8 +18,10 @@ package com.android.tools.idea.databinding.analytics
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.databinding.DataBindingTrackerSyncListener
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -72,7 +74,7 @@ class NoBindingTrackerTest {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
       try {
         UsageTracker.setWriterForTest(tracker)
-        projectRule.project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(projectRule.project)
+        DataBindingTrackerSyncListener(projectRule.project).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
         val viewBindingPollMetadata = tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }

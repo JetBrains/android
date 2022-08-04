@@ -47,27 +47,24 @@ interface GradleSyncState {
 
   fun isSyncNeeded(): ThreeState
 
+  fun subscribe(project: Project, listener: GradleSyncListener, disposable: Disposable): MessageBusConnection
+
   companion object {
     @JvmField
     val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
-
-    @JvmField
-    val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListener::class.java)
 
     /**
      * These methods allow the registering of listeners to [GradleSyncState].
      *
      * See [GradleSyncListener] for more details on the different hooks through the syncing process.
      */
-    @JvmStatic
-    fun subscribe(project: Project, listener: GradleSyncListener): MessageBusConnection = subscribe(project, listener, project)
+
+    fun subscribe(project: Project, listener: GradleSyncListener, disposable: Disposable): MessageBusConnection {
+      return getInstance(project).subscribe(project, listener, disposable)
+    }
 
     @JvmStatic
-    fun subscribe(project: Project, listener: GradleSyncListener, disposable: Disposable): MessageBusConnection {
-      val connection = project.messageBus.connect(disposable)
-      connection.subscribe(GRADLE_SYNC_TOPIC, listener)
-      return connection
-    }
+    fun subscribe(project: Project, listener: GradleSyncListener): MessageBusConnection = subscribe(project, listener, project)
 
     @JvmStatic
     fun getInstance(project: Project): GradleSyncState =
@@ -79,6 +76,9 @@ interface GradleSyncState {
         override val lastSyncedGradleVersion: GradleVersion? = null
         override fun lastSyncFailed(): Boolean = false
         override fun isSyncNeeded(): ThreeState = ThreeState.NO
+        override fun subscribe(project: Project, listener: GradleSyncListener, disposable: Disposable): MessageBusConnection {
+          error("Not supported in unit test mode")
+        }
       }
       else error("GradleSyncState service is not registered.")
   }

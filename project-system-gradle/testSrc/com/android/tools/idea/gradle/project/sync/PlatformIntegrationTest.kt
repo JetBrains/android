@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.GRADLE_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
