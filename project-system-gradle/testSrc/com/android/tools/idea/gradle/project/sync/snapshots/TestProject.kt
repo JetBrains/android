@@ -15,19 +15,27 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.SdkConstants
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject.file
+import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.ModelVersion
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
 import com.android.utils.FileUtils.writeToFile
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
@@ -119,7 +127,7 @@ enum class TestProject(
   NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     testName = "hierarchical",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true) }
   ),
   LINKED(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
@@ -140,37 +148,37 @@ enum class TestProject(
   KOTLIN_MULTIPLATFORM_HIERARCHICAL(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "hierarchical",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true) }
   ),
   KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "hierarchical_withjs",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true, addJsModule = true) }
   ),
   KOTLIN_MULTIPLATFORM_JVM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = false, addJvmTo = listOf("module2")) }
   ),
   KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm_hierarchical",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true, addJvmTo = listOf("module2")) }
   ),
   KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm_hierarchical_kmpapp",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true, convertAppToKmp = true, addJvmTo = listOf("app", "module2")) }
   ),
   KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm_hierarchical_kmpapp_withintermediate",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true, convertAppToKmp = true, addJvmTo = listOf("app", "module2"), addIntermediateTo = listOf("module2")) }
   ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
@@ -334,7 +342,7 @@ private fun createEmptyGradleSettingsFile(projectRootPath: File) {
 }
 
 fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT -> "_"
+  AGP_CURRENT -> "_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1 -> "_NewAgp_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_32 -> "_Agp_3.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
@@ -362,4 +370,36 @@ class SnapshotContext(
 
   override val snapshotDirectoryWorkspaceRelativePath: String = workspace
   override fun getName(): String = name
+}
+
+interface PreparedTestProject {
+  fun <T> open(options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(), body: (Project) -> T): T
+  val root: File
+}
+
+fun GradleIntegrationTest.prepareTestProject(
+  testProject: TestProject,
+  name: String = "project",
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT
+): PreparedTestProject {
+  val root = prepareGradleProject(
+    testProject.template,
+    name,
+    agpVersion,
+    ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
+  )
+  testProject.patch(agpVersion, root)
+
+  return object: PreparedTestProject {
+    override val root: File = root
+    override fun <T> open(options: OpenPreparedProjectOptions, body: (Project) -> T): T {
+      return openPreparedProject(
+        name = "$name${testProject.pathToOpen}",
+        options = options
+      ) { project ->
+        AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+        body(project)
+      }
+    }
+  }
 }

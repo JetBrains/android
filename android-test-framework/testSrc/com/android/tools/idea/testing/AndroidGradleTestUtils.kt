@@ -1974,25 +1974,46 @@ private fun <T> openPreparedProject(
           // run faster.
           AdditionalLibraryRootsProvider.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesLibraryRootProvider::class.java)
         }
-        val project = GradleProjectImporter.withAfterCreate(
-          afterCreate = { project ->
-            @Suppress("UnstableApiUsage")
-            if (options.disableKtsRelatedIndexing) {
-              ScriptingSupport.EPN.getPoint(project).unregisterExtensions({_, _ -> false}, false)
-              ScriptChangeListener.LISTENER.getPoint(project).unregisterExtensions({ _, _ -> false}, false)
-            }
-            project.messageBus.connect(disposable).let { options.subscribe(it) }
-            val outputHandler = options.outputHandler
-            val syncExceptionHandler = options.syncExceptionHandler
-            if (outputHandler != null || syncExceptionHandler != null) {
-              injectSyncOutputDumper(project, project, options.outputHandler ?: {}, options.syncExceptionHandler ?: {})
-            }
-            fixDummySyncViewManager(project, disposable)
+
+        var afterCreateCalled = false
+
+        fun afterCreate(project: Project) {
+          // After create is invoked via three different execution paths:
+          //   (1) when we import a new Android Gradle project that does not yet have a `.idea` directory. In this case this method is
+          //       called `GradleProjectImporter.createProject`;
+          //   (2) when we import an Android Gradle project with an existing `.idea` directory a request to call this method is passed to
+          //       the project manager from `AndroidGradleProjectOpenProcessor.doOpenProject`;
+          //   (3) when we try to open a project with a `.idea` directory such that it is not recognised as an Android Gradle project this
+          //       method is called normally via `ProjectUtil.openOrImport`.
+          // Note, that this happens because custom `ProjectOpenProcessor`'s currently do not receive `OpenProjectTask` options.
+          if (afterCreateCalled) {
+            error("Attempt to call afterCreate() twice.")
           }
-        ) {
+          afterCreateCalled = true
+
+          @Suppress("UnstableApiUsage")
+          if (options.disableKtsRelatedIndexing) {
+            ScriptingSupport.EPN.getPoint(project).unregisterExtensions({_, _ -> false}, false)
+            ScriptChangeListener.LISTENER.getPoint(project).unregisterExtensions({ _, _ -> false}, false)
+          }
+          project.messageBus.connect(disposable).let { options.subscribe(it) }
+          val outputHandler = options.outputHandler
+          val syncExceptionHandler = options.syncExceptionHandler
+          if (outputHandler != null || syncExceptionHandler != null) {
+            injectSyncOutputDumper(project, project, options.outputHandler ?: {}, options.syncExceptionHandler ?: {})
+          }
+          fixDummySyncViewManager(project, disposable)
+        }
+
+        val project = GradleProjectImporter.withAfterCreate(afterCreate = { project -> afterCreate(project) }) {
           ProjectUtil.openOrImport(
             projectPath.toPath(),
             OpenProjectTask(
+              beforeOpen =
+              {
+                afterCreate(it)
+                true
+              },
               projectToClose = null,
               forceOpenInNewFrame = true
             )

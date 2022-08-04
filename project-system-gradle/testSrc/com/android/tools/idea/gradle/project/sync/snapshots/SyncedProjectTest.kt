@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
@@ -25,15 +24,12 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
-import com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -264,13 +260,10 @@ abstract class SyncedProjectTest(
     if (!testProject.isCompatibleWith(agpVersion)) skipTest("Project ${testProject.name} is incompatible with $agpVersion")
     val tests = testDefinitions.entries.singleOrNull()?.value.orEmpty()
 
-    val root = prepareGradleProject(
-      testProject.template,
-      "project",
-      agpVersion,
-      ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
+    val preparedProject = prepareTestProject(
+      testProject,
+      agpVersion = agpVersion
     )
-    testProject.patch(agpVersion, root)
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
     if (agpVersion.modelVersion == ModelVersion.V1) {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
@@ -278,28 +271,26 @@ abstract class SyncedProjectTest(
     try {
       fun setup(): List<Throwable> {
         return tests.mapNotNull {
-          kotlin.runCatching { it.setup(root) }.exceptionOrNull()
+          kotlin.runCatching { it.setup(preparedProject.root) }.exceptionOrNull()
         }
       }
 
       fun run(): List<Throwable> {
-        return openPreparedProject(
-          name = "project${testProject.pathToOpen}",
+        return preparedProject.open(
           options = OpenPreparedProjectOptions(
             disableKtsRelatedIndexing = true
           )
         ) { project ->
-          waitForSourceFolderManagerToProcessUpdates(project)
           tests.mapNotNull {
-            println("${it::class.java.simpleName}(${testProject.projectName})\n    $root")
-            kotlin.runCatching { it.runTest(root, project) }.exceptionOrNull()
+            println("${it::class.java.simpleName}(${testProject.projectName})\n    $preparedProject.root")
+            kotlin.runCatching { it.runTest(preparedProject.root, project) }.exceptionOrNull()
           }
         }
       }
 
       fun verify(): List<Throwable> {
         return tests.mapNotNull {
-          kotlin.runCatching { it.verifyAfterClosing(root) }.exceptionOrNull()
+          kotlin.runCatching { it.verifyAfterClosing(preparedProject.root) }.exceptionOrNull()
         }
       }
 
