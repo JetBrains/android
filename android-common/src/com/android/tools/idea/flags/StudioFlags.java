@@ -777,10 +777,16 @@ public final class StudioFlags {
     "When this flag is enabled, LayoutInspector will automatically connect to whatever debuggable process is in the foreground on the phone.",
     false);
 
-  public static final Flag<String> DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_FOLDER = Flag.create(
-    LAYOUT_INSPECTOR, "dev.jar.location", "Location of prebuilt compose app inspection jar",
-    "If APP_INSPECTION_USE_DEV_JAR is enabled use this location to load the inspector jar.",
+  public static final Flag<String> DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER = Flag.create(
+    LAYOUT_INSPECTOR, "dev.jar.location", "Location of prebuilt compose app inspection jar for development",
+    "If APP_INSPECTION_USE_DEV_JAR is enabled use this location to load the inspector jar in development.",
     "prebuilts/tools/common/app-inspection/androidx/compose/ui/"
+  );
+
+  public static final Flag<String> DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER = Flag.create(
+    LAYOUT_INSPECTOR, "rel.jar.location", "Location of prebuilt compose app inspection jar for releases",
+    "If APP_INSPECTION_USE_DEV_JAR is enabled use this location to load the inspector jar in releases.",
+    ""
   );
   //endregion
 
