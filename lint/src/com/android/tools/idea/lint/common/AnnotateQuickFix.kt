@@ -26,8 +26,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.util.addAnnotation
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunction
@@ -36,6 +35,7 @@ import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
+import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTypeParameter
 
 class AnnotateQuickFix(
@@ -78,17 +78,11 @@ class AnnotateQuickFix(
         }
       }
       KotlinLanguage.INSTANCE -> {
-        val args = annotationSource.indexOf('(')
-        val className = annotationSource.substring(0, if (args == -1) annotationSource.length else args).removePrefix("@")
-        when (container) {
-          is KtModifierListOwner -> {
-            container.addAnnotation(
-              FqName(className),
-              if (args == -1) null else annotationSource.substring(args + 1, annotationSource.length - 1),
-              whiteSpaceText = if (container.isNewLineNeededForAnnotation()) "\n" else " "
-            )
-          }
-        }
+        if (container !is KtModifierListOwner) return
+        val psiFactory = KtPsiFactory(container)
+        val annotationEntry = psiFactory.createAnnotationEntry(annotationSource)
+        val annotation = container.addAnnotationEntry(annotationEntry)
+        ShortenReferences.DEFAULT.process(annotation)
       }
     }
   }
@@ -112,9 +106,9 @@ fun KtElement.isNewLineNeededForAnnotation(): Boolean {
 }
 
 fun findJavaAnnotationTarget(element: PsiElement?): PsiModifierListOwner? {
-  val modifier = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java, true)
+  val modifier = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java, false)
   return if (modifier is PsiClassInitializer || modifier is PsiAnonymousClass) {
-    findJavaAnnotationTarget(modifier)
+    findJavaAnnotationTarget(modifier.parent)
   }
   else {
     modifier
@@ -122,4 +116,4 @@ fun findJavaAnnotationTarget(element: PsiElement?): PsiModifierListOwner? {
 }
 
 private fun findKotlinAnnotationTarget(element: PsiElement) =
-  PsiTreeUtil.findFirstParent(element, true) { it.isAnnotationTarget() }
+  PsiTreeUtil.findFirstParent(element, false) { it.isAnnotationTarget() }
