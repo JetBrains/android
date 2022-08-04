@@ -22,16 +22,13 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
-import icons.StudioIcons;
 import javax.swing.KeyStroke;
-
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,8 +71,7 @@ public class ApplyChangesAction extends BaseAction {
       }
 
       ProcessHandler handler = findRunningProcessHandler(project, runConfig.getConfiguration());
-      if (handler != null &&
-          getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance()) == DefaultDebugExecutor.getDebugExecutorInstance()) {
+      if (handler != null && getExecutor(handler) == DefaultDebugExecutor.getDebugExecutorInstance()) {
         disableAction(e.getPresentation(), new DisableMessage(DisableMessage.DisableMode.DISABLED, "debug execution",
                                                               "it is currently not allowed during debugging"));
       }

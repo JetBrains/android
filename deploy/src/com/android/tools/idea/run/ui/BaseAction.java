@@ -25,7 +25,6 @@ import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.run.util.SwapInfo.SwapType;
 import com.android.tools.idea.util.CommonAndroidUtil;
-import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
@@ -34,7 +33,6 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
-import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -281,7 +279,7 @@ public abstract class BaseAction extends AnAction {
     return handler == null
            // If we can't find an existing executor (e.g. app was started directly on device), just use the Run Executor.
            ? DefaultRunExecutor.getRunExecutorInstance()
-           : getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance());
+           : getExecutor(handler);
   }
 
   @Nullable
@@ -304,15 +302,10 @@ public abstract class BaseAction extends AnAction {
   }
 
   @Nullable
-  protected static Executor getExecutor(@NotNull ProcessHandler processHandler, @Nullable Executor defaultExecutor) {
-    if (processHandler instanceof RemoteDebugProcessHandler) {
-      // Special case for remote debugger.
-      return DefaultDebugExecutor.getDebugExecutorInstance();
-    }
-
+  protected static Executor getExecutor(@NotNull ProcessHandler processHandler) {
     SwappableProcessHandler extension = processHandler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY);
     return processHandler.isProcessTerminated() || processHandler.isProcessTerminating() || extension == null
-           ? defaultExecutor
+           ? null
            : extension.getExecutor();
   }
 
