@@ -490,8 +490,8 @@ class ComposePreviewRepresentationGradleTest {
     val otherPreviewView = TestComposePreviewView(fixture.testRootDisposable, project)
     val otherPreviewRepresentation = createComposePreviewRepresentation(otherPreviewsFile, otherPreviewView)
 
-    otherPreviewRepresentation.onActivate()
     composePreviewRepresentation.onDeactivate()
+    otherPreviewRepresentation.onActivate()
 
     // Now otherPreviewRepresentation is active, but the main file representation is not,
     // so modifying otherPreviewsFile shouldn't trigger a refresh in the later one.
