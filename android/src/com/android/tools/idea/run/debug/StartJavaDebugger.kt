@@ -71,7 +71,6 @@ fun attachJavaDebuggerToClient(
           AndroidSessionInfo.create(debugProcessHandler,
                                     executionEnvironment.runProfile as? RunConfiguration,
                                     executor.id,
-                                    executor.actionName,
                                     executionEnvironment.executionTarget)
           promise.setResult(session as XDebugSessionImpl)
         }
@@ -116,7 +115,6 @@ fun attachJavaDebuggerToClientAndShowTab(
           AndroidSessionInfo.create(debugProcessHandler,
                                     null,
                                     DefaultDebugExecutor.getDebugExecutorInstance().id,
-                                    DefaultDebugExecutor.getDebugExecutorInstance().actionName,
                                     ExecutionTargetManager.getActiveTarget(project))
           promise.setResult(session)
         }
