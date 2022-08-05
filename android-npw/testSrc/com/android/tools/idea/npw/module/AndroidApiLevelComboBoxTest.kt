@@ -32,6 +32,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
+@org.junit.Ignore("b/240368654")
 class AndroidApiLevelComboBoxTest {
   private lateinit var disposable: Disposable
 
