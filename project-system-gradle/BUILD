@@ -181,7 +181,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-js_1.7.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
-        "@maven//:org.mockito.mockito-core_3.0.0",
+        "@maven//:org.mockito.mockito-core_3.12.4",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )

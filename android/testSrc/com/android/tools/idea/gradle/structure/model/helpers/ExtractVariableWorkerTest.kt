@@ -168,7 +168,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     val project = PsProjectImpl(resolvedProject)
     val appModule = project.findModuleByName("app") as PsAndroidModule
     val junit = appModule.dependencies.findLibraryDependencies("junit:junit:4.12").firstOrNull()
-    val mockito = appModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:3.0.0").firstOrNull()
+    val mockito = appModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:3.12.4").firstOrNull()
 
     assertThat(junit, notNullValue())
     assertThat(mockito, notNullValue())
@@ -192,11 +192,11 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("mockitoCoreVersion"))
       assertThat(newProperty.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("3.0.0", DslText.Literal).annotated()))
+                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("3.12.4", DslText.Literal).annotated()))
       worker.commit("mockitoCoreVersion")
 
       assertThat(appModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("3.0.0", DslText.Literal)))
+                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("3.12.4", DslText.Literal)))
     }
   }
 
@@ -207,7 +207,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     val project = PsProjectImpl(resolvedProject)
     val javaModule = project.findModuleByName("javalib") as PsJavaModule
     val junit = javaModule.dependencies.findLibraryDependencies("junit:junit:4.12").firstOrNull()
-    val mockito = javaModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:3.0.0").firstOrNull()
+    val mockito = javaModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:3.12.4").firstOrNull()
 
     assertThat(junit, notNullValue())
     assertThat(mockito, notNullValue())
@@ -231,11 +231,11 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       val (newName, newProperty) = worker.changeScope(javaModule.variables, "")
       assertThat(newName, equalTo("mockitoCoreVersion"))
       assertThat(newProperty.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("3.0.0", DslText.Literal).annotated()))
+                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("3.12.4", DslText.Literal).annotated()))
       worker.commit("mockitoCoreVersion")
 
       assertThat(javaModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("3.0.0", DslText.Literal)))
+                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("3.12.4", DslText.Literal)))
     }
   }
 
