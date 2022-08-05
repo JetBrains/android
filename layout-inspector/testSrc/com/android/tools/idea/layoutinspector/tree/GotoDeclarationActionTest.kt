@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -63,7 +64,7 @@ class GotoDeclarationActionTest {
     val stats = runInEdtAndGet {
       val model = createModel()
       model.setSelection(model["title"], SelectionOrigin.INTERNAL)
-      val stats = SessionStatisticsImpl(model)
+      val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
       val event = createEvent(model, stats)
       GotoDeclarationAction.actionPerformed(event)
       stats
@@ -77,7 +78,7 @@ class GotoDeclarationActionTest {
     val stats = runInEdtAndGet {
       val model = createModel()
       model.setSelection(model[-2], SelectionOrigin.INTERNAL)
-      val stats = SessionStatisticsImpl(model)
+      val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
       val event = createEvent(model, stats, fromShortcut = true)
       GotoDeclarationAction.actionPerformed(event)
       stats
@@ -92,7 +93,7 @@ class GotoDeclarationActionTest {
     val stats = runInEdtAndGet {
       val model = createModel()
       model.setSelection(model[-5], SelectionOrigin.INTERNAL)
-      val stats = SessionStatisticsImpl(model)
+      val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
       val event = createEvent(model, stats)
       GotoDeclarationAction.actionPerformed(event)
       stats

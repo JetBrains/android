@@ -24,7 +24,8 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -101,7 +102,7 @@ interface InspectorClient: Disposable {
   /**
    * Register a handle that is triggered when this client receives a launch event.
    */
-  fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit)
+  fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit)
 
   /**
    * Connect this client to the device.
@@ -113,7 +114,7 @@ interface InspectorClient: Disposable {
    */
   fun connect(project: Project)
 
-  fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState)
+  fun updateProgress(state: AttachErrorState)
 
   /**
    * Disconnect this client.
@@ -222,14 +223,14 @@ interface InspectorClient: Disposable {
 
 object DisconnectedClient : InspectorClient {
   override fun connect(project: Project) {}
-  override fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {}
+  override fun updateProgress(state: AttachErrorState) {}
 
   override fun disconnect() {}
 
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
   override fun registerErrorCallback(callback: (String) -> Unit) = Unit
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
-  override fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit) = Unit
+  override fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit) = Unit
 
   override fun startFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
   override fun stopFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
@@ -274,6 +275,8 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override fun gotoSourceFromDoubleClick() {}
   override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {}
   override fun resetRecompositionCountsClick() {}
+  override fun attachSuccess() {}
+  override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {}
   override var currentModeIsLive: Boolean = false
   override var currentMode3D: Boolean = false
   override var hideSystemNodes: Boolean = true

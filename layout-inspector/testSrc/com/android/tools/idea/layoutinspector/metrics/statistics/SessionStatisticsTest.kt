@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.testFramework.ApplicationRule
 import org.junit.ClassRule
@@ -37,7 +38,7 @@ class SessionStatisticsTest {
 
   @Test
   fun doNotSaveEmptyData() {
-    val stats = SessionStatisticsImpl(model {})
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model {})
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.save(data)
     val result = data.build()
@@ -47,6 +48,8 @@ class SessionStatisticsTest {
     assertThat(result.hasCompose()).isFalse()
     assertThat(result.hasSystem()).isFalse()
     assertThat(result.hasGotoDeclaration()).isFalse()
+    assertThat(result.hasAttach()).isTrue() // except for attach data
+    assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
   }
 
   @Test
@@ -58,11 +61,12 @@ class SessionStatisticsTest {
         }
       }
     }
-    val stats = SessionStatisticsImpl(model)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
     val compose1 = model[COMPOSE1]
     stats.start()
     model.notifyModified(structuralChange = true)
     stats.hideSystemNodes = true
+    stats.attachSuccess()
     stats.gotoSourceFromDoubleClick()
     stats.selectionMadeFromComponentTree(compose1)
     waitForCondition(10, TimeUnit.SECONDS) { stats.memoryMeasurements > 0 }
@@ -76,6 +80,7 @@ class SessionStatisticsTest {
     assertThat(result.hasCompose()).isTrue()
     assertThat(result.hasSystem()).isTrue()
     assertThat(result.hasGotoDeclaration()).isTrue()
+    assertThat(result.hasAttach()).isTrue()
 
     assertThat(result.live.clicksWithoutLiveUpdates).isEqualTo(1)
     assertThat(result.rotation.componentTreeClicksIn2D).isEqualTo(1)
@@ -83,5 +88,7 @@ class SessionStatisticsTest {
     assertThat(result.compose.componentTreeClicks).isEqualTo(1)
     assertThat(result.system.clicksWithHiddenSystemViews).isEqualTo(1)
     assertThat(result.gotoDeclaration.doubleClicks).isEqualTo(1)
+    assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
+    assertThat(result.attach.success).isTrue()
   }
 }

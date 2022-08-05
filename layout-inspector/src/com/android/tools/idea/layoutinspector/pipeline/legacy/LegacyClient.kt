@@ -24,9 +24,9 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.snapshots.saveLegacySnapshot
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.LEGACY_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
 import java.nio.file.Path
@@ -42,7 +42,7 @@ class LegacyClient(
   private val metrics: LayoutInspectorMetrics,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(process, isInstantlyAutoConnected, SessionStatisticsImpl(model), parentDisposable) {
+) : AbstractInspectorClient(process, isInstantlyAutoConnected, SessionStatisticsImpl(LEGACY_CLIENT, model), parentDisposable) {
 
   private val lookup: ViewNodeAndResourceLookup = model
   private val project = model.project

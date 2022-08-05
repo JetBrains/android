@@ -18,6 +18,9 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.annotations.TestOnly
@@ -77,6 +80,16 @@ interface SessionStatistics {
   fun resetRecompositionCountsClick()
 
   /**
+   * The connection succeeded in attaching to the process.
+   */
+  fun attachSuccess()
+
+  /**
+   * The connection failed to attach to the process.
+   */
+  fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode)
+
+  /**
    * Live mode changed.
    */
   var currentModeIsLive : Boolean
@@ -98,7 +111,8 @@ interface SessionStatistics {
   val memoryMeasurements: Int
 }
 
-class SessionStatisticsImpl(model: InspectorModel) : SessionStatistics {
+class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : SessionStatistics {
+  private val attach = AttachStatistics(clientType)
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()
   private val memory = MemoryStatistics(model)
@@ -107,6 +121,7 @@ class SessionStatisticsImpl(model: InspectorModel) : SessionStatistics {
   private val goto = GotoDeclarationStatistics()
 
   override fun start() {
+    attach.start()
     live.start()
     rotation.start()
     memory.start()
@@ -116,6 +131,7 @@ class SessionStatisticsImpl(model: InspectorModel) : SessionStatistics {
   }
 
   override fun save(data: DynamicLayoutInspectorSession.Builder) {
+    attach.save { data.attachBuilder }
     live.save { data.liveBuilder }
     rotation.save { data.rotationBuilder }
     memory.save { data.memoryBuilder }
@@ -160,6 +176,14 @@ class SessionStatisticsImpl(model: InspectorModel) : SessionStatistics {
 
   override fun resetRecompositionCountsClick() {
     compose.resetRecompositionCountsClick()
+  }
+
+  override fun attachSuccess() {
+    attach.attachSuccess()
+  }
+
+  override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {
+    attach.attachError(errorState, errorCode)
   }
 
   override var currentModeIsLive : Boolean

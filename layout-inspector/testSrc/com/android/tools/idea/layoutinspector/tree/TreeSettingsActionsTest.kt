@@ -37,6 +37,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -75,7 +76,7 @@ class TreeSettingsActionsTest {
 
   private val treeSettings = FakeTreeSettings()
   private val model = createModel()
-  private val stats = SessionStatisticsImpl(model)
+  private val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
   private val capabilities = EnumSet.noneOf(Capability::class.java)
   private var isConnected = false
 

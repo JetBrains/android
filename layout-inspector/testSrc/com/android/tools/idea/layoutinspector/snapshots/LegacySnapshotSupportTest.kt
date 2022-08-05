@@ -37,6 +37,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.io.readBytes
@@ -92,7 +93,7 @@ DONE.
     legacyClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(projectRule.project)
-    val stats = SessionStatisticsImpl(newModel)
+    val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT, newModel)
     snapshotLoader.loadFile(savePath, newModel, stats)
 
     val window = newModel.windows[windowName]!!

@@ -33,6 +33,7 @@ import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefin
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.EditorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOADED
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOAD_ERROR
@@ -96,7 +97,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       // TODO: error handling
       snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
       val model = InspectorModel(project)
-      stats = SessionStatisticsImpl(model)
+      stats = SessionStatisticsImpl(SNAPSHOT_CLIENT, model)
       metadata = snapshotLoader?.loadFile(path, model, stats) ?: throw Exception()
       val client = object : InspectorClient by DisconnectedClient {
         override val provider: PropertiesProvider
