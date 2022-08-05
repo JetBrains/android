@@ -22,10 +22,13 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
+import com.intellij.openapi.startup.ProjectPostStartupActivity
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.util.application
 import java.util.Collections
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -33,39 +36,45 @@ import java.util.concurrent.TimeUnit
 private const val DELAY = 60L
 private const val INITIAL_DELAY = 10L
 
+@Service
+class ProjectMetricsService {
+  val persistStatisticsSessionsMap: MutableMap<Project, Future<*>> = Collections.synchronizedMap(HashMap<Project, Future<*>>())
+}
+
 class ProjectMetricsInitializer : ProjectManagerListener {
-  private val persistStatisticsSessionsMap = Collections.synchronizedMap(HashMap<Project, Future<*>>())
+  class MyStartupActivity : ProjectPostStartupActivity {
+    override suspend fun execute(project: Project) {
+      // Need to set up ToolWindowTrackerService here after project is initialized so service can be retrieved.
+      val service = ToolWindowTrackerService.getInstance(project)
+      project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, service)
 
-  override suspend fun execute(project: Project) {
-    // Need to set up ToolWindowTrackerService here after project is initialized so service can be retrieved.
-    val service = ToolWindowTrackerService.getInstance(project)
-    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, service)
+      // don't include current project to be consistent with projectClosed
+      val projectsOpen = ProjectManager.getInstance().openProjects.size - 1
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
+          .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen)))
 
-    // don't include current project to be consistent with projectClosed
-    val projectsOpen = ProjectManager.getInstance().openProjects.size - 1
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
-                       .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen)))
-
-    // Once an hour, log all known application ids for the current project
-    val scheduledFuture = JobScheduler.getScheduler().schedule(
-      {
-        //wait until initial indexing is finished
-        DumbService.getInstance(project).runWhenSmart {
-          val future = JobScheduler.getScheduler()
-            .scheduleWithFixedDelay(
-              {
-                val knownProjectIds = project.getProjectSystem().getKnownApplicationIds(project)
-                UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                   .setKind(AndroidStudioEvent.EventKind.PROJECT_IDS)
-                                   .addAllRawProjectIds(knownProjectIds)
-                )
-              },
-              0, DELAY, TimeUnit.MINUTES)
-          persistStatisticsSessionsMap[project] = future
-        }
-      }, INITIAL_DELAY, TimeUnit.MINUTES)
-    persistStatisticsSessionsMap[project] = scheduledFuture
+      // Once an hour, log all known application ids for the current project
+      val scheduledFuture = JobScheduler.getScheduler().schedule(
+        {
+          //wait until initial indexing is finished
+          DumbService.getInstance(project).runWhenSmart {
+            val future = JobScheduler.getScheduler()
+              .scheduleWithFixedDelay(
+                {
+                  val knownProjectIds = project.getProjectSystem().getKnownApplicationIds(project)
+                  UsageTracker.log(AndroidStudioEvent.newBuilder()
+                                     .setKind(AndroidStudioEvent.EventKind.PROJECT_IDS)
+                                     .addAllRawProjectIds(knownProjectIds)
+                  )
+                },
+                0, DELAY, TimeUnit.MINUTES)
+            application.getService(ProjectMetricsService::class.java).persistStatisticsSessionsMap[project] = future
+          }
+        }, INITIAL_DELAY, TimeUnit.MINUTES)
+      application.getService(ProjectMetricsService::class.java).persistStatisticsSessionsMap[project] = scheduledFuture
+    }
   }
 
   override fun projectClosed(project: Project) {
@@ -74,7 +83,7 @@ class ProjectMetricsInitializer : ProjectManagerListener {
                        .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
                        .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen)))
 
-    val future = persistStatisticsSessionsMap.remove(project)
+    val future = application.getService(ProjectMetricsService::class.java).persistStatisticsSessionsMap.remove(project)
     future?.cancel(true)
   }
 }
