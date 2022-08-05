@@ -187,6 +187,8 @@ iml_module(
         "run": {
             "shard_count": 5,
             "test_filter": "com.android.tools.idea.run",
+            # b/192559588, b/240467082
+            "tags": ["very_flaky"],
         },
         "testartifacts": {
             "shard_count": 3,
