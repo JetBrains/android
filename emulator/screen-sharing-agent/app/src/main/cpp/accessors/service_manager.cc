@@ -63,9 +63,6 @@ JObject ServiceManager::WaitForService(Jni jni, const char* name, bool allow_nul
   if (binder.IsNull() && !allow_null) {
     Log::Fatal("Unable to find the \"%s\" service", name);
   }
-  if (strcmp(name, "display") == 0) {
-    Log::D("ServiceManager::WaitForService: binder is %s", binder.GetClass().GetName(jni).c_str());
-  }
   return binder;
 }
 
