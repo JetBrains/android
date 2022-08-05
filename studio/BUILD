@@ -401,7 +401,7 @@ studio_plugin(
     directory = "directaccess",
     modules = {
         "directaccess.jar": ["//tools/studio/google/cloud/testing/directaccess:directaccess"],
-        "directaccess-client.jar": ["//tools/studio/google/cloud/testing/directaccess-client:directaccess-client"],
+        "directaccess-client.jar": ["//tools/vendor/google/directaccess-client:directaccess-client"],
     },
     deps = [
         ":com.google.gct.login",

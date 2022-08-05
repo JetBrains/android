@@ -115,7 +115,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../swing-testing/fest-swing/fest-swing.iml" filepath="$PROJECT_DIR$/../../swing-testing/fest-swing/fest-swing.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/firebase/firebase.iml" filepath="$PROJECT_DIR$/../../vendor/google/firebase/firebase.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess/directaccess.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess/directaccess.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess-client/directaccess-client.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess-client/directaccess-client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/directaccess-client/directaccess-client.iml" filepath="$PROJECT_DIR$/../../vendor/google/directaccess-client/directaccess-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/firebase-testing/firebase-testing.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/firebase-testing/firebase-testing.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/firebase/integration/firebase.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/firebase/integration/firebase.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/appindexing/google-appindexing.iml" filepath="$PROJECT_DIR$/../../studio/google/appindexing/google-appindexing.iml" />
