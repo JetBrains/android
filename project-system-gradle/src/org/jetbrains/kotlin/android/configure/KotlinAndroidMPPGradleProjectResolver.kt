@@ -198,13 +198,19 @@ private fun DataNode<ModuleData>.sourceSetsByName(): Map<String, DataNode<Gradle
  * there might be `androidAndroidTest` and `androidAndroidTestDebug`.
  */
 private fun IdeModuleSourceSet.getRootKotlinSourceSet(compilation: KotlinCompilation): KotlinSourceSet? {
-  val kotlinSourceSetNameSuffix = when (this) {
-    IdeModuleSourceSet.UNIT_TEST -> "test"
-    else -> sourceSetName
+  /* Supports Multiplatform/Android SourceSetLayout V1 and V2 */
+  val knownKotlinSourceSetNameSuffixes = when (this) {
+    IdeModuleSourceSet.MAIN -> setOf("main")
+    IdeModuleSourceSet.TEST_FIXTURES -> setOf("testFixtures")
+    IdeModuleSourceSet.UNIT_TEST -> setOf("test", "unitTest")
+    IdeModuleSourceSet.ANDROID_TEST -> setOf("androidTest", "instrumentedTest")
   }
 
-  val sourceSetName = compilation.disambiguationClassifier.orEmpty().appendCapitalized(kotlinSourceSetNameSuffix)
-  return compilation.declaredSourceSets.singleOrNull { it.name == sourceSetName }
+  val potentialSourceSetNames = knownKotlinSourceSetNameSuffixes.map { suffix ->
+    compilation.disambiguationClassifier.orEmpty().appendCapitalized(suffix)
+  }
+
+  return compilation.declaredSourceSets.singleOrNull { it.name in potentialSourceSetNames }
 }
 
 private fun IdeModuleSourceSet.androidCompilationNameSuffix() = when (this) {
