@@ -46,8 +46,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
 import com.jetbrains.rd.util.getOrCreate
-import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
 import java.util.EnumSet
 

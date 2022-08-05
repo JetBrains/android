@@ -40,7 +40,7 @@ import com.intellij.psi.util.PsiUtilCore
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.tree.LeafState
 import icons.StudioIcons
-import org.assertj.core.util.VisibleForTesting
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.Objects
 
 /**
