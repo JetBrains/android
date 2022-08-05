@@ -16,31 +16,32 @@
 package com.android.tools.profilers.customevent;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartRequest;
-import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.network.NetworkMonitor;
 import org.jetbrains.annotations.NotNull;
 
-public class CustomEventProfiler extends StudioProfiler {
+public class CustomEventProfiler implements StudioProfiler {
+  @NotNull
+  private final StudioProfilers profilers;
+
   public CustomEventProfiler(@NotNull StudioProfilers profilers) {
-    super(profilers);
+    this.profilers = profilers;
   }
 
   @Override
+  @NotNull
   public ProfilerMonitor newMonitor() {
-    return new CustomEventMonitor(myProfilers);
+    return new CustomEventMonitor(profilers);
   }
 
   @Override
-  public void startProfiling(Common.Session session) {
+  public void startProfiling(@NotNull Common.Session session) {
     // Currently does nothing
   }
 
   @Override
-  public void stopProfiling(Common.Session session) {
+  public void stopProfiling(@NotNull Common.Session session) {
     // Currently does nothing
   }
 }

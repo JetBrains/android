@@ -25,40 +25,44 @@ import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public class EnergyProfiler extends StudioProfiler {
+public class EnergyProfiler implements StudioProfiler {
   private static Logger getLogger() {
     return Logger.getInstance(EnergyProfiler.class);
   }
 
+  @NotNull
+  private final StudioProfilers profilers;
+
   public EnergyProfiler(@NotNull StudioProfilers profilers) {
-    super(profilers);
+    this.profilers = profilers;
   }
 
   @Override
+  @NotNull
   public ProfilerMonitor newMonitor() {
-    return new EnergyMonitor(myProfilers);
+    return new EnergyMonitor(profilers);
   }
 
   @Override
-  public void startProfiling(Common.Session session) {
+  public void startProfiling(@NotNull Common.Session session) {
     // TODO(b/150503095)
     EnergyStartResponse startResponse =
-        myProfilers.getClient().getEnergyClient().startMonitoringApp(EnergyStartRequest.newBuilder().setSession(session).build());
+      profilers.getClient().getEnergyClient().startMonitoringApp(EnergyStartRequest.newBuilder().setSession(session).build());
 
-    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       // Issue GetCpuCoreConfig command once so we can calculate CPU energy usage.
       // We need the device ID to run the command, but there has been a report (b/146037091) that 'myProfilers.getDevice()' may
       // be null in release build. Therefore we use if to guard the use of the device to avoid NPE, instead of assert.
-      if (myProfilers.getDevice() != null) {
+      if (profilers.getDevice() != null) {
         // CPU frequency files may not always be available (e.g. emulator), in which case we still have a fallback model to use from
         // DefaultPowerProfile.
-        myProfilers.getClient().executeAsync(
+        profilers.getClient().executeAsync(
           Commands.Command.newBuilder()
             .setStreamId(session.getStreamId())
             .setPid(session.getPid())
             .setType(Commands.Command.CommandType.GET_CPU_CORE_CONFIG)
-            .setGetCpuCoreConfig(Commands.GetCpuCoreConfig.newBuilder().setDeviceId(myProfilers.getDevice().getDeviceId())).build(),
-          myProfilers.getIdeServices().getPoolExecutor());
+            .setGetCpuCoreConfig(Commands.GetCpuCoreConfig.newBuilder().setDeviceId(profilers.getDevice().getDeviceId())).build(),
+          profilers.getIdeServices().getPoolExecutor());
       } else {
         getLogger().warn("Unable to retrieve CPU frequency files; device ID unknown.");
       }
@@ -66,9 +70,9 @@ public class EnergyProfiler extends StudioProfiler {
   }
 
   @Override
-  public void stopProfiling(Common.Session session) {
+  public void stopProfiling(@NotNull Common.Session session) {
     // TODO(b/150503095)
     EnergyStopResponse response =
-        myProfilers.getClient().getEnergyClient().stopMonitoringApp(EnergyStopRequest.newBuilder().setSession(session).build());
+      profilers.getClient().getEnergyClient().stopMonitoringApp(EnergyStopRequest.newBuilder().setSession(session).build());
   }
 }

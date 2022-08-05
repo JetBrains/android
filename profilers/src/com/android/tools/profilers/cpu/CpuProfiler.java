@@ -54,22 +54,26 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CpuProfiler extends StudioProfiler {
+public class CpuProfiler implements StudioProfiler {
+  @NotNull
+  private final StudioProfilers profilers;
+
   public CpuProfiler(@NotNull StudioProfilers profilers) {
-    super(profilers);
+    this.profilers = profilers;
+
     registerImportedSessionListener();
     registerTraceImportHandler();
   }
 
   private void onImportSessionSelected() {
-    myProfilers.getIdeServices().runAsync(
-      () -> CpuCaptureStage.create(myProfilers, new ImportedConfiguration(), myProfilers.getSession().getStartTimestamp()),
+    profilers.getIdeServices().runAsync(
+      () -> CpuCaptureStage.create(profilers, new ImportedConfiguration(), profilers.getSession().getStartTimestamp()),
       captureStage -> {
         if (captureStage != null) {
-          myProfilers.getIdeServices().getMainExecutor().execute(() -> myProfilers.setStage(captureStage));
+          profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(captureStage));
         }
         else {
-          myProfilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
+          profilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
         }
       }
     );
@@ -84,7 +88,7 @@ public class CpuProfiler extends StudioProfiler {
    * {@link Common.SessionMetaData.SessionType#CPU_CAPTURE}.
    */
   private void registerImportedSessionListener() {
-    myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, this::onImportSessionSelected);
+    profilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, this::onImportSessionSelected);
   }
 
   /**
@@ -92,14 +96,14 @@ public class CpuProfiler extends StudioProfiler {
    * {@link Common.Session} and select it.
    */
   private void registerTraceImportHandler() {
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    SessionsManager sessionsManager = profilers.getSessionsManager();
     sessionsManager.registerImportHandler("trace", this::loadCapture);
     sessionsManager.registerImportHandler("pftrace", this::loadCapture);
     sessionsManager.registerImportHandler("perfetto-trace", this::loadCapture);
   }
 
   private void loadCapture(File file) {
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    SessionsManager sessionsManager = profilers.getSessionsManager();
     // The time when the session is created. Will determine the order in sessions panel.
     long startTimestampEpochMs = System.currentTimeMillis();
     Pair<Long, Long> timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file);
@@ -128,24 +132,25 @@ public class CpuProfiler extends StudioProfiler {
       return;
     }
 
-    myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
-                                                                        SessionsManager.SessionCreationSource.MANUAL);
+    profilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
+                                                                      SessionsManager.SessionCreationSource.MANUAL);
   }
 
   @Override
-  public ProfilerMonitor newMonitor() {
-    return new CpuMonitor(myProfilers);
+  public @NotNull ProfilerMonitor newMonitor() {
+    return new CpuMonitor(profilers);
   }
 
   @Override
-  public void startProfiling(Common.Session session) { }
+  public void startProfiling(@NotNull Common.Session session) { }
 
   @Override
-  public void stopProfiling(Common.Session session) {
-    List<CpuTraceInfo> traces = getTraceInfoFromSession(myProfilers.getClient(), session);
+  public void stopProfiling(@NotNull Common.Session session) {
+    List<CpuTraceInfo> traces = getTraceInfoFromSession(profilers.getClient(), session);
+
     CpuTraceInfo mostRecentTrace = traces.isEmpty() ? null : traces.get(traces.size() - 1);
     if (mostRecentTrace != null && mostRecentTrace.getToTimestamp() == -1) {
-      stopTracing(myProfilers,
+      stopTracing(profilers,
                   session,
                   mostRecentTrace.getConfiguration(),
                   null);

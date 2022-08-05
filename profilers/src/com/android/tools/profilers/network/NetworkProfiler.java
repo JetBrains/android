@@ -25,27 +25,32 @@ import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
-public class NetworkProfiler extends StudioProfiler {
+public class NetworkProfiler implements StudioProfiler {
+
+  @NotNull
+  private final StudioProfilers profilers;
+
   public NetworkProfiler(@NotNull StudioProfilers profilers) {
-    super(profilers);
+    this.profilers = profilers;
   }
 
   @Override
+  @NotNull
   public ProfilerMonitor newMonitor() {
-    return new NetworkMonitor(myProfilers);
+    return new NetworkMonitor(profilers);
   }
 
   @Override
-  public void startProfiling(Common.Session session) {
+  public void startProfiling(@NotNull Common.Session session) {
     // TODO(b/150503095)
     NetworkStartResponse response =
-        myProfilers.getClient().getNetworkClient().startMonitoringApp(NetworkStartRequest.newBuilder().setSession(session).build());
+      profilers.getClient().getNetworkClient().startMonitoringApp(NetworkStartRequest.newBuilder().setSession(session).build());
   }
 
   @Override
-  public void stopProfiling(Common.Session session) {
+  public void stopProfiling(@NotNull Common.Session session) {
     // TODO(b/150503095)
     NetworkStopResponse response =
-        myProfilers.getClient().getNetworkClient().stopMonitoringApp(NetworkStopRequest.newBuilder().setSession(session).build());
+      profilers.getClient().getNetworkClient().stopMonitoringApp(NetworkStopRequest.newBuilder().setSession(session).build());
   }
 }

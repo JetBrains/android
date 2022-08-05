@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers
 
-import com.android.tools.profiler.proto.Common;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.profiler.proto.Common
 
-public abstract class StudioProfiler {
-  protected final StudioProfilers myProfilers;
+interface StudioProfiler {
 
-  protected StudioProfiler(@NotNull StudioProfilers profilers) {
-    myProfilers = profilers;
-  }
+  fun newMonitor(): ProfilerMonitor
 
-  abstract public ProfilerMonitor newMonitor();
+  fun startProfiling(session: Common.Session)
 
-  public abstract void startProfiling(Common.Session session);
-
-  public abstract void stopProfiling(Common.Session session);
+  fun stopProfiling(session: Common.Session)
 }
