@@ -77,6 +77,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+@org.junit.Ignore("b/181328015")
 @RunsInEdt
 @RunWith(Parameterized.class)
 public class StudioProfilersViewTest {
