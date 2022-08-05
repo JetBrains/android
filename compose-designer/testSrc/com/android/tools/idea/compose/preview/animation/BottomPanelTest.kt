@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.ui.components.JBLabel
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -143,6 +144,20 @@ class BottomPanelTest(private val enableCoordinationDrag: Boolean, private val i
 
   }
 
+  @Test
+  fun `label is updated immediately`(): Unit = invokeAndWaitIfNeeded {
+    val panel = createBottomPanel().apply {
+      clockTimeMs = 1234
+    }
+    FakeUi(panel.parent).apply {
+      updateToolbars()
+      layout()
+    }
+    val labelComponent = (panel.components[0] as Container).components[0] as JBLabel
+    assertEquals("1234 ms", labelComponent.text)
+    panel.clockTimeMs = 100
+    assertEquals("100 ms", labelComponent.text)
+  }
 
   @Test
   fun `ui preview renders correctly`(): Unit = invokeAndWaitIfNeeded {

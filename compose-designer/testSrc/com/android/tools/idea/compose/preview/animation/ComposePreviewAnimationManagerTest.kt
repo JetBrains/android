@@ -321,17 +321,18 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
       override val states = setOf("State1", "State2", "State3")
     }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
-
-    // We can get any of the combo boxes, since "from" and "to" states should be the same.
-    val sliders = TreeWalker(inspector.component).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
-    assertEquals(1, sliders.size) //
-    val timelineSlider = sliders[0] as JSlider
-    timelineSlider.value = 100
-    UIUtil.pump() // Wait for all changes in UI thread
-    timelineSlider.value = 200
-    UIUtil.pump() // Wait for all changes in UI thread
+    invokeAndWaitIfNeeded {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI thread
+      // We can get any of the combo boxes, since "from" and "to" states should be the same.
+      val sliders = TreeWalker(inspector.component).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
+      assertEquals(1, sliders.size) //
+      val timelineSlider = sliders[0] as JSlider
+      timelineSlider.value = 100
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      timelineSlider.value = 200
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+    }
   }
 
   @Test
@@ -348,36 +349,38 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
       override val states = setOf("State1", "State2", "State3")
     }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    invokeAndWaitIfNeeded {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI thread
 
-    val toolbars = TreeWalker(inspector.component).descendantStream().filter { it is ActionToolbarImpl }.collect(
-      Collectors.toList()).map { it as ActionToolbarImpl }
-    val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
-    assertNotNull(playbackControls)
-    assertEquals(numberOfPlaybackControls, playbackControls!!.actions.size)
-    val actionEvent = Mockito.mock(AnActionEvent::class.java)
-    // Press loop
-    val loopAction = playbackControls.actions[0] as ToggleAction
-    loopAction.setSelected(actionEvent, true)
-    UIUtil.pump() // Wait for all changes in UI thread
-    // Play and pause
-    val playAction = playbackControls.actions[2]
-    playAction.actionPerformed(actionEvent)
-    UIUtil.pump() // Wait for all changes in UI thread
-    playAction.actionPerformed(actionEvent)
-    UIUtil.pump() // Wait for all changes in UI thread
-    // Go to start.
-    val goToStart = playbackControls.actions[1]
-    goToStart.actionPerformed(actionEvent)
-    UIUtil.pump() // Wait for all changes in UI thread
-    // Go to end.
-    val toToEnd = playbackControls.actions[3]
-    toToEnd.actionPerformed(actionEvent)
-    UIUtil.pump() // Wait for all changes in UI thread
-    // Un-press loop
-    loopAction.setSelected(actionEvent, false)
-    UIUtil.pump() // Wait for all changes in UI thread
+      val toolbars = TreeWalker(inspector.component).descendantStream().filter { it is ActionToolbarImpl }.collect(
+        Collectors.toList()).map { it as ActionToolbarImpl }
+      val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
+      assertNotNull(playbackControls)
+      assertEquals(numberOfPlaybackControls, playbackControls!!.actions.size)
+      val actionEvent = Mockito.mock(AnActionEvent::class.java)
+      // Press loop
+      val loopAction = playbackControls.actions[0] as ToggleAction
+      loopAction.setSelected(actionEvent, true)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Play and pause
+      val playAction = playbackControls.actions[2]
+      playAction.actionPerformed(actionEvent)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      playAction.actionPerformed(actionEvent)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Go to start.
+      val goToStart = playbackControls.actions[1]
+      goToStart.actionPerformed(actionEvent)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Go to end.
+      val toToEnd = playbackControls.actions[3]
+      toToEnd.actionPerformed(actionEvent)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Un-press loop
+      loopAction.setSelected(actionEvent, false)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+    }
   }
 
   @Test
