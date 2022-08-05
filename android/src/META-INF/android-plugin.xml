@@ -28,7 +28,6 @@
 
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
-  <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
   <depends optional="true" config-file="android-webp.xml">intellij.webp</depends>
 
   <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
