@@ -171,26 +171,6 @@ public class RangeTest {
   }
 
   @Test
-  public void testintersectsWithLong() {
-    // Inner intersection
-    assertThat(Range.intersects(1, 10, 3, 5)).isTrue();
-    // Outer intersection
-    assertThat(Range.intersects(3, 5, 1, 10)).isTrue();
-    // Left intersection
-    assertThat(Range.intersects(1, 10, -3, 5)).isTrue();
-    // Right intersection
-    assertThat(Range.intersects(1, 10, 5, 15)).isTrue();
-    // Point intersection
-    assertThat(Range.intersects(1, 10, 5, 5)).isTrue();
-    assertThat(Range.intersects(5, 5, 1, 10)).isTrue();
-    assertThat(Range.intersects(1, 10, 1, 20)).isTrue();
-    // No intersection
-    assertThat(Range.intersects(1, 10, 15, 25)).isFalse();
-    // Intersection with [min, max]
-    assertThat(Range.intersects(3, 5, 1, 10)).isTrue();
-  }
-
-  @Test
   public void testIntersectionLength() {
     Range range = new Range(0, 10);
     // Inner intersection
