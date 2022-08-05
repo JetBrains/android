@@ -18,13 +18,7 @@ package com.android.tools.profilers.memory.adapters.classifiers;
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This classifier classifies {@link InstanceObject}s based on its allocation's thread ID. If no allocations are available, the instances
@@ -37,7 +31,7 @@ public class ThreadSet extends ClassifierSet {
 
   @NotNull
   public static Classifier createDefaultClassifier(@NotNull CaptureObject captureObject) {
-    return new ThreadClassifier(captureObject);
+    return threadClassifier(captureObject);
   }
 
   public ThreadSet(@NotNull CaptureObject captureObject, @NotNull ThreadId threadId) {
@@ -57,45 +51,12 @@ public class ThreadSet extends ClassifierSet {
     return MethodSet.createDefaultClassifier(myCaptureObject);
   }
 
-  private static final class ThreadClassifier extends Classifier {
-    @NotNull private final CaptureObject myCaptureObject;
-    @NotNull private final Map<ThreadId, ThreadSet> myThreadSets = new LinkedHashMap<>();
-    @NotNull private final Classifier myMethodSetClassifier;
-
-    private ThreadClassifier(@NotNull CaptureObject captureObject) {
-      myCaptureObject = captureObject;
-      myMethodSetClassifier = MethodSet.createDefaultClassifier(myCaptureObject);
-    }
-
-    @Nullable
-    @Override
-    public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
-      if (instance.getAllocationThreadId() != ThreadId.INVALID_THREAD_ID) {
-        ThreadId threadId = instance.getAllocationThreadId();
-        ThreadSet threadSet = myThreadSets.get(threadId);
-        if (threadSet == null && createIfAbsent) {
-          threadSet = new ThreadSet(myCaptureObject, threadId);
-          myThreadSets.put(threadId, threadSet);
-        }
-        return threadSet;
-      }
-      else {
-        return myMethodSetClassifier.getClassifierSet(instance, createIfAbsent);
-      }
-    }
-
-    @NotNull
-    @Override
-    public List<ClassifierSet> getFilteredClassifierSets() {
-      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getFilteredClassifierSets().stream())
-        .filter(child -> !child.getIsFiltered()).collect(Collectors.toList());
-    }
-
-    @NotNull
-    @Override
-    protected List<ClassifierSet> getAllClassifierSets() {
-      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getAllClassifierSets().stream())
-        .collect(Collectors.toList());
-    }
+  private static Classifier threadClassifier(CaptureObject captureObject) {
+    return new Classifier.Join<>(inst -> {
+                                   ThreadId threadId = inst.getAllocationThreadId();
+                                   return threadId == ThreadId.INVALID_THREAD_ID ? null : threadId;
+                                 },
+                                 id -> new ThreadSet(captureObject, id),
+                                 MethodSet.createDefaultClassifier(captureObject));
   }
 }

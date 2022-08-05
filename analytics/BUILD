@@ -12,6 +12,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )

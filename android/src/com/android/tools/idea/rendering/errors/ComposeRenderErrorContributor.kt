@@ -47,11 +47,34 @@ object ComposeRenderErrorContributor {
     return throwable is NoSuchMethodException && throwable.getStackTrace()[1].methodName.startsWith("invokeComposableViaReflection")
   }
 
+  /**
+   * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable with `PreviewParameterProvider`. This will
+   * detect the case where the parameter type dose not match the `PreviewParameterProvider`.
+   */
+  private fun isPreviewParameterMismatchThrowable(throwable: Throwable?): Boolean {
+    return throwable is IllegalArgumentException &&
+           throwable.message == "argument type mismatch" &&
+           (throwable.stackTrace.drop(5)
+             .firstOrNull()?.methodName?.startsWith("invokeComposableViaReflection") ?: false)
+  }
+
+  /**
+   * Returns true if [throwable] is a [NoSuchMethodException] that fails to find a method called `FailToLoadPreviewParameterProvider`. This
+   * is a fake name defined in `ComposePreviewElement`, and we use it as a fake PreviewElement name when there is a failure to load a
+   * `PreviewParameterProvider`, otherwise the crash will cause no previews to be displayed. Instead, we want to display a Preview
+   * containing errors and let the user know there was an error to load their PreviewParameterProvider.
+   */
+  private fun isFailToLoadPreviewParameterProvider(throwable: Throwable?): Boolean {
+    return throwable is NoSuchMethodException && throwable.message?.endsWith("${'$'}FailToLoadPreviewParameterProvider") == true
+  }
+
   @JvmStatic
   fun isHandledByComposeContributor(throwable: Throwable?): Boolean =
-    isViewModelStackTrace(throwable) ||
     isComposeNotFoundThrowable(throwable) ||
-    isCompositionLocalStackTrace(throwable)
+    isCompositionLocalStackTrace(throwable) ||
+    isPreviewParameterMismatchThrowable(throwable) ||
+    isFailToLoadPreviewParameterProvider(throwable) ||
+    isViewModelStackTrace(throwable) // Keep this one as last, as it needs to visit multiple stack trace elements
 
   @JvmStatic
   fun reportComposeErrors(logger: RenderLogger,
@@ -96,6 +119,26 @@ object ComposeRenderErrorContributor {
                 HtmlBuilder()
                   .add("The preview will display after rebuilding the project.")
                   .addBuildAction(linkManager)
+              )
+          }
+          isPreviewParameterMismatchThrowable(it.throwable) -> {
+            RenderErrorModel.Issue.builder()
+              .setSeverity(HighlightSeverity.ERROR)
+              .setSummary("PreviewParameterProvider/@Preview type mismatch.")
+              .setHtmlContent(
+                HtmlBuilder()
+                  .add("The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it.")
+                  .addBuildAction(linkManager)
+              )
+          }
+          isFailToLoadPreviewParameterProvider(it.throwable) -> {
+            RenderErrorModel.Issue.builder()
+              .setSeverity(HighlightSeverity.ERROR)
+              .setSummary("Fail to load PreviewParameterProvider")
+              .setHtmlContent(
+                HtmlBuilder()
+                  .add("There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the " +
+                       "values property implementation. The IDE logs should contain the full exception stack trace.")
               )
           }
           else -> null

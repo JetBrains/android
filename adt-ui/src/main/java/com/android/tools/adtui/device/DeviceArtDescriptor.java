@@ -68,7 +68,7 @@ public class DeviceArtDescriptor {
     // In the IDE distribution, this should be in plugins/android/resources/FN_BASE
     String base = FileUtil.join(PathManager.getHomePath(), "plugins", "android", "resources");
     if (StudioPathManager.isRunningFromSources()) {
-      base = FileUtil.join(PathManager.getCommunityHomePath(), "android", "artwork", "resources");
+      base = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/artwork/resources").toString();
     }
     File dir = new File(base, FN_BASE);
     if (dir.exists() && dir.isDirectory()) {
@@ -84,7 +84,7 @@ public class DeviceArtDescriptor {
   }
 
   private static List<File> getDescriptorFiles(@Nullable File[] additionalRoots) {
-    Set<File> roots = new HashSet<>();
+    Set<File> roots = new HashSet<File>();
 
     File base = getBundledDescriptorsFolder();
     if (base != null) {
@@ -95,7 +95,7 @@ public class DeviceArtDescriptor {
       Collections.addAll(roots, additionalRoots);
     }
 
-    List<File> files = new ArrayList<>(roots.size());
+    List<File> files = new ArrayList<File>(roots.size());
     for (File root : roots) {
       File file = getDescriptorFile(root);
       if (file != null) {

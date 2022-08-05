@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import com.google.common.collect.ImmutableList;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
@@ -58,5 +59,20 @@ public class LauncherLegacyIconGeneratorTest extends AndroidTestCase {
 
   public void testClipartCropped() throws Exception {
     checkGraphic(IconGeneratorTestUtil.SourceType.CLIPART, -10);
+  }
+
+  @SuppressWarnings("UseJBColor")
+  public void testNoneAndSolidBackgrounds() throws IOException {
+    LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(getProject(), 15, null);
+    disposeOnTearDown(generator);
+    generator.shape().set(IconGenerator.Shape.NONE);
+    generator.backgroundColor().set(Color.BLACK);
+
+    BufferedImage noBackground = IconGeneratorTestUtil.checkRasterImage(generator);
+    generator.shape().set(IconGenerator.Shape.SOLID);
+    BufferedImage background = IconGeneratorTestUtil.checkRasterImage(generator);
+
+    assertEquals(0, new Color(noBackground.getRGB(0, 0), true).getAlpha());
+    assertEquals(0xFF, new Color(background.getRGB(0, 0), true).getAlpha());
   }
 }

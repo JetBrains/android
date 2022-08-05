@@ -20,13 +20,14 @@ import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
-import com.android.tools.idea.compose.preview.util.requestBuild
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.JBColor
@@ -35,32 +36,44 @@ import com.intellij.util.ui.JBUI
 private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x59A869, 0x499C54))
 
-internal fun requestBuildForSurface(surface: DesignSurface, requestedByUser: Boolean) = surface.models.map { it.virtualFile }
-  .distinct().also { requestBuild(surface.project, it, requestedByUser) }
+internal fun requestBuildForSurface(surface: DesignSurface<*>, requestedByUser: Boolean) = surface.models.map { it.virtualFile }
+  .distinct().also { surface.project.requestBuild(it) }
   .isNotEmpty()
 
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
  * of the surface.
  */
-internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) : AnAction(message("action.build.and.refresh.title"),
-                                                                                           message("action.build.and.refresh.description"),
-                                                                                           GREEN_REFRESH_BUTTON), CustomComponentAction {
+internal open class ForceCompileAndRefreshAction(private val surface: DesignSurface<*>) :
+  AnAction(
+    message("action.build.and.refresh.title"),
+    message("action.build.and.refresh.description"),
+    GREEN_REFRESH_BUTTON),
+  CustomComponentAction {
   override fun actionPerformed(e: AnActionEvent) {
+    // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
+    // that nothing has changed. But we want to always force a refresh when this button is pressed
+    findComposePreviewManagersForContext(e.dataContext).forEach { composePreviewManager ->
+      composePreviewManager.invalidateSavedBuildStatus()
+    }
     if (!requestBuildForSurface(surface, true)) {
       // If there are no models in the surface, we can not infer which models we should trigger
       // the build for. The fallback is to find the virtual file for the editor and trigger that.
-      PlatformCoreDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let {
-        requestBuild(surface.project, it, true)
+      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let {
+        surface.project.requestBuild(it)
       }
     }
   }
 
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
+    if (e.project?.let { FastPreviewManager.getInstance(it) }?.isEnabled == true) {
+      presentation.isEnabledAndVisible = false
+      return
+    }
     val isRefreshing = findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
     presentation.isEnabled = !isRefreshing
-    templateText?.let { presentation.text = "$it${getBuildAndRefreshShortcut().asString()}" }
+    templateText?.let { presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false) }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =

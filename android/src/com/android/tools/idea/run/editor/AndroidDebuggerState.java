@@ -17,21 +17,18 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.ValidationError;
 import com.intellij.execution.Executor;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
 import com.intellij.openapi.util.WriteExternalException;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidDebuggerState implements JDOMExternalizable {
-  @NotNull Supplier<@Nullable Module> myDebuggeeModuleProvider = () -> null;
 
   @NotNull
   public List<ValidationError> validate(@NotNull AndroidFacet facet, @Nullable Executor executor) {
@@ -46,14 +43,5 @@ public class AndroidDebuggerState implements JDOMExternalizable {
   @Override
   public void writeExternal(Element element) throws WriteExternalException {
     DefaultJDOMExternalizer.writeExternal(this, element);
-  }
-
-  public void setDebuggeeModuleProvider(@NotNull Supplier<@Nullable Module> moduleProvider) {
-    myDebuggeeModuleProvider = moduleProvider;
-  }
-
-  @Nullable
-  public Module getDebuggeeModule() {
-    return myDebuggeeModuleProvider.get();
   }
 }

@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.annotations.NotNull;
 
 public class GuiTestingService {
   public static final Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
@@ -30,22 +29,18 @@ public class GuiTestingService {
   @GuardedBy("LOCK")
   private boolean myGuiTestingMode;
 
-  @GuardedBy("LOCK")
-  private GuiTestSuiteState myGuiTestSuiteState;
-
   public static GuiTestingService getInstance() {
     return ApplicationManager.getApplication().getService(GuiTestingService.class);
   }
 
   private GuiTestingService() {
-    boolean en = false;
-
     ExtensionPointName<GuiTestingStatusProvider> epName = ExtensionPointName.create("com.android.tools.idea.ui.guiTestingStatusProvider");
     for (GuiTestingStatusProvider provider : epName.getExtensions()) {
-      en = provider.enableUiTestMode() || en;
+      if (provider.enableUiTestMode()) {
+        setGuiTestingMode(true);
+        break;
+      }
     }
-
-    setGuiTestingMode(en);
   }
 
   public boolean isGuiTestingMode() {
@@ -57,31 +52,11 @@ public class GuiTestingService {
   public void setGuiTestingMode(boolean guiTestingMode) {
     synchronized (LOCK) {
       myGuiTestingMode = guiTestingMode;
-      myGuiTestSuiteState = myGuiTestingMode ? new GuiTestSuiteState() : null;
     }
   }
 
-  // Ideally we would have this class in IdeTestApplication. The problem is that IdeTestApplication and UI tests run in different
-  // ClassLoaders and UI tests are unable to see the same instance of IdeTestApplication.
-  @NotNull
-  public GuiTestSuiteState getGuiTestSuiteState() {
-    synchronized (LOCK) {
-      if (!myGuiTestingMode) {
-        throw new UnsupportedOperationException("The method 'getGuiTestSuiteState' can only be invoked when running UI tests");
-      }
-      return myGuiTestSuiteState;
-    }
-  }
-
-  public static class GuiTestSuiteState {
-    private boolean mySkipSdkMerge;
-
-    public boolean isSkipSdkMerge() {
-      return mySkipSdkMerge;
-    }
-
-    public void setSkipSdkMerge(boolean skipSdkMerge) {
-      mySkipSdkMerge = skipSdkMerge;
-    }
+  public static boolean isInTestingMode() {
+    GuiTestingService guiTestingService = getInstance();
+    return (guiTestingService != null && guiTestingService.isGuiTestingMode()) || ApplicationManager.getApplication().isUnitTestMode();
   }
 }

@@ -19,6 +19,7 @@ import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
+import com.android.tools.idea.gradle.structure.daemon.getSdkIndexIssueFor
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
@@ -29,10 +30,12 @@ import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.xml.util.XmlStringUtil.escapeString
+import java.io.File
 import java.util.regex.Pattern
 
 class PsAndroidModuleAnalyzer(
@@ -46,7 +49,8 @@ class PsAndroidModuleAnalyzer(
     return analyzeModuleVariants(model) +
            analyzeDeclaredDependencies(model) +
            analyzeLibraryVersionPromotions(model) +
-           analyzeDependencyScopes(model)
+           analyzeDependencyScopes(model) +
+           analyzeSdkIndexLibraries(model)
   }
 
   private fun analyzeModuleVariants(model: PsAndroidModule) : Sequence<PsIssue> =
@@ -103,6 +107,27 @@ class PsAndroidModuleAnalyzer(
             (model.dependencies.modules as List<PsDeclaredDependency>))
       .asSequence()
       .flatMap { dependency -> analyzeDependencyScope(dependency) }
+  }
+
+  private fun analyzeSdkIndexLibraries(model: PsAndroidModule): Sequence<PsIssue> {
+    return model
+      .resolvedVariants
+      .asSequence()
+      .flatMap { it.artifacts }
+      .flatMap { it.dependencies.libraries }
+      .flatMap { library ->
+        library
+          .getReverseDependencies()
+          .filterIsInstance<ReverseDependency.Transitive>()
+          .map { PathSpecAndRoot(library) }
+      }
+      .filter { it.path != null && it.spec.group != null }
+      .distinct()
+      .mapNotNull { getSdkIndexIssueFor(it.spec, it.path!!, it.rootDir) }
+  }
+
+  private data class PathSpecAndRoot(val path: PsPath?, val spec: PsArtifactDependencySpec, val rootDir: File?) {
+    constructor(library: PsResolvedLibraryAndroidDependency) : this(library.path, library.spec, library.parent.rootDir)
   }
 
   private data class PathSpaceAndPromotedTo(val path: PsPath, val spec: PsArtifactDependencySpec, val promotedTo: PsArtifactDependencySpec) {

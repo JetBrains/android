@@ -20,9 +20,9 @@ import static com.android.SdkConstants.ATTR_CONTENT_SCRIM;
 import static com.android.SdkConstants.ATTR_FITS_SYSTEM_WINDOWS;
 import static com.android.SdkConstants.ATTR_LAYOUT_COLLAPSE_MODE;
 import static com.android.SdkConstants.ATTR_TOOLBAR_ID;
-import static com.android.SdkConstants.COLLAPSING_TOOLBAR_LAYOUT;
 import static com.android.SdkConstants.PREFIX_APP;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
@@ -49,7 +49,7 @@ public class CollapsingToolbarLayoutHandler extends FrameLayoutHandler {
   @Override
   @NotNull
   public List<String> getBaseStyles(@NotNull String tagName) {
-    if (COLLAPSING_TOOLBAR_LAYOUT.isEquals(tagName)) {
+    if (AndroidXConstants.COLLAPSING_TOOLBAR_LAYOUT.isEquals(tagName)) {
       return ImmutableList.of(PREFIX_APP + "Widget.Design.CollapsingToolbar");  // Notice the missing "Layout"
     }
     return super.getBaseStyles(tagName);

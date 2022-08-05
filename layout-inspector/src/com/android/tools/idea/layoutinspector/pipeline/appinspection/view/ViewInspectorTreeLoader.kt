@@ -19,13 +19,13 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 
 /**
  * View-inspector specific logic supporting [AppInspectionTreeLoader].
@@ -36,7 +36,7 @@ class ViewInspectorTreeLoader(
   private val viewEvent: LayoutInspectorViewProtocol.LayoutEvent,
   private val resourceLookup: ResourceLookup,
   private val process: ProcessDescriptor,
-  composeEvent: LayoutInspectorComposeProtocol.GetComposablesResponse?,
+  composeResult: GetComposablesResult?,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
 ) {
   private var folderConfig = LayoutInspectorViewProtocol.Configuration.getDefaultInstance().convert(1)
@@ -44,7 +44,7 @@ class ViewInspectorTreeLoader(
   // if true, exit immediately and return null
   private var isInterrupted = false
 
-  private val viewNodeCreator = ViewNodeCreator(viewEvent, composeEvent)
+  private val viewNodeCreator = ViewNodeCreator(viewEvent, composeResult)
 
   val dynamicCapabilities: Set<InspectorClient.Capability>
     get() = viewNodeCreator.dynamicCapabilities

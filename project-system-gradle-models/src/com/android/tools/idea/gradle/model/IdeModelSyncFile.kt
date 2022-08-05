@@ -25,31 +25,31 @@ import java.io.File
  * contains information that cannot be determined at configuration time.
  */
 interface IdeModelSyncFile {
+  /**
+   * Enum of all sync types supported by this plugin.
+   */
+  enum class IdeModelSyncType {
     /**
-     * Enum of all sync types supported by this plugin.
+     * Basic sync type will contain elements of type com.android.ide.model.sync.Variant.
      */
-    enum class IdeModelSyncType {
-        /**
-         * Basic sync type will contain elements of type com.android.ide.model.sync.Variant.
-         */
-        BASIC
-    }
+    BASIC
+  }
 
-    /**
-     * [IdeModelSyncType] for this file.
-     */
-    val modelSyncType: IdeModelSyncType
+  /**
+   * [IdeModelSyncType] for this file.
+   */
+  val modelSyncType: IdeModelSyncType
 
-    /**
-     * Name of the task that can produce the model sync file. The task must have executed
-     * successfully for the [syncFile] file to be available.
-     */
-    val taskName: String
+  /**
+   * Name of the task that can produce the model sync file. The task must have executed
+   * successfully for the [syncFile] file to be available.
+   */
+  val taskName: String
 
-    /**
-     * Sync file currently in the proto format.
-     *
-     * The content depends on the [modelSyncType]
-     */
-    val syncFile: File
+  /**
+   * Sync file currently in the proto format.
+   *
+   * The content depends on the [modelSyncType]
+   */
+  val syncFile: File
 }

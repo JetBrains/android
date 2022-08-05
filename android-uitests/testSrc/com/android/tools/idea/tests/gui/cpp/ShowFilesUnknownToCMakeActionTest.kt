@@ -8,7 +8,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.NewFilePopupFixture
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.fest.swing.core.MouseButton
+import org.fest.swing.core.MouseButton.RIGHT_BUTTON
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -55,10 +55,14 @@ class ShowFilesUnknownToCMakeActionTest {
     GuiTests.clickPopupMenuItem("Show Files Unknown to CMake", ideFrame.target(), ideFrame.robot())
 
     // Add a new file inside the IDE
-    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "cpp")
+
+    ideFrame.projectView
+      .selectAndroidPane()
+      .clickPath(RIGHT_BUTTON, "app", "cpp")
       .openFromContextualMenu(NewFilePopupFixture::find, "New", "File")
       .setFilePath("unused.c")
       .pressEnter()
+
     androidPane.doubleClickPath("app", "cpp")
 
     ideFrame.editor

@@ -23,7 +23,5 @@
     <mapping directory="$PROJECT_DIR$/../../studio/google/cloud/tools" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../studio/google/samples" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../swing-testing" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../vendor/google" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../vendor/google3/blaze" vcs="Git" />
   </component>
 </project>

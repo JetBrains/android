@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.ddmlib.Log
-import com.android.ddmlib.Log.LogLevel.ASSERT
-import com.android.ddmlib.Log.LogLevel.DEBUG
-import com.android.ddmlib.Log.LogLevel.ERROR
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.Log.LogLevel.VERBOSE
-import com.android.ddmlib.Log.LogLevel.WARN
-import com.android.ddmlib.logcat.LogCatHeader
-import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.SYSTEM_HEADER
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.ASSERT
+import com.android.tools.idea.logcat.message.LogLevel.DEBUG
+import com.android.tools.idea.logcat.message.LogLevel.ERROR
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogLevel.VERBOSE
+import com.android.tools.idea.logcat.message.LogLevel.WARN
+import com.android.tools.idea.logcat.message.LogcatHeader
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
@@ -42,21 +43,22 @@ class MessageFormatterTest {
   private val logcatColors = LogcatColors()
   private val formattingOptions = FormattingOptions()
 
-  private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, ZONE_ID)
+  private val messageFormatter = MessageFormatter(logcatColors, ZONE_ID)
 
   @Test
   fun formatMessages_defaultFormat() {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 20001, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 20001, "com.example.app1", "Tag2", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag2", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 20001, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 20001, "com.example.app1", "", "Tag2", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 10001, 2, "com.long.company.name.app2", "", "LongCompanyNameTag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 10001, 2, "com.long.company.name.app2", "", "LongCompanyNameTag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 10001, 2, "com.long.company.name.app2", "", "LongCompanyNameTag2", TIMESTAMP), "line1\nline2"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -65,8 +67,8 @@ class MessageFormatterTest {
       1970-01-01 04:00:01.000     1-20001 Tag2                    com.example.app1                     W  message
       1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag1     com.long.company.name.app2           W  message
       1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag1     com.long.company.name.app2           W  message
-      1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag2     com.long.company.name.app2           W  multiline
-                                                                                                          message
+      1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag2     com.long.company.name.app2           W  line1
+                                                                                                          line2
 
     """.trimIndent())
   }
@@ -77,10 +79,11 @@ class MessageFormatterTest {
     formattingOptions.timestampFormat = TimestampFormat(TIME, enabled = true)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -97,10 +100,11 @@ class MessageFormatterTest {
     formattingOptions.timestampFormat = TimestampFormat(DATETIME, enabled = false)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text.trimEnd()).isEqualTo("""
@@ -117,10 +121,11 @@ class MessageFormatterTest {
     formattingOptions.processThreadFormat = ProcessThreadFormat(PID, enabled = true)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 10001, 20001, "com.example.app2", "Tag1", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 10001, 20001, "com.example.app2", "", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -137,10 +142,11 @@ class MessageFormatterTest {
     formattingOptions.processThreadFormat = ProcessThreadFormat(enabled = false)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 10001, 20001, "com.example.app2", "Tag1", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 10001, 20001, "com.example.app2", "", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -157,15 +163,16 @@ class MessageFormatterTest {
     formattingOptions.tagFormat = TagFormat(maxLength = 15)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.example.app1", "LongCompanyNameTag1", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 2, 2, "com.example.app1", "", "LongCompanyNameTag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     Tag1            com.example.app1                     W  message
-      1970-01-01 04:00:01.000     2-2     Lon...yNameTag1 com.example.app1                     W  multiline
+      1970-01-01 04:00:01.000     2-2     LongCo...meTag1 com.example.app1                     W  multiline
                                                                                                   message
 
     """.trimIndent())
@@ -176,10 +183,11 @@ class MessageFormatterTest {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -196,11 +204,12 @@ class MessageFormatterTest {
     formattingOptions.tagFormat = TagFormat(hideDuplicates = true)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag2", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag2", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -218,10 +227,11 @@ class MessageFormatterTest {
     formattingOptions.tagFormat = TagFormat(enabled = false)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -238,10 +248,11 @@ class MessageFormatterTest {
     formattingOptions.appNameFormat = AppNameFormat(maxLength = 20)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.long.company.name.app2", "Tag1", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 2, 2, "com.long.company.name.app2", "", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -253,35 +264,17 @@ class MessageFormatterTest {
   }
 
   @Test
-  fun formatMessages_missingAppName() {
-    val textAccumulator = TextAccumulator()
-
-    messageFormatter.formatMessages(
-      textAccumulator,
-      listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "?", "Tag", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "", "Tag", TIMESTAMP), "multiline\nmessage"),
-      ))
-
-    assertThat(textAccumulator.text).isEqualTo("""
-      1970-01-01 04:00:01.000     1-2     Tag                     pid-1                                W  message
-      1970-01-01 04:00:01.000     1-2     Tag                     pid-1                                W  multiline
-                                                                                                          message
-
-    """.trimIndent())
-  }
-
-  @Test
   fun formatMessages_hideDuplicateAppNames() {
     val textAccumulator = TextAccumulator()
     formattingOptions.appNameFormat = AppNameFormat(hideDuplicates = true)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.example.app2", "Tag2", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 2, 2, "com.example.app2", "", "Tag2", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -299,10 +292,11 @@ class MessageFormatterTest {
     formattingOptions.appNameFormat = AppNameFormat(enabled = false)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "multiline\nmessage"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -315,63 +309,68 @@ class MessageFormatterTest {
 
   @Test
   fun formatMessages_levelColors() {
-    val messages = mutableListOf<LogCatMessage>()
-    for (level in Log.LogLevel.values()) {
-      messages.add(LogCatMessage(LogCatHeader(level, 1, 2, "app", "tag", TIMESTAMP), "message"))
+    val messages = mutableListOf<LogcatMessage>()
+    for (level in LogLevel.values()) {
+      messages.add(LogcatMessage(LogcatHeader(level, 1, 2, "app", "", "tag", TIMESTAMP), "message"))
     }
     val textAccumulator = TextAccumulator()
 
-    messageFormatter.formatMessages(textAccumulator, messages)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
-    val textAttributes = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches(" [VDIWEA] ".toRegex()) }
+    val textAttributes = textAccumulator.textAttributesKeyRanges.filter { it.getText(textAccumulator.text).matches(" [VDIWEA] ".toRegex()) }
       .associate { it.getText(textAccumulator.text).trim() to it.data }
 
     assertThat(textAttributes).containsExactly(
-      "V", logcatColors.getLogLevelColor(VERBOSE),
-      "D", logcatColors.getLogLevelColor(DEBUG),
-      "I", logcatColors.getLogLevelColor(INFO),
-      "W", logcatColors.getLogLevelColor(WARN),
-      "E", logcatColors.getLogLevelColor(ERROR),
-      "A", logcatColors.getLogLevelColor(ASSERT),
+      "V", logcatColors.getLogLevelKey(VERBOSE),
+      "D", logcatColors.getLogLevelKey(DEBUG),
+      "I", logcatColors.getLogLevelKey(INFO),
+      "W", logcatColors.getLogLevelKey(WARN),
+      "E", logcatColors.getLogLevelKey(ERROR),
+      "A", logcatColors.getLogLevelKey(ASSERT),
     )
   }
 
   @Test
   fun formatMessages_messageColors() {
-    val messages = mutableListOf<LogCatMessage>()
-    for (level in Log.LogLevel.values()) {
-      messages.add(LogCatMessage(LogCatHeader(level, 1, 2, "app", "tag", TIMESTAMP), "message-${level.name}"))
+    val messages = mutableListOf<LogcatMessage>()
+    for (level in LogLevel.values()) {
+      messages.add(LogcatMessage(LogcatHeader(level, 1, 2, "app", "", "tag", TIMESTAMP), "message-${level.name}"))
     }
     val textAccumulator = TextAccumulator()
 
-    messageFormatter.formatMessages(textAccumulator, messages)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
-    val textAttributes = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches(" message-.*\n".toRegex()) }
+    val textAttributes = textAccumulator.textAttributesKeyRanges.filter {
+      it.getText(textAccumulator.text).matches(" message-.*\n".toRegex())
+    }
       .associate { it.getText(textAccumulator.text).trim() to it.data }
 
     assertThat(textAttributes).containsExactly(
-      "message-WARN", logcatColors.getMessageColor(WARN),
-      "message-ERROR", logcatColors.getMessageColor(ERROR),
-      "message-ASSERT", logcatColors.getMessageColor(ASSERT),
+      "message-VERBOSE", logcatColors.getMessageKey(VERBOSE),
+      "message-DEBUG", logcatColors.getMessageKey(DEBUG),
+      "message-INFO", logcatColors.getMessageKey(INFO),
+      "message-WARN", logcatColors.getMessageKey(WARN),
+      "message-ERROR", logcatColors.getMessageKey(ERROR),
+      "message-ASSERT", logcatColors.getMessageKey(ASSERT),
     )
   }
 
   @Test
   fun formatMessages_tagColors() {
     // Print with 10 different tags and then assert that there are 10 highlight ranges corresponding to the tags with the proper color.
-    val messages = mutableListOf<LogCatMessage>()
+    val messages = mutableListOf<LogcatMessage>()
     val numTags = 10
     for (t in 1..numTags) {
-      messages.add(LogCatMessage(LogCatHeader(INFO, 1, 2, "app", "tag$t", TIMESTAMP), "message"))
+      messages.add(LogcatMessage(LogcatHeader(INFO, 1, 2, "app", "", "tag$t", TIMESTAMP), "message"))
     }
     val textAccumulator = TextAccumulator()
 
-    messageFormatter.formatMessages(textAccumulator, messages)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
 
     // Filter the ranges corresponding to a tag and build a map tag -> color.
-    val tagColors = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches("tag\\d+ *".toRegex()) }
+    val tagColors = textAccumulator.textAttributesRanges.filter { it.getText(textAccumulator.text).matches("tag\\d+ *".toRegex()) }
       .associate { it.getText(textAccumulator.text).trim() to it.data }
     assertThat(tagColors).hasSize(numTags)
     tagColors.forEach { (tag, color) ->
@@ -380,19 +379,106 @@ class MessageFormatterTest {
   }
 
   @Test
-  fun formatMessages_hints() {
+  fun formatMessages_filterHints() {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", TIMESTAMP), "message1"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag2", TIMESTAMP), "message2"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", TIMESTAMP), "message1"),
+        LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", TIMESTAMP), "message2"),
       ))
 
-    textAccumulator.hintRanges.forEach {
-      assertThat(it.getText(textAccumulator.text).trim()).isEqualTo(it.data)
-    }
+
+    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
+    assertThat(filterHints).containsExactly(
+      "app1" to "package:app1",
+      "tag1" to "tag:tag1",
+      " W " to "level:WARN",
+      "app2" to "package:app2",
+      "tag2" to "tag:tag2",
+      " I " to "level:INFO",
+    )
+  }
+
+  @Test
+  fun formatMessages_filterHints_unknownApp() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "?", "", "tag1", TIMESTAMP), "message1"),
+      ))
+
+
+    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
+    assertThat(filterHints).containsExactly(
+      "tag1" to "tag:tag1",
+      " W " to "level:WARN",
+    )
+  }
+
+  @Test
+  fun formatMessages_filterHints_noTags() {
+    formattingOptions.tagFormat = TagFormat(enabled = false)
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", TIMESTAMP), "message1"),
+        LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", TIMESTAMP), "message2"),
+      ))
+
+
+    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
+    assertThat(filterHints).containsExactly(
+      "app1" to "package:app1",
+      " W " to "level:WARN",
+      "app2" to "package:app2",
+      " I " to "level:INFO",
+    )
+  }
+
+  @Test
+  fun formatMessages_filterHints_noAppNames() {
+    formattingOptions.appNameFormat = AppNameFormat(enabled = false)
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", TIMESTAMP), "message1"),
+        LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", TIMESTAMP), "message2"),
+      ))
+
+
+    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
+    assertThat(filterHints).containsExactly(
+      "tag1" to "tag:tag1",
+      " W " to "level:WARN",
+      "tag2" to "tag:tag2",
+      " I " to "level:INFO",
+    )
+  }
+
+  @Test
+  fun formatMessages_systemMessages() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(SYSTEM_HEADER, "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("message\n")
   }
 }
 

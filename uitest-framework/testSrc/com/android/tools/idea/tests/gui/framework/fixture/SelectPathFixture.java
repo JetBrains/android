@@ -28,7 +28,7 @@ public class SelectPathFixture implements ContainerFixture<JDialog> {
   public static SelectPathFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
     JDialog dialog = waitUntilShowing(ideFrameFixture.robot(), MATCHER);
 
-    GenericTypeMatcher<JTree> treeLoadedMatcher = new GenericTypeMatcher<>(JTree.class) {
+    GenericTypeMatcher<JTree> treeLoadedMatcher = new GenericTypeMatcher<JTree>(JTree.class) {
       @Override
       protected boolean isMatching(@NotNull JTree tree) {
         return tree.getRowCount() > 0;
@@ -37,7 +37,7 @@ public class SelectPathFixture implements ContainerFixture<JDialog> {
     waitUntilShowing(ideFrameFixture.robot(), dialog, treeLoadedMatcher);
 
     // After the tree is shown, it will display a loading icon. Everything typed while loading is lost, when the loading is done.
-    GenericTypeMatcher<AnimatedIcon> animatedIconMatcher = new GenericTypeMatcher<>(AnimatedIcon.class) {
+    GenericTypeMatcher<AnimatedIcon> animatedIconMatcher = new GenericTypeMatcher<AnimatedIcon>(AnimatedIcon.class) {
       @Override
       protected boolean isMatching(@NotNull AnimatedIcon component) {
         return component.isRunning();

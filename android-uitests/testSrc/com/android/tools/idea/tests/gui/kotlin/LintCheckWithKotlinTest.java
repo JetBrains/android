@@ -60,8 +60,8 @@ public class LintCheckWithKotlinTest {
       .moveBetween("setContentView(R.layout.activity_main)", "")
       .enterText("\nfindViewById<TextView>(0).text=\"st\"")
       .getIdeFrame()
-      .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
-      .clickOk()
+      .openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
+      .clickButton("Analyze")
       .getResults();
 
     assertThat(inspectionResults).contains("String literal in 'setText' can not be translated. Use Android resources instead.");

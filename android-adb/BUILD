@@ -5,7 +5,7 @@ iml_module(
     name = "intellij.android.adb",
     srcs = ["src"],
     iml_files = ["intellij.android.adb.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -19,6 +19,10 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
+        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility[module]",
     ],
 )
 
@@ -30,24 +34,27 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platform-tools",
     ],
+    test_friends = ["//tools/adt/idea/android-adb:intellij.android.adb"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/.idea/libraries:zxing-core[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
-        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:zxing-core[test]",
     ],
 )

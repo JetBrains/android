@@ -101,7 +101,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     override val category: String = issue.issue.category.fullName
 
     override val hyperlinkListener: HyperlinkListener?
-      get() = if (issue.issue.moreInfo.isEmpty()) null else WebLinkListener
+      get() = if (issue.issue.moreInfo.isEmpty()) super.hyperlinkListener else WebLinkListener
 
     private object WebLinkListener : HyperlinkListener {
       override fun hyperlinkUpdate(e: HyperlinkEvent?) {
@@ -120,6 +120,19 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         )
         val intentions = inspection.getIntentions(issue.startElement, issue.endElement)
         return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map { createQuickFixPair(it) }).stream()
+      }
+
+    override val suppresses: Stream<Suppress>
+      get() {
+        val suppressLint = issue.suppressLintQuickFix ?: return Stream.empty()
+        val project = issue.component.model.project
+        val suppress = Suppress("Suppress", suppressLint.name) {
+          CommandProcessor.getInstance().executeCommand(project, {
+            WriteAction.run<Throwable> { suppressLint.applyFix(issue.startElement) }
+          }, EXECUTE_SUPPRESSION + suppressLint.name, null
+          )
+        }
+        return Stream.of(suppress)
       }
 
     private fun createQuickFixPair(fix: LintIdeQuickFix) = Fix("Fix", fix.name, createQuickFixRunnable(fix))

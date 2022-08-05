@@ -94,7 +94,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
                                 @NotNull DeviceFileSystemRendererFactory rendererFactory,
                                 @NotNull DeviceExplorerModel model) {
     model.addListener(new ModelListener());
-    myDeviceRenderer = rendererFactory.create(new DeviceNamePropertiesFetcher(project, new FutureCallback<>() {
+    myDeviceRenderer = rendererFactory.create(new DeviceNamePropertiesFetcher(project, new FutureCallback<DeviceNameProperties>() {
       @Override
       public void onSuccess(@Nullable DeviceNameProperties result) {
         myPanel.getDeviceCombo().updateUI();

@@ -2,7 +2,11 @@
 <resources>
 <string name="some_string"><error descr="Apostrophe not preceded by \\">'ERROR'</error></string>
 <string name="some_string2">"'OK'"</string>
-<string name="some_string3">What<error descr="Apostrophe not preceded by \\">'s <caret>New</error></string>
+<string name="some_string3">What<error descr="Apostrophe not preceded by \\">'s New</error></string>
 <string name="some_string10">Unicode\u12<error descr="Bad character in \\u unicode escape sequence">.</error></string>
 <string name="news">  "  What's New "    </string>
+<string-array name="array_of_string">
+  <item>It\'s correct</item>
+  <item>It<error descr="Apostrophe not preceded by \\">'<caret>s incorrect</error></item>
+</string-array>
 </resources>

@@ -45,7 +45,7 @@ class VisualLintAtfAnalysis(
     Disposer.register(model, this)
 
     // Enable retrieving text character locations from TextView to improve the
-    // accuracy of TextContrastCheck in ATF
+    // accuracy of TextContrastCheck in ATF.
     LayoutValidator.setObtainCharacterLocations(true)
   }
 
@@ -130,7 +130,7 @@ class VisualLintAtfAnalysis(
 
 class VisualLintAtfIssue(
   result: ValidatorData.Issue,
-  component: NlComponent,
+  val component: NlComponent,
   private val sourceModel: NlModel) :
   NlAtfIssue(result, IssueSource.fromNlComponent(component), sourceModel), VisualLintHighlightingIssue {
 

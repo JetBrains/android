@@ -19,7 +19,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class SelectAllAction(private val surface: DesignSurface) : AnAction("Select All") {
+class SelectAllAction(private val surface: DesignSurface<*>) : AnAction("Select All") {
   override fun actionPerformed(e: AnActionEvent) {
     surface.selectionModel.setSelection(surface.selectableComponents)
     surface.repaint()

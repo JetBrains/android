@@ -38,7 +38,6 @@ public class LintIdeViewTypeDetector extends ViewTypeDetector {
   protected Collection<String> getViewTags(@NonNull Context context, @NonNull ResourceItem item) {
     ResourceRepository projectResources = context.getClient().getResourceRepository(context.getMainProject(), true, false);
     assert projectResources instanceof LocalResourceRepository : projectResources;
-    LocalResourceRepository repository = (LocalResourceRepository)projectResources;
     String viewTag = IdeResourcesUtil.getViewTag(item);
     if (viewTag != null) {
       return Collections.singleton(viewTag);

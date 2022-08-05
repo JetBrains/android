@@ -90,7 +90,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     myDeviceSkinUpdaterServiceExecutor = deviceSkinUpdaterServiceExecutor;
     myEdtExecutor = edtExecutor;
 
-    getComboBox().setRenderer(new ColoredListCellRenderer<>() {
+    getComboBox().setRenderer(new ColoredListCellRenderer<File>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList<@NotNull ? extends File> list,
                                            @Nullable File skin,
@@ -128,7 +128,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     });
     FileChooserDescriptor skinChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
     addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition", project,
-                            skinChooserDescriptor, new TextComponentAccessor<>() {
+                            skinChooserDescriptor, new TextComponentAccessor<JComboBox>() {
         @Override
         public String getText(JComboBox component) {
           return ((File)component.getSelectedItem()).getPath();
@@ -160,7 +160,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
                                                                   SkinChooser::transform,
                                                                   myDeviceSkinUpdaterServiceExecutor);
 
-    FutureUtils.addCallback(future, myEdtExecutor, new FutureCallback<>() {
+    FutureUtils.addCallback(future, myEdtExecutor, new FutureCallback<Collection<Path>>() {
       @Override
       public void onSuccess(@Nullable Collection<@NotNull Path> skins) {
         assert skins != null;
@@ -179,7 +179,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
   private static @NotNull Collection<@NotNull Path> transform(@NotNull Collection<@NotNull Path> paths) {
     List<Path> transformed = new ArrayList<>(1 + paths.size());
-    transformed.add(Paths.get(AvdManagerUtils.NO_SKIN));
+    transformed.add(Paths.get(SkinUtils.NO_SKIN));
 
     paths.stream()
       .filter(Files::exists)

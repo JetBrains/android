@@ -1,0 +1,5 @@
+project.ext.foo = [ bar: 'buzz' ]
+ext {
+  def foo = project.foo
+  group = foo.bar
+}

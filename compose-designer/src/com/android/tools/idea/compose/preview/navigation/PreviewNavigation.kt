@@ -115,16 +115,23 @@ fun findNavigatableComponentHit(module: Module,
 }
 
 /**
+ * Interface that allows to specify location in a [PsiFile] of the element corresponding to the [NlModel].
+ */
+interface PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
+  fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int)
+}
+
+/**
  * Handles navigation for compose preview when NlDesignSurface preview is clicked.
  */
-class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
+class ComposePreviewNavigationHandler : PreviewNavigationHandler {
   // Default location to use when components are not found
   private val defaultNavigationMap = WeakHashMap<NlModel, Pair<String, Navigatable>>()
 
   /**
    * Add default navigation location for model.
    */
-  fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int) {
+  override fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int) {
     LOG.debug { "Default location set to ${psiFile.name}:$offset" }
     defaultNavigationMap[model] =
       psiFile.name to PsiNavigationSupport.getInstance().createNavigatable(model.project, psiFile.virtualFile!!, offset)

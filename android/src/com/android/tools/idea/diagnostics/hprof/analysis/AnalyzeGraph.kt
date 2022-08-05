@@ -873,34 +873,61 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     }
 
     fun signatureFor(ponum: Int): String {
-      return if (ponum == rootPonum) "" else nav.getClassForObjectId(postorderList[ponum].toLong()).name.dropLastWhile { it == ';' }
+      return if (ponum == rootPonum) "root" else nav.getClassForObjectId(postorderList[ponum].toLong()).name.dropLastWhile { it == ';' }
     }
 
-    /* Produce a flame graph of the idom tree in async-profiler format. The tree is truncated where the retained size
-     * of a node falls below minNodeSize, or if the depth gets above maxDepth (very long chains can be created with
-     * linked lists, for example).
+    /* Produce a flame graph of the idom tree in a relatively compact format that can be easily translated
+     * to async-profiler format. The tree is truncated where the retained size of a node falls below minNodeSize,
+     * or if the depth gets above maxDepth (very long chains can be created with linked lists, for example).
+     *
+     * The format is as follows (all numbers are written out as text):
+     * Line 1: number N of strings in string pool
+     * <N lines>: one line per string in the string pool
+     * 1 line per node, with 3 space-separated integer fields:
+     *   - index of node name in the string pool
+     *   - retained size of this node
+     *   - number of child nodes
      */
-    var renderedNodes = 0
-    fun dumpFlameGraph(poNumber: Int, tpb: TruncatingPrintBuffer, pathPrefix: String = "", depth: Int = 0) {
-      val signature = (if (pathPrefix == "") "" else "$pathPrefix;") + signatureFor(poNumber)
-      var renderedChildrenSize = 0
 
-      if (depth < config.dominatorTreeOptions.maxDepth) {
-        idomTreeChildren[poNumber]?.sortedByDescending { p -> retainedSizes[p] }?.forEach { p ->
-          dumpFlameGraph(p, tpb, signature, depth + 1)
-          renderedChildrenSize += retainedSizes[p]
-        }
+    val stringToIndex = mutableMapOf<String, Int>()
+    val indexToString = mutableListOf<String>()
+
+    fun addStringToPool(s: String): Int {
+      if (!stringToIndex.contains(s)) {
+        stringToIndex[s] = stringToIndex.size
+        indexToString.add(s)
       }
-      if (poNumber != rootPonum) {
-        tpb.println("$signature ${(retainedSizes[poNumber] - renderedChildrenSize).toLong() * 4}")
+      return stringToIndex[s]!!
+    }
+
+    var renderedNodes = 0
+    fun StringBuilder.dumpCompressedFlameGraph(poNumber: Int, depth: Int = 0) {
+      val signatureIndex = addStringToPool(signatureFor(poNumber))
+      val children = idomTreeChildren[poNumber]
+      if (depth < config.dominatorTreeOptions.maxDepth && children != null) {
+        val childrenSize = children.sumBy { p -> retainedSizes[p] }
+        appendln("$signatureIndex ${retainedSizes[poNumber] - childrenSize} ${children.size}")
+        renderedNodes++
+        children.sortedByDescending { p -> retainedSizes[p] }.forEach { p ->
+          if (renderedNodes >= config.dominatorTreeOptions.headLimit) return@forEach
+          dumpCompressedFlameGraph(p, depth + 1)
+        }
+      } else {
+        appendln("$signatureIndex ${retainedSizes[poNumber]} 0")
         renderedNodes++
       }
     }
 
-    dominatorFlameGraph = buildString {
-      val tpb = TruncatingPrintBuffer(config.dominatorTreeOptions.headLimit, 0, this::appendln)
-      dumpFlameGraph(rootPonum, tpb)
-    }
+    val sb = StringBuilder()
+    sb.dumpCompressedFlameGraph(rootPonum)
+    sb.insert(0, buildString {
+      appendln(indexToString.size)
+      indexToString.forEach {
+        appendln(it)
+      }
+    })
+    dominatorFlameGraph = sb.toString()
+
     flameGraphStopwatch.stop()
     totalStopwatch.stop()
 

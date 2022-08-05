@@ -22,8 +22,6 @@ import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
-import com.android.tools.profilers.appinspection.AppInspectionMigrationKt;
-import com.android.tools.profilers.appinspection.AppInspectionMigrationServices;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
@@ -50,11 +48,7 @@ import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
-import com.intellij.ui.scale.JBUIScale;
 import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -131,45 +125,9 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       getTooltipBinder().bind(CustomEventMonitorTooltip.class, CustomEventMonitorTooltipView::new);
     }
 
-    AppInspectionMigrationServices migrationServices = stage.getStudioProfilers().getIdeServices().getAppInspectionMigrationServices();
-
     myViews = new ArrayList<>(stage.getMonitors().size());
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
-      // TODO(b/188695273): to be removed.
-      if (monitor instanceof NetworkMonitor && migrationServices.isMigrationEnabled()) {
-        if (!migrationServices.isNetworkProfilerMigrationDialogEnabled()) {
-          continue;
-        }
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setOpaque(true);
-        panel.setBorder(ProfilerLayout.MONITOR_BORDER);
-        panel.setMinimumSize(new Dimension(0, JBUIScale.scale(50)));
-        panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-        layout.setRowSizing(rowIndex, "100*");
-        monitors.add(panel, new TabularLayout.Constraint(rowIndex, 0));
-        rowIndex++;
-
-        AppInspectionMigrationKt.addMigrationPanel(
-          panel, "Network Profiler has moved.", "network activity", NETWORK_INSPECTOR,
-          () -> {
-            getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackNetworkMigrationDialogSelected();
-            migrationServices.openAppInspectionToolWindow(NETWORK_INSPECTOR);
-          },
-          () -> {
-            migrationServices.setNetworkProfilerMigrationDialogEnabled(false);
-            relayoutMonitors(monitors);
-            // Reset the cursor on the profiler component. Otherwise cursor stays a pointed hand.
-            getProfilersView().getComponent().setCursor(null);
-          },
-          (Container container, Cursor cursor) -> {
-            Container cursorContainer = getProfilersView().getComponent();
-            cursorContainer.setCursor(cursor);
-            return cursorContainer;
-          }
-        );
-        continue;
-      }
       ProfilerMonitorView view = binder.build(profilersView, monitor);
       view.registerTooltip(tooltipComponent, stage);
       JComponent component = view.getComponent();
@@ -228,19 +186,6 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     getComponent().add(topPanel, BorderLayout.CENTER);
   }
 
-  private void relayoutMonitors(@NotNull JPanel monitors) {
-    TabularLayout layout = new TabularLayout("*");
-    monitors.setLayout(layout);
-    monitors.removeAll();
-    int index = 0;
-    for (ProfilerMonitorView view : myViews) {
-      layout.setRowSizing(index, rowSizeString(view));
-      monitors.add(view.getComponent(), new TabularLayout.Constraint(index, 0));
-      index++;
-    }
-    monitors.revalidate();
-  }
-
   private String rowSizeString(@NotNull ProfilerMonitorView<ProfilerMonitor> view) {
     int weight = (int)(view.getVerticalWeight() * 100f);
     return (weight > 0) ? weight + "*" : "Fit-";
@@ -258,14 +203,13 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       case DEBUGGABLE:
         return DismissibleMessage.of(getStage().getStudioProfilers(),
                                      SHOW_DEBUGGABLE_MESSAGE,
-                                     "Timing data from debuggable processes will deviate significantly from real" +
-                                     " world performance. A profileable process may be more suitable.",
-                                     SupportLevel.DOC_LINK,
-                                     ProfilerColors.NOTIFICATION_BACKGROUND);
+                                     "Profiling with complete data. This does not represent app performance in production." +
+                                     " Consider profiling with low overhead.",
+                                     SupportLevel.DOC_LINK);
       case PROFILEABLE:
         return DismissibleMessage.of(getStage().getStudioProfilers(),
                                      SHOW_PROFILEABLE_MESSAGE,
-                                     "Only CPU and Memory profilers are enabled for profileable processes.",
+                                     "Profiling with low overhead. Certain profiler features will be unavailable in this mode.",
                                      SupportLevel.DOC_LINK);
     }
     return new JPanel();

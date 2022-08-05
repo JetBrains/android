@@ -47,7 +47,6 @@ import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.kotlin.asJava.elements.KtLightPsiArrayInitializerMemberValue
 
 /**
@@ -69,7 +68,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
         referenceList.addAll(model.getReferencesFromBindingMethods())
         referenceList.addAll(model.getReferencesFromViewSetter())
 
-        val attributeType = referenceList.filterIsInstance<PsiParameterReference>().firstNotNullResult { it.resolvedType }?.type
+        val attributeType = referenceList.filterIsInstance<PsiParameterReference>().firstNotNullOfOrNull { it.resolvedType }?.type
         if (attributeType != null && DataBindingUtil.isTwoWayBindingExpression(attributeValue)) {
           referenceList.addAll(model.getReferencesFromInverseBindingAdapter())
           referenceList.addAll(model.getReferencesFromInverseBindingMethods(attributeType))
@@ -93,7 +92,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
         val mode = DataBindingUtil.getDataBindingMode(facet)
         val viewClass = attribute.parentOfType<XmlTag>()
                           ?.references
-                          ?.firstNotNullResult { it.resolve() as? PsiClass }
+                          ?.firstNotNullOfOrNull { it.resolve() as? PsiClass }
                         ?: return null
         val viewType = viewClass.qualifiedName
                          ?.let { viewName -> LayoutBindingTypeUtil.parsePsiType(viewName, attribute) } ?: return null

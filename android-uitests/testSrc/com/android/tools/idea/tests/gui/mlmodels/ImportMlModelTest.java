@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.mlmodels.ImportMlModel
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,8 +34,9 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ImportMlModelTest {
-  @Rule
-  public GuiTestRule guiTest = new GuiTestRule();
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+
 
   @Before
   public void setUp() {

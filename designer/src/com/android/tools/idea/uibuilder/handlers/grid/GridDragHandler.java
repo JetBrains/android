@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -22,6 +23,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -57,11 +59,17 @@ final class GridDragHandler extends DragHandler {
     NlComponent layoutComponent = layout.getNlComponent();
 
     // Without this case the children array is empty and the array access throws an ArrayIndexOutOfBoundsException
-    DesignSurface surface = editor.getScene().getDesignSurface();
+    DesignSurface<?> surface = editor.getScene().getDesignSurface();
     if (layout.getChildCount() == 0) {
       AttributesTransaction transaction = components.get(0).startAttributeTransaction();
       setRowAndColumnAttribute(transaction, 0, 0);
-      editor.getModel().addComponents(components, layoutComponent, null, insertType, surface, () -> transaction.commit());
+      UtilsKt.addComponentsAndSelectedIfCreated(editor.getModel(),
+                                                components,
+                                                layoutComponent,
+                                                null,
+                                                insertType,
+                                                surface.getSelectionModel(),
+                                                transaction::commit);
       return;
     }
 
@@ -77,8 +85,13 @@ final class GridDragHandler extends DragHandler {
       }
       AttributesTransaction transaction = component.startAttributeTransaction();
       setRowAndColumnAttribute(transaction, row, column);
-
-      editor.getModel().addComponents(components, layoutComponent, null, insertType, surface, () -> transaction.commit());
+      UtilsKt.addComponentsAndSelectedIfCreated(editor.getModel(),
+                                                components,
+                                                layoutComponent,
+                                                null,
+                                                insertType,
+                                                surface.getSelectionModel(),
+                                                transaction::commit);
       return;
     }
 
@@ -103,7 +116,7 @@ final class GridDragHandler extends DragHandler {
       transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
       transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
     }
-    else if (SdkConstants.GRID_LAYOUT_V7.isEquals(tagName)) {
+    else if (AndroidXConstants.GRID_LAYOUT_V7.isEquals(tagName)) {
       transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
       transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
     }

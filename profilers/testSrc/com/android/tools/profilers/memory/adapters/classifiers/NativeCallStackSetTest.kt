@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.memory.adapters.ClassDb
@@ -27,8 +28,7 @@ class NativeCallStackSetTest {
   @Test
   fun subClassifierIsDefault() {
     val callstackSet = NativeCallStackSet(Memory.AllocationStack.StackFrame.getDefaultInstance(), 0)
-    assertThat(callstackSet.createSubClassifier()).isInstanceOf(
-      NativeFunctionClassifier::class.java)
+    assertThat(callstackSet.createSubClassifier().isTerminalClassifier).isFalse()
   }
 
   @Test
@@ -40,8 +40,8 @@ class NativeCallStackSetTest {
                                    .setMethodName("Test")))
       .build()
     val instanceObject = Mockito.mock(InstanceObject::class.java)
-    Mockito.`when`(instanceObject.callStackDepth).thenReturn(1)
-    Mockito.`when`(instanceObject.allocationCallStack).thenReturn(allocationStack)
+    whenever(instanceObject.callStackDepth).thenReturn(1)
+    whenever(instanceObject.allocationCallStack).thenReturn(allocationStack)
     val callstackSet = classifier.getClassifierSet(instanceObject, true)
     assertThat(callstackSet).isInstanceOf(NativeCallStackSet::class.java)
     assertThat((callstackSet as NativeCallStackSet).name).isEqualTo("Test")
@@ -51,9 +51,9 @@ class NativeCallStackSetTest {
   fun classifierLeafNode() {
     val classifier = NativeCallStackSet.createDefaultClassifier()
     val instanceObject = Mockito.mock(InstanceObject::class.java)
-    Mockito.`when`(instanceObject.callStackDepth).thenReturn(0)
-    Mockito.`when`(instanceObject.allocationCallStack).thenReturn(null)
-    Mockito.`when`(instanceObject.classEntry).thenReturn(
+    whenever(instanceObject.callStackDepth).thenReturn(0)
+    whenever(instanceObject.allocationCallStack).thenReturn(null)
+    whenever(instanceObject.classEntry).thenReturn(
       ClassDb.ClassEntry(0, 0, "Test"))
     val callstackSet = classifier.getClassifierSet(instanceObject, true)
     assertThat(callstackSet).isInstanceOf(NativeAllocationMethodSet::class.java)
@@ -65,10 +65,10 @@ class NativeCallStackSetTest {
     val classifier = NativeCallStackSet.createDefaultClassifier()
     // Leaf instance
     val leafInstance = Mockito.mock(InstanceObject::class.java)
-    Mockito.`when`(leafInstance.callStackDepth).thenReturn(0)
-    Mockito.`when`(leafInstance.allocationCallStack).thenReturn(null)
-    Mockito.`when`(leafInstance.instanceCount).thenReturn(1)
-    Mockito.`when`(leafInstance.classEntry).thenReturn(
+    whenever(leafInstance.callStackDepth).thenReturn(0)
+    whenever(leafInstance.allocationCallStack).thenReturn(null)
+    whenever(leafInstance.instanceCount).thenReturn(1)
+    whenever(leafInstance.classEntry).thenReturn(
       ClassDb.ClassEntry(0, 0, "Test"))
     val leafSet = classifier.getClassifierSet(leafInstance, true)!!
     assertThat(leafSet.addDeltaInstanceObject(leafInstance)).isTrue()
@@ -79,8 +79,8 @@ class NativeCallStackSetTest {
                                    .setMethodName("Test Method")))
       .build()
     val callStackInstance = Mockito.mock(InstanceObject::class.java)
-    Mockito.`when`(callStackInstance.callStackDepth).thenReturn(1)
-    Mockito.`when`(callStackInstance.allocationCallStack).thenReturn(allocationStack)
+    whenever(callStackInstance.callStackDepth).thenReturn(1)
+    whenever(callStackInstance.allocationCallStack).thenReturn(allocationStack)
     val callStackSet = classifier.getClassifierSet(callStackInstance, true)!!
     assertThat(callStackSet.addDeltaInstanceObject(leafInstance)).isTrue()
     assertThat(classifier.allClassifierSets).containsExactly(leafSet, callStackSet)

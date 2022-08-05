@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.ui.OneTimeOverrideFocusTraversalPolicy
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Container
 import java.awt.FocusTraversalPolicy
@@ -35,19 +35,19 @@ class OneTimeOverrideFocusTraversalPolicyTest {
   @Before
   fun setUp() {
     // Setup a focus cycle from [component1, component2, component3, component1, ...]
-    `when`(mockPolicy.getComponentAfter(container, component1)).thenReturn(component2)
-    `when`(mockPolicy.getComponentAfter(container, component2)).thenReturn(component3)
-    `when`(mockPolicy.getComponentAfter(container, component3)).thenReturn(component1)
+    whenever(mockPolicy.getComponentAfter(container, component1)).thenReturn(component2)
+    whenever(mockPolicy.getComponentAfter(container, component2)).thenReturn(component3)
+    whenever(mockPolicy.getComponentAfter(container, component3)).thenReturn(component1)
 
-    `when`(mockPolicy.getComponentBefore(container, component1)).thenReturn(component3)
-    `when`(mockPolicy.getComponentBefore(container, component2)).thenReturn(component1)
-    `when`(mockPolicy.getComponentBefore(container, component3)).thenReturn(component2)
+    whenever(mockPolicy.getComponentBefore(container, component1)).thenReturn(component3)
+    whenever(mockPolicy.getComponentBefore(container, component2)).thenReturn(component1)
+    whenever(mockPolicy.getComponentBefore(container, component3)).thenReturn(component2)
 
-    `when`(mockPolicy.getFirstComponent(container)).thenReturn(component1)
+    whenever(mockPolicy.getFirstComponent(container)).thenReturn(component1)
 
-    `when`(mockPolicy.getLastComponent(container)).thenReturn(component3)
+    whenever(mockPolicy.getLastComponent(container)).thenReturn(component3)
 
-    `when`(mockPolicy.getDefaultComponent(container)).thenReturn(component1)
+    whenever(mockPolicy.getDefaultComponent(container)).thenReturn(component1)
   }
 
   @Test

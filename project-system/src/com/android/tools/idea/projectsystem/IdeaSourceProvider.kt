@@ -92,3 +92,19 @@ interface IdeaSourceProvider {
 interface NamedIdeaSourceProvider : IdeaSourceProvider {
   val name: String
 }
+
+interface BuildConfigurationSourceProvider {
+  interface ConfigurationFile {
+    val displayName: String
+    val file: VirtualFile
+    val groupOrder: Int
+  }
+
+  fun getBuildConfigurationFiles(): List<ConfigurationFile>
+  fun contains(file: VirtualFile): Boolean
+
+  object EMPTY : BuildConfigurationSourceProvider {
+    override fun getBuildConfigurationFiles(): List<ConfigurationFile> = emptyList()
+    override fun contains(file: VirtualFile): Boolean = false
+  }
+}

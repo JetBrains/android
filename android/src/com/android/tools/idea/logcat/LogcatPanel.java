@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.logcat;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.run.ClearLogcatListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -36,6 +38,13 @@ public final class LogcatPanel extends JBLoadingPanel {
 
     add(new DeviceAndSearchPanel(myDevicePanel, myLogcatView), BorderLayout.NORTH);
     add(myLogcatView.getContentPanel(), BorderLayout.CENTER);
+
+    project.getMessageBus().connect().subscribe(ClearLogcatListener.TOPIC, serialNumber -> {
+      IDevice device = myLogcatView.getSelectedDevice();
+      if (device != null && device.getSerialNumber().equals(serialNumber)) {
+        AndroidLogcatService.getInstance().clearLogcat(device, myLogcatView.getProject());
+      }
+    });
   }
 
   @NotNull

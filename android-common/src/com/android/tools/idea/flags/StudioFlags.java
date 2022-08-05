@@ -27,6 +27,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A collection of all feature flags used by Android Studio. These flags can be used to gate
@@ -50,6 +51,11 @@ public final class StudioFlags {
       userOverrides = new DefaultFlagOverrides();
     }
     return new Flags(userOverrides, new PropertyOverrides(), new ServerFlagOverrides());
+  }
+
+  @TestOnly
+  public static void validate() {
+      FLAGS.validate();
   }
 
   //region New Project Wizard
@@ -99,12 +105,6 @@ public final class StudioFlags {
   //region Profiler
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
-  public static final Flag<Boolean> PROFILER_CPU_CAPTURE_STAGE = Flag.create(
-    PROFILER, "cpu.capture.stage", "Enable new capture stage",
-    "With the new System Trace design we have a cpu capture stage. This flag uses that flow instead of the legacy " +
-    "CpuProfilerStageView flow.",
-    true);
-
   public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
     PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
     "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
@@ -114,31 +114,15 @@ public final class StudioFlags {
     PROFILER, "energy", "Enable Energy profiling",
     "Enable the new energy profiler. It monitors battery usage of the selected app.", true);
 
-  public static final Flag<Boolean> PROFILER_STARTUP_CPU_PROFILING = Flag.create(
-    PROFILER, "startup.cpu.profiling", "Enable startup CPU Profiling",
-    "Record a method trace on startup by enabling it in the Profiler tab of Run/Debug configuration.",
-    true);
-
   public static final Flag<Boolean> PROFILER_MEMORY_CSV_EXPORT = Flag.create(
     PROFILER, "memory.csv", "Allow exporting entries in memory profiler",
     "Allow exporting entries in the views for heap dump and native/JVM recordings in CSV format.",
     false);
 
-  public static final Flag<Boolean> PROFILER_TRACK_JNI_REFS = Flag.create(
-    PROFILER, "jni", "Enable JVMTI-based JNI reference tracking.",
-    "For Android O or newer, JNI references are tracked in Memory Profiler and shown in JNI heap.",
-    true);
-
   public static final Flag<Boolean> PROFILER_PERFORMANCE_MONITORING = Flag.create(
     PROFILER, "performance.monitoring", "Enable Profiler Performance Monitoring Options",
     "Toggles if profiler performance metrics options are enabled.",
     false
-  );
-
-  public static final Flag<Boolean> PROFILER_CPU_NEW_RECORDING_WORKFLOW = Flag.create(
-    PROFILER, "cpu.new.recording.workflow", "Enable new CPU recording workflow",
-    "Shows recording options and status of the ongoing recording in the method trace pane.",
-    true
   );
 
   public static final Flag<Boolean> PROFILER_JANK_DETECTION_UI = Flag.create(
@@ -152,26 +136,10 @@ public final class StudioFlags {
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
 
-  public static final Flag<Boolean> PROFILER_USE_TRACEPROCESSOR = Flag.create(
-    PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
-    "Use TraceProcessor to parse Perfetto captures instead of Trebuchet/Atrace backend.",
-    true);
-
-  public static final Flag<Boolean> PROFILEABLE = Flag.create(
-    PROFILER, "profileable", "Support profileable processes on S+",
-    "Show profileable processes on S and later",
-    true);
-
-  public static final Flag<Boolean> PROFILER_MIGRATION_TO_APPINSPECTION = Flag.create(
-    PROFILER, "profiler.migration.to.appinspection", "Enable migration support for network and system events profiling.",
-    "Show migration messaging to guide users to the App Inspection tool window",
-    true);
-
-  // PROFILEABLE_IN_QR is an extension of PROFILEABLE. When it's true, it assumes PROFILEABLE is also true.
-  public static final Flag<Boolean> PROFILEABLE_IN_QR = Flag.create(
-    PROFILER, "profileable.qr", "Support profileable processes on Q & R",
-    "Show profileable processes on Q and R",
-    PROFILEABLE.get() && true);
+  public static final Flag<Boolean> PROFILEABLE_BUILDS = Flag.create(
+    PROFILER, "profileable.builds", "Support building profileable apps",
+    "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",
+    false);
   //endregion
 
   //region ML
@@ -201,6 +169,9 @@ public final class StudioFlags {
     DESIGN_TOOLS, "power.save.support", "Enable previews support for PowerSave mode",
     "If enabled, the the Layout Editor and Compose Preview will respect the Power Save mode and avoid auto-refresh, reduce FPS, etc.",
     true);
+  public static final Flag<Boolean> USE_COMPONENT_TREE_TABLE = Flag.create(
+    DESIGN_TOOLS, "design.component.tree.table", "Enable TreeTable implementation of component tree",
+    "Use a TreeTable for displaying the component tree in the LayoutInspector and the Nav editor.", true);
 
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
@@ -216,35 +187,18 @@ public final class StudioFlags {
     NELE, "animated.list.preview", "Show preview animations toolbar for animation list",
     "Show an animations bar that allows playback of animation list files.",
     true);
-  public static final Flag<Boolean> NELE_MOTION_LAYOUT_ANIMATIONS = Flag.create(
-    NELE, "animated.motion.layout", "Show preview animations toolbar for MotionLayout",
-    "Show an animations bar that allows playback of MotionLayout animations.",
-    false);
-  public static final Flag<Boolean> NELE_MOTION_LAYOUT_EDITOR = Flag.create(
-    NELE, "animated.motion.editor", "Show motion editor for MotionLayout",
-    "Show the motion editor UI for MotionLayout.",
-    true);
   public static final Flag<Boolean> NELE_MOTION_AREA_GRAPH = Flag.create(
     NELE, "motion.area.graph", "Show area graph in Timeline panel",
     "Show area graph in Timeline panel for Motion Editor.",
     true);
-  public static final Flag<Boolean> NELE_CONSTRAINT_SELECTOR = Flag.create(
-    NELE, "constraint.selection", "Allow selection of Constraints",
-    "Allow the selection of constraints.",
+  public static final Flag<Boolean> NELE_MOTION_SAVE_GIF = Flag.create(
+    NELE, "motion.save.gif", "Enable save GIF feature",
+    "Enable save a selected transition as a GIF file in Motion Editor.",
     true);
   public static final Flag<Boolean> NELE_MOTION_HORIZONTAL = Flag.create(
     NELE, "animated.motion.horizontal", "Display motion editor horizontally",
     "Controls the placement of the motion editor (horizontal versus vertical).",
     false);
-  public static final Flag<Boolean> NELE_MOCKUP_EDITOR = Flag.create(
-    NELE, "mockup.editor", "Enable the Mockup Editor",
-    "Enable the Mockup Editor to ease the creation of Layouts from a design file.",
-    false);
-
-  public static final Flag<Boolean> NELE_CONVERT_VIEW = Flag.create(
-    NELE, "convert.view", "Enable the Convert View action",
-    "Enable the Convert View Action when right clicking on a component",
-    true);
 
   public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
     NELE, "diagnostics", "Enable rendering on-screen stats",
@@ -276,27 +230,7 @@ public final class StudioFlags {
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
     false);
 
-  public static final Flag<Boolean> NELE_SCENEVIEW_TOP_TOOLBAR = Flag.create(
-    NELE, "sceneview.top.toolbar", "Enable the per SceneView top toolbar.",
-    "Enable the per SceneView top toolbar that displays the SceneView contextual actions.",
-    true);
-
-  public static final Flag<Boolean> NELE_SCENEVIEW_BOTTOM_BAR = Flag.create(
-    NELE, "sceneview.bottom.bar", "Enable the per SceneView bottom bar.",
-    "Enable the per SceneView bottom bar that displays the SceneView contextual actions.",
-    false);
-
-  public static final Flag<Boolean> NELE_SCENEVIEW_LEFT_BAR = Flag.create(
-    NELE, "sceneview.left.bar", "Enable SceneView left bar for overlay actions.",
-    "Enable the SceneView left bar that displays the overlay actions.",
-    true);
-
-
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
-  public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
-    ASSISTANT, "connection.enabled", "Enable the connection assistant",
-    "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
-    true);
 
   public static final Flag<Boolean> NELE_CONSTRAINT_LAYOUT_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.constraintlayout", "Display Help for Constraint Layout",
@@ -346,7 +280,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUALIZATION_MULTIPLE_CUSTOM = Flag.create(
     NELE, "visualization.multiple.custom", "Multiple Custom Categories in Layout Validation Tool",
     "Allow to create or delete multiple custom categories in Layout Validation Tool",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
@@ -386,21 +320,25 @@ public final class StudioFlags {
     "If the xml layout contains atf results, it will be shown in the common error panel as well as issue panel.",
     false);
 
+  public static final Flag<Boolean> NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS = Flag.create(
+    NELE, "use.shared.issue.panel.for.design.tools", "Enabled shared issue panels",
+    "Use a shared issue panel to display the issue for all design tools",
+    true);
+
   public static final Flag<Boolean> NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL = Flag.create(
     NELE, "show.issue.in.common.panel", "Enable showing issues in common problems panel.",
     "If the xml layout contains any visual lint issues, it will be shown in the common error panel as well as in laytout validation issue panel.",
     false);
 
   public static final Flag<Boolean> NELE_VISUAL_LINT_ALWAYS_RUN = Flag.create(
-    NELE, "visual.lint.always.run", "Run visual lint always",
-    "Enable so that visual lint always runs for select configurations.",
-    false);
+    NELE, "visual.lint.always.run", "Run visual lint in the background when the layout editor is opened",
+    "Enable so that visual lint always runs in the background of the layout editor for select configurations. This is also known as the background linting",
+    true);
 
-  public static final Flag<Boolean> NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS = Flag.create(
-    NELE, "show.issue.panel.in.problems", "Show the Issue Panel in IJ's Problem Panel",
-    "Move the Issue Panel from Design Tools into the Problems Panel as an additional tab.",
-    false
-  );
+  public static final Flag<Boolean> NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES = Flag.create(
+    NELE, "use.custom.traffic.lights.for.resources", "Base traffic lights on the errors from the shared issue panel",
+    "Use errors from the current file and qualifiers tab in the traffic light rendering for resource files.",
+    true);
 
   public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
     NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
@@ -440,17 +378,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUAL_LINT = Flag.create(
     NELE, "visual.lint", "Enable visual linting for layouts",
     "Enable all the various tools related to visual linting of layouts.",
-    false);
-
-  public static final Flag<Boolean> NELE_VISUAL_LINT_TOGGLE_ISSUE_LAYOUTS = Flag.create(
-    NELE, "visual.lint.toggle.issue.layouts", "Checkbox to show the the layouts with issue only.",
-    "Provide a checkbox in Layout Validation Tool to allow user only show the layouts with issue detected by visual lint.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_ATF_IN_VISUAL_LINT = Flag.create(
     NELE, "visual.lint.atf", "Enable ATF integration in visual linting for layouts",
     "Enable ATF integration in visual linting of layouts.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
     NELE, "preview.warn.new.threads", "Enable new threads warning",
@@ -488,16 +421,10 @@ public final class StudioFlags {
 
   //region Resource Repository
   private static final FlagGroup RESOURCE_REPOSITORY = new FlagGroup(FLAGS, "resource.repository", "Resource Repository");
-  public static final Flag<Boolean> RESOURCE_REPOSITORY_TRACE_UPDATES = Flag.create(
-    RESOURCE_REPOSITORY, "trace.updates", "Enable Tracing of Resource Repository Updates",
-    "Enables tracing of resource repository updates",
-    false);
   public static final Flag<Integer> RESOURCE_REPOSITORY_TRACE_SIZE = Flag.create(
     RESOURCE_REPOSITORY, "trace.size", "Maximum Size of Resource Repository Update Trace",
     "Size of the in-memory cyclic buffer used for tracing of resource repository updates",
     10000);
-  //endregion
-
   //endregion
 
   //region Run/Debug
@@ -539,29 +466,44 @@ public final class StudioFlags {
     "If enabled, AS executes Run Configuration via new.AndroidRunProfileState",
     false);
 
-    /**
-     * The level of APK change that will be supported by the deployment pipeline's optimistic
-     * "deploy-without-installing" path. Deploying changes that exceed the level of support
-     * configured here will cause the deployment to install via the package manager.
-     */
-    public enum OptimisticInstallSupportLevel {
-        /** Always fall back to a package manager installation. */
-        DISABLED,
-        /** Support deploying changes to dex files only. */
-        DEX,
-        /** Support deploying changes to dex files and native libraries only. */
-        DEX_AND_NATIVE,
-        /** Support deploying changes to dex files, native libraries, and resources. */
-        DEX_AND_NATIVE_AND_RESOURCES,
-    }
+  public static final Flag<Boolean> ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER = Flag.create(
+    RUNDEBUG, "run.wear.configuration.gutter.enabled", "Run Wear Configurations from gutter",
+    "If enabled, allow to Run Wear Configurations from the gutter.",
+    true);
 
-    public static final Flag<OptimisticInstallSupportLevel> OPTIMISTIC_INSTALL_SUPPORT_LEVEL =
-            Flag.create(
-                    RUNDEBUG,
-                    "optimisticinstall.supportlevel",
-                    "The amount of support for using the 'Apply Changes 2.0' pipeline on Run.",
-                    "This can be \"DISABLED\" to always use a package manager installation; \"DEX\" to use the pipeline for dex-only changes; \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes; or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files. Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
-                    OptimisticInstallSupportLevel.DEX);
+  /**
+   * The level of APK change that will be supported by the deployment pipeline's optimistic
+   * "deploy-without-installing" path. Deploying changes that exceed the level of support
+   * configured here will cause the deployment to install via the package manager.
+   */
+  public enum OptimisticInstallSupportLevel {
+    /**
+     * Always fall back to a package manager installation.
+     */
+    DISABLED,
+    /**
+     * Support deploying changes to dex files only.
+     */
+    DEX,
+    /**
+     * Support deploying changes to dex files and native libraries only.
+     */
+    DEX_AND_NATIVE,
+    /**
+     * Support deploying changes to dex files, native libraries, and resources.
+     */
+    DEX_AND_NATIVE_AND_RESOURCES,
+  }
+
+  public static final Flag<OptimisticInstallSupportLevel> OPTIMISTIC_INSTALL_SUPPORT_LEVEL = Flag.create(
+    RUNDEBUG,
+    "optimisticinstall.supportlevel",
+    "The amount of support for using the 'Apply Changes 2.0' pipeline on Run.",
+    "This can be \"DISABLED\" to always use a package manager installation; \"DEX\" to use the pipeline for dex-only changes;" +
+    " \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes;" +
+    " or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files." +
+    " Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
+    OptimisticInstallSupportLevel.DEX);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
@@ -619,12 +561,20 @@ public final class StudioFlags {
     "To allow toggling between automatic or user managed ADB server mode.",
     false);
 
+  public static final Flag<Boolean> ADB_DEVICE_MONITOR_TOOL_WINDOW_ENABLED = Flag.create(
+    RUNDEBUG,
+    "adb.device.monitor.enable",
+    "Enable the \"Device Monitor\" tool window",
+    "Enable the \"Device Monitor\" tool window which shows the list of JDWP proceses of Android Devices.\n" +
+    "Changing the value of this flag requires restarting Android Studio.",
+    true);
+
   public static final Flag<Boolean> ADBLIB_MIGRATION_DEVICE_EXPLORER = Flag.create(
     RUNDEBUG,
     "adblib.migration.device.explorer",
     "Use adblib in Device Explorer",
     "Use adblib instead of ddmlib for Device Explorer",
-    false);
+    true);
 
   public static final Flag<Boolean> ADBLIB_MIGRATION_WIFI_PAIRING = Flag.create(
     RUNDEBUG,
@@ -632,6 +582,14 @@ public final class StudioFlags {
     "Use adblib in Pair Device over Wi-Fi",
     "Use adblib instead of ddmlib for Pair Device over Wi-Fi",
     true);
+
+  public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER = Flag.create(
+    RUNDEBUG,
+    "adblib.migration.ddmlib.clientmanager",
+    "Use adblib to track device processes (Client)",
+    "Use adblib instead of ddmlib to track processes (Client) on devices and handle debug sessions. " +
+    "Note: Changing the value of this flag requires restarting Android Studio.",
+    false);
 
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,
@@ -649,28 +607,75 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> LOGCAT_EXPRESSION_FILTER_ENABLE = Flag.create(
+  public static final Flag<Boolean> DDMLIB_ABB_EXEC_INSTALL_ENABLE = Flag.create(
     RUNDEBUG,
+    "ddmlib.abb.exec.install.enable",
+    "Allow DDMLib to use ABB_EXEC on install when device supports it.",
+    "Allow DDMLib to use ABB_EXEC on install instead of the 'legacy' EXEC/CMD or EXEC/PM combos. This only occurs if device and adb support abb_exec",
+    true
+  );
+
+  //endregion
+
+  //region Logcat
+  private static final FlagGroup LOGCAT = new FlagGroup(FLAGS, "logcat", "Logcat");
+
+  // Deprecated: Old logcat tool window
+  public static final Flag<Boolean> LOGCAT_EXPRESSION_FILTER_ENABLE = Flag.create(
+    LOGCAT,
     "logcat.expression.filter.enable",
-    "Enable expression filter in Logcat",
+    "Enable expression filter in Logcat (deprecated)",
     "Enables the expression filter in Logcat",
     false
   );
 
+  // Deprecated: Old logcat tool window
   public static final Flag<Boolean> LOGCAT_SUPPRESSED_TAGS_ENABLE = Flag.create(
-    RUNDEBUG,
+    LOGCAT,
     "logcat.suppressed.tags.enable",
-    "Enable Suppressed Tags Dialog in Logcat",
+    "Enable Suppressed Tags Dialog in Logcat (deprecated)",
     "Enables a dialog that allows the user to maintain a global set of tags to be suppressed in Logcat",
     false
   );
 
-  public static final Flag<Boolean> LOGCAT_V2_ENABLE = Flag.create(
-    RUNDEBUG,
-    "logcat.v2.enable",
-    "Enable Logcat V2",
-    "Enables version 2 of the Logcat tool window",
+  public static final Flag<Boolean> LOGCAT_NAMED_FILTERS_ENABLE = Flag.create(
+    LOGCAT,
+    "logcat.named.filters.enable",
+    "Enable Logcat named filters feature",
+    "Enables the named filters feature in the Logcat tool window",
     false
+  );
+
+  public static final Flag<Boolean> LOGCAT_CUSTOM_FORMAT_ACTION = Flag.create(
+    LOGCAT,
+    "logcat.custom.format.action",
+    "Enable Logcat custom format action",
+    "Enables the custom format action in the Logcat tool window action bar",
+    false
+  );
+
+  public static final Flag<Boolean> LOGCAT_CLICK_TO_ADD_FILTER = Flag.create(
+    LOGCAT,
+    "logcat.click.to.add.filter",
+    "Enable Logcat click to add/remove filter feature",
+    "Enable Logcat click to add/remove filter feature",
+    true
+  );
+
+  public static final Flag<Boolean> LOGCAT_IS_FILTER = Flag.create(
+    LOGCAT,
+    "logcat.is.filter",
+    "Enable Logcat 'is:...' filter",
+    "Enables a Logcat filter using the 'is' keyword for example 'is:stacktrace'is:crash' etc",
+    true
+  );
+
+  public static final Flag<Integer> LOGCAT_MAX_MESSAGES_PER_BATCH = Flag.create(
+    LOGCAT,
+    "logcat.max.messages.per.batch",
+    "Set the max number of messages that are appended to the UI component",
+    "Set the max number of messages that are appended to the UI component",
+    1000
   );
   //endregion
 
@@ -682,28 +687,22 @@ public final class StudioFlags {
     "When a project is loaded, automatically add a \"Gradle-aware Make\" task to each Run Configuration if the task is missing",
     true);
 
-  public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
-    GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
-    "Turns on the new \"Project Structure\" dialog.", true);
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Makes Gradle use development offline repositories such as /out/repo", StudioPathManager.isRunningFromSources());
-  public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
-    GRADLE_IDE, "build.attribution", "Enable build attribution",
-    "Enable build attribution.", true);
   public static final Flag<Boolean> BUILD_ANALYZER_JETIFIER_ENABLED = Flag.create(
     GRADLE_IDE, "build.analyzer.jetifier.warning", "Enable Jetifier usage analyzis",
     "Enable Jetifier usage analyzis is Build Analyzer.", true);
+  public static final Flag<Boolean> BUILD_ANALYZER_DOWNLOADS_ANALYSIS = Flag.create(
+    GRADLE_IDE, "build.analyzer.downloads.analysis", "Enable Downloads analysis",
+    "Enable Downloads analysis in Build Analyzer.", true);
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running "+ApplicationNamesInfo.getInstance().getFullProductName()+" internally.", false);
-  public static final Flag<Boolean> USE_MODULE_PER_SOURCE_SET = Flag.create(
-    GRADLE_IDE, "module.per.source.set", "Enables creating multiple modules per Gradle project",
-    "This allows the IDE to more closely represent how the project is configured in Gradle.", true);
 
   public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.sync.parallel.sync.enabled", "Enables parallel sync",
-    "This allows the IDE to fetch models in parallel (if supported by Gralde and enabled via org.gradle.parallel=true).", false);
+    "This allows the IDE to fetch models in parallel (if supported by Gradle and enabled via org.gradle.parallel=true).", true);
 
   public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS = Flag.create(
     GRADLE_IDE, "gradle.sync.parallel.sync.prefetch.variants", "Enables speculative syncing of current variants",
@@ -724,19 +723,19 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SYNC_RECREATE_JDK = Flag.create(
     GRADLE_IDE, "gradle.sync.recreate.jdk", "Recreate JDK on sync", "Recreate Gradle JDK when syncing if there are changed roots.", true);
 
+  public static final Flag<Boolean> GRADLE_DSL_TOML_SUPPORT = Flag.create(
+    GRADLE_IDE, "gradle.dsl.toml", "Parse TOML files", "Parse TOML files to support use of Version Catalogs.", true);
+
+  public static final Flag<Boolean> GRADLE_DSL_TOML_WRITE_SUPPORT = Flag.create(
+    GRADLE_IDE, "gradle.dsl.toml.write", "Write TOML files", "Write changes to TOML Version Catalog files.", true);
+
+  public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = Flag.create(
+    GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 
   //endregion
 
   //region Database Inspector
   private static final FlagGroup DATABASE_INSPECTOR = new FlagGroup(FLAGS, "database.inspector", "Database Inspector");
-  public static final Flag<Boolean> DATABASE_INSPECTOR_ENABLED = Flag.create(
-    DATABASE_INSPECTOR,
-    "enabled",
-    "Enable Database Inspector",
-    "If enabled the Database Inspector tool window will appear." +
-    "SQLite files opened from the Device Explorer will be opened in the inspector.",
-    true
-  );
   public static final Flag<Boolean> DATABASE_INSPECTOR_OPEN_FILES_ENABLED = Flag.create(
     DATABASE_INSPECTOR,
     "open.files.enabled",
@@ -745,54 +744,24 @@ public final class StudioFlags {
     "eg. SQLite files opened from the Device Explorer will open in the inspector.",
     false
   );
-  public static final Flag<Boolean> DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED = Flag.create(
-    DATABASE_INSPECTOR,
-    "offline.enabled",
-    "Enable offline mode in Database Inspector",
-    "If enabled, Database Inspector will download a copy of open databases when the connection to the device is lost.",
-    true
-  );
-  public static final Flag<Boolean> DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED = Flag.create(
-    DATABASE_INSPECTOR,
-    "export.to.file.enabled",
-    "Enable Export to File feature in Database Inspector",
-    "If enabled, Database Inspector will expose an ability for the user to export a table, query results, or the whole database " +
-    "to a local file.",
-    true
-  );
   //endregion
 
   //region Layout Inspector
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
-  public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "load.overlay", "Enable the Load Overlay feature",
-    "If enabled, show actions to let user choose overlay image on preview.", true);
-  public static final Flag<Boolean> LAYOUT_INSPECTOR_SUB_VIEW_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "sub.view", "Enable the sub view feature",
-    "If enabled, changes the preview to focus on a component.", true);
-  public static final Flag<Boolean> LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "capture.v2", "Enable using V2 protocol to capture view data",
-    "If enabled, uses V2 protocol to capture view information from device.", false);
-  public static final Flag<Boolean> LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "ui.editing", "Enable editing ViewNode properties in the properties table.",
-    "If enabled, users can edit properties in the properties table.", false);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector", "Enable dynamic layout inspector",
-    "Turns on the dynamic layout inspector.", true);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
-    "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
-    false);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.devbuild.skia", "Use the locally-built skia rendering server",
     "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector.show.semantics", "Show semantics",
-    "If enabled, display semantic information found in the agent.", true);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.snapshots", "Enable snapshots",
-    "Enable saving and loading snapshots in the layout inspector.", true);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.recomposition.counts", "Enable recomposition counts",
+    "Enable gathering and display of recomposition counts in the layout inspector.", true);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.recomposition.highlights", "Enable recomposition highlights",
+    "Enable recomposition highlights on the image in the layout inspector.", true);
 
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.auto.connect.foreground", "Enable automatically connecting to foreground process",
+    "When this flag is enabled, LayoutInspector will automatically connect to whatever debuggable process is in the foreground on the phone.",
+    false);
   //endregion
 
   //region Embedded Emulator
@@ -827,6 +796,30 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region Device Mirroring
+  private static final FlagGroup DEVICE_MIRRORING = new FlagGroup(FLAGS, "device.mirroring", "Device Mirroring");
+  public static final Flag<Boolean> DEVICE_MIRRORING_ENABLED_BY_DEFAULT = Flag.create(
+    DEVICE_MIRRORING, "enabled", "Enable Mirroring of Physical Devices by Default",
+    "Mirrors displays of connected physical devices",
+    false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_STANDALONE_EMULATORS = Flag.create(
+    DEVICE_MIRRORING, "allow.standalone.emulators", "Allow Mirroring of Standalone Emulators",
+    "Treats standalone emulators the same as physical devices for the purpose of display mirroring",
+    false);
+  public static final Flag<Boolean> DEVICE_CLIPBOARD_SYNCHRONIZATION_ENABLED = Flag.create(
+    DEVICE_MIRRORING, "clipboard.synchronization.enabled", "Enable Clipboard Synchronization with Mirrored Physical Devices",
+    "Synchronizes clipboard contents between the host computer and the mirrored physical devices",
+    true);
+  public static final Flag<String> DEVICE_MIRRORING_AGENT_LOG_LEVEL = Flag.create(
+    DEVICE_MIRRORING, "agent.log.level", "On Device Logging Level for Mirroring",
+    "The log level used by the screen sharing agent, one of \"verbose\", \"debug\", \"info\", \"warn\" or \"error\"",
+    "debug");
+  public static final Flag<String> DEVICE_MIRRORING_VIDEO_CODEC = Flag.create(
+    DEVICE_MIRRORING, "video.codec", "Video Codec Used for Mirroring of Physical Devices",
+    "The name of a video codec, e.g. \"vp8\" or \"vp9\"",
+    "vp8");
+  //endregion
+
   //region Refactorings
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
 
@@ -837,6 +830,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.nontransitiverclasses.enabled", "Enable the Migrate to non-transitive R classes refactoring",
     "If enabled, show the action in the refactoring menu", true);
+
+  public static final Flag<Boolean> INFER_ANNOTATIONS_REFACTORING_ENABLED = Flag.create(
+    REFACTORINGS, "infer.annotations.enabled", "Enable the Infer Annotations refactoring",
+    "If enabled, show the action in the refactoring menu", false);
   //endregion
 
   //region NDK
@@ -891,6 +888,13 @@ public final class StudioFlags {
     "If enabled, XML code completion doesn't include resources from the android namespace. Instead a fake completion item " +
     "is used to offer just the namespace prefix.", true);
 
+  public static final Flag<Boolean> AGSL_LANGUAGE_SUPPORT = Flag.create(
+    EDITOR, "agsl.support.enabled",
+    "Enable editor support for AGSL (Android Graphics Shading Language)",
+    "If enabled, it offers basic editor support (syntax highlighting and basic validation) for AGSL",
+    true
+  );
+
   public static final Flag<Boolean> ADVANCED_JNI_ASSISTANCE = Flag.create(
     EDITOR, "advanced.jni.assistance",
     "Enable advanced JNI assistance",
@@ -898,22 +902,6 @@ public final class StudioFlags {
     "inspections related to JNI may stop working.",
     true
   );
-
-  public static final Flag<Boolean> CUSTOM_JAVA_NEW_CLASS_DIALOG = Flag.create(
-    EDITOR, "custom.new.class.dialog",
-    "Enable custom New Class dialog",
-    "If enabled, our custom UI for creating a new Java class is used. Otherwise the platform default is used.",
-    false
-  );
-
-
-  public static final Flag<Boolean> INCREMENTAL_RESOURCE_REPOSITORIES = Flag.create(
-    EDITOR, "incremental.resource.repositories",
-    "Handle PSI events incrementally in ResourceFolderRepository",
-    "If enabled, ResourceFolderRepository will handle PSI events synchronously, rather than rescanning the whole file.",
-    true
-  );
-
 
   public static final Flag<Boolean> TWEAK_COLOR_SCHEME = Flag.create(
     EDITOR, "tweak.color.scheme",
@@ -1000,21 +988,11 @@ public final class StudioFlags {
     SYSTEM_HEALTH, "antivirus.check.registry", "Use registry instead of PowerShell for checking antivirus status",
     "If enabled, the antivirus status checker will use the Windows registry instead of PowerShell commands",
     true);
+
   //endregion
 
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD = Flag.create(
-    COMPOSE, "preview.fast.build.enabled", "Enable the use of \"compileDebugKotlin\" for the preview refresh",
-    "If enabled, the refresh button will only trigger the \"compileDebugKotlin\" task as opposed to others like" +
-    "\"generateDebugSources\" or \"compileJava\".",
-    true);
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
-    COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
-    "If enabled, it will be possible to create run configurations that launch a Compose Preview directly to the device/emulator.",
-    true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(
     COMPOSE, "preview.double.render", "Enable the Compose double render mode",
@@ -1061,6 +1039,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_CONSTRAINTLAYOUT_COMPLETION = Flag.create(
+    COMPOSE, "editor.completion.constraintlayout.json",
+    "Completion for ConstraintLayout JSON syntax",
+    "If enabled, code completion will be abailable for the JSON syntax of Compose ConstraintLayout.",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
     COMPOSE, "editor.auto.documentation",
     "Show quick documentation automatically for Compose",
@@ -1096,60 +1081,18 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW = Flag.create(
-    COMPOSE, "preview.animated.enable",
-    "Enable animated compose preview",
-    "If enabled, a user can switch compose preview to be animated",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK = Flag.create(
-    COMPOSE, "preview.animated.click.enable",
-    "Enable displaying clicks on the animated preview",
-    "If enabled, clicking on the animated preview will generate a ripple",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_ANIMATION_INSPECTOR = Flag.create(
-    COMPOSE, "preview.animation.inspector",
-    "Enable compose preview animation inspection",
-    "If enabled, users can inspect animations in compose previews, e.g. play/pause and jump to specific frame",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_LABEL_INSPECTION = Flag.create(
-    COMPOSE, "preview.animation.label.inspection",
-    "Enable 'label' parameter inspection of Compose animations PropKeys",
-    "If enabled, show a warning when the 'label' parameter of Compose animations PropKeys are not set.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_LIVE_LITERALS = Flag.create(
-    COMPOSE, "preview.live.literals",
-    "Enable the live literals",
-    "If enabled, the live literals feature is enabled",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_LITERALS = Flag.create(
-    COMPOSE, "deploy.live.literals.deploy",
-    "Enable live literals deploy",
-    "If enabled, literals within Composable functions are instantly deployed to device",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT = Flag.create(
     COMPOSE, "deploy.live.edit.deploy",
-    "Enable live edits deploy",
-    "If enabled, edits within Kotlin and Composable functions are instantly deployed to device",
-    false
+    "Enable live edit deploy",
+    "If enabled, Live Edit will be visible and available",
+    true
   );
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER = Flag.create(
-    COMPOSE, "deploy.live.edit.deploy.embeddedcompiler",
-    "Enable embedded compose compiler in live edits deploy",
-    "If enabled, live edit will use embedded compose compiler. For now if this is disabled, @Composable with not be updated.",
-    true
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = Flag.create(
+    COMPOSE, "deploy.live.edit.deploy.advanced.settings",
+    "Enable live edit deploy settings menu",
+    "If enabled, advanced Live Edit settings menu will be visible",
+    false
   );
 
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
@@ -1170,6 +1113,20 @@ public final class StudioFlags {
     COMPOSE, "preview.element.picker.enable",
     "Enable @Preview picker",
     "If enabled, the picker for @Preview elements will be available",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_DEVICESPEC_INJECTOR = Flag.create(
+    COMPOSE, "preview.element.injector.enable",
+    "Enable injecting DeviceSpec Language",
+    "If enabled, the DeviceSpec Language will be injected in @Preview.device string values",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_SPRING_PICKER = Flag.create(
+    COMPOSE, "preview.spring.picker",
+    "Enable the SpringSpec picker",
+    "If enabled, a picker will be available in SpringSpec calls on the Editor gutter",
     false
   );
 
@@ -1178,13 +1135,6 @@ public final class StudioFlags {
     "Enable the blueprint mode for Compose previews",
     "If enabled, the user can change the mode of Compose previews, between design and blueprint mode",
     false
-  );
-
-  public static final Flag<Boolean> COMPOSE_QUICK_ANIMATED_PREVIEW = Flag.create(
-    COMPOSE, "preview.animated.quick",
-    "Speed up transition between static and animated compose previews",
-    "If enabled, a transition between static and animated compose preview is almost instant",
-    true
   );
 
   public static final Flag<Boolean> COMPOSE_COLORBLIND_MODE = Flag.create(
@@ -1243,14 +1193,31 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_LIVE_EDIT_PREVIEW = Flag.create(
+  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG = Flag.create(
+    COMPOSE, "preview.animation.coordination.drag",
+    "Enable animation dragging in timeline for Animation Inspector",
+    "If enabled, animation dragging will be available in Animation Inspector timeline.",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW = Flag.create(
     COMPOSE, "preview.fast.reload.enabled", "Enable the Compose fast-reload preview",
     "If enabled, the preview enabled the fast-reload feature.",
-    false);
+    true);
 
-  public static final Flag<Boolean> COMPOSE_LIVE_EDIT_DEBUG_DAEMON = Flag.create(
+  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_DAEMON_DEBUG = Flag.create(
     COMPOSE, "preview.fast.reload.debug.daemon", "Starts the Live Edit daemon in debug mode",
     "If enabled, the compiler daemon will wait for a debugger to be attached.",
+    false);
+
+  public static final Flag<Boolean> COMPOSE_MULTIPREVIEW = Flag.create(
+    COMPOSE, "preview.multipreview.enabled", "Enable Compose Multipreview",
+    "If enabled, annotation classes annotated with Preview, and its usages, will be considered when finding Previews in a file",
+    true);
+
+  public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = Flag.create(
+    COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
+    "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing",
     false);
   //endregion
 
@@ -1304,6 +1271,11 @@ public final class StudioFlags {
     "Enables a Network Inspector Tab in the App Inspection tool window",
     true
   );
+  public static final Flag<Boolean> ENABLE_NETWORK_INTERCEPTION = Flag.create(
+    NETWORK_INSPECTOR, "enable.network.interception", "Enable Network Interception",
+    "Enables interceptions on network requests and responses",
+    true
+  );
   // endregion
 
   // region BackgroundTask Inspector
@@ -1318,30 +1290,20 @@ public final class StudioFlags {
 
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
-  public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
-    DEVICE_MANAGER, "enable.device.manager", "Enable new Device Manager panel",
-    "Enables the new Device Manager panel. It replaces AVD Manager with additional functionality.",
-    true
-  );
-  public static final Flag<Boolean> ENABLE_DEVICE_MANAGER_HALF_BAKED_FEATURES = Flag.create(
-    DEVICE_MANAGER, "enable.device.manager.half.baked.features", "Enable half baked Device Manager features",
-    "Enables some features that could be unpolished or unready in the new Device Manager",
-    false
-  );
 
   public static final Flag<Boolean> WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED = Flag.create(
     DEVICE_MANAGER,
     "wear.os.virtual.device.pairing.assistant.enabled",
     "Enable the Wear OS virtual device pairing assistant",
     "Enable the Wear OS virtual device pairing assistant",
-    false);
+    true);
 
   public static final Flag<Boolean> PAIRED_DEVICES_TAB_ENABLED = Flag.create(
     DEVICE_MANAGER,
     "paired.devices.tab.enabled",
     "Enable the Paired devices tab",
     "Enable the Paired devices tab in the details panel",
-    false);
+    true);
   // endregion
 
   //region DDMLIB
@@ -1375,5 +1337,86 @@ public final class StudioFlags {
     true
   );
   // endregion SERVER_FLAGS
+
+  // region App Insights
+  private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
+  public static final Flag<Boolean> APP_INSIGHTS_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enabled",
+      "Enabled",
+      "Enable App Insights tool window and highlighting support.",
+      true);
+
+  public static final Flag<Boolean> APP_INSIGHTS_GUTTER_SUPPORT =
+    Flag.create(
+      APP_INSIGHTS,
+      "insights.gutter",
+      "Gutter Support",
+      "Use gutter icons rather than code highlight to display insights in the editor",
+      true);
+
+  public static final Flag<Boolean> NEW_CRASHLYTICS_API_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enable.new.crashlytics.api",
+      "Enable new Crashlytics API",
+      "If enabled, new Crashlytics API is adopted.",
+      true);
+
+  public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
+    Flag.create(
+      APP_INSIGHTS,
+      "crashlytics.grpc.server",
+      "Set Crashlytics gRpc server address",
+      "Set Crashlytics gRpc server address, mainly used for testing purposes.",
+      "firebasecrashlytics.googleapis.com");
+
+  public static final Flag<Boolean> CRASHLYTICS_GRPC_USE_TRANSPORT_SECURITY =
+    Flag.create(
+      APP_INSIGHTS,
+      "crashlytics.grpc.use.transport.security",
+      "Use transport security",
+      "Set Crashlytics gRpc channel to use transport security",
+      true);
+  // endregion App Insights
+
+  // region App Links Assistant
+  private static final FlagGroup APP_LINKS_ASSISTANT = new FlagGroup(FLAGS, "app.links.assistant", "App Links Assistant");
+  public static final Flag<Boolean> KOTLIN_INTENT_HANDLING =
+    Flag.create(APP_LINKS_ASSISTANT, "kotlin.intent.handling", "Kotlin Intent Handling",
+                "Support adding logic for intent handling in Kotlin.", true);
+  public static final Flag<Boolean> APP_LINKS_ASSISTANT_V2 =
+    Flag.create(APP_LINKS_ASSISTANT, "v2", "App Links Assistant V2",
+                "Revamped App Links Assistant (new surfaces and navigation between surfaces).", false);
+  public static final Flag<Boolean> WEBSITE_ASSOCIATION_GENERATOR_V2 =
+    Flag.create(APP_LINKS_ASSISTANT, "website.association.generator.v2", "Website Association Generator V2",
+                "Improvements to Website Association Generator.", false);
+  // endregion App Links Assistant
+
+  // region GOOGLE_PLAY_SDK_INDEX
+  private static final FlagGroup GOOGLE_PLAY_SDK_INDEX = new FlagGroup(FLAGS, "google.play.sdk.index", "Google Play SDK Index");
+  public static final Flag<Boolean> SHOW_SDK_INDEX_MESSAGES = Flag.create(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.messages", "Show SDK Index messages",
+    "Show messages related to Google Play SDK Index",
+    true
+  );
+  public static final Flag<Boolean> INCLUDE_LINKS_TO_SDK_INDEX = Flag.create(
+    GOOGLE_PLAY_SDK_INDEX, "include.links.to.sdk.index", "Include links to SDK Index",
+    "Whether or not links to Google Play SDK Index should be included in the SDK Index messages",
+    true
+  );
+  public static final Flag<Boolean> SHOW_SDK_INDEX_CRITICAL_ISSUES = Flag.create(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.critical.issues", "Show SDK Index critical issues",
+    "Whether or not critical issues from library authors should be shown",
+    true
+  );
+  public static final Flag<Boolean> SHOW_SDK_INDEX_POLICY_ISSUES = Flag.create(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.policy.issues", "Show SDK Index policy issues",
+    "Whether or not show issues when libraries are not policy complaint",
+    false
+  );
+
+  // endregion GOOGLE_PLAY_SDK_INDEX
   private StudioFlags() { }
 }

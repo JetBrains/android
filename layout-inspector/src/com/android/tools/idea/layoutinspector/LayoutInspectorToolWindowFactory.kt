@@ -20,19 +20,28 @@ import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.concurrency.coroutineScope
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
-import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
@@ -48,6 +57,8 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.BorderLayout
 import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
 
@@ -65,8 +76,6 @@ fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector, deviceViewP
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
  */
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
-
-  override fun isApplicable(project: Project): Boolean = enableLiveLayoutInspector
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
@@ -87,12 +96,17 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       edtExecutor.execute {
         workbench.hideLoading()
 
-        val processes = createProcessesModel(project, AppInspectionDiscoveryService.instance.apiServices.processDiscovery, edtExecutor)
-        Disposer.register(workbench, processes)
-        val model = InspectorModel(project)
-        model.setProcessModel(processes)
+        val processesModel = createProcessesModel(project, AppInspectionDiscoveryService.instance.apiServices.processDiscovery, edtExecutor)
+        Disposer.register(workbench, processesModel)
+        val executor = Executors.newScheduledThreadPool(1)
+        Disposer.register(workbench) {
+          executor.shutdown()
+          executor.awaitTermination(3, TimeUnit.SECONDS)
+        }
+        val model = InspectorModel(project, executor)
+        model.setProcessModel(processesModel)
 
-        processes.addSelectedProcessListeners {
+        processesModel.addSelectedProcessListeners {
           // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
           // encountered during a previous run.
           if (!project.isDisposed) {
@@ -103,9 +117,32 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         lateinit var launcher: InspectorClientLauncher
         val treeSettings = InspectorTreeSettings { launcher.activeClient }
         val stats = SessionStatistics(model, treeSettings)
-        launcher = InspectorClientLauncher.createDefaultLauncher(processes, model, LayoutInspectorMetrics(project, null, stats), workbench)
+        val metrics = LayoutInspectorMetrics(project, null, stats)
+        launcher = InspectorClientLauncher.createDefaultLauncher(processesModel, model, metrics, treeSettings, workbench)
         val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)
-        val deviceViewPanel = DeviceViewPanel(processes, layoutInspector, viewSettings, workbench)
+
+        val deviceModel = DeviceModel(processesModel)
+        val foregroundProcessDetection = createForegroundProcessDetection(
+          project, processesModel, deviceModel, workbench, toolWindow, metrics
+        )
+
+        val deviceViewPanel = DeviceViewPanel(
+          processesModel = processesModel,
+          deviceModel = deviceModel,
+          onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
+          onProcessSelected = { newProcess -> processesModel.selectedProcess = newProcess },
+          layoutInspector = layoutInspector,
+          viewSettings = viewSettings,
+          disposableParent = workbench
+        )
+
+        // notify DeviceViewPanel that a new foreground process showed up
+        foregroundProcessDetection?.foregroundProcessListeners?.add(object : ForegroundProcessListener {
+          override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
+            deviceViewPanel.onNewForegroundProcess(foregroundProcess)
+          }
+        })
+
         DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
         workbench.init(deviceViewPanel, layoutInspector, listOf(
           LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
@@ -114,6 +151,32 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
                                                         LayoutInspectorToolWindowManagerListener(project, toolWindow, deviceViewPanel,
                                                                                                  launcher))
       }
+    }
+  }
+
+  private fun createForegroundProcessDetection(
+    project: Project,
+    processesModel: ProcessesModel,
+    deviceModel: DeviceModel,
+    workBench: WorkBench<LayoutInspector>,
+    toolWindow: ToolWindow,
+    layoutInspectorMetrics: LayoutInspectorMetrics
+  ): ForegroundProcessDetection? {
+    return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
+      ForegroundProcessDetectionInitializer.initialize(
+        processModel = processesModel,
+        deviceModel = deviceModel,
+        coroutineScope = project.coroutineScope,
+        metrics = ForegroundProcessDetectionMetrics(layoutInspectorMetrics)
+      ).also {
+        project.messageBus.connect(workBench).subscribe(
+          ToolWindowManagerListener.TOPIC,
+          ForegroundProcessDetectionWindowManagerListener(it, toolWindow.isVisible)
+        )
+      }
+    }
+    else {
+      null
     }
   }
 
@@ -126,18 +189,51 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 }
 
 /**
+ * Enables and disables [ForegroundProcessDetection] based on the state of the tool window (visible or not visible)
+ */
+class ForegroundProcessDetectionWindowManagerListener(
+  private val foregroundProcessDetection: ForegroundProcessDetection,
+  isVisibleAtCreation: Boolean
+) : ToolWindowManagerListener {
+  init {
+    if (isVisibleAtCreation) {
+      foregroundProcessDetection.startListeningForEvents()
+    }
+  }
+
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    val isWindowVisible = isToolWindowExpanded(toolWindowManager)
+    toggleForegroundProcessDetection(isWindowVisible)
+  }
+
+  private fun toggleForegroundProcessDetection(shouldStart: Boolean) {
+    if (shouldStart) {
+      foregroundProcessDetection.startListeningForEvents()
+    }
+    else {
+      foregroundProcessDetection.stopListeningForEvents()
+    }
+  }
+
+  private fun isToolWindowExpanded(toolWindowManager: ToolWindowManager): Boolean {
+    val window = toolWindowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return false
+    return window.isVisible
+  }
+}
+
+/**
  * Listen to state changes for the create layout inspector tool window.
  */
 class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(private val project: Project,
                                                                               private val clientLauncher: InspectorClientLauncher,
                                                                               private val stopInspectors: () -> Unit = {},
-                                                                              private var wasWindowVisible: Boolean = false
+                                                                              private var wasWindowVisible: Boolean = false,
 ) : ToolWindowManagerListener {
 
   internal constructor(project: Project,
                        toolWindow: ToolWindow,
                        deviceViewPanel: DeviceViewPanel,
-                       clientLauncher: InspectorClientLauncher
+                       clientLauncher: InspectorClientLauncher,
   ) : this(project, clientLauncher, { deviceViewPanel.stopInspectors() }, toolWindow.isVisible)
 
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
@@ -154,9 +250,9 @@ class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(pr
           LAYOUT_INSPECTOR_TOOL_WINDOW_ID,
           MessageType.INFO,
           """
-            <b>Layout Inspection</b> is running in the background.<br>
-            You can either <a href="stop">stop</a> it, or leave it running and resume your session later.
-          """.trimIndent(),
+          <b>Layout Inspection</b> is running in the background.<br>
+          You can either <a href="stop">stop</a> it, or leave it running and resume your session later.
+        """.trimIndent(),
           null
         ) { hyperlinkEvent ->
           if (hyperlinkEvent.eventType == HyperlinkEvent.EventType.ACTIVATED) {

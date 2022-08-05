@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.AndroidProjectTypes
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
+import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -30,16 +32,20 @@ import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGeneratedSourceFoldersToUse
 import com.android.tools.idea.gradle.util.OutputType
-import com.android.tools.idea.gradle.util.getOutputFilesFromListingFileOrLogError
+import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
 import com.android.tools.idea.gradle.util.getOutputListingFile
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ScopeType
@@ -54,13 +60,12 @@ import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
-import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.AndroidRunConfiguration.shouldDeployApkFromBundle
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
+import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
@@ -72,14 +77,17 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.createIdeaSourceProviderFromModelSourceProvider
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import java.io.File
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
@@ -110,14 +118,13 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       .mapNotNull { GradleAndroidModel.get(it) }
       .filter { it.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }
       .flatMap { androidModel ->
-        @Suppress("DEPRECATION")
         if (androidModel.features.isBuildOutputFileSupported) {
           androidModel
             .selectedVariant
             .mainArtifact
             .buildInformation
             .getOutputListingFile(OutputType.Apk)
-            ?.let { getOutputFilesFromListingFileOrLogError(it) }
+            ?.let { getOutputFilesFromListingFile(it) }
             ?.asSequence()
             .orEmpty()
         }
@@ -150,19 +157,19 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
-    if (runConfiguration !is AndroidRunConfigurationBase &&
-        runConfiguration !is AndroidWearConfiguration) return null
-    val androidFacet = runConfiguration.safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null
-    val isTestConfiguration = if (runConfiguration is AndroidRunConfigurationBase) runConfiguration.isTestConfiguration else false
-    val alwaysDeployApkFromBundle = (runConfiguration as? AndroidRunConfiguration)?.let(::shouldDeployApkFromBundle) ?: false
-
+    val context = runConfiguration.getGradleContext() ?: return null
     return GradleApkProvider(
-      androidFacet,
+      context.androidFacet,
       getApplicationIdProvider(runConfiguration) ?: return null,
       PostBuildModelProvider { (runConfiguration as? UserDataHolder)?.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
-      isTestConfiguration,
-      alwaysDeployApkFromBundle
+      context.isTestConfiguration,
+      context.alwaysDeployApkFromBundle
     )
+  }
+
+  override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+    val context = runConfiguration.getGradleContext() ?: return super.validateRunConfiguration(runConfiguration)
+    return GradleApkProvider.doValidate(context.androidFacet, context.isTestConfiguration, context.alwaysDeployApkFromBundle)
   }
 
   internal fun getBuiltApksForSelectedVariant(
@@ -180,7 +187,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
     val postBuildModelProvider = PostBuildModelProvider { postBuildModel }
 
-    return object : GradleApkProvider(
+    return GradleApkProvider(
       androidFacet,
       GradleApplicationIdProvider(
         androidFacet,
@@ -191,20 +198,17 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       postBuildModelProvider,
       forTests,
       false // Overriden and doesn't matter.
-    ) {
-      override fun getOutputKind(targetDevicesMinVersion: AndroidVersion?): OutputKind {
-        return when (assembleResult.buildMode) {
-          BuildMode.APK_FROM_BUNDLE -> OutputKind.AppBundleOutputModel
-          BuildMode.ASSEMBLE -> OutputKind.Default
-          else -> error("Unsupported build mode: ${assembleResult.buildMode}")
-        }
-      }
-    }
+    )
       .getApks(
         emptyList(),
         AndroidVersion(30),
         androidModel,
-        androidModel.selectedVariant
+        androidModel.selectedVariant,
+        when (assembleResult.buildMode) {
+          BuildMode.APK_FROM_BUNDLE -> GradleApkProvider.OutputKind.AppBundleOutputModel
+          BuildMode.ASSEMBLE -> GradleApkProvider.OutputKind.Default
+          else -> error("Unsupported build mode: ${assembleResult.buildMode}")
+        }
       )
   }
 
@@ -220,6 +224,19 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       val model = GradleAndroidModel.get(facet)
       return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
     }
+  }
+
+  override fun getBuildConfigurationSourceProvider(): BuildConfigurationSourceProvider {
+    return CachedValuesManager.getManager(project).getCachedValue(project) {
+      CachedValueProvider.Result.create(
+        GradleBuildConfigurationSourceProvider(project),
+        ProjectRootModificationTracker.getInstance(project)
+      )
+    }
+  }
+
+  override fun getClassJarProvider(): ClassJarProvider {
+    return AndroidGradleClassJarProvider()
   }
 
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
@@ -250,6 +267,29 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     // to work in the dumb mode (i.e. it fallback to slow manifest parsing if the index is not available).
     return androidFacets.filter { it.getModuleSystem().getPackageName() == packageName }
   }
+
+  override fun getKnownApplicationIds(project: Project): Set<String> {
+    val model = getModel(project) ?: return emptySet()
+
+    val ids = model.allApplicationIds
+    ids.add(model.applicationId)
+    return ids
+  }
+
+  // TODO(b/228120633) reimplement this in a more efficient way
+  private fun getModel(project: Project): AndroidModel? {
+    if (project.isDisposed) {
+      return null
+    }
+
+    val module = ModuleManager.getInstance(project).modules.firstOrNull {
+      !it.isDisposed && AndroidFacet.getInstance(it)?.let { facet ->
+        facet.properties.PROJECT_TYPE == AndroidProjectTypes.PROJECT_TYPE_APP
+      } == true
+    } ?: return null
+
+    return AndroidModel.get(module)
+  }
 }
 
 private val IdeAndroidArtifact.scopeType: ScopeType
@@ -277,10 +317,10 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   }
 
   fun IdeAndroidArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
-    val sourceFolders = getGeneratedSourceFoldersToUse(this, model)
+    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.data)
     return IdeaSourceProviderImpl(
       scopeType,
-      object: IdeaSourceProviderImpl.Core {
+      object : IdeaSourceProviderImpl.Core {
         override val manifestFileUrls: Sequence<String> = emptySequence()
         override val manifestDirectoryUrls: Sequence<String> = emptySequence()
         override val javaDirectoryUrls: Sequence<String> =
@@ -301,10 +341,10 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   }
 
   fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
-    val sourceFolders = getGeneratedSourceFoldersToUse(this, model)
+    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.data)
     return IdeaSourceProviderImpl(
       ScopeType.UNIT_TEST,
-      object: IdeaSourceProviderImpl.Core {
+      object : IdeaSourceProviderImpl.Core {
         override val manifestFileUrls: Sequence<String> = emptySequence()
         override val manifestDirectoryUrls: Sequence<String> = emptySequence()
         override val javaDirectoryUrls: Sequence<String> =
@@ -339,11 +379,39 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
     },
     generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(),
-    generatedUnitTestSources = model.selectedVariant.unitTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(ScopeType.UNIT_TEST),
-    generatedAndroidTestSources = model.selectedVariant.androidTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(ScopeType.ANDROID_TEST),
-    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(ScopeType.TEST_FIXTURES)
+    generatedUnitTestSources = model.selectedVariant.unitTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
+      ScopeType.UNIT_TEST),
+    generatedAndroidTestSources = model.selectedVariant.androidTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
+      ScopeType.ANDROID_TEST),
+    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
+      ScopeType.TEST_FIXTURES)
   )
 }
+
+private fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvider, scopeType: ScopeType = ScopeType.MAIN): NamedIdeaSourceProvider {
+  return NamedIdeaSourceProviderImpl(
+    it.name,
+    scopeType,
+    core = object : NamedIdeaSourceProviderImpl.Core {
+      override val manifestFileUrl: String get() = VfsUtil.fileToUrl(it.manifestFile)
+      override val javaDirectoryUrls: Sequence<String> get() = it.javaDirectories.asSequence().toUrls()
+      override val kotlinDirectoryUrls: Sequence<String> get() = it.kotlinDirectories.asSequence().toUrls()
+      override val resourcesDirectoryUrls: Sequence<String> get() = it.resourcesDirectories.asSequence().toUrls()
+      override val aidlDirectoryUrls: Sequence<String> get() = it.aidlDirectories.asSequence().toUrls()
+      override val renderscriptDirectoryUrls: Sequence<String> get() = it.renderscriptDirectories.asSequence().toUrls()
+      override val jniLibsDirectoryUrls: Sequence<String> get() = it.jniLibsDirectories.asSequence().toUrls()
+      override val resDirectoryUrls: Sequence<String> get() = it.resDirectories.asSequence().toUrls()
+      override val assetsDirectoryUrls: Sequence<String> get() = it.assetsDirectories.asSequence().toUrls()
+      override val shadersDirectoryUrls: Sequence<String> get() = it.shadersDirectories.asSequence().toUrls()
+      override val mlModelsDirectoryUrls: Sequence<String> get() = it.mlModelsDirectories.asSequence().toUrls()
+      override val customSourceDirectories: Map<String, Sequence<String>>
+        get() = it.customSourceDirectories.associateBy({ it.sourceTypeName }) { f -> sequenceOf(f.directory).toUrls() }
+    }
+  )
+}
+
+/** Convert a set of IO files into a set of IDEA file urls referring to equivalent virtual files  */
+private fun Sequence<File>.toUrls(): Sequence<String> = map { VfsUtil.fileToUrl(it) }
 
 fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: AndroidFacet, forTests: Boolean = false): List<ApkInfo>? {
   val projectSystem = androidFacet.module.project.getProjectSystem() as? GradleProjectSystem

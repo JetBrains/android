@@ -19,7 +19,8 @@ import junit.framework.TestCase
 import java.net.URL
 
 class LocalHTMLTest : TestCase() {
-  var html = """
+  var html =
+    """
       <html>
       <body>
       <img src="anotherImage.png"/>
@@ -38,7 +39,8 @@ class LocalHTMLTest : TestCase() {
     val localImage = UIUtils.findLocalImage(html)
     val url = URL("file:///test/$localImage")
     val processed = localImage?.let { UIUtils.addLocalHTMLPaths(html, url, it) }
-    assertEquals("""
+    assertEquals(
+      """
       <html>
       <body>
       <img src="anotherImage.png"/>
@@ -46,6 +48,8 @@ class LocalHTMLTest : TestCase() {
       <img src="file:/test/folder/image2.png" />
       </body>
       </html>
-    """.trimIndent(), processed)
+    """.trimIndent(),
+      processed
+    )
   }
 }

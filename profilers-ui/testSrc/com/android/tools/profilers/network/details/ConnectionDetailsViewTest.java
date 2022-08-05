@@ -41,6 +41,7 @@ import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.network.TestHttpData;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.StackTrace;
+import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.awt.Component;
@@ -86,6 +87,7 @@ public class ConnectionDetailsViewTest {
                         FakeNetworkService.newBuilder().setHttpDataList(Collections.singletonList(DEFAULT_DATA)).build());
 
   @Rule public final EdtRule myEdtRule = new EdtRule();
+  @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
 
   /**
    * Will throw an exception if no match is found.

@@ -41,12 +41,12 @@ import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import io.grpc.ManagedChannel;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
-import io.grpc.ServerInterceptor;
-import io.grpc.ServerInterceptors;
-import io.grpc.inprocess.InProcessServerBuilder;
+import com.android.tools.idea.io.grpc.ManagedChannel;
+import com.android.tools.idea.io.grpc.Server;
+import com.android.tools.idea.io.grpc.ServerBuilder;
+import com.android.tools.idea.io.grpc.ServerInterceptor;
+import com.android.tools.idea.io.grpc.ServerInterceptors;
+import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -420,7 +420,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
                 Statement sizeStatement = db.getConnection().createStatement();
                 ResultSet sizeResult = sizeStatement.executeQuery(String.format("SELECT COUNT(*) FROM %s", tableName))) {
                 int tableSize = sizeResult.getInt(1);
-                dbStats.addTablesBuilder().setName(tableName).setNumRecords(tableSize).build();
+                dbStats.addTablesBuilder().setName(tableName).setNumRecords(tableSize);
               }
             }
           }

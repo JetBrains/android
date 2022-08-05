@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -26,7 +27,6 @@ import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.Mockito.`when`
 import java.io.File
 
 class TemplateRecipeTest {
@@ -40,7 +40,7 @@ class TemplateRecipeTest {
   fun fileAlreadyExistWarning() {
     val mockProjectTemplateData = mock<ProjectTemplateData>()
     val mockModuleTemplateData = mock<ModuleTemplateData>()
-    `when`(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
+    whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
 
     val renderingContext = RenderingContext(
       projectRule.project,

@@ -68,7 +68,7 @@ public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardF
   }
 
   public static FirstRunWizardFixture find(@NotNull Robot robot) {
-    JFrame welcomeFrame = waitUntilShowing(robot, new GenericTypeMatcher<>(JFrame.class) {
+    JFrame welcomeFrame = waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame frame) {
         if ("Android Studio Setup Wizard".equals(frame.getTitle())) {

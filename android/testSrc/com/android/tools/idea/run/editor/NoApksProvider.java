@@ -19,22 +19,14 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
-import com.android.tools.idea.run.ValidationError;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class NoApksProvider implements ApkProvider {
   @NotNull
   @Override
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    return new ArrayList<>();
-  }
-
-  @NotNull
-  @Override
-  public List<ValidationError> validate() {
     return new ArrayList<>();
   }
 }

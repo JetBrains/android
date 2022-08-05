@@ -24,7 +24,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorState
 /**
  * Handles analytics that are common across design tools. Acts as an interface between [DesignSurface] and [CommonUsageTracker].
  */
-open class DesignerAnalyticsManager(protected var surface: DesignSurface) {
+open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
 
   open val surfaceType = LayoutEditorState.Surfaces.UNKNOWN_SURFACES
 
@@ -48,7 +48,7 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface) {
     ZoomType.ACTUAL -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL)
     ZoomType.IN -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN)
     ZoomType.OUT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT)
-    ZoomType.FIT_INTO, ZoomType.FIT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
+    ZoomType.FIT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
     else -> Unit // ignore unrecognized zoom type.
   }
 

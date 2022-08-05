@@ -17,7 +17,7 @@ package com.android.tools.idea.lint;
 
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
-import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_SDK_CACHE_DIR_KEY;
+import static com.android.tools.lint.checks.GooglePlaySdkIndex.GOOGLE_PLAY_SDK_INDEX_KEY;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -39,8 +39,9 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndexKt;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -240,7 +241,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       return facet != null && AndroidModel.isRequired(facet);
     }
-    return AndroidProjectInfo.getInstance(myProject).requiresAndroidModel();
+    return ProjectSystemUtil.requiresAndroidModel(myProject);
   }
 
   @Nullable
@@ -252,9 +253,8 @@ public class AndroidLintIdeClient extends LintIdeClient {
       return cacheDir == null ? null : cacheDir.toFile();
     }
 
-    if (DEPRECATED_SDK_CACHE_DIR_KEY.equals(name)) {
-      // Share network cache with existing implementation
-      Path cacheDir = IdeDeprecatedSdkRegistry.INSTANCE.getCacheDir();
+    if (GOOGLE_PLAY_SDK_INDEX_KEY.equals(name)) {
+      Path cacheDir = IdeGooglePlaySdkIndexKt.getCacheDir();
       return cacheDir == null ? null : cacheDir.toFile();
     }
 

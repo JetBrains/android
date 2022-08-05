@@ -25,6 +25,7 @@ public class LaunchTaskDurations {
 
   public static final int ASYNC_TASK = 1;
   public static final int LAUNCH_ACTIVITY = 2;
+  public static final int CLEAR_APP_DATA = 2;
   public static final int CONNECT_DEBUGGER = 10;
   public static final int DEPLOY_HOTSWAP = 8;
   public static final int DEPLOY_APK = 20;

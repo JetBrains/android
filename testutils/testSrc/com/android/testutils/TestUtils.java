@@ -26,7 +26,6 @@ import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -44,6 +43,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import org.apache.commons.compress.archivers.ArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.UnixStat;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.jetbrains.intellij.build.dependencies.BuildDependenciesCommunityRoot;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout;
 
@@ -62,6 +65,13 @@ public class TestUtils {
    * tools/base/bazel/README.md).
    */
   public static final String KOTLIN_VERSION_FOR_TESTS = getKotlinVersionForTests();
+
+  /**
+   * Unix file-mode mask indicating that the file is executable by owner, group, and other.
+   *
+   * <p>See https://askubuntu.com/a/485001
+   */
+  public static final int UNIX_EXECUTABLE_MODE = 1 | 1 << 3 | 1 << 6;
 
   /** Default timeout for the {@link #eventually(Runnable)} check. */
   private static final Duration DEFAULT_EVENTUALLY_TIMEOUT = Duration.ofSeconds(10);
@@ -104,9 +114,9 @@ public class TestUtils {
    * <p>From this path, you should be able to access any file in the workspace via its full path,
    * e.g.
    *
-   * <p>TestUtils.resolveWorkspacePath("tools/adt/idea/android/testSrc");
+   * <p>TestUtils.getWorkspaceRoot().resolve("tools/adt/idea/android/testSrc");
    *
-   * <p>TestUtils.resolveWorkspacePath("prebuilts/studio/jdk");
+   * <p>TestUtils.getWorkspaceRoot().resolve("prebuilts/studio/jdk");
    *
    * <p>If this method is called by code run via IntelliJ / Gradle, it will simply walk its
    * ancestor tree looking for the WORKSPACE file at its root; if called from Bazel, it will
@@ -154,21 +164,38 @@ public class TestUtils {
    */
   @NonNull
   public static Path resolveWorkspacePath(@NonNull String relativePath) {
-    relativePath = FileUtil.normalize(relativePath);
+    String ijRelativeFile = mapRelativePath(relativePath);
+    if (!ijRelativeFile.equals(relativePath)) {
+      Path path = Paths.get(PathManager.getHomePath(), ijRelativeFile);
+      if (!Files.exists(path)) {
+        throw new IllegalArgumentException("File \"" + path + "\" not found");
+      }
+      return path;
+    }
+
+    return legacyWorkspaceFile(relativePath);
+  }
+
+  // returns path relative to PathManager.getHomePath(). TODO: in idea PathManager.getHomePath() should work as workspace root.
+  @NonNull
+  private static String mapRelativePath(@NonNull String relativePath) {
     Map<String, String> pathMappings = new HashMap<>();
-    pathMappings.put("tools/adt/idea", PathManager.getCommunityHomePath() + "/android");
-    pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", PathManager.getHomePath() + "/out/artifacts/KotlinPlugin");
+    Path homePath = Paths.get(PathManager.getHomePath());
+    Path communityHomePath = Paths.get(PathManager.getCommunityHomePath());
+
+    pathMappings.put("tools/adt/idea", homePath.relativize(communityHomePath) + "/android");
+    pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", "out/artifacts/KotlinPlugin");
 
     for (Map.Entry<String, String> entry : pathMappings.entrySet()) {
       String aospPathPrefix = entry.getKey();
       String ijPathPrefix = entry.getValue();
       if (relativePath.startsWith(aospPathPrefix)){
         String ijFile = ijPathPrefix + relativePath.substring(aospPathPrefix.length());
-        return Paths.get(ijFile);
+        return ijFile;
       }
     }
 
-    return legacyWorkspaceFile(relativePath);
+    return relativePath;
   }
 
   @NonNull
@@ -187,9 +214,38 @@ public class TestUtils {
     return f;
   }
 
+  /**
+   * Given a relative path to a file or directory from the base of the current workspace, returns
+   * the absolute path.
+   *
+   * This method don't check if the file actually exists
+   */
+  @NonNull
+  public static Path resolveWorkspacePathUnchecked(@NonNull String relativePath) {
+    String ijRelativeFile = mapRelativePath(relativePath);
+    if (!ijRelativeFile.equals(relativePath)) {
+      return Paths.get(PathManager.getHomePath(), ijRelativeFile);
+    }
+
+    return getWorkspaceRoot().resolve(relativePath);
+  }
+
   /** Returns true if the file exists in the workspace. */
   public static boolean workspaceFileExists(@NonNull String path) {
     return Files.exists(resolveWorkspacePath(path));
+  }
+
+  /**
+   * Returns the absolute {@link Path} to the {@param bin} from the current workspace, or from
+   * bazel-bin if not present.
+   */
+  public static Path getBinPath(String bin) {
+    Path path = TestUtils.resolveWorkspacePathUnchecked(bin);
+    if (!Files.exists(path)) {
+      // running from IJ
+      path = TestUtils.resolveWorkspacePathUnchecked("bazel-bin/" + bin);
+    }
+    return path;
   }
 
   /**
@@ -341,7 +397,7 @@ public class TestUtils {
   @NonNull
   public static Path getLocalMavenRepoFile(@NonNull String path) {
     if (runningFromBazel()) {
-      return resolveWorkspacePath("../maven/repo/" + path);
+      return resolveWorkspacePath("../maven/repository/" + path);
     } else {
       return resolveWorkspacePath("prebuilts/tools/common/m2/repository/" + path);
     }
@@ -666,5 +722,43 @@ public class TestUtils {
     assumeFalse(
       (SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS)
       && System.getenv("TEST_TMPDIR") != null);
+  }
+
+  private static void archiveFile(Path root, ArchiveOutputStream out, Path path)
+    throws IOException {
+    ZipArchiveEntry archiveEntry =
+      (ZipArchiveEntry)
+        out.createArchiveEntry(path.toFile(), root.relativize(path).toString());
+    out.putArchiveEntry(archiveEntry);
+    if (Files.isSymbolicLink(path)) {
+      archiveEntry.setUnixMode(UnixStat.LINK_FLAG | archiveEntry.getUnixMode());
+      out.write(
+        path.getParent()
+          .relativize(Files.readSymbolicLink(path))
+          .toString()
+          .getBytes());
+    } else if (!Files.isDirectory(path)) {
+      if (Files.isExecutable(path)) {
+        archiveEntry.setUnixMode(archiveEntry.getUnixMode() | UNIX_EXECUTABLE_MODE);
+      }
+      out.write(Files.readAllBytes(path));
+    }
+    out.closeArchiveEntry();
+  }
+
+  public static void zipDirectory(@NonNull Path root, @NonNull Path zipPath) throws IOException {
+    try (ZipArchiveOutputStream out = new ZipArchiveOutputStream(zipPath.toFile())) {
+      Files.walk(root)
+        .forEach(
+          path -> {
+            try {
+              archiveFile(root, out, path);
+            } catch (IOException e) {
+              throw new UncheckedIOException(e);
+            }
+          });
+    } catch (UncheckedIOException e) {
+      throw e.getCause();
+    }
   }
 }

@@ -48,7 +48,6 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogViewImpl
-import com.android.tools.idea.sqlite.utils.runWithExportToFileFeatureEnabled
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
@@ -92,11 +91,11 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, analyticsTracker)
   }
 
-  fun test_availableUiElements_exportDatabase_inFile() = runWithExportToFileFeatureEnabled {
+  fun test_availableUiElements_exportDatabase_inFile() {
     test_availableUiElements_exportDatabase(inFileDatabaseId, EXPORT_FORMATS_ALL)
   }
 
-  fun test_availableUiElements_exportDatabase_inMemory() = runWithExportToFileFeatureEnabled {
+  fun test_availableUiElements_exportDatabase_inMemory() {
     test_availableUiElements_exportDatabase(inMemoryDatabaseId, listOf(CSV(mock())))
   }
 
@@ -108,11 +107,11 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     )
   }
 
-  fun test_availableUiElements_exportTable_inFile() = runWithExportToFileFeatureEnabled {
+  fun test_availableUiElements_exportTable_inFile() {
     test_availableUiElements_exportTable(inFileDatabaseId, listOf(SQL, CSV(mock())))
   }
 
-  fun test_availableUiElements_exportTable_inMemory() = runWithExportToFileFeatureEnabled {
+  fun test_availableUiElements_exportTable_inMemory() {
     test_availableUiElements_exportTable(inMemoryDatabaseId, listOf(CSV(mock())))
   }
 
@@ -124,11 +123,11 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     )
   }
 
-  fun test_availableUiElements_exportQueryResults_inFile() = runWithExportToFileFeatureEnabled {
+  fun test_availableUiElements_exportQueryResults_inFile() {
     test_availableUiElements_exportQueryResults(inFileDatabaseId)
   }
 
-  fun test_availableUiElements_exportQueryResults_inMemory() = runWithExportToFileFeatureEnabled {
+  fun test_availableUiElements_exportQueryResults_inMemory() {
     test_availableUiElements_exportQueryResults(inMemoryDatabaseId)
   }
 
@@ -240,11 +239,11 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     verifyNoMoreInteractions(dialogListener)
   }
 
-  fun test_exportRequest_exportDatabase_db() = runWithExportToFileFeatureEnabled { test_exportRequest_exportDatabase(DB) }
+  fun test_exportRequest_exportDatabase_db() { test_exportRequest_exportDatabase(DB) }
 
-  fun test_exportRequest_exportDatabase_csv() = runWithExportToFileFeatureEnabled { test_exportRequest_exportDatabase(CSV(VERTICAL_BAR)) }
+  fun test_exportRequest_exportDatabase_csv() { test_exportRequest_exportDatabase(CSV(VERTICAL_BAR)) }
 
-  fun test_exportRequest_exportDatabase_sql() = runWithExportToFileFeatureEnabled { test_exportRequest_exportDatabase(SQL) }
+  fun test_exportRequest_exportDatabase_sql() { test_exportRequest_exportDatabase(SQL) }
 
   private fun test_exportRequest_exportDatabase(dstFormat: ExportFormat) {
     val dialogParams = ExportDatabaseDialogParams(databaseId, Origin.QUERY_RESULTS_EXPORT_BUTTON)
@@ -254,9 +253,9 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     test_exportRequest(dialogParams, expectedRequest)
   }
 
-  fun test_exportRequest_exportTable_csv() = runWithExportToFileFeatureEnabled { test_exportRequest_exportTable(CSV(TAB)) }
+  fun test_exportRequest_exportTable_csv() { test_exportRequest_exportTable(CSV(TAB)) }
 
-  fun test_exportRequest_exportTable_sql() = runWithExportToFileFeatureEnabled { test_exportRequest_exportTable(SQL) }
+  fun test_exportRequest_exportTable_sql() { test_exportRequest_exportTable(SQL) }
 
   private fun test_exportRequest_exportTable(dstFormat: ExportFormat) {
     val table = table1.name
@@ -267,7 +266,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     test_exportRequest(dialogParams, expectedRequest)
   }
 
-  fun test_exportRequest_exportQuery_csv() = runWithExportToFileFeatureEnabled {
+  fun test_exportRequest_exportQuery_csv() {
     val srcQuery = query
     val dialogParams = ExportQueryResultsDialogParams(databaseId, srcQuery, Origin.SCHEMA_TREE_CONTEXT_MENU)
     val dstFormat = CSV(COMMA)

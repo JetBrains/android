@@ -23,8 +23,10 @@ import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.AndroidGradleTests.syncProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_REPO
 import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
@@ -38,12 +40,14 @@ import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.PathUtil.toSystemDependentName
+import org.jetbrains.android.AndroidTestBase
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
@@ -57,9 +61,6 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
 
-  @get:Rule
-  val testName = TestName()
-
   @After
   fun tearDown() {
     restoreJdk()
@@ -68,19 +69,37 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
   @Test
   fun testReopenProject() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { }
-    openPreparedProject("project") { project ->
+    val before = openPreparedProject("project") { project -> project.saveAndDump() }
+    val after = openPreparedProject("project") { project ->
       verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      project.saveAndDump()
     }
+    assertThat(after).isEqualTo(before)
+  }
+
+  @Test
+  fun testReimportProject() {
+    val root = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val before = openPreparedProject("project") { project -> project.saveAndDump() }
+    FileUtil.delete(File(root, ".idea"))
+    val after = openPreparedProject("project") { project ->
+      // Synced again.
+      assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult())
+        .isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      project.saveAndDump()
+    }
+    assertThat(after).isEqualTo(before)
   }
 
   @Test
   fun testReopenKaptProject() {
     prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
-    openPreparedProject("project") { }
-    openPreparedProject("project") { project ->
+    val before = openPreparedProject("project") { project -> project.saveAndDump() }
+    val after = openPreparedProject("project") { project ->
       verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      project.saveAndDump()
     }
+    assertThat(after).isEqualTo(before)
   }
 
   @Test
@@ -88,33 +107,52 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
     val root = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     val buildFile = VfsUtil.findFileByIoFile(root.resolve("app/build.gradle"), true)!!
 
-    val lastSyncFinishedTimestamp = openPreparedProject("project") { project ->
+    val (snapshots, lastSyncFinishedTimestamp) = openPreparedProject("project") { project ->
+      val initial = project.saveAndDump()
       runWriteAction {
         buildFile.setBinaryContent("*bad*".toByteArray())
       }
       syncProject(project, GradleSyncInvoker.Request.testRequest())
       assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
-      GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp
+      (initial to project.saveAndDump()) to GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp
     }
-
-    openPreparedProject(
+    val (initial, before) = snapshots
+    val after = openPreparedProject(
       "project",
-      verifyOpened = { project ->
-        assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
-      }
+      options = OpenPreparedProjectOptions(
+        verifyOpened = { project ->
+          assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
+        }
+      )
     ) { project ->
       // Make sure we tried to sync.
       assertThat(GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp).isNotEqualTo(lastSyncFinishedTimestamp)
+      project.saveAndDump()
     }
+    assertThat(before).isEqualTo(initial)
+    // TODO(b/211782178): assertThat(after).isEqualTo(before)
   }
 
   @Test
   fun testReopenCompositeBuildProject() {
     prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
-    openPreparedProject("project") { }
-    openPreparedProject("project") { project ->
+    val before = openPreparedProject("project") { project -> project.saveAndDump() }
+    val after = openPreparedProject("project") { project ->
       verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      project.saveAndDump()
     }
+    assertThat(after).isEqualTo(before)
+  }
+
+  @Test
+  fun testReopenPsdSampleGroovy() {
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "project")
+    val before = openPreparedProject("project") { project -> project.saveAndDump() }
+    val after = openPreparedProject("project") { project ->
+      verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      project.saveAndDump()
+    }
+    assertThat(after).isEqualTo(before)
   }
 
   @Test
@@ -127,10 +165,14 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
       assertThat(androidTestRunConfiguration?.name).isEqualTo("All Tests Sub 36")
 
       val runConfigurations = RunManagerEx.getInstanceEx(project).allConfigurationsList.filterIsInstance<ModuleBasedConfiguration<*, *>>()
+      // Existing run configuration will not be able to find the modules since we enabled qualified module names and module per source set
+      // As such these existing configuration will be mapped to null and a new configuration for the app module created.
+      // We don't remove this configuration to avoid losing importing config the user has set up.
       assertThat(runConfigurations.associate { it.name to it.configurationModule?.module?.name }).isEqualTo(mapOf(
-        "app" to "My36.app",
-        "sub36" to "My36.app.sub36",
-        "All Tests Sub 36" to "My36.app.sub36"
+        "app" to "My36.app.main",
+        "app.sub36" to "My36.app.sub36.main",
+        "sub36" to null,
+        "All Tests Sub 36" to null
       ))
     }
   }
@@ -149,10 +191,14 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
 
     openPreparedProject("project") { project ->
       val runConfigurations = RunManagerEx.getInstanceEx(project).allConfigurationsList.filterIsInstance<ModuleBasedConfiguration<*, *>>()
+      // Existing run configuration will not be able to find the modules since we enabled qualified module names and module per source set
+      // As such these existing configuration will be mapped to null and a new configuration for the app module created.
+      // We don't remove this configuration to avoid losing importing config the user has set up.
       assertThat(runConfigurations.associate { it.name to it.configurationModule?.module?.name }).isEqualTo(mapOf(
-        "app" to "My36.app",
-        "sub36" to "My36.app.sub36",
-        "All Tests Sub 36" to "My36.app.sub36"
+        "app" to "My36.app.main",
+        "app.sub36" to "My36.app.sub36.main",
+        "sub36" to null,
+        "All Tests Sub 36" to null
       ))
     }
   }
@@ -177,8 +223,19 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
     assertThat(reopenedDebug).isEqualTo(debugBefore)
   }
 
-  override fun getName(): String = testName.methodName
+  @Test
+  fun testResyncPsdDependency() {
+    prepareGradleProject(TestProjectToSnapshotPaths.PSD_DEPENDENCY, "project")
+    openPreparedProject("project") { project: Project ->
+      val firstSync = project.saveAndDump()
+      syncProject(project, GradleSyncInvoker.Request.testRequest())
+      val secondSync = project.saveAndDump()
+      assertThat(firstSync).isEqualTo(secondSync)
+    }
+  }
+
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
+  override fun getAdditionalRepos() =
+    listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)))
 }

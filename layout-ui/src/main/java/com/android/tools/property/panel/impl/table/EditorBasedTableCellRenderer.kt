@@ -22,11 +22,11 @@ import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.ui.PropertyComboBox
 import com.android.tools.property.panel.impl.ui.PropertyTextField
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableCellRenderer
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableCellRenderer
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.PTableItem
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout

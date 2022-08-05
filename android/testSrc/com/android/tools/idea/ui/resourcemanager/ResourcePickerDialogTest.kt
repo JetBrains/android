@@ -17,8 +17,11 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.resources.ResourceType
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.ui.resourcemanager.explorer.AssetListView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceDetailView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
@@ -27,6 +30,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
@@ -34,14 +39,20 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 private const val WAIT_TIMEOUT = 3000
 
+@RunsInEdt
 class ResourcePickerDialogTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   private lateinit var pickerDialog: ResourcePickerDialog
 
@@ -50,7 +61,9 @@ class ResourcePickerDialogTest {
     projectRule.fixture.testDataPath = getTestDataDirectory()
     projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML, FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
+    projectRule.fixture.loadNewFile("res/values/strings.xml", """<resources><string name="app_name">App</string></resources>""")
     projectRule.waitForResourceRepositoryUpdates()
+    enableHeadlessDialogs(projectRule.testRootDisposable)
     pickerDialog = createResourcePickerDialog(false)
     Disposer.register(projectRule.project, pickerDialog.disposable)
   }
@@ -180,25 +193,78 @@ class ResourcePickerDialogTest {
     waitAndAssert<AssetListView>(explorerView) { it != null && pickerDialog.resourceName == null }
   }
 
-  private fun createResourcePickerDialog(showSampleData: Boolean,
-                                         initialResourceUrl: String? = null,
-                                         supportedTypes: Set<ResourceType> = setOf(ResourceType.DRAWABLE),
-                                         preferredType: ResourceType = ResourceType.DRAWABLE
+  @Test
+  fun manualRefreshRequiredOnExternalResourceChange() {
+    runInEdtAndWait {
+      createModalDialogAndInteractWithIt(
+        {
+          // Add a new resource, outside the dialog modal
+          projectRule.fixture.copyFileToProject("designAssets/add_dark.png", "res/drawable/add.png")
+          pickerDialog.show()
+        }
+      ) { dialogWrapper ->
+        val explorerView = UIUtil.findComponentOfType(dialogWrapper.rootPane, ResourceExplorerView::class.java)!!
+        waitAndAssert<AssetListView>(explorerView) {
+          UIUtil.dispatchAllInvocationEvents()
+          it?.model?.size == 2 // The panel starts with 2 drawables
+        }
+
+        // Attempt to select
+        explorerView.selectAsset("add", true)
+        assertNull(pickerDialog.resourceName)
+
+        // Need to wait for resource repository
+        projectRule.waitForResourceRepositoryUpdates()
+        UIUtil.dispatchAllInvocationEvents() // Pending listeners would normally propagate to refresh the panel
+
+        // Explorer will not self-update
+        assertFalse {
+          // Wait just a short time, we are testing for failure
+          object : WaitFor(100) {
+            override fun condition(): Boolean {
+              UIUtil.dispatchAllInvocationEvents()
+              return UIUtil.findComponentOfType(explorerView, AssetListView::class.java)?.model?.size == 3
+            }
+          }.isConditionRealized
+        }
+        assertNull(pickerDialog.resourceName) // Still nothing, need to manually update
+
+        val explorer = UIUtil.findComponentOfType(dialogWrapper.rootPane, ResourceExplorer::class.java)!!
+        explorer.refreshIfOutdated()
+
+        waitAndAssert<AssetListView>(explorerView) {
+          UIUtil.dispatchAllInvocationEvents()
+          it?.model?.size == 3 // Wait for the resource to appear in panel
+        }
+
+        // Should now be auto selected
+        assertEquals("@drawable/add", pickerDialog.resourceName)
+      }
+    }
+  }
+
+  private fun createResourcePickerDialog(
+    showSampleData: Boolean,
+    initialResourceUrl: String? = null,
+    supportedTypes: Set<ResourceType> = setOf(ResourceType.DRAWABLE),
+    preferredType: ResourceType = ResourceType.DRAWABLE
   ): ResourcePickerDialog {
     var explorerDialog: ResourcePickerDialog? = null
     runInEdtAndWait {
-      explorerDialog = ResourcePickerDialog(facet = AndroidFacet.getInstance(projectRule.module)!!,
-                                            initialResourceUrl = initialResourceUrl,
-                                            supportedTypes = supportedTypes,
-                                            preferredType = preferredType,
-                                            showSampleData = showSampleData,
-                                            showThemeAttributes = true,
-                                            currentFile = null)
+      explorerDialog = ResourcePickerDialog(
+        facet = AndroidFacet.getInstance(projectRule.module)!!,
+        initialResourceUrl = initialResourceUrl,
+        supportedTypes = supportedTypes,
+        preferredType = preferredType,
+        showSampleData = showSampleData,
+        showThemeAttributes = true,
+        currentFile = null
+      )
     }
     assertThat(explorerDialog).isNotNull()
     explorerDialog?.let { view ->
       val explorerView = UIUtil.findComponentOfType(view.resourceExplorerPanel, ResourceExplorerView::class.java)!!
-      waitAndAssert<AssetListView>(explorerView) { it != null }
+      waitAndAssert<AssetListView>(explorerView) { it != null && it.model.size > 0 }
     }
     return explorerDialog!!
   }

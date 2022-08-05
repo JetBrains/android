@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
+import com.android.tools.idea.gradle.project.sync.idea.issues.createNewGradleJvmProjectJdk
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult.SUCCESS
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -35,7 +35,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 @Suppress("DEPRECATION")
@@ -45,11 +44,6 @@ class JdkRecreationIntegrationTest: GradleIntegrationTest {
 
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
-
-  @get:Rule
-  val testName = TestName()
-
-  override fun getName(): String = testName.methodName
 
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 
@@ -74,8 +68,7 @@ class JdkRecreationIntegrationTest: GradleIntegrationTest {
         assertThat(basePath).isNotNull()
         assertThat(basePath).isNotEmpty()
 
-        val gradleManager = AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager
-        projectJdk = gradleManager.getGradleJdk(project, basePath!!) as ProjectJdkImpl
+        projectJdk = createNewGradleJvmProjectJdk(project, projectRule.testRootDisposable)
       }
 
       // Corrupt JDK by removing a class root
@@ -100,9 +93,7 @@ class JdkRecreationIntegrationTest: GradleIntegrationTest {
       openPreparedProject("project_2") { project ->
         assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
 
-        val basePath = project.basePath
-        val gradleManager = AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager
-        val project2Jdk = gradleManager.getGradleJdk(project, basePath!!) as ProjectJdkImpl
+        val project2Jdk = createNewGradleJvmProjectJdk(project, projectRule.testRootDisposable)
         assertThat(project2Jdk.getRoots(OrderRootType.CLASSES)).hasLength(originalSize)
       }
     }

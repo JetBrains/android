@@ -68,6 +68,6 @@ fun createZoomControlsGroup(): ActionGroup {
 fun createZoomLabelGroup(): ActionGroup {
   return DefaultActionGroup().apply {
     add(ZoomLabelAction)
-    add(ZoomResetAction.getInstance())
+    add(ZoomResetAction)
   }
 }

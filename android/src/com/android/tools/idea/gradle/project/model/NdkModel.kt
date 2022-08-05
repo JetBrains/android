@@ -228,6 +228,7 @@ data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor
     when (nativeModule.nativeBuildSystem) {
       NativeBuildSystem.CMAKE -> "cmake"
       NativeBuildSystem.NDK_BUILD -> "ndkBuild"
+      NativeBuildSystem.NINJA -> "ninja"
     })
 
   @Transient

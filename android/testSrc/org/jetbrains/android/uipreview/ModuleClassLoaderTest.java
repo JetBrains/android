@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
@@ -24,14 +25,17 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.tools.idea.editors.fast.FastPreviewConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.TestResourceIdManager;
+import com.android.tools.idea.testing.AndroidLibraryDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.JavaModuleModelBuilder;
@@ -45,6 +49,7 @@ import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -58,6 +63,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.jetbrains.android.AndroidTestCase;
@@ -66,10 +72,21 @@ import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleClassLoaderTest extends AndroidTestCase {
+
+  private TestResourceIdManager testResourceIdManager;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    testResourceIdManager = TestResourceIdManager.Companion.getManager(myModule);
+  }
+
   @Override
   protected void tearDown() throws Exception {
+    testResourceIdManager.resetFinalIdsUsed();
     super.tearDown();
-    StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.clearOverride();
+    StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride();
+    FastPreviewConfiguration.Companion.getInstance().resetDefault();
   }
 
   /**
@@ -229,12 +246,14 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
     // Trigger build.
-    PostProjectBuildTasksExecutor.getInstance(getProject()).onBuildCompletion();
+    getProjectSystem(getProject()).getBuildManager().compileFilesAndDependencies(
+      ImmutableList.of(Objects.requireNonNull(VfsUtil.findFile(modifiedSrc, false))));
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
     // Recompile and check ClassLoader is out of date. We are not really modifying the PSI so we can not use isUserCodeUpToDate
     // since it relies on the PSI modification to cache the information.
+    loader.injectProjectClassFile("com.google.example.Modified", modifiedClass);
     assertTrue(loader.isUserCodeUpToDateNonCached());
     javac.run(null, null, null, modifiedSrc.toAbsolutePath().toString());
     assertFalse(loader.isUserCodeUpToDateNonCached());
@@ -243,7 +262,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testIsSourceModifiedWithOverlay() throws IOException, ClassNotFoundException {
-    StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.override(true);
+    StudioFlags.COMPOSE_FAST_PREVIEW.override(true);
+    FastPreviewConfiguration.Companion.getInstance().setEnabled(true);
     setupTestProjectFromAndroidModel(
       getProject(),
       new File(Objects.requireNonNull(getProject().getBasePath())),
@@ -279,7 +299,9 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     ModuleClassLoaderManager.get().release(loader, this);
   }
 
-  public void testLibRClass() throws Exception {
+  private void doTestLibRClass(boolean finalIdsUsed) throws Exception {
+    testResourceIdManager.setFinalIdsUsed(finalIdsUsed);
+
     setupTestProjectFromAndroidModel(
       getProject(),
       new File(Objects.requireNonNull(getProject().getBasePath())),
@@ -307,8 +329,40 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(Manifest.getMainManifest(myFacet)).isNotNull();
 
     ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
-    loader.loadClass("p1.p2.R");
+    try {
+      assertNotNull(loader.loadClass("p1.p2.R"));
+      if (finalIdsUsed) {
+        fail("When final IDs are used, resource classes should not be loaded from light classes in LibraryResourceClassLoader.");
+      }
+    }
+    catch (ClassNotFoundException e) {
+      if (!finalIdsUsed) {
+        fail("When final IDs are not used, resource classes should be found even if there is no backing compiled classes.");
+      }
+    }
+
+    // Make sure there is a compiled R class in the output directory, to be used when final IDs are used.
+    Path moduleCompileOutputPath =
+      GradleClassFinderUtil.getModuleCompileOutputs(myModule,false).collect(Collectors.toList()).get(0).toPath();
+    Files.createDirectories(moduleCompileOutputPath);
+    Path packageDir = Files.createDirectories(moduleCompileOutputPath.resolve("p1/p2"));
+    Path rSrcFile = Files.createFile(packageDir.resolve("R.java"));
+    FileUtil.writeToFile(rSrcFile.toFile(), "package com.google.example; public class R { }");
+    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+    javac.run(null, System.out, System.err, rSrcFile.toString());
+
+    // Now, the class should be found, regardless of final IDs being used or not.
+    assertNotNull(loader.loadClass("p1.p2.R"));
     ModuleClassLoaderManager.get().release(loader, this);
+  }
+
+  // Regression test for b/233862429
+  public void testLibRClassFinalIds() throws Exception {
+    doTestLibRClass(true);
+  }
+
+  public void testLibRClassNoFinalIds() throws Exception {
+    doTestLibRClass(false);
   }
 
   // Regression test for b/162056408
@@ -393,26 +447,45 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     ModuleClassLoaderManager.get().release(loader, this);
   }
 
-  private static IdeAndroidLibraryImpl ideAndroidLibrary(File gradleCacheRoot, @SuppressWarnings("SameParameterValue") String artifactAddress, String folder, String libJar) {
-    return new IdeAndroidLibraryImpl(
-      artifactAddress,
-      artifactAddress,
-      gradleCacheRoot.toPath().resolve(folder).toFile(),
-      "manifest.xml",
-      ImmutableList.of("api.jar"),
-      ImmutableList.of(libJar),
-      "res",
-      new File(folder + File.separator + "res.apk"),
-      "assets",
-      "jni",
-      "aidl",
-      "renderscriptFolder",
-      "proguardRules",
-      "lint.jar",
-      "externalAnnotations",
-      "publicResources",
-      gradleCacheRoot.toPath().resolve("artifactFile").toFile(),
-      "symbolFile",
-      false);
+  public void testModuleClassLoaderCopy() {
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(
+      Objects.requireNonNull(myFixture.getModule())), this);
+
+    ModuleClassLoader copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);
+    assertNotNull(copy);
+    Disposer.dispose(copy);
+
+    ModuleClassLoaderManager.get().release(loader, this);
+
+    copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);
+    assertNull("Disposed ModuleClassLoaders can not be copied", copy);
+  }
+
+  private static AndroidLibraryDependency ideAndroidLibrary(File gradleCacheRoot,
+                                                            @SuppressWarnings("SameParameterValue") String artifactAddress,
+                                                            String folder,
+                                                            String libJar) {
+    return new AndroidLibraryDependency(
+      IdeAndroidLibraryImpl.Companion.create(
+        artifactAddress,
+        "",
+        gradleCacheRoot.toPath().resolve(folder).toFile(),
+        "manifest.xml",
+        ImmutableList.of("api.jar"),
+        ImmutableList.of(libJar),
+        "res",
+        new File(folder + File.separator + "res.apk"),
+        "assets",
+        "jni",
+        "aidl",
+        "renderscriptFolder",
+        "proguardRules",
+        "lint.jar",
+        "externalAnnotations",
+        "publicResources",
+        gradleCacheRoot.toPath().resolve("artifactFile").toFile(),
+        "symbolFile",
+        it -> it
+      ));
   }
 }

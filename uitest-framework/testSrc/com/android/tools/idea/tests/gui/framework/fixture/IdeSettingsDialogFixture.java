@@ -15,28 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.field;
-
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
+import com.intellij.openapi.options.newEditor.SettingsTreeView;
+import com.intellij.ui.TabbedPaneWrapper;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
-import java.awt.Component;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.event.KeyEvent;
+import javax.swing.JLabel;
 import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -48,10 +40,25 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.*;
+import java.util.Collection;
+import java.util.List;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.reflect.core.Reflection.field;
+
 public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> {
   @NotNull
   public static IdeSettingsDialogFixture find(@NotNull Robot robot) {
-    return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, new GenericTypeMatcher<>(JDialog.class) {
+    return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
         return component.getTitle().matches("Settings.*");
@@ -65,7 +72,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   @NotNull
   public List<String> getProjectSettingsNames() {
-    List<String> names = new ArrayList<>();
+    List<String> names = Lists.newArrayList();
     JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
 
     List<JComponent> trees = findComponentsOfType(optionsEditor, "com.intellij.openapi.options.newEditor.SettingsTreeView");
@@ -87,6 +94,44 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
   @NotNull
   public IdeSettingsDialogFixture selectSdkPage() {
     return selectPage("Appearance & Behavior/System Settings/Android SDK");
+  }
+
+  @NotNull
+  public IdeSettingsDialogFixture selectCodeStylePage(@NotNull String codeLangauge) throws InterruptedException {
+    GuiTests.waitForBackgroundTasks(robot());
+    robot().waitForIdle();
+
+    SettingsTreeView settingsTreeView = robot().finder().findByType(SettingsTreeView.class);
+    JTree settingsList = robot().finder().findByType(settingsTreeView, JTree.class, true);
+
+    new JTreeFixture(robot(), settingsList)
+      .expandPath("Editor")
+      .expandPath("Editor/Code Style")
+      .clickPath("Editor/Code Style/"+codeLangauge);
+
+    GuiTests.waitForBackgroundTasks(robot());
+    robot().waitForIdle();
+
+    return this;
+  }
+
+  @NotNull
+  public void changeTextFieldContent(@NotNull String textFieldName, @NotNull String OldValue, @NotNull String newValue) {
+    TabbedPaneWrapper.TabWrapper tabWrapper = robot().finder().findByType(TabbedPaneWrapper.TabWrapper.class);
+    JLabel jLabel = robot().finder().find(
+      tabWrapper, Matchers.byText(JLabel.class, textFieldName));
+
+    Collection<JBTextField> allFound = robot().finder().findAll(
+      jLabel.getParent(),
+      Matchers.byText(JBTextField.class, OldValue));
+
+    JBTextField textField = allFound.iterator().next();
+    //Select and delete old content
+    textField.grabFocus();
+    textField.selectAll();
+    robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
+
+    robot().enterText(newValue);
   }
 
   @NotNull
@@ -123,6 +168,14 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
     findAndClickOkButton(this);
   }
 
+
+  public void clickButton(@NotNull String buttonText) {
+    findAndClickButton(this, buttonText);
+    // Wait for processing project usages to finish as running in background.
+    GuiTests.waitForBackgroundTasks(robot());
+    robot().waitForIdle();
+  }
+
   public void selectShowPackageDetails() {
     Collection<JCheckBox> allFound = robot().finder().findAll(
       target(),
@@ -150,7 +203,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   @NotNull
   private static List<JComponent> findComponentsOfType(@NotNull JComponent parent, @NotNull String typeName) {
-    List<JComponent> result = new ArrayList<>();
+    List<JComponent> result = Lists.newArrayList();
     findComponentsOfType(typeName, result, parent);
     return result;
   }

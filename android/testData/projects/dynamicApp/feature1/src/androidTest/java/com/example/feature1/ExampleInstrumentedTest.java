@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.instantapp;
+package com.example.feature1;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

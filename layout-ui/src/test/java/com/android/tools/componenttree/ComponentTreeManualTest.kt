@@ -19,30 +19,41 @@ import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.componenttree.api.BadgeItem
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
+import com.android.tools.componenttree.api.IconColumn
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.DataManagerImpl
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.ide.ui.laf.IntelliJLaf
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.extensions.ExtensionPoint
+import com.intellij.openapi.fileEditor.impl.IdeUiServiceImpl
+import com.intellij.openapi.options.advanced.AdvancedSettingBean
+import com.intellij.openapi.options.advanced.AdvancedSettingType
+import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.impl.WindowManagerImpl
+import com.intellij.testFramework.registerExtension
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.Rectangle
 import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -67,17 +78,38 @@ object ComponentTreeManualTest {
     startTestApplication()
     IconLoader.activate()
     invokeLater {
+      StudioFlags.USE_COMPONENT_TREE_TABLE.override(true)
       val test = ComponentTreeTest()
       test.start()
     }
   }
 
+  /**
+   * Override as many services needed to run this test application without exceptions.
+   */
   private fun startTestApplication(): MockApplication {
     val disposable = Disposer.newDisposable()
     val app = TestApplication(disposable)
     ApplicationManager.setApplication(app, disposable)
     app.registerService(DataManager::class.java, DataManagerImpl())
     app.registerService(WindowManager::class.java, WindowManagerImpl())
+    app.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
+    @Suppress("UnstableApiUsage")
+    app.registerService(IdeUiService::class.java, IdeUiServiceImpl())
+    @Suppress("UnstableApiUsage")
+    app.extensionArea.registerExtensionPoint(AdvancedSettingBean.EP_NAME.name, AdvancedSettingBean::class.java.name,
+                                             ExtensionPoint.Kind.BEAN_CLASS, false)
+    app.registerExtension(AdvancedSettingBean.EP_NAME, AdvancedSettingBean(), disposable)
+    val settings = object : AdvancedSettings() {
+      override fun getSetting(id: String) = false
+      override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {
+        TODO("Not yet implemented")
+      }
+      override fun getDefault(id: String): Any {
+        throw NotImplementedError()
+      }
+    }
+    app.registerService(AdvancedSettings::class.java, settings)
     return app
   }
 }
@@ -96,19 +128,21 @@ private class ComponentTreeTest {
 
     val badge1 = Badge("badge1")
     val badge2 = Badge("badge2")
+    val badge3 = Badge("badge3")
 
     val result = ComponentTreeBuilder()
       .withNodeType(ItemNodeType())
-      .withMultipleSelection()
       .withContextMenu(::showPopup)
       .withoutTreeSearch()
       .withBadgeSupport(badge1)
       .withBadgeSupport(badge2)
+      .withBadgeSupport(badge3)
       .withHorizontalScrollBar()
+      .withDnD()
       .build()
-    tree = result.first
-    model = result.second
-    selectionModel = result.third
+    tree = result.component
+    model = result.model
+    selectionModel = result.selectionModel
 
     val rightPanel = JPanel()
     val splitter = Splitter(false, 0.8f)
@@ -181,11 +215,16 @@ private class ComponentTreeTest {
     val button2 = Item(BUTTON, "@+id/button1", "OK", buttonIcon, layout2)
     val textView3 = Item(TEXT_VIEW, "@+id/textView3", "Hello London calling we are here", textIcon, layout3)
     val layout4 = Item(LINEAR_LAYOUT, null, null, layoutIcon, layout3)
-    val button3 = Item(BUTTON, "@+id/button1", "PressMe", buttonIcon, layout3)
+    val button3 = Item(BUTTON, "@+id/button3", "PressMe", buttonIcon, layout3)
     textView1.badge1 = StudioIcons.Common.ERROR_INLINE
     textView1.badge2 = StudioIcons.Common.CLOSE
-    textView2.badge2 = StudioIcons.Common.DELETE
+    textView1.hover3 = StudioIcons.LayoutEditor.Properties.VISIBLE
+    textView2.badge2 = StudioIcons.Common.CLEAR
+    textView2.hover3 = StudioIcons.LayoutEditor.Properties.VISIBLE
+    textView3.badge3 = StudioIcons.Common.FILTER
+    textView3.hover3 = StudioIcons.LayoutEditor.Properties.VISIBLE
     button1.badge1 = StudioIcons.Common.WARNING_INLINE
+    button1.hover3 = StudioIcons.LayoutEditor.Properties.VISIBLE
     return layout1
   }
 
@@ -199,19 +238,35 @@ private class ComponentTreeTest {
     }
   }
 
-  private inner class Badge(val context: String): BadgeItem {
+  private inner class Badge(context: String): IconColumn(context) {
     val popup = createPopup(context)
 
     override fun getIcon(item: Any): Icon? {
       val itemValue = item as? Item
-      return if (context == "badge1") itemValue?.badge1 else itemValue?.badge2
+      return when (name) {
+        "badge1" -> itemValue?.badge1
+        "badge2" -> itemValue?.badge2
+        "badge3" -> itemValue?.badge3
+        else -> null
+      }
     }
 
-    override fun getTooltipText(item: Any?) = "Tooltip for $item"
+    override fun getHoverIcon(item: Any): Icon? {
+      val itemValue = item as? Item
+      return when (name) {
+        "badge3" -> itemValue?.hover3
+        else -> null
+      }
+    }
 
-    override fun performAction(item: Any) {
+    override val leftDivider: Boolean
+      get() = name == "badge3"
+
+    override fun getTooltipText(item: Any) = "Tooltip for $item"
+
+    override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
       if (getIcon(item) != null) {
-        JOptionPane.showMessageDialog(frame, "Badge: $context for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
+        JOptionPane.showMessageDialog(frame, "Badge: $name for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
       }
     }
 
@@ -220,7 +275,7 @@ private class ComponentTreeTest {
     }
 
     override fun toString(): String {
-      return context
+      return name
     }
   }
 }

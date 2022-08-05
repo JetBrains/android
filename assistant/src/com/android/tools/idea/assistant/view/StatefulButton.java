@@ -22,15 +22,19 @@ import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.EdtInvocationManager;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
@@ -48,6 +52,7 @@ import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A wrapper presentation on {@link ActionButton} that allows for the button to maintain state. In practice this means that either a button
@@ -67,6 +72,7 @@ public class StatefulButton extends JPanel {
   @VisibleForTesting
   @Nullable
   StatefulButtonMessage myMessage;
+  private boolean myInitComplete = false;
 
   /**
    * Creates a button that changes UI based on state.
@@ -95,31 +101,50 @@ public class StatefulButton extends JPanel {
     // etc.
     mySuccessMessage = action.getSuccessMessage();
 
-    myButton = new ActionButton(action, listener, this);
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 0;
     c.gridy = 0;
     c.weightx = 1;
     c.anchor = GridBagConstraints.NORTHWEST;
     c.insets = JBUI.insets(7, 0, 10, 5);
-    add(myButton, c);
-    // Initialize to hidden until state management is completed.
-    myButton.setVisible(false);
+    JPanel buttonPanel = new JPanel(new FlowLayout());
+    add(buttonPanel, c);
+    myButton = new ActionButton(action, listener, this);
+    buttonPanel.add(myButton);
 
     if (myStateManager != null) {
-      myStateManager.init(project, action);
-      myMessage = myStateManager.getStateDisplay(project, action, mySuccessMessage);
-      if (myMessage != null) {
-        c.gridy++;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        add(myMessage, c);
-        // Initialize to hidden until state management is completed.
-        myMessage.setVisible(false);
-      }
+      myButton.setEnabled(false);
+      AsyncProcessIcon loadingIcon = new AsyncProcessIcon("Loading");
+      buttonPanel.add(loadingIcon);
+      Application app = ApplicationManager.getApplication();
+      app.executeOnPooledThread(() -> {
+        myStateManager.init(project, action);
+        app.invokeLater(() -> {
+          myButton.setVisible(false);
+          myMessage = myStateManager.getStateDisplay(project, action, mySuccessMessage);
+          if (myMessage != null) {
+            c.gridy++;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            add(myMessage, c);
+            // Initialize to hidden until state management is completed.
+            myMessage.setVisible(false);
+          }
+          updateButtonState();
+          loadingIcon.setVisible(false);
+          myInitComplete = true;
+        });
+      });
     }
+    else {
+      // Initialize the button state. This includes making the proper element visible.
+      updateButtonState();
+      myInitComplete = true;
+    }
+  }
 
-    // Initialize the button state. This includes making the proper element visible.
-    updateButtonState();
+  @TestOnly
+  public boolean isLoaded() {
+    return myInitComplete;
   }
 
   @Override
@@ -162,7 +187,7 @@ public class StatefulButton extends JPanel {
     EdtInvocationManager.invokeLaterIfNeeded(() -> {
       // There may be cases where the action is not stateful such as triggering a debug event which can occur any number of times.
       if (myStateManager == null) {
-        myButton.setVisible(true);
+        myButton.setEnabled(true);
         return;
       }
 

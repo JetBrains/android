@@ -77,6 +77,6 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
       PARAMETER_HARDWARE_DIM_UNIT -> DimensionUnitEnumSupport
       PARAMETER_HARDWARE_DENSITY -> DensityEnumSupport
       PARAMETER_HARDWARE_ORIENTATION -> OrientationEnumSupport
-      else -> null
+      else -> EnumSupport.simple(emptyList())
     }
 }

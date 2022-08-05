@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -39,7 +40,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
   public void testCommit() {
     SyncNlModel model = buildModel();
     ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
+    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
     Scene scene = builder.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 

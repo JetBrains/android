@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;

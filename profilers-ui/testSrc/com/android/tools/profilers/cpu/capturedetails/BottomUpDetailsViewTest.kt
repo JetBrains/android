@@ -30,6 +30,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,6 +42,9 @@ class BottomUpDetailsViewTest {
   @JvmField
   @Rule
   val grpcChannel = FakeGrpcChannel("BottomUpDetailsViewTest", FakeTransportService(timer))
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilersView: StudioProfilersView
   private val capture = CpuProfilerUITestUtils.validCapture()
@@ -68,7 +72,7 @@ class BottomUpDetailsViewTest {
   @Test
   fun showsContentWhenNodeIsNotNull() {
     val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(),
-                                                       listOf(capture.getCaptureNode(capture.mainThreadId)),
+                                                       listOf(capture.getCaptureNode(capture.mainThreadId)!!),
                                                        capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
@@ -88,7 +92,7 @@ class BottomUpDetailsViewTest {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
     val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, range,
-                                                       listOf(capture.getCaptureNode(capture.mainThreadId)),
+                                                       listOf(capture.getCaptureNode(capture.mainThreadId)!!),
                                                        capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 

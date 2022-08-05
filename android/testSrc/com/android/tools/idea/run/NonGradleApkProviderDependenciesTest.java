@@ -83,7 +83,7 @@ public class NonGradleApkProviderDependenciesTest extends AndroidTestCase {
     assertEquals(3, apks.size());
     // Sort the apks to keep test consistent.
     List<ApkInfo> apkList = new ArrayList<>(apks);
-    apkList.sort(new Comparator<>() {
+    apkList.sort(new Comparator<ApkInfo>() {
       @Override
       public int compare(ApkInfo a, ApkInfo b) {
         return a.getApplicationId().compareTo(b.getApplicationId());

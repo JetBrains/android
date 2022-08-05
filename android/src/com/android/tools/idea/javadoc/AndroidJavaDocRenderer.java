@@ -22,6 +22,7 @@ import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static com.android.tools.idea.util.NonBlockingReadActionUtilKt.waitInterruptibly;
 import static com.android.utils.SdkUtils.hasImageExtension;
 import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 import static com.intellij.openapi.util.io.FileUtilRt.copy;
@@ -51,15 +52,11 @@ import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
-import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
-import com.android.tools.idea.gradle.model.IdeSourceProvider;
-import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -80,7 +77,6 @@ import com.intellij.openapi.editor.colors.EditorColorsUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
@@ -97,13 +93,14 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -308,78 +305,30 @@ public class AndroidJavaDocRenderer {
       LocalResourceRepository resources = getAppResources();
 
       List<AndroidFacet> dependencies =  AndroidDependenciesCache.getAllAndroidDependencies(myModule, true);
-      boolean hasGradleModel = false;
       int rank = 0;
 
       for (AndroidFacet reachableFacet : Iterables.concat(ImmutableList.of(facet), dependencies)) {
-        // TODO: b/22927607
-        AndroidModuleModel androidModel = AndroidModuleModel.get(reachableFacet);
-        if (androidModel != null) {
-          hasGradleModel = true;
-          String facetModuleName = reachableFacet.getHolderModule().getName();
-          assert AndroidModel.isRequired(reachableFacet);
-          IdeAndroidProject androidProject = androidModel.getAndroidProject();
-          IdeVariant selectedVariant = androidModel.getSelectedVariant();
-          Set<IdeSourceProvider> selectedProviders = new HashSet<>();
-
-          IdeBuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
-          assert buildType != null;
-          IdeSourceProvider sourceProvider = buildType.getSourceProvider();
-          String buildTypeName = selectedVariant.getName();
-          addItemsFromSourceSet(buildTypeName + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, sourceProvider, type,
+        String facetModuleName = reachableFacet.getHolderModule().getName();
+        SourceProviders sourceProviders = SourceProviders.getInstance(reachableFacet);
+        Set<NamedIdeaSourceProvider> selectedProviders = new HashSet<>();
+        for (NamedIdeaSourceProvider sourceProvider : ImmutableList.copyOf(sourceProviders.getCurrentSourceProviders()).reverse()) {
+          addItemsFromSourceSet(sourceProvider.getName() + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, sourceProvider, type,
                                 resourceName, results, reachableFacet);
           selectedProviders.add(sourceProvider);
-
-          List<String> productFlavors = selectedVariant.getProductFlavors();
-          // Iterate in *reverse* order
-          for (int i = productFlavors.size() - 1; i >= 0; i--) {
-            String flavorName = productFlavors.get(i);
-            IdeProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
-            assert productFlavor != null;
-            IdeSourceProvider provider = productFlavor.getSourceProvider();
-            addItemsFromSourceSet(flavorName + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, provider, type, resourceName,
-                                  results, reachableFacet);
-            selectedProviders.add(provider);
-          }
-
-          IdeSourceProvider main = androidProject.getDefaultConfig().getSourceProvider();
-          addItemsFromSourceSet("main" + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, main, type, resourceName, results,
-                                reachableFacet);
-          selectedProviders.add(main);
-
-          // Next display any source sets that are *not* in the selected flavors or build types!
-          Collection<IdeBuildTypeContainer> buildTypes = androidProject.getBuildTypes();
-          for (IdeBuildTypeContainer container : buildTypes) {
-            IdeSourceProvider provider = container.getSourceProvider();
-            if (!selectedProviders.contains(provider)) {
-              addItemsFromSourceSet(container.getBuildType().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider, type,
-                                    resourceName, results, reachableFacet);
-              selectedProviders.add(provider);
-            }
-          }
-
-          Collection<IdeProductFlavorContainer> flavors = androidProject.getProductFlavors();
-          for (IdeProductFlavorContainer container : flavors) {
-            IdeSourceProvider provider = container.getSourceProvider();
-            if (!selectedProviders.contains(provider)) {
-              addItemsFromSourceSet(container.getProductFlavor().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider,
-                                    type, resourceName, results, reachableFacet);
-              selectedProviders.add(provider);
-            }
+        }
+        for (NamedIdeaSourceProvider sourceProvider : ImmutableList.copyOf(sourceProviders.getCurrentAndSomeFrequentlyUsedInactiveSourceProviders()).reverse()) {
+          if (!selectedProviders.contains(sourceProvider)) {
+            addItemsFromSourceSet(sourceProvider.getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, sourceProvider, type,
+                                  resourceName, results, reachableFacet);
+            selectedProviders.add(sourceProvider);
           }
         }
       }
 
       if (resources != null) {
-        if (hasGradleModel) {
-          // Go through all the binary libraries and look for additional resources there
-          for (AarResourceRepository dependency : ResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
-            addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
-          }
-        }
-        else {
-          // If we do not have any gradle model, get the resources from the app repository
-          addItemsFromRepository(null, MASK_NORMAL, 0, resources, false, type, resourceName, results);
+        // Go through all the binary libraries and look for additional resources there
+        for (AarResourceRepository dependency : ResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
+          addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
         }
       }
 
@@ -389,19 +338,15 @@ public class AndroidJavaDocRenderer {
     private static void addItemsFromSourceSet(@Nullable String flavor,
                                               int mask,
                                               int rank,
-                                              @NotNull IdeSourceProvider sourceProvider,
+                                              @NotNull NamedIdeaSourceProvider sourceProvider,
                                               @NotNull ResourceType type,
                                               @NotNull String name,
                                               @NotNull List<ItemInfo> results,
                                               @NotNull AndroidFacet facet) {
-      Collection<File> resDirectories = sourceProvider.getResDirectories();
-      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-      for (File dir : resDirectories) {
-        VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
-        if (virtualFile != null) {
-          ResourceFolderRepository resources = ResourceFolderRegistry.getInstance(facet.getModule().getProject()).get(facet, virtualFile);
-          addItemsFromRepository(flavor, mask, rank, resources, false, type, name, results);
-        }
+      Iterable<VirtualFile> resDirectories = sourceProvider.getResDirectories();
+      for (VirtualFile dir : resDirectories) {
+        ResourceFolderRepository resources = ResourceFolderRegistry.getInstance(facet.getModule().getProject()).get(facet, dir);
+        addItemsFromRepository(flavor, mask, rank, resources, false, type, name, results);
       }
     }
 
@@ -576,9 +521,7 @@ public class AndroidJavaDocRenderer {
       if (myResourceResolver == null && createIfNecessary) {
         if (myConfiguration != null) {
           myResourceResolver = myConfiguration.getResourceResolver();
-          if (myResourceResolver != null) {
-            return myResourceResolver;
-          }
+          return myResourceResolver;
         }
 
         AndroidFacet facet = AndroidFacet.getInstance(myModule);
@@ -655,7 +598,7 @@ public class AndroidJavaDocRenderer {
             ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
             v.setValue(url.toString());
             ResourceValue resourceValue = resolver.resolveResValue(v);
-            if (resourceValue != null && resourceValue.getValue() != null) {
+            if (resourceValue.getValue() != null) {
               return resourceValue.getValue();
             }
           }
@@ -664,7 +607,7 @@ public class AndroidJavaDocRenderer {
           ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
           v.setValue(url.toString());
           ResourceValue resourceValue = resolver.resolveResValue(v);
-          if (resourceValue != null && resourceValue.getValue() != null) {
+          if (resourceValue.getValue() != null) {
             return resourceValue.getValue();
           } else if (resourceValue instanceof StyleResourceValue) {
             return resourceValue.getResourceUrl().toString();
@@ -1104,30 +1047,40 @@ public class AndroidJavaDocRenderer {
       }
       else {
         if (myConfiguration != null) {
-          RenderTask renderTask = ThemeEditorUtils.configureRenderTask(myModule, myConfiguration);
-
-          // Find intrinsic size.
-          int width = 100;
-          int height = 100;
-          if (isWebP) {
-            Dimension size = getSize(virtualFile);
-            if (size != null) {
-              width = size.width;
-              height = size.height;
+          AndroidFacet facet = AndroidFacet.getInstance(myModule);
+          assert facet != null;
+          final RenderService service = RenderService.getInstance(myModule.getProject());
+          RenderLogger logger = new RenderLogger("AndroidJavaDocRendererLogger", null);
+          CompletableFuture<RenderTask> renderTaskFuture = service.taskBuilder(facet, myConfiguration)
+            .withLogger(logger)
+            .build();
+          CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
+            if (renderTask == null) {
+              return CompletableFuture.completedFuture(null);
             }
-          }
+            renderTask.getLayoutlibCallback().setLogger(logger);
 
-          renderTask.setOverrideRenderSize(width, height);
+            // Find intrinsic size.
+            int width = 100;
+            int height = 100;
+            if (isWebP) {
+              Dimension size = getSize(virtualFile);
+              if (size != null) {
+                width = size.width;
+                height = size.height;
+              }
+            }
+
+            renderTask.setOverrideRenderSize(width, height);
+            return renderTask.renderDrawable(resolvedValue).whenComplete((image, ex) -> renderTask.dispose());
+          });
           BufferedImage image;
           try {
-            image = renderTask.renderDrawable(resolvedValue).get();
+            image = waitInterruptibly(future);
           }
           catch (InterruptedException | ExecutionException e) {
             renderError(builder, e.toString());
             return;
-          }
-          finally {
-            renderTask.dispose();
           }
           if (image != null) {
             // Need to write it somewhere.
@@ -1414,11 +1367,9 @@ public class AndroidJavaDocRenderer {
 
       if (rank != itemInfo.rank) return false;
       if (!configuration.equals(itemInfo.configuration)) return false;
-      if (flavor != null ? !flavor.equals(itemInfo.flavor) : itemInfo.flavor != null) return false;
+      if (!Objects.equals(flavor, itemInfo.flavor)) return false;
       if (!folder.equals(itemInfo.folder)) return false;
-      if (value != null ? !value.equals(itemInfo.value) : itemInfo.value != null) return false;
-
-      return true;
+      return Objects.equals(value, itemInfo.value);
     }
 
     @Override

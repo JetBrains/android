@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.intellij.openapi.util.Disposer;
@@ -52,9 +53,8 @@ public class ForcedPluginPreviewVersionUpgradeDialogTest extends PlatformTestCas
   }
 
   public void testDialogMessage() {
-    myDialog = new ForcedPluginPreviewVersionUpgradeDialog(getProject(), null);
+    myDialog = new ForcedPluginPreviewVersionUpgradeDialog(getProject(), null, GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()));
     String message = myDialog.getDisplayedMessage();
     assertThat(message).contains("upgrade the project's build files to use version " + LatestKnownPluginVersionProvider.INSTANCE.get());
-    LatestKnownPluginVersionProvider.INSTANCE.get();
   }
 }

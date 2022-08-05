@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api.actions
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene
@@ -23,7 +24,6 @@ import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.intellij.ide.util.PropertiesComponent
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
-
 
 class ToggleAutoConnectActionTest : AndroidTestCase() {
 
@@ -38,8 +38,8 @@ class ToggleAutoConnectActionTest : AndroidTestCase() {
 
     val mockEditor = Mockito.mock(ViewEditor::class.java).also {
       val mockScene = Mockito.mock(Scene::class.java)
-      Mockito.`when`(it.scene).thenReturn(mockScene)
-      Mockito.`when`(mockScene.designSurface).thenReturn(null)
+      whenever(it.scene).thenReturn(mockScene)
+      whenever(mockScene.designSurface).thenReturn(null)
     }
 
     val mockHandler= Mockito.mock(ViewHandler::class.java)

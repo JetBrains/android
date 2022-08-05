@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint lintJars="../checks/local.jar;../checks/custom.jar"
+      checkAllWarnings='true'
+      ignoreWarnings='true'
+      warningsAsErrors='true'
+      fatalOnly='true'
+      checkTestSources='true'
+      ignoreTestSources='true'
+      checkGeneratedSources='true'
+      checkDependencies='true'
+      explainIssues='true'
+      removeFixedBaselineIssues='true'
+      abortOnError='true'>
+    <!-- The special id "all" matches all issues but is only consulted
+         if there is no specific match -->
+    <issue id="all" severity="ignore" />
+    <!-- Possible severities: ignore, information, warning, error, fatal -->
+    <issue id="ValidActionsXml" severity="error" />
+    <issue id="ObsoleteLayoutParam">
+        <!-- The <ignore> tag has two possible attributes: path and regexp (see below) -->
+        <ignore path="res/layout-xlarge/activation.xml" />
+        <!-- You can use globbing patterns in the path strings -->
+        <ignore path="**/layout-x*/onclick.xml" />
+        <ignore path="res/**/activation.xml" />
+    </issue>
+    <issue id="NewApi">
+        <!-- You can also ignore via a regular expression, this is not only
+            matched against the path but also the error message -->
+        <ignore regexp="st.*gs" />
+    </issue>
+    <!-- The "in" attribute lets you specify that the element only
+         applies in a particular tools, such as gradle, studio, etc; this
+         can be a comma separated list -->
+    <issue in="studio" id="NewerVersionAvailable" severity="error" />
+    <!-- You can also use ! to specify that it does not apply in a tool  -->
+    <issue in="!gradle" id="TrulyRandom" severity="error" />
+    <issue id="UnknownNullness">
+        <!-- For detectors that support it, you can also specify option values -->
+        <option name="ignore-deprecated" value="true" />
+    </issue>
+    <issue id="TooManyViews">
+        <option name="maxCount" value="20" />
+    </issue>
+  <issue id="ThirdPartyCheck" severity="error" />
+</lint>

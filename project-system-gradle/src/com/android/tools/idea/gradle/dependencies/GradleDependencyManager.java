@@ -25,11 +25,10 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
@@ -137,15 +136,13 @@ public class GradleDependencyManager {
    *
    * @param module       the module to add dependencies to
    * @param dependencies the dependencies of interest
-   * @param callback     an optional callback to signal to completion of the added dependencies
    * @return true if the dependencies were successfully added or were already present in the module
    */
   @TestOnly
   public boolean addDependenciesAndSync(@NotNull Module module,
-                                        @NotNull Iterable<GradleCoordinate> dependencies,
-                                        @Nullable Runnable callback) {
+                                        @NotNull Iterable<GradleCoordinate> dependencies) {
     boolean result = addDependenciesInTransaction(module, dependencies, null);
-    requestProjectSync(module.getProject(), callback, TRIGGER_GRADLEDEPENDENCY_ADDED);
+    requestProjectSync(module.getProject(), TRIGGER_GRADLEDEPENDENCY_ADDED);
     return result;
   }
 
@@ -223,7 +220,7 @@ public class GradleDependencyManager {
         if (nameMapper != null) {
           name = nameMapper.mapName(module, name, coordinate);
         }
-        name = GradleUtil.mapConfigurationName(name, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+        name = GradleUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
         dependenciesModel.addArtifact(name, coordinate.toString());
       }
       buildModel.applyChanges();
@@ -241,14 +238,9 @@ public class GradleDependencyManager {
     });
   }
 
-  private static void requestProjectSync(@NotNull Project project, @Nullable Runnable callback, @NotNull GradleSyncStats.Trigger trigger) {
-    if (callback != null) {
-      // Note: This callback mechanism fires after the Gradle build is done rather than the sync.
-      // This is needed since the designer cannot display correctly with source generation.
-      GradleBuildInvoker.getInstance(project).add(new GradleCompletionTask(project, callback));
-    }
+  private static void requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
   }
 
   private static void updateDependencies(@NotNull GradleBuildModel buildModel,
@@ -269,21 +261,5 @@ public class GradleDependencyManager {
       }
       buildModel.applyChanges();
     });
-  }
-
-  private static class GradleCompletionTask implements GradleBuildInvoker.AfterGradleInvocationTask {
-    private final Project myProject;
-    private final Runnable myCallback;
-
-    private GradleCompletionTask(@NotNull Project project, @NotNull Runnable callback) {
-      myProject = project;
-      myCallback = callback;
-    }
-
-    @Override
-    public void execute(@NotNull GradleInvocationResult result) {
-      GradleBuildInvoker.getInstance(myProject).remove(this);
-      myCallback.run();
-    }
   }
 }

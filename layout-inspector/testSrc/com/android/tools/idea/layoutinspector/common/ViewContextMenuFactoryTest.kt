@@ -21,6 +21,7 @@ import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.getTypedArgument
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -45,7 +46,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 
@@ -68,11 +68,11 @@ class ViewContextMenuFactoryTest {
     val mockActionManager: ActionManager = mock()
     ApplicationManager.getApplication().replaceService(ActionManager::class.java, mockActionManager, disposableRule.disposable)
     val mockPopupMenu: ActionPopupMenu = mock()
-    `when`(mockActionManager.createActionPopupMenu(any(), any())).thenAnswer { invocation ->
+    whenever(mockActionManager.createActionPopupMenu(any(), any())).thenAnswer { invocation ->
       createdGroup = invocation.getTypedArgument(1)
       mockPopupMenu
     }
-    `when`(mockPopupMenu.component).thenReturn(popupMenuComponent)
+    whenever(mockPopupMenu.component).thenReturn(popupMenuComponent)
     inspectorModel = model {
       view(ROOT, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")) {
         view(VIEW1)
@@ -86,11 +86,11 @@ class ViewContextMenuFactoryTest {
     }
 
     val client: InspectorClient = mock()
-    `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
+    whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     val layoutInspector: LayoutInspector = mock()
-    `when`(layoutInspector.currentClient).thenReturn(client)
-    `when`(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(layoutInspector)
-    `when`(event.actionManager).thenReturn(mockActionManager)
+    whenever(layoutInspector.currentClient).thenReturn(client)
+    whenever(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(layoutInspector)
+    whenever(event.actionManager).thenReturn(mockActionManager)
   }
 
   @After
@@ -195,17 +195,17 @@ class ViewContextMenuFactoryLegacyTest {
     val mockActionManager: ActionManager = mock()
     val mockPopupMenu: ActionPopupMenu = mock()
     ApplicationManager.getApplication().replaceService(ActionManager::class.java, mockActionManager, disposableRule.disposable)
-    `when`(mockActionManager.createActionPopupMenu(any(), any())).thenAnswer { invocation ->
+    whenever(mockActionManager.createActionPopupMenu(any(), any())).thenAnswer { invocation ->
       createdGroup = invocation.getTypedArgument(1)
       mockPopupMenu
     }
-    `when`(mockPopupMenu.component).thenReturn(popupMenuComponent)
+    whenever(mockPopupMenu.component).thenReturn(popupMenuComponent)
     val client: InspectorClient = mock()
-    `when`(client.capabilities).thenReturn(setOf())
+    whenever(client.capabilities).thenReturn(setOf())
     val layoutInspector: LayoutInspector = mock()
-    `when`(layoutInspector.currentClient).thenReturn(client)
-    `when`(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(layoutInspector)
-    `when`(event.actionManager).thenReturn(mockActionManager)
+    whenever(layoutInspector.currentClient).thenReturn(client)
+    whenever(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(layoutInspector)
+    whenever(event.actionManager).thenReturn(mockActionManager)
   }
 
   @After

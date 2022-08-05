@@ -17,14 +17,12 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import static com.android.tools.lint.checks.AnnotationDetectorKt.RESTRICT_TO_ANNOTATION;
 
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
@@ -33,37 +31,27 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
-import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.Dimension;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Predicate;
-import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,11 +69,7 @@ public class ViewEditorImpl extends ViewEditor {
   private Collection<ViewInfo> myRootViews;
 
   public ViewEditorImpl(@NotNull SceneView sceneView) {
-    this(sceneView.getModel(), sceneView.getScene());
-  }
-
-  public ViewEditorImpl(@NotNull NlModel model) {
-    this(model, null);
+    this(sceneView.getSceneManager().getModel(), sceneView.getScene());
   }
 
   public ViewEditorImpl(@NotNull NlModel model, @Nullable Scene scene) {
@@ -173,80 +157,37 @@ public class ViewEditorImpl extends ViewEditor {
     XmlFile xmlFile = model.getFile();
     Module module = model.getModule();
     RenderService renderService = RenderService.getInstance(module.getProject());
-    final RenderTask task = renderService.taskBuilder(model.getFacet(), getConfiguration())
+    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(model.getFacet(), getConfiguration())
       .withPsiFile(xmlFile)
-      .buildSynchronously();
-    if (task == null) {
-      return CompletableFuture.completedFuture(Collections.emptyMap());
-    }
+      .build();
 
     // Measure unweighted bounds
     XmlTag parentTag = parent.getTagDeprecated();
-    return task.measureChildren(parentTag, filter)
-      .whenCompleteAsync((map, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService())
-      .thenApply(map -> {
-        if (map == null) {
-          return Collections.emptyMap();
-        }
-
-        Map<NlComponent, Dimension> unweightedSizes = new HashMap<>();
-        for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
-          ViewInfo viewInfo = entry.getValue();
-          viewInfo = RenderService.getSafeBounds(viewInfo);
-          Dimension size = new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
-          NlComponent child = tagToComponent.get(entry.getKey());
-          if (child != null) {
-            unweightedSizes.put(child, size);
-          }
-        }
-
-        return unweightedSizes;
-      });
-  }
-
-  @Nullable
-  @Override
-  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
-    NlModel model = myModel;
-    ResourcePickerDialog dialog = ResourceChooserHelperKt.createResourcePickerDialog(
-      title.isEmpty() ? "Pick a Resource" : title,
-      null,
-      model.getFacet(),
-      types,
-      null,
-      false,
-      includeSampleData,
-      true, model.getVirtualFile()
-    );
-
-    dialog.show();
-
-    if (dialog.isOK()) {
-      String resource = dialog.getResourceName();
-
-      if (resource != null && !resource.isEmpty()) {
-        return resource;
+    return taskFuture.thenCompose(task -> {
+      if (task == null) {
+        return CompletableFuture.completedFuture(Collections.emptyMap());
       }
-    }
+      return task.measureChildren(parentTag, filter)
+        .whenCompleteAsync((map, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService())
+        .thenApply(map -> {
+          if (map == null) {
+            return Collections.emptyMap();
+          }
 
-    return null;
-  }
+          Map<NlComponent, Dimension> unweightedSizes = new HashMap<>();
+          for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
+            ViewInfo viewInfo = entry.getValue();
+            viewInfo = RenderService.getSafeBounds(viewInfo);
+            Dimension size = new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
+            NlComponent child = tagToComponent.get(entry.getKey());
+            if (child != null) {
+              unweightedSizes.put(child, size);
+            }
+          }
 
-  @Nullable
-  @Override
-  public String displayClassInput(@NotNull String title,
-                                  @NotNull Set<String> superTypes,
-                                  @Nullable Predicate<String> filter,
-                                  @Nullable String currentValue) {
-    Module module = myModel.getModule();
-    String[] superTypesArray = ArrayUtilRt.toStringArray(superTypes);
-
-    Predicate<PsiClass> psiFilter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
-    if (filter == null) {
-      filter = ChooseClassDialog.getIsUserDefinedFilter();
-    }
-    psiFilter = psiFilter.and(ChooseClassDialog.qualifiedNameFilter(filter));
-    return ChooseClassDialog.openDialog(module, title, currentValue, psiFilter, superTypesArray);
+          return unweightedSizes;
+        });
+    });
   }
 
   @VisibleForTesting
@@ -280,32 +221,17 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
-    getModel().addComponents(children, parent, getChild(parent, index), insertType, this.myScene.getDesignSurface());
+    UtilsKt.addComponentsAndSelectedIfCreated(getModel(),
+                                              children,
+                                              parent,
+                                              getChild(parent, index),
+                                              insertType,
+                                              myScene.getDesignSurface().getSelectionModel());
   }
 
   @Nullable
   private static NlComponent getChild(@NotNull NlComponent parent, int index) {
     return 0 <= index && index < parent.getChildCount() ? parent.getChild(index) : null;
-  }
-
-  @Override
-  public void openResourceFile(@NotNull String resourceId) {
-    ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
-    ResourceValue resValue = resourceResolver.findResValue(resourceId, false);
-
-    VirtualFile file = IdeResourcesUtil.resolveLayout(resourceResolver, resValue);
-    if (file == null) {
-      return;
-    }
-    LayoutNavigationManager.getInstance(myConfiguration.getModule().getProject()).pushFile(myModel.getVirtualFile(), file);
-  }
-
-  /**
-   * Try to get an existing View editor from the {@link Scene}'s {@link SceneManager}
-   */
-  @NotNull
-  public static ViewEditor getOrCreate(@NotNull Scene scene) {
-    return ((LayoutlibSceneManager)scene.getSceneManager()).getViewEditor();
   }
 
   @Override

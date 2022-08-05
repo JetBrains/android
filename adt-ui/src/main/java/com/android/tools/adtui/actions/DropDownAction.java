@@ -35,6 +35,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
 import javax.swing.Icon;
@@ -69,8 +70,10 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
       return 0;
     }
   };
+  private Dimension myMinimumButtonSize = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
 
   public DropDownAction(@Nullable String title, @Nullable String description, @Nullable Icon icon) {
+    // TODO(b/215726556) Use the super constructor that takes title, description, icon after the merge of IJ2022.1.1
     super(title, true);
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription(description);
@@ -81,6 +84,10 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
       presentation.setIcon(BLANK_ICON);
       presentation.setDisabledIcon(BLANK_ICON);
     }
+  }
+
+  public void setMinimumButtonSize(@NotNull Dimension minimumButtonSize) {
+    myMinimumButtonSize = minimumButtonSize;
   }
 
   @Override
@@ -152,10 +159,10 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   @NotNull
   public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
     if (displayTextInToolbar()) {
-      return new ActionButtonWithText(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
+      return new ActionButtonWithText(this, presentation, ActionPlaces.TOOLBAR, myMinimumButtonSize);
     }
     else {
-      return new ActionButton(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
+      return new ActionButton(this, presentation, ActionPlaces.TOOLBAR, myMinimumButtonSize) {
         @Override
         protected void updateToolTipText() {
           // Copied from ActionButtonWithText to get the same tooltip behaviour for both types of buttons

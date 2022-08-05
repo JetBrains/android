@@ -15,34 +15,55 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices
 
+import com.android.resources.ScreenOrientation
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.compose.preview.pickers.properties.DEFAULT_DENSITY
 import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.DescriptionEnumValue
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumValue
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_FOLDABLE_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_PHONE_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_PHONE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_TABLET_TOOLTIP
+import com.android.tools.idea.configurations.PREDEFINED_WINDOW_SIZES_DEFINITIONS
+import com.android.tools.idea.configurations.WindowSizeData
 import com.android.tools.property.panel.api.EnumValue
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import icons.StudioIcons
 import javax.swing.Icon
 import kotlin.math.round
 import kotlin.math.sqrt
 
+/**
+ * Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin
+ */
+internal const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
+
 /** Default device configuration for Phones */
-internal val ReferencePhoneConfig = deviceConfigWithDpDimensions(width = 360, height = 640)
+internal val ReferencePhoneConfig: DeviceConfig by lazy {
+  PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_PHONE_ID }.toDeviceConfigWithDpDimensions()
+}
 
 /** Default device configuration for Foldables */
-internal val ReferenceFoldableConfig = deviceConfigWithDpDimensions(width = 673, height = 841)
+internal val ReferenceFoldableConfig: DeviceConfig by lazy {
+  PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_FOLDABLE_ID }.toDeviceConfigWithDpDimensions()
+}
 
 /** Default device configuration for Tablets */
-internal val ReferenceTabletConfig = deviceConfigWithDpDimensions(width = 1280, height = 800)
+internal val ReferenceTabletConfig: DeviceConfig by lazy {
+  PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_TABLET_ID }.toDeviceConfigWithDpDimensions()
+}
 
 /** Default device configuration for Desktops */
-internal val ReferenceDesktopConfig = deviceConfigWithDpDimensions(width = 1920, height = 1080)
+internal val ReferenceDesktopConfig: DeviceConfig by lazy {
+  PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_DESKTOP_ID }.toDeviceConfigWithDpDimensions()
+}
 
 /**
  * The different types of devices that'll be available on the picker 'Device' DropDown.
@@ -51,6 +72,7 @@ internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
   Canonical("Reference Devices", StudioIcons.Wizards.Modules.PHONE_TABLET),
   Phone("Phone", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE),
   Tablet("Tablet", StudioIcons.LayoutEditor.Toolbar.DEVICE_TABLET),
+  Desktop("Desktop", StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN), // TODO(b/237375632): Update once there's a proper icon for desktop
   Wear("Wear", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR),
   Tv("Tv", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV),
   Auto("Auto", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE),
@@ -65,25 +87,26 @@ internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
  * [build] returns the List of [EnumValue] ordered by [DeviceClass] and including a header for each of them.
  */
 internal class DeviceEnumValueBuilder {
-  private val deviceEnumValues = mapOf<DeviceClass, MutableList<EnumValue>>(
+  private val deviceEnumValues = mapOf<DeviceClass, MutableList<PsiEnumValue>>(
     Pair(DeviceClass.Canonical, mutableListOf()),
     Pair(DeviceClass.Phone, mutableListOf()),
     Pair(DeviceClass.Tablet, mutableListOf()),
+    Pair(DeviceClass.Desktop, mutableListOf()),
     Pair(DeviceClass.Wear, mutableListOf()),
     Pair(DeviceClass.Tv, mutableListOf()),
     Pair(DeviceClass.Auto, mutableListOf()),
     Pair(DeviceClass.Generic, mutableListOf())
   )
 
-  fun addCanonical(
+  private fun addCanonical(
     name: String,
     description: String?,
-    immutableDeviceConfig: DeviceConfig
+    immutableDeviceConfig: DeviceConfig,
+    trackableValue: PreviewPickerValue
   ): DeviceEnumValueBuilder = apply {
     val deviceSpec = immutableDeviceConfig.deviceSpec()
-    deviceEnumValues[DeviceClass.Canonical]?.add(
-      DescriptionEnumValue(deviceSpec, name, description)
-    )
+    val enumValue = PsiEnumValue.withTooltip(deviceSpec, name, description, trackableValue)
+    deviceEnumValues[DeviceClass.Canonical]?.add(enumValue)
   }
 
   private fun addDevicePx(
@@ -91,25 +114,43 @@ internal class DeviceEnumValueBuilder {
     type: DeviceClass,
     widthPx: Int,
     heightPx: Int,
-    diagonalIn: Double
+    diagonalIn: Double,
+    orientation: Orientation
   ): DeviceEnumValueBuilder = apply {
     val dpi = kotlin.run {
       val dpiCalc = sqrt((1.0 * widthPx * widthPx) + (1.0 * heightPx * heightPx)) / diagonalIn
       round(dpiCalc * 100) / 100.0
     }
     val density = AvdScreenData.getScreenDensity(null, true, dpi, heightPx)
-    val deviceSpec = DeviceConfig(width = widthPx, height = heightPx, dimUnit = DimUnit.px, dpi = density.dpiValue).deviceSpec()
+    val deviceSpec = DeviceConfig(
+      width = widthPx.toFloat(),
+      height = heightPx.toFloat(),
+      dimUnit = DimUnit.px,
+      dpi = density.dpiValue,
+      orientation = orientation
+    ).deviceSpec()
     val display = overrideDisplayName ?: "${round(diagonalIn * 100) / 100}\" ${type.name} ${heightPx}p"
-    val enumValue = EnumValue.indented(deviceSpec, display)
+    val enumValue = PsiEnumValue.indented(deviceSpec, display, PreviewPickerValue.DEVICE_REF_NONE)
     deviceEnumValues[type]?.add(enumValue)
   }
 
   fun addWearDevice(
-    shape: Shape
+    isRound: Boolean,
+    chinSizePx: Int,
+    displayName: String
   ): DeviceEnumValueBuilder = apply {
     val density = AvdScreenData.getScreenDensity(null, false, 224.0, 300)
-    val deviceSpec = DeviceConfig(width = 300, height = 300, dimUnit = DimUnit.px, dpi = density.dpiValue, shape = shape).deviceSpec()
-    deviceEnumValues[DeviceClass.Wear]?.add(EnumValue.indented(deviceSpec, shape.display))
+    val shape = if (isRound) Shape.Round else Shape.Normal
+    val deviceSpec = DeviceConfig(
+      width = 300f,
+      height = 300f,
+      dimUnit = DimUnit.px,
+      dpi = density.dpiValue,
+      shape = shape,
+      chinSize = chinSizePx.toFloat()
+    ).deviceSpec()
+    val enumValue = PsiEnumValue.indented(deviceSpec, displayName, PreviewPickerValue.DEVICE_REF_NONE)
+    deviceEnumValues[DeviceClass.Wear]?.add(enumValue)
   }
 
   fun addTvDevice(
@@ -117,14 +158,26 @@ internal class DeviceEnumValueBuilder {
     heightPx: Int,
     diagonalIn: Double
   ): DeviceEnumValueBuilder =
-    addDevicePx(type = DeviceClass.Tv, widthPx = widthPx, heightPx = heightPx, diagonalIn = diagonalIn)
+    addDevicePx(
+      type = DeviceClass.Tv,
+      widthPx = widthPx,
+      heightPx = heightPx,
+      diagonalIn = diagonalIn,
+      orientation = Orientation.landscape
+    )
 
   fun addAutoDevice(
     widthPx: Int,
     heightPx: Int,
     diagonalIn: Double
   ): DeviceEnumValueBuilder =
-    addDevicePx(type = DeviceClass.Auto, widthPx = widthPx, heightPx = heightPx, diagonalIn = diagonalIn)
+    addDevicePx(
+      type = DeviceClass.Auto,
+      widthPx = widthPx,
+      heightPx = heightPx,
+      diagonalIn = diagonalIn,
+      orientation = Orientation.landscape
+    )
 
   fun addPhoneById(
     displayName: String,
@@ -146,7 +199,8 @@ internal class DeviceEnumValueBuilder {
     id: String,
     type: DeviceClass
   ): DeviceEnumValueBuilder = apply {
-    deviceEnumValues[type]?.add(EnumValue.indented("$DEVICE_BY_ID_PREFIX$id", displayName))
+    val enumValue = PsiEnumValue.indented("$DEVICE_BY_ID_PREFIX$id", displayName, PreviewPickerValue.DEVICE_REF_NONE)
+    deviceEnumValues[type]?.add(enumValue)
   }
 
   /**
@@ -160,6 +214,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues.keys.forEach { type ->
       val values = deviceEnumValues[type]
       if (values?.isNotEmpty() == true) {
+        if (enumValues.isNotEmpty()) enumValues.add(EnumValue.SEPARATOR)
         enumValues.add(EnumValue.header(type.display, type.icon))
         values.forEach(enumValues::add)
       }
@@ -169,15 +224,15 @@ internal class DeviceEnumValueBuilder {
 
   private fun addDefaultsIfMissing() {
     if (!deviceEnumValues.contains(DeviceClass.Canonical) || deviceEnumValues[DeviceClass.Canonical]?.isEmpty() == true) {
-      addCanonical("Phone", DEVICE_CLASS_PHONE_TOOLTIP, ReferencePhoneConfig)
-      addCanonical("Foldable", DEVICE_CLASS_FOLDABLE_TOOLTIP, ReferenceFoldableConfig)
-      addCanonical("Tablet", DEVICE_CLASS_TABLET_TOOLTIP, ReferenceTabletConfig)
-      addCanonical("Desktop", DEVICE_CLASS_DESKTOP_TOOLTIP, ReferenceDesktopConfig)
+      addCanonical("Phone", DEVICE_CLASS_PHONE_TOOLTIP, ReferencePhoneConfig, PreviewPickerValue.DEVICE_REF_PHONE)
+      addCanonical("Foldable", DEVICE_CLASS_FOLDABLE_TOOLTIP, ReferenceFoldableConfig, PreviewPickerValue.DEVICE_REF_FOLDABLE)
+      addCanonical("Tablet", DEVICE_CLASS_TABLET_TOOLTIP, ReferenceTabletConfig, PreviewPickerValue.DEVICE_REF_TABLET)
+      addCanonical("Desktop", DEVICE_CLASS_DESKTOP_TOOLTIP, ReferenceDesktopConfig, PreviewPickerValue.DEVICE_REF_DESKTOP)
     }
     if (!deviceEnumValues.contains(DeviceClass.Wear) || deviceEnumValues[DeviceClass.Wear]?.isEmpty() == true) {
-      addWearDevice(Shape.Square)
-      addWearDevice(Shape.Round)
-      addWearDevice(Shape.Chin)
+      addWearDevice(isRound = false, chinSizePx = 0, displayName = "Square")
+      addWearDevice(isRound = true, chinSizePx = 0, displayName = "Round")
+      addWearDevice(isRound = true, chinSizePx = CHIN_SIZE_PX_FOR_ROUND_CHIN, displayName = "Round Chin")
     }
     if (!deviceEnumValues.contains(DeviceClass.Tv) || deviceEnumValues[DeviceClass.Tv]?.isEmpty() == true) {
       addTvDevice(widthPx = 3840, heightPx = 2160, diagonalIn = 55.0)
@@ -190,11 +245,15 @@ internal class DeviceEnumValueBuilder {
   }
 }
 
-private fun deviceConfigWithDpDimensions(width: Int, height: Int) =
+private fun WindowSizeData.toDeviceConfigWithDpDimensions() =
   DeviceConfig(
-    width = width,
-    height = height,
+    width = widthDp.toFloat(),
+    height = heightDp.toFloat(),
     dimUnit = DimUnit.dp,
-    dpi = DEFAULT_DENSITY.dpiValue,
-    shape = Shape.Normal
+    dpi = density.dpiValue,
+    shape = Shape.Normal,
+    orientation = when (defaultOrientation) {
+      ScreenOrientation.LANDSCAPE -> Orientation.landscape
+      else -> Orientation.portrait
+    }
   )

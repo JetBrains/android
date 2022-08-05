@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import org.jetbrains.annotations.ApiStatus
@@ -70,6 +70,7 @@ interface ComposePreviewManager: Disposable {
 
     fun isStartingOrReady() = this == STARTING || this == READY
     fun isStoppingOrDisabled() = this == STOPPING || this == DISABLED
+    fun isStartingOrStopping() = this == STARTING || this == STOPPING
   }
   /**
    * Status of the preview.
@@ -95,9 +96,9 @@ interface ComposePreviewManager: Disposable {
   fun status(): Status
 
   /**
-   * When true, a build will automatically be triggered when the user makes a source code change.
+   * Mark the preview as stale, so that a refresh is enforced when the next successful build happens
    */
-  val isBuildOnSaveEnabled: Boolean
+  fun invalidateSavedBuildStatus()
 
   /**
    * List of available groups in this preview. The editor can contain multiple groups and only will be displayed at a given time.
@@ -110,24 +111,14 @@ interface ComposePreviewManager: Disposable {
   var groupFilter: PreviewGroup
 
   /**
-   * Represents the [PreviewElementInstance] open in the Interactive Preview. Null if no preview is in interactive mode.
+   * Represents the [ComposePreviewElementInstance] open in the Interactive Preview. Null if no preview is in interactive mode.
    */
-  val interactivePreviewElementInstance: PreviewElementInstance?
+  val interactivePreviewElementInstance: ComposePreviewElementInstance?
 
   /**
-   * Represents the [PreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
+   * Represents the [ComposePreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
    */
-  var animationInspectionPreviewElementInstance: PreviewElementInstance?
-
-  /**
-   * Returns true if the current preview has the live literals feature available.
-   */
-  val hasLiveLiterals: Boolean
-
-  /**
-   * Enables/disables live literals in the preview.
-   */
-  val isLiveLiteralsEnabled: Boolean
+  var animationInspectionPreviewElementInstance: ComposePreviewElementInstance?
 
   /**
    * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo object.
@@ -141,9 +132,9 @@ interface ComposePreviewManager: Disposable {
   val previewedFile: PsiFile?
 
   /**
-   * Starts the interactive preview focusing in the given [PreviewElementInstance] [instance].
+   * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance].
    */
-  suspend fun startInteractivePreview(instance: PreviewElementInstance)
+  suspend fun startInteractivePreview(instance: ComposePreviewElementInstance)
 
   /**
    * Stops the interactive preview.

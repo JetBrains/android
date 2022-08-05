@@ -52,14 +52,14 @@ public class DaemonMemorySettings {
   DaemonMemorySettings(Project project) {
     this.project = project;
     this.projectProperties = getProjectProperties();
-    this.userProperties = new GradleUserProperties();
+    this.userProperties = new GradleUserProperties(project);
   }
 
   @VisibleForTesting
-  DaemonMemorySettings(GradleProperties projectProperties) {
-    this.project = null;
+  DaemonMemorySettings(Project project, GradleProperties projectProperties) {
+    this.project = project;
     this.projectProperties = projectProperties;
-    this.userProperties = new GradleUserProperties();
+    this.userProperties = new GradleUserProperties(project);
   }
 
   int getDefaultGradleDaemonXmx() {

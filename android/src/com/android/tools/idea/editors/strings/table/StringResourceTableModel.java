@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
-import com.android.tools.idea.editors.strings.StringResourceKey;
-import com.android.tools.idea.editors.strings.StringResourceRepository;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.editors.strings.VirtualFiles;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
+import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,14 +40,19 @@ public class StringResourceTableModel extends AbstractTableModel {
   public static final int FIXED_COLUMN_COUNT = 4;
 
   private final StringResourceRepository myRepository;
-  private final StringResourceData myData;
+
+  private final @Nullable StringResourceData myData;
 
   private List<StringResourceKey> myKeys;
   private List<Locale> myLocales;
 
+
+  private final @Nullable Project myProject;
+
   StringResourceTableModel() {
     myRepository = StringResourceRepository.empty();
     myData = null;
+    myProject = null;
 
     myKeys = Collections.emptyList();
     myLocales = Collections.emptyList();
@@ -54,6 +60,7 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   public StringResourceTableModel(@NotNull StringResourceRepository repository, @NotNull Project project) {
     myRepository = repository;
+    myProject = project;
 
     StringResourceData data = StringResourceData.create(project, repository);
     myData = data;
@@ -131,7 +138,7 @@ public class StringResourceTableModel extends AbstractTableModel {
         break;
 
       case DEFAULT_VALUE_COLUMN:
-        Futures.addCallback(getStringResourceAt(row).setDefaultValue((String)value), new FutureCallback<>() {
+        Futures.addCallback(getStringResourceAt(row).setDefaultValue((String)value), new FutureCallback<Boolean>() {
           @Override
           public void onSuccess(@Nullable Boolean changed) {
             if (changed != null && changed) {
@@ -149,7 +156,7 @@ public class StringResourceTableModel extends AbstractTableModel {
         Locale locale = getLocale(column);
         assert locale != null;
 
-        Futures.addCallback(getStringResourceAt(row).putTranslation(locale, (String)value), new FutureCallback<>() {
+        Futures.addCallback(getStringResourceAt(row).putTranslation(locale, (String)value), new FutureCallback<Boolean>() {
           @Override
           public void onSuccess(@Nullable Boolean changed) {
             if (changed != null && changed) {
@@ -172,7 +179,7 @@ public class StringResourceTableModel extends AbstractTableModel {
       case KEY_COLUMN:
         return getKey(row).getName();
       case RESOURCE_FOLDER_COLUMN:
-        return getStringResourceAt(row).getResourceFolder();
+        return computeResourceFolderString(getKey(row));
       case UNTRANSLATABLE_COLUMN:
         return !getStringResourceAt(row).isTranslatable();
       case DEFAULT_VALUE_COLUMN:
@@ -243,5 +250,11 @@ public class StringResourceTableModel extends AbstractTableModel {
 
         return getStringResourceAt(row).validateTranslation(locale);
     }
+  }
+
+  @NotNull
+  private String computeResourceFolderString(StringResourceKey key) {
+    assert myProject != null;
+    return key.getDirectory() == null ? "" : VirtualFiles.toString(key.getDirectory(), myProject);
   }
 }

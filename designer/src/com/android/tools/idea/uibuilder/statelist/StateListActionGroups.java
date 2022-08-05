@@ -26,7 +26,7 @@ import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 public final class StateListActionGroups extends ToolbarActionGroups {
-  public StateListActionGroups(@NotNull DesignSurface surface) {
+  public StateListActionGroups(@NotNull DesignSurface<?> surface) {
     super(surface);
   }
 

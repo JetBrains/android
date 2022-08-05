@@ -28,32 +28,44 @@ import java.io.File
 import java.util.concurrent.Executor
 
 interface GradleBuildInvoker {
-  fun cleanProject()
+  fun cleanProject(): ListenableFuture<GradleMultiInvocationResult>
 
-  fun generateSources(modules: Array<Module>)
-  fun compileJava(modules: Array<Module>, testCompileType: TestCompileType)
+  fun generateSources(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult>
+  fun compileJava(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<GradleMultiInvocationResult>
+  fun assemble(testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult>
   fun assemble(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult>
   fun bundle(modules: Array<Module>): ListenableFuture<AssembleInvocationResult>
 
-  fun rebuild()
-  fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>)
+  fun rebuild(): ListenableFuture<GradleMultiInvocationResult>
+  fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>): ListenableFuture<GradleMultiInvocationResult>
 
   /**
-   * Executes Gradle tasks requested for each root in separate Gradle invocations. The results (including failed sub-builds) are reported as
-   * GradleInvocationResult, however, any unexpected failures are returned as a failed future.
+   * Executes Gradle tasks requested in each request in separate Gradle invocations (in parallel or sequentially and in arbitrary order).
+   * The results (including failed sub-builds) are reported as [GradleInvocationResult]s wrapped into [AssembleInvocationResult], however,
+   * any unexpected failures are returned as a failed future. The order of invocations in the [AssembleInvocationResult] matches the order
+   * of requests in [request].
+   *
+   * Note, the build mode of all requests need to be the same. If a build request is not intended to be used in deployment, [executeTasks]
+   * can run arbitrary requests without this restriction.
    */
   fun executeAssembleTasks(assembledModules: Array<Module>, request: List<Request>): ListenableFuture<AssembleInvocationResult>
 
+  /**
+   * Executes build requests in separate Gradle invocations (in parallel or sequentially and in arbitrary order).
+   * The results (including failed sub-builds) are reported as [GradleInvocationResult]s wrapped into [GradleMultiInvocationResult], however,
+   * any unexpected failures are returned as a failed future. The order of invocations in the [GradleMultiInvocationResult] matches the order
+   * of requests in [request].
+   */
+  fun executeTasks(request: List<Request>): ListenableFuture<GradleMultiInvocationResult>
+
+  /**
+   * Executes one build request. The result (including a failed build) is reported as [GradleInvocationResult], however any unexpected
+   * failures are reported as a failed future.
+   */
   fun executeTasks(request: Request): ListenableFuture<GradleInvocationResult>
 
   fun stopBuild(id: ExternalSystemTaskId): Boolean
-  fun add(task: AfterGradleInvocationTask)
-  fun remove(task: AfterGradleInvocationTask)
   val project: Project
-
-  interface AfterGradleInvocationTask {
-    fun execute(result: GradleInvocationResult)
-  }
 
   data class Request constructor(
     val mode: BuildMode?,
@@ -85,7 +97,7 @@ interface GradleBuildInvoker {
       fun builder(
         project: Project,
         rootProjectPath: File,
-        gradleTasks: List<String>
+        gradleTasks: Collection<String>
       ): Builder = Builder(project, rootProjectPath, gradleTasks.toList())
 
       @JvmStatic

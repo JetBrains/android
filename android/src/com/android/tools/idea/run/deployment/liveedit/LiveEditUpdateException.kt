@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-public class LiveEditUpdateException(val error: Error, val details: String = "") : Exception() {
+import com.intellij.psi.PsiFile
+
+class LiveEditUpdateException(val error: Error, val details: String = "", val source: PsiFile?, cause : Throwable?) : RuntimeException(details, cause) {
 
   /**
    * @param message Short description
@@ -27,6 +29,8 @@ public class LiveEditUpdateException(val error: Error, val details: String = "")
     // Sorted lexicographically for readability and consistency
     ANALYSIS_ERROR("Resolution Analysis Error", "%", true),
     COMPILATION_ERROR("Compilation Error", "%", true),
+    UNABLE_TO_INLINE("Unable to inline function", "%", true),
+    UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false),
     INTERNAL_ERROR("Internal Error", "%", false),
     KNOWN_ISSUE("Known Issue", "%", true),
   }
@@ -34,13 +38,25 @@ public class LiveEditUpdateException(val error: Error, val details: String = "")
   companion object {
     // Sorted lexicographically for readability and consistency
 
-    fun analysisError(details: String) = LiveEditUpdateException(Error.ANALYSIS_ERROR, details)
+    fun analysisError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.ANALYSIS_ERROR, details, source, cause)
 
-    fun compilationError(details: String) = LiveEditUpdateException(Error.COMPILATION_ERROR, details)
+    @JvmStatic
+    fun compilationError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.COMPILATION_ERROR, details, source, cause)
 
-    fun internalError(details: String) = LiveEditUpdateException(Error.INTERNAL_ERROR, details)
+    fun internalError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.INTERNAL_ERROR, details, source, cause)
 
-    fun knownIssue(bugNumber: Int, details: String) = LiveEditUpdateException(Error.INTERNAL_ERROR, "(b/$bugNumber) $details")
+    /**
+     * We are unable to locate the Invalidate Group ID of a given Composable function's offsets.
+     * This is unlikely to happen unless the Compose compiler changes how the offset-to-ID mapping works.
+     */
+    fun noInvalidateGroup(details: String, source: PsiFile? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.UNABLE_TO_LOCATE_COMPOSE_GROUP, details, source, cause)
+
+    fun inlineFailure(details: String, source: PsiFile? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.UNABLE_TO_INLINE, "$details", source, cause)
   }
 }
 

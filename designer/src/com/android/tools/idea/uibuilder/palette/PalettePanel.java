@@ -30,6 +30,7 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
@@ -43,9 +44,7 @@ import com.intellij.ide.CopyProvider;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -60,12 +59,14 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBUI;
@@ -107,7 +108,7 @@ import org.jetbrains.annotations.TestOnly;
  * Top level Palette UI.
  */
 @UiThread
-public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
+public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataProvider, ToolContent<DesignSurface<?>> {
   private static final int DOWNLOAD_WIDTH = 16;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
@@ -126,7 +127,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private final ActionGroup myActionGroup;
   private final KeyListener myFilterKeyListener;
 
-  @NotNull private WeakReference<DesignSurface> myDesignSurface = new WeakReference<>(null);
+  @NotNull private WeakReference<DesignSurface<?>> myDesignSurface = new WeakReference<>(null);
   private LayoutEditorFileType myLayoutType;
   private ToolWindowCallback myToolWindow;
   private Palette.Group myLastSelectedGroup;
@@ -250,8 +251,10 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
           return;
         }
         myItemList.setSelectedIndex(myItemList.locationToIndex(event.getPoint()));
-        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, myActionGroup);
-        popupMenu.getComponent().show(myItemList, event.getX(), event.getY());
+        DataContext dataContext = DataManager.getInstance().getDataContext(myItemList);
+        JBPopupFactory.getInstance()
+          .createActionGroupPopup(null, myActionGroup, dataContext, null, true)
+          .show(new RelativePoint(event));
       }
     };
   }
@@ -402,7 +405,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   }
 
   @NotNull
-  CompletableFuture<Void> setToolContextAsyncImpl(@Nullable DesignSurface designSurface) {
+  CompletableFuture<Void> setToolContextAsyncImpl(@Nullable DesignSurface<?> designSurface) {
     assert designSurface == null || designSurface instanceof NlDesignSurface;
     Module module = getModule(designSurface);
     CompletableFuture<Void> result;
@@ -432,7 +435,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   }
 
   @Override
-  public void setToolContext(@Nullable DesignSurface designSurface) {
+  public void setToolContext(@Nullable DesignSurface<?> designSurface) {
     setToolContextAsyncImpl(designSurface);
   }
 
@@ -441,7 +444,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   }
 
   @Nullable
-  private static Module getModule(@Nullable DesignSurface designSurface) {
+  private static Module getModule(@Nullable DesignSurface<?> designSurface) {
     Configuration configuration =
       designSurface != null && designSurface.getLayoutType().isEditable() ? designSurface.getConfiguration() : null;
     return configuration != null ? configuration.getModule() : null;
@@ -595,7 +598,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (item == null) {
         return false;
       }
-      DesignSurface surface = myDesignSurface.get();
+      DesignSurface<?> surface = myDesignSurface.get();
       if (surface == null) {
         return false;
       }
@@ -615,14 +618,19 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       DnDTransferItem dndItem = new DnDTransferItem(dndComponent);
       InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */);
 
-      List<NlComponent> toAdd = model.createComponents(dndItem, insertType, surface);
+      List<NlComponent> toAdd = model.createComponents(dndItem, insertType);
 
       NlComponent root = roots.get(0);
       if (!model.canAddComponents(toAdd, root, null, checkOnly)) {
         return false;
       }
       if (!checkOnly) {
-        model.addComponents(toAdd, root, null, insertType, sceneView.getSurface());
+        UtilsKt.addComponentsAndSelectedIfCreated(model,
+                                                  toAdd,
+                                                  root,
+                                                  null,
+                                                  insertType,
+                                                  sceneView.getSurface().getSelectionModel());
         surface.getSelectionModel().setSelection(toAdd);
         surface.getLayeredPane().requestFocus();
       }

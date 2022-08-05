@@ -15,11 +15,14 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.controllers.BuildAnalyzerPropertiesAction
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
-import com.intellij.ui.EnumComboBoxModel
+import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -37,15 +40,14 @@ import javax.swing.LayoutFocusTraversalPolicy
 class BuildAnalyzerComboBoxView(
   private val model: BuildAnalyzerViewModel,
   private val actionHandlers: ViewActionHandlers,
-  private val disposable: Disposable
-) {
+): Disposable {
 
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
-  val dataSetCombo = ComboBox(EnumComboBoxModel(BuildAnalyzerViewModel.DataSet::class.java)).apply {
+  val dataSetCombo = ComboBox(CollectionComboBoxModel(model.availableDataSets)).apply {
     name = "dataSetCombo"
-    renderer = SimpleListCellRenderer.create { label, value, index -> label.text = value.uiName }
+    renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = value.uiName }
     selectedItem = this@BuildAnalyzerComboBoxView.model.selectedData
     addItemListener { event ->
       if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {
@@ -54,14 +56,16 @@ class BuildAnalyzerComboBoxView(
     }
   }
 
-  private val overviewPage = BuildOverviewPageView(model, actionHandlers)
-  private val tasksPage = TasksPageView(model.tasksPageModel, actionHandlers)
-  private val warningsPage = WarningsPageView(model.warningsPageModel, actionHandlers, disposable)
+  private val pageViewByDataSetMap: MutableMap<BuildAnalyzerViewModel.DataSet, BuildAnalyzerDataPageView> = mutableMapOf()
 
-  private fun pageViewByDataSet(dataSet: BuildAnalyzerViewModel.DataSet): BuildAnalyzerDataPageView = when (dataSet) {
-    BuildAnalyzerViewModel.DataSet.OVERVIEW -> overviewPage
-    BuildAnalyzerViewModel.DataSet.TASKS -> tasksPage
-    BuildAnalyzerViewModel.DataSet.WARNINGS -> warningsPage
+  private fun pageViewByDataSet(dataSet: BuildAnalyzerViewModel.DataSet): BuildAnalyzerDataPageView =
+    pageViewByDataSetMap.computeIfAbsent(dataSet) {
+      when (it) {
+        BuildAnalyzerViewModel.DataSet.OVERVIEW -> BuildOverviewPageView(model.overviewPageModel, actionHandlers)
+        BuildAnalyzerViewModel.DataSet.TASKS -> TasksPageView(model.tasksPageModel, actionHandlers)
+        BuildAnalyzerViewModel.DataSet.WARNINGS -> WarningsPageView(model.warningsPageModel, actionHandlers, this)
+        BuildAnalyzerViewModel.DataSet.DOWNLOADS -> DownloadsInfoPageView(model.downloadsInfoPageModel, actionHandlers)
+      }
   }
 
   private val pagesPanel = object : CardLayoutPanel<BuildAnalyzerViewModel.DataSet, BuildAnalyzerViewModel.DataSet, JComponent>() {
@@ -93,18 +97,12 @@ class BuildAnalyzerComboBoxView(
 
     controlsPanel.add(dataSetCombo)
     controlsPanel.add(additionalControlsPanel)
+    controlsPanel.add(createToolbar(this))
     add(controlsPanel, BorderLayout.NORTH)
     add(pagesPanel, BorderLayout.CENTER)
   }
 
   init {
-    // Select each page to trigger it's addition to the components tree.
-    // It solves the problem that color theme changes are not applied to the components
-    // that are created already but are not added to the components tree.
-    selectPage(BuildAnalyzerViewModel.DataSet.TASKS)
-    selectPage(BuildAnalyzerViewModel.DataSet.WARNINGS)
-    selectPage(BuildAnalyzerViewModel.DataSet.OVERVIEW)
-
     selectPage(model.selectedData)
 
     model.dataSetSelectionListener = {
@@ -121,4 +119,16 @@ class BuildAnalyzerComboBoxView(
     pagesPanel.select(page, true)
     additionalControlsPanel.select(page, true)
   }
+
+  override fun dispose() = Unit
+
+  private fun createToolbar(targetComponent: JComponent): JComponent {
+    val group = DefaultActionGroup()
+    group.add(BuildAnalyzerPropertiesAction())
+    val actionManager = ActionManager.getInstance()
+    val toolbar = actionManager.createActionToolbar("BuildAnalyzerToolbar", group, true)
+    toolbar.targetComponent = targetComponent
+    return JBUI.Panels.simplePanel(toolbar.component)
+  }
 }
+

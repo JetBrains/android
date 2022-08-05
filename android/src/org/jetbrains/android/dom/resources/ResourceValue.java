@@ -256,7 +256,7 @@ public class ResourceValue {
       }
 
       if (!Character.isJavaIdentifierStart(name.charAt(0))) {
-        return "The resource name must begin with a character";
+        return "Resource name must begin with a letter";
       }
 
       if (ResourceType.SAMPLE_DATA == type) {

@@ -17,6 +17,8 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_INPUT_TYPE
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupport
@@ -29,31 +31,41 @@ import com.android.tools.property.panel.impl.model.util.FakeFlagsPropertyItem
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.panel.impl.table.EditorPanel
 import com.android.tools.property.panel.impl.table.PTableCellEditorProviderImpl
-import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.ptable2.impl.PTableImpl
-import com.android.tools.property.testing.PropertyAppRule
+import com.android.tools.property.ptable.DefaultPTableCellRendererProvider
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.PTableModel
+import com.android.tools.property.ptable.impl.PTableImpl
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.replaceService
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import javax.swing.JScrollPane
 
 class FlagPropertyEditorTest {
 
-  @JvmField @Rule
-  val appRule = PropertyAppRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   @Before
   fun setUp() {
-    `when`(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock(), disposableRule.disposable)
+    whenever(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
   }
 
   @Test

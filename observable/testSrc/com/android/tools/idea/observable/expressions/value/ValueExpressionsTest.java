@@ -28,7 +28,7 @@ public final class ValueExpressionsTest {
 
     OptionalProperty<Integer> intProperty = OptionalValueProperty.of(42);
 
-    TransformOptionalExpression<Integer, String> toStringExpr = new TransformOptionalExpression<>("(null int)", intProperty) {
+    TransformOptionalExpression<Integer, String> toStringExpr = new TransformOptionalExpression<Integer, String>("(null int)", intProperty) {
       @Override
       @NotNull
       protected String transform(@NotNull Integer intValue) {

@@ -145,8 +145,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       false,
       false,
-      false,
-      log);
+      false);
 
     assertNotNull("Could not create AVD", avd);
 
@@ -268,8 +267,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       false,
       true,
-      false,
-      log);
+      false);
 
     try {
       assert skinnyAvd != null;
@@ -330,8 +328,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       false,
       true,
-      false,
-      log);
+      false);
 
     try {
       assert skinlessAvd != null;
@@ -344,7 +341,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
   }
 
   public void testNewEmulatorCommandHasWorkingDirectory() {
-    MockLog log = new MockLog();
     AvdInfo avd = mAvdManager.createAvd(
       mAvdFolder,
       getName(),
@@ -356,8 +352,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       false,
       false,
-      false,
-      log);
+      false);
     assertNotNull("Could not create AVD", avd);
     Path emulator = Paths.get("sdk/emulator/emulator.exe");
 

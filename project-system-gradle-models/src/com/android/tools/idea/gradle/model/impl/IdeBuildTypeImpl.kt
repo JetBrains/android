@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeBuildType
-import com.android.tools.idea.gradle.model.IdeClassField
 import java.io.File
 import java.io.Serializable
 
@@ -24,7 +23,7 @@ data class IdeBuildTypeImpl(
   override val name: String,
   override val applicationIdSuffix: String?,
   override val versionNameSuffix: String?,
-  override val resValues: Map<String, IdeClassField>,
+  override val resValues: Map<String, IdeClassFieldImpl>,
   override val proguardFiles: Collection<File>,
   override val consumerProguardFiles: Collection<File>,
   override val manifestPlaceholders: Map<String, String>,

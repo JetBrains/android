@@ -20,13 +20,10 @@ import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.tools.idea.assistant.AssistActionHandler
 import com.android.tools.idea.assistant.datamodel.ActionData
-import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.util.containers.toArray
 
 class BuildAnalyzerShowAction : AssistActionHandler {
   companion object {
@@ -48,8 +45,6 @@ class BuildAnalyzerShowAction : AssistActionHandler {
   }
 
   private fun invokeProjectBuild(project: Project) {
-    // Copied from com.android.tools.idea.gradle.actions.MakeGradleProjectAction
-    val modules: List<Module> = ProjectStructure.getInstance(project).leafModules
-    GradleBuildInvoker.getInstance(project).assemble(modules.toArray(Module.EMPTY_ARRAY), TestCompileType.ALL)
+    GradleBuildInvoker.getInstance(project).assemble(TestCompileType.ALL)
   }
 }

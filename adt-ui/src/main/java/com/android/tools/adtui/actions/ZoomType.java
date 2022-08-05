@@ -26,38 +26,26 @@ public enum ZoomType {
   /**
    * Zoom to fit (the screen view port)
    */
-  // TODO(b/139432440): Only use icons dedicated for zoom controls.
-  FIT("Zoom to Fit Screen", AllIcons.General.FitContent, AllIcons.General.FitContent),
-
-  /**
-   * Zoom to fit, but do not zoom more than 100%
-   */
-  FIT_INTO("Zoom out to Fit Screen", AllIcons.General.FitContent, null),
+  FIT("Zoom to Fit Screen", "Zoom to Fit Screen", AllIcons.General.FitContent, AllIcons.General.FitContent),
 
   /**
    * Zoom to actual size (100%)
    */
-  ACTUAL("100%", null, AllIcons.General.ActualZoom),
+  ACTUAL("Zoom to Actual Size (100%)", "100%", null, AllIcons.General.ActualZoom),
 
   /**
    * Zoom in
    */
-  // TODO(b/139432440): Only use icons dedicated for zoom controls.
-  IN("Zoom In", AllIcons.General.ZoomIn, AllIcons.General.Add),
+  IN("Zoom In", "Zoom In", AllIcons.General.ZoomIn, AllIcons.General.Add),
 
   /**
    * Zoom out
    */
-  // TODO(b/139432440): Only use icons dedicated for zoom controls.
-  OUT("Zoom Out", AllIcons.General.ZoomOut, AllIcons.General.Remove),
+  OUT("Zoom Out", "Zoom Out", AllIcons.General.ZoomOut, AllIcons.General.Remove);
 
-  /**
-   * Zoom to match the exact device size (depends on the monitor dpi)
-   */
-  SCREEN("Exact Device Size", null, null);
-
-  ZoomType(@NotNull String label, @Nullable Icon normalIcon, @Nullable Icon floatingIcon) {
-    myLabel = label;
+  ZoomType(@NotNull String normalLabel, @NotNull String floatingLabel, @Nullable Icon normalIcon, @Nullable Icon floatingIcon) {
+    myLabel = normalLabel;
+    myFloatingLabel = floatingLabel;
     myIcon = normalIcon;
     myFloatingIcon = floatingIcon;
   }
@@ -79,9 +67,9 @@ public enum ZoomType {
     return myFloatingIcon;
   }
 
-  /** Returns true if this zoom type should be shown to the user */
-  public boolean showInMenu() {
-    return this != FIT_INTO && this != SCREEN; // these are not yet supported
+  /** Returns the label for this zoom type when used on the DesignSurface. */
+  public String getFloatingLabel() {
+    return myFloatingLabel;
   }
 
   @Override
@@ -90,6 +78,7 @@ public enum ZoomType {
   }
 
   private final String myLabel;
+  private final String myFloatingLabel;
   private final Icon myIcon;
   private final Icon myFloatingIcon;
 
@@ -103,7 +92,7 @@ public enum ZoomType {
     return zoomIn(percentage, ZOOM_POINTS);
   }
 
-  public static int zoomIn(int percentage, @NotNull int[] zoomPoints) {
+  public static int zoomIn(int percentage, int @NotNull [] zoomPoints) {
     int i = Arrays.binarySearch(zoomPoints, percentage);
     if (i < 0) {
       // inexact match: jump to nearest
@@ -136,7 +125,7 @@ public enum ZoomType {
     return zoomOut(percentage, ZOOM_POINTS);
   }
 
-  public static int zoomOut(int percentage, @NotNull int[] zoomPoints) {
+  public static int zoomOut(int percentage, int @NotNull [] zoomPoints) {
     int i = Arrays.binarySearch(zoomPoints, percentage);
     if (i < 0) {
       // inexact match: jump to nearest

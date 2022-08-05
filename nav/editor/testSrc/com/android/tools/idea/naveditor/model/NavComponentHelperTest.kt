@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -36,7 +37,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import javax.swing.Icon
 
 class NavComponentHelperTest {
@@ -44,14 +44,14 @@ class NavComponentHelperTest {
   @Test
   fun testUiName() {
     val component = mock(NlComponent::class.java)
-    `when`(component.id).thenCallRealMethod()
-    `when`(component.tagName).thenReturn("myTag")
+    whenever(component.id).thenCallRealMethod()
+    whenever(component.tagName).thenReturn("myTag")
     assertEquals("myTag", component.uiName)
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("com.example.Foo")
+    whenever(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("com.example.Foo")
     assertEquals("Foo", component.uiName)
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("Bar")
+    whenever(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("Bar")
     assertEquals("Bar", component.uiName)
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)).thenReturn("@+id/myId")
+    whenever(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)).thenReturn("@+id/myId")
     assertEquals("myId", component.uiName)
   }
 }

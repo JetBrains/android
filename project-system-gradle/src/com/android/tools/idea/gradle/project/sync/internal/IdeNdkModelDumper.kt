@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile
@@ -57,7 +58,10 @@ private fun ProjectDumper.dump(nativeModule: IdeNativeModule) {
   prop("Name") { nativeModule.name }
   prop("NativeBuildSystem") { nativeModule.nativeBuildSystem.toString() }
   prop("NdkVersion") {
-    if (nativeModule.ndkVersion == nativeModule.defaultNdkVersion) "<DEFAULT_NDK_VERSION>" else nativeModule.ndkVersion
+    when (nativeModule.ndkVersion) {
+      nativeModule.defaultNdkVersion, SdkConstants.NDK_DEFAULT_VERSION -> "<DEFAULT_NDK_VERSION>"
+      else -> nativeModule.ndkVersion
+    }
   }
   prop("ExternalNativeBuildFile") { nativeModule.externalNativeBuildFile.path.toPrintablePath() }
   if (nativeModule.variants.isNotEmpty()) {
@@ -76,7 +80,10 @@ private fun ProjectDumper.dump(nativeAndroidProject: IdeNativeAndroidProject) {
   prop("Name") { nativeAndroidProject.name }
   prop("DefaultNdkVersion") { nativeAndroidProject.defaultNdkVersion.takeUnless { it.isEmpty() } }
   prop("NdkVersion") {
-    if (nativeAndroidProject.ndkVersion == nativeAndroidProject.defaultNdkVersion) "<DEFAULT_NDK_VERSION>" else nativeAndroidProject.ndkVersion
+    when (nativeAndroidProject.ndkVersion) {
+      nativeAndroidProject.defaultNdkVersion, SdkConstants.NDK_DEFAULT_VERSION -> "<DEFAULT_NDK_VERSION>"
+      else -> nativeAndroidProject.ndkVersion
+    }
   }
   nativeAndroidProject.buildFiles.forEach { prop("BuildFiles") { it.path.toPrintablePath() } }
   nativeAndroidProject.buildSystems.forEach { prop("BuildSystems") { it } }

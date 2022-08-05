@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.RenderSession
 import com.android.tools.idea.compose.preview.navigation.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.application.ApplicationManager
@@ -44,7 +44,7 @@ class SimpleComposeProjectScenarios {
 
     fun baselineRenderScenario(projectRule: AndroidGradleProjectRule): RenderResult {
       val renderResult = renderPreviewElementForResult(projectRule.androidFacet(":app"),
-                                                       SinglePreviewElementInstance.forTesting(
+                                                       SingleComposePreviewElementInstance.forTesting(
                                                          "google.simpleapplication.MainActivityKt.DefaultPreview"),
                                                        true).get()
       val image = renderResult!!.renderedImage
@@ -58,7 +58,7 @@ class SimpleComposeProjectScenarios {
 
     fun complexRenderScenario(projectRule: AndroidGradleProjectRule): RenderResult {
       val renderResult = renderPreviewElementForResult(projectRule.androidFacet(":app"),
-                                                       SinglePreviewElementInstance.forTesting(
+                                                       SingleComposePreviewElementInstance.forTesting(
                                                          "google.simpleapplication.ComplexPreviewKt.ComplexPreview"),
                                                        true).get()
       val image = renderResult!!.renderedImage
@@ -77,7 +77,7 @@ class SimpleComposeProjectScenarios {
 
     fun interactiveRenderScenario(projectRule: AndroidGradleProjectRule): ExtendedRenderResult {
       val renderTaskFuture = createRenderTaskFuture(projectRule.androidFacet(":app"),
-                                                    SinglePreviewElementInstance.forTesting(
+                                                    SingleComposePreviewElementInstance.forTesting(
                                                       "google.simpleapplication.ComplexPreviewKt.ComplexPreview"),
                                                     privateClassLoader = true,
                                                     classesToPreload = LayoutlibSceneManager.INTERACTIVE_CLASSES_TO_PRELOAD.toList())

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
+import static com.android.tools.lint.detector.api.VersionChecks.REQUIRES_API_ANNOTATION;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;

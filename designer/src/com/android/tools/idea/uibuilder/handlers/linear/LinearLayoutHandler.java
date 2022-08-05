@@ -141,8 +141,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent layout,
+  public void onChildInserted(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
     if (insertType == InsertType.MOVE) {
@@ -508,8 +507,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     NlComponent parent = sceneParent.getNlComponent();
     NlComponent before = !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null;
     NlModel model = parent.getModel();
-    model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE,
-                        component.getScene().getDesignSurface());
+    model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE, null);
     return true;
   }
 
@@ -523,7 +521,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     boolean vertical = isVertical(component.getNlComponent());
     List<Placeholder> list = new ArrayList<>();
 

@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -53,6 +54,7 @@ public class DiagnosticReportBuilder {
   @GuardedBy("LOCK")
   private boolean myIsStopped;
   private @NotNull List<DiagnosticReportContributor> myReportContributors;
+  private final @NotNull Map<String, Path> myBinaryReportPaths;
   @GuardedBy("LOCK")
   private boolean myIsTimedOut;
 
@@ -72,8 +74,10 @@ public class DiagnosticReportBuilder {
     myReportContributors = Arrays.asList(
       new ThreadSamplingReportContributor(),
       new MemoryUseReportContributor(),
-      new ActionsReportContributor(lastActionTracker)
+      new ActionsReportContributor(lastActionTracker),
+      new JfrReportContributor()
     );
+    myBinaryReportPaths = new TreeMap<>();
 
     myFreezeTimeBeforeCreated = freezeTimeBeforeCreatedMs;
     DiagnosticReportConfiguration configuration =
@@ -99,6 +103,10 @@ public class DiagnosticReportBuilder {
     }
 
     myFutureStop = JobScheduler.getScheduler().schedule(this::stopAfterTimeout, maxSamplingTimeMs, TimeUnit.MILLISECONDS);
+  }
+
+  public void addBinaryReportPath(String reportName, Path reportPath) {
+    myBinaryReportPaths.put(reportName, reportPath);
   }
 
   private void stopAfterTimeout() {
@@ -129,7 +137,7 @@ public class DiagnosticReportBuilder {
         return null;
       }
       Path hotPathStackTrace = reportPaths.remove("hotPathStackTrace");
-      return new FreezeReport(hotPathStackTrace, reportPaths, myIsTimedOut, totalDurationMs, null);
+      return new FreezeReport(hotPathStackTrace, reportPaths, myBinaryReportPaths, myIsTimedOut, totalDurationMs, null);
     }
   }
 

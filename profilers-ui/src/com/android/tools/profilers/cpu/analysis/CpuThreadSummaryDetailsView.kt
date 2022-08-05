@@ -92,7 +92,7 @@ class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
             }
           nodesTablePanel.add(hideablePanel)
         }
-        nodesTablePanel.invalidate()
+        nodesTablePanel.revalidate()
         nodesTablePanel.repaint()
       }
     }

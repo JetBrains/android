@@ -66,21 +66,25 @@ public class AndroidVectorDrawableToolTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void androidVectorDrawableTool() throws Exception {
-    String contents = guiTest.importSimpleApplication()
+    guiTest.importSimpleApplication()
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
       .chooseIcon()
+      .filterByNameAndSelect("360")
       .clickOk()
       .setWidth(48)
       .setOpacity(50)
       .enableAutoMirror()
       .clickNext()
-      .clickFinish()
-      .getEditor()
-      .open("app/src/main/res/drawable/ic_android_black_24dp.xml")
-      .getCurrentFileContents();
+      .selectResFolder("main")
+      .clickFinish();
+
+    guiTest.robot().waitForIdle();
+
+    String contents = guiTest.getProjectFileText("app/src/main/res/drawable/baseline_360_24.xml");
+
     assertThat(contents).contains("android:width=\"48dp\"");
     assertThat(contents).contains("android:height=\"48dp\"");
     assertThat(contents).contains("xmlns:android=\"http://schemas.android.com/apk/res/android\"");

@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GradleDslFileCache {
   @NotNull private Project myProject;
-  @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new HashMap<>();
+  @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new LinkedHashMap<>();
   @NotNull private Deque<VirtualFile> myParsingStack = new ArrayDeque<>();
 
   public GradleDslFileCache(@NotNull Project project) {
@@ -134,6 +134,26 @@ public class GradleDslFileCache {
     }
     return properties;
   }
+
+  public @NotNull GradleVersionCatalogFile getOrCreateVersionCatalogFile(@NotNull VirtualFile file,
+                                                                         @NotNull String catalogName,
+                                                                         @NotNull BuildModelContext context) {
+    // It is safe not to incorporate the catalogName as part of the key, because parsing the contents of the catalog file
+    // is context-independent.  Looking up entries in the catalog always involves going through a property named by the
+    // catalogName.
+    GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
+    if (dslFile == null) {
+      dslFile = new GradleVersionCatalogFile(file, myProject, "versionCatalog", catalogName, context);
+      dslFile.parse();
+      myParsedBuildFiles.put(file.getUrl(), dslFile);
+    }
+    else if (!(dslFile instanceof GradleVersionCatalogFile)) {
+      throw new IllegalStateException("Cache entry " + dslFile + " for key " + file.getUrl() + " is not a GradleVersionCatalogFile");
+    }
+    return (GradleVersionCatalogFile)dslFile;
+  }
+
+
 
   @NotNull
   public List<GradleDslFile> getAllFiles() {

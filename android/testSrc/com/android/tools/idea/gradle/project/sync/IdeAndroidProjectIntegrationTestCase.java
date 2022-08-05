@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -34,7 +33,7 @@ public abstract class IdeAndroidProjectIntegrationTestCase extends AndroidGradle
 
     // Verify IdeLevel2Dependencies are populated for each variant.
     androidModel.getVariants().forEach(variant -> {
-      IdeDependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
+      IdeDependencies level2Dependencies = variant.getMainArtifact().getCompileClasspath();
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
       assertThat(level2Dependencies.getJavaLibraries()).isNotEmpty();
@@ -53,10 +52,10 @@ public abstract class IdeAndroidProjectIntegrationTestCase extends AndroidGradle
 
     // Aar module should show up as android library dependency, not module dependency for app module.
     androidModel.getVariants().forEach(variant -> {
-      IdeDependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
+      IdeDependencies level2Dependencies = variant.getMainArtifact().getCompileClasspath();
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getModuleDependencies()).isEmpty();
-      List<String> androidLibraries = ContainerUtil.map(level2Dependencies.getAndroidLibraries(), IdeArtifactLibrary::getArtifactAddress);
+      List<String> androidLibraries = ContainerUtil.map(level2Dependencies.getAndroidLibraries(), it -> it.getTarget().getArtifactAddress());
       assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
       assertTrue(androidLibraries.stream().anyMatch(it -> it.matches(expectedLibraryName)));
     });

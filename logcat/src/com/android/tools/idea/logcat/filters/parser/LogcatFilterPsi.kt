@@ -36,7 +36,11 @@ import javax.swing.Icon
  * PSI Definitions for the Logcat Filter language.
  */
 
-internal object LogcatFilterLanguage : Language("LogcatFilter")
+internal object LogcatFilterLanguage : Language("LogcatFilter") {
+  // This is required for tests. In prod, the language is registered with FileTypeManager but in tests, it's not. It's much easier to
+  // hardcode this here than to mock the FileTypeManager in tests, and it has no adverse effects in production code.
+  override fun getAssociatedFileType(): LanguageFileType = LogcatFilterFileType
+}
 
 internal object LogcatFilterFileType : LanguageFileType(LogcatFilterLanguage) {
   override fun getName() = "Logcat Filter File"

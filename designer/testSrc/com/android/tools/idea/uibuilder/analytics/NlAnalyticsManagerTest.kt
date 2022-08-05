@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.analytics
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.type.DefaultDesignerFileType
@@ -27,7 +28,6 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import org.jetbrains.android.AndroidTestBase
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 class NlAnalyticsManagerTest : AndroidTestBase() {
 
@@ -39,7 +39,7 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   override fun setUp() {
     super.setUp()
     surface = mock(NlDesignSurface::class.java)
-    `when`(surface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT)
+    whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT)
     analyticsManager = NlAnalyticsManager(surface)
   }
 
@@ -55,20 +55,20 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   }
 
   fun testLayoutType() {
-    `when`(surface.layoutType).thenReturn(DefaultDesignerFileType)
+    whenever(surface.layoutType).thenReturn(DefaultDesignerFileType)
     assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.UNKNOWN_TYPE) // By default, we don't infer any types
 
-    `when`(surface.layoutType).thenReturn(LayoutFileType)
+    whenever(surface.layoutType).thenReturn(LayoutFileType)
     assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.LAYOUT)
 
-    `when`(surface.layoutType).thenReturn(AnimatedVectorFileType)
+    whenever(surface.layoutType).thenReturn(AnimatedVectorFileType)
     assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.DRAWABLE)
   }
 
   fun testSurfaceType() {
     assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BOTH) // Set in setup
 
-    `when`(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
+    whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
     assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BLUEPRINT_SURFACE)
   }
 

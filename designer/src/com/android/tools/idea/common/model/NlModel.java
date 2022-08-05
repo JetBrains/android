@@ -33,7 +33,6 @@ import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
@@ -671,15 +670,13 @@ public class NlModel implements Disposable, ModificationTracker {
    * <p/>
    * Note: The caller is responsible for calling {@link #notifyModified(ChangeType)} if the creation completes successfully.
    *
-   * @param surface    The current DesignSurface. Only used by postCreate, so if your postCreate doesn't use it it's not necessary.
    * @param tag        The XmlTag for the component.
    * @param parent     The parent to add this component to.
    * @param before     The sibling to insert immediately before, or null to append
    * @param insertType The reason for this creation.
    */
   @Nullable
-  public NlComponent createComponent(@Nullable DesignSurface surface,
-                                     @NotNull final XmlTag tag,
+  public NlComponent createComponent(@NotNull final XmlTag tag,
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
                                      @NotNull InsertType insertType) {
@@ -700,7 +697,7 @@ public class NlModel implements Disposable, ModificationTracker {
     if (parent != null) {
       parent.addChild(child, before);
     }
-    if (child.postCreate(surface, insertType)) {
+    if (child.postCreate(insertType)) {
       return child;
     }
     return null;
@@ -716,7 +713,7 @@ public class NlModel implements Disposable, ModificationTracker {
 
   /**
    * Simply create a component. In most cases you probably want
-   * {@link #createComponent(DesignSurface, XmlTag, NlComponent, NlComponent, InsertType)}.
+   * {@link #createComponent(XmlTag, NlComponent, NlComponent, InsertType)}.
    */
   @NotNull
   public NlComponent createComponent(@NotNull XmlTag tag) {
@@ -726,11 +723,11 @@ public class NlModel implements Disposable, ModificationTracker {
   }
 
   @NotNull
-  public List<NlComponent> createComponents(@NotNull DnDTransferItem item, @NotNull InsertType insertType, @NotNull DesignSurface surface) {
+  public List<NlComponent> createComponents(@NotNull DnDTransferItem item, @NotNull InsertType insertType) {
     List<NlComponent> components = new ArrayList<>(item.getComponents().size());
     for (DnDTransferComponent dndComponent : item.getComponents()) {
       XmlTag tag = XmlTagUtil.createTag(getProject(), dndComponent.getRepresentation());
-      NlComponent component = createComponent(surface, tag, null, null, insertType);
+      NlComponent component = createComponent(tag, null, null, insertType);
       if (component == null) {
         // User may have cancelled
         return Collections.emptyList();
@@ -781,33 +778,35 @@ public class NlModel implements Disposable, ModificationTracker {
   /**
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
+   * The callback function {@param #onComponentAdded} gives a chance to do additional task when components are added.
    */
   public void addComponents(@NotNull List<NlComponent> toAdd,
                             @NotNull NlComponent receiver,
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
-                            @Nullable DesignSurface surface) {
-    addComponents(toAdd, receiver, before, insertType, surface, null);
+                            @Nullable Runnable onComponentAdded) {
+    addComponents(toAdd, receiver, before, insertType, onComponentAdded, null);
   }
 
   public void addComponents(@NotNull List<NlComponent> componentToAdd,
                             @NotNull NlComponent receiver,
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
-                            @Nullable DesignSurface surface,
+                            @Nullable Runnable onComponentAdded,
                             @Nullable Runnable attributeUpdatingTask) {
-    addComponents(componentToAdd, receiver, before, insertType, surface, attributeUpdatingTask, null);
+    addComponents(componentToAdd, receiver, before, insertType, onComponentAdded, attributeUpdatingTask, null);
   }
 
   /**
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
+   * The callback function {@param #onComponentAdded} gives a chance to do additional task when components are added.
    */
   public void addComponents(@NotNull List<NlComponent> componentToAdd,
                             @NotNull NlComponent receiver,
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
-                            @Nullable DesignSurface surface,
+                            @Nullable Runnable onComponentAdded,
                             @Nullable Runnable attributeUpdatingTask,
                             @Nullable String groupId) {
     // Fix for b/124381110
@@ -821,7 +820,7 @@ public class NlModel implements Disposable, ModificationTracker {
     }
 
     final Runnable callback =
-      () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask, groupId);
+      () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, onComponentAdded, attributeUpdatingTask, groupId);
     if (insertType == InsertType.MOVE) {
       // The components are just moved, so there are no new dependencies.
       callback.run();
@@ -837,7 +836,7 @@ public class NlModel implements Disposable, ModificationTracker {
                                           @NotNull NlComponent receiver,
                                           @Nullable NlComponent before,
                                           @NotNull InsertType insertType,
-                                          @Nullable DesignSurface surface,
+                                          @Nullable Runnable onComponentAdded,
                                           @Nullable Runnable attributeUpdatingTask,
                                           @Nullable String groupId) {
     DumbService.getInstance(getProject()).runWhenSmart(() -> {
@@ -846,16 +845,12 @@ public class NlModel implements Disposable, ModificationTracker {
           // Update the attribute before adding components, if need.
           attributeUpdatingTask.run();
         }
-        handleAddition(toAdd, receiver, before, insertType, surface);
+        handleAddition(toAdd, receiver, before, insertType);
       });
 
       notifyModified(ChangeType.ADD_COMPONENTS);
-
-      // Select the newly created components
-      // Moved here (temporarily) from the commit part of DragDropInteraction.moveTo
-      // b/145295141 was created to keep track of the cleanup to move it back to DragDropInteraction.
-      if (insertType == InsertType.CREATE && surface != null) {
-        surface.getSelectionModel().setSelection(toAdd);
+      if (onComponentAdded != null) {
+        onComponentAdded.run();
       }
     });
   }
@@ -907,12 +902,11 @@ public class NlModel implements Disposable, ModificationTracker {
   private void handleAddition(@NotNull List<NlComponent> added,
                               @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
-                              @NotNull InsertType insertType,
-                              @Nullable DesignSurface surface) {
+                              @NotNull InsertType insertType) {
     Set<String> ids = getIds();
 
     for (NlComponent component : added) {
-      component.moveTo(receiver, before, insertType, ids, surface);
+      component.moveTo(receiver, before, insertType, ids);
     }
   }
 

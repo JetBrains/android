@@ -55,13 +55,13 @@ public final class ASGalleryTest extends LightPlatformTestCase {
     ASGallery<ModelObject> asGallery =
       new ASGallery<>(
         JBList.createDefaultListModel(objects),
-        new Function<>() {
+        new Function<ModelObject, Icon>() {
           @Override
           public Icon apply(ModelObject input) {
             return input.myIcon;
           }
         },
-        new Function<>() {
+        new Function<ModelObject, String>() {
           @Override
           public String apply(ModelObject input) {
             return input.myLabel;

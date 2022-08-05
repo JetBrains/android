@@ -108,7 +108,7 @@ public class SpecificActivityConfigurable implements LaunchOptionConfigurable<Sp
       }
     };
 
-    myActivityField = new ComponentWithBrowseButton<>(editorTextField, null);
+    myActivityField = new ComponentWithBrowseButton<EditorTextField>(editorTextField, null);
   }
 
   @Nullable

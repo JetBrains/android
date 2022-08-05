@@ -26,6 +26,8 @@ import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Type;
 import java.util.ArrayList;
 import java.util.List;
+import kotlin.sequences.Sequence;
+import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,14 +75,14 @@ class MockClassInstance extends ClassInstance {
   }
 
   @Override
-  public ArrayList<Instance> getSoftReverseReferences() {
-    return mySoftReferences;
+  public Sequence<Instance> getSoftReverseReferences() {
+    return SequencesKt.asSequence(mySoftReferences.iterator());
   }
 
   @NotNull
   @Override
-  public ArrayList<Instance> getHardReverseReferences() {
-    return myHardReferences;
+  public Sequence<Instance> getHardReverseReferences() {
+    return SequencesKt.asSequence(myHardReferences.iterator());
   }
 
   public void addSoftReferences(@NotNull Instance instance) {

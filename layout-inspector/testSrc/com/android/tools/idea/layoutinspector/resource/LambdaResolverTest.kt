@@ -29,7 +29,8 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class LambdaResolverTest {
-  private val projectRule = AndroidProjectRule.inMemory()
+  // TODO: Investigate why inMemory() fails on Windows...
+  private val projectRule = AndroidProjectRule.onDisk()
 
   @get:Rule
   val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
@@ -90,9 +91,9 @@ class LambdaResolverTest {
         }
       }
       """.trimIndent())
-    checkLambda("lambda-10\$1\$1", 80, 80, 80) // { it + 1 }
-    checkLambda("lambda-7\$1", 80, 80, 80)     // { Element() }
-    checkLambda("lambda-10\$1\$2", 80, 80, 80) // { it + 2 }
+    checkLambda("lambda-10\$1\$1", 80, 80, 80, "{ it + 1 }")
+    checkLambda("lambda-10\$1\$2", 80, 80, 80, "{ Element() }")
+    checkLambda("lambda-10\$1\$3", 80, 80, 80, "{ it + 2 }")
     checkLambda("lambda-9\$1", 81, 85, 80, """
       {
         Element(l1 = { it + 3 }, l3 = { it + 4 }) {

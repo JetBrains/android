@@ -60,7 +60,7 @@ public class MainPanel extends AbstractMainDependenciesPanel {
     add(myVerticalSplitter, BorderLayout.CENTER);
 
     myDeclaredDependenciesPanel.updateTableColumnSizes();
-    myDeclaredDependenciesPanel.add(new SelectionChangeListener<>() {
+    myDeclaredDependenciesPanel.add(new SelectionChangeListener<PsBaseDependency>() {
       @Override
       public void selectionChanged(@Nullable PsBaseDependency newSelection) {
         if (myQueuedSelectionCounter == 0) {
@@ -72,7 +72,7 @@ public class MainPanel extends AbstractMainDependenciesPanel {
       }
     });
 
-    myResolvedDependenciesPanel.add(new SelectionChangeListener<>() {
+    myResolvedDependenciesPanel.add(new SelectionChangeListener<PsBaseDependency>() {
       @Override
       public void selectionChanged(@Nullable PsBaseDependency newSelection) {
         if (newSelection instanceof PsResolvedDependency) {

@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.InvalidDataException
 import com.intellij.util.LineSeparator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.awt.Color
 import java.net.InetAddress
 
-@UiThread
+@AnyThread
 class WiFiPairingServiceImpl(private val randomProvider: RandomProvider,
                              private val adbService: AdbServiceWrapper) : WiFiPairingService {
   private val LOG = logger<WiFiPairingServiceImpl>()
@@ -119,7 +119,7 @@ class WiFiPairingServiceImpl(private val randomProvider: RandomProvider,
         matchResult?.let {
           try {
             val serviceName = it.groupValues[1]
-            val ipAddress = withContext(ioThread) { InetAddress.getByName(it.groupValues[2]) }
+            val ipAddress = withContext(Dispatchers.IO) { InetAddress.getByName(it.groupValues[2]) }
             val port = it.groupValues[3].toInt()
             val serviceType = if (serviceName.startsWith(studioServiceNamePrefix)) ServiceType.QrCode else ServiceType.PairingCode
             MdnsService(serviceName, serviceType, ipAddress, port)
@@ -163,7 +163,7 @@ class WiFiPairingServiceImpl(private val randomProvider: RandomProvider,
     val matchResult = lineRegex.find(result.stdout[0])
     return matchResult?.let {
       try {
-        val ipAddress = withContext(ioThread) { InetAddress.getByName(it.groupValues[1]) }
+        val ipAddress = withContext(Dispatchers.IO) { InetAddress.getByName(it.groupValues[1]) }
         val port = it.groupValues[2].toInt()
         val serviceGuid = it.groupValues[3]
         PairingResult(ipAddress, port, serviceGuid)

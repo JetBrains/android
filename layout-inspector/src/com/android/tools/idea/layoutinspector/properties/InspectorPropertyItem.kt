@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ATTR_TEXT_SIZE
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -212,6 +213,7 @@ open class InspectorPropertyItem(
       else -> null
     }
 
+  @Slow
   fun resolveDimensionType(view: ViewNode) {
     if ((type == Type.INT32 || type == Type.FLOAT) && lookup.resourceLookup.isDimension(view, name)) {
       type = if (type == Type.INT32) Type.DIMENSION else Type.DIMENSION_FLOAT

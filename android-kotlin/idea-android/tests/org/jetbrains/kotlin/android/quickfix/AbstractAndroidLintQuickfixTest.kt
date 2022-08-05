@@ -45,7 +45,12 @@ abstract class AbstractAndroidLintQuickfixTest : KotlinAndroidTestCase() {
         }
 
         if (intentionAvailable) {
-            val intention = myFixture.getAvailableIntention(intentionText) ?: error("Failed to find intention")
+            val oldLabel = intentionText
+              .replace(": Add @SuppressLint(\"", " ")
+              .replace("\") annotation", " with an annotation")
+            val intention = myFixture.getAvailableIntention(intentionText)
+                            ?: myFixture.getAvailableIntention(oldLabel)
+                            ?: error("Failed to find intention")
             myFixture.launchAction(intention)
             myFixture.checkResultByFile("$path.expected")
         }

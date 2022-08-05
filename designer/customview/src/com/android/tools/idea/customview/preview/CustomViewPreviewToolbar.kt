@@ -31,7 +31,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import icons.StudioIcons
 
-internal class CustomViewPreviewToolbar(surface: DesignSurface) : ToolbarActionGroups(surface) {
+internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
 
   private class CustomViewOption(val viewName: String) : AnAction(viewName) {
     override fun actionPerformed(e: AnActionEvent) {

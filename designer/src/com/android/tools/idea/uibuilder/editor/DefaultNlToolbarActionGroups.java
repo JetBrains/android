@@ -25,6 +25,7 @@ import com.android.tools.idea.common.actions.ToggleDeviceNightModeAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.DeviceMenuAction2;
 import com.android.tools.idea.configurations.LocaleMenuAction;
@@ -46,13 +47,14 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Permanent toolbar for the {@link NlDesignSurface}. This toolbar and its contained object
- * life cycles should match the {@link com.android.tools.idea.common.surface.DesignSurface} one.
+ * life cycles should match the {@link DesignSurface} one.
  */
 public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
@@ -84,14 +86,14 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     }
 
     List<NlModel> models = mySurface.getModels();
-    String fileName;
+    VirtualFile file;
     if (!models.isEmpty()) {
-      fileName = models.get(0).getFile().getName();
+      file = models.get(0).getVirtualFile();
     }
     else {
-      fileName = "unknown file";
+      file = null;
     }
-    LayoutQualifierDropdownMenu dropdown = new LayoutQualifierDropdownMenu(fileName);
+    LayoutQualifierDropdownMenu dropdown = new LayoutQualifierDropdownMenu(file);
     group.add(dropdown);
     group.addSeparator();
 

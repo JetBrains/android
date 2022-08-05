@@ -33,7 +33,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surface extends DesignSurface>
+public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surface extends DesignSurface<?>>
   extends ComponentFixture<T, Surface> {
   private final JPanel myProgressPanel;
   private final IssuePanelFixture myIssuePanelFixture;
@@ -108,7 +108,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
       return Collections.emptyList();
     }
 
-    return sceneView.getModel().flattenComponents()
+    return sceneView.getSceneManager().getModel().flattenComponents()
       .map(this::createComponentFixture)
       .collect(Collectors.toList());
   }

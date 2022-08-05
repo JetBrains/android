@@ -140,13 +140,13 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
 
       if (!basePackage.isEmpty() && file instanceof XmlFile) {
         AndroidApplicationPackageRenameProcessor.processAllAttributesToUpdate(
-          (XmlFile)file, basePackage, oldPackageName, newPackageName, new Processor<>() {
-            @Override
-            public boolean process(Pair<GenericAttributeValue, String> pair) {
-              pair.getFirst().setStringValue(pair.getSecond());
-              return true;
-            }
-          });
+          (XmlFile)file, basePackage, oldPackageName, newPackageName, new Processor<Pair<GenericAttributeValue, String>>() {
+          @Override
+          public boolean process(Pair<GenericAttributeValue, String> pair) {
+            pair.getFirst().setStringValue(pair.getSecond());
+            return true;
+          }
+        });
       }
       return myElement;
     }

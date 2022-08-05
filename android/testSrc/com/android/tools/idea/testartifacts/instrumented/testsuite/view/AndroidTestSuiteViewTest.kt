@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromHistoryAction
@@ -56,7 +57,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import java.time.Clock
 import java.time.Duration
@@ -481,7 +481,7 @@ class AndroidTestSuiteViewTest {
 
     view.onTestSuiteScheduled(device1)
 
-    `when`(mockClock.millis()).thenReturn(Duration.ofHours(2).plusSeconds(1).plusMillis(123).toMillis())
+    whenever(mockClock.millis()).thenReturn(Duration.ofHours(2).plusSeconds(1).plusMillis(123).toMillis())
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
@@ -504,7 +504,7 @@ class AndroidTestSuiteViewTest {
     view.onTestSuiteScheduled(device1)
     view.onTestSuiteScheduled(device2)
 
-    `when`(mockClock.millis()).thenReturn(12345)
+    whenever(mockClock.millis()).thenReturn(12345)
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
@@ -536,7 +536,7 @@ class AndroidTestSuiteViewTest {
 
     view.onTestSuiteScheduled(device1)
 
-    `when`(mockClock.millis()).thenReturn(Duration.ofHours(2).plusSeconds(1).plusMillis(123).toMillis())
+    whenever(mockClock.millis()).thenReturn(Duration.ofHours(2).plusSeconds(1).plusMillis(123).toMillis())
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
@@ -574,8 +574,8 @@ class AndroidTestSuiteViewTest {
     val initialTestHistoryCount = getTestHistory().size
 
     val runConfig = mock<RunConfiguration>().apply {
-      `when`(name).thenReturn("mockRunConfig")
-      `when`(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+      whenever(name).thenReturn("mockRunConfig")
+      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
     }
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig)
     val device1 = device("deviceId1", "deviceName1")
@@ -605,11 +605,11 @@ class AndroidTestSuiteViewTest {
     val initialTestHistoryCount = getTestHistory().size
 
     val runConfig = mock<RunConfiguration>().apply {
-      `when`(name).thenReturn("mockRunConfig")
-      `when`(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+      whenever(name).thenReturn("mockRunConfig")
+      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
     }
     val initialCurrentTimeMillis = System.currentTimeMillis()
-    `when`(mockClock.millis()).thenReturn(initialCurrentTimeMillis)
+    whenever(mockClock.millis()).thenReturn(initialCurrentTimeMillis)
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig, myClock=mockClock)
     val device1 = device("deviceId1", "deviceName1")
 
@@ -622,7 +622,7 @@ class AndroidTestSuiteViewTest {
     // Rerun is scheduled.
     view.onRerunScheduled(device1)
 
-    `when`(mockClock.millis()).thenReturn(initialCurrentTimeMillis + Duration.ofMinutes(1).toMillis())
+    whenever(mockClock.millis()).thenReturn(initialCurrentTimeMillis + Duration.ofMinutes(1).toMillis())
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
@@ -644,7 +644,7 @@ class AndroidTestSuiteViewTest {
 
   private fun getTestHistory(): List<ImportTestsFromHistoryAction> {
     val mockEvent = mock<AnActionEvent>()
-    `when`(mockEvent.project).thenReturn(projectRule.project)
+    whenever(mockEvent.project).thenReturn(projectRule.project)
     return ImportTestGroup().getChildren(mockEvent).mapNotNull {
       it as? ImportTestsFromHistoryAction
     }

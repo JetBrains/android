@@ -74,7 +74,7 @@ class ScrollableDesignSurfaceViewport(val viewport: JViewport): DesignSurfaceVie
 /**
  * A [DesignSurfaceViewport] for non scrollable surfaces. These surfaces will usually be embedded in a scrollable panel.
  */
-class NonScrollableDesignSurfaceViewport(val view: DesignSurface): DesignSurfaceViewport {
+class NonScrollableDesignSurfaceViewport(val view: DesignSurface<*>): DesignSurfaceViewport {
   override val viewRect: Rectangle
     get() = view.bounds
   override val viewportComponent: Component

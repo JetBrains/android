@@ -21,7 +21,7 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTableItem
 import org.jetbrains.android.formatter.AttributeComparator
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
@@ -76,5 +76,14 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
                                            model, enumSupportProvider, controlTypeProvider, searchable = true))
     tab.builders.add(InspectorTableBuilder("Declared Semantics", { it.section == PropertySection.UNMERGED },
                                            model, enumSupportProvider, controlTypeProvider, searchable = true))
+    tab.builders.add(InspectorTableBuilder("Recomposition", { it.section == PropertySection.RECOMPOSITIONS && showRecompositions(model) },
+                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
+  }
+
+  // When TreeSettings.showRecompositions is off, we will want to hide the Recomposition section:
+  private fun showRecompositions(propertiesModel: InspectorPropertiesModel): Boolean {
+    val treeSettings = propertiesModel.layoutInspector?.treeSettings ?: return false
+    val model = propertiesModel.layoutInspector?.layoutInspectorModel ?: return false
+    return treeSettings.showRecompositions && !model.maxRecomposition.isEmpty
   }
 }

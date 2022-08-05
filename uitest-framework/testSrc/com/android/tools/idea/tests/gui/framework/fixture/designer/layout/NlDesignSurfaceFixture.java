@@ -27,7 +27,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
-import java.util.ArrayList;
+import com.google.common.collect.Lists;
 import java.util.List;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
@@ -75,7 +75,7 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     waitForRenderToFinish();
 
     final NlModel model = target().getModel();
-    final List<NlComponent> components = new ArrayList<>();
+    final java.util.List<NlComponent> components = Lists.newArrayList();
 
     model.getComponents().forEach(component -> addComponents(tag, component, components));
     // Sort by visual order

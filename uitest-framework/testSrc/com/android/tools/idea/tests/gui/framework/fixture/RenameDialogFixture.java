@@ -65,7 +65,7 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
       () -> handler.invoke(element.getProject(), new PsiElement[] { element }, SimpleDataContext.getProjectContext(element.getProject())),
       element.getProject().getDisposed());
     JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, RefactoringBundle.message("rename.title")).and(
-      new GenericTypeMatcher<>(JDialog.class) {
+      new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           return getDialogWrapperFrom(dialog, RenameDialog.class) != null;

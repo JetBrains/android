@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.lang.aidl.psi.impl;
 
+import com.android.tools.idea.lang.aidl.psi.AidlDottedName;
 import com.android.tools.idea.lang.aidl.psi.AidlFile;
+import com.android.tools.idea.lang.aidl.psi.AidlNamedElement;
 import com.android.tools.idea.lang.aidl.psi.AidlPsiCompositeElement;
+import com.android.tools.idea.lang.aidl.psi.AidlQualifiedName;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.IElementType;
@@ -35,5 +38,25 @@ public class AidlPsiCompositeElementImpl extends ASTWrapperPsiElement implements
   @Override
   public AidlFile getContainingFile() {
     return (AidlFile)super.getContainingFile();
+  }
+
+  @Override
+  public String toString() {
+    AidlNamedElement nameElement = findChildByClass(AidlNamedElement.class);
+    if (nameElement != null) {
+      StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+      sb.append("(\"");
+      if (nameElement instanceof AidlQualifiedName) {
+        sb.append(((AidlQualifiedName)nameElement).getQualifiedName());
+      } else if (nameElement instanceof AidlDottedName) {
+        sb.append(nameElement.getName()).append("\" as in \"");
+        sb.append(((AidlDottedName)nameElement).getQualifiedName());
+      } else {
+        sb.append(nameElement.getName());
+      }
+      sb.append("\")");
+      return sb.toString();
+    }
+    return super.toString();
   }
 }

@@ -38,7 +38,7 @@ internal class InternalMotionTrackerFactory {
 
   companion object {
     private val NOP_TRACKER = MotionNopTracker()
-    private val MANAGER = DesignerUsageTrackerManager<InternalMotionTracker, DesignSurface>(
+    private val MANAGER = DesignerUsageTrackerManager<InternalMotionTracker, DesignSurface<*>>(
       { executor, surface, eventLogger -> MotionUsageTrackerImpl(executor, surface, eventLogger) }, NOP_TRACKER)
 
     /**
@@ -46,7 +46,7 @@ internal class InternalMotionTrackerFactory {
      *
      * @param surface - used as a key for session-info in tracker.
      */
-    fun getInstance(surface: DesignSurface?) = MANAGER.getInstance(surface)
+    fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
   }
 }
 
@@ -59,7 +59,7 @@ internal class InternalMotionTrackerFactory {
  */
 private class MotionUsageTrackerImpl internal constructor(
   private val myExecutor: Executor,
-  private val surface: DesignSurface?,
+  private val surface: DesignSurface<*>?,
   private val myConsumer: Consumer<AndroidStudioEvent.Builder>) : InternalMotionTracker {
 
   override fun track(eventType: MotionLayoutEditorEvent.MotionLayoutEditorEventType) {

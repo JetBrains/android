@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.variant.conflict
 
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.IdeModuleDependency
+import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.messages.GroupNames
 import com.android.tools.idea.gradle.variant.view.BuildVariantView
@@ -26,6 +27,7 @@ import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.toHolder
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
@@ -113,11 +115,12 @@ class ConflictSet private constructor(
           .asSequence()
           .flatMap { module ->
             GradleAndroidModel.get(module)
-              ?.getModuleDependencies().orEmpty()
+              ?.getModuleDependencies()
+              .orEmpty()
               .mapNotNull {
                 val targetVariant = it.variant?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
                 val targetModule =
-                  modulesByPath[it.getGradleProjectPath().copy(sourceSet = IdeModuleSourceSet.MAIN)] ?: return@mapNotNull null
+                  modulesByPath[it.getGradleProjectPath().toHolder()] ?: return@mapNotNull null
                 val selectedVariant = selectedVariants[targetModule] ?: return@mapNotNull null
                 if (selectedVariant == targetVariant) null
                 else RawConflict(module, selectedVariant, targetModule, targetVariant)
@@ -143,12 +146,13 @@ class ConflictSet private constructor(
       conflict.addAffectedModule(affected, expectedVariant)
     }
 
-    private fun GradleAndroidModel.getModuleDependencies(): Sequence<IdeModuleLibrary> {
+    private fun GradleAndroidModel.getModuleDependencies(): Sequence<IdeModuleDependency> {
       val variant = selectedVariant
-      return variant.mainArtifact.level2Dependencies.moduleDependencies.asSequence() +
-        variant.androidTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
-        variant.testFixturesArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
-        variant.unitTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty()
+      val allModuleDependencies = variant.mainArtifact.compileClasspath.moduleDependencies.asSequence() +
+                                  variant.androidTestArtifact?.compileClasspath?.moduleDependencies?.asSequence().orEmpty() +
+                                  variant.testFixturesArtifact?.compileClasspath?.moduleDependencies?.asSequence().orEmpty() +
+                                  variant.unitTestArtifact?.compileClasspath?.moduleDependencies?.asSequence().orEmpty()
+      return allModuleDependencies.distinct()
     }
   }
 }

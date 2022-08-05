@@ -72,7 +72,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
-    boolean found = dependencyManager.addDependenciesAndSync(appModule, dependencies, null);
+    boolean found = dependencyManager.addDependenciesAndSync(appModule, dependencies);
     assertTrue(found);
 
     // @formatter:off
@@ -97,7 +97,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertFalse(isRecyclerViewRegistered());
     assertFalse(isRecyclerViewResolved());
 
-    boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies, null);
+    boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
 
     // If addDependencyAndSync worked correctly,
     // 1. findMissingDependencies with the added dependency should return empty.

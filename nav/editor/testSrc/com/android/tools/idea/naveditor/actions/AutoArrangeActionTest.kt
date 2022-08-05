@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
@@ -25,7 +26,6 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import java.util.concurrent.CompletableFuture
 
 class AutoArrangeActionTest : NavTestCase() {
@@ -46,11 +46,11 @@ class AutoArrangeActionTest : NavTestCase() {
         TestCase.assertEquals(true, component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))
       }
       CompletableFuture.completedFuture(null)
-    }.`when`(manager).requestRenderAsync()
+    }.whenever(manager).requestRenderAsync()
 
-    `when`(surface.sceneManager).thenReturn(manager)
+    whenever(surface.sceneManager).thenReturn(manager)
     val actionEvent = mock(AnActionEvent::class.java)
-    `when`(actionEvent.getRequiredData(DESIGN_SURFACE)).thenReturn(surface)
+    whenever(actionEvent.getRequiredData(DESIGN_SURFACE)).thenReturn(surface)
     AutoArrangeAction.instance.actionPerformed(actionEvent)
     root.children.forEach { component ->
       TestCase.assertNull(component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))

@@ -28,7 +28,7 @@ public final class GradleModuleTemplateTest {
 
   @Test
   public void testDefaultSourceSetAtCurrentDir() {
-    NamedModuleTemplate moduleTemplate = createDefaultTemplateAt(".", "");
+    NamedModuleTemplate moduleTemplate = createDefaultTemplateAt(new File("."));
     AndroidModulePaths paths = moduleTemplate.getPaths();
 
     assertEquals("main", moduleTemplate.getName());
@@ -45,7 +45,7 @@ public final class GradleModuleTemplateTest {
     // AndroidModuleTemplate are not expected to do validation of its file path, so no exception is expected
     // (This is not a requirement, but helps the UI to bind with a field that can temporarily hold an invalid value)
     for (String str : new String[] {":", "<", ">", "?", "\0"}) {
-      assertEquals(createDefaultTemplateAt(str, "").getPaths().getModuleRoot(), new File(str));
+      assertEquals(createDefaultTemplateAt(new File(str)).getPaths().getModuleRoot(), new File(str));
     }
   }
 }

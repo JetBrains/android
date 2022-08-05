@@ -69,11 +69,11 @@ public class LibraryEditorFixture extends EditorFixture {
     FileChooserDialogFixture debugSymbolsDialog =
       FileChooserDialogFixture.findDialog(
         robot,
-        new GenericTypeMatcher<>(JDialog.class) {
+        new GenericTypeMatcher<JDialog>(JDialog.class) {
           @Override
           protected boolean isMatching(@NotNull JDialog component) {
             return "Debug Symbols".equals(component.getTitle());
-          }
+         }
         });
 
     debugSymbolsDialog.select(VfsUtil.findFileByIoFile(debugSymbols, true));

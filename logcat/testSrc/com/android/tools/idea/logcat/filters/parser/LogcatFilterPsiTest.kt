@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.logcat.filters.parser
 
+import com.android.flags.junit.RestoreFlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
@@ -37,8 +38,8 @@ import org.junit.Rule
 import org.junit.Test
 import java.text.ParseException
 
-private val STRING_KEYS = listOf("tag", "app", "package", "message", "msg", "line")
-private val NON_STRING_KEYS = listOf("level", "fromLevel", "toLevel", "age")
+private val STRING_KEYS = listOf("tag", "package", "process", "message", "line")
+private val NON_STRING_KEYS = listOf("level", "age", "is", "name")
 
 @RunsInEdt
 class LogcatFilterPsiTest {
@@ -46,10 +47,11 @@ class LogcatFilterPsiTest {
   private val project by lazy(projectRule::project)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule())
+  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule(), RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   @Test
   fun nonStringKeys() {
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
     for (key in NON_STRING_KEYS) {
       assertThat(parse("$key: bar").toFilter()).isEqualTo(KeyFilter(key, "bar"))
       assertThat(parse("$key:bar").toFilter()).isEqualTo(KeyFilter(key, "bar"))
@@ -80,7 +82,7 @@ class LogcatFilterPsiTest {
   fun stringKeys_singleQuote() {
     for (key in STRING_KEYS) {
       val psi = parse("""
-            $key: 'bar' $key: 'b\'a\'r' $key: 'b\a\r' $key:'bar' $key:'b\'a\'r' $key:'b\a\r'
+            $key: 'bar' $key: 'b\'a\'r' $key: 'b\a\r' $key:'bar' $key:'b\'a\'r' $key:'b\a\r' $key:'foo "bar" foo' $key: 'foo "bar" foo'
           """.trim())
 
       assertThat(psi.toFilter()).isEqualTo(
@@ -91,6 +93,8 @@ class LogcatFilterPsiTest {
           KeyFilter(key, "bar"),
           KeyFilter(key, "b'a'r"),
           KeyFilter(key, "b\\a\\r"),
+          KeyFilter(key, """foo "bar" foo"""),
+          KeyFilter(key, """foo "bar" foo"""),
         )
       )
     }
@@ -100,7 +104,7 @@ class LogcatFilterPsiTest {
   fun stringKeys_doubleQuote() {
     for (key in STRING_KEYS) {
       val psi = parse("""
-            $key: "bar" $key: "b\"a\"r" $key: "b\a\r" $key:"bar" $key:"b\"a\"r" $key:"b\a\r"
+            $key: "bar" $key: "b\"a\"r" $key: "b\a\r" $key:"bar" $key:"b\"a\"r" $key:"b\a\r" $key:"foo 'bar' foo" $key: "foo 'bar' foo"
           """.trim())
 
       assertThat(psi.toFilter()).isEqualTo(
@@ -111,6 +115,8 @@ class LogcatFilterPsiTest {
           KeyFilter(key, "bar"),
           KeyFilter(key, "b\"a\"r"),
           KeyFilter(key, "b\\a\\r"),
+          KeyFilter(key, "foo 'bar' foo"),
+          KeyFilter(key, "foo 'bar' foo"),
         )
       )
     }
@@ -137,6 +143,22 @@ class LogcatFilterPsiTest {
     for (key in STRING_KEYS) {
       assertThat(parse("-$key~: foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isNegated = true, isRegex = true))
       assertThat(parse("-$key~:foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isNegated = true, isRegex = true))
+    }
+  }
+
+  @Test
+  fun stringKeys_exact() {
+    for (key in STRING_KEYS) {
+      assertThat(parse("$key=: bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isExact = true))
+      assertThat(parse("$key=:bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isExact = true))
+    }
+  }
+
+  @Test
+  fun stringKeys_negatedExact() {
+    for (key in STRING_KEYS) {
+      assertThat(parse("-$key=: bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isNegated = true, isExact = true))
+      assertThat(parse("-$key=:bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isNegated = true, isExact = true))
     }
   }
 
@@ -175,40 +197,40 @@ class LogcatFilterPsiTest {
 
   @Test
   fun topLevelExpressions() {
-    val psi = parse("level: I foo    bar   tag: bar   app: foobar")
+    val psi = parse("level: I foo    bar   tag: bar   package: foobar")
 
     assertThat(psi.toFilter()).isEqualTo(
       AndFilter(
         KeyFilter("level", "I"),
         TopLevelFilter("foo    bar"),
         KeyFilter("tag", "bar"),
-        KeyFilter("app", "foobar"),
+        KeyFilter("package", "foobar"),
       )
     )
   }
 
   @Test
   fun and() {
-    val psi = parse("tag: bar & foo & app: foobar")
+    val psi = parse("tag: bar & foo & package: foobar")
 
     assertThat(psi.toFilter()).isEqualTo(
       AndFilter(
         KeyFilter("tag", "bar"),
         TopLevelFilter("foo"),
-        KeyFilter("app", "foobar"),
+        KeyFilter("package", "foobar"),
       )
     )
   }
 
   @Test
   fun or() {
-    val psi = parse("tag: bar | foo | app: foobar")
+    val psi = parse("tag: bar | foo | package: foobar")
 
     assertThat(psi.toFilter()).isEqualTo(
       OrFilter(
         KeyFilter("tag", "bar"),
         TopLevelFilter("foo"),
-        KeyFilter("app", "foobar"),
+        KeyFilter("package", "foobar"),
       )
     )
   }
@@ -264,13 +286,6 @@ class LogcatFilterPsiTest {
   }
 
   @Test
-  fun parse_appFilter() {
-    for (filter in listOf("app!", "package!")) {
-      assertThat(parse(filter).toFilter()).isEqualTo(AppFilter)
-    }
-  }
-
-  @Test
   fun parse_escapedColon() {
     assertThat(parse("tag\\:foo tag:foo").toFilter())
       .isEqualTo(
@@ -286,6 +301,11 @@ class LogcatFilterPsiTest {
         AndFilter(
           TopLevelFilter("tag:foo"),
           KeyFilter("tag", "foo")))
+  }
+
+  @Test
+  fun singleChar() {
+    assertThat(parse("a").toFilter()).isEqualTo(TopLevelFilter("a"))
   }
 
   private fun parse(text: String): PsiFile {
@@ -340,7 +360,6 @@ private fun LogcatFilterLiteralExpression.literalToFilter() =
   when (firstChild.elementType) {
     VALUE -> TopLevelFilter(firstChild.toText())
     KEY, STRING_KEY, REGEX_KEY -> KeyFilter(this)
-    PROJECT_APP -> AppFilter
     else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1)
   }
 
@@ -364,17 +383,17 @@ private data class KeyFilter(
   val key: String,
   val text: String,
   val isNegated: Boolean = false,
-  val isRegex: Boolean = false
+  val isRegex: Boolean = false,
+  val isExact: Boolean = false,
 ) : Filter {
   constructor(element: PsiElement) : this(
-    element.firstChild.text.trim(':', '-', '~'),
+    element.firstChild.text.trim(':', '-', '~', '='),
     element.lastChild.toText(),
     element.firstChild.text.startsWith('-'),
-    element.firstChild.text.endsWith("~:")
+    element.firstChild.text.endsWith("~:"),
+    element.firstChild.text.endsWith("=:"),
   )
 }
-
-private object AppFilter : Filter
 
 private data class AndFilter(val filters: List<Filter>) : Filter {
   constructor(vararg filters: Filter) : this(filters.asList())

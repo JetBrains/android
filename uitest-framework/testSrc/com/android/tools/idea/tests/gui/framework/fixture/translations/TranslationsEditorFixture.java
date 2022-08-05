@@ -71,7 +71,7 @@ public final class TranslationsEditorFixture {
 
   @NotNull
   public ActionButtonFixture getAddKeyButton() {
-    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<>(ActionButton.class) {
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         return "Add Key".equals(button.getAction().getTemplatePresentation().getText());
@@ -95,7 +95,7 @@ public final class TranslationsEditorFixture {
   }
 
   public void clickReloadButton() {
-    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<>(ActionButton.class) {
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         return "Reload string resources".equals(button.getAction().getTemplatePresentation().getText());
@@ -107,6 +107,8 @@ public final class TranslationsEditorFixture {
 
   public void addNewLocale(@NotNull String newLocale) {
     getAddLocaleButton().click();
+    GuiTests.waitForBackgroundTasks(myRobot);
+    myRobot.waitForIdle();
     JListFixture listFixture = new JListFixture(myRobot, getLocaleList());
     listFixture.replaceCellReader((jList, index) -> jList.getModel().getElementAt(index).toString());
     listFixture.clickItem(newLocale);
@@ -114,7 +116,7 @@ public final class TranslationsEditorFixture {
 
   @NotNull
   private JBList getLocaleList() {
-    return waitUntilFound(myRobot, null, new GenericTypeMatcher<>(JBList.class) {
+    return waitUntilFound(myRobot, null, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
         return "localeList".equals(list.getName());
@@ -124,7 +126,7 @@ public final class TranslationsEditorFixture {
 
   @NotNull
   private ActionButtonFixture getAddLocaleButton() {
-    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<>(ActionButton.class) {
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         return "Add Locale".equals(button.getAction().getTemplatePresentation().getText());

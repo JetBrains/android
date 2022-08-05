@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -39,7 +40,6 @@ import org.hamcrest.CoreMatchers.hasItems
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeThat
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.awt.event.ActionEvent
 import javax.swing.ListModel
 import javax.swing.text.JTextComponent
@@ -275,7 +275,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     val var3 = "var3" to "3"
     val property = this.property
     val propertyContext = property.bindContext(model)
-    `when`(variablesProvider.getAvailableVariablesFor(propertyContext)).thenReturn(
+    whenever(variablesProvider.getAvailableVariablesFor(propertyContext)).thenReturn(
       listOf(
         var1.asAnnotatedParsed(),
         var2.asAnnotatedParsed(),
@@ -294,7 +294,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     val var3 = "var3" to "3"
     val property = this.property
     val propertyContext = property.bindContext(model)
-    `when`(variablesProvider.getAvailableVariablesFor(propertyContext)).thenReturn(
+    whenever(variablesProvider.getAvailableVariablesFor(propertyContext)).thenReturn(
       listOf(
         var1.asAnnotatedParsed(),
         var2.asAnnotatedParsed(),
@@ -424,7 +424,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     val var3 = "var3" to "3"
     val property = this.property
     val propertyContext = property.bindContext(model)
-    `when`(variablesProvider.getAvailableVariablesFor(propertyContext)).thenReturn(
+    whenever(variablesProvider.getAvailableVariablesFor(propertyContext)).thenReturn(
       listOf(
         var1.asAnnotatedParsed(),
         var2.asAnnotatedParsed(),

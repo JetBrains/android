@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -104,7 +105,7 @@ public class ComponentHelpActionTest extends AndroidTestCase {
   }
 
   public void testSupportLibraryTag() {
-    myTagName = SdkConstants.CONSTRAINT_LAYOUT.defaultName();
+    myTagName = AndroidXConstants.CONSTRAINT_LAYOUT.defaultName();
     myAction.actionPerformed(myEvent);
     verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/support/constraint/ConstraintLayout.html"), isNull(), isNull());
   }

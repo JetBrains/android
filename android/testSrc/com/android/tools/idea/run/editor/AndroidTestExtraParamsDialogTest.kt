@@ -35,34 +35,26 @@ class AndroidTestExtraParamsDialogTest : AndroidGradleTestCase() {
       AndroidTestExtraParam("foo", "bar", "bar", AndroidTestExtraParamSource.GRADLE))
 
     // Create dialog with includeGradleExtraParams true.
-    var dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "", true)
-    assertThat(dialog.includeGradleExtraParams).isTrue()
+    var dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "")
     assertThat(dialog.instrumentationExtraParams).isEqualTo("-e size medium -e foo bar")
-    assertThat(dialog.userModifiedInstrumentationExtraParams).isEqualTo("")
-    dialog.close(0)
-
-    // Create dialog with includeGradleExtraParams false.
-    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "", false)
-    assertThat(dialog.includeGradleExtraParams).isFalse()
-    assertThat(dialog.instrumentationExtraParams).isEqualTo("")
     assertThat(dialog.userModifiedInstrumentationExtraParams).isEqualTo("")
     dialog.close(0)
 
     // Supplying instrumentation extra params but dialog.userModifiedInstrumentationExtraParams still returns empty because those
     // supplied params are identical to Gradle build file.
-    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "-e foo bar -e size medium", true)
+    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "-e foo bar -e size medium")
     assertThat(dialog.instrumentationExtraParams).isEqualTo("-e size medium -e foo bar")
     assertThat(dialog.userModifiedInstrumentationExtraParams).isEqualTo("")
     dialog.close(0)
 
     // Now override the value.
-    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "-e foo new_value -e size medium", true)
+    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "-e foo new_value -e size medium")
     assertThat(dialog.instrumentationExtraParams).isEqualTo("-e size medium -e foo new_value")
     assertThat(dialog.userModifiedInstrumentationExtraParams).isEqualTo("-e foo new_value")
     dialog.close(0)
 
     // Also supply additional value with new param name.
-    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "-e new_key and_value -e foo new_value -e size medium", true)
+    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "-e new_key and_value -e foo new_value -e size medium")
     assertThat(dialog.instrumentationExtraParams).isEqualTo("-e size medium -e foo new_value -e new_key and_value")
     assertThat(dialog.userModifiedInstrumentationExtraParams).isEqualTo("-e foo new_value -e new_key and_value")
     dialog.close(0)

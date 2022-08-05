@@ -20,6 +20,7 @@ import com.android.tools.idea.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_CLASSLOADERS_PRELOADING
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.combine
 import com.android.utils.reflection.qualifiedName
@@ -46,8 +47,8 @@ import java.lang.ref.SoftReference
 import java.util.Collections
 import java.util.IdentityHashMap
 import java.util.WeakHashMap
-import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
 
 private val DUMMY_HOLDER = Any()
 
@@ -90,22 +91,27 @@ private class ModuleClassLoaderProjectHelperService(val project: Project): Proje
  */
 class Preloader(
   moduleClassLoader: ModuleClassLoader,
-  classesToPreload: Collection<String> = emptyList()) : Disposable {
+  classesToPreload: Collection<String> = emptyList()) {
   private val classLoader = SoftReference(moduleClassLoader)
-  private val preloader = if (classesToPreload.isEmpty())
-    CompletableFuture.completedFuture<Void>(null)
-  else
-    preload (moduleClassLoader, classesToPreload, getAppExecutorService())
+  private var isActive = AtomicBoolean(true)
 
   init {
-    Disposer.register(moduleClassLoader, this)
+    if (classesToPreload.isNotEmpty()) {
+      preload(moduleClassLoader, {
+        isActive.get() && Disposer.isDisposed(classLoader.get() ?: return@preload false)
+       }, classesToPreload, getAppExecutorService())
+    }
+  }
+
+  /**
+   * Cancels the on-going preloading.
+   */
+  fun cancel() {
+    isActive.set(false)
   }
 
   fun getClassLoader(): ModuleClassLoader? {
-    // Once ClassLoader is requested we should stop class pre-loading
-    try {
-      preloader.cancel(false)
-    } catch (ignore: CancellationException) { }
+    cancel() // Stop preloading since we are going to use the class loader
     return classLoader.get()
   }
 
@@ -117,15 +123,6 @@ class Preloader(
 
   fun isForCompatible(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform) =
     classLoader.get()?.isCompatible(parent, projectTransformations, nonProjectTransformations) == true
-
-  override fun dispose() {
-    try {
-      preloader.cancel(true)
-    } catch (ignore: CancellationException) { }
-    try {
-      preloader.join()
-    } catch (ignore: Exception) { }
-  }
 
   /**
    * Returns the number of currently loaded classes for the underlying [ModuleClassLoader]. Intended to be used for debugging and
@@ -223,7 +220,7 @@ class ModuleClassLoaderManager {
     var oldClassLoader: ModuleClassLoader? = null
     if (moduleClassLoader != null) {
       val invalidate =
-        Disposer.isDisposed(moduleClassLoader) ||
+        moduleClassLoader.isDisposed ||
         !moduleClassLoader.isCompatible(parent, combinedProjectTransformations, combinedNonProjectTransformations) ||
         !moduleClassLoader.isUserCodeUpToDate
 
@@ -244,10 +241,10 @@ class ModuleClassLoaderManager {
       moduleClassLoader = preloadedClassLoader ?:
                           ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, createDiagnostics())
       module.putUserData(PRELOADER, Preloader(moduleClassLoader))
-      oldClassLoader?.let { release(it, DUMMY_HOLDER) }
       onNewModuleClassLoader.run()
     }
 
+    oldClassLoader?.let { release(it, DUMMY_HOLDER) }
     holders.computeIfAbsent(moduleClassLoader) { createHoldersSet() }.apply { add(holder) }
     return moduleClassLoader
   }
@@ -303,7 +300,9 @@ class ModuleClassLoaderManager {
 
   @Synchronized
   fun clearCache(module: Module) {
-    module.removeUserData(PRELOADER)?.getClassLoader()?.let { Disposer.dispose(it) }
+    setOf(module.getHolderModule(), module).forEach { module ->
+      module.removeUserData(PRELOADER)?.getClassLoader()?.let { Disposer.dispose(it) }
+    }
   }
 
   @Synchronized
@@ -324,7 +323,7 @@ class ModuleClassLoaderManager {
     // If that was a shared ModuleClassLoader that is no longer used, we have to destroy the old one to free the resources, but we also
     // recreate a new one for faster load next time
     moduleClassLoader.module?.let { module ->
-      if (module.isDisposed()) {
+      if (module.isDisposed) {
         return@let
       }
       if (module.getUserData(PRELOADER)?.isLoadingFor(moduleClassLoader) != true) {
@@ -333,8 +332,8 @@ class ModuleClassLoaderManager {
         }
       }
       else {
+        module.removeUserData(PRELOADER)?.cancel()
         val newClassLoader = createCopy(moduleClassLoader) ?: return@let
-        module.removeUserData(PRELOADER)?.let { Disposer.dispose(it) }
         // We first load dependencies classes and then project classes since the latter reference the former and not vice versa
         val classesToLoad = moduleClassLoader.nonProjectLoadedClasses + moduleClassLoader.projectLoadedClasses
         module.putUserData(PRELOADER, Preloader(newClassLoader, classesToLoad))

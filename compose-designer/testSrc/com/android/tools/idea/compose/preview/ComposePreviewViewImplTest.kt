@@ -21,15 +21,22 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
-import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.editors.build.ProjectBuildStatusManager
+import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
@@ -41,7 +48,6 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -63,30 +69,27 @@ import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-private class PreviewElementDataContext(private val project: Project,
-                                        private val composePreviewManager: ComposePreviewManager,
-                                        private val previewElement: PreviewElement) : DataContext {
+private class TestPreviewElementDataContext(private val project: Project,
+                                            private val composePreviewManager: ComposePreviewManager,
+                                            private val previewElement: ComposePreviewElementInstance) : DataContext {
   override fun getData(dataId: String): Any? = when (dataId) {
     COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
-    COMPOSE_PREVIEW_ELEMENT.name -> previewElement
+    COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
     CommonDataKeys.PROJECT.name -> project
     else -> null
   }
 }
 
-private fun configureLayoutlibSceneManagerForPreviewElement(previewElement: PreviewElement,
+private fun configureLayoutlibSceneManagerForPreviewElement(displaySettings: PreviewDisplaySettings,
                                                             layoutlibSceneManager: LayoutlibSceneManager) =
   configureLayoutlibSceneManager(
     layoutlibSceneManager,
-    showDecorations = previewElement.displaySettings.showDecoration,
+    showDecorations = displaySettings.showDecoration,
     isInteractive = false,
-    requestPrivateClassLoader = false,
-    isLiveLiteralsEnabled = false,
-    onLiveLiteralsFound = { },
-    resetLiveLiteralsFound = { }
+    requestPrivateClassLoader = false
   )
 
-private fun previewElementInstanceToString(previewElementInstance: PreviewElementInstance): String =
+private fun previewElementInstanceToString(previewElementInstance: ComposePreviewElementInstance): String =
   """
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="wrap_content"
@@ -172,16 +175,30 @@ class ComposePreviewViewImplTest {
     val psiMainFile = fixture.addFileToProject("src/main/Test.kt", """
       fun main() {}
     """.trimIndent())
+
+    val navigationHandler = ComposePreviewNavigationHandler()
+    val interactionHandler = NopInteractionHandler
+    val sceneComponentProvider = ComposeSceneComponentProvider()
+
     mainFileSmartPointer = SmartPointerManager.createPointer(psiMainFile)
-    val composePreviewViewImpl = ComposePreviewViewImpl(project, mainFileSmartPointer, statusManager, PreviewNavigationHandler(),
+
+    val mainSurfaceBuilder =
+      createMainDesignSurfaceBuilder(
+        project, navigationHandler, interactionHandler, nopDataProvider, fixture.testRootDisposable, sceneComponentProvider)
+    val pinnedSurfaceBuilder =
+      createPinnedDesignSurfaceBuilder(
+        project, navigationHandler, interactionHandler, nopDataProvider, fixture.testRootDisposable, sceneComponentProvider)
+    val composePreviewViewImpl = ComposePreviewViewImpl(project, mainFileSmartPointer, statusManager,
                                                         nopDataProvider,
+                                                        mainSurfaceBuilder,
+                                                        listOf(pinnedSurfaceBuilder),
                                                         fixture.testRootDisposable, nopAction, nopAction)
-    Disposer.register(fixture.testRootDisposable, composePreviewViewImpl)
+
     previewView = composePreviewViewImpl
     fakeUi = FakeUi(JPanel().apply {
       layout = BorderLayout()
       size = Dimension(1000, 800)
-      add(composePreviewViewImpl, BorderLayout.CENTER)
+      add(composePreviewViewImpl.component, BorderLayout.CENTER)
     }, 1.0, true)
     fakeUi.root.validate()
   }
@@ -195,11 +212,11 @@ class ComposePreviewViewImplTest {
    * Updates the [ComposePreviewView] with the preview elements provided by the [previewProvider]. A [composePreviewManager] is needed
    * to determine the state.
    */
-  private fun updatePreviewAndRefreshWithProvider(previewProvider: PreviewElementProvider<PreviewElementInstance>,
+  private fun updatePreviewAndRefreshWithProvider(previewProvider: PreviewElementProvider<ComposePreviewElementInstance>,
                                                   composePreviewManager: ComposePreviewManager,
                                                   surface: NlDesignSurface = previewView.mainSurface) {
     runBlocking(workerThread) {
-      surface.updatePreviewsAndRefresh(
+      surface.updateComposePreviewsAndRefresh(
         false,
         previewProvider,
         Logger.getInstance(ComposePreviewViewImplTest::class.java),
@@ -211,8 +228,9 @@ class ComposePreviewViewImplTest {
         },
         ::previewElementInstanceToString,
         {
-          PreviewElementDataContext(project, composePreviewManager, it)
+          TestPreviewElementDataContext(project, composePreviewManager, it)
         },
+        NlModel::toPreviewElement,
         ::configureLayoutlibSceneManagerForPreviewElement
       )
     }
@@ -257,14 +275,13 @@ class ComposePreviewViewImplTest {
   @RunsInEdt
   @Test
   fun `create compose view with two elements`() {
-    previewView.hasComponentsOverlay = true
     val composePreviewManager = TestComposePreviewManager()
     val previews = listOf(
-      SinglePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
-      SinglePreviewElementInstance.forTesting("Fake Test Method", "Display2")
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2")
     )
-    val fakePreviewProvider = object : PreviewElementProvider<PreviewElementInstance> {
-      override suspend fun previewElements(): Sequence<PreviewElementInstance> = previews.asSequence()
+    val fakePreviewProvider = object : PreviewElementProvider<ComposePreviewElementInstance> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = previews.asSequence()
     }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
     previewView.mainSurface.zoomToFit()
@@ -281,18 +298,18 @@ class ComposePreviewViewImplTest {
     StudioFlags.COMPOSE_PIN_PREVIEW.override(true)
     val composePreviewManager = TestComposePreviewManager()
     val previews = listOf(
-      SinglePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
-      SinglePreviewElementInstance.forTesting("Fake Test Method", "Display2")
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2")
     )
     val pinnedPreviews = listOf(
-      SinglePreviewElementInstance.forTesting("Fake Test Method", "Pinned Display1"),
-      SinglePreviewElementInstance.forTesting("Fake Test Method", "Pinned Display2")
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Pinned Display1"),
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Pinned Display2")
     )
-    val fakePreviewProvider = object : PreviewElementProvider<PreviewElementInstance> {
-      override suspend fun previewElements(): Sequence<PreviewElementInstance> = previews.asSequence()
+    val fakePreviewProvider = object : PreviewElementProvider<ComposePreviewElementInstance> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = previews.asSequence()
     }
-    val fakePinnedPreviewProvider = object : PreviewElementProvider<PreviewElementInstance> {
-      override suspend fun previewElements(): Sequence<PreviewElementInstance> = pinnedPreviews.asSequence()
+    val fakePinnedPreviewProvider = object : PreviewElementProvider<ComposePreviewElementInstance> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = pinnedPreviews.asSequence()
     }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
     updatePreviewAndRefreshWithProvider(fakePinnedPreviewProvider, composePreviewManager, previewView.pinnedSurface)
@@ -317,14 +334,13 @@ class ComposePreviewViewImplTest {
   @RunsInEdt
   @Test
   fun `open and close bottom panel`() {
-    previewView.hasComponentsOverlay = true
     val composePreviewManager = TestComposePreviewManager()
     val previews = listOf(
-      SinglePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
-      SinglePreviewElementInstance.forTesting("Fake Test Method", "Display2")
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2")
     )
-    val fakePreviewProvider = object : PreviewElementProvider<PreviewElementInstance> {
-      override suspend fun previewElements(): Sequence<PreviewElementInstance> = previews.asSequence()
+    val fakePreviewProvider = object : PreviewElementProvider<ComposePreviewElementInstance> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = previews.asSequence()
     }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
 
@@ -339,5 +355,34 @@ class ComposePreviewViewImplTest {
     previewView.bottomPanel = null
     fakeUi.root.validate()
     assertNull(fakeUi.findComponent<JLabel> { it.text == "Bottom panel" })
+  }
+
+  @RunsInEdt
+  @Test
+  fun `verify refresh cancellation`() {
+    previewView.onRefreshCancelledByTheUser()
+    fakeUi.root.validate()
+    assertEquals("""
+      Refresh was cancelled and needs to be completed before the preview can be displayed
+      [Build & Refresh... (Ctrl+Shift+F5)]
+    """.trimIndent(), (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText())
+  }
+
+  @RunsInEdt
+  @Test
+  fun `verify refresh cancellation with content available does not show error panel`() {
+    val composePreviewManager = TestComposePreviewManager()
+    val previews = listOf(
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
+      SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2")
+    )
+    val fakePreviewProvider = object : PreviewElementProvider<ComposePreviewElementInstance> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = previews.asSequence()
+    }
+    updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
+    previewView.onRefreshCancelledByTheUser()
+    fakeUi.root.validate()
+
+    assertNull(fakeUi.findComponent<InstructionsPanel> { it.isShowing })
   }
 }

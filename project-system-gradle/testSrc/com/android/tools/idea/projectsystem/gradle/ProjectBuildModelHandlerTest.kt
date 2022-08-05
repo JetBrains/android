@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -24,7 +25,6 @@ import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 
 class ProjectBuildModelHandlerTest : AndroidTestCase() {
   @Mock lateinit var projectBuildModel: ProjectBuildModel
@@ -36,13 +36,13 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
 
   private fun setupGradleSyncState(timeStamp: Long) {
     val gradleSyncState = mock(GradleSyncState::class.java)
-    `when`(gradleSyncState.lastSyncFinishedTimeStamp).thenReturn(timeStamp)
+    whenever(gradleSyncState.lastSyncFinishedTimeStamp).thenReturn(timeStamp)
     replaceProjectService(GradleSyncState::class.java, gradleSyncState)
   }
 
   private fun setupGradleFiles(modified: Boolean) {
     val gradleFiles = mock(GradleFiles::class.java)
-    `when`(gradleFiles.areGradleFilesModified()).thenReturn(modified)
+    whenever(gradleFiles.areGradleFilesModified()).thenReturn(modified)
     replaceProjectService(GradleFiles::class.java, gradleFiles)
   }
 
@@ -96,7 +96,7 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
     setupGradleSyncState(6L)
     setupGradleFiles(false)
     val handler = ProjectBuildModelHandler(project, projectBuildModel, 6L)
-    `when`(projectBuildModel.applyChanges()).then {
+    whenever(projectBuildModel.applyChanges()).then {
       ApplicationManager.getApplication().assertWriteAccessAllowed()
     }
     handler.modify { }

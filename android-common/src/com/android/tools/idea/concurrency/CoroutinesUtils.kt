@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.concurrency
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -24,6 +25,8 @@ import com.intellij.openapi.application.ex.ApplicationUtil
 import com.intellij.openapi.application.ex.ApplicationUtil.CannotRunReadActionException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -31,6 +34,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.wm.ex.ProgressIndicatorEx
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -39,15 +46,30 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -79,11 +101,13 @@ object AndroidDispatchers {
   val workerThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
 
   /**
-   * [CoroutineDispatcher] that dispatches to an IO thread.
+   * [CoroutineDispatcher] that dispatches to a disk IO thread. Please notice that the disk IO
+   * thread pool is very limited and should not be used for anything except local disk IO.
+   * For socket IO and inter-process communication please use [kotlinx.coroutines.Dispatchers.IO].
    *
-   * @see AndroidExecutors.ioThreadExecutor
+   * @see AndroidExecutors.diskIoThreadExecutor
    */
-  val ioThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().ioThreadExecutor.asCoroutineDispatcher()
+  val diskIoThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().diskIoThreadExecutor.asCoroutineDispatcher()
 }
 
 private val LOG: Logger get() = Logger.getInstance("com.android.tools.idea.concurrency.CoroutinesUtils.kt")
@@ -110,26 +134,82 @@ val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwabl
 @Suppress("FunctionName") // mirroring upstream API.
 fun SupervisorJob(disposable: Disposable): Job {
   return SupervisorJob().also { job ->
-    Disposer.register(
-      disposable,
-      Disposable {
-        if (!job.isCancelled) {
-          job.cancel(CancellationException("$disposable has been disposed."))
-        }
-      }
-    )
+    cancelJobOnDispose(disposable, job)
   }
 }
 
 /**
  * Returns a [CoroutineScope] containing:
- *   - a [Job] tied to the [Disposable] lifecycle of this object
+ *   - a [SupervisorJob] tied to the [Disposable] lifecycle of [disposable]
  *   - [AndroidDispatchers.workerThread]
  *   - a [CoroutineExceptionHandler] that logs unhandled exception at `ERROR` level.
+ *
+ * The optional [context] parameter can be used to override the [Job], [CoroutineDispatcher]
+ * and [CoroutineExceptionHandler] of the [CoroutineContext] of the returned [CoroutineScope].
+ *
+ * Note: This method creates a "top-level" (or "root") [CoroutineScope]. Use [createChildScope]
+ * to create a [CoroutineScope] to create a child scope that is tied to both a [Disposable]
+ * and a parent scope.
  */
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
 fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
-  return CoroutineScope(SupervisorJob(disposable) + AndroidDispatchers.workerThread + androidCoroutineExceptionHandler + context)
+  return CoroutineScope(SupervisorJob(disposable) + workerThread + androidCoroutineExceptionHandler + context)
+}
+
+/**
+ * Ensure [job] is cancelled if it is still active when [disposable] is disposed.
+ */
+private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
+  Disposer.register(disposable) {
+    if (!job.isCancelled) {
+      job.cancel(CancellationException("$disposable has been disposed."))
+    }
+  }
+}
+
+/**
+ * Launches a new coroutine that will be bound to the given [ProgressIndicatorEx]. If the indicator is stopped, the coroutine will be
+ * cancelled. If the coroutine finishes or is cancelled, the indicator will also be stopped.
+ * This method also accepts an optional [CoroutineContext].
+ */
+fun CoroutineScope.launchWithProgress(
+  progressIndicator: ProgressIndicatorEx,
+  context: CoroutineContext = EmptyCoroutineContext,
+  runnable: suspend CoroutineScope.() -> Unit): Job {
+  if (!progressIndicator.isRunning) progressIndicator.start()
+
+  // We create a new scope that we will cancel if the progressIndicator is stopped.
+  val scope = createChildScope()
+
+  /**
+   * Checks if [progressIndicator] is cancelled and cancels the scope. Returns true as long as the scope is still active.
+   */
+  fun checkProgressIndicatorState(): Boolean {
+    if (progressIndicator.isCanceled) {
+      scope.cancel("User cancelled the refresh")
+    }
+    else if (!progressIndicator.isRunning) {
+      scope.cancel("The progress indicator is not running")
+    }
+
+    return scope.isActive
+  }
+
+  scope.launch(workerThread) {
+    while (checkProgressIndicatorState()) {
+      delay(500)
+    }
+  }
+
+  return scope.launch(context = scope.coroutineContext + context, block = runnable).apply {
+    invokeOnCompletion {
+      // The coroutine completed so, if needed, we stop the indicator.
+      if (progressIndicator.isRunning) {
+        progressIndicator.stop()
+        progressIndicator.processFinish()
+      }
+    }
+  }
 }
 
 /**
@@ -166,7 +246,7 @@ val Project.coroutineScope: CoroutineScope
  */
 class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, description: String) {
   // This mutex makes sure that the previous job is cancelled before a new one is started. This prevents several jobs to be executed at the
-  // same time meaning that several tasks also cannot be executed at the same time and therefore we do not need a mutex on a task execution
+  // same time meaning that several tasks also cannot be executed at the same time, and therefore we do not need a mutex on a task execution
   // itself.
   private val jobMutex = Mutex()
 
@@ -195,21 +275,37 @@ class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, de
 }
 
 /**
- * Utility function for quickly creating a scope that is a child of the current scope. It can be optionally a supervisor scope.
+ * Utility function for creating a scope that is a child of the current scope.
+ *
+ * * The new scope can optionally be a [supervisor][isSupervisor] scope.
+ *
+ * * An optional [parentDisposable] can be used to ensure the new scope is
+ *   [cancelled][CoroutineScope.cancel] when the [parentDisposable] is
+ *   [disposed][Disposer.dispose]. The new scope is, as usual, also cancelled
+ *   with its parent scope.
  */
-fun CoroutineScope.createChildScope(isSupervisor: Boolean = false): CoroutineScope = CoroutineScope(
-  this.coroutineContext + if (isSupervisor) SupervisorJob(this.coroutineContext[Job]) else Job(this.coroutineContext[Job]))
+fun CoroutineScope.createChildScope(isSupervisor: Boolean = false,
+                                    context: CoroutineContext = EmptyCoroutineContext,
+                                    parentDisposable: Disposable? = null): CoroutineScope {
+  val newJob = if (isSupervisor) SupervisorJob(this.coroutineContext.job) else Job(this.coroutineContext.job)
+  return CoroutineScope(this.coroutineContext + newJob + context).also { newScope ->
+    // Attach new scope to [parentDisposable] lifecycle
+    parentDisposable?.apply {
+      cancelJobOnDispose(parentDisposable, newScope.coroutineContext.job)
+    }
+  }
+}
 
 /**
  * Immediately returns the completed result. If deferred is not complete for any reason, return null.
  */
 suspend fun <T> Deferred<T>.getCompletedOrNull(): T? {
   if (isCompleted) {
-    try {
-      return this.await()
+    return try {
+      this.await()
     }
     catch (t: Throwable) {
-      return null
+      null
     }
   }
   return null
@@ -256,10 +352,10 @@ suspend fun <T> runReadAction(compute: Computable<T>): T = coroutineScope {
       }
     }
     catch (_: CannotRunReadActionException) {
-      // Wait until the current write finishes
+      // Wait until the current write finishes.
       val writeFinished = CompletableDeferred<Boolean>()
       ApplicationManager.getApplication().invokeLater { writeFinished.complete(true) }
-      // This will suspend the coroutine until the write lock has finished
+      // This will suspend the coroutine until the write lock has finished.
       writeFinished.await()
     }
   }
@@ -280,3 +376,145 @@ suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScop
   }
   return@coroutineScope result.await()
 }
+
+/**
+ * [Exception] thrown by [runReadActionWithWritePriority] when `maxRetries` has been exceeded.
+ */
+class RetriesExceededException(message: String? = null) : Exception(message)
+
+/**
+ * Runs the given [callable] in a read action with action priority (see [ProgressIndicatorUtils.runInReadActionWithWriteActionPriority]).
+ * The [callable] will be retried [maxRetries] if cancelled because a write action taking priority. This will wait [maxWaitTime] [maxWaitTimeUnit]
+ * before throwing a [TimeoutException].
+ *
+ * [callable] will receive a `checkCancelled` function that must be invoked frequently to ensure the operation can continue. [callable]
+ * will throw a [ProcessCanceledException] if the operation is not needed anymore, for example when the timeout has been exceeded.
+ */
+@kotlin.jvm.Throws(TimeoutException::class, RetriesExceededException::class)
+suspend fun <T> runReadActionWithWritePriority(
+  maxRetries: Int = 3,
+  maxWaitTime: Long = 10,
+  maxWaitTimeUnit: TimeUnit = TimeUnit.SECONDS,
+  callable: (checkCancelled: ()-> Unit) -> T
+): T {
+  try {
+    return withTimeout(maxWaitTimeUnit.toMillis(maxWaitTime)) {
+      var retries = 0
+      while (retries++ < maxRetries) {
+        val result = AtomicReference<T?>(null)
+        ensureActive()
+        val executed = runInterruptible(workerThread) {
+            ProgressIndicatorUtils.runInReadActionWithWriteActionPriority {
+              if (isActive) result.set(callable {
+                ProgressManager.checkCanceled()
+                ensureActive()
+              })
+            }
+          }
+        if (executed) return@withTimeout result.get()!!
+        /**
+         * If we end up here it means that the [runReadActionWithWritePriority] call was interrupted by some [WriteAction].
+         * Retrying straight away will most probably fail again since that [WriteAction] is still happening.
+         * Thus, we are waiting for the end of the [WriteAction] by blocking on a no-op `ReadAction`. After that read action happens it
+         * is only makes sense to retry again.
+         */
+        runReadAction {}
+      }
+      throw RetriesExceededException("Could you complete the action after $maxRetries retries.")
+    }
+  }
+  catch (timeout: TimeoutCancellationException) {
+    throw TimeoutException("Deadline $maxWaitTime $maxWaitTimeUnit exceeded.")
+  }
+  catch (_: CancellationException) {
+    throw ProcessCanceledException()
+  }
+}
+
+/**
+ * Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function.
+ */
+suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = runReadAction {
+  if (project.isDisposed) return@runReadAction null
+  val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@runReadAction null
+  return@runReadAction if (psiFile.isValid) psiFile else null
+}
+
+/**
+ * Scope passed to the runnable in [disposableCallbackFlow].
+ */
+interface CallbackFlowWithDisposableScope<T> : CoroutineScope {
+  /**
+   * This disposable will be disposed if the [CoroutineScope] is cancelled or if the optional `parentDisposable` in
+   * [disposableCallbackFlow] is disposed.
+   */
+  val disposable: Disposable
+
+  /**
+   * Equivalent to [kotlinx.coroutines.channels.ProducerScope.trySend].
+   */
+  fun trySend(e: T)
+}
+
+/**
+ * Similar to [callbackFlow] but allows to use a [Disposable] as part of the callback.
+ *
+ * The [runnable] will be called with a [CallbackFlowWithDisposableScope] that contains a [Disposable]. The [Disposable] will be disposed if:
+ *  - The [parentDisposable] is disposed, if not null.
+ *  - The flow is closed.
+ *
+ * This allows for any callbacks to use that [Disposable] and dispose the listeners when the flow is not needed.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+fun <T> disposableCallbackFlow(debugName: String,
+                               logger: Logger? = null,
+                               parentDisposable: Disposable? = null,
+                               runnable: CallbackFlowWithDisposableScope<T>.() -> Unit) = callbackFlow {
+  logger?.debug("$debugName start")
+
+  val disposable = parentDisposable?.let {
+    // If there is a parent disposable, cancel the flow when it's disposed.
+    Disposer.register(it) { cancel("parentDisposable was disposed") }
+    Disposer.newDisposable(it, debugName)
+  } ?: Disposer.newDisposable(debugName)
+
+  val scope = object : CallbackFlowWithDisposableScope<T> {
+    override val coroutineContext: CoroutineContext
+      get() = this@callbackFlow.coroutineContext
+    override val disposable: Disposable
+      get() = disposable
+
+    override fun trySend(e: T) {
+      this@callbackFlow.trySend(e)
+    }
+  }
+
+  scope.runnable()
+
+  awaitClose {
+    logger?.debug("$debugName shutdown")
+    Disposer.dispose(disposable)
+  }
+}
+
+/**
+ * A [callbackFlow] that produces an element when the [project] moves into smart mode. The [onConnected] listener will be
+ * called in the context of a worker thread.
+ */
+@VisibleForTesting
+fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger?, onConnected: (() -> Unit)?): Flow<Unit> =
+  disposableCallbackFlow("SmartModeFlow", logger, parentDisposable) {
+    project.messageBus.connect(disposable).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
+      override fun exitDumbMode() {
+        trySend(Unit)
+      }
+    })
+
+    onConnected?.let { launch(workerThread) { it() } }
+  }
+
+/**
+ * A [callbackFlow] that produces an element when the [project] moves into smart mode.
+ */
+fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null): Flow<Unit> =
+  smartModeFlow(project, parentDisposable, logger, null)

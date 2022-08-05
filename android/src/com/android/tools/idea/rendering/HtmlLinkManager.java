@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.AndroidXConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_CLASS;
 import static com.android.SdkConstants.ATTR_ID;
@@ -23,7 +24,6 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
 import static com.android.SdkConstants.CLASS_CONTEXT;
 import static com.android.SdkConstants.CLASS_FRAGMENT;
-import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
@@ -99,7 +99,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
@@ -152,7 +151,7 @@ public class HtmlLinkManager {
   }
 
   public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
-                        @Nullable RenderResult result, @Nullable EditorDesignSurface surface) {
+                        boolean hasRenderResult, @Nullable EditorDesignSurface surface) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
       BrowserLauncher.getInstance().browse(url, null, module == null ? null : module.getProject());
     }
@@ -206,17 +205,17 @@ public class HtmlLinkManager {
       handleAssignLayoutUrl(url, module, file);
     }
     else if (url.equals(URL_ACTION_IGNORE_FRAGMENTS)) {
-      assert result != null;
+      assert hasRenderResult;
       handleIgnoreFragments(url, surface);
     }
     else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
-      assert result != null;
+      assert hasRenderResult;
       if (module != null && file != null) {
         handleEditAttribute(url, module, file);
       }
     }
     else if (url.startsWith(URL_REPLACE_ATTRIBUTE_VALUE)) {
-      assert result != null;
+      assert hasRenderResult;
       if (module != null && file != null) {
         handleReplaceAttributeValue(url, module, file);
       }
@@ -341,7 +340,7 @@ public class HtmlLinkManager {
   String createCommandLink(@NotNull CommandLink command) {
     String url = URL_COMMAND + myNextLinkId;
     if (myLinkCommands == null) {
-      myLinkCommands = new SparseArray<>(5);
+      myLinkCommands = new SparseArray<CommandLink>(5);
     }
     myLinkCommands.put(myNextLinkId, command);
     myNextLinkId++;
@@ -479,7 +478,7 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      packageName = AndroidManifestUtils.getPackageName(module);
+      packageName = ProjectSystemUtil.getModuleSystem(module).getPackageName();
       if (packageName == null) {
         return;
       }

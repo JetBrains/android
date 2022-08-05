@@ -159,6 +159,10 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
 
   lib_dir = project_dir + "/.idea/libraries/"
   for lib in os.listdir(lib_dir):
+    if lib == "studio_plugin_Kotlin.xml":
+      # Special case: the Kotlin plugin is part of IntelliJ Platform, but it is built and updated
+      # separately by prebuilts/tools/common/kotlin-plugin/build.py (see Change I788900228).
+      continue
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 
@@ -187,7 +191,7 @@ def check_artifacts(dir):
   files = sorted(os.listdir(dir))
   if not files:
     sys.exit("There are no artifacts in " + dir)
-  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.zip|.tar.gz|.win.zip)$")
+  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.x64.zip|-no-jbr.tar.gz|.win.zip)$")
   files = [file for file in files if regex.match(file) or file == "updater-full.jar"]
   if not files:
     sys.exit("No artifacts found in " + dir)
@@ -196,9 +200,9 @@ def check_artifacts(dir):
   version_minor = match.group(2)
   bid = match.group(3)
   expected = [
+      "android-studio-%s.%s.%s-no-jbr.tar.gz" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s-sources.zip" % (version_major, version_minor, bid),
-      "android-studio-%s.%s.%s.mac.zip" % (version_major, version_minor, bid),
-      "android-studio-%s.%s.%s.tar.gz" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s.mac.x64.zip" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.win.zip" % (version_major, version_minor, bid),
       "updater-full.jar",
   ]
@@ -236,7 +240,7 @@ sudo apt install android-fetch-artifact""")
     sys.exit("--bid argument needs to be set to download")
   dir = tempfile.mkdtemp(prefix="studio_sdk", suffix=bid)
 
-  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
+  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.x64.zip", "android-studio-*-no-jbr.tar.gz", "android-studio-*.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
     os.system(
         "%s %s --bid %s --target IntelliJ '%s' %s"
         % (fetch_artifact, auth_flag, bid, artifact, dir))
@@ -244,52 +248,18 @@ sudo apt install android-fetch-artifact""")
   return dir
 
 
-def compatible(old_file, new_file):
-  if not os.path.isfile(old_file) or not os.path.isfile(new_file):
-    return False
-  for file in [old_file, new_file]:
-    if not (file.endswith(".jar") or file.endswith(".zip")):
-      return False
-  old_files = []
-  new_files = []
-  with zipfile.ZipFile(old_file) as old_zip:
-    old_files = [(info.filename, info.CRC) for info in old_zip.infolist()]
-  with zipfile.ZipFile(new_file) as new_zip:
-    new_files = [(info.filename, info.CRC) for info in new_zip.infolist()]
-  return sorted(old_files) == sorted(new_files)
-
-
-# Compares old_path with new_path and moves files from old
-# to new that are compatible. Compatible means jars that
-# didn't change content but only timestamps.
-# This preserves old files intact, reducing git pressure.
-def preserve_old(old_path, new_path):
-  if not os.path.isdir(old_path) or not os.path.isdir(new_path):
-    return
-  for file in os.listdir(new_path):
-    old_file = os.path.join(old_path, file)
-    new_file = os.path.join(new_path, file)
-    if os.path.isdir(new_file):
-      if os.path.isdir(old_file):
-        preserve_old(old_file, new_file)
-    else:
-      if compatible(old_file, new_file):
-        os.replace(old_file, new_file)
-
 def write_metadata(path, data):
   with open(os.path.join(path, "METADATA"), "w") as file:
     for k, v in data.items():
       file.write(k + ": " + str(v) + "\n")
 
 def extract(workspace, dir, delete_after, metadata):
-  version, sources, mac, linux, win, updater, manifest = check_artifacts(dir)
+  version, linux, sources, mac, win, updater, manifest = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
-  # Don't delete yet, use for a timestamp-less diff of jars, to reduce git/review pressure
-  old_path = None
   if os.path.exists(path):
-    old_path = path + ".old"
-    os.rename(path, old_path)
+    shutil.rmtree(path)
+
   os.mkdir(path)
   shutil.copyfile(dir + "/" + sources, path + "/android-studio-sources.zip")
   shutil.copyfile(dir + "/" + updater, path + "/updater-full.jar")
@@ -313,9 +283,6 @@ def extract(workspace, dir, delete_after, metadata):
   with tarfile.open(dir + "/" + linux, "r") as tar:
     tar.extractall(path + "/linux")
 
-  if old_path:
-    preserve_old(old_path, path)
-
   if manifest:
     xml = ET.parse(dir + "/" + manifest)
     for project in xml.getroot().findall("project"):
@@ -323,8 +290,6 @@ def extract(workspace, dir, delete_after, metadata):
 
   if delete_after:
     shutil.rmtree(dir)
-  if old_path:
-    shutil.rmtree(old_path)
 
   write_metadata(path, metadata)
 

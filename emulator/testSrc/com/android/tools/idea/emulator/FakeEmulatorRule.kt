@@ -16,8 +16,8 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.idea.testing.TemporaryDirectoryRule
-import io.grpc.ManagedChannelBuilder
-import io.grpc.inprocess.InProcessChannelBuilder
+import com.android.tools.idea.io.grpc.ManagedChannelBuilder
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description

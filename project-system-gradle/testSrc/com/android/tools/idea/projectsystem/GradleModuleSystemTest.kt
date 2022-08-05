@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -29,12 +30,19 @@ import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.facet.SourceProviderManager.Companion.getInstance
 import org.mockito.Mockito
 import org.mockito.Mockito.times
+
+/**
+ * Replaces the [from] string in the [VirtualFile] with the [to] string.
+ */
+private fun VirtualFile.replace(from: String, to: String) =
+  setBinaryContent(String(contentsToByteArray(false)).replace(from, to).toByteArray())
 
 /**
  * These unit tests use a local test maven repo "project-system-gradle/testData/repoIndex". To see
@@ -52,7 +60,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
     super.setUp()
     _gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
     _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), moduleHierarchyProviderStub)
-    assertThat(gradleModuleSystem.getAndroidLibraryDependencies()).isEmpty()
+    assertThat(gradleModuleSystem.getAndroidLibraryDependencies(DependencyScopeType.MAIN)).isEmpty()
   }
 
   override fun tearDown() {
@@ -174,6 +182,24 @@ class GradleModuleSystemTest : AndroidTestCase() {
       assertNotNull(srcFile)
 
       assertTrue(paidFlavorSourceProvider.isContainedBy(srcFile))
+    }
+
+    fun testUsesComposeFlag() {
+      loadSimpleApplication()
+
+      val projectSystem = ProjectSystemService.getInstance(project).projectSystem
+      val moduleSystem = projectSystem.getModuleSystem(getModule("app"))
+      // Verify defaults
+      assertFalse("usesCompose override is only meant to be set via properties by the AndroidX project",
+                  StudioFlags.COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE.get())
+      assertFalse(moduleSystem.usesCompose)
+
+      StudioFlags.COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE.override(true)
+      try {
+        assertTrue(moduleSystem.usesCompose)
+      } finally {
+        StudioFlags.COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE.clearOverride()
+      }
     }
   }
 }

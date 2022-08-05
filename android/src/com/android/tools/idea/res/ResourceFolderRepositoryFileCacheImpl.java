@@ -26,7 +26,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
@@ -234,8 +233,9 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       myProject = project;
     }
 
+    @Nullable
     @Override
-    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+    public DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
       if (taskFromQueue instanceof ManageLruProjectFilesTask && ((ManageLruProjectFilesTask)taskFromQueue).myProject.equals(myProject)) {
         return this;
       }
@@ -374,8 +374,9 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       }
     }
 
+    @Nullable
     @Override
-    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+    public DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
       if (taskFromQueue instanceof PruneTask && ((PruneTask)taskFromQueue).myProject.equals(myProject)) return this;
       return null;
     }
@@ -400,8 +401,6 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     @Override
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
-
-      DumbService dumbService = DumbService.getInstance(project);
 
       // Prune directories within the current project.
       PruneTask pruneTask = new PruneTask(project);

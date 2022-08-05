@@ -50,7 +50,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * Renders XML drawables to raster images.
@@ -84,24 +83,19 @@ public class DrawableRenderer implements Disposable {
     myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
-    myRenderTaskFuture = CompletableFuture.supplyAsync(() -> {
-      try {
-        RenderService service = RenderService.getInstance(module.getProject());
-        RenderTask renderTask = service.taskBuilder(facet, configuration)
-          .withLogger(logger)
-          .withParserFactory(myParserFactory)
-          .buildSynchronously();
-        assert renderTask != null;
-        renderTask.getLayoutlibCallback().setLogger(logger);
+    RenderService service = RenderService.getInstance(module.getProject());
+    myRenderTaskFuture = service.taskBuilder(facet, configuration)
+      .withLogger(logger)
+      .withParserFactory(myParserFactory)
+      .build()
+      .whenComplete((task, ex) -> {
+        if (task != null) {
+          task.getLayoutlibCallback().setLogger(logger);
+        }
         if (logger.hasProblems()) {
           getLog().error(RenderProblem.format(logger.getMessages()));
         }
-        return renderTask;
-      } catch (RuntimeException | Error e) {
-        getLog().error(e);
-        return null;
-      }
-    }, PooledThreadExecutor.INSTANCE);
+      });
     Disposer.register(facet, this);
   }
 

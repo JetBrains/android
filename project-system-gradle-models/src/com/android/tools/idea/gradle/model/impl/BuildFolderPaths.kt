@@ -20,35 +20,35 @@ import java.io.File
 /** The "build" folder paths per module.  */
 class BuildFolderPaths {
 
-    private val buildFolderPathsByModule: MutableMap<String, MutableMap<String, File>> =
-        mutableMapOf()
+  private val buildFolderPathsByModule: MutableMap<String, MutableMap<String, File>> =
+    mutableMapOf()
 
-    /**
-     * The build identifier of root project.
-     */
-    var rootBuildId: String? = null
+  /**
+   * The build identifier of root project.
+   */
+  var rootBuildId: String? = null
 
-    /**
-     * The root directory of the Gradle build.
-     */
-    var buildRootDirectory: File? = null
+  /**
+   * The root directory of the Gradle build.
+   */
+  var buildRootDirectory: File? = null
 
-    /**
-     * Stores the [buildFolder] path for the module specified by [buildId] and [moduleGradlePath].
-     */
-    fun addBuildFolderMapping(
-        buildId: String, moduleGradlePath: String, buildFolder: File
-    ) {
-        buildFolderPathsByModule
-            .getOrPut(buildId) { mutableMapOf() }[moduleGradlePath] = buildFolder
-    }
+  /**
+   * Stores the [buildFolder] path for the module specified by [buildId] and [moduleGradlePath].
+   */
+  fun addBuildFolderMapping(
+    buildId: String, moduleGradlePath: String, buildFolder: File
+  ) {
+    buildFolderPathsByModule
+      .getOrPut(buildId) { mutableMapOf() }[moduleGradlePath] = buildFolder
+  }
 
-    /**
-     * Finds and returns the path of the "build" folder for the given [moduleGradlePath] and
-     * [buildId]; or `null` if the path or build id is not found.
-     */
-    fun findBuildFolderPath(moduleGradlePath: String, buildId: String?): File? {
-        // buildId can be null for root project or for pre-3.1 plugin.
-        return buildFolderPathsByModule[buildId ?: rootBuildId]?.get(moduleGradlePath)
-    }
+  /**
+   * Finds and returns the path of the "build" folder for the given [moduleGradlePath] and
+   * [buildId]; or `null` if the path or build id is not found.
+   */
+  fun findBuildFolderPath(moduleGradlePath: String, buildId: String?): File? {
+    // buildId can be null for root project or for pre-3.1 plugin.
+    return buildFolderPathsByModule[buildId ?: rootBuildId]?.get(moduleGradlePath)
+  }
 }

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;

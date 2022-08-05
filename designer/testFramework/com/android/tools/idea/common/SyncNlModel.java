@@ -17,6 +17,7 @@ package com.android.tools.idea.common;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -35,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 public class SyncNlModel extends NlModel {
 
   private Configuration myConfiguration; // for testing purposes
-  private DesignSurface mySurface; // for testing purposes
+  private DesignSurface<? extends SceneManager> mySurface; // for testing purposes
 
   @NotNull
   public static SyncNlModel create(@Nullable Disposable parent,
@@ -50,6 +51,17 @@ public class SyncNlModel extends NlModel {
     return new SyncNlModel(parent, componentRegistrar, displayName, tooltip, facet, file, configuration);
   }
 
+  @NotNull
+  public static SyncNlModel create(@Nullable Disposable parent,
+                                   @NotNull Consumer<NlComponent> componentRegistrar,
+                                   @Nullable String displayName,
+                                   @Nullable String tooltip,
+                                   @NotNull AndroidFacet facet,
+                                   @NotNull VirtualFile file,
+                                   @NotNull Configuration configuration) {
+    return new SyncNlModel(parent, componentRegistrar, displayName, tooltip, facet, file, configuration);
+  }
+
   private SyncNlModel(@Nullable Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar, @Nullable String displayName,
                       @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
@@ -59,12 +71,17 @@ public class SyncNlModel extends NlModel {
   /**
    * FIXME(b/194482298): Needs to be removed after refactor. {@link NlModel} shouldn't have any information about {@link DesignSurface}.
    */
-  public void setDesignSurface(@NotNull DesignSurface surface) {
+  @Deprecated
+  public void setDesignSurface(@NotNull DesignSurface<? extends SceneManager> surface) {
     mySurface = surface;
   }
 
+  /**
+   * FIXME(b/194482298): Needs to be removed after refactor. {@link NlModel} shouldn't have any information about {@link DesignSurface}.
+   */
+  @Deprecated
   @NotNull
-  public DesignSurface getSurface() {
+  public DesignSurface<? extends SceneManager> getSurface() {
     return mySurface;
   }
 

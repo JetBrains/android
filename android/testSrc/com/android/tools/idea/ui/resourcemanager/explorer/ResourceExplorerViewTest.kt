@@ -35,7 +35,10 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -51,10 +54,14 @@ import javax.swing.JTabbedPane
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
+@RunsInEdt
 class ResourceExplorerViewTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   private val disposable = Disposer.newDisposable("ResourceExplorerViewTest")
 
@@ -104,10 +111,13 @@ class ResourceExplorerViewTest {
     val viewModel = createViewModel(projectRule.module)
     val view = createResourceExplorerView(viewModel)
     waitAndAssert<AssetListView>(view) { it?.model?.size == 2 }
+    var headerNameLabel = UIUtil.findComponentOfType(view, JBLabel::class.java)
+    assertEquals("app (2)", headerNameLabel?.text)
 
     viewModel.filterOptions.searchString = "png"
     // Elements should be filtered.
     waitAndAssert<AssetListView>(view) { it?.model?.size == 1 }
+    assertEquals("app (1)", headerNameLabel?.text)
     val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
     val firstAsset = list.model.getElementAt(0).assets[0] as DesignAsset
     assertThat(firstAsset.file.name).isEqualTo("png.png")

@@ -1,22 +1,31 @@
 # Running UI tests with Bazel
 
-UI tests are supported to run on Linux and Mac. UI tests are run as any other test, to run it simply do:
+UI tests can currently be run on Linux and Mac.
+
+On Linux, UI tests are run as any other test, and each test uses its own virtual
+X server so they can run in parallel:
 
     bazel test //tools/adt/idea/android-uitests:GuiTestRuleTest
 
-On a mac run UI tests with following parameters
+On Mac, extra options are requried to ensure the tests have access to the main window
+server, and run serially so they don't interfere with each other:
 
-    bazel test --spawn_strategy=standalone //tools/adt/idea/android-uitests:GuiTestRuleTest
+    bazel test \
+        --strategy=TestRunner=local \
+        --test_strategy=exclusive \
+        //tools/adt/idea/android-uitests:GuiTestRuleTest
 
-If running multiple tests on a Mac, add `--test_strategy=exclusive` parameter as running tests in parallel is not supported on Mac.
- 
-## Running tests on the current DISPLAY
+## Running tests on the current DISPLAY on linux
 
 To connect to another display, first the sandbox needs to be disabled and then passing a `DISPLAY` test envvar will tell the test to use that
 
-    bazel test //tools/adt/idea/android-uitests:GuiTestRuleTest --spawn_strategy=standalone --test_env=DISPLAY=:0
+    bazel test \
+        --strategy=TestRunner=local \
+        --test_strategy=exclusive \
+        --test_env=DISPLAY=:0 \
+        //tools/adt/idea/android-uitests:GuiTestRuleTest
 
-## Connecting to an already running test
+## Connecting to an already running test on linux
 
 You will probably have to install this the first time:
 
@@ -52,7 +61,7 @@ Another option is to run a server first like this:
 
 And set the argument `--test_env=DISPLAY=:1234` to tell the test to use that one. Then you can connect to it as described above.
 
-## Running through remote desktop
+## Running through remote desktop on linux
 
 If the test is running through remote desktop, the main display of remote desktop may not be ":0".
 If this is the case, run the following to get the main display's string:
@@ -67,4 +76,9 @@ If this is the case, run the following to get the main display's string:
 
 Then use the result of the above query in the command earlier. I.e.:
 
-    bazel test //tools/adt/idea/android-uitests:GuiTestRuleTest --spawn_strategy=standalone --test_env=DISPLAY=<insert_display_string_here>
+    bazel test \
+        --strategy=TestRunner=local \
+        --test_strategy=exclusive \
+        --test_output=streamed \
+        --test_env=DISPLAY=<insert_display_string_here> \
+        //tools/adt/idea/android-uitests:GuiTestRuleTest

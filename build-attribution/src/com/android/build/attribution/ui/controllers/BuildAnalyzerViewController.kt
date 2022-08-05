@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.CHECK_JETIFIER_TASK_NAME
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.checkJetifierResultFile
 import com.android.build.attribution.data.GradlePluginsData
@@ -40,19 +41,14 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
-import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Editor
@@ -63,7 +59,6 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiElement
@@ -326,117 +321,8 @@ class PluginVersionDeclarationFinder(val project: Project) {
   }
 }
 
-class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
-
-  var runningTestConfigurationCacheBuild: Boolean = false
-  var runningFirstConfigurationCacheBuild: Boolean = false
-
-  companion object {
-    fun getInstance(project: Project): ConfigurationCacheTestBuildFlowRunner {
-      return project.getService(ConfigurationCacheTestBuildFlowRunner::class.java)
-    }
-  }
-
-  fun startTestBuildsFlow(originalBuildRequest: GradleBuildInvoker.Request) {
-    runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequest)
-  }
-
-  private val confirmationDialogHeader = "Configuration Cache Compatibility Assessment"
-
-  private fun runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequest: GradleBuildInvoker.Request) {
-    invokeLater(ModalityState.NON_MODAL) {
-      val confirmationResult = Messages.showIdeaMessageDialog(
-        project,
-        """
-          |This test will rerun the latest build twice to check that Gradle can serialize the task graph
-          |and then reuse it from the cache. The builds will run in the background and they will fail
-          |with details if any incompatibilities are detected.
-        """.trimMargin(),
-        confirmationDialogHeader,
-        arrayOf("Run Builds", Messages.getCancelButton()), 0,
-        Messages.getInformationIcon(), null
-      )
-      if (confirmationResult == Messages.OK) {
-        scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequest, firstBuild = true) {
-          invokeLater { scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequest, firstBuild = false) { showFinalSuccessMessage() } }
-        }
-      }
-    }
-  }
-
-  private fun showFinalSuccessMessage() {
-    invokeLater(ModalityState.NON_MODAL) {
-      val confirmationResult = Messages.showIdeaMessageDialog(
-        project,
-        """
-        |Both trial builds with Configuration cache on were successful. You can turn on
-        |Configuration cache in gradle.properties.
-        |
-        |Note: Configuration cache is an experimental feature of Gradle and there may be
-        |incompatibilities with different tasks’ runs in the future.
-        """.trimMargin(),
-        confirmationDialogHeader,
-        arrayOf("Enable Configuration Cache", Messages.getCancelButton()), 0,
-        Messages.getInformationIcon(), null
-      )
-      if (confirmationResult == Messages.OK) StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
-    }
-  }
-
-  private fun scheduleRebuildWithCCOptionAndRunOnSuccess(
-    originalBuildRequest: GradleBuildInvoker.Request,
-    firstBuild: Boolean,
-    onSuccess: () -> Unit
-  ) {
-    val request = builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, originalBuildRequest.gradleTasks)
-      .setCommandLineArguments(originalBuildRequest.commandLineArguments.plus("--configuration-cache"))
-      .build()
-
-    val future = GradleBuildInvoker.getInstance(project).executeTasks(request)
-    Futures.addCallback(future, object : FutureCallback<GradleInvocationResult> {
-      override fun onSuccess(result: GradleInvocationResult?) {
-        runningFirstConfigurationCacheBuild = false
-        runningTestConfigurationCacheBuild = false
-        if (result!!.isBuildSuccessful) onSuccess()
-        else showFailureMessage(result)
-      }
-
-      override fun onFailure(t: Throwable) {
-        runningFirstConfigurationCacheBuild = false
-        runningTestConfigurationCacheBuild = false
-        throw t
-      }
-    }, MoreExecutors.directExecutor())
-    runningFirstConfigurationCacheBuild = firstBuild
-    runningTestConfigurationCacheBuild = true
-  }
-
-  private fun showFailureMessage(result: GradleInvocationResult) {
-    invokeLater(ModalityState.NON_MODAL) {
-      if (result.isBuildCancelled) {
-        Messages.showIdeaMessageDialog(
-          project,
-          "Build was cancelled.",
-          confirmationDialogHeader,
-          arrayOf(Messages.getOkButton()), 0,
-          Messages.getInformationIcon(), null
-        )
-      }
-      //TODO (b/186203445): we have configuration cache exception with a detailed message and a link to the html report inside.
-      // So I can present that in the Dialog. find cause recursively?
-      Messages.showIdeaMessageDialog(
-        project,
-        "Build failed. Please, check build output for a detailed report of incompatibilities detected by Gradle.",
-        confirmationDialogHeader,
-        arrayOf(Messages.getOkButton()), 0,
-        Messages.getErrorIcon(), null
-      )
-    }
-  }
-}
-
 fun createCheckJetifierTaskRequest(originalBuildRequest: GradleBuildInvoker.Request): GradleBuildInvoker.Request {
-  return builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, listOf("checkJetifier"))
+  return builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, listOf(CHECK_JETIFIER_TASK_NAME))
     .setCommandLineArguments(listOf(
       createProjectProperty(PROPERTY_CHECK_JETIFIER_RESULT_FILE, checkJetifierResultFile(originalBuildRequest).absolutePath),
       // 'checkJetifier' task does not support configuration cache so switch it off for this run to avoid errors.

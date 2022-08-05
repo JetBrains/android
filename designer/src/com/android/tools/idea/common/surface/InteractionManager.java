@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 import com.android.tools.adtui.Pannable;
@@ -31,10 +30,12 @@ import com.android.tools.idea.uibuilder.surface.PanInteraction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -69,6 +70,12 @@ import org.jetbrains.annotations.TestOnly;
  * events to find out when to start interactions and in order to update the interactions along the way.
  */
 public class InteractionManager implements Disposable {
+  /**
+   * The {@link Cursor} may need to be updated during the interaction. This {@link DataKey} is used to find the target {@link Component}
+   * which the {@link Cursor} should be set to.
+   */
+  public static final DataKey<Component> CURSOR_RECEIVER = DataKey.create(InteractionManager.class.getName() + ".cursorReceiver");
+
   private static final int HOVER_DELAY_MS = Registry.intValue("ide.tooltip.initialDelay");
   private static final int SCROLL_END_TIME_MS = 500;
 
@@ -76,7 +83,7 @@ public class InteractionManager implements Disposable {
    * The canvas which owns this {@linkplain InteractionManager}.
    */
   @NotNull
-  private final DesignSurface mySurface;
+  private final Interactable myInteractable;
 
   /**
    * The {@linkplain InteractionHandler} which provides the {@linkplain Interaction} during interacting.
@@ -158,14 +165,14 @@ public class InteractionManager implements Disposable {
   private boolean myIsInteractionCanceled;
 
   /**
-   * Constructs a new {@link InteractionManager} for the given {@link DesignSurface}.
+   * Constructs a new {@link InteractionManager} for the given {@link Interactable}.
    *
-   * @param surface The surface which controls this {@link InteractionManager}
+   * @param interactable The surface which controls this {@link InteractionManager}
    */
-  public InteractionManager(@NotNull DesignSurface surface, @NotNull InteractionHandler provider) {
-    mySurface = surface;
+  public InteractionManager(@NotNull Disposable disposableParent, @NotNull Interactable interactable, @NotNull InteractionHandler provider) {
+    myInteractable = interactable;
     myInteractionHandler = provider;
-    Disposer.register(surface, this);
+    Disposer.register(disposableParent, this);
 
     myListener = new Listener();
 
@@ -197,12 +204,12 @@ public class InteractionManager implements Disposable {
   /**
    * Returns the canvas associated with this {@linkplain InteractionManager}.
    *
-   * @return The {@link DesignSurface} associated with this {@linkplain InteractionManager}.
+   * @return The {@link Interactable} associated with this {@linkplain InteractionManager}.
    * Never null.
    */
   @NotNull
-  public DesignSurface getSurface() {
-    return mySurface;
+  public Interactable getInteractable() {
+    return myInteractable;
   }
 
   public boolean isPanning() {
@@ -210,7 +217,7 @@ public class InteractionManager implements Disposable {
   }
 
   /**
-   * This will registers all the listeners to {@link DesignSurface} needed by the {@link InteractionManager}.<br>
+   * This will register all the listeners to {@link Interactable} needed by the {@link InteractionManager}.<br>
    * Do nothing if it is listening already.
    * @see #stopListening()
    */
@@ -218,21 +225,21 @@ public class InteractionManager implements Disposable {
     if (myIsListening) {
       return;
     }
-    JComponent layeredPane = mySurface.getInteractionPane();
+    JComponent layeredPane = myInteractable.getInteractionPane();
     layeredPane.addMouseMotionListener(myListener);
     layeredPane.addMouseWheelListener(myListener);
     layeredPane.addMouseListener(myListener);
     layeredPane.addKeyListener(myListener);
 
     if (!ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      myDropTarget = new DropTarget(mySurface.getInteractionPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
+      myDropTarget = new DropTarget(myInteractable.getInteractionPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
     }
     myHoverTimer.addActionListener(myListener);
     myIsListening = true;
   }
 
   /**
-   * This will unregister all the listeners previously registered by from {@link DesignSurface}.<br>
+   * This will unregister all the listeners previously registered by from {@link Interactable}.<br>
    * Do nothing if it is not listening.
    * @see #startListening()
    */
@@ -240,7 +247,7 @@ public class InteractionManager implements Disposable {
     if (!myIsListening) {
       return;
     }
-    JComponent layeredPane = mySurface.getInteractionPane();
+    JComponent layeredPane = myInteractable.getInteractionPane();
     layeredPane.removeMouseMotionListener(myListener);
     layeredPane.removeMouseWheelListener(myListener);
     layeredPane.removeMouseListener(myListener);
@@ -334,7 +341,7 @@ public class InteractionManager implements Disposable {
       myLastModifiersEx = 0;
       myInteractionHandler.hoverWhenNoInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx);
       updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
-      mySurface.repaint();
+      myInteractable.repaintComponent();
     }
   }
 
@@ -347,16 +354,18 @@ public class InteractionManager implements Disposable {
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    {
-      Cursor cursor;
-      if (myCurrentInteraction == null) {
-        cursor = myInteractionHandler.getCursorWhenNoInteraction(x, y, modifiersEx);
-      }
-      else {
-        cursor = myCurrentInteraction.getCursor();
-      }
-      mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
+    Component cursorReceiver = myInteractable.getCursorReceiver();
+    if (cursorReceiver == null) {
+      return;
     }
+    Cursor cursor;
+    if (myCurrentInteraction == null) {
+      cursor = myInteractionHandler.getCursorWhenNoInteraction(x, y, modifiersEx);
+    }
+    else {
+      cursor = myCurrentInteraction.getCursor();
+    }
+    cursorReceiver.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
   }
 
   public boolean isInteractionInProgress() {
@@ -397,7 +406,7 @@ public class InteractionManager implements Disposable {
     @Override
     public void mousePressed(@NotNull MouseEvent event) {
       if (event.getID() == MouseEvent.MOUSE_PRESSED) {
-        mySurface.getInteractionPane().requestFocusInWindow();
+        myInteractable.getInteractionPane().requestFocusInWindow();
       }
 
       myIsInteractionCanceled = false;
@@ -423,9 +432,9 @@ public class InteractionManager implements Disposable {
         return;
       }
       else if (SwingUtilities.isMiddleMouseButton(event)) {
-        Pannable pannable = (Pannable)mySurface.getData(PANNABLE_KEY.getName());
+        Pannable pannable = myInteractable.getPannable();
         startInteraction(new MousePressedEvent(event, getInteractionInformation()),
-                         new PanInteraction(pannable == null ? mySurface : pannable));
+                         new PanInteraction(pannable));
         updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
         return;
       }
@@ -488,7 +497,7 @@ public class InteractionManager implements Disposable {
         finishInteraction(new MouseReleasedEvent(event, getInteractionInformation()), false);
         myCurrentInteraction = null;
       }
-      mySurface.repaint();
+      myInteractable.repaintComponent();
     }
 
     @Override
@@ -534,10 +543,10 @@ public class InteractionManager implements Disposable {
         myLastModifiersEx = modifiersEx;
         myCurrentInteraction.update(new MouseDraggedEvent(event, getInteractionInformation()));
         updateCursor(x, y, modifiersEx);
-        mySurface.getInteractionPane().scrollRectToVisible(
+        myInteractable.getInteractionPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                         2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
-        mySurface.repaint();
+        myInteractable.repaintComponent();
       }
       else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
@@ -572,7 +581,7 @@ public class InteractionManager implements Disposable {
       updateMouseMoved(event, x, y);
       updateCursor(x, y, modifiersEx);
 
-      mySurface.repaint();
+      myInteractable.repaintComponent();
       myHoverTimer.restart();
     }
 
@@ -693,10 +702,7 @@ public class InteractionManager implements Disposable {
       int x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
       int y = myLastMouseY;
 
-      // TODO (b/142953949): Should layer be hovered when action performed?
-      for (SceneView sceneView : mySurface.getSceneViews()) {
-        sceneView.onHover(x, y);
-      }
+      myInteractionHandler.stayHovering(x, y);
     }
 
     // --- Implements MouseWheelListener ----
@@ -719,10 +725,10 @@ public class InteractionManager implements Disposable {
       // to do the filtering at a higher level
       if (!e.isShiftDown() && (SystemInfo.isMac && e.isMetaDown() || e.isControlDown())) {
         if (scrollAmount < 0) {
-          mySurface.zoom(ZoomType.IN, x, y);
+          myInteractionHandler.zoom(ZoomType.IN, x, y);
         }
         else if (scrollAmount > 0) {
-          mySurface.zoom(ZoomType.OUT, x, y);
+          myInteractionHandler.zoom(ZoomType.OUT, x, y);
         }
         return;
       }
@@ -751,10 +757,7 @@ public class InteractionManager implements Disposable {
 
   void setPanning(boolean panning) {
     // The surface might decide to delegate the panning to some other element so we ask about the Pannable handling it.
-    Pannable pannable = (Pannable)getSurface().getData(PANNABLE_KEY.getName());
-    if (pannable == null) {
-      pannable = getSurface();
-    }
+    Pannable pannable = myInteractable.getPannable();
     if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
       startInteraction(new InteractionNonInputEvent(getInteractionInformation()), new PanInteraction(pannable));
       updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
@@ -767,8 +770,8 @@ public class InteractionManager implements Disposable {
 
   private void setPanning(@NotNull InteractionEvent event, boolean panning) {
     if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
-      Pannable pannable = (Pannable)mySurface.getData(PANNABLE_KEY.getName());
-      startInteraction(event, new PanInteraction(pannable == null ? mySurface : pannable));
+      Pannable pannable = myInteractable.getPannable();
+      startInteraction(event, new PanInteraction(pannable));
       updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
     }
     else if (!panning && myCurrentInteraction instanceof PanInteraction) {
@@ -787,8 +790,12 @@ public class InteractionManager implements Disposable {
     boolean wheelClickDown = SwingUtilities.isMiddleMouseButton(event);
     if (isPanning() || wheelClickDown) {
       boolean leftClickDown = SwingUtilities.isLeftMouseButton(event);
-      mySurface.setCursor(AdtUiCursorsProvider.getInstance().getCursor(leftClickDown || wheelClickDown ? AdtUiCursorType.GRABBING
-                                                                                                       : AdtUiCursorType.GRAB));
+      Component cursorHolder = myInteractable.getCursorReceiver();
+      if (cursorHolder != null) {
+        cursorHolder.setCursor(AdtUiCursorsProvider.getInstance().getCursor(leftClickDown || wheelClickDown ? AdtUiCursorType.GRABBING
+                                                                                                            : AdtUiCursorType.GRAB));
+      }
+
       return true;
     }
     return false;

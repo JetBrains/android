@@ -19,7 +19,7 @@ import static com.android.tools.idea.project.messages.MessageType.INFO;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
@@ -51,7 +51,7 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   }
 
   @Override
-  void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
+  void validate(@NotNull Module module, @NotNull GradleAndroidModel androidModel) {
     GradleVersion modelVersion = (androidModel.getAgpVersion());
     if (modelVersion != null) {
       boolean isOneDotTwoOrNewer = modelVersion.compareIgnoringQualifiers(myOneDotTwoPluginVersion) >= 0;

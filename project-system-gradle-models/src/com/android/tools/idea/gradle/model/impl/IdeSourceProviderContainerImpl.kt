@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import java.io.Serializable
 
 data class IdeSourceProviderContainerImpl(
   override val artifactName: String,
-  override val sourceProvider: IdeSourceProvider?
+  override val sourceProvider: IdeSourceProviderImpl?
 ) : IdeSourceProviderContainer, Serializable

@@ -82,7 +82,10 @@ class ComposableAnnotator : Annotator {
         }
         if (!shouldStyleCall(analysisResult.bindingContext, element)) return
         val elementToStyle = element.calleeExpression ?: return
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(elementToStyle).textAttributes(COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY).create()
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+          .range(elementToStyle)
+          .textAttributes(COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY)
+          .create()
     }
 
     private fun shouldStyleCall(bindingContext: BindingContext, element: KtCallExpression): Boolean {

@@ -57,7 +57,7 @@ public class DebuggerTestUtil {
   private final static int GRADLE_SYNC_TIMEOUT = 60;
 
   static void setDebuggerType(@NotNull IdeFrameFixture ideFrameFixture, @NotNull String type) {
-    ideFrameFixture.waitAndInvokeMenuPath("Run", "Edit Configurations...");
+    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
 
     EditConfigurationsDialogFixture.find(ideFrameFixture.robot())
       .selectDebuggerType(type)

@@ -17,6 +17,8 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.OnePixelSplitter
 import javax.swing.JComponent
 
@@ -24,15 +26,29 @@ import javax.swing.JComponent
  * A [com.intellij.ui.JBSplitter] that display the [IssuePanel] from the provided [surface] on bottom and the provided [JComponent] on top.
  */
 class IssuePanelSplitter(
-    val surface: DesignSurface,
-    content: JComponent) : OnePixelSplitter(true, 1f, 0.5f, 1f) {
+  file: VirtualFile?,
+  private val surface: DesignSurface<*>,
+  content: JComponent) : OnePixelSplitter(true, 1f, 0.5f, 1f) {
 
   init {
-    val issuePanel = surface.issuePanel
-    issuePanel.addEventListener(createIssueEventListener(issuePanel))
-    setHonorComponentsMinimumSize(true)
+    Disposer.register(surface) {
+      if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get() && file != null) {
+        IssuePanelService.getInstance(surface.project).unregisterSurfaceFile(file)
+      }
+    }
     firstComponent = content
-    secondComponent = if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) null else issuePanel
+    if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
+      secondComponent = null
+      if (file != null) {
+        IssuePanelService.getInstance(surface.project).registerSurfaceFile(file, surface)
+      }
+    }
+    else {
+      val issuePanel = surface.issuePanel
+      issuePanel.addEventListener(createIssueEventListener(issuePanel))
+      setHonorComponentsMinimumSize(true)
+      secondComponent = issuePanel
+    }
   }
 
   private fun updateSplitter(isExpanded: Boolean, height: Int) {

@@ -19,13 +19,13 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
-import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
@@ -40,13 +40,12 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
-  private ViewEditor myCustomViewEditor;
   private boolean myIgnoreRenderRequests;
 
-  public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
+  public SyncLayoutlibSceneManager(@NotNull DesignSurface<LayoutlibSceneManager> surface, @NotNull NlModel model) {
     super(
       model,
-      model.getSurface(),
+      surface,
       EdtExecutorService.getInstance(),
       d -> Runnable::run,
       new LayoutlibSceneManagerHierarchyProvider(),
@@ -75,7 +74,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @NotNull
   @Override
-  public CompletableFuture<Void> requestRenderAsync() {
+  final public CompletableFuture<Void> requestRenderAsync() {
     return CompletableFuture.completedFuture(super.requestRenderAsync().join());
   }
 
@@ -120,16 +119,6 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     ResourceReference reference = ResourceReference.attr(namespace, attributeName);
     ResourceValue resourceValue = new StyleItemResourceValueImpl(namespace, attributeName, value, null);
     map.put(reference, resourceValue);
-  }
-
-  public void setCustomViewEditor(@NotNull ViewEditor editor) {
-    myCustomViewEditor = editor;
-  }
-
-  @NotNull
-  @Override
-  public ViewEditor getViewEditor() {
-    return myCustomViewEditor != null ? myCustomViewEditor : super.getViewEditor();
   }
 
   public void fireRenderCompleted() {

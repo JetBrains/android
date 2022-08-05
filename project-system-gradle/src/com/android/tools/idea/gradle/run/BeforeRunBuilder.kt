@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.run
 
-interface BeforeRunBuilder {
-  fun build(taskRunner: GradleTaskRunner, commandLineArguments: List<String>): Boolean
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
+
+internal interface BeforeRunBuilder {
+  fun build(commandLineArguments: List<String>): AssembleInvocationResult?
 }
+
+

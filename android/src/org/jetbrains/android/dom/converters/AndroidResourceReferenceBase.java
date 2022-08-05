@@ -3,9 +3,7 @@ package org.jetbrains.android.dom.converters;
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -26,7 +24,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
   protected final AndroidFacet myFacet;
   protected final ResourceValue myResourceValue;
 
-  public AndroidResourceReferenceBase(@NotNull GenericDomValue value,
+  public AndroidResourceReferenceBase(@NotNull GenericDomValue<?> value,
                                       @Nullable TextRange range,
                                       @NotNull ResourceValue resourceValue,
                                       @NotNull AndroidFacet facet) {
@@ -39,19 +37,16 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     return false;
   }
 
-  @Nullable
   @Override
-  public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+  public @Nullable PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
     return null;
   }
 
-  @NotNull
-  public ResourceValue getResourceValue() {
+  public @NotNull ResourceValue getResourceValue() {
     return myResourceValue;
   }
 
-  @NotNull
-  public PsiElement[] computeTargetElements() {
+  public PsiElement @NotNull [] computeTargetElements() {
     final ResolveResult[] resolveResults = multiResolve(false);
     final List<PsiElement> results = new ArrayList<>();
 
@@ -73,15 +68,14 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     return results.toArray(PsiElement.EMPTY_ARRAY);
   }
 
-  @NotNull
+
   @Override
-  public ResolveResult[] multiResolve(boolean incompleteCode) {
+  public ResolveResult @NotNull [] multiResolve(boolean incompleteCode) {
     return ResolveCache.getInstance(myElement.getProject())
       .resolveWithCaching(this, (reference, incompleteCode1) -> resolveInner(), false, incompleteCode);
   }
 
-  @NotNull
-  private ResolveResult[] resolveInner() {
+  private ResolveResult @NotNull [] resolveInner() {
     if (includeDynamicFeatures()) {
       return AndroidResourceToPsiResolver.getInstance().resolveReferenceWithDynamicFeatureModules(myResourceValue, myElement, myFacet);
     } else {
@@ -91,13 +85,10 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
 
   @Override
   public boolean isReferenceTo(@NotNull PsiElement element) {
-    final ResolveResult[] results = multiResolve(false);
-    final PsiFile psiFile = element.getContainingFile();
-    final VirtualFile vFile = psiFile != null ? psiFile.getVirtualFile() : null;
+    ResolveResult[] results = multiResolve(false);
 
     for (ResolveResult result : results) {
-      final PsiElement target = result.getElement();
-
+      PsiElement target = result.getElement();
       if (element.getManager().areElementsEquivalent(target, element)) {
         return true;
       }

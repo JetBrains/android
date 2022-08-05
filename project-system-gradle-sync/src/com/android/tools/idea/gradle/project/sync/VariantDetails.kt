@@ -56,17 +56,17 @@ data class VariantSelectionChange(
     val EMPTY = VariantSelectionChange()
 
     /**
-     * Extracts the dimensions and values that differ between two compatible variants [base] and [from].
+     * Extracts the dimensions and values that differ between two compatible variants [from] and [to].
      */
-    fun extractVariantSelectionChange(from: VariantDetails, base: VariantDetails?): VariantSelectionChange? {
+    fun extractVariantSelectionChange(to: VariantDetails, from: VariantDetails?): VariantSelectionChange? {
       // We cannot process variant changes when variant definitions changed.
-      if (from.flavors.map { it.first } != base?.flavors?.map { it.first }) return null
+      if (to.flavors.map { it.first } != from?.flavors?.map { it.first }) return null
 
-      val otherFlavors = base.flavors.toMap()
+      val otherFlavors = from.flavors.toMap()
       return VariantSelectionChange(
-        buildType = from.buildType.takeUnless { it == base.buildType },
-        flavors = from.flavors.filter { (dimension, newFlavor) -> otherFlavors[dimension] != newFlavor }.toMap(),
-        abi = from.abi.takeUnless { it == base.abi }
+        buildType = to.buildType.takeUnless { it == from.buildType },
+        flavors = to.flavors.filter { (dimension, newFlavor) -> otherFlavors[dimension] != newFlavor }.toMap(),
+        abi = to.abi.takeUnless { it == from.abi }
       )
     }
   }

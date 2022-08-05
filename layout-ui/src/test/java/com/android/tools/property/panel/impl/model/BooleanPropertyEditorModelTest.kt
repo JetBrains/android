@@ -18,15 +18,18 @@ package com.android.tools.property.panel.impl.model
 import com.android.SdkConstants
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.ui.PropertyCheckBox
-import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth
-import org.junit.Rule
+import com.intellij.testFramework.ApplicationRule
+import org.junit.ClassRule
 import org.junit.Test
 
 class BooleanPropertyEditorModelTest {
 
-  @JvmField @Rule
-  val appRule = PropertyAppRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   private fun createModel(): BooleanPropertyEditorModel {
     val property = FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, SdkConstants.VALUE_TRUE)

@@ -21,7 +21,6 @@
                       icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"
                       factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
                       doNotActivateOnStart="true"/>
-    <projectService serviceImplementation="com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService"/>
     <applicationService serviceImplementation="com.android.tools.idea.profilers.AndroidProfilerService"/>
   </extensions>
   <actions>
@@ -34,7 +33,8 @@
     <androidLaunchTaskContributor implementation="com.android.tools.idea.profilers.AndroidProfilerLaunchTaskContributor" />
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
-    <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor" />
+    <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor"/>
+    <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutorGroup"/>
     <programRunner implementation="com.android.tools.idea.profilers.ProfilerProgramRunner" />
     <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
     <fileType name="AndroidProfilerCpuCapture" implementationClass="com.android.tools.idea.profilers.capture.CpuCaptureFileType"

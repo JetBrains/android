@@ -1,6 +1,6 @@
 PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
-    PROJECT_JDK                   : corretto-<JAVA_VERSION>
-        Version                       : Amazon Corretto version <JDK_VERSION>
+    PROJECT_JDK                   : jbr-<JAVA_VERSION>
+        Version                       : JetBrains Runtime version <JDK_VERSION>
     MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
         LinkedProjectId               : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
         LinkedProjectPath             : <PROJECT>
@@ -8,28 +8,37 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            Buildable                     : false
+        CONENT_ENTRY                  : file://<PROJECT>
+            EXCLUDE_FOLDER                : file://<PROJECT>/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-    MODULE                        : app
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
+    MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app
+            main                          : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main
+            unitTest                      : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.unitTest
+            androidTest                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.androidTest
         LinkedProjectId               : :app
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/app/app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : ideSetupTask1
-            - AfterSyncTask               : ideSetupTask2
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -37,135 +46,351 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 0
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/aidl [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/custom [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/java [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/ml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/renderscript [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/shaders [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/aidl [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/custom [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/java [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/ml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/renderscript [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/shaders [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/aidl [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/custom [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/java [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/ml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/renderscript [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/shaders [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/aidl [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/custom [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/java [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/ml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/renderscript [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/custom [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/renderscript [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/custom [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/ml [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/renderscript [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/custom [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/renderscript [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/custom [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/renderscript [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : Amazon Corretto version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : lib
-    MODULE                        : lib
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+    MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app
+            main                          : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main
+            unitTest                      : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.unitTest
+            androidTest                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:androidTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main
+            Scope                         : Test
+        ORDER_ENTRY                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+            Scope                         : Test
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+    MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app
+            main                          : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main
+            unitTest                      : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.unitTest
+            androidTest                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:main
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+    MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app
+            main                          : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main
+            unitTest                      : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.unitTest
+            androidTest                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:unitTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main
+            Scope                         : Test
+        ORDER_ENTRY                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+            Scope                         : Test
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
+                BUNDLE                        : :app:bundleDebug
+                APK_FROM_BUNDLE               : :app:extractApksForDebug
+    MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
+            main                          : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+            unitTest                      : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.unitTest
+            androidTest                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.androidTest
         LinkedProjectId               : :lib
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/lib/lib.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : ideSetupTask1
-            - AfterSyncTask               : ideSetupTask2
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -173,123 +398,358 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
             ProjectType                   : 0
-            RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
             RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/aidl [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/custom [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/java [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/ml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/renderscript [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/shaders [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/aidl [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/custom [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/java [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/ml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/renderscript [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/shaders [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/aidl [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/custom [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/java [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/ml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/renderscript [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/shaders [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/aidl [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/custom [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/java [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/ml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/renderscript [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/custom [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/ml [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/renderscript [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/custom [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/ml [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/renderscript [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/custom [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/ml [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/renderscript [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/custom [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/ml [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/renderscript [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : Amazon Corretto version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-    RUN_CONFIGURATION             : app
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : app
-        Module                        : app
-    RUN_CONFIGURATION             : lib
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : lib
-        Module                        : lib
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:assembleDebug, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+    MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
+            main                          : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+            unitTest                      : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.unitTest
+            androidTest                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :lib:androidTest
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+            Scope                         : Test
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:assembleDebug, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+    MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
+            main                          : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+            unitTest                      : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.unitTest
+            androidTest                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :lib:main
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:assembleDebug, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+    MODULE                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib
+            main                          : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+            unitTest                      : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.unitTest
+            androidTest                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :lib:unitTest
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main
+            Scope                         : Test
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:assembleDebugUnitTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources, :lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugAndroidTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugAndroidTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugAndroidTestSources, :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideAndroidTestSetupTask1, :lib:ideAndroidTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                ASSEMBLE                      : :lib:assembleDebug, :lib:assembleDebugUnitTest
+                REBUILD                       : :lib:assembleDebug, :lib:assembleDebugUnitTest, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugUnitTestSources
+                SOURCE_GEN                    : :lib:generateDebugSources, :lib:ideUnitTestSetupTask1, :lib:ideUnitTestSetupTask2
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :lib:generateDebugSources
+                ASSEMBLE                      : :lib:assembleDebug
+                REBUILD                       : :lib:assembleDebug, :lib:clean
+                COMPILE_JAVA                  : :lib:compileDebugSources
+                SOURCE_GEN                    : :lib:generateDebugSources
+                BUNDLE                        : :lib:bundleDebug
+                APK_FROM_BUNDLE               : :lib:extractApksForDebug
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+            CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideAndroidTestSetupTask1, <PROJECT>::lib:ideAndroidTestSetupTask2, <PROJECT>::lib:ideUnitTestSetupTask1, <PROJECT>::lib:ideUnitTestSetupTask2
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideAndroidTestSetupTask1, <PROJECT>::lib:ideAndroidTestSetupTask2, <PROJECT>::lib:ideUnitTestSetupTask1, <PROJECT>::lib:ideUnitTestSetupTask2
+            BUNDLE                        : <PROJECT>::app:bundleDebug, <PROJECT>::lib:bundleDebug
+            APK_FROM_BUNDLE               : <PROJECT>::app:extractApksForDebug, <PROJECT>::lib:extractApksForDebug
+        TEST_COMPILE_MODE             : Android tests
+            CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideAndroidTestSetupTask1, <PROJECT>::lib:ideAndroidTestSetupTask2
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideAndroidTestSetupTask1, <PROJECT>::lib:ideAndroidTestSetupTask2
+            BUNDLE                        : <PROJECT>::app:bundleDebug, <PROJECT>::lib:bundleDebug
+            APK_FROM_BUNDLE               : <PROJECT>::app:extractApksForDebug, <PROJECT>::lib:extractApksForDebug
+        TEST_COMPILE_MODE             : Unit tests
+            CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideUnitTestSetupTask1, <PROJECT>::lib:ideUnitTestSetupTask2
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2, <PROJECT>::lib:generateDebugSources, <PROJECT>::lib:ideUnitTestSetupTask1, <PROJECT>::lib:ideUnitTestSetupTask2
+            BUNDLE                        : <PROJECT>::app:bundleDebug, <PROJECT>::lib:bundleDebug
+            APK_FROM_BUNDLE               : <PROJECT>::app:extractApksForDebug, <PROJECT>::lib:extractApksForDebug
+        TEST_COMPILE_MODE             : None
+            CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::lib:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::lib:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::lib:generateDebugSources
+            BUNDLE                        : <PROJECT>::app:bundleDebug, <PROJECT>::lib:bundleDebug
+            APK_FROM_BUNDLE               : <PROJECT>::app:extractApksForDebug, <PROJECT>::lib:extractApksForDebug

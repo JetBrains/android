@@ -50,6 +50,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBLabel;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -81,6 +82,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     RepositoryPackages packages = new RepositoryPackages();
+    IconLoader.activate();
 
     Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
     // Q image (API 29)
@@ -186,6 +188,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     BatchInvoker.clearOverrideStrategy();
+    IconLoader.deactivate();
     super.tearDown();
   }
 
@@ -292,7 +295,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
-    assertEquals("Android API 32 x86 (Extension Level 3)", optionsStep.getSystemImageDetailsText());
+    assertEquals("Android 12L x86 (Extension Level 3)", optionsStep.getSystemImageDetailsText());
   }
 
   public void testPopulateSnapshotList() throws Exception {

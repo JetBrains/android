@@ -23,7 +23,7 @@ public class BackgroundEditorHighlighter implements com.intellij.codeHighlightin
   private final HighlightingPass[] myHighlightingPasses;
 
   public BackgroundEditorHighlighter(@NotNull DesignerEditorPanel editorPanel) {
-    myHighlightingPasses = new HighlightingPass[]{new LintHighlightingPass(editorPanel.getSurface())};
+    myHighlightingPasses = new HighlightingPass[]{};
   }
 
   @NotNull

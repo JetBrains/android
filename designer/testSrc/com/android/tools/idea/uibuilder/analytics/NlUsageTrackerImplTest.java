@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.analytics;
 
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER;
 import static com.android.SdkConstants.ATTR_ELEVATION;
 import static com.android.SdkConstants.ATTR_TEXT;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
 import static com.android.SdkConstants.EDIT_TEXT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
@@ -80,7 +80,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -362,8 +361,7 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   private static Palette getPalette(@NotNull Project project) throws Exception {
     String id = LayoutFileType.INSTANCE.getPaletteId();
     assertNotNull(id);
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlPaletteModel.getPaletteFileNameFromId(id)),
-                                               StandardCharsets.UTF_8)) {
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlPaletteModel.getPaletteFileNameFromId(id)))) {
       return Palette.parse(reader, new ViewHandlerManager(project));
     }
   }

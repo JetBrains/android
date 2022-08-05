@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging;
+import static com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.concurrency.AndroidIoManager;
+import com.android.tools.idea.model.Namespacing;
+import com.android.utils.TraceUtils;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
@@ -35,6 +40,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiTreeChangeListener;
+import com.intellij.util.Consumer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,26 +79,22 @@ public class ResourceFolderRegistry implements Disposable {
     });
   }
 
-  @NotNull
-  private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
+  private static @NotNull Cache<VirtualFile, ResourceFolderRepository> buildCache() {
     return CacheBuilder.newBuilder().build();
   }
 
-  @NotNull
-  public static ResourceFolderRegistry getInstance(@NotNull Project project) {
+  public static @NotNull ResourceFolderRegistry getInstance(@NotNull Project project) {
     return project.getService(ResourceFolderRegistry.class);
   }
 
-  @NotNull
-  public ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir) {
+  public @NotNull ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir) {
     // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is always obtained first, before the caches
     // locks.
     return ReadAction.compute(() -> get(facet, dir, ResourceRepositoryManager.getInstance(facet).getNamespace()));
   }
 
   @VisibleForTesting
-  @NotNull
-  ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull ResourceNamespace namespace) {
+  @NotNull ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull ResourceNamespace namespace) {
     Cache<VirtualFile, ResourceFolderRepository> cache =
         namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
 
@@ -105,10 +108,17 @@ public class ResourceFolderRegistry implements Disposable {
     return repository;
   }
 
-  @NotNull
-  private static ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
-                                                           @NotNull VirtualFile dir,
-                                                           @NotNull ResourceNamespace namespace) {
+  /**
+   * Returns the resource repository for the given directory, or null if such repository doesn't already exist.
+   */
+  public @Nullable ResourceFolderRepository getCached(@NotNull VirtualFile dir, @NotNull Namespacing namespacing) {
+    var cache = namespacing == Namespacing.REQUIRED ? myNamespacedCache : myNonNamespacedCache;
+    return cache.getIfPresent(dir);
+  }
+
+  private static @NotNull ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
+                                                                    @NotNull VirtualFile dir,
+                                                                    @NotNull ResourceNamespace namespace) {
     // Don't create a persistent cache in tests to avoid unnecessary overhead.
     Executor executor = ApplicationManager.getApplication().isUnitTestMode() ?
                         runnable -> {} : AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
@@ -117,27 +127,23 @@ public class ResourceFolderRegistry implements Disposable {
     return ResourceFolderRepository.create(facet, dir, namespace, cachingData);
   }
 
-  @Nullable
-  public CachedRepositories getCached(@NotNull VirtualFile directory) {
-    ResourceFolderRepository namespaced = myNamespacedCache.getIfPresent(directory);
-    ResourceFolderRepository nonNamespaced = myNonNamespacedCache.getIfPresent(directory);
-    return namespaced == null && nonNamespaced == null ? null : new CachedRepositories(namespaced, nonNamespaced);
-  }
-
   public void reset() {
+    ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".reset()");
     myNamespacedCache.invalidateAll();
     myNonNamespacedCache.invalidateAll();
   }
 
   private void removeStaleEntries() {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories which are no longer needed.
+    ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".removeStaleEntries()");
     removeStaleEntries(myNamespacedCache);
     removeStaleEntries(myNonNamespacedCache);
   }
 
-  private void removeStaleEntries(Cache<VirtualFile, ResourceFolderRepository> cache) {
+  private void removeStaleEntries(@NotNull Cache<VirtualFile, ResourceFolderRepository> cache) {
     Map<VirtualFile, ResourceFolderRepository> cacheAsMap = cache.asMap();
     if (cacheAsMap.isEmpty()) {
+      ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".removeStaleEntries: cache is empty");
       return;
     }
     Set<AndroidFacet> facets = Sets.newHashSetWithExpectedSize(cacheAsMap.size());
@@ -150,6 +156,9 @@ public class ResourceFolderRegistry implements Disposable {
         newResourceFolders.addAll(folderManager.getTestFolders());
       }
     }
+    ResourceUpdateTracer.logDirect(() ->
+        TraceUtils.getSimpleId(this) + ".removeStaleEntries retained " + pathsForLogging(newResourceFolders, myProject)
+    );
 
     cacheAsMap.keySet().retainAll(newResourceFolders);
   }
@@ -160,6 +169,8 @@ public class ResourceFolderRegistry implements Disposable {
   }
 
   void dispatchToRepositories(@NotNull VirtualFile file, @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
+    ResourceUpdateTracer.log(() -> "ResourceFolderRegistry.dispatchToRepositories(" +  pathForLogging(file) + ", ...) VFS change");
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
     for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
       for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
         ResourceFolderRepository repository = cache.getIfPresent(dir);
@@ -168,6 +179,23 @@ public class ResourceFolderRegistry implements Disposable {
         }
       }
     }
+  }
+
+  void dispatchToRepositories(@NotNull VirtualFile file, @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
+    ResourceUpdateTracer.log(() -> "ResourceFolderRegistry.dispatchToRepositories(" +  pathForLogging(file) + ", ...) PSI change");
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+    for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
+      for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
+        ResourceFolderRepository repository = cache.getIfPresent(dir);
+        if (repository != null) {
+          invokeCallback.consume(repository.getPsiListener());
+        }
+      }
+    }
+  }
+
+  public @NotNull Project getProject() {
+    return myProject;
   }
 
   /**
@@ -180,8 +208,9 @@ public class ResourceFolderRegistry implements Disposable {
       myProject = project;
     }
 
+    @Nullable
     @Override
-    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+    public DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
       if (taskFromQueue instanceof PopulateCachesTask && ((PopulateCachesTask)taskFromQueue).myProject.equals(myProject)) return this;
       return null;
     }
@@ -242,19 +271,6 @@ public class ResourceFolderRegistry implements Disposable {
         }
         ++numDone;
       }
-    }
-  }
-
-  public static final class CachedRepositories {
-    @Nullable
-    public final ResourceFolderRepository namespaced;
-
-    @Nullable
-    public final ResourceFolderRepository nonNamespaced;
-
-    public CachedRepositories(@Nullable ResourceFolderRepository namespaced, @Nullable ResourceFolderRepository nonNamespaced) {
-      this.namespaced = namespaced;
-      this.nonNamespaced = nonNamespaced;
     }
   }
 }

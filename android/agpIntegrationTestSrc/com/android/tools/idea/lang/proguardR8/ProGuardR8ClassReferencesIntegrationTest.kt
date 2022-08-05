@@ -19,24 +19,21 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ProGuardR8ClassReferencesIntegrationTest {
 
-  private val gradleProjectRule = AndroidGradleProjectRule()
-
   @get:Rule
-  val ruleChain = RuleChain.outerRule(gradleProjectRule).around(EdtRule())
+  val gradleProjectRule = AndroidGradleProjectRule().onEdt()
 
   private val fixture
     get() = gradleProjectRule.fixture as JavaCodeInsightTestFixture

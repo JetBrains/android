@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.ui.Messages.OK;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -42,7 +43,7 @@ import org.mockito.Mock;
  * Tests for {@link GradlePluginUpgrade#performForcedPluginUpgrade(Project, GradleVersion, GradleVersion)}}.
  */
 public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
-  @Mock private AssistantInvoker myAssistantInvoker;
+  @Mock private RefactoringProcessorInstantiator myRefactoringProcessorInstantiator;
   @Mock private AgpUpgradeRefactoringProcessor myProcessor;
 
   private GradleSyncMessagesStub mySyncMessages;
@@ -56,8 +57,8 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     Project project = getProject();
 
     ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
-    ServiceContainerUtil.replaceService(project, AssistantInvoker.class, myAssistantInvoker, project);
-    when(myAssistantInvoker.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
+    ServiceContainerUtil.replaceService(project, RefactoringProcessorInstantiator.class, myRefactoringProcessorInstantiator, project);
+    when(myRefactoringProcessorInstantiator.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
   }
 
@@ -76,10 +77,10 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   public void testNewerThanLatestKnown() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
 
-    boolean upgraded = GradlePluginUpgrade.versionsShouldForcePluginUpgrade(GradleVersion.parse("3.0.0"), latestPluginVersion);
-    assertTrue(upgraded);
+    boolean incompatible = GradlePluginUpgrade.versionsAreIncompatible(GradleVersion.parse("3.0.0"), latestPluginVersion);
+    assertTrue(incompatible);
     // Can't "upgrade" down from a newer version.
-    verifyNoInteractions(myAssistantInvoker);
+    verifyNoInteractions(myRefactoringProcessorInstantiator);
     verifyNoInteractions(myProcessor);
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
@@ -90,9 +91,9 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
 
     // Simulate user accepting the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
-    when(myAssistantInvoker.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(true);
+    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(true);
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
-    verify(myAssistantInvoker).showAndGetAgpUpgradeDialog(any(), same(false));
+    verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any());
     verify(myProcessor).run();
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
@@ -102,12 +103,14 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
     // Simulate user accepting then cancelling the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
-    when(myAssistantInvoker.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(false);
+    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(false);
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
-    verify(myAssistantInvoker).showAndGetAgpUpgradeDialog(any(), same(false));
-    verifyNoInteractions(myProcessor);
-    // TODO(xof): this is suboptimal and should probably show the same message as if we cancelled from the first dialog.
-    assertThat(mySyncMessages.getReportedMessages()).isEmpty();
+    verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any());
+    verify(myProcessor, never()).run();
+    List<SyncMessage> messages = mySyncMessages.getReportedMessages();
+    assertThat(messages).hasSize(1);
+    String message = messages.get(0).getText()[1];
+    assertThat(message).contains("Please update your project to use version 2.0.0.");
   }
 
   // See https://code.google.com/p/android/issues/detail?id=227927
@@ -118,15 +121,14 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     // Simulate user canceling upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(Messages.CANCEL));
 
-    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), currentPluginVersion, latestPluginVersion);
-    assertFalse(upgraded);
+    GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), currentPluginVersion, latestPluginVersion);
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();
     assertThat(messages).hasSize(1);
     String message = messages.get(0).getText()[1];
     assertThat(message).contains("Please update your project to use version 2.0.0.");
 
-    verifyNoInteractions(myAssistantInvoker);
+    verifyNoInteractions(myRefactoringProcessorInstantiator);
     verifyNoInteractions(myProcessor);
   }
 }

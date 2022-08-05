@@ -15,34 +15,25 @@
  */
 package com.android.tools.idea.gradle.model
 
-import java.io.File
-
 interface IdeDependencies {
   /**
    * Returns the Android library dependencies, both direct and transitive.
    *
    * @return the list of libraries of type LIBRARY_ANDROID.
    */
-  val androidLibraries: Collection<IdeAndroidLibrary>
+  val androidLibraries: Collection<IdeAndroidLibraryDependency>
 
   /**
    * Returns the Java library dependencies, both direct and transitive dependencies.
    *
    * @return the list of libraries of type LIBRARY_JAVA.
    */
-  val javaLibraries: Collection<IdeJavaLibrary>
+  val javaLibraries: Collection<IdeJavaLibraryDependency>
 
   /**
    * Returns the Module dependencies.
    *
    * @return the list of libraries of type LIBRARY_MODULE.
    */
-  val moduleDependencies: Collection<IdeModuleLibrary>
-
-  /**
-   * Returns the list of runtime only classes.
-   *
-   * @return the list of runtime only classes.
-   */
-  val runtimeOnlyClasses: Collection<File>
+  val moduleDependencies: Collection<IdeModuleDependency>
 }

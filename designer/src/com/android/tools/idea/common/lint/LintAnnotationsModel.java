@@ -18,6 +18,7 @@ package com.android.tools.idea.common.lint;
 import com.android.tools.idea.common.error.IssueSource;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.SuppressLintQuickFix;
 import com.android.tools.lint.checks.RtlDetector;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
@@ -26,6 +27,7 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
+import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.psi.PsiElement;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -155,12 +157,18 @@ public class LintAnnotationsModel {
       this.quickfixData = quickfixData;
     }
 
+    @Nullable
+    public SuppressLintQuickFix getSuppressLintQuickFix() {
+      HighlightDisplayKey key = HighlightDisplayKey.find(inspection.getShortName());
+      return key == null ? null : new SuppressLintQuickFix(key.getID(), startElement);
+    }
+
     /**
      * Compare the issue by comparing the following properties, sorted by Highest priority first
      * <ul>
      * <li> {@link HighlightDisplayLevel#getSeverity()}
-     * <li> {@link Issue#priority}
-     * <li> {@link Issue#severity}
+     * <li> {@link Issue#getPriority()}
+     * <li> {@link Issue#getDefaultSeverity()}
      * </ul>
      */
     @Override
@@ -168,7 +176,7 @@ public class LintAnnotationsModel {
       return ComparisonChain.start()
         .compare(this.level.getSeverity(), o.level.getSeverity())
         .compare(this.issue.getPriority(), o.issue.getPriority())
-        .compare(o.issue.getDefaultSeverity(), this.issue.getDefaultSeverity()) // Inverted on purpose
+        .compare(this.issue.getDefaultSeverity(), o.issue.getDefaultSeverity())
         .result();
     }
   }

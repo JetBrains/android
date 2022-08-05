@@ -23,7 +23,6 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
-import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.TestUtils;
@@ -123,7 +122,6 @@ public class DeploymentTest {
     myAdbServer = new FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
       .addDeviceHandler(myHandler)
-      .addDeviceHandler(new JdwpCommandHandler())
       .build();
 
     // Start server execution.

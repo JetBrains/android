@@ -1,0 +1,2 @@
+[libraries]
+a_dep-endency = 'com.example:example:1.2.3'

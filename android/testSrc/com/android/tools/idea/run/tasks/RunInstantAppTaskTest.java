@@ -78,16 +78,16 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
     when(launchStatus.isLaunchTerminated()).thenReturn(true);
 
     RunInstantAppTask task = new RunInstantAppTask(apkInfoListForZip, "");
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getSuccess())
-      .isFalse();
+    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
+      .isEqualTo(LaunchResult.Result.ERROR);
     verifyNoMoreInteractions(runHandler);
   }
 
   @Test
   public void testPerformWithNoZipFile() {
     RunInstantAppTask task = new RunInstantAppTask(ImmutableList.of(), "");
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getSuccess())
-      .isFalse();
+    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
+      .isEqualTo(LaunchResult.Result.ERROR);
     verifyNoMoreInteractions(runHandler);
   }
 
@@ -104,8 +104,8 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* resultStream= */ any(),
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getSuccess())
-      .isTrue();
+    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
+      .isEqualTo(LaunchResult.Result.SUCCESS);
   }
 
   @Test
@@ -120,8 +120,8 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* resultStream= */ any(),
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getSuccess())
-      .isTrue();
+    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
+      .isEqualTo(LaunchResult.Result.SUCCESS);
   }
 
   @Test
@@ -148,8 +148,8 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
 
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getSuccess())
-      .isTrue();
+    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
+      .isEqualTo(LaunchResult.Result.SUCCESS);
 
     verify(runHandler).runApks(
       /* apkFiles= */ eq(ImmutableList.of(apk1, apk2)),

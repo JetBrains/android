@@ -71,7 +71,7 @@ public final class DeviceSkinUpdaterTest {
   @Test
   public void updateSkinsDeviceEqualsNoSkin() {
     // Arrange
-    Path device = myFileSystem.getPath(AvdManagerUtils.NO_SKIN);
+    Path device = myFileSystem.getPath(SkinUtils.NO_SKIN);
 
     // Act
     Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null, true);

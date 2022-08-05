@@ -16,6 +16,7 @@
 package com.android.tools.idea.whatsnew.assistant
 
 import com.android.repository.Revision
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.intellij.openapi.project.ProjectManager
@@ -24,7 +25,6 @@ import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.mockito.stubbing.Answer
 import java.io.File
 import java.io.InputStream
@@ -45,24 +45,24 @@ class WhatsNewBundleCreatorTest : AndroidTestCase() {
     mockUrlProvider = mock(WhatsNewURLProvider::class.java)
 
     val serverFile = File(myFixture.testDataPath).resolve("whatsnewassistant/server-3.3.0.xml")
-    `when`(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + serverFile.path))
+    whenever(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + serverFile.path))
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
-    `when`(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
+    whenever(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
       .thenAnswer(Answer<InputStream> {
         URL("file:" + resourceFile.path).openStream()
       })
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     localPath = tmpDir.resolve("local-3.3.0.xml")
-    `when`(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
+    whenever(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
   }
 
   @Test
   fun testEnabled() {
     val mockBundler = mock(AssistantBundleCreator::class.java)
-    `when`(mockBundler.bundleId).thenReturn(WhatsNewBundleCreator.BUNDLE_ID)
-    `when`(mockBundler.config).thenReturn(URL("file:test.file"))
+    whenever(mockBundler.bundleId).thenReturn(WhatsNewBundleCreator.BUNDLE_ID)
+    whenever(mockBundler.config).thenReturn(URL("file:test.file"))
     WhatsNewBundleCreator.setTestCreator(mockBundler)
 
     assertTrue(WhatsNewBundleCreator.shouldShowReleaseNotes())
@@ -92,7 +92,7 @@ class WhatsNewBundleCreatorTest : AndroidTestCase() {
    */
   @Test
   fun testDownloadDoesNotExist() {
-    `when`(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
+    whenever(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
 
     // Expected bundle file is defaultresource-3.3.0.xml
     val bundleCreator = WhatsNewBundleCreator(mockUrlProvider, studioRevision)
@@ -120,7 +120,7 @@ class WhatsNewBundleCreatorTest : AndroidTestCase() {
     }
 
     // Change server file to one that doesn't exist, meaning no connection
-    `when`(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
+    whenever(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
     // Expected bundle file is still server-3.3.0.xml because it was downloaded on the first fetch
     val newBundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
     assertNotNull(newBundle)
@@ -149,7 +149,7 @@ class WhatsNewBundleCreatorTest : AndroidTestCase() {
   @Test
   fun testDownloadTimeout() {
     val mockConnectionOpener = mock(WhatsNewConnectionOpener::class.java)
-    `when`(mockConnectionOpener.openConnection(ArgumentMatchers.isNotNull<URL>(), ArgumentMatchers.anyInt())).thenThrow(TimeoutException())
+    whenever(mockConnectionOpener.openConnection(ArgumentMatchers.isNotNull<URL>(), ArgumentMatchers.anyInt())).thenThrow(TimeoutException())
 
     // Expected bundle file is defaultresource-3.3.0.xml
     val bundleCreator = WhatsNewBundleCreator(mockUrlProvider, studioRevision, mockConnectionOpener, true)

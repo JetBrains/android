@@ -204,9 +204,10 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
     while ((packet = readOnePacket(inputStream, packetRegistry)) != null) {
       if (packet.hasFtraceEvents()) {
         PerfettoTrace.FtraceEventBundle bundle = packet.getFtraceEvents();
-        for(PerfettoTrace.FtraceEvent event : bundle.getEventList())
-        if (IS_SUPPORTED_EVENT.apply(event)) {
-          mySorter.addLine(event.getTimestamp(), formatter.formatLine(event, bundle.getCpu()));
+        for (PerfettoTrace.FtraceEvent event : bundle.getEventList()) {
+          if (IS_SUPPORTED_EVENT.apply(event)) {
+            mySorter.addLine(event.getTimestamp(), formatter.formatLine(event, bundle.getCpu()));
+          }
         }
       }
     }

@@ -20,6 +20,7 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderLogger
 import com.android.tools.idea.rendering.RenderResult
@@ -31,7 +32,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.awt.Dimension
 
 class ScreenViewTest {
@@ -71,8 +71,8 @@ class ScreenViewTest {
     val file = projectRule.fixture.addFileToProject("src/EmptyFile.kt", "")
     val result = RenderResult.createRenderTaskErrorResult(file, renderLogger)
 
-    `when`(sceneManager.renderResult).thenReturn(result)
-    `when`(screenView.sceneManager).thenReturn(sceneManager)
+    whenever(sceneManager.renderResult).thenReturn(result)
+    whenever(screenView.sceneManager).thenReturn(sceneManager)
 
     assertFalse(DEVICE_CONTENT_SIZE_POLICY.hasContentSize(screenView))
   }
@@ -81,10 +81,10 @@ class ScreenViewTest {
   fun `device content size policy with no device returns no size`() {
     val screenView = mock(ScreenView::class.java)
     val configuration = mock(Configuration::class.java)
-    `when`(configuration.cachedDevice).thenReturn(null)
-    `when`(configuration.deviceState).thenReturn(null)
+    whenever(configuration.cachedDevice).thenReturn(null)
+    whenever(configuration.deviceState).thenReturn(null)
 
-    `when`(screenView.configuration).thenReturn(configuration)
+    whenever(screenView.configuration).thenReturn(configuration)
 
     val outDimension = Dimension(123, 123)
 
@@ -94,7 +94,7 @@ class ScreenViewTest {
     assertEquals("measure should not modify the dimensions where there is no device available", 123, outDimension.width)
     assertEquals("measure should not modify the dimensions where there is no device available", 123, outDimension.height)
 
-    `when`(configuration.cachedDevice).thenReturn(buildDevice("Pixel5"))
+    whenever(configuration.cachedDevice).thenReturn(buildDevice("Pixel5"))
     DEVICE_CONTENT_SIZE_POLICY.measure(screenView, outDimension)
     // Not modified
     assertEquals("measure should not modify the dimensions where there is no state available", 123, outDimension.width)
@@ -106,10 +106,10 @@ class ScreenViewTest {
     val screenView = mock(ScreenView::class.java)
     val configuration = mock(Configuration::class.java)
     val device = buildDevice("Pixel5")
-    `when`(configuration.cachedDevice).thenReturn(device)
-    `when`(configuration.deviceState).thenReturn(device.defaultState)
+    whenever(configuration.cachedDevice).thenReturn(device)
+    whenever(configuration.deviceState).thenReturn(device.defaultState)
 
-    `when`(screenView.configuration).thenReturn(configuration)
+    whenever(screenView.configuration).thenReturn(configuration)
 
     val outDimension = Dimension(123, 123)
 

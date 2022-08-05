@@ -127,6 +127,8 @@ abstract class WarningsFilterToggleAction(
   }
 
   private fun setSelected(state: Boolean) {
+    toggleableIcon.setLayerEnabled(1, state)
+    toggleableSelectedIcon.setLayerEnabled(1, state)
     val updatedFilter = if (state) onAdd(warningsModel.filter)
     else onRemove(warningsModel.filter)
     actionHandlers.applyWarningsFilter(updatedFilter)
@@ -297,6 +299,8 @@ abstract class TasksFilterToggleAction(
   }
 
   private fun setSelected(state: Boolean) {
+    toggleableIcon.setLayerEnabled(1, state)
+    toggleableSelectedIcon.setLayerEnabled(1, state)
     val updatedFilter = if (state) onAdd(tasksModel.filter) else onRemove(tasksModel.filter)
     actionHandlers.applyTasksFilter(updatedFilter)
   }

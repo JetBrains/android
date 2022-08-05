@@ -24,6 +24,9 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
+import com.android.tools.idea.model.MergedManifestManager.Companion.getSnapshot
+import com.android.tools.idea.model.logManifestIndexQueryError
+import com.android.tools.idea.model.queryApplicationDebuggableFromManifestIndex
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -54,6 +57,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.impl.LoadTextUtil.getTextByBinaryPresentation
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -62,11 +66,13 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
@@ -253,6 +259,25 @@ class DefaultModuleSystem(override val module: Module) :
 
   override var isMlModelBindingEnabled: Boolean by UserData(Keys.isMlModelBindingEnabled, false)
 
+  override val isDebuggable: Boolean
+    get() {
+      try {
+        return DumbService.getInstance(module.project)
+          .runReadActionInSmartMode<Boolean?> {
+            val queryIndex =
+              ThrowableComputable<Boolean?, IndexNotReadyException> { module.androidFacet?.queryApplicationDebuggableFromManifestIndex() }
+            SlowOperations.allowSlowOperations(queryIndex)
+          } ?: false
+      } catch (e: IndexNotReadyException) {
+        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+        //  We need to refactor the callers of this to require a *smart*
+        //  read action, at which point we can remove this try-catch.
+        logManifestIndexQueryError(e)
+      }
+
+      return module.androidFacet?.let { getSnapshot(it).applicationDebuggable } ?: false
+    }
+
   override var applicationRClassConstantIds: Boolean by UserData(Keys.applicationRClassConstantIds, true)
 
   override var testRClassConstantIds: Boolean by UserData(Keys.testRClassConstantIds, true)
@@ -281,9 +306,11 @@ private class UserData<T>(
 
 fun getPackageName(module: Module): String? {
   val facet = AndroidFacet.getInstance(module) ?: return null
-
+  // Reading from indexes may be slow and in non-blocking read actions we prefer to give priority to
+  // write actions.
+  ProgressManager.checkCanceled()
   return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
-         ?: getPackageNameByParsingPrimaryManifest(facet)
+    ?: getPackageNameByParsingPrimaryManifest(facet)
 }
 
 private fun getPackageNameFromIndex(facet: AndroidFacet): String? {

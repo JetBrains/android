@@ -50,7 +50,7 @@ open class CpuProfilerMemoryLoadTestBase {
   val myTimingBenchmark = Benchmark.Builder("CpuProfiler Import Trace Time (millis)").setProject("Android Studio Profilers").build()
   val myTimer = FakeTimer()
   val myComponents = FakeIdeProfilerComponents()
-  val myIdeServices = FakeIdeProfilerServices()
+  var myIdeServices = FakeIdeProfilerServices()
   val myCpuService = FakeCpuService()
   var myProfilersView: StudioProfilersView? = null
 

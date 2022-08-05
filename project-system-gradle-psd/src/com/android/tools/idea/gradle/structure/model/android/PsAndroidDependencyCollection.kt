@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.projectPath
+import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
@@ -83,18 +85,6 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule)
     moduleDependencyModel: ModuleDependencyModel
   ): PsDeclaredModuleAndroidDependency =
     (existing ?: PsDeclaredModuleAndroidDependency(parent)).apply {init(moduleDependencyModel)}
-
-  private fun buildArtifactsByConfigurations(): Map<String, List<PsAndroidArtifact>> {
-    val artifactsByConfigurationNames = mutableMapOf<String, MutableList<PsAndroidArtifact>>()
-    parent.resolvedVariants.forEach { variant ->
-      variant.forEachArtifact { artifact ->
-        artifact.possibleConfigurationNames.forEach { possibleConfigurationName ->
-          artifactsByConfigurationNames.getOrPut(possibleConfigurationName, { mutableListOf() }).add(artifact)
-        }
-      }
-    }
-    return artifactsByConfigurationNames
-  }
 }
 
 /**
@@ -116,24 +106,22 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
   override fun collectResolvedDependencies(container: PsAndroidArtifact) {
     val artifact = container
     val resolvedArtifact = artifact.resolvedModel ?: return
-    val dependencies = resolvedArtifact.level2Dependencies
+    val dependencies = resolvedArtifact.compileClasspath
 
     for (androidLibrary in dependencies.androidLibraries) {
-      addLibrary(androidLibrary, artifact)
+      addLibrary(androidLibrary.target, artifact)
     }
 
     for (moduleLibrary in dependencies.moduleDependencies) {
       val gradlePath = moduleLibrary.projectPath
-      if (gradlePath != null) {
-        val module = artifact.parent.parent.parent.findModuleByGradlePath(gradlePath)
-        // TODO(solodkyy): Support not yet resolved modules.
-        if (module != null) {
-          addModule(module, artifact, moduleLibrary.variant)
-        }
+      val module = artifact.parent.parent.parent.findModuleByGradlePath(gradlePath)
+      // TODO(solodkyy): Support not yet resolved modules.
+      if (module != null) {
+        addModule(module, artifact, moduleLibrary.variant)
       }
     }
     for (javaLibrary in dependencies.javaLibraries) {
-      addLibrary(javaLibrary, artifact)
+      addLibrary(javaLibrary.target, artifact)
     }
   }
 
@@ -168,25 +156,34 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
       // TODO(b/74425541): Make sure it returns all the matching parsed dependencies rather than the first one.
       val matchingDeclaredDependencies =
         parsedDependencies
-          .findLibraryDependencies(coordinates.groupId, coordinates.artifactId!!)
+          .findLibraryDependencies(coordinates.groupId, coordinates.artifactId)
           .filter { artifact.contains(it.parsedModel) }
       // TODO(b/74425541): Reconsider duplicates.
       val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, matchingDeclaredDependencies)
-      androidDependency.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(library.artifactAddress, libraryArtifactFile))
+      if (libraryArtifactFile != null) {
+        androidDependency.setDependenciesFromPomFile(
+          parent.parent.pomDependencyCache.getPomDependencies(
+            library.artifactAddress,
+            libraryArtifactFile
+          )
+        )
+      }
       addLibraryDependency(androidDependency)
     }
     else {
-      val artifactCanonicalFile = libraryArtifactFile.canonicalFile
-      val matchingDeclaredDependencies =
-        matchJarDeclaredDependenciesIn(parsedDependencies, artifactCanonicalFile)
-      val path = parent.relativeFile(artifactCanonicalFile)
-      val jarDependency = PsResolvedJarAndroidDependency(parent, this, path.path, artifact, matchingDeclaredDependencies)
-      addJarDependency(jarDependency)
+      val artifactCanonicalFile = libraryArtifactFile?.canonicalFile
+      if (artifactCanonicalFile != null) {
+        val matchingDeclaredDependencies =
+          matchJarDeclaredDependenciesIn(parsedDependencies, artifactCanonicalFile)
+        val path = parent.relativeFile(artifactCanonicalFile)
+        val jarDependency = PsResolvedJarAndroidDependency(parent, this, path.path, artifact, matchingDeclaredDependencies)
+        addJarDependency(jarDependency)
+      }
     }
   }
 
   private fun addModule(module: PsModule, artifact: PsAndroidArtifact, projectVariant: String?) {
-    val gradlePath = module.gradlePath!!
+    val gradlePath = module.gradlePath
     val matchingParsedDependency =
       parent
         .dependencies

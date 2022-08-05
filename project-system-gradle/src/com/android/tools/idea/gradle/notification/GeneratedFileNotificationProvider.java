@@ -20,8 +20,8 @@ import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIF
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
@@ -34,10 +34,15 @@ import com.intellij.ui.EditorNotifications;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
+
+  @NotNull private final Project myProject;
+
+  public GeneratedFileNotificationProvider(@NotNull Project project) {
+    myProject = project;
+  }
 
   @NotNull
   @Override
@@ -47,34 +52,20 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                         @NotNull FileEditor fileEditor,
-                                                         @NotNull Project project) {
-    AndroidModuleModel androidModel =
-      GradleProjectInfo.getInstance(project).findAndroidModelInModule(file, false /* include excluded files */);
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+    GradleAndroidModel androidModel =
+      GradleProjectSystemUtil.findAndroidModelInModule(myProject, file, false /* include excluded files */);
     if (androidModel == null) {
       return null;
     }
-    return doCreateNotification(file, fileEditor, project, androidModel);
-  }
-
-  @TestOnly
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                         @NotNull FileEditor fileEditor,
-                                                         @NotNull Project project,
-                                                         @NotNull GradleProjectInfo projectInfo) {
-    AndroidModuleModel androidModel = projectInfo.findAndroidModelInModule(file, false /* include excluded files */);
-    if (androidModel == null) {
-      return null;
-    }
-    return doCreateNotification(file, fileEditor, project, androidModel);
+    return createNotificationPanel(file, fileEditor, androidModel);
   }
 
   @Nullable
-  private static EditorNotificationPanel doCreateNotification(@NotNull VirtualFile file,
-                                                              @NotNull FileEditor fileEditor,
-                                                              @NotNull Project project,
-                                                              @NotNull AndroidModuleModel androidModel) {
+  @VisibleForTesting
+  public MyEditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                            @NotNull FileEditor fileEditor,
+                                                            @NotNull GradleAndroidModel androidModel) {
     if (DISABLE_GENERATED_FILE_NOTIFICATION_KEY.get(fileEditor, false)) {
       return null;
     }
@@ -84,7 +75,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
       return null;
     }
     if (isAncestor(buildFolder, file, false /* not strict */)) {
-      if (GeneratedSourceFileChangeTracker.getInstance(project).isEditedGeneratedFile(file)) {
+      if (GeneratedSourceFileChangeTracker.getInstance(myProject).isEditedGeneratedFile(file)) {
         // A warning is already being displayed by GeneratedFileEditingNotificationProvider
         return null;
       }

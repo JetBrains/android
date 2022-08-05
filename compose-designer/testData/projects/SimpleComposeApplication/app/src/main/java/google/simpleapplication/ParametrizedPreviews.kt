@@ -24,13 +24,24 @@ import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 /**
  * Simple provider to test instantiation and default parameters.
  */
-class TestProvider(defaultPrefix: String): PreviewParameterProvider<String> {
-  constructor(): this("prefix")
+class TestProvider(defaultPrefix: String = "prefix"): PreviewParameterProvider<String> {
 
   override val values: Sequence<String> = sequenceOf(
     "${defaultPrefix}A",
     "${defaultPrefix}B",
     "${defaultPrefix}C")
+}
+
+/**
+ * Provider that throws an Exception in the constructor
+ */
+class FailingProvider : PreviewParameterProvider<String> {
+
+  init {
+    throw Exception("Make it fail")
+  }
+
+  override val values: Sequence<String> = sequenceOf("hey")
 }
 
 @Preview
@@ -40,5 +51,14 @@ fun TestWithProvider(@PreviewParameter(provider = TestProvider::class) name: Str
 
 @Preview
 @Composable
+fun TestWithProviderInExpression(@PreviewParameter(provider = TestProvider::class) name: String) = println(name)
+
+@Preview
+@Composable
 fun TestLorem(@PreviewParameter(provider = LoremIpsum::class) lorem: String) {
+}
+
+@Preview
+@Composable
+fun TestFailingProvider(@PreviewParameter(provider = FailingProvider::class) name: String) {
 }

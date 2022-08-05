@@ -237,6 +237,12 @@ public class TrackGroupListPanel implements TrackGroupMover {
     TrackGroupSelectionListener(@NotNull TrackGroup trackGroup, @NotNull MultiSelectionModel<T> multiSelectionModel) {
       myTrackGroup = trackGroup;
       myMultiSelectionModel = multiSelectionModel;
+      // Subscribe to multi-selection changes and handle the case when selection is cleared (e.g. from the Analysis Panel).
+      myMultiSelectionModel.addDependency(trackGroup).onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, () -> {
+        if (multiSelectionModel.getSelections().isEmpty()) {
+          trackGroup.getTrackList().clearSelection();
+        }
+      });
     }
 
     @Override

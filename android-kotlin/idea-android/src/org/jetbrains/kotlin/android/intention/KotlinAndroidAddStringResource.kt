@@ -3,8 +3,9 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.resources.ResourceType
-import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.COMPOSE_STRING_RESOURCE_FQN
 import com.android.tools.compose.isInsideComposableCode
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.createValueResource
 import com.android.tools.idea.res.getRJavaFieldName
 import com.intellij.CommonBundle
@@ -29,7 +30,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.actions.CreateXmlResourceDialog
-import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
@@ -98,8 +98,8 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
         val file = element.containingFile as KtFile
         val project = file.project
 
-        val manifestPackage = getManifestPackage(facet)
-        if (manifestPackage == null) {
+        val applicationPackage = getApplicationPackage(facet)
+        if (applicationPackage == null) {
             Messages.showErrorDialog(project, AndroidBundle.message(PACKAGE_NOT_FOUND_ERROR), CommonBundle.getErrorTitle())
             return
         }
@@ -114,7 +114,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
                 return@runWriteAction
             }
 
-            createResourceReference(facet.module, editor, file, element, manifestPackage, parameters.name, ResourceType.STRING)
+            createResourceReference(facet.module, editor, file, element, applicationPackage, parameters.name, ResourceType.STRING)
             PsiDocumentManager.getInstance(project).commitAllDocuments()
             UndoUtil.markPsiFileForUndo(file)
             PsiManager.getInstance(project).dropResolveCaches()
@@ -159,7 +159,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
 
         val template: TemplateImpl
         if (element.isInsideComposableCode()) {
-            template = TemplateImpl("", "${ComposeLibraryNamespace.ANDROIDX_COMPOSE.stringResourceFunctionFqName}($fieldName)", "")
+            template = TemplateImpl("", "$COMPOSE_STRING_RESOURCE_FQN($fieldName)", "")
         }
         else if (!needContextReceiver(element)) {
             template = TemplateImpl("", "$GET_STRING_METHOD($fieldName)", "")
@@ -211,7 +211,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
         return true
     }
 
-    private fun getManifestPackage(facet: AndroidFacet) = Manifest.getMainManifest(facet)?.`package`?.value
+    private fun getApplicationPackage(facet: AndroidFacet) = facet.getModuleSystem()?.getPackageName()
 
     private fun PsiElement.isSubclassOrSubclassExtension(baseClasses: Collection<String>) =
             (this as? KtClassOrObject)?.isSubclassOfAny(baseClasses) ?:

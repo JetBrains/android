@@ -17,15 +17,17 @@ package org.jetbrains.android.actions.widgets
 
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.PathUtil
+import java.io.File
 
 /**
  * Represents an item intended for a SourceSet ComboBox.
  */
-class SourceSetItem private constructor(
+class SourceSetItem(
   val sourceSetName: String,
   val resDirUrl: String,
   val displayableResDir: String
@@ -35,9 +37,20 @@ class SourceSetItem private constructor(
      * Helper function to safely create a [SourceSetItem] instance.
      */
     @JvmStatic
-    fun create(sourceProvider: NamedIdeaSourceProvider, module: Module, resDirUrl: String): SourceSetItem {
+    fun create(sourceProvider: NamedIdeaSourceProvider, module: Module, resDirUrl: String): SourceSetItem? =
+      create(sourceProvider.name, AndroidProjectRootUtil.getModuleDirPath(module), resDirUrl)
+
+    @JvmStatic
+    fun create(template: NamedModuleTemplate, folder: File): SourceSetItem? =
+      create(template.name, template.paths.moduleRoot?.absolutePath, folder.absolutePath)
+
+    private fun create(name: String, modulePath: String?, resDirUrl: String): SourceSetItem? {
+      val file = File(resDirUrl)
+      val parent = file.parentFile
+      if (parent == null || parent.name == "generated") {
+        return null
+      }
       val resDirPath = FileUtil.toSystemIndependentName(PathUtil.toPresentableUrl(resDirUrl))
-      val modulePath = AndroidProjectRootUtil.getModuleDirPath(module)
       val relativeResourceUrl =
         modulePath?.let {
           FileUtil.getRelativePath(modulePath, resDirPath, '/')?.replaceFirst("(\\.\\./)+".toRegex(), "")
@@ -46,7 +59,9 @@ class SourceSetItem private constructor(
         relativeResourceUrl ?: resDirPath,
         30,
         true).toString()
-      return SourceSetItem(sourceSetName = sourceProvider.name, resDirUrl = resDirUrl, displayableResDir = displayableResDir)
+      return SourceSetItem(sourceSetName = name, resDirUrl = resDirUrl, displayableResDir = displayableResDir)
     }
   }
+
+  override fun toString() = "$sourceSetName ($displayableResDir)"
 }

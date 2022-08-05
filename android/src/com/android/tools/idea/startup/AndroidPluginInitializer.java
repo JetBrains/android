@@ -27,9 +27,10 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("UnstableApiUsage")
 public class AndroidPluginInitializer implements ApplicationLoadListener {
   @Override
-  public void beforeApplicationLoaded(@NotNull Application application, @NotNull Path config) {
+  public void beforeApplicationLoaded(@NotNull Application application, @NotNull Path configPath) {
     //AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
     StudioProgressManagerAdapter.initialize();
     ApkFacetCheckerInitializer.initializeApkFacetChecker();
+    AdbFileProviderInitializer.initializeApplication();
   }
 }

@@ -21,7 +21,7 @@ package trebuchet.util
 import trebuchet.io.DataSlice
 import java.util.regex.Matcher
 
-inline fun Byte.isDigit() = this >= '0'.toByte() && this <= '9'.toByte()
+inline fun Byte.isDigit() = this >= '0'.code.toByte() && this <= '9'.code.toByte()
 
 open class BufferReaderState(var buffer: ByteArray, var index: Int, var endIndexExclusive: Int) {
     constructor() : this(DataSlice.EmptyBuffer, 0, 0)
@@ -164,7 +164,7 @@ class BufferReader : BufferReaderState() {
         var foundDigit = false
         val startIndex = index
         while (index < endIndexExclusive) {
-            val c = buffer[index] - '0'.toByte()
+            val c = buffer[index] - '0'.code.toByte()
             if (c >= 0 && c <= 9) {
                 foundDigit = true
                 value *= 10
@@ -182,9 +182,9 @@ class BufferReader : BufferReaderState() {
     }
 
     fun readDouble(): Double {
-        skipUntil { it == '.'.toByte() || isDigit() }
+        skipUntil { it == '.'.code.toByte() || isDigit() }
         var result = readInt().toDouble()
-        if (peek() == '.'.toByte()) {
+        if (peek() == '.'.code.toByte()) {
             skip()
             val startI = index
             val second = readInt().toDouble()

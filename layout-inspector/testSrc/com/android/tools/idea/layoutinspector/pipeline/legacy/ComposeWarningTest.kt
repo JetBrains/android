@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
@@ -34,7 +35,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 
 class ComposeWarningTest {
   private lateinit var model: InspectorModel
@@ -94,7 +94,7 @@ class ComposeWarningTest {
 
   private fun createClientFor(device: DeviceDescriptor, appName: String): LegacyClient {
     val client: LegacyClient = mock()
-    `when`(client.process).thenReturn(device.createProcess(appName))
+    whenever(client.process).thenReturn(device.createProcess(appName))
     return client
   }
 }

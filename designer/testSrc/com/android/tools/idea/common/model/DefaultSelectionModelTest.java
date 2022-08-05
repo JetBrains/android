@@ -32,7 +32,7 @@ public class DefaultSelectionModelTest {
   public void testBasic() {
     SelectionModel model = new DefaultSelectionModel();
     assertTrue(model.isEmpty());
-    final Ref<Boolean> called = new Ref<>(false);
+    final Ref<Boolean> called = new Ref<Boolean>(false);
 
     SelectionListener listener = (model1, selection) -> {
       assertFalse(called.get());

@@ -26,9 +26,25 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.snapshots.APP_INSPECTION_SNAPSHOT_VERSION
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesCommand
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
+import com.google.protobuf.InvalidProtocolBufferException
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.application.ApplicationInfo
@@ -41,29 +57,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.snapshots.Metadata
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesCommand
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 
 const val VIEW_LAYOUT_INSPECTOR_ID = "layoutinspector.view.inspection"
 private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
@@ -103,7 +105,7 @@ class ViewLayoutInspectorClient(
     val generation: Int,
     val rootIds: List<Long>,
     val viewEvent: LayoutEvent,
-    val composeEvent: GetComposablesResponse?
+    val composeEvent: GetComposablesResult?
   )
 
   companion object {
@@ -154,19 +156,32 @@ class ViewLayoutInspectorClient(
   private var generation = 0 // Update the generation each time we get a new LayoutEvent
   private val currRoots = mutableListOf<Long>()
 
-  var lastData: MutableMap<Long, Data> = mutableMapOf()
-  var lastProperties: MutableMap<Long, PropertiesEvent> = mutableMapOf()
-  var lastComposeParameters: MutableMap<Long, GetAllParametersResponse> = mutableMapOf()
+  private var lastData = ConcurrentHashMap<Long, Data>()
+  private var lastProperties = ConcurrentHashMap<Long, PropertiesEvent>()
+  private var lastComposeParameters = ConcurrentHashMap<Long, GetAllParametersResponse>()
+  private val recentLayouts = ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
 
   init {
     scope.launch {
       // Layout events are very expensive to process and we may get a bunch of intermediate layouts while still processing an older one.
       // We skip over rendering these obsolete frames, which makes the UX feel much more responsive.
-      val recentLayouts = mutableMapOf<Long, LayoutEvent>() // Map of root IDs to their layout
       messenger.eventFlow
-        .map { eventBytes -> Event.parseFrom(eventBytes) }
+        .mapNotNull { eventBytes ->
+          try {
+            Event.parseFrom(eventBytes)
+          } catch (e: InvalidProtocolBufferException) {
+            // Catch and swallow protocol exceptions thrown when debugging the application.
+            // The above bytes are stitched together from separate messages. However, messages
+            // sent during break point suspension can get duplicated in the transport layer,
+            // resulting in a larger than expected payload.
+            // See b/181908873 for context.
+            null
+          }
+        }
         .onEach { event ->
-          if (event.specializedCase == Event.SpecializedCase.LAYOUT_EVENT) recentLayouts[event.layoutEvent.rootView.id] = event.layoutEvent
+          if (event.specializedCase == Event.SpecializedCase.LAYOUT_EVENT) {
+            recentLayouts[event.layoutEvent.rootView.id] = event.layoutEvent
+          }
         }
         .buffer(capacity = UNLIMITED) // Buffering allows event collection to keep happening even as we're still processing older ones
         .filter { event ->
@@ -176,10 +191,7 @@ class ViewLayoutInspectorClient(
           when (event.specializedCase) {
             Event.SpecializedCase.ERROR_EVENT -> handleErrorEvent(event.errorEvent)
             Event.SpecializedCase.ROOTS_EVENT -> handleRootsEvent(event.rootsEvent)
-            Event.SpecializedCase.LAYOUT_EVENT -> {
-              recentLayouts.remove(event.layoutEvent.rootView.id)
-              handleLayoutEvent(event.layoutEvent)
-            }
+            Event.SpecializedCase.LAYOUT_EVENT -> handleLayoutEvent(event.layoutEvent)
             Event.SpecializedCase.PROPERTIES_EVENT -> handlePropertiesEvent(event.propertiesEvent)
             Event.SpecializedCase.PROGRESS_EVENT -> handleProgressEvent(event.progressEvent)
             Event.SpecializedCase.FOLD_EVENT -> handleFoldEvent(event.foldEvent)
@@ -205,7 +217,7 @@ class ViewLayoutInspectorClient(
       }.build()
     }
     if (!response.startFetchResponse.error.isNullOrEmpty()) {
-      throw ConnectionFailedException(response.startFetchResponse.error)
+      throw ConnectionFailedException(response.startFetchResponse.error, response.startFetchResponse.code.toAttachErrorCode())
     }
   }
 
@@ -254,9 +266,10 @@ class ViewLayoutInspectorClient(
 
     propertiesCache.retain(currRoots)
     composeInspector?.parametersCache?.retain(currRoots)
-    lastData.keys.retainAll(currRoots)
-    lastComposeParameters.keys.retainAll(currRoots)
-    lastProperties.keys.retainAll(currRoots)
+    lastData.keys.retainAll(currRoots.toSet())
+    lastComposeParameters.keys.retainAll(currRoots.toSet())
+    lastProperties.keys.retainAll(currRoots.toSet())
+    recentLayouts.keys.retainAll(currRoots.toSet())
   }
 
   private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {
@@ -265,15 +278,14 @@ class ViewLayoutInspectorClient(
     propertiesCache.clearFor(layoutEvent.rootView.id)
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
-    val composablesResponse = if (composeInspector != null) {
-      composeInspector.getComposeables(layoutEvent.rootView.id, generation)
-    } else null
+    val composablesResult = composeInspector?.getComposeables(layoutEvent.rootView.id, generation, !isFetchingContinuously)
 
     val data = Data(
       generation,
       currRoots,
       layoutEvent,
-      composablesResponse)
+      composablesResult
+    )
     if (!isFetchingContinuously) {
       lastData[layoutEvent.rootView.id] = data
     }
@@ -327,7 +339,12 @@ class ViewLayoutInspectorClient(
     catch (ignore: CancellationException) {
       return
     }
-    saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, snapshotMetadata, model.foldInfo)
+    // There could be a synchronization issue here, if we get an update just as these maps are being copied. However, since we only get
+    // here in non-live mode, we shouldn't be getting any unexpected updates.
+    val data = HashMap(lastData)
+    val properties = HashMap(lastProperties)
+    val composeParameters = HashMap(lastComposeParameters)
+    saveAppInspectorSnapshot(path, data, properties, composeParameters, snapshotMetadata, model.foldInfo)
   }
 
   private fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
@@ -373,7 +390,7 @@ class ViewLayoutInspectorClient(
       val composeInfo = composeInspector?.let { composeInspector ->
         generation++
         snapshotResponse.windowRoots.idsList.associateWith { id ->
-          Pair(composeInspector.getComposeables(id, generation),
+          Pair(composeInspector.getComposeables(id, generation, forSnapshot = true),
                composeInspector.getAllParameters(id))
         }
       } ?: mapOf()

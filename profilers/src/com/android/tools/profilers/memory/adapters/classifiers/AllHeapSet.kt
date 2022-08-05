@@ -29,13 +29,7 @@ class AllHeapSet(obj: CaptureObject, private val subHeaps: Array<HeapSet>): Heap
     super.setClassGrouping(classGrouping)
   }
 
-  override fun createSubClassifier() = object : Classifier() {
-    override fun isTerminalClassifier() = false
-    override fun getClassifierSet(instance: InstanceObject, createIfAbsent: Boolean) =
-      subHeaps.find {it.id == instance.heapId}
-    override fun getFilteredClassifierSets() = subHeaps.filterNot {it.isEmpty}
-    override fun getAllClassifierSets() = subHeaps.toList()
-  }
+  override fun createSubClassifier() = Classifier.of(InstanceObject::getHeapId, { subHeaps.first { h -> h.id == it } })
 
   companion object {
     const val NAME = "All"

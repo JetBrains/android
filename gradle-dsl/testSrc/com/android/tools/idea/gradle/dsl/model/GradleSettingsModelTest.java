@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import java.io.File;
@@ -465,6 +466,66 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     verifyFileContents(mySettingsFile, TestFile.EDIT_AND_APPLY_PLUGIN_MANAGEMENT_THREE_ARGUMENTS_EXPECTED);
   }
 
+  @Test
+  public void testParseVersionCatalogs() throws IOException {
+    writeToSettingsFile(TestFile.PARSE_VERSION_CATALOGS);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+
+    List<VersionCatalogModel> versionCatalogs = dependencyResolutionManagementModel.versionCatalogs();
+    assertSize(3, versionCatalogs);
+    assertEquals("libs", versionCatalogs.get(0).getName());
+    assertEquals("gradle/libs.versions.toml", versionCatalogs.get(0).from().toString());
+    assertEquals("foo", versionCatalogs.get(1).getName());
+    assertEquals("gradle/foo.versions.toml", versionCatalogs.get(1).from().toString());
+    assertEquals("bar", versionCatalogs.get(2).getName());
+    assertMissingProperty(versionCatalogs.get(2).from());
+  }
+
+  @Test
+  public void testAddVersionCatalogs() throws IOException {
+    writeToSettingsFile(TestFile.ADD_VERSION_CATALOGS);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+
+    VersionCatalogModel foo = dependencyResolutionManagementModel.addVersionCatalog("foo");
+    foo.from().setValue("gradle/foo.versions.toml");
+    VersionCatalogModel bar = dependencyResolutionManagementModel.addVersionCatalog("bar");
+
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.ADD_VERSION_CATALOGS_EXPECTED);
+  }
+
+  @Test
+  public void testRemoveVersionCatalogs() throws IOException {
+    writeToSettingsFile(TestFile.REMOVE_VERSION_CATALOGS);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+
+    dependencyResolutionManagementModel.removeVersionCatalog("foo");
+    dependencyResolutionManagementModel.removeVersionCatalog("bar");
+
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, "");
+  }
+
+  @Test
+  public void testEditVersionCatalogs() throws IOException {
+    writeToSettingsFile(TestFile.EDIT_VERSION_CATALOGS);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+
+    VersionCatalogModel libs = dependencyResolutionManagementModel.versionCatalogs().get(0);
+    libs.from().setValue("gradle/new-libs.versions.toml");
+    VersionCatalogModel foo = dependencyResolutionManagementModel.versionCatalogs().get(1);
+    foo.from().delete();
+    VersionCatalogModel bar = dependencyResolutionManagementModel.versionCatalogs().get(2);
+    bar.from().setValue("gradle/bar.versions.toml");
+
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.EDIT_VERSION_CATALOGS_EXPECTED);
+  }
+
   private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
     runWriteCommandAction(myProject, () -> settingsModel.applyChanges());
     assertFalse(settingsModel.isModified());
@@ -513,6 +574,13 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT("editAndApplyPluginManagement"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT_EXPECTED("editAndApplyPluginManagementExpected"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT_THREE_ARGUMENTS_EXPECTED("editAndApplyPluginManagementThreeArgumentsExpected"),
+    PARSE_VERSION_CATALOGS("parseVersionCatalogs"),
+    ADD_VERSION_CATALOGS("addVersionCatalogs"),
+    ADD_VERSION_CATALOGS_EXPECTED("addVersionCatalogsExpected"),
+    EDIT_VERSION_CATALOGS("editVersionCatalogs"),
+    EDIT_VERSION_CATALOGS_EXPECTED("editVersionCatalogsExpected"),
+    REMOVE_VERSION_CATALOGS("removeVersionCatalogs"),
+
     ;
     @NotNull private @SystemDependent String path;
     TestFile(@NotNull @SystemDependent String path) {

@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.android.tools.idea.ui.GuiTestingService.isInTestingMode;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
@@ -30,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,36 +60,38 @@ public class EmbeddedDistributionPaths {
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
-      File customRepoPath = new File(toCanonicalPath(FileUtilRt.toSystemDependentName(studioCustomRepo)));
-      if (!customRepoPath.isDirectory()) {
-        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
+      try {
+        Path customRepoPath = Paths.get(studioCustomRepo).toRealPath();
+        if (!Files.isDirectory(customRepoPath)) {
+          throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
+        }
+        repoPaths.add(customRepoPath.toFile());
       }
-      repoPaths.add(customRepoPath);
+      catch (IOException e) {
+        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable", e);
+      }
     }
 
     if (StudioPathManager.isRunningFromSources()) {
       // Repo path candidates, the path should be relative to tools/idea.
-      List<Path> repoCandidates = new ArrayList<>();
+      List<String> repoCandidates = new ArrayList<>();
 
       if (studioCustomRepo == null) {
-        repoCandidates.add(Paths.get("out", "repo"));
+        repoCandidates.add("out/repo");
       }
 
       // Add locally published offline studio repo
-      repoCandidates.add(Paths.get("out", "studio", "repo"));
+      repoCandidates.add("out/studio/repo");
       // Add prebuilts repo.
-      repoCandidates.add(Paths.get("prebuilts", "tools", "common", "m2", "repository"));
-      repoCandidates.add(Paths.get(System.getProperty("java.io.tmpdir"), "offline-maven-repo"));
+      repoCandidates.add("prebuilts/tools/common/m2/repository");
+      repoCandidates.add(System.getProperty("java.io.tmpdir") + "/offline-maven-repo");
       // TODO: Test repo locations are dynamic and are given via .manifest files, we should not hardcode here
-      repoCandidates.add(Paths.get("..", "maven", "repo"));
+      repoCandidates.add("../maven/repository");
 
-      for (Path candidate : repoCandidates) {
-        if (!candidate.isAbsolute()) {
-          candidate = Paths.get(StudioPathManager.resolveDevPath(candidate.toString()));
-        }
-        File offlineRepo = candidate.toFile();
-        if (offlineRepo.isDirectory()) {
-          repoPaths.add(offlineRepo);
+      for (String candidate : repoCandidates) {
+        Path candidateDir = StudioPathManager.resolvePathFromSourcesRoot(candidate);
+        if (Files.isDirectory(candidateDir)) {
+          repoPaths.add(candidateDir.toFile());
         }
       }
     }
@@ -102,8 +104,7 @@ public class EmbeddedDistributionPaths {
     final String path = "plugins/android/resources/profilers-transform.jar";
     if (StudioPathManager.isRunningFromSources()) {
       // Development build
-      assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
-      return new File(StudioPathManager.resolveDevPath("bazel-bin/tools/base/profiler/transform/profilers-transform.jar"));
+      return StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/profiler/transform/profilers-transform.jar").toFile();
     } else {
       @Nullable File file = getOptionalIjPath(path);
       if (file != null && file.exists()) {
@@ -117,7 +118,7 @@ public class EmbeddedDistributionPaths {
     final String path = "plugins/android/resources/installer";
     if (StudioPathManager.isRunningFromSources() && IdeInfo.getInstance().isAndroidStudio()) {
       // Development mode
-      return StudioPathManager.resolveDevPath("bazel-bin/tools/base/deploy/installer/android-installer");
+      return StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer").toAbsolutePath().toString();
     } else {
       File file = getOptionalIjPath(path);
       if (file != null && file.exists()) {
@@ -140,20 +141,14 @@ public class EmbeddedDistributionPaths {
    */
   @Nullable
   public File findEmbeddedGradleDistributionPath() {
-    //noinspection IfStatementWithIdenticalBranches
     if (StudioPathManager.isRunningFromSources()) {
       // Development build.
-      String relativePath = FileUtilRt.toSystemDependentName("tools/external/gradle");
-      File distributionPath = new File(toCanonicalPath(Paths.get(StudioPathManager.resolveDevPath(relativePath)).toString()));
-      if (distributionPath.isDirectory()) {
-        return distributionPath;
+      Path distribution = StudioPathManager.resolvePathFromSourcesRoot("tools/external/gradle");
+      if (Files.isDirectory(distribution)) {
+        return distribution.toFile();
       }
-
-      return null;
-    } else {
-      // Release build.
-      return null;
     }
+    return null;
   }
 
   /**
@@ -211,7 +206,7 @@ public class EmbeddedDistributionPaths {
       }
 
       // Development build.
-      String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(StudioPathManager.resolveDevPath("prebuilts/studio/jdk")).toString());
+      String jdkDevPath = System.getProperty("studio.dev.jdk", StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk").toString());
       String relativePath = FileUtilRt.toSystemDependentName(jdkDevPath);
       Path jdkRootPath = Paths.get(relativePath, "jdk11");
       if (SystemInfo.isWindows) {
@@ -227,7 +222,7 @@ public class EmbeddedDistributionPaths {
     } else {
       // Release build.
       String ideHomePath = getIdeHomePath();
-      Path jdkRootPath = Paths.get(ideHomePath, "jre");
+      Path jdkRootPath = Paths.get(ideHomePath, "jbr");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
   }

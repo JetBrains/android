@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    // ndkVersion "{placeholder}" // This value is replaced by logic in AndroidGradleTests.java (see NDK_VERSION_PLACEHOLDER)
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.buildvariantpaneltest"

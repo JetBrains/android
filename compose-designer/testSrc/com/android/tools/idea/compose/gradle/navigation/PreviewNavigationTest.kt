@@ -21,7 +21,7 @@ import com.android.tools.idea.compose.preview.navigation.findComponentHits
 import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
 import com.android.tools.idea.compose.preview.navigation.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -48,7 +48,7 @@ class PreviewNavigationTest {
 
     renderPreviewElementForResult(
       facet,
-      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview")
+      SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview")
     ).thenAccept { renderResult ->
       val rootView = renderResult!!.rootViews.single()!!
       ReadAction.run<Throwable> {
@@ -99,7 +99,7 @@ class PreviewNavigationTest {
 
     renderPreviewElementForResult(
       facet,
-      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.NavigatablePreview")
+      SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.NavigatablePreview")
     ).thenAccept { renderResult ->
       val rootView = renderResult!!.rootViews.single()!!
       ReadAction.run<Throwable> {
@@ -126,7 +126,7 @@ class PreviewNavigationTest {
 
     renderPreviewElementForResult(
       facet,
-      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.OnlyATextNavigation")
+      SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.OnlyATextNavigation")
     ).thenAccept { renderResult ->
       val rootView = renderResult!!.rootViews.single()!!
       ReadAction.run<Throwable> {

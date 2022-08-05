@@ -15,13 +15,19 @@
  */
 package org.jetbrains.android.dom;
 
+import com.android.tools.lint.client.api.LintClient;
+
 public class AndroidLintDomTest extends AndroidDomTestCase {
+  static {
+    LintClient.setClientName(LintClient.CLIENT_UNIT_TESTS);
+  }
+
   public AndroidLintDomTest() {
     super("dom/lint");
   }
 
   public void testIssueAttributeCompletion() throws Throwable {
-    doTestCompletionVariants("issue_tag_attribute.xml", "id", "severity");
+    doTestCompletionVariants("issue_tag_attribute.xml", "id", "severity", "in");
   }
 
   public void testSeverityValuesCompletion() throws Throwable {
@@ -32,7 +38,7 @@ public class AndroidLintDomTest extends AndroidDomTestCase {
     doTestCompletionVariants("issue_id_completion.xml", "UselessLeaf", "UselessParent");
   }
 
-  // Attributes other than "id" and "severity" are not allowed and should be highlighted in red
+  // Attributes other than "id", "in" and "severity" are not allowed and should be highlighted in red
   public void testExtraAttributes() throws Throwable {
     doTestHighlighting("issue_extra_attributes.xml");
   }
@@ -43,6 +49,10 @@ public class AndroidLintDomTest extends AndroidDomTestCase {
 
   public void testIgnorePathAttributeCompletion() throws Throwable {
     toTestCompletion("issue_ignore_path_completion.xml", "issue_ignore_path_completion_after.xml");
+  }
+
+  public void testComprehensive() throws Throwable {
+    doTestHighlighting("issue_comprehensive.xml");
   }
 
   @Override

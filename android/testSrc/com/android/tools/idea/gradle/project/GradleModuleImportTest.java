@@ -88,7 +88,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
                                                      "        }\n" +
                                                      "    }\n" +
                                                      "}\n";
-  private final static Function<String, String> pathToModuleName = new Function<>() {
+  private final static Function<String, String> pathToModuleName = new Function<String, String>() {
     @Override
     public String apply(String input) {
       return pathToGradleName(input);
@@ -101,7 +101,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     if (!moduleDir.mkdirs()) {
       throw new IllegalStateException("Unable to create module");
     }
-    Iterable<String> projectDependencies = transform(Arrays.asList(requiredProjects), new Function<>() {
+    Iterable<String> projectDependencies = transform(Arrays.asList(requiredProjects), new Function<String, String>() {
       @Override
       public String apply(String input) {
         return String.format("\tcompile project('%s')", pathToGradleName(input));
@@ -301,7 +301,7 @@ b/145809317 */
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     assert project1 != null && project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -315,7 +315,7 @@ b/145809317 */
   public void testMissingRequiredProjects() throws IOException {
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     assert project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -343,7 +343,7 @@ b/145809317 */
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
@@ -359,7 +359,7 @@ b/145809317 */
     VirtualFile project1 = createGradleProjectToImport(dir, module(1), module(3));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());

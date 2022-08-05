@@ -18,7 +18,6 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
-import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
@@ -49,7 +48,6 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     super.setUp()
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
-    previouslyEnabled = DatabaseInspectorFlagController.enableFeature(true)
 
     sqliteFile = sqliteUtil.createTestSqliteDatabase()
     databaseConnection = pumpEventsAndWaitForFuture(
@@ -65,7 +63,6 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
       }
 
       sqliteUtil.tearDown()
-      DatabaseInspectorFlagController.enableFeature(previouslyEnabled)
     }
     finally {
       super.tearDown()

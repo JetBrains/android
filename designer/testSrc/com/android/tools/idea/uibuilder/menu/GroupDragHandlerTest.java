@@ -27,10 +27,12 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import java.util.Collections;
 import java.util.List;
@@ -242,7 +244,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
   @NotNull
   private GroupDragHandler getMenuHandler(SyncNlModel model) {
     ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(model).getScene();
+    Scene scene = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     List<NlComponent> items = Collections.singletonList(mock(NlComponent.class));

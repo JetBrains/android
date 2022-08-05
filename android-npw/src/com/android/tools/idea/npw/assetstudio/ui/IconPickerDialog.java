@@ -18,10 +18,10 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 
 import com.android.ide.common.vectordrawable.VdIcon;
-import com.android.tools.idea.material.icons.MaterialVdIcons;
-import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider;
-import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider;
 import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider;
+import com.android.tools.idea.npw.assetstudio.material.icons.MaterialVdIcons;
+import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsMetadataUrlProvider;
+import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsUrlProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -172,6 +172,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     // For the main content area, display a grid if icons.
     myIconTable.setBackground(iconBackgroundColor);
     myIconTable.setDefaultRenderer(VdIcon.class, new IconPickerCellRenderer());
+    myIconTable.setTableHeader(null);
     myIconTable.setRowHeight(ICON_ROW_HEIGHT);
     myIconTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myIconTable.setCellSelectionEnabled(true);
@@ -324,7 +325,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
       }
       return styleName;
     }).toArray(String[]::new);
-    myStylesBox.setModel(new DefaultComboBoxModel<>(stylesArray));
+    myStylesBox.setModel(new DefaultComboBoxModel<String>(stylesArray));
   }
 
   /**
@@ -338,7 +339,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
       .map((categoryName) -> categoryName.equals("av") ? "Audio/Video" : StringUtil.capitalize(categoryName))
       .collect(Collectors.toCollection(ArrayList::new));
     categoriesArray.add(0, "All");
-    myCategoriesBox.setModel(new CollectionComboBoxModel<>(categoriesArray, null));
+    myCategoriesBox.setModel(new CollectionComboBoxModel<String>(categoriesArray, null));
   }
 
   @Nullable

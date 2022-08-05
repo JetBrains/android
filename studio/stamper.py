@@ -2,6 +2,7 @@
 import argparse
 import datetime
 import fnmatch
+import json
 import io
 import re
 import sys
@@ -42,6 +43,12 @@ def _stamp_app_info(build_date, build, micro, patch, full, eap, content):
 
   return content
 
+
+def _stamp_product_info_json(build, version, content):
+  json_data = json.loads(content)
+  json_data["buildNumber"] = json_data["buildNumber"].replace("__BUILD_NUMBER__", build)
+  json_data["version"] = version
+  return json.dumps(json_data, sort_keys=True, indent=2)
 
 def _stamp_plugin_file(build, content):
   """Stamps a plugin.xml with the build ids."""
@@ -124,16 +131,16 @@ BASE_PATH = {
 }
 
 
-# Stamps a plugin's plugin.xml file. if <full> is true it performs
-# a full stamping and tag fixing (such as adding missing tags, fixing
+# Stamps a plugin's plugin.xml file. if <overwrite_plugin_version> is true it
+# performs a full stamping and tag fixing (such as adding missing tags, fixing
 # from and to versions etc). Otherwise it simple replaces the build
 # number.
-def _stamp_plugin(platform, os, build_info, full, src, dst):
+def _stamp_plugin(platform, os, build_info, overwrite_plugin_version, src, dst):
   resource_path = RES_PATH[os]
   jar_name, content = _find_file(src, "**/*.jar", "META-INF/plugin.xml")
   bid = _get_build_id(build_info)
 
-  if full:
+  if overwrite_plugin_version:
     build_txt = _read_file(platform, resource_path + "build.txt")
     content = _stamp_plugin_file(build_txt[3:], content)
 
@@ -150,13 +157,6 @@ def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, 
   build_txt = _read_file(platform, resource_path + "build.txt")
   app_info = _read_file(platform, base_path + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml")
 
-  if os == "linux":
-    info = _read_file(platform, base_path + "product-info.json")
-    info = info.replace("__BUILD_NUMBER__", bid)
-  elif os == "mac" or os == "mac_arm":
-    info = _read_file(platform, base_path + "Info.plist")
-    info = info.replace("__BUILD_NUMBER__", bid)
-
   build_txt = build_txt.replace("__BUILD_NUMBER__", bid)
   build_date = _format_build_date(build_version)
   app_info = _stamp_app_info(build_date, build_txt, micro, patch, full, eap, app_info)
@@ -164,10 +164,15 @@ def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, 
   _write_file(out, "w", build_txt, resource_path + "build.txt")
   _write_file(out, "a", app_info, base_path + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml")
 
-  if os == "linux":
-    _write_file(out, "a", info, base_path + "product-info.json")
-  elif os == "mac" or os == "mac_arm":
-    _write_file(out, "a", info, base_path + "Info.plist")
+  if os == "linux" or os == "mac" or os == "mac_arm":
+    product_info_json = _read_file(platform, resource_path + "product-info.json")
+    product_info_json = _stamp_product_info_json(bid, build_txt, product_info_json)
+    _write_file(out, "a", product_info_json, resource_path + "product-info.json")
+
+  if os == "mac" or os == "mac_arm":
+    info_plist = _read_file(platform, base_path + "Info.plist")
+    info_plist = info_plist.replace("__BUILD_NUMBER__", bid)
+    _write_file(out, "a", info_plist, base_path + "Info.plist")
 
 
 def main(argv):
@@ -179,11 +184,9 @@ def main(argv):
       dest="stamp_plugin",
       help="Stamps plugin zip <in> and saves stampped files in an <out> zip.")
   parser.add_argument(
-      "--stamp_platform_plugin",
-      nargs=2,
-      metavar=("src", "dst"),
-      dest="stamp_platform_plugin",
-      help="Stamps a platform plugin zip <in> and saves stampped files in an <out> zip.")
+      "--overwrite_plugin_version",
+      action="store_true",
+      help="Whether to set the <version> and <idea-version> tags for this plugin.")
   parser.add_argument(
       "--stamp_platform",
       default="",
@@ -248,10 +251,8 @@ def main(argv):
         patch = args.version_patch,
         full = args.version_full,
         out = args.stamp_platform)
-  if args.stamp_platform_plugin:
-    _stamp_plugin(args.platform, args.os, build_info, False, args.stamp_platform_plugin[0], args.stamp_platform_plugin[1])
   if args.stamp_plugin:
-    _stamp_plugin(args.platform, args.os, build_info, True, args.stamp_plugin[0], args.stamp_plugin[1])
+    _stamp_plugin(args.platform, args.os, build_info, args.overwrite_plugin_version, args.stamp_plugin[0], args.stamp_plugin[1])
 
 if __name__ == "__main__":
   main(sys.argv[1:])

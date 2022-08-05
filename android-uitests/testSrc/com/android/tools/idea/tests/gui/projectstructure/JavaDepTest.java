@@ -21,7 +21,6 @@ import static com.android.tools.idea.wizard.template.Language.Java;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -35,8 +34,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructur
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,16 +42,6 @@ import org.junit.runner.RunWith;
 public class JavaDepTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-
-  @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
@@ -90,6 +77,9 @@ public class JavaDepTest {
       .selectProjectPane()
       .clickPath(RIGHT_BUTTON, "App", "app");
 
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
+    guiTest.robot().findActivePopupMenu();
     ideFrame.invokeMenuPath("Open Module Settings");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
@@ -100,6 +90,9 @@ public class JavaDepTest {
     addModuleDependencyFixture.toggleModule("lib");
     addModuleDependencyFixture.clickOk();
     dialogFixture.clickOk();
+
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
 
     editor.open("/app/src/main/java/android/com/app/MainActivity.java")
       .moveBetween("setContentView(R.layout.activity_main);", "")

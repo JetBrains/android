@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2021.2.02">
+    version="2022.1.1.1">
   <feature
-      name="What's New in 2021.2.01">
+      name="What's New in Electric Eel">
     <tutorial
         key="whats-new"
-        label=" What's New in 2021.2.01"
+        label=" What's New in Electric Eel"
         icon="preview/whats_new_icon.png"
-        remoteLink="https://developer.android.com/studio/preview/features"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2022-1-1"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -37,11 +37,242 @@
           from the main menu.
           ]]>
       </description>
+      <step label="New Logcat">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-logs.png"/>
+             <br /><br />
+              <p>
+                Logcat has been updated to make it easier to parse, query, and keep track of logs.
+                This represents the most significant update to the tool since its introduction, and
+                we welcome you to <a href="http://issuetracker.google.com/createIssue?title=%5BLogcatV2%5D+Title&cc=adarshf%40google.com%2Crpaquay%40google.com&format=PLAIN&component=192708&type=BUG&priority=P1&severity=S2&assignee=aalbert%40google.com&inProd=true">provide
+                feedback</a>.
+            </p>
+            <br />
+            <p>
+              <b>New formatter:</b> Logcat now formats logs to make it easier to scan useful
+              information, such as tags and messages, and identify different types of logs, such as
+              warnings and errors.
+            </p>
+            <br />
+            <p>
+              <b>Create multiple Logcat windows:</b> You can now create multiple tabs within Logcat,
+              so that you can easily switch between different devices or queries. Right-clicking a
+              tab allows you to rename it, and you can click and drag to rearrange the tabs.
+              Additionally, to help you more easily compare between two sets of logs, you can now
+              split the view within a tab by right-clicking in the log view and selecting either
+              <b>Split Right</b> or <b>Split Down</b>.
+            </p>
+            <br />
+            <p>
+              <b>Switch between view presets:</b> Logcat now allows you to quickly switch between
+                different view modes (<b>Standard</b>, <b>Compact</b>, and <b>Custom</b>) by clicking
+                <img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-view-modes-button.png">.
+                Each view mode provides a different default setting for showing you more or less
+                information, such as timestamps, tags, and process IDs (PID). You can also customize each of
+                these default view modes, as well as a custom view mode, by selecting <b>Modify View</b>.
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-view-selection.png"></p>
+              <br><br>
+            <p>
+              <b>New key-value search:</b> We've now simplified the search experience by introducing
+              key-value searches right from the main query field, complete with suggestions, history,
+              and the ability to favourite queries.
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-query-auto-complete.png"></p>
+              <br><br>
+            <p>
+              Here are some examples of how to use the new query system, but you can also simply
+              start typing in the query field to see suggestions:
+            </p>
+            <br />
+            <ul>
+              <li><b>PIDs for the local app project:</b> <code>package:mine</code>
+              </li>
+              <li><b>Specific values:</b> <code>package:my-package-ID</code>, <code>tag:my-tag</code>,
+              <code>level:ERROR</code>, and more.
+              </li>
+              <li><b>Exclude a specific value</b> by preceding the key with <code>-</code>:
+              <code>-tag:exclude-this-tag</code>.
+              </li>
+              <li><b>Use regular expressions</b> with a given key by placing a <code>~</code> after the key:
+              <code>tag~:regex-tag</code> or <code>-tag~:exclude-this-regex-tag</code>.
+              </li>
+            </ul>
+            <br />
+            <p>You can also see a history of queries by clicking
+            <img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-query-history.png">
+            in the query field and selecting them from the drop down. To favorite a query so that it
+            stays at the top of the list across all your studio projects, click the
+            <img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-favourite.png">
+            at the end of the query field.
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-history.png"></p>
+              <br><br>
+            <p><b>Track logs across app crashes/restarts:</b> The new Logcat now makes it easier to
+            track logs from your app across app crashes and restarts, so that you don't miss important
+            logs across these events. When a Logcat notices that your app process has stopped and
+            restarted you'll see a message in the output similar to below:
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-app-restart.png"></p>
+              <br><br>
+              <a href="https://d.android.com/studio/preview/features#logcat">Learn more</a>
+              <br><br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Live Edit for composables">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            Make code changes to composables in Android Studio and see those changes reflected
+            immediately in the Compose Preview and your emulator or physical device. You don't have
+            to wait for builds or deployments to be completed, so you can make faster progress in
+            the creation of your app's experience.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/compose/live-edit">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="SDK insights">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            Get Lint warnings for SDKs or libraries that have been marked as outdated by their
+            authors in the Google Play SDK Index. Update outdated dependency versions during
+            development to avoid issues when your app is submitted to the Play Console.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/build/sdk-insights">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="App Quality Insights from Firebase Crashlytics">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            Discover, investigate, and resolve issues reported by Crashlytics in Android Studio and
+            within the context of your local source code. This integration helps you quickly
+            navigate from crashes to code (and from code to crash), and surfaces important
+            contextual data about each crash to help you reproduce issues locally. If your app
+            project already includes the Crashlytics SDK, get started by selecting
+            <b>View &gt; Tool windows &gt; App Quality Insights<b> from the main menu.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/debug/aqi">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Resizable Emulator">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            Rapidly toggle between representative reference devices to quickly test various
+            application layout states with a single running emulator instance. You can create these
+            emulators by selecting the "Resizable" type in the Device Manager's "Create device"
+            flow.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/run/resizable-emulator">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Visual Linting">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            Discover and fix your layout issues across different devices by opening the Layout
+            Validation panel. We automatically run your layout to check for Visual Lint issues
+            across different screen sizes.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/layout/visual-linting">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Emulated Bluetooth">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            You can now discover and connect two phone emulators using virtual Bluetooth. With
+            virtual Bluetooth, you can test that your app can recognize and gain access to the
+            Bluetooth adapter in a scalable way.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/run/emulated-bluetooth">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Device Mirroring">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+               Minimize the number of interruptions when developing by streaming your device display
+               directly to Android Studio. Device Mirroring gives you the ability to interact with a
+               physical device using the <b>Running Devices</b> window in Studio. To enable this feature,
+               go to <b>Preferences > Experimental</b> and check the box next to <b>Device Mirroring</b>.
+               Once enabled, connect your device and either deploy your app or open the
+               <b>Running Devices</b> window to begin streaming the device's display and interacting
+               with it from the IDE.
+            </p><br><br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="New Wear OS run configurations">
+        <stepElement>
+          <section>
+            <![CDATA[
+              <p>
+                New run configurations have been added to quickly run and debug surfaces specific
+                to <a href="https://d.android.com/training/wearables">Wear OS</a> like watch faces, Tiles, and complications.
+                You can create these new configurations from the <b>Run/Debug Configurations</b> dialog
+                when running your application.
+              </p>
+              <img src="https://d.android.com/studio/preview/features/images/dolphin/wearos_launch_configurations.png"/>
+
+              <p>
+                Alternatively, you can also run these surfaces from the gutter icon that is
+                located next to the declaration of the surface, as shown in the following image.
+             </p>
+             <img src="https://d.android.com/studio/preview/features/images/dolphin/wearos_os_gutter_run.png"/>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
       <footerStep label="">
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 04/20/2022</em><br><br>
+              <br><em>Last updated 5/11/2022</em><br><br>
             ]]>
           </section>
         </stepElement>

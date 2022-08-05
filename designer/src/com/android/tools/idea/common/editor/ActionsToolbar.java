@@ -30,6 +30,8 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.google.common.collect.Iterables;
+import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.notebook.editor.BackedVirtualFile;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -60,7 +62,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private static final int CONFIGURATION_UPDATE_FLAGS = ConfigurationListener.CFG_TARGET |
                                                         ConfigurationListener.CFG_DEVICE;
 
-  private final DesignSurface mySurface;
+  private final DesignSurface<?> mySurface;
   private final JComponent myToolbarComponent;
   private ActionToolbar myNorthToolbar;
   private ActionToolbar myNorthEastToolbar;
@@ -72,7 +74,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private ToolbarActionGroups myToolbarActionGroups;
   private NlModel myModel = null;
 
-  public ActionsToolbar(@NotNull Disposable parent, @NotNull DesignSurface surface) {
+  public ActionsToolbar(@NotNull Disposable parent, @NotNull DesignSurface<?> surface) {
     Disposer.register(parent, this);
     mySurface = surface;
     mySurface.addListener(this);
@@ -138,7 +140,9 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     myNorthEastToolbar.setTargetComponent(mySurface);
 
     JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
+    myNorthEastToolbar.setReservePlaceAutoPopupIcon(false);
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
+    myNorthEastToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
 
     myCenterToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
     myCenterToolbar.setTargetComponent(mySurface);
@@ -163,7 +167,12 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
       myToolbarComponent.add(northPanel, BorderLayout.NORTH);
     }
 
-    myToolbarComponent.add(centerToolbarComponentWrapper, BorderLayout.CENTER);
+    NlModel model = mySurface.getModels().stream().findFirst().orElse(null);
+    // Only add center toolbar for XML files.
+    //noinspection UnstableApiUsage
+    if (model != null && BackedVirtualFile.getOriginFileIfBacked(model.getVirtualFile()).getFileType() instanceof XmlFileType) {
+      myToolbarComponent.add(centerToolbarComponentWrapper, BorderLayout.CENTER);
+    }
     myToolbarComponent.add(eastToolbarComponent, BorderLayout.EAST);
   }
 
@@ -178,45 +187,55 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     return (ActionToolbarImpl)toolbar;
   }
 
+  /**
+   * Call to update the state of all the toolbar icons. This can be called when we do not want to wait the default 500ms automatic
+   * delay where toolbars are updated automatically.
+   */
+  private void refreshToolbarState() {
+    myNorthToolbar.updateActionsImmediately();
+    myNorthEastToolbar.updateActionsImmediately();
+    myEastToolbar.updateActionsImmediately();
+    myCenterToolbar.updateActionsImmediately();
+  }
+
   public void updateActions() {
     SceneView view = mySurface.getFocusedSceneView();
     if (view != null) {
       SelectionModel selectionModel = view.getSelectionModel();
       List<NlComponent> selection = selectionModel.getSelection();
       if (selection.isEmpty()) {
-        List<NlComponent> roots = view.getModel().getComponents();
+        List<NlComponent> roots = view.getSceneManager().getModel().getComponents();
         if (roots.size() == 1) {
           selection = Collections.singletonList(roots.get(0));
         }
-        else {
-          updateBottomActionBarBorder();
-          return;
-        }
       }
       updateActions(selection);
+    }
+    else {
+      refreshToolbarState();
     }
   }
 
   private void updateActions(@NotNull List<NlComponent> newSelection) {
     SceneView screenView = mySurface.getFocusedSceneView();
-    if (screenView == null) {
-      return;
+    if (screenView != null) {
+      // TODO: Perform caching
+      DesignerEditorFileType surfaceLayoutType = mySurface.getLayoutType();
+      DefaultActionGroup selectionToolbar = surfaceLayoutType.getSelectionContextToolbar(mySurface, newSelection);
+      if (selectionToolbar.getChildrenCount() > 0) {
+        myDynamicGroup.copyFromGroup(selectionToolbar);
+      }
+      updateBottomActionBarBorder();
+      myCenterToolbar.clearPresentationCache();
     }
 
-    // TODO: Perform caching
-    DesignerEditorFileType surfaceLayoutType = mySurface.getLayoutType();
-    DefaultActionGroup selectionToolbar = surfaceLayoutType.getSelectionContextToolbar(mySurface, newSelection);
-    if (selectionToolbar.getChildrenCount() > 0) {
-      myDynamicGroup.copyFromGroup(selectionToolbar);
-    }
-    updateBottomActionBarBorder();
-    myCenterToolbar.clearPresentationCache();
+    refreshToolbarState();
   }
 
   // ---- Implements DesignSurfaceListener ----
 
   @Override
-  public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
+  public void componentSelectionChanged(@NotNull DesignSurface<?> surface, @NotNull List<NlComponent> newSelection) {
     assert surface == mySurface;
     if (!newSelection.isEmpty()) {
       updateActions(newSelection);
@@ -227,7 +246,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+  public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
     if (myModel != null) {
       myModel.removeListener(this);
     }
@@ -254,7 +273,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  public boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
     return false;
   }
 

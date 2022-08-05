@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -34,7 +34,7 @@ class ResponseTabContent(
 
   override fun createComponent(): JComponent {
     panel = createVerticalPanel(TAB_SECTION_VGAP).apply {
-      border = JBEmptyBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
+      border = JBUI.Borders.empty(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
     }
     return createVerticalScrollPane(panel)
   }

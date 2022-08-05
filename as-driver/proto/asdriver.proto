@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package asdriver.proto;
+option java_package = "com.android.tools.asdriver.proto";
+option java_outer_classname = "ASDriver";
+
+service AndroidStudio {
+  rpc GetVersion(GetVersionRequest) returns (GetVersionResponse) {}
+
+  rpc Quit(QuitRequest) returns (QuitResponse) {}
+
+  rpc ExecuteAction(ExecuteActionRequest) returns (ExecuteActionResponse) {}
+
+  rpc ShowToolWindow(ShowToolWindowRequest) returns (ShowToolWindowResponse) {}
+
+  rpc InvokeComponent(InvokeComponentRequest) returns (InvokeComponentResponse) {}
+
+  rpc WaitForIndex(WaitForIndexRequest) returns (WaitForIndexResponse) {}
+
+  rpc OpenFile(OpenFileRequest) returns (OpenFileResponse) {}
+
+  rpc WaitForComponent(WaitForComponentRequest) returns (WaitForComponentResponse) {}
+}
+
+message GetVersionRequest {}
+
+message GetVersionResponse {
+  string version = 1;
+}
+
+message QuitRequest {
+  bool force = 1;
+}
+
+message QuitResponse {}
+
+message ExecuteActionRequest {
+  string action_id = 1;
+}
+
+message ExecuteActionResponse {
+  enum Result {
+    OK = 0;
+    ACTION_NOT_FOUND = 1;
+  }
+  ExecuteActionResponse.Result result = 1;
+}
+
+message ShowToolWindowRequest {
+  string tool_window_id = 1;
+}
+
+message ShowToolWindowResponse {
+  enum Result {
+    OK = 0;
+    PROJECT_NOT_FOUND = 1;
+    TOOL_WINDOW_NOT_FOUND = 2;
+  }
+  ShowToolWindowResponse.Result result = 1;
+}
+
+message InvokeComponentRequest {
+  repeated ComponentMatcher matchers = 1;
+}
+
+message ComponentMatcher {
+  oneof matcher {
+    SwingClassRegexMatch swing_class_regex_match = 1;
+    ComponentTextMatch component_text_match = 2;
+    SvgIconMatch svg_icon_match = 3;
+  }
+}
+
+message SwingClassRegexMatch {
+  string regex = 1;
+}
+
+message ComponentTextMatch {
+  string text = 1;
+}
+
+message SvgIconMatch {
+  repeated string icon = 1;
+}
+
+message InvokeComponentResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  InvokeComponentResponse.Result result = 1;
+}
+
+message WaitForIndexRequest {}
+
+message WaitForIndexResponse {}
+
+message OpenFileRequest {
+  string project = 1;
+  string file = 2;
+}
+
+message OpenFileResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  OpenFileResponse.Result result = 1;
+}
+
+message WaitForComponentRequest {
+  repeated ComponentMatcher matchers = 1;
+}
+
+message WaitForComponentResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  WaitForComponentResponse.Result result = 1;
+}

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.ide.common.resources.Locale
 import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
 import com.android.resources.UiMode
@@ -32,7 +33,6 @@ import com.android.tools.idea.configurations.getProjectThemeNames
 import com.android.tools.idea.configurations.getRecommendedThemeNames
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.editors.theme.ThemeResolver
-import com.android.tools.idea.rendering.Locale
 import com.intellij.psi.PsiFile
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBLabel

@@ -63,6 +63,5 @@ public class AnimationToolbarTest {
   @After
   public void tearDown() {
     StudioFlags.NELE_ANIMATIONS_PREVIEW.clearOverride();
-    StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.clearOverride();
   }
 }

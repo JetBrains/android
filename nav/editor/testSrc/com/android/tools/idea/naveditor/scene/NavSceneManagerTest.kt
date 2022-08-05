@@ -19,6 +19,7 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -103,17 +104,17 @@ class NavSceneManagerTest : NavTestCase() {
     model.configuration = configuration
 
     val state = Mockito.mock(State::class.java)
-    Mockito.`when`(configuration.deviceState).thenReturn(state)
+    whenever(configuration.deviceState).thenReturn(state)
 
     val hardware = Mockito.mock(Hardware::class.java)
-    Mockito.`when`(state.hardware).thenReturn(hardware)
+    whenever(state.hardware).thenReturn(hardware)
 
     val screen = Mockito.mock(Screen::class.java)
-    Mockito.`when`(hardware.screen).thenReturn(screen)
+    whenever(hardware.screen).thenReturn(screen)
 
-    Mockito.`when`(screen.xDimension).thenReturn(1920)
-    Mockito.`when`(screen.yDimension).thenReturn(1080)
-    Mockito.`when`(state.orientation).thenReturn(ScreenOrientation.PORTRAIT)
+    whenever(screen.xDimension).thenReturn(1920)
+    whenever(screen.yDimension).thenReturn(1080)
+    whenever(state.orientation).thenReturn(ScreenOrientation.PORTRAIT)
 
     val scene = model.surface.scene!!
     val sceneManager = scene.sceneManager
@@ -123,22 +124,22 @@ class NavSceneManagerTest : NavTestCase() {
     assertEquals(144, component.drawWidth)
     assertEquals(256, component.drawHeight)
 
-    Mockito.`when`(state.orientation).thenReturn(ScreenOrientation.LANDSCAPE)
+    whenever(state.orientation).thenReturn(ScreenOrientation.LANDSCAPE)
 
     sceneManager.update()
     component = scene.getSceneComponent("fragment1")!!
     assertEquals(256, component.drawWidth)
     assertEquals(144, component.drawHeight)
 
-    Mockito.`when`(screen.xDimension).thenReturn(480)
-    Mockito.`when`(screen.yDimension).thenReturn(800)
+    whenever(screen.xDimension).thenReturn(480)
+    whenever(screen.yDimension).thenReturn(800)
 
     sceneManager.update()
     component = scene.getSceneComponent("fragment1")!!
     assertEquals(256, component.drawWidth)
     assertEquals(153, component.drawHeight)
 
-    Mockito.`when`(state.orientation).thenReturn(ScreenOrientation.PORTRAIT)
+    whenever(state.orientation).thenReturn(ScreenOrientation.PORTRAIT)
     sceneManager.update()
     component = scene.getSceneComponent("fragment1")!!
     assertEquals(153, component.drawWidth)
@@ -166,7 +167,7 @@ class NavSceneManagerTest : NavTestCase() {
     sceneManager.update()
 
     val designSurface = model.surface as NavDesignSurface
-    Mockito.`when`(designSurface.scrollPosition).thenAnswer { Point(scrollPosition) }
+    whenever(designSurface.scrollPosition).thenAnswer { Point(scrollPosition) }
 
     val currentNavigation = designSurface.currentNavigation
 

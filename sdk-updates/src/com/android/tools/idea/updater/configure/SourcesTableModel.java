@@ -18,9 +18,9 @@ package com.android.tools.idea.updater.configure;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.RepositorySourceProvider;
+import com.android.repository.api.SchemaModule;
 import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.sources.LocalSourceProvider;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidAuthenticator;
@@ -28,7 +28,6 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.icons.AllIcons;
@@ -45,6 +44,7 @@ import com.intellij.util.ui.table.IconTableCellRenderer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -263,12 +263,14 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    */
   @VisibleForTesting
   void createSource(@NotNull String url, @Nullable String uiName, @Nullable Credentials credentials) {
-    RepositorySourceProvider userSourceProvider = getUserSourceProvider();
+    LocalSourceProvider userSourceProvider = getUserSourceProvider();
     // we know it won't be null since otherwise we shouldn't have been editable
     assert userSourceProvider != null;
-    // TODO: we shouldn't have to specify the allowed sources here, since they're already specified in the provider.
-    RepositorySource newSource = new SimpleRepositorySource(url, uiName, true, ImmutableList
-      .of(AndroidSdkHandler.getAddonModule(), AndroidSdkHandler.getSysImgModule(), RepoManager.getCommonModule()), userSourceProvider);
+
+    Collection<SchemaModule<?>> allowedModules = userSourceProvider.getAllowedModulesBasedOnUrl(url);
+
+    RepositorySource newSource =
+      new SimpleRepositorySource(url, uiName, true, Collections.unmodifiableCollection(allowedModules), userSourceProvider);
     userSourceProvider.addSource(newSource);
     PasswordSafe.getInstance().set(new CredentialAttributes(AndroidAuthenticator.getCredentialServiceName(url)), credentials);
     try {
@@ -371,10 +373,10 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   }
 
   /**
-   * Gets the editable {@link RepositorySourceProvider}.
+   * Gets the editable {@link LocalSourceProvider}.
    */
   @Nullable
-  private RepositorySourceProvider getUserSourceProvider() {
+  private LocalSourceProvider getUserSourceProvider() {
     return myConfigurable == null ? null : myConfigurable.getSdkHandler().getUserSourceProvider(myLogger);
   }
 

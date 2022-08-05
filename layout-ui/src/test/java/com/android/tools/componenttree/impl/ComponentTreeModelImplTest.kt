@@ -21,28 +21,35 @@ import com.android.SdkConstants.FQCN_LINEAR_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.componenttree.common.ViewTreeCellRenderer
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
 import com.android.tools.componenttree.util.StyleRenderer
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import javax.swing.SwingUtilities
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreePath
+import javax.swing.tree.TreeSelectionModel
 
 class ComponentTreeModelImplTest {
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(ApplicationRule()).around(EdtRule())!!
+  val edtRule = EdtRule()
 
   private val style1 = Style("style1")
   private val style2 = Style("style2")
@@ -52,7 +59,7 @@ class ComponentTreeModelImplTest {
   private val count = NotificationCount()
   private val model = ComponentTreeModelImpl(mapOf(Pair(Item::class.java, ItemNodeType()),
                                                    Pair(Style::class.java, StyleNodeType())), SwingUtilities::invokeLater)
-  private val selectionModel = ComponentTreeSelectionModelImpl(model)
+  private val selectionModel = ComponentTreeSelectionModelImpl(model, TreeSelectionModel.SINGLE_TREE_SELECTION)
 
   @Before
   fun setUp() {

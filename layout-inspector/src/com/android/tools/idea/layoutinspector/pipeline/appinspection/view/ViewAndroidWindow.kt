@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.layoutinspector.BITMAP_HEADER_SIZE
 import com.android.tools.layoutinspector.BitmapType
 import com.android.tools.layoutinspector.InvalidPictureException
@@ -38,7 +39,6 @@ import com.android.tools.layoutinspector.toInt
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.awt.Rectangle
 import java.awt.geom.Ellipse2D
 import java.io.ByteArrayOutputStream

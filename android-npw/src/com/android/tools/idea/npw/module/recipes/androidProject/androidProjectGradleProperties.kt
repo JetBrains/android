@@ -24,7 +24,7 @@ fun androidProjectGradleProperties(
 ): String {
   val androidXBlock = renderIf(addAndroidXSupport) { """
 # AndroidX package structure to make it clearer which packages are bundled with the
-# Android operating system, and which are packaged with your app"s APK
+# Android operating system, and which are packaged with your app's APK
 # https://developer.android.com/topic/libraries/support-library/androidx-rn
 android.useAndroidX=true
 """
@@ -50,7 +50,7 @@ android.overridePathCheck=$overridePathCheck
 android.nonTransitiveRClass=true
 """
 
-    return  """
+  return  """
 # Project-wide Gradle settings.
 
 # IDE (e.g. Android Studio) users:

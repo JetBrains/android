@@ -27,7 +27,7 @@ import javax.swing.JComponent
 
 /** Creates the floating actions toolbar used on the [DesignSurface] */
 class DesignSurfaceFloatingActionsToolbarProvider(
-  private val designSurface: DesignSurface,
+  private val designSurface: DesignSurface<*>,
   component: JComponent,
   parentDisposable: Disposable
 ) : EditorActionsFloatingToolbarProvider(component, parentDisposable), DesignSurfaceListener {
@@ -45,7 +45,7 @@ class DesignSurfaceFloatingActionsToolbarProvider(
     designSurface.removePanZoomListener(this)
   }
 
-  override fun modelChanged(surface: DesignSurface, model: NlModel?) {
+  override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
     updateToolbar()
   }
 

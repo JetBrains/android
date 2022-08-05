@@ -26,16 +26,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 class GradleSyncSpecialCasesIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
-
-  @get:Rule
-  var testName = TestName()
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
@@ -58,7 +54,6 @@ class GradleSyncSpecialCasesIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
   override fun getAdditionalRepos(): Collection<File> = emptyList()

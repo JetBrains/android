@@ -18,11 +18,9 @@ package org.jetbrains.android.facet
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ProjectTopics
-import com.intellij.facet.FacetManager
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.module.impl.ModuleEx
-import com.intellij.openapi.roots.impl.ModuleRootEventImpl
+import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.project.RootsChangeRescanningInfo
+import org.jetbrains.kotlin.idea.base.util.invalidateProjectRoots
 import org.junit.Rule
 import org.junit.Test
 
@@ -31,24 +29,11 @@ class SourceProviderManagerTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @Test
-  fun selfDisposesOnFacetConfigurationChange() {
-    val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val sourceProviderManagerBeforeNotification = facet.sourceProviders
-    invokeAndWaitIfNeeded {
-      (projectRule.module as ModuleEx).deprecatedModuleLevelMessageBus.syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet)
-    }
-    val sourceProviderManagerAfterNotification = facet.sourceProviders
-    assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)
-  }
-
-  @Test
   fun selfDisposesOnProjectRootsChange() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val sourceProviderManagerBeforeNotification = facet.sourceProviders
-    invokeAndWaitIfNeeded {
-      val publisher = projectRule.project.messageBus.syncPublisher(ProjectTopics.PROJECT_ROOTS)
-      publisher.beforeRootsChange(ModuleRootEventImpl(projectRule.project, false))
-      publisher.rootsChanged(ModuleRootEventImpl(projectRule.project, false))
+    runWriteActionAndWait {
+      projectRule.project.invalidateProjectRoots(RootsChangeRescanningInfo.NO_RESCAN_NEEDED)
     }
     val sourceProviderManagerAfterNotification = facet.sourceProviders
     assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)

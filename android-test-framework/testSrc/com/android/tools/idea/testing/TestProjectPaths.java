@@ -12,7 +12,10 @@ public final class TestProjectPaths {
   public static final String APP_WITH_LIB_WITH_SAMPLES = "projects/appWithLibWithSamples";
   public static final String APPLICATION_ID_SUFFIX = "projects/applicationIdSuffix";
   public static final String APPLICATION_ID_VARIANT_API = "projects/applicationIdViaVariantApi";
+  public static final String APPLICATION_ID_VARIANT_API_BROKEN = "projects/applicationIdViaVariantApiBroken";
+
   public static final String BASIC = "projects/basic";
+  public static final String NO_MODULES = "projects/projectWithNoModules";
   public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String BUILD_ANALYZER_CHECK_JETIFIER = "projects/buildAnalyzer/checkJetifier";
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";
@@ -64,6 +67,7 @@ public final class TestProjectPaths {
   public static final String PLUGIN_IN_APP = "projects/pluginInApp";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PROJECT_WITH_APP_AND_LIB_DEPENDENCY = "projects/projectWithAppAndLibDependency";
+  public static final String PROJECT_WITH_APP_AND_LIB_DEPENDENCY_NO_LIB_MANIFEST = "projects/projectWithAppAndLibDependencyNoLibManifest";
   public static final String PSD_DEPENDENCY = "projects/psdDependency";
   public static final String PSD_PROJECT_DIR = "projects/psdProjectDir";
   public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";
@@ -90,6 +94,7 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String SIMPLE_APPLICATION_PLUGINS_DSL = "projects/simpleApplicationPluginsDsl";
   public static final String SIMPLE_APPLICATION_PLUGIN_MANAGEMENT_DSL = "projects/simpleApplicationPluginManagementDsl";
+  public static final String SIMPLE_APPLICATION_VERSION_CATALOG = "projects/simpleApplicationVersionCatalog";
   public static final String SIMPLE_APPLICATION_WITH_DUPLICATES = "projects/simpleApplicationWithDuplicates";
   public static final String SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY = "projects/simpleApplicationUnresolvedDependency";
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
@@ -113,5 +118,6 @@ public final class TestProjectPaths {
   public static final String UNUSED_RESOURCES_GROOVY = "projects/unusedResources";
   public static final String UNUSED_RESOURCES_KTS = "projects/unusedResourcesKotlin";
   public static final String UNUSED_RESOURCES_MULTI_MODULE = "projects/unusedResourcesMultiModule";
-  public static final String CUSTOM_BUILD_SCRIPT_DEPS = "projects/customBuildScriptDeps";
+  public static final String WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT = "projects/withErrors/simpleApplicationMissingExport";
+  public static final String WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS = "projects/withErrors/simpleApplicationMultipleErrors";
 }

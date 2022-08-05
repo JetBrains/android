@@ -21,7 +21,6 @@ import com.android.tools.idea.codenavigation.FakeNavSource;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.appinspection.AppInspectionMigrationServices;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
@@ -46,10 +45,11 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class FakeIdeProfilerServices implements IdeProfilerServices {
+public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public static final String FAKE_ART_SAMPLED_NAME = "Sampled";
 
@@ -99,11 +99,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsJankDetectionUiEnabled = true;
 
   /**
-   * JNI references alloc/dealloc events are tracked and shown.
-   */
-  private boolean myIsJniReferenceTrackingEnabled = false;
-
-  /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
    */
   private boolean myNativeProfilingConfigurationPreferred = false;
@@ -114,24 +109,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myShouldProceedYesNoDialog = false;
 
   /**
-   * Can toggle for tests via {@link #enableStartupCpuProfiling(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myStartupCpuProfilingEnabled = false;
-
-  /**
    * Whether the new pipeline is used or the old one for devices / processes / sessions.
    */
   private boolean myEventsPipelineEnabled = false;
-
-  /**
-   * Toggle for faking {@link FeatureConfig#isCpuNewRecordingWorkflowEnabled()} in tests.
-   */
-  private boolean myCpuNewRecordingWorkflowEnabled = false;
-
-  /**
-   * Toggle for cpu capture stage switching vs cpu profiler stage when handling captures.
-   */
-  private boolean myIsCaptureStageEnabled = false;
 
   /**
    * Whether custom event visualization should be visible
@@ -139,19 +119,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myCustomEventVisualizationEnabled = false;
 
   /**
-   * Whether we use TraceProcessor to parse Perfetto traces.
+   * Whether we support profileable builds.
    */
-  private boolean myUseTraceProcessor = true;
-
-  /**
-   * Whether we support profileable processes
-   */
-  private boolean myProfileableEnabled = true;
-
-  /**
-   * Whether we support profileable processes in Q & R
-   */
-  private boolean myProfileableInQrEnabled = true;
+  private boolean myProfileablsBuildsEnabled = false;
 
   /**
    * List of custom CPU profiling configurations.
@@ -198,6 +168,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
+  public <R> void runAsync(@NotNull Supplier<R> supplier, @NotNull Consumer<R> consumer) {
+    consumer.accept(supplier.get());
+  }
+
+  @Override
   public void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable) {
   }
 
@@ -217,9 +192,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void addProjectClasses(String... classNames) {
-    for (int i = 0; i < classNames.length; i++) {
-      myProjectClasses.add(classNames[i]);
-    }
+    Collections.addAll(myProjectClasses, classNames);
   }
 
   @NotNull
@@ -244,14 +217,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public boolean isCpuCaptureStageEnabled() { return myIsCaptureStageEnabled; }
-
-      @Override
-      public boolean isCpuNewRecordingWorkflowEnabled() {
-        return myCpuNewRecordingWorkflowEnabled;
-      }
-
-      @Override
       public boolean isEnergyProfilerEnabled() {
         return myEnergyProfilerEnabled;
       }
@@ -260,9 +225,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isJankDetectionUiEnabled() {
         return myIsJankDetectionUiEnabled;
       }
-
-      @Override
-      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
 
       @Override
       public boolean isMemoryCSVExportEnabled() {
@@ -275,13 +237,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isProfileableEnabled() {
-        return myProfileableEnabled;
-      }
-
-      @Override
-      public boolean isProfileableInQrEnabled() {
-        return myProfileableInQrEnabled;
+      public boolean isProfileableBuildsEnabled() {
+        return myProfileablsBuildsEnabled;
       }
 
       @Override
@@ -290,18 +247,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isStartupCpuProfilingEnabled() {
-        return myStartupCpuProfilingEnabled;
-      }
-
-      @Override
       public boolean isUnifiedPipelineEnabled() {
         return myEventsPipelineEnabled;
-      }
-
-      @Override
-      public boolean isUseTraceProcessor() {
-        return myUseTraceProcessor;
       }
     };
   }
@@ -428,24 +375,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     return myTraceProcessorService;
   }
 
-  @Override
-  public @NotNull AppInspectionMigrationServices getAppInspectionMigrationServices() {
-    return new AppInspectionMigrationServices() {
-      @Override
-      public boolean isMigrationEnabled() { return false; }
-      @Override
-      public boolean isSystemEventsMigrationDialogEnabled() { return false; }
-      @Override
-      public void setSystemEventsMigrationDialogEnabled(boolean isSystemEventsMigrationDialogEnabled) { }
-      @Override
-      public boolean isNetworkProfilerMigrationDialogEnabled() { return false; }
-      @Override
-      public void setNetworkProfilerMigrationDialogEnabled(boolean isNetworkProfilerMigrationDialogEnabled) { }
-      @Override
-      public void openAppInspectionToolWindow(@NotNull String tabName) { }
-    };
-  }
-
   public void setTraceProcessorService(@NotNull TraceProcessorService service) {
     myTraceProcessorService = service;
   }
@@ -467,33 +396,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myIsJankDetectionUiEnabled = enabled;
   }
 
-  public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
-
-  public void enableStartupCpuProfiling(boolean enabled) {
-    myStartupCpuProfilingEnabled = enabled;
-  }
-
   public void enableEventsPipeline(boolean enabled) {
     myEventsPipelineEnabled = enabled;
   }
 
-  public void enableCpuNewRecordingWorkflow(boolean enabled) {
-    myCpuNewRecordingWorkflowEnabled = enabled;
-  }
-
-  public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
-
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
 
-  public void enableUseTraceProcessor(boolean enabled) {
-    myUseTraceProcessor = enabled;
-  }
-
-  public void enableProfileable(boolean enabled) {
-    myProfileableEnabled = enabled;
-  }
-
-  public void enableProfileableInQr(boolean enabled) {
-    myProfileableInQrEnabled = enabled;
+  public void enableProfileableBuilds(boolean enabled) {
+    myProfileablsBuildsEnabled = enabled;
   }
 }

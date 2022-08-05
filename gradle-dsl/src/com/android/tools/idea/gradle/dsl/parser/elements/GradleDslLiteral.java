@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a literal element.
  */
-public final class GradleDslLiteral extends GradleDslSettableExpression {
+public class GradleDslLiteral extends GradleDslSettableExpression {
   public enum LiteralType {
     INTERPOLATION,
     LITERAL,

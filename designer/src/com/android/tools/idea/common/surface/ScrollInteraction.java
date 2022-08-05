@@ -106,7 +106,7 @@ public class ScrollInteraction extends Interaction {
       int y = mouseWheelEvent.getY();
       int scrollAmount = mouseWheelEvent.getScrollType() == WHEEL_UNIT_SCROLL ? mouseWheelEvent.getUnitsToScroll()
                                                                               : (mouseWheelEvent.getWheelRotation() < 0 ? -1 : 1);
-      DesignSurface surface = mySceneView.getSurface();
+      DesignSurface<?> surface = mySceneView.getSurface();
 
       SceneView sceneView = surface.getSceneViewAtOrPrimary(x, y);
       if (sceneView == null) {

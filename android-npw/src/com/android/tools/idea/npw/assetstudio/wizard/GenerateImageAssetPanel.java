@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
 
 import com.android.resources.Density;
+import com.android.tools.adtui.common.WrappedFlowLayout;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -44,8 +45,7 @@ import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.rendering.DrawableRenderer;
-import com.android.tools.idea.ui.wizard.CheckeredBackgroundPanel;
-import com.android.tools.idea.ui.wizard.WrappedFlowLayout;
+import com.android.tools.idea.wizard.ui.CheckeredBackgroundPanel;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -140,6 +140,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   private final JBLoadingPanel myLoadingPanel;
 
   @NotNull private AndroidModulePaths myPaths;
+  @NotNull private final File myResFolder;
   @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
   @NotNull private final StringProperty myPreviewRenderingError = new StringValueProperty();
 
@@ -149,7 +150,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
    * supported types are passed in, then all types will be supported by default.
    */
   public GenerateImageAssetPanel(@NotNull Disposable disposableParent, @NotNull AndroidFacet facet,
-                                 @NotNull AndroidModulePaths defaultPaths, @NotNull AndroidIconType... supportedTypes) {
+                                 @NotNull AndroidModulePaths defaultPaths, @NotNull File resFolder,
+                                 @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
 
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), panel -> new LoadingDecorator(panel, this, -1) {
@@ -167,6 +169,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
     myDefaultPaths = defaultPaths;
     myPaths = myDefaultPaths;
+    myResFolder = resFolder;
 
     if (supportedTypes.length == 0) {
       supportedTypes = AndroidIconType.values();
@@ -359,7 +362,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
    * Set the target project paths that this panel should use when generating assets. If not set,
    * this panel will attempt to use reasonable defaults for the project.
    */
-  @SuppressWarnings("unused") // Will be used when template wizard is updated to use this new class
+  @SuppressWarnings("unused") // Will be used when template wizard is updated to use this new class - make sure to also set myResFolder...
   public void setProjectPaths(@Nullable AndroidModulePaths projectPaths) {
     myPaths = projectPaths != null ? projectPaths : myDefaultPaths;
   }
@@ -392,7 +395,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private boolean iconExists() {
-    Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(myPaths);
+    Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(myPaths, myResFolder);
     for (File path : pathImageMap.keySet()) {
       if (path.exists()) {
         return true;

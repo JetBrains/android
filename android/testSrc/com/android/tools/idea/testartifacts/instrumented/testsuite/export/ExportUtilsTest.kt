@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
@@ -43,7 +44,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.`when`
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -89,12 +89,12 @@ class ExportUtilsTest {
 
     val outputFile = outputVirtualFile.toIoFile()
     val exportConfig = mock<ExportTestResultsConfiguration>().apply {
-      `when`(exportFormat).thenReturn(format)
+      whenever(exportFormat).thenReturn(format)
     }
 
     val runConfig = mock<RunConfiguration>().apply {
-      `when`(name).thenReturn("testRunConfig")
-      `when`(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+      whenever(name).thenReturn("testRunConfig")
+      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
     }
     val (devices, resultsNode) = createDevicesAndResultsNode()
 
@@ -121,42 +121,42 @@ class ExportUtilsTest {
       mutableMapOf("processorName" to "testProcessorName2"))
 
     val rootResults = MockitoKt.mock<AndroidTestResults>().apply {
-      `when`(getTotalDuration()).thenReturn(Duration.ofMillis(9011L))
-      `when`(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1, failed = 1))
+      whenever(getTotalDuration()).thenReturn(Duration.ofMillis(9011L))
+      whenever(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1, failed = 1))
 
-      `when`(getTestCaseResult(MockitoKt.eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      `when`(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getTestCaseResult(MockitoKt.eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
 
-      `when`(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      `when`(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      whenever(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
     }
     val classResults = MockitoKt.mock<AndroidTestResults>().apply {
-      `when`(methodName).thenReturn("")
-      `when`(className).thenReturn("testclass")
-      `when`(packageName).thenReturn("testpackage")
+      whenever(methodName).thenReturn("")
+      whenever(className).thenReturn("testclass")
+      whenever(packageName).thenReturn("testpackage")
 
-      `when`(getTestCaseResult(MockitoKt.eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      `when`(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getTestCaseResult(MockitoKt.eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
 
-      `when`(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      `when`(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      whenever(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
     }
     val caseResults = MockitoKt.mock<AndroidTestResults>().apply {
-      `when`(methodName).thenReturn("testmethod")
-      `when`(className).thenReturn("testclass")
-      `when`(packageName).thenReturn("testpackage")
+      whenever(methodName).thenReturn("testmethod")
+      whenever(className).thenReturn("testclass")
+      whenever(packageName).thenReturn("testpackage")
 
-      `when`(getTestCaseResult(MockitoKt.eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      `when`(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
-      `when`(getLogcat(MockitoKt.eq(device1))).thenReturn("")
-      `when`(getErrorStackTrace(MockitoKt.eq(device1))).thenReturn("")
-      `when`(getBenchmark(MockitoKt.eq(device1))).thenReturn(BenchmarkOutput.Empty)
+      whenever(getTestCaseResult(MockitoKt.eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getLogcat(MockitoKt.eq(device1))).thenReturn("")
+      whenever(getErrorStackTrace(MockitoKt.eq(device1))).thenReturn("")
+      whenever(getBenchmark(MockitoKt.eq(device1))).thenReturn(BenchmarkOutput.Empty)
 
-      `when`(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      `when`(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
-      `when`(getLogcat(MockitoKt.eq(device2))).thenReturn("")
-      `when`(getErrorStackTrace(MockitoKt.eq(device2))).thenReturn("")
-      `when`(getBenchmark(MockitoKt.eq(device2))).thenReturn(BenchmarkOutput.Empty)
+      whenever(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      whenever(getLogcat(MockitoKt.eq(device2))).thenReturn("")
+      whenever(getErrorStackTrace(MockitoKt.eq(device2))).thenReturn("")
+      whenever(getBenchmark(MockitoKt.eq(device2))).thenReturn(BenchmarkOutput.Empty)
     }
 
     return Pair(listOf(device1, device2), AndroidTestResultsTreeNode(

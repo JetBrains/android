@@ -25,7 +25,7 @@ public enum ProfilingTechnology {
   ART_SAMPLED("Java/Kotlin Method Sample Recording (legacy)",
               "Samples Java/Kotlin code using Android Runtime."),
 
-  ART_INSTRUMENTED("Java/Kotlin Method Trace Recording️",
+  ART_INSTRUMENTED("Java/Kotlin Method Trace Recording",
                    "Instruments Java/Kotlin code using Android Runtime, tracking every method call" +
                    " (this incurs high overhead making timing information inaccurate)."),
 

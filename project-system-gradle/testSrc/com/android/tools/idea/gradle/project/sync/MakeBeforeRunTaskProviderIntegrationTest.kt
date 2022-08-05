@@ -34,16 +34,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 class MakeBeforeRunTaskProviderIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
-
-  @get:Rule
-  var testName = TestName()
 
   @Test
   fun testModelsAreNotFetchedForSyncedAbi() {
@@ -94,7 +90,6 @@ class MakeBeforeRunTaskProviderIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()

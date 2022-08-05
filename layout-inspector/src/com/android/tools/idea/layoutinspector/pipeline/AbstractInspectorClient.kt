@@ -15,16 +15,27 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionCannotFindAdbDeviceException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
+import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
 
@@ -42,16 +53,18 @@ abstract class AbstractInspectorClient(
 
   final override var state: InspectorClient.State = InspectorClient.State.INITIALIZED
     private set(value) {
-      assert(field != value)
-      field = value
-      fireState(value)
+      if (field != value) {
+        field = value
+        fireState(value)
+      }
     }
 
   private val stateCallbacks = ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
   private val errorCallbacks = ListenerCollection.createWithDirectExecutor<(String) -> Unit>()
   private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
+  private val attachStateListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
 
-  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor()
+  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(attachStateListeners)
     @TestOnly set
 
   override fun dispose() {
@@ -68,6 +81,10 @@ abstract class AbstractInspectorClient(
 
   final override fun registerTreeEventCallback(callback: (Any) -> Unit) {
     treeEventCallbacks.add(callback)
+  }
+
+  final override fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit) {
+    attachStateListeners.add(callback)
   }
 
   /**
@@ -91,16 +108,27 @@ abstract class AbstractInspectorClient(
     treeEventCallbacks.forEach { callback -> callback(event) }
   }
 
-  final override fun connect() {
+  final override fun connect(project: Project) {
     launchMonitor.start(this)
     assert(state == InspectorClient.State.INITIALIZED)
     state = InspectorClient.State.CONNECTING
+
+    // Test that we can actually contact the device via ADB, and fail fast if we can't.
+    val adb = AdbUtils.getAdbFuture(project).get() ?: return
+    if (adb.executeShellCommand(process.device, "echo ok") != "ok") {
+      state = InspectorClient.State.DISCONNECTED
+      return
+    }
+    launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+
+
     doConnect().addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Nothing> {
       override fun onSuccess(value: Nothing?) {
         state = InspectorClient.State.CONNECTED
       }
 
       override fun onFailure(t: Throwable) {
+        launchMonitor.onFailure(t)
         disconnect()
         Logger.getInstance(AbstractInspectorClient::class.java).warn(
           "Connection failure with " +
@@ -117,10 +145,14 @@ abstract class AbstractInspectorClient(
 
   protected abstract fun doConnect(): ListenableFuture<Nothing>
 
+  private val disconnectStateLock = Any()
   final override fun disconnect() {
-    assert(state == InspectorClient.State.CONNECTED || state == InspectorClient.State.CONNECTING)
-    state = InspectorClient.State.DISCONNECTING
-
+    synchronized(disconnectStateLock) {
+      if (state == InspectorClient.State.DISCONNECTED || state == InspectorClient.State.DISCONNECTING) {
+        return
+      }
+      state = InspectorClient.State.DISCONNECTING
+    }
     doDisconnect().addListener(
       {
         state = InspectorClient.State.DISCONNECTED
@@ -133,4 +165,17 @@ abstract class AbstractInspectorClient(
   protected abstract fun doDisconnect(): ListenableFuture<Nothing>
 }
 
-class ConnectionFailedException(message: String): Exception(message)
+class ConnectionFailedException(message: String, val code: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE): Exception(message)
+
+val Throwable.errorCode: AttachErrorCode
+  get() = when (this) {
+    is ConnectionFailedException -> code
+    is AppInspectionCannotFindAdbDeviceException -> AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE
+    is AppInspectionProcessNoLongerExistsException -> AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS
+    is AppInspectionVersionIncompatibleException -> AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
+    is AppInspectionLibraryMissingException -> AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
+    is AppInspectionAppProguardedException -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
+    is AppInspectionArtifactNotFoundException -> AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
+    is AppInspectionServiceException -> AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR
+    else -> AttachErrorCode.UNKNOWN_ERROR_CODE
+  }

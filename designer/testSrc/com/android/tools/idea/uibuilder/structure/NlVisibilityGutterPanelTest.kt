@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.structure
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.junit.Test
@@ -52,10 +56,9 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
       override fun dispose() { }
     }
     mySurface = NlDesignSurface.builder(project, myDisposable!!)
-      .setSceneManagerProvider { surface: NlDesignSurface?, model: NlModel? ->
-        object : SyncLayoutlibSceneManager(
-          (model as SyncNlModel?)!!) {
-          override fun requestRenderAsync(): CompletableFuture<Void> {
+      .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
+        object : SyncLayoutlibSceneManager(surface, model as SyncNlModel) {
+          override fun renderAsync(trigger: LayoutEditorRenderResult.Trigger?): CompletableFuture<RenderResult> {
             return CompletableFuture.completedFuture(null)
           }
         }
@@ -156,7 +159,7 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
 
   private fun generateModelWithFlow(): SyncNlModel {
     val builder = model("visibility_gutter_panel.xml",
-                        component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
+                        component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                           .withBounds(0, 0, 1000, 1000)
                           .matchParentWidth()
                           .matchParentHeight()
@@ -176,7 +179,7 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
                               .id("@+id/button3")
                               .wrapContentWidth()
                               .wrapContentHeight(),
-                            component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
+                            component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                               .id("@+id/layout1")
                               .withBounds(0, 0, 500, 500)
                               .matchParentWidth()
@@ -205,9 +208,9 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
     val y = 10 + index * NlVisibilityButton.HEIGHT
 
     val event: MouseEvent = Mockito.mock(MouseEvent::class.java)
-    Mockito.`when`(event.button).thenReturn(BUTTON1)
-    Mockito.`when`(event.clickCount).thenReturn(1)
-    Mockito.`when`(event.point).thenReturn(Point(x, y))
+    whenever(event.button).thenReturn(BUTTON1)
+    whenever(event.clickCount).thenReturn(1)
+    whenever(event.point).thenReturn(Point(x, y))
 
     return event
   }

@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.projectSystem.gradle.models",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.models.iml"],
+    jvm_target = "8",
     visibility = ["//visibility:public"],
     deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
 )

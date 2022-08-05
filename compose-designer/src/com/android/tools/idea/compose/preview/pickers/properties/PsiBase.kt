@@ -15,28 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
-import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
-import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
-import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
-import com.android.tools.idea.compose.preview.PARAMETER_GROUP
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
-import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
-import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
-import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
-import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
-import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumProvider
-import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiEditorProvider
 import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiPropertiesInspectorBuilder
-import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
+import com.android.tools.idea.compose.preview.pickers.tracking.ComposePickerTracker
 import com.android.tools.idea.util.ListenerCollection
-import com.android.tools.property.panel.api.ControlType
-import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
@@ -58,7 +39,17 @@ interface PsiPropertyItem : NewPropertyItem {
 internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
   private val listeners = ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
 
-  abstract val tracker: PreviewPickerTracker
+  /**
+   * Builder to generate the properties Table UI.
+   *
+   * May define how the properties are organized, add headers or sections; and set custom editors.
+   */
+  abstract val inspectorBuilder: PsiPropertiesInspectorBuilder
+
+  /**
+   * Usage tracker, called on every [PsiPropertyItem] modification.
+   */
+  abstract val tracker: ComposePickerTracker
 
   override fun addListener(listener: PropertiesModelListener<PsiPropertyItem>) {
     // For now, the properties are always generated at load time, so we can always make this call when the listener is added.
@@ -83,42 +74,12 @@ internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
  * A [PropertiesView] for editing [PsiPropertyModel]s.
  */
 internal class PsiPropertyView(
-  model: PsiPropertyModel,
-  enumSupportValuesProvider: EnumSupportValuesProvider
+  model: PsiPropertyModel
 ) : PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
 
   init {
     addTab("").apply {
-      builders.add(
-        PsiPropertiesInspectorBuilder(
-          PsiEditorProvider(
-            PsiEnumProvider(enumSupportValuesProvider)
-          )
-        )
-      )
+      builders.add(model.inspectorBuilder)
     }
   }
-}
-
-/**
- * [ControlTypeProvider] for [PsiPropertyItem]s that provides a text editor for every property.
- */
-object PsiPropertyItemControlTypeProvider : ControlTypeProvider<PsiPropertyItem> {
-  override fun invoke(property: PsiPropertyItem): ControlType = when (property.name) {
-      PARAMETER_API_LEVEL,
-      PARAMETER_LOCALE,
-      PARAMETER_HARDWARE_DEVICE,
-      PARAMETER_HARDWARE_ORIENTATION,
-      PARAMETER_HARDWARE_DIM_UNIT,
-      PARAMETER_HARDWARE_DENSITY,
-      PARAMETER_UI_MODE,
-      PARAMETER_DEVICE -> ControlType.DROPDOWN
-      PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
-      PARAMETER_SHOW_DECORATION,
-      PARAMETER_SHOW_SYSTEM_UI,
-      PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN
-      PARAMETER_GROUP,
-      PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
-      else -> ControlType.TEXT_EDITOR
-    }
 }

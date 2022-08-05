@@ -27,6 +27,7 @@ import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -69,16 +70,12 @@ public class IssuesViewer {
     Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = new HashMap<>();
     for (PsIssue issue : newIssues) {
       PsIssue.Severity severity = issue.getSeverity();
-      List<PsIssue> currentIssues = issuesBySeverity.get(severity);
-      if (currentIssues == null) {
-        currentIssues = new ArrayList<>();
-        issuesBySeverity.put(severity, currentIssues);
-      }
+      List<PsIssue> currentIssues = issuesBySeverity.computeIfAbsent(severity, k -> new ArrayList<>());
       currentIssues.add(issue);
     }
 
     List<PsIssue.Severity> severities = Lists.newArrayList(issuesBySeverity.keySet());
-    severities.sort((t1, t2) -> t1.getPriority() - t2.getPriority());
+    severities.sort(Comparator.comparingInt(PsIssue.Severity::getPriority));
 
     int typeCount = severities.size();
     assert typeCount < 5; // There are only 4 types of issues

@@ -486,8 +486,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
       "@color/colorPrimary",
       "Color Resource")
     val frameworkElement = ResourceReferencePsiElement(
-      ResourceReference(ResourceNamespace.ANDROID, ResourceType.STRING, "example"),
-      elementAtCaret.manager)
+      elementAtCaret, ResourceReference(ResourceNamespace.ANDROID, ResourceType.STRING, "example"))
     checkElementDescriptions(
       frameworkElement,
       "example",

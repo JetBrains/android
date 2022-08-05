@@ -16,8 +16,12 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
+import kotlin.math.roundToInt
 
+// region Preview
 internal const val PARAMETER_NAME = "name"
 internal const val PARAMETER_GROUP = "group"
 internal const val PARAMETER_API_LEVEL = "apiLevel"
@@ -41,6 +45,19 @@ internal const val PARAMETER_HARDWARE_HEIGHT = "Height"
 internal const val PARAMETER_HARDWARE_DIM_UNIT = "DimensionUnit"
 internal const val PARAMETER_HARDWARE_DENSITY = "Density"
 internal const val PARAMETER_HARDWARE_ORIENTATION = "Orientation"
+internal const val PARAMETER_HARDWARE_CHIN_SIZE = "ChinSize"
+internal const val PARAMETER_HARDWARE_IS_ROUND = "IsRound"
+// endregion
+// region SpringSpec
+internal const val DECLARATION_SPRING_SPEC = "SpringSpec"
+internal const val DECLARATION_FLOAT_SPEC = "FloatSpringSpec"
+internal const val DECLARATION_SPRING = "spring"
+
+internal const val PARAMETER_RATIO = "dampingRatio"
+internal const val PARAMETER_STIFFNESS = "stiffness"
+internal const val PARAMETER_THRESHOLD = "visibilityThreshold"
+// endregion
+
 
 object Preview {
   object DeviceSpec {
@@ -56,10 +73,40 @@ object Preview {
     internal const val PARAMETER_UNIT = "unit"
     internal const val PARAMETER_DPI = "dpi"
 
-    internal const val DEFAULT_WIDTH_PX = 1080
-    internal const val DEFAULT_HEIGHT_PX = 1920
-    internal val DEFAULT_SHAPE = Shape.Normal
-    internal val DEFAULT_UNIT = DimUnit.px
-    internal const val DEFAULT_DPI = 480
+    /**
+     * Unused, may be used to define an `id` for user defined custom devices.
+     *
+     * E.g: "spec:id=my_device,width=900px,height=1900px"
+     *
+     * See b/234620152 for more context.
+     */
+    internal const val PARAMETER_ID = "id"
+
+    // region DeviceSpec Language only
+    internal const val PARAMETER_IS_ROUND = "isRound"
+    internal const val PARAMETER_CHIN_SIZE = "chinSize"
+    internal const val PARAMETER_ORIENTATION = "orientation"
+    internal const val PARAMETER_PARENT = "parent"
+    // endregion
+
+    internal val DEFAULT_WIDTH_DP: Int = ReferencePhoneConfig.width.roundToInt()
+    internal val DEFAULT_HEIGHT_DP: Int = ReferencePhoneConfig.height.roundToInt()
+    internal val DEFAULT_SHAPE: Shape = ReferencePhoneConfig.shape
+    internal val DEFAULT_UNIT: DimUnit = ReferencePhoneConfig.dimUnit
+    internal val DEFAULT_DPI: Int = ReferencePhoneConfig.dpi
+    internal val DEFAULT_IS_ROUND: Boolean = ReferencePhoneConfig.isRound
+    internal const val DEFAULT_CHIN_SIZE_ZERO: Int = 0
+    internal val DEFAULT_ORIENTATION = Orientation.portrait
+
+    /**
+     * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes an Android dimension value
+     * (with a dp/px suffix).
+     */
+    internal fun isDimensionParameter(parameterName: String): Boolean = when (parameterName) {
+      PARAMETER_WIDTH,
+      PARAMETER_HEIGHT,
+      PARAMETER_CHIN_SIZE -> true
+      else -> false
+    }
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.property.panel.api
 
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTableItem
 
 /**
  * A definition of a group in a table.

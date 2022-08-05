@@ -19,7 +19,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class SelectPreviousAction(private val surface: DesignSurface) : AnAction() {
+class SelectPreviousAction(private val surface: DesignSurface<*>) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val selectable = surface.selectableComponents
     if (selectable.isEmpty()) {

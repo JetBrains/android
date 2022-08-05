@@ -16,12 +16,11 @@
 package com.android.tools.componenttree.api
 
 import javax.swing.Icon
-import javax.swing.JComponent
 
 /**
  * A badge is an optional icon that can be shown to the right of a tree item.
  */
-interface BadgeItem {
+interface BadgeItem : ColumnInfo {
 
   /**
    * Return the icon for the specified [item].
@@ -29,17 +28,9 @@ interface BadgeItem {
   fun getIcon(item: Any): Icon?
 
   /**
-   * Return the tooltip text for the icon of the specified [item].
+   * Return the icon while hovering over the specified [item].
+   *
+   * (The icon from getIcon will be hidden while this hover icon is displayed.)
    */
-  fun getTooltipText(item: Any?): String
-
-  /**
-   * Perform this action when the icon is clicked on.
-   */
-  fun performAction(item: Any)
-
-  /**
-   * Show an (optional) popup after a right click on the icon.
-   */
-  fun showPopup(item: Any, component: JComponent, x: Int, y: Int)
+  fun getHoverIcon(item: Any): Icon? = null
 }

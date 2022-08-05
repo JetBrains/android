@@ -1,12 +1,10 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.facet;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static org.jetbrains.android.facet.AndroidRootUtil.getProjectPropertyValue;
-import static org.jetbrains.android.util.AndroidUtils.ANDROID_DEX_DISABLE_MERGER;
 import static org.jetbrains.android.util.AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY;
 import static org.jetbrains.android.util.AndroidUtils.ANDROID_LIBRARY_PROPERTY;
-import static org.jetbrains.android.util.AndroidUtils.ANDROID_MANIFEST_MERGER_PROPERTY;
 import static org.jetbrains.android.util.AndroidUtils.ANDROID_PROJECT_TYPE_PROPERTY;
 
 import com.android.SdkConstants;
@@ -48,7 +46,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<AndroidFacet, AndroidFacetConfiguration> {
+public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<AndroidFacet, AndroidFacetConfiguration> {
   public AndroidFrameworkDetector() {
     super("android");
   }
@@ -93,16 +91,6 @@ public final class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<
 
     if (model != null && !model.isDisposed() && model.isWritable()) {
       model.setSdk(ModuleRootManager.getInstance(module).getSdk());
-    }
-
-    Pair<String, VirtualFile> manifestMergerProperty = getProjectPropertyValue(module, ANDROID_MANIFEST_MERGER_PROPERTY);
-    if (manifestMergerProperty != null) {
-      facet.getProperties().ENABLE_MANIFEST_MERGING = getFirstAsBoolean(manifestMergerProperty);
-    }
-
-    Pair<String, VirtualFile> dexDisableMergerProperty = getProjectPropertyValue(module, ANDROID_DEX_DISABLE_MERGER);
-    if (dexDisableMergerProperty != null) {
-      facet.getProperties().ENABLE_PRE_DEXING = !getFirstAsBoolean(dexDisableMergerProperty);
     }
 
     // Left here for compatibility with loading older projects

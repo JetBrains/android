@@ -19,11 +19,9 @@ import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.RowAssetView
 import com.android.tools.idea.ui.resourcemanager.widget.SingleAssetCard
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.FilteringListModel
-import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
@@ -78,7 +76,8 @@ class AssetListView(
     isGridMode = DEFAULT_GRID_MODE
     val collectionListModel = CollectionListModel(assets)
     if (speedSearch != null) {
-      filteringListModel = createFilteringListModel(speedSearch, collectionListModel)
+      speedSearch.setEnabled(true)
+      filteringListModel = ResourceAssetSetFilteringListModel(collectionListModel, speedSearch::shouldBeShowing)
       model = filteringListModel
     }
     else {
@@ -87,19 +86,15 @@ class AssetListView(
     }
   }
 
-  private fun createFilteringListModel(speedSearch: SpeedSearch,
-                                       collectionListModel: CollectionListModel<ResourceAssetSet>
-  ): NameFilteringListModel<ResourceAssetSet> {
-    speedSearch.setEnabled(true)
-    return NameFilteringListModel(collectionListModel, { it.name }, speedSearch::shouldBeShowing,
-                                  { StringUtil.notNullize(speedSearch.filter) })
-  }
-
   /**
    * If a [SpeedSearch] was provided in constructor, filters the list items using the [SpeedSearch.getFilter].
    */
   fun refilter() {
     filteringListModel?.refilter()
+  }
+
+  fun getFilteredSize(): Int? {
+    return filteringListModel?.size
   }
 
   private fun updateCellSize() {

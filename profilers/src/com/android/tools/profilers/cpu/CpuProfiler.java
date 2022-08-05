@@ -23,8 +23,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.Transport;
@@ -53,7 +51,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -68,14 +65,17 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   private void onImportSessionSelected() {
-    Common.Session session = myProfilers.getSession();
-    CpuCaptureStage captureStage = CpuCaptureStage.create(myProfilers, new ImportedConfiguration(), session.getStartTimestamp());
-    if (captureStage != null) {
-      myProfilers.getIdeServices().getMainExecutor().execute(() -> myProfilers.setStage(captureStage));
-    }
-    else {
-      myProfilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
-    }
+    myProfilers.getIdeServices().runAsync(
+      () -> CpuCaptureStage.create(myProfilers, new ImportedConfiguration(), myProfilers.getSession().getStartTimestamp()),
+      captureStage -> {
+        if (captureStage != null) {
+          myProfilers.getIdeServices().getMainExecutor().execute(() -> myProfilers.setStage(captureStage));
+        }
+        else {
+          myProfilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
+        }
+      }
+    );
   }
 
   private static Logger getLogger() {
@@ -145,8 +145,7 @@ public class CpuProfiler extends StudioProfiler {
 
   @Override
   public void stopProfiling(Common.Session session) {
-    List<CpuTraceInfo> traces =
-      getTraceInfoFromSession(myProfilers.getClient(), session, myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
+    List<CpuTraceInfo> traces = getTraceInfoFromSession(myProfilers.getClient(), session, true);
     CpuTraceInfo mostRecentTrace = traces.isEmpty() ? null : traces.get(traces.size() - 1);
     if (mostRecentTrace != null && mostRecentTrace.getToTimestamp() == -1) {
       stopTracing(myProfilers,
@@ -282,10 +281,6 @@ public class CpuProfiler extends StudioProfiler {
    */
   @NotNull
   public static CpuTraceInfo getTraceInfoFromId(@NotNull StudioProfilers profilers, long traceId) {
-    if (!profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      return CpuTraceInfo.getDefaultInstance();
-    }
-
     Transport.GetEventGroupsResponse response = profilers.getClient().getTransportClient().getEventGroups(
       Transport.GetEventGroupsRequest.newBuilder()
         .setStreamId(profilers.getSession().getStreamId())
@@ -318,10 +313,6 @@ public class CpuProfiler extends StudioProfiler {
    */
   @NotNull
   public static Common.Event getTraceStatusEventFromId(@NotNull StudioProfilers profilers, long traceId) {
-    if (!profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      return Common.Event.getDefaultInstance();
-    }
-
     Transport.GetEventGroupsResponse response = profilers.getClient().getTransportClient().getEventGroups(
       Transport.GetEventGroupsRequest.newBuilder()
         .setStreamId(profilers.getSession().getStreamId())
@@ -338,45 +329,29 @@ public class CpuProfiler extends StudioProfiler {
                                  @NotNull Common.Session session,
                                  @NotNull Cpu.CpuTraceConfiguration configuration,
                                  @Nullable Consumer<Cpu.TraceStopStatus> responseHandler) {
-    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      Commands.Command stopCommand = Commands.Command.newBuilder()
-        .setStreamId(session.getStreamId())
-        .setPid(session.getPid())
-        .setType(Commands.Command.CommandType.STOP_CPU_TRACE)
-        .setStopCpuTrace(Cpu.StopCpuTrace.newBuilder()
-                           .setConfiguration(configuration)
-                           .setNeedTraceResponse(responseHandler != null))
-        .build();
-      Transport.ExecuteResponse response = profilers.getClient().getTransportClient().execute(
-        Transport.ExecuteRequest.newBuilder().setCommand(stopCommand).build());
-      if (responseHandler != null) {
-        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.CPU_TRACE_STATUS,
-                                                                           profilers.getIdeServices().getMainExecutor(),
-                                                                           event -> event.getCommandId() == response.getCommandId(),
-                                                                           () -> session.getStreamId(),
-                                                                           () -> session.getPid(),
-                                                                           event -> {
-                                                                             responseHandler
-                                                                               .accept(event.getCpuTraceStatus().getTraceStopStatus());
-                                                                             // return true to unregister the listener.
-                                                                             return true;
-                                                                           });
-        profilers.getTransportPoller().registerListener(statusListener);
-      }
-    }
-    else {
-      CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
-        .setTraceType(configuration.getUserOptions().getTraceType())
-        .setTraceMode(configuration.getUserOptions().getTraceMode())
-        .setAppName(configuration.getAppName())
-        .setSession(session)
-        .setNeedTraceResponse(responseHandler != null)
-        .build();
-      CompletableFuture<CpuProfilingAppStopResponse> future = CompletableFuture.supplyAsync(
-        () -> profilers.getClient().getCpuClient().stopProfilingApp(request), profilers.getIdeServices().getPoolExecutor());
-      if (responseHandler != null) {
-        future.thenAcceptAsync(response -> responseHandler.accept(response.getStatus()), profilers.getIdeServices().getMainExecutor());
-      }
+    Commands.Command stopCommand = Commands.Command.newBuilder()
+      .setStreamId(session.getStreamId())
+      .setPid(session.getPid())
+      .setType(Commands.Command.CommandType.STOP_CPU_TRACE)
+      .setStopCpuTrace(Cpu.StopCpuTrace.newBuilder()
+                         .setConfiguration(configuration)
+                         .setNeedTraceResponse(responseHandler != null))
+      .build();
+    Transport.ExecuteResponse response = profilers.getClient().getTransportClient().execute(
+      Transport.ExecuteRequest.newBuilder().setCommand(stopCommand).build());
+    if (responseHandler != null) {
+      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.CPU_TRACE_STATUS,
+                                                                         profilers.getIdeServices().getMainExecutor(),
+                                                                         event -> event.getCommandId() == response.getCommandId(),
+                                                                         () -> session.getStreamId(),
+                                                                         () -> session.getPid(),
+                                                                         event -> {
+                                                                           responseHandler
+                                                                             .accept(event.getCpuTraceStatus().getTraceStopStatus());
+                                                                           // return true to unregister the listener.
+                                                                           return true;
+                                                                         });
+      profilers.getTransportPoller().registerListener(statusListener);
     }
   }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.pkg">
   <application>
-    <activity android:name=".TestActivity" <warning descr="Expecting `android:resizeableActivity=\"true\"` for this activity so the user can take advantage of the multi-window environment on Chrome OS devices">android:<caret>resizeableActivity="false"</warning>/>
+    <activity android:name=".TestActivity" <warning descr="Expecting `android:resizeableActivity=\"true\"` for this activity so the user can take advantage of the multi-window environment on all devices. NOTE: beginning with Android 12, all apps run in multi-window mode on large screen devices.">android:<caret>resizeableActivity="false"</warning>/>
   </application>
 </manifest>

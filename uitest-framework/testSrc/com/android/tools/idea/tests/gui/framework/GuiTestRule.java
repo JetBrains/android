@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish;
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.io.Files.asCharSource;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
@@ -60,7 +61,6 @@ import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -85,7 +85,7 @@ import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
 public class GuiTestRule implements TestRule {
-  public static final Wait DEFAULT_IMPORT_AND_SYNC_WAIT = Wait.seconds(60);
+  public static final Wait DEFAULT_IMPORT_AND_SYNC_WAIT = Wait.seconds(480);
 
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
@@ -329,24 +329,42 @@ public class GuiTestRule implements TestRule {
     return importProjectAndWaitForProjectSyncToFinish("MultiModule");
   }
 
+
+  @NotNull
+  public IdeFrameFixture importProjectWithSharedIndexAndWaitForProjectSyncToFinish(@NotNull String projectDirName,
+                                                                    @Nullable String gradleVersion,
+                                                                    @Nullable String gradlePluginVersion,
+                                                                    @Nullable String kotlinVersion,
+                                                                    @Nullable String ndkVersion,
+                                                                    @NotNull Wait waitForSync) throws IOException {
+    File projectDir = setUpSharedIndexProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
+    return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
+  }
+
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName,
                                                                     @Nullable String gradleVersion,
                                                                     @Nullable String gradlePluginVersion,
                                                                     @Nullable String kotlinVersion,
+                                                                    @Nullable String ndkVersion,
                                                                     @NotNull Wait waitForSync) throws IOException {
-    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion);
+    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
     return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
   }
 
   @NotNull
+  public IdeFrameFixture importProjectWithSharedIndexAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
+    return importProjectWithSharedIndexAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, waitForSync);
+  }
+
+  @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, waitForSync);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, waitForSync);
   }
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
   }
 
   @NotNull
@@ -359,6 +377,43 @@ public class GuiTestRule implements TestRule {
     ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
     return actAndWaitForGradleProjectSyncToFinish(waitForSync, () -> ideFrame());
+  }
+
+  /**
+   * Sets up a project before using it in a UI test. This method uses the project with prebuilt indices
+   * <ul>
+   * <li>Makes a copy of the project in testData/guiTests/newProjects (deletes any existing copy of the project first.) This copy is
+   * the one the test will use.</li>
+   * <li>Creates a Gradle wrapper for the test project.</li>
+   * <li>Updates the version of the Android Gradle plug-in used by the project, if applicable</li>
+   * <li>Creates a local.properties file pointing to the Android SDK path specified by the system property (or environment variable)
+   * 'ANDROID_SDK_ROOT'</li>
+   * <li>Copies over missing files to the .idea directory (if the project will be opened, instead of imported.)</li>
+   * <li>Deletes .idea directory, .iml files and build directories, if the project will be imported.</li>
+   * <p/>
+   * </ul>
+   *
+   * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
+   * @param gradleVersion              optional Gradle version to use or null to use the default.
+   * @param gradlePluginVersion              optional Gradle Plugin version to use or null to use the default.
+   * @param kotlinVersion              optional Kotlin version to use or null to use the default.
+   * @throws IOException if an unexpected I/O error occurs.
+   */
+  @NotNull
+  public File setUpSharedIndexProject(@NotNull String projectDirName,
+                           @Nullable String gradleVersion,
+                           @Nullable String gradlePluginVersion,
+                           @Nullable String kotlinVersion,
+                           @Nullable String ndkVersion) throws IOException {
+    File projectPath = copyProjectBeforeOpening(projectDirName);
+    // If the index.zip does not exist, or if the plugin is not installed, this step does not affect the test
+    System.setProperty("STUDIO_PREBUILT_INDEX", projectPath.toPath().resolve("index.zip").toAbsolutePath().toString());
+    createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
+    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
+    updateLocalProperties(projectPath);
+    cleanUpProjectForImport(projectPath);
+    refreshFiles();
+    return projectPath;
   }
 
   /**
@@ -385,11 +440,11 @@ public class GuiTestRule implements TestRule {
   public File setUpProject(@NotNull String projectDirName,
                            @Nullable String gradleVersion,
                            @Nullable String gradlePluginVersion,
-                           @Nullable String kotlinVersion) throws IOException {
+                           @Nullable String kotlinVersion,
+                           @Nullable String ndkVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
-
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
+    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
     refreshFiles();
@@ -415,7 +470,7 @@ public class GuiTestRule implements TestRule {
    */
   @NotNull
   public File setUpProject(@NotNull String projectDirName) throws IOException {
-    return setUpProject(projectDirName, null, null, null);
+    return setUpProject(projectDirName, null, null, null, null);
   }
 
   @NotNull
@@ -448,14 +503,16 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null);
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null, null);
   }
 
   protected void updateGradleVersions(@NotNull File projectPath,
                                       @Nullable String gradleVersion,
                                       @Nullable String gradlePluginVersion,
-                                      @Nullable String kotlinVersion) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
+                                      @Nullable String kotlinVersion,
+                                      @Nullable String ndkVersion
+                                      ) throws IOException {
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
   }
 
   @NotNull
@@ -483,7 +540,7 @@ public class GuiTestRule implements TestRule {
           for (Element module : modules) {
             String fileUrl = module.getAttributeValue("fileurl");
             if (!StringUtil.isEmpty(fileUrl)) {
-              String relativePath = FileUtilRt.toSystemDependentName(fileUrl.substring(urlPrefixSize));
+              String relativePath = FileUtil.toSystemDependentName(fileUrl.substring(urlPrefixSize));
               File imlFilePath = new File(projectPath, relativePath);
               if (imlFilePath.isFile()) {
                 FileUtilRt.delete(imlFilePath);
@@ -525,7 +582,7 @@ public class GuiTestRule implements TestRule {
   @NotNull
   public String getProjectFileText(@NotNull String fileRelPath) {
     try {
-      return asCharSource(getProjectPath(fileRelPath), StandardCharsets.UTF_8).read();
+      return asCharSource(getProjectPath(fileRelPath), UTF_8).read();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

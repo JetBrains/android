@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ public class AidlParameterImpl extends AidlPsiCompositeElementImpl implements Ai
     visitor.visitParameter(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AidlVisitor) accept((AidlVisitor)visitor);
     else super.accept(visitor);
@@ -44,20 +45,14 @@ public class AidlParameterImpl extends AidlPsiCompositeElementImpl implements Ai
 
   @Override
   @Nullable
-  public AidlDirection getDirection() {
-    return findChildByClass(AidlDirection.class);
+  public AidlNameComponent getNameComponent() {
+    return findChildByClass(AidlNameComponent.class);
   }
 
   @Override
   @NotNull
-  public AidlType getType() {
-    return findNotNullChildByClass(AidlType.class);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getIdentifier() {
-    return findChildByType(IDENTIFIER);
+  public AidlTypeElement getTypeElement() {
+    return findNotNullChildByClass(AidlTypeElement.class);
   }
 
 }

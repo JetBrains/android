@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.SdkConstants
+import com.android.AndroidXConstants
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
@@ -104,56 +104,56 @@ enum class DataBindingMode constructor(
    * Project uses data binding in the androidx namespace
    */
   ANDROIDX(
-    SdkConstants.DATA_BINDING_PKG.newName(),
-    SdkConstants.CLASS_DATA_BINDING_VIEW_STUB_PROXY.newName(),
-    SdkConstants.CLASS_DATA_BINDING_COMPONENT.newName(),
-    SdkConstants.CLASS_DATA_BINDING_BINDABLE.newName(),
-    SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.newName(),
-    SdkConstants.BINDING_ADAPTER_ANNOTATION.newName(),
-    SdkConstants.BINDING_CONVERSION_ANNOTATION.newName(),
-    SdkConstants.BINDING_METHODS_ANNOTATION.newName(),
-    SdkConstants.INVERSE_BINDING_ADAPTER_ANNOTATION.newName(),
-    SdkConstants.INVERSE_BINDING_METHOD_ANNOTATION.newName(),
-    SdkConstants.INVERSE_BINDING_METHODS_ANNOTATION.newName(),
-    SdkConstants.INVERSE_METHOD_ANNOTATION.newName(),
-    SdkConstants.CLASS_LIVE_DATA.newName(),
-    arrayOf(SdkConstants.CLASS_OBSERVABLE_BOOLEAN.newName(),
-            SdkConstants.CLASS_OBSERVABLE_BYTE.newName(),
-            SdkConstants.CLASS_OBSERVABLE_CHAR.newName(),
-            SdkConstants.CLASS_OBSERVABLE_DOUBLE.newName(),
-            SdkConstants.CLASS_OBSERVABLE_FIELD.newName(),
-            SdkConstants.CLASS_OBSERVABLE_FLOAT.newName(),
-            SdkConstants.CLASS_OBSERVABLE_INT.newName(),
-            SdkConstants.CLASS_OBSERVABLE_LONG.newName(),
-            SdkConstants.CLASS_OBSERVABLE_PARCELABLE.newName(),
-            SdkConstants.CLASS_OBSERVABLE_SHORT.newName())),
+    AndroidXConstants.DATA_BINDING_PKG.newName(),
+    AndroidXConstants.CLASS_DATA_BINDING_VIEW_STUB_PROXY.newName(),
+    AndroidXConstants.CLASS_DATA_BINDING_COMPONENT.newName(),
+    AndroidXConstants.CLASS_DATA_BINDING_BINDABLE.newName(),
+    AndroidXConstants.CLASS_DATA_BINDING_BASE_BINDING.newName(),
+    AndroidXConstants.BINDING_ADAPTER_ANNOTATION.newName(),
+    AndroidXConstants.BINDING_CONVERSION_ANNOTATION.newName(),
+    AndroidXConstants.BINDING_METHODS_ANNOTATION.newName(),
+    AndroidXConstants.INVERSE_BINDING_ADAPTER_ANNOTATION.newName(),
+    AndroidXConstants.INVERSE_BINDING_METHOD_ANNOTATION.newName(),
+    AndroidXConstants.INVERSE_BINDING_METHODS_ANNOTATION.newName(),
+    AndroidXConstants.INVERSE_METHOD_ANNOTATION.newName(),
+    AndroidXConstants.CLASS_LIVE_DATA.newName(),
+    arrayOf(AndroidXConstants.CLASS_OBSERVABLE_BOOLEAN.newName(),
+            AndroidXConstants.CLASS_OBSERVABLE_BYTE.newName(),
+            AndroidXConstants.CLASS_OBSERVABLE_CHAR.newName(),
+            AndroidXConstants.CLASS_OBSERVABLE_DOUBLE.newName(),
+            AndroidXConstants.CLASS_OBSERVABLE_FIELD.newName(),
+            AndroidXConstants.CLASS_OBSERVABLE_FLOAT.newName(),
+            AndroidXConstants.CLASS_OBSERVABLE_INT.newName(),
+            AndroidXConstants.CLASS_OBSERVABLE_LONG.newName(),
+            AndroidXConstants.CLASS_OBSERVABLE_PARCELABLE.newName(),
+            AndroidXConstants.CLASS_OBSERVABLE_SHORT.newName())),
   /**
    * Project uses data binding in pre-androidx namespace
    */
   SUPPORT(
-    SdkConstants.DATA_BINDING_PKG.oldName(),
-    SdkConstants.CLASS_DATA_BINDING_VIEW_STUB_PROXY.oldName(),
-    SdkConstants.CLASS_DATA_BINDING_COMPONENT.oldName(),
-    SdkConstants.CLASS_DATA_BINDING_BINDABLE.oldName(),
-    SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.oldName(),
-    SdkConstants.BINDING_ADAPTER_ANNOTATION.oldName(),
-    SdkConstants.BINDING_CONVERSION_ANNOTATION.oldName(),
-    SdkConstants.BINDING_METHODS_ANNOTATION.oldName(),
-    SdkConstants.INVERSE_BINDING_ADAPTER_ANNOTATION.oldName(),
-    SdkConstants.INVERSE_BINDING_METHOD_ANNOTATION.oldName(),
-    SdkConstants.INVERSE_BINDING_METHODS_ANNOTATION.oldName(),
-    SdkConstants.INVERSE_METHOD_ANNOTATION.oldName(),
-    SdkConstants.CLASS_LIVE_DATA.oldName(),
-    arrayOf(SdkConstants.CLASS_OBSERVABLE_BOOLEAN.oldName(),
-            SdkConstants.CLASS_OBSERVABLE_BYTE.oldName(),
-            SdkConstants.CLASS_OBSERVABLE_CHAR.oldName(),
-            SdkConstants.CLASS_OBSERVABLE_DOUBLE.oldName(),
-            SdkConstants.CLASS_OBSERVABLE_FIELD.oldName(),
-            SdkConstants.CLASS_OBSERVABLE_FLOAT.oldName(),
-            SdkConstants.CLASS_OBSERVABLE_INT.oldName(),
-            SdkConstants.CLASS_OBSERVABLE_LONG.oldName(),
-            SdkConstants.CLASS_OBSERVABLE_PARCELABLE.oldName(),
-            SdkConstants.CLASS_OBSERVABLE_SHORT.oldName()));
+    AndroidXConstants.DATA_BINDING_PKG.oldName(),
+    AndroidXConstants.CLASS_DATA_BINDING_VIEW_STUB_PROXY.oldName(),
+    AndroidXConstants.CLASS_DATA_BINDING_COMPONENT.oldName(),
+    AndroidXConstants.CLASS_DATA_BINDING_BINDABLE.oldName(),
+    AndroidXConstants.CLASS_DATA_BINDING_BASE_BINDING.oldName(),
+    AndroidXConstants.BINDING_ADAPTER_ANNOTATION.oldName(),
+    AndroidXConstants.BINDING_CONVERSION_ANNOTATION.oldName(),
+    AndroidXConstants.BINDING_METHODS_ANNOTATION.oldName(),
+    AndroidXConstants.INVERSE_BINDING_ADAPTER_ANNOTATION.oldName(),
+    AndroidXConstants.INVERSE_BINDING_METHOD_ANNOTATION.oldName(),
+    AndroidXConstants.INVERSE_BINDING_METHODS_ANNOTATION.oldName(),
+    AndroidXConstants.INVERSE_METHOD_ANNOTATION.oldName(),
+    AndroidXConstants.CLASS_LIVE_DATA.oldName(),
+    arrayOf(AndroidXConstants.CLASS_OBSERVABLE_BOOLEAN.oldName(),
+            AndroidXConstants.CLASS_OBSERVABLE_BYTE.oldName(),
+            AndroidXConstants.CLASS_OBSERVABLE_CHAR.oldName(),
+            AndroidXConstants.CLASS_OBSERVABLE_DOUBLE.oldName(),
+            AndroidXConstants.CLASS_OBSERVABLE_FIELD.oldName(),
+            AndroidXConstants.CLASS_OBSERVABLE_FLOAT.oldName(),
+            AndroidXConstants.CLASS_OBSERVABLE_INT.oldName(),
+            AndroidXConstants.CLASS_OBSERVABLE_LONG.oldName(),
+            AndroidXConstants.CLASS_OBSERVABLE_PARCELABLE.oldName(),
+            AndroidXConstants.CLASS_OBSERVABLE_SHORT.oldName()));
 
   companion object {
     /**

@@ -26,10 +26,11 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.fixture.DialogFixture;
-import org.fest.swing.timing.Wait;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +40,14 @@ public class InferNullityTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
-  private static String OK = "OK";
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
+  private static String ANALYZE = "Analyze";
+
+  @Before
+  public void setUp() throws Exception {
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
+    guiTest.robot().waitForIdle();
+  }
 
   /**
    * Verifies inferring nullity of calling methods and variables that can/cannot return null.
@@ -50,7 +58,7 @@ public class InferNullityTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import Nullity project.
+   *   1. Create Empty Activity project and add the sample methods to MainActivity class
    *   2. Click on Analyze > Infer Nullity.
    *   3. Select Annotations scope as "Whole Project" and click OK.
    *   4. Click OK when prompted to add the support-annotations dependency to the project.
@@ -62,18 +70,30 @@ public class InferNullityTest {
   @Test
   @RunIn(TestGroup.FAT_BAZEL)
   public void inferNullity() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("Nullity", Wait.seconds(120));
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor();
+
     guiTest.waitForBackgroundTasks();
 
-    ideFrame.invokeMenuPath("Analyze", "Infer Nullity...");
+    editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
+      .moveBetween(" }", "")
+      .enterText("\npublic Color myMethod() {\nColor color = null;\nreturn color;\n}\n\npublic Color myMethod1() {\nColor color = new Color();\nreturn color;\n}\n")
+      .select("()public class MainActivity")
+      .enterText("import android.graphics.Color;\n\n");
+
+    guiTest.waitForBackgroundTasks();
+
+    ideFrame.invokeMenuPath("Code", "Analyze Code", "Infer Nullity...");
 
     DialogFixture specifyScopeDialog = findDialog(withTitle("Specify Infer Nullity Scope"))
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
-    specifyScopeDialog.button(withText(OK)).click();
+    specifyScopeDialog.button(withText(ANALYZE)).click();
+
+    guiTest.waitForBackgroundTasks();
 
     EditorFixture editorFixture = ideFrame
       .getEditor()
-      .open("app/src/main/java/com/android/nullity/MainActivity.java");
+      .open("/app/src/main/java/com/google/myapplication/MainActivity.java");
     String codeContents = editorFixture.getCurrentFileContents();
     assertThat(codeContents).contains("@Nullable");
     assertThat(codeContents).contains("@NonNull");

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
@@ -257,8 +258,8 @@ class CpuCaptureStageViewTest {
   fun zoomToSelectionButtonForTimelineEvent() {
     profilersView.studioProfilers.stage = stage
     val capture = Mockito.mock(SystemTraceCpuCapture::class.java).apply {
-      Mockito.`when`(range).thenReturn(Range(0.0, 50.0))
-      Mockito.`when`(frameRenderSequence).thenReturn { RenderSequence(null, null, null) }
+      whenever(range).thenReturn(Range(0.0, 50.0))
+      whenever(frameRenderSequence).thenReturn { RenderSequence(null, null, null) }
     }
     val frame = AndroidFrameTimelineEvent(42, 42, 0, 20, 30, "",
                                           PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
@@ -285,6 +286,13 @@ class CpuCaptureStageViewTest {
     stageView.deselectAllLabel.doClick()
     assertThat(stage.multiSelectionModel.selections).isEmpty()
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
+
+    // Select a track and the clear the selection (b/228447505).
+    stageView.trackGroupList.trackGroups[0].trackList.selectedIndex = 0
+    assertThat(stage.multiSelectionModel.selections).isNotEmpty()
+    stageView.deselectAllLabel.doClick()
+    assertThat(stage.multiSelectionModel.selections).isEmpty()
+    stageView.trackGroupList.trackGroups.forEach { assertThat(it.trackList.selectedIndices).isEmpty() }
   }
 
   @Test

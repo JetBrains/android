@@ -34,12 +34,12 @@ import com.intellij.codeInspection.ex.InspectionToolWrapper
 import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.psi.PsiFile
@@ -55,13 +55,11 @@ import com.intellij.testFramework.fixtures.ModuleFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl
-import com.intellij.util.Base64
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
-import java.nio.file.Paths
 
 class LintIdeTest : UsefulTestCase() {
   init {
@@ -131,7 +129,7 @@ class LintIdeTest : UsefulTestCase() {
 
   fun testUseValueOfSuppress() {
     doTestWithFix(AndroidLintUseValueOfInspection(),
-                  "Suppress: Add @SuppressLint(\"UseValueOf\") annotation", "/src/test/pkg/UseValueOf.java", "java")
+                  "Suppress UseValueOf with an annotation", "/src/test/pkg/UseValueOf.java", "java")
   }
 
   fun testWrongQuote() {
@@ -154,7 +152,7 @@ class LintIdeTest : UsefulTestCase() {
   fun testAddSuperCallSuppress() {
     addCallSuper()
     doTestWithFix(AndroidLintMissingSuperCallInspection(),
-                  "Suppress: Add @SuppressLint(\"MissingSuperCall\") annotation", "/src/p1/p2/SuperTest.kt", "kt")
+                  "Suppress MissingSuperCall with an annotation", "/src/p1/p2/SuperTest.kt", "kt")
   }
 
   fun testAddSuperCallExpression() {
@@ -206,7 +204,9 @@ class LintIdeTest : UsefulTestCase() {
 
   fun testDisabledTestsEnabledOnTheFly() {
     // If this changes test no longer applies; pick different disabled issue
+/* b/214265385
     assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isFalse()
+b/214265385 */
     myFixture.copyFileToProject("$globalTestDir/Stopship.java", "src/p1/p2/Stopship.java")
     doGlobalInspectionTest(AndroidLintStopShipInspection())
   }
@@ -272,51 +272,6 @@ class LintIdeTest : UsefulTestCase() {
     } finally {
       AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     }
-  }
-
-  fun testCreateFileFix() {
-    // Test creating new text files, new binary files, and deleting files.
-    val keepFile = addCheckResult()
-    val newFile = File(VfsUtilCore.virtualToIoFile(keepFile.virtualFile).parentFile, "new.txt")
-    val fix = CreateFileQuickFix(newFile, "New file\ncontents.", null, null, true,
-                                 "Create ${newFile.name}", null)
-    val context = AndroidQuickfixContexts.BatchContext.getInstance()
-    assertTrue(fix.isApplicable(keepFile, keepFile, context.type))
-
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        fix.apply(keepFile, keepFile, context)
-      })
-
-    assertEquals("New file\ncontents.", keepFile.parent?.findFile("new.txt")?.text ?: "<ERROR>")
-
-    // Make sure deletion works too
-    val deleteFix = CreateFileQuickFix(newFile, null, null, null, false,
-                                       "Delete", null)
-
-    assertTrue(deleteFix.isApplicable(keepFile, keepFile, context.type))
-
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        deleteFix.apply(keepFile, keepFile, context)
-      })
-
-    assertNull(keepFile.parent?.findFile("new.txt"))
-
-    val binary = byteArrayOf(0, 1, 2, 3, 4)
-    val binFile = File(newFile.parentFile, "new.bin")
-    val binaryFix = CreateFileQuickFix(binFile, null, binary, null, true,
-                                       "Create ${newFile.name}", null)
-    assertTrue(binaryFix.isApplicable(keepFile, keepFile, context.type))
-
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        binaryFix.apply(keepFile, keepFile, context)
-      })
-
-    val virtualBinFile = LocalFileSystem.getInstance().findFileByIoFile(binFile)
-    val contents = virtualBinFile?.contentsToByteArray()
-    assertEquals(Base64.encode(binary), Base64.encode(contents))
   }
 
   private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase) {
@@ -478,6 +433,36 @@ class LintIdeTest : UsefulTestCase() {
     }
   }
 
+  fun testIsEdited() {
+    val fileContent = """
+      package p1.p2;
+      public class Test {}
+    """.trimIndent()
+
+    val now = System.currentTimeMillis()
+    val yesterday = now - 24*60*60*1000L
+
+    val vFile = myFixture.addFileToProject("src/p1/p2/Test.java", fileContent).virtualFile
+    val file = VfsUtilCore.virtualToIoFile(vFile)
+
+    val module = ModuleManager.getInstance(myFixture.project).modules[0]
+    val client = LintIdeClient(myFixture.project, LintEditorResult(module, vFile, fileContent, Sets.newHashSet()))
+
+    assertThat(file).isNotNull()
+    // File was just created: recent files are treated as edited
+    assertThat(client.isEdited(file, false)).isTrue()
+    file.setLastModified(yesterday)
+    assertThat(client.isEdited(file, true)).isFalse()
+
+    val document = FileDocumentManager.getInstance().getDocument(vFile)
+    assertThat(document).isNotNull()
+    WriteCommandAction.writeCommandAction(myFixture.project).run(
+      ThrowableRunnable {
+        document?.insertString(document.textLength, "// appended")
+      })
+    assertThat(client.isEdited(file, true)).isTrue()
+  }
+
   companion object {
     private const val BASE_PATH = "/lint/"
     private const val BASE_PATH_GLOBAL = BASE_PATH + "global/"
@@ -488,7 +473,7 @@ class LintIdeTest : UsefulTestCase() {
     // For now lint is co-located with the Android plugin
     private val androidPluginHome: String
       get() {
-        val adtPath = Paths.get(StudioPathManager.resolveDevPath("tools/adt/idea/android")).normalize()
+        val adtPath = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android")
         return if (Files.exists(adtPath))
           adtPath.toString()
         else

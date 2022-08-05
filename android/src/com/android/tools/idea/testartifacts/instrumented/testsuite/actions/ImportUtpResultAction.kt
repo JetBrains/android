@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.util.toIoFile
@@ -41,10 +42,8 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.text.DateFormatUtil
 import kotlinx.coroutines.launch
-import org.jetbrains.android.dom.manifest.getPackageName
 import java.io.File
 import java.io.IOException
-import java.nio.file.Paths
 import java.util.Date
 import javax.swing.Icon
 
@@ -56,11 +55,13 @@ private const val TEST_RESULT_PB_FILE_NAME = "test-result.pb"
 /**
  * An action to import Unified Test Platform (UTP) results, and display them in the test result panel.
  *
+ * @param toolWindowDisplayName a name that is displayed as a tool-window title
  * @param importFile a UTP result protobuf file to open, or null to open file chooser dialog
  */
 class ImportUtpResultAction(icon: Icon? = null,
                             text: String = "Import Android Test Results...",
-                            private val importFile: VirtualFile? = null) : AnAction(text, text, icon) {
+                            val toolWindowDisplayName: String = "Imported Android Test Results",
+                            val importFile: VirtualFile? = null) : AnAction(text, text, icon) {
   companion object {
     const val IMPORTED_TEST_WINDOW_ID = "Imported Tests"
     private val NOTIFICATION_GROUP = NotificationGroup("Import Android Test Results", NotificationDisplayType.BALLOON)
@@ -85,7 +86,7 @@ class ImportUtpResultAction(icon: Icon? = null,
   /**
    * Import test results and display them in the test result panel.
    *
-   * @param inputStream contains a binary protobuf of the test suite result
+   * @param file contains a binary protobuf of the test suite result
    * @param project the Android Studio project.
    **/
   @VisibleForTesting
@@ -93,9 +94,13 @@ class ImportUtpResultAction(icon: Icon? = null,
     RunContentManager.getInstance(project)
     try {
       val testAdapter = UtpTestResultAdapter(file)
-      val packageName = testAdapter.getPackageName()
-      val module = ModuleManager.getInstance(project).modules.find {
-        getPackageName(it) == packageName
+      val packageName = testAdapter.packageName
+      val module = if (packageName != null) {
+        ModuleManager.getInstance(project).modules.find {
+          it.getModuleSystem().getPackageName() == packageName
+        }
+      } else {
+        null
       }
       if (module == null) {
         NOTIFICATION_GROUP.createNotification("Cannot find corresponding module. Some features might not be available. Did you "
@@ -105,7 +110,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       val testSuiteView = AndroidTestSuiteView(disposable, project, module, IMPORTED_TEST_WINDOW_ID)
       val toolWindow = getToolWindow(project)
       val contentManager = toolWindow.contentManager
-      val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
+      val content = contentManager.factory.createContent(testSuiteView.component, toolWindowDisplayName, true)
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
 
@@ -115,7 +120,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       toolWindow.activate(null)
     }
     catch (exception: InvalidProtocolBufferException) {
-      NOTIFICATION_GROUP.createNotification("Failed to import protobuf with exception: " + exception.toString(),
+      NOTIFICATION_GROUP.createNotification("Failed to import protobuf with exception: $exception",
                                             NotificationType.ERROR)
         .notify(project)
       throw exception
@@ -173,31 +178,56 @@ data class ImportUtpResultActionFromFile(val timestamp: Long, val action: Import
  */
 fun createImportUtpResultActionFromAndroidGradlePluginOutput(project: Project?): List<ImportUtpResultActionFromFile> {
   val testDirectory = getDefaultAndroidGradlePluginTestDirectory(project) ?: return listOf()
-  return findTestResultProtoAndCreateImportActions(testDirectory)
+  return findTestResultProtoAndCreateImportActions(testDirectory, deviceType = "connected")
 }
 
 fun createImportGradleManagedDeviceUtpResults(project: Project?): List<ImportUtpResultActionFromFile> {
   val deviceFolder = getDefaultAndroidGradlePluginDevicesTestDirectory(project) ?: return listOf()
-  return findTestResultProtoAndCreateImportActions(deviceFolder)
+  return findTestResultProtoAndCreateImportActions(deviceFolder, deviceType = "managed")
 }
 
-private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile): List<ImportUtpResultActionFromFile> {
+private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile,
+                                                      deviceType: String): List<ImportUtpResultActionFromFile> {
+  val results = mutableMapOf<VirtualFile, ImportUtpResultActionFromFile>()
+
+  findTestResultProtoAndCreateImportActions(dir, flavorName = null, deviceType)
+    .map { requireNotNull(it.action.importFile) to it }
+    .toMap(results)
+
+  dir.findChild("flavors")?.children?.asSequence()
+    ?.filter(VirtualFile::isDirectory)
+    ?.flatMap { findTestResultProtoAndCreateImportActions(it, flavorName = it.name, deviceType) }
+    ?.map { requireNotNull(it.action.importFile) to it }
+    ?.toMap(results)
+
+  return results.values.toList()
+}
+
+private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile,
+                                                      flavorName: String?,
+                                                      deviceType: String): Sequence<ImportUtpResultActionFromFile> {
   return findTestResultProto(dir)
-    .map { createImportUtpResultsFromProto(it) }
+    .map { createImportUtpResultsFromProto(it, flavorName, deviceType) }
     .filterNotNull()
-    .toList()
 }
 
 private fun findTestResultProto(dir: VirtualFile): Sequence<VirtualFile> {
+  val resultPbFile = dir.findChild(TEST_RESULT_PB_FILE_NAME)
+  if (resultPbFile != null) {
+    return sequenceOf(resultPbFile)
+  }
   return dir.children.asSequence()
     .filter(VirtualFile::isDirectory)
-    .map { it.findChild(TEST_RESULT_PB_FILE_NAME) }
-    .filterNotNull()
+    .flatMap { findTestResultProto(it) }
 }
 
-private fun createImportUtpResultsFromProto(file: VirtualFile): ImportUtpResultActionFromFile? {
+private fun createImportUtpResultsFromProto(file: VirtualFile,
+                                            flavorName: String?,
+                                            deviceType: String?): ImportUtpResultActionFromFile? {
   val resultProto = try {
-    TestSuiteResultProto.TestSuiteResult.parseFrom(file.inputStream)
+    file.inputStream.use {
+      TestSuiteResultProto.TestSuiteResult.parseFrom(it)
+    }
   } catch (e: IOException) {
     null
   } ?: return null
@@ -209,30 +239,33 @@ private fun createImportUtpResultsFromProto(file: VirtualFile): ImportUtpResultA
     it.first > 0 && it.second.isNotBlank()
   }.firstOrNull() ?: return null
 
-  val actionText = "${testName} (${DateFormatUtil.formatDateTime(Date(startTimeMillis))})"
-  return ImportUtpResultActionFromFile(startTimeMillis, ImportUtpResultAction(text = actionText, importFile = file))
+  val actionText = StringBuilder(testName).apply {
+    flavorName?.let {
+      append(" - $it")
+    }
+    append(" - $deviceType")
+    append(" (${DateFormatUtil.formatDateTime(Date(startTimeMillis))})")
+  }.toString()
+  return ImportUtpResultActionFromFile(
+    startTimeMillis,
+    ImportUtpResultAction(text = actionText, toolWindowDisplayName = actionText, importFile = file))
 }
 
 private fun getDefaultAndroidGradlePluginTestDirectory(project: Project?): VirtualFile? {
-  if (project == null) {
-    return null
-  }
-  val relativePath = Paths.get("build", "outputs", "androidTest-results", "connected")
-  return ModuleManager.getInstance(project).modules.asSequence().map { module ->
-    ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
-      it.findFileByRelativePath(relativePath.toString())
-    }.filterNotNull().firstOrNull()
-  }.filterNotNull().firstOrNull()
+  return findFileByRelativePathToContentRoot(project, "build/outputs/androidTest-results/connected")
 }
 
 private fun getDefaultAndroidGradlePluginDevicesTestDirectory(project: Project?): VirtualFile? {
+  return findFileByRelativePathToContentRoot(project, "build/outputs/androidTest-results/managedDevice")
+}
+
+private fun findFileByRelativePathToContentRoot(project: Project?, relativePath: String): VirtualFile? {
   if (project == null) {
     return null
   }
-  val relativePath = Paths.get("build", "outputs", "androidTest-results", "managedDevice")
   return ModuleManager.getInstance(project).modules.asSequence().map { module ->
     ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
-      it.findFileByRelativePath(relativePath.toString())
+      it.findFileByRelativePath(relativePath)
     }.filterNotNull().firstOrNull()
   }.filterNotNull().firstOrNull()
 }

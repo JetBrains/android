@@ -15,16 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.buildAndroidProjectStub
 import com.android.utils.appendCapitalized
 import com.google.common.truth.Truth
-import org.gradle.tooling.model.BuildIdentifier
-import org.gradle.tooling.model.DomainObjectSet
-import org.gradle.tooling.model.ProjectIdentifier
-import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.junit.Test
 import java.io.File
 
@@ -85,24 +80,11 @@ class VariantNameResolutionTest {
       )
         .build()
     val (androidProject, variants, ndkModel) =
-      projectModelBuilder("projectName", PROJECT_ROOT, APP_MODULE_ROOT, "99.99.99-agp-version")
+      projectModelBuilder("projectName", ":app", PROJECT_ROOT, APP_MODULE_ROOT, "99.99.99-agp-version", InternedModels(null))
 
-    val module = AndroidModule(
-      modelVersion = GradleVersion(99, 99),
-      buildName = "rootBuild",
-      buildNameMap = mapOf("rootBuild" to PROJECT_ROOT),
-      gradleProject = APP_BASIC_GRADLE_PROJECT,
-      androidProject = androidProject,
-      allVariantNames = variants.map { it.name }.toSet(),
-      defaultVariantName = variants.map { it.name }.first(),
-      v2Variants = variants.toList(),
-      nativeAndroidProject = null,
-      nativeModule = ndkModel?.nativeModule
-    )
-
-    val resolver = module.buildVariantNameResolver()
+    val resolver = buildVariantNameResolver(androidProject, variants)
     Truth.assertThat(
-      resolver(
+      resolver.resolveVariant(
         "debug"
       ) {
         when (it) {
@@ -113,19 +95,3 @@ class VariantNameResolutionTest {
       }).isEqualTo("firstAbcSecondXyzDebug")
   }
 }
-
-private val APP_BASIC_GRADLE_PROJECT = object : BasicGradleProject {
-  override fun getProjectIdentifier(): ProjectIdentifier {
-    return object : ProjectIdentifier {
-      override fun getProjectPath(): String = ":app"
-      override fun getBuildIdentifier(): BuildIdentifier = BuildIdentifier { PROJECT_ROOT }
-    }
-  }
-
-  override fun getName(): String = throw UnsupportedOperationException()
-  override fun getPath(): String = ":app"
-  override fun getProjectDirectory(): File = throw UnsupportedOperationException()
-  override fun getParent(): BasicGradleProject = throw UnsupportedOperationException()
-  override fun getChildren(): DomainObjectSet<out BasicGradleProject> = throw UnsupportedOperationException()
-}
-

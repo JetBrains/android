@@ -17,6 +17,7 @@ package com.android.tools.idea.run.applychanges
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.DeviceFutures
@@ -40,7 +41,6 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 /**
@@ -67,24 +67,24 @@ class ExecutionEnvironmentExtTest {
   @Before
   fun setUp() {
     MockitoAnnotations.initMocks(this)
-    `when`(mockEnv.project).thenReturn(mockProject)
-    `when`(mockEnv.runProfile).thenReturn(mockRunProfile)
-    `when`(mockEnv.executionTarget).thenReturn(mockExecutionTarget)
+    whenever(mockEnv.project).thenReturn(mockProject)
+    whenever(mockEnv.runProfile).thenReturn(mockRunProfile)
+    whenever(mockEnv.executionTarget).thenReturn(mockExecutionTarget)
 
-    `when`(mockProject.getService(eq(ExecutionManager::class.java))).thenReturn(mockExecutionManager)
+    whenever(mockProject.getService(eq(ExecutionManager::class.java))).thenReturn(mockExecutionManager)
 
-    `when`(mockProject.getService(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
-    `when`(mockDebugManager.sessions).thenReturn(listOf())
+    whenever(mockProject.getService(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
+    whenever(mockDebugManager.sessions).thenReturn(listOf())
   }
 
   @Test
   fun findExistingProcessHandler_sessionExists() {
     val mockProcessHandler = mock(ProcessHandler::class.java)
     val mockSessionInfo = mock(AndroidSessionInfo::class.java)
-    `when`(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
-    `when`(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)
-    `when`(mockSessionInfo.processHandler).thenReturn(mockProcessHandler)
-    `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
+    whenever(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
+    whenever(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)
+    whenever(mockSessionInfo.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
 
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isSameAs(mockProcessHandler)
   }
@@ -92,10 +92,10 @@ class ExecutionEnvironmentExtTest {
   @Test
   fun findExistingProcessHandler_fromSwapInfo() {
     val mockSwapInfo = mock(SwapInfo::class.java)
-    `when`(mockEnv.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(mockSwapInfo)
+    whenever(mockEnv.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(mockSwapInfo)
     val mockProcessHandler = mock(ProcessHandler::class.java)
-    `when`(mockSwapInfo.handler).thenReturn(mockProcessHandler)
-    `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
+    whenever(mockSwapInfo.handler).thenReturn(mockProcessHandler)
+    whenever(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
 
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isSameAs(mockProcessHandler)
   }
@@ -103,34 +103,34 @@ class ExecutionEnvironmentExtTest {
   @Test
   fun findExistingProcessHandler_existingDebugSession() {
     val mockDevice = mock(IDevice::class.java)
-    `when`(mockDevices.ifReady).thenReturn(listOf(mockDevice))
+    whenever(mockDevices.ifReady).thenReturn(listOf(mockDevice))
     val mockClient = mock(Client::class.java)
-    `when`(mockDevice.clients).thenReturn(arrayOf(mockClient))
-    `when`(mockClient.debuggerListenPort).thenReturn(1234)
+    whenever(mockDevice.clients).thenReturn(arrayOf(mockClient))
+    whenever(mockClient.debuggerListenPort).thenReturn(1234)
 
     val mockDebuggerSession = mock(DebuggerSession::class.java)
-    `when`(mockDebugManager.sessions).thenReturn(listOf(mockDebuggerSession))
+    whenever(mockDebugManager.sessions).thenReturn(listOf(mockDebuggerSession))
     val mockDebugProcess = mock(DebugProcessImpl::class.java)
-    `when`(mockDebuggerSession.process).thenReturn(mockDebugProcess)
+    whenever(mockDebuggerSession.process).thenReturn(mockDebugProcess)
     val mockRemoteConnection = mock(RemoteConnection::class.java)
-    `when`(mockDebugProcess.connection).thenReturn(mockRemoteConnection)
-    `when`(mockRemoteConnection.address).thenReturn("  1234  ")
+    whenever(mockDebugProcess.connection).thenReturn(mockRemoteConnection)
+    whenever(mockRemoteConnection.address).thenReturn("  1234  ")
     val mockProcessHandler = mock(ProcessHandler::class.java)
-    `when`(mockDebugProcess.processHandler).thenReturn(mockProcessHandler)
-    `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
+    whenever(mockDebugProcess.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
 
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isSameAs(mockProcessHandler)
   }
 
   @Test
   fun findExistingProcessHandler_noExistingSession() {
-    `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf())
+    whenever(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf())
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isNull()
   }
 
   @Test
   fun findExistingProcessHandler_noExistingSession_nonAndroidRunProfile() {
-    `when`(mockEnv.runProfile).thenReturn(mock(RunProfile::class.java))
+    whenever(mockEnv.runProfile).thenReturn(mock(RunProfile::class.java))
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isNull()
   }
 }

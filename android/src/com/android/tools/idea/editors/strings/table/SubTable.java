@@ -27,6 +27,7 @@ import com.intellij.ui.table.JBTable;
 import java.awt.Dimension;
 import java.awt.datatransfer.Transferable;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -90,7 +91,7 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
   }
 
   @NotNull
-  Object getColumnAt(int viewColumnIndex) {
+  List<Object> getColumnAt(int viewColumnIndex) {
     return IntStream.range(0, getRowCount())
       .mapToObj(viewRowIndex -> getValueAt(viewRowIndex, viewColumnIndex))
       .collect(Collectors.toList());
@@ -196,6 +197,17 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
     }
 
     myFrozenColumnTable.paste(transferable);
+  }
+
+  @Override
+  public Dimension getPreferredSize() {
+    if (getColumnCount() == 0 && myFrozenColumnTable.getFrozenTable().getColumnCount() > 0) {
+      // Allow the vertical scrollbar to show even when there are no locales defined (b/165896691)
+      Dimension size = myFrozenColumnTable.getFrozenTable().getPreferredSize();
+      size.width = 0;
+      return size;
+    }
+    return super.getPreferredSize();
   }
 
   @Override

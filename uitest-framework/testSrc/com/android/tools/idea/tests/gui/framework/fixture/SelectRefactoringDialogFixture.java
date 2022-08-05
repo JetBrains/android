@@ -34,7 +34,7 @@ public class SelectRefactoringDialogFixture extends IdeaDialogFixture<DialogWrap
   public static SelectRefactoringDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
     final Ref<DialogWrapper> wrapperRef = new Ref<>();
     JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Select Refactoring").and(
-      new GenericTypeMatcher<>(JDialog.class) {
+      new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);

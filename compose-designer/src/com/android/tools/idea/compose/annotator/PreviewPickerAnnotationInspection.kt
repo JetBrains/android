@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.tools.idea.compose.annotator.check.common.BadType
+import com.android.tools.idea.compose.annotator.check.common.Failure
+import com.android.tools.idea.compose.annotator.check.common.IssueReason
+import com.android.tools.idea.compose.annotator.check.common.Missing
+import com.android.tools.idea.compose.annotator.check.common.MultipleChoiceValueType
+import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
+import com.android.tools.idea.compose.annotator.check.common.Repeated
+import com.android.tools.idea.compose.annotator.check.common.Unknown
 import com.android.tools.idea.compose.preview.BasePreviewAnnotationInspection
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -27,6 +35,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.uast.UAnnotation
@@ -40,8 +49,26 @@ import org.jetbrains.uast.toUElement
  */
 class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
 
-  override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
-    if (previewAnnotation.getModuleSystem()?.isPickerEnabled() != true) return
+  override fun visitPreviewAnnotation(holder: ProblemsHolder,
+                                      function: KtNamedFunction,
+                                      previewAnnotation: KtAnnotationEntry,
+                                      isMultiPreview: Boolean) {
+    runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
+  }
+
+  override fun visitPreviewAnnotation(holder: ProblemsHolder,
+                                      annotationClass: KtClass,
+                                      previewAnnotation: KtAnnotationEntry,
+                                      isMultiPreview: Boolean) {
+    runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
+  }
+
+
+  private fun runPreviewPickerChecks(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry, isMultiPreview: Boolean) {
+    // MultiPreviews are not relevant for the PreviewPicker
+    if (isMultiPreview) return
+
+    if (previewAnnotation.getModuleSystem()?.isPreviewPickerEnabled() != true) return
 
     val result = PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(previewAnnotation)
 
@@ -82,7 +109,7 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
       holder.registerProblem(
         deviceValueElement,
         message,
-        ProblemHighlightType.ERROR,
+        ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
         PreviewParametersQuickFix(deviceValueElement, result.proposedFix)
       )
     }
@@ -113,15 +140,14 @@ private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer:
 
   parametersByType.entries.forEach { entry ->
     @Suppress("MoveVariableDeclarationIntoWhen") // The suggested pattern is harder to read/understand
-    val supportedType = entry.key
-    when (supportedType) {
-      SupportedType.Integer -> {
-        val messagePostfix = message("picker.preview.annotator.lint.error.type.integer")
+    val expectedType = entry.key
+    when (expectedType) {
+      is OpenEndedValueType -> {
+        val messagePostfix = message("picker.preview.annotator.lint.error.type.open", expectedType.valueTypeName)
         entry.value.joinTo(buffer = messageBuffer, separator = ", ", prefix = "$messagePrefix: ", postfix = " $messagePostfix\n")
       }
-      SupportedType.Shape,
-      SupportedType.DimUnit -> {
-        val valuesExamples = supportedType.acceptableValues.joinToString(", ")
+      is MultipleChoiceValueType -> {
+        val valuesExamples = expectedType.acceptableValues.joinToString(", ")
         val messagePostfix = message("picker.preview.annotator.lint.error.type.options", valuesExamples)
         entry.value.joinTo(buffer = messageBuffer, separator = ", ", prefix = "$messagePrefix: ", postfix = " $messagePostfix\n")
       }

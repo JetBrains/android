@@ -155,8 +155,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       overrideCtrlClick();
     }
     setModel(designSurface != null ? designSurface.getModel() : null);
-    myBadgeHandler.setIssueModel(designSurface != null ? designSurface.getIssueModel() : null);
-    myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
+    myBadgeHandler.setSurface(designSurface);
   }
 
   /**
@@ -495,12 +494,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented DesignSurfaceListener ----
 
   @Override
-  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+  public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
     setModel(model, true);
   }
 
   @Override
-  public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  public boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
     return false;
   }
 
@@ -574,7 +573,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
       ViewHandler handler = NlComponentHelperKt.getViewHandler((NlComponent)component);
       if (handler != null) {
-        handler.onActivateInComponentTree((NlComponent)component, mySurface.getSceneManager().getViewEditor());
+        handler.onActivateInComponentTree((NlComponent)component);
       }
     }
   }

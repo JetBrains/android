@@ -184,10 +184,7 @@ public final class AvdOptionsModel extends WizardModel {
         myAvdDeviceData.updateValuesFromDevice(myDevice.getValue(), mySystemImage.getValueOrNull());
 
         ScreenSize size = ScreenSize.getScreenSize(myAvdDeviceData.diagonalScreenSize().get());
-        Density density = AvdScreenData.getScreenDensity(myAvdDeviceData.deviceId().get(),
-                                                         myAvdDeviceData.isTv().get(),
-                                                         myAvdDeviceData.screenDpi().get(),
-                                                         myAvdDeviceData.screenResolutionHeight().get());
+        Density density = myAvdDeviceData.density().get();
         Storage vmHeapSize = EmulatedProperties.calculateDefaultVmHeapSize(size, density, myAvdDeviceData.isTv().get());
         myVmHeapStorage.set(vmHeapSize);
         if (myAvdDeviceData.getHasSdCard().get()) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.stats
 
 import com.android.tools.adtui.ImageComponent
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.idea.ui.GuiTestingService
 import com.google.common.base.Predicates
 import com.intellij.ide.gdpr.Consent
 import com.intellij.ide.gdpr.ConsentOptions
@@ -35,12 +36,16 @@ import java.awt.GridBagConstraints.NORTHWEST
 import java.awt.GridBagLayout
 import java.awt.Insets
 import java.awt.event.ActionEvent
+import java.lang.Boolean
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
+import kotlin.Array
+import kotlin.apply
+import kotlin.arrayOf
 
 class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
   override fun createActions(): Array<Action> {
@@ -138,6 +143,11 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
   override fun createCenterPanel(): JComponent = content
 
   companion object {
+    const val ENABLE_DIALOG_PROPERTY = "enable.android.analytics.consent.dialog.for.test"
+
+    val isConsentDialogEnabledInTests
+      get() = Boolean.getBoolean(ENABLE_DIALOG_PROPERTY)
+
     // If the user hasn't opted in, we will ask IJ to check if the user has
     // provided a decision on the statistics consent. If the user hasn't made a
     // choice, a modal dialog will be shown asking for a decision
@@ -153,7 +163,8 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
       // NOTE: in this case the metrics logic will be left in the opted-out state
       // and no metrics are ever sent.
       val application = ApplicationManager.getApplication()
-      if (application.isUnitTestMode || application.isHeadlessEnvironment) {
+      if ((GuiTestingService.isInTestingMode() || application.isHeadlessEnvironment)
+          && !isConsentDialogEnabledInTests) {
         return
       }
 

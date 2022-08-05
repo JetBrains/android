@@ -74,7 +74,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   protected UsageInfo[] findUsages() {
-    final Set<UsageInfo> usages = new HashSet<>();
+    final Set<UsageInfo> usages = new HashSet<UsageInfo>();
     AndroidInlineUtil.addReferences(myStyleElement, usages);
 
     for (PsiField field : IdeResourcesUtil.findResourceFieldsForValueResource(myStyleTag, false)) {
@@ -86,7 +86,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
 
   @Override
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
-    final List<StyleUsageData> inlineInfos = new ArrayList<>();
+    final List<StyleUsageData> inlineInfos = new ArrayList<StyleUsageData>();
 
     for (UsageInfo usage : usages) {
       final PsiElement element = usage.getElement();
@@ -119,10 +119,10 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   }
 
   private static MultiMap<PsiElement, String> detectConflicts(UsageInfo[] usages) {
-    final List<PsiElement> nonXmlUsages = new ArrayList<>();
-    final List<PsiElement> unsupportedUsages = new ArrayList<>();
-    final List<PsiElement> unambiguousUsages = new ArrayList<>();
-    final List<PsiElement> implicitlyInherited = new ArrayList<>();
+    final List<PsiElement> nonXmlUsages = new ArrayList<PsiElement>();
+    final List<PsiElement> unsupportedUsages = new ArrayList<PsiElement>();
+    final List<PsiElement> unambiguousUsages = new ArrayList<PsiElement>();
+    final List<PsiElement> implicitlyInherited = new ArrayList<PsiElement>();
 
     for (UsageInfo usage : usages) {
       final PsiElement element = usage.getElement();

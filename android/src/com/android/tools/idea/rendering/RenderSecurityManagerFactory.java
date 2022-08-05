@@ -19,6 +19,8 @@ import com.android.tools.idea.log.LogWrapper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Factory of {@link RenderSecurityManager}.
@@ -28,18 +30,13 @@ public class RenderSecurityManagerFactory {
    * Returns a {@link RenderSecurityManager} for the current module. The {@link RenderSecurityManager} will be
    * setup with the SDK path and project path of the module.
    */
-  public static RenderSecurityManager create(Module module, AndroidPlatform platform) {
-    String projectPath = null;
-    String sdkPath = null;
-    if (RenderSecurityManager.RESTRICT_READS) {
-      projectPath = module.getProject().getBasePath();
-      if (platform != null) {
-        sdkPath = platform.getSdkData().getLocation().toString();
-      }
-    }
+  @NotNull
+  public static RenderSecurityManager create(@NotNull Module module, @Nullable AndroidPlatform platform) {
+    String projectPath = module.getProject().getBasePath();
+    String sdkPath = platform != null ? platform.getSdkData().getLocation().toString() : null;
 
     @SuppressWarnings("ConstantConditions")
-    RenderSecurityManager securityManager = new RenderSecurityManager(sdkPath, projectPath);
+    RenderSecurityManager securityManager = new RenderSecurityManager(sdkPath, projectPath, false);
     securityManager.setLogger(new LogWrapper(RenderLogger.LOG).alwaysLogAsDebug(true).allowVerbose(false));
     securityManager.setAppTempDir(PathManager.getTempPath());
 

@@ -41,7 +41,7 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
 
   @Override
   public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete, @NotNull List<UsageInfo> result) {
-    final ArrayList<UsageInfo> usages = new ArrayList<>();
+    final ArrayList<UsageInfo> usages = new ArrayList<UsageInfo>();
     final NonCodeUsageSearchInfo info = getBaseHandler().findUsages(element, allElementsToDelete, usages);
     if (info == null) {
       return info;

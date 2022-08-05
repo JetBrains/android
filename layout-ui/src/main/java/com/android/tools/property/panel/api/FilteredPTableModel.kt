@@ -16,8 +16,8 @@
 package com.android.tools.property.panel.api
 
 import com.android.tools.property.panel.impl.model.FilteredPTableModelImpl
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.PTableModel
 
 /**
  * A [PTableModel] for variable length property tables.

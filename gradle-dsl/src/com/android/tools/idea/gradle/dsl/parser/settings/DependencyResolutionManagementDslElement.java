@@ -31,7 +31,8 @@ public class DependencyResolutionManagementDslElement extends GradleDslBlockElem
     new PropertiesElementDescription<>("dependencyResolutionManagement", DependencyResolutionManagementDslElement.class, DependencyResolutionManagementDslElement::new);
 
   public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(new Object[][]{
-    {"repositories", RepositoriesDslElement.REPOSITORIES}
+    {"repositories", RepositoriesDslElement.REPOSITORIES},
+    {"versionCatalogs", VersionCatalogsDslElement.VERSION_CATALOGS},
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override

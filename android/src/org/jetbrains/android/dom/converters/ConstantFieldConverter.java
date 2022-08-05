@@ -174,7 +174,7 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
       }
       final Ref<PsiElement> ref = Ref.create();
 
-      processFields(new Processor<>() {
+      processFields(new Processor<Pair<PsiField, String>>() {
         @Override
         public boolean process(Pair<PsiField, String> pair) {
           if (value.equals(pair.getSecond())) {
@@ -193,7 +193,7 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
       final List<Object> result = new ArrayList<>();
       final Set<String> added = new HashSet<>();
 
-      processFields(new Processor<>() {
+      processFields(new Processor<Pair<PsiField, String>>() {
         @Override
         public boolean process(Pair<PsiField, String> pair) {
           final String s = pair.getSecond();

@@ -16,9 +16,14 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
+import com.android.tools.idea.util.listenUntilNextSync
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.fileEditor.FileEditor
@@ -31,6 +36,12 @@ import com.intellij.openapi.wm.ToolWindow
  * The content which is added into ToolWindow of Visualization.
  */
 interface VisualizationContent : Disposable {
+
+  companion object {
+    @JvmField
+    val VISUALIZATION_CONTENT = DataKey.create<VisualizationContent>(VisualizationContent::class.java.name)
+  }
+
   /**
    * Specifies the next editor the preview should be shown for.
    * The update of the preview may be delayed.
@@ -42,6 +53,16 @@ interface VisualizationContent : Disposable {
    * Called when a file editor was closed.
    */
   fun fileClosed(editorManager: FileEditorManager, file: VirtualFile)
+
+  /**
+   * Get the current selected [ConfigurationSet]
+   */
+  fun getConfigurationSet(): ConfigurationSet
+
+  /**
+   * Change the displayed [ConfigurationSet]
+   */
+  fun setConfigurationSet(configurationSet: ConfigurationSet)
 
   /**
    * Enables updates for this content.
@@ -60,7 +81,7 @@ interface VisualizationContentProvider {
 
 object VisualizationFormProvider : VisualizationContentProvider {
   override fun createVisualizationForm(project: Project, toolWindow: ToolWindow): VisualizationForm {
-    val visualizationForm = VisualizationForm(project, toolWindow.disposable)
+    val visualizationForm = VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
     val contentPanel = visualizationForm.component
     val contentManager = toolWindow.contentManager
     contentManager.addDataProvider { dataId: String? ->
@@ -72,6 +93,9 @@ object VisualizationFormProvider : VisualizationContentProvider {
       }
       if (DESIGN_SURFACE.`is`(dataId)) {
         return@addDataProvider visualizationForm.surface
+      }
+      if (VisualizationContent.VISUALIZATION_CONTENT.`is`(dataId)) {
+        return@addDataProvider visualizationForm
       }
       null
     }
@@ -85,5 +109,35 @@ object VisualizationFormProvider : VisualizationContentProvider {
       visualizationForm.activate()
     }
     return visualizationForm
+  }
+}
+
+private object AsyncContentInitializer: VisualizationForm.ContentInitializer {
+
+  override fun initContent(project: Project, form: VisualizationForm, onComplete: () -> Unit) {
+    val task = Runnable {
+      form.showLoadingMessage()
+      initPreviewFormAfterInitialBuild(project, form, onComplete)
+    }
+    val onError = Runnable { form.showErrorMessage() }
+    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(task, onError)
+  }
+
+  private fun initPreviewFormAfterInitialBuild(project: Project, form: VisualizationForm, onComplete: () -> Unit) {
+    project.runWhenSmartAndSyncedOnEdt(form, { result: ProjectSystemSyncManager.SyncResult ->
+      if (result.isSuccessful) {
+        form.createContentPanel()
+        onComplete()
+      }
+      else {
+        form.showErrorMessage()
+        project.listenUntilNextSync(form, object : ProjectSystemSyncManager.SyncResultListener {
+          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+            form.createContentPanel()
+            onComplete()
+          }
+        })
+      }
+    })
   }
 }

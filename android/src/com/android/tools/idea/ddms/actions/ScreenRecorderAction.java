@@ -40,6 +40,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import icons.StudioIcons;
@@ -56,7 +57,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class ScreenRecorderAction extends AbstractDeviceAction {
+public final class ScreenRecorderAction extends AbstractDeviceAction implements DumbAware {
   private static final String REMOTE_PATH = "/sdcard/screen-recording-%d.mp4";
   static final String TITLE = "Screen Recorder";
   private static final Pattern WM_SIZE_OUTPUT_REGEX = Pattern.compile("(?<width>\\d+)x(?<height>\\d+)");
@@ -77,7 +78,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
   @VisibleForTesting
   ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context, @NotNull Features features) {
     super(context, AndroidBundle.message("android.ddms.actions.screenrecord"),
-          AndroidBundle.message("android.ddms.actions.screenrecord.description"), StudioIcons.Logcat.Toolbar.VIDEO_CAPTURE);
+          AndroidBundle.message("android.ddms.actions.screenrecord.description"), StudioIcons.Common.VIDEO_CAPTURE);
 
     myFeatures = features;
     myProject = project;

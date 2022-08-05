@@ -17,8 +17,12 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
@@ -103,7 +107,8 @@ class HttpDataModelTest {
   @Test
   fun eventsToHttpData() {
     val source = FakeNetworkInspectorDataSource(httpEventList = HTTP_DATA_WITH_THREAD)
-    val model = HttpDataModelImpl(source)
+    val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+    val model = HttpDataModelImpl(source, StubNetworkInspectorTracker(), scope)
     val httpDataList = model.getData(Range(0.0, TimeUnit.SECONDS.toMicros(5).toDouble()))
     assertThat(httpDataList).hasSize(1)
     val httpData = httpDataList[0]
@@ -124,9 +129,9 @@ class HttpDataModelTest {
   @Test
   fun eventsWithoutThreadDataIgnored() {
     val source = FakeNetworkInspectorDataSource(httpEventList = HTTP_DATA)
-    val model = HttpDataModelImpl(source)
+    val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+    val model = HttpDataModelImpl(source, StubNetworkInspectorTracker(), scope)
     val httpDataList = model.getData(Range(0.0, TimeUnit.SECONDS.toMicros(5).toDouble()))
     assertThat(httpDataList).isEmpty()
   }
-
 }

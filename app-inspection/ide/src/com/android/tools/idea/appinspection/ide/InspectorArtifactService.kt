@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPaths
 import com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.flags.StudioFlags
@@ -44,21 +45,20 @@ interface InspectorArtifactService {
    *
    * Returns null if artifact can't be resolved.
    */
-  suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path?
+  suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path
 
   companion object {
-    val instance = service<InspectorArtifactService>()
+    val instance
+      get() = service<InspectorArtifactService>()
   }
 }
 
 /**
  * A helper function that returns an [AppInspectorJar] directly instead of a path.
  */
-suspend fun InspectorArtifactService.getOrResolveInspectorJar(project: Project, coordinate: ArtifactCoordinate): AppInspectorJar? {
-  return getOrResolveInspectorArtifact(coordinate, project)
-    ?.let { inspectorPath ->
-      AppInspectorJar(inspectorPath.fileName.toString(), inspectorPath.parent.toString(), inspectorPath.parent.toString())
-    }
+suspend fun InspectorArtifactService.getOrResolveInspectorJar(project: Project, coordinate: ArtifactCoordinate): AppInspectorJar {
+  val inspectorPath = getOrResolveInspectorArtifact(coordinate, project)
+  return AppInspectorJar(inspectorPath.fileName.toString(), inspectorPath.parent.toString(), inspectorPath.parent.toString())
 }
 
 class InspectorArtifactServiceImpl @NonInjectable @VisibleForTesting constructor(
@@ -72,11 +72,11 @@ class InspectorArtifactServiceImpl @NonInjectable @VisibleForTesting constructor
   private val unzipDir = fileService.getOrCreateTempDir("unzip")
 
   @WorkerThread
-  override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+  override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
     // Ignore the cache when searching snapshots, as we can't assume that a library with the same version is actually the same one.
     // A developer could have built a new snapshot since last time we checked.
     return jarPaths.getInspectorArchive(artifactCoordinate).takeUnless { StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get() } ?: run {
-      val artifactZip = artifactResolverFactory.getArtifactResolver(project).resolveArtifact(artifactCoordinate) ?: return null
+      val artifactZip = artifactResolverFactory.getArtifactResolver(project).resolveArtifact(artifactCoordinate)
       try {
         val inspectorJar = if (artifactZip.fileName.toString() == INSPECTOR_JAR) artifactZip else {
           val targetDir = unzipDir.resolve(artifactCoordinate.getTmpDirName())
@@ -84,9 +84,9 @@ class InspectorArtifactServiceImpl @NonInjectable @VisibleForTesting constructor
           extraInspectorJarFromLibrary(targetDir, artifactZip)
         }
         jarPaths.populateInspectorArchive(artifactCoordinate, inspectorJar)
-        jarPaths.getInspectorArchive(artifactCoordinate)
+        jarPaths.getInspectorArchive(artifactCoordinate)!!
       } catch (e: IOException) {
-        null
+        throw AppInspectionArtifactNotFoundException("Error encountered while extracting inspector $artifactCoordinate", e)
       }
     }
   }

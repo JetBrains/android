@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceFolderType;
@@ -34,6 +35,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MESaveGif;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
@@ -45,12 +47,17 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.Color;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -95,6 +102,12 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   // For screen rotation when draging in timeline panel
   private float myStartDegree = Float.NaN;
   private float myEndDegree = Float.NaN;
+
+  // For saving a selected transition as a GIF file.
+  private static final int NUM_SAVED_IMAGES = 60;
+  private static final int WAIF_FOR_TIME = 100;
+  private static final int GIF_PLAY_DELAY = 80;
+  private MESaveGif mySaveGif;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
@@ -256,6 +269,29 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             LayoutlibSceneManager manager = surface.getSceneManager();
             manager.requestLayoutAndRenderAsync(false);
             stopScreenRotating();
+          } break;
+          case MOTION_CAPTURE: {
+            int playMode = mMotionEditor.getPlayMode();
+            // when it's yoyo mode (playMode: 2), we need to save images for both forward and backward
+            int numImages = playMode == 2 ? NUM_SAVED_IMAGES : NUM_SAVED_IMAGES / 2;
+            float speed = mMotionEditor.getTimeLineSpeed();
+            int playDelay  = (int)(GIF_PLAY_DELAY / speed);
+            String filename = mSelectedStartConstraintId + "->" + mSelectedEndConstraintId + ".gif";
+            LayoutlibSceneManager manager = surface.getSceneManager();
+            manager.updateSceneView();
+            manager.requestLayoutAndRenderAsync(false);
+            surface.setRenderSynchronously(true);
+            FileSaverDescriptor descriptor = new FileSaverDescriptor("Save Transition as GIF",
+                                                                     "Save the selected transition as GIF",
+                                                                     "gif");
+            FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, (Project)null);
+            VirtualFileWrapper fileWrapper = saveFileDialog.save(filename);
+            if (fileWrapper != null) {
+              File file = fileWrapper.getFile();
+              mySaveGif = new MESaveGif(file, playDelay, true, "Written by Android Studio");
+              mySaveGif.saveGif(myDesignSurface, numImages, playMode, myMotionHelper,
+                                myProject, WAIF_FOR_TIME);
+            }
           } break;
         }
       }
@@ -528,7 +564,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       myMotionHelper.setState(mSelectedStartConstraintId);
     } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId != null) {
       myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
-      myMotionHelper.setProgress(mLastProgress);
+      mMotionEditor.stopAnimation();
     } else {
       myMotionHelper.setState(null);
       mSelectedStartConstraintId = null;
@@ -628,9 +664,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   @Nullable
   public XmlFile getTransitionFile(@NotNull NlComponent component) {
     // get the parent if need be
-    if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
+    if (!NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.MOTION_LAYOUT)) {
       component = component.getParent();
-      if (component == null || !NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
+      if (component == null || !NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.MOTION_LAYOUT)) {
         return null;
       }
     }

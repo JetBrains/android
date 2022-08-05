@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.io.Files;
-import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
@@ -66,6 +65,12 @@ public class UserGradlePropertiesUtil {
   @NotNull
   private static File getUserGradlePropertiesBackupFile() {
     String home = System.getProperty("user.home");
-    return new File(new File(home), FileUtilRt.toSystemDependentName(".gradle/gradle.~properties"));
+    return new File(new File(home), toSystemDependentName(".gradle/gradle.~properties"));
+  }
+
+  @NotNull
+  public static File getUserGradlePropertiesFile() {
+    String home = System.getProperty("user.home");
+    return new File(new File(home), toSystemDependentName(".gradle/gradle.properties"));
   }
 }

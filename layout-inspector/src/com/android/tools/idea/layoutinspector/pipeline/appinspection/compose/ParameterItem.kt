@@ -19,8 +19,8 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableGroupModification
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.PTableGroupModification
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -36,6 +36,7 @@ fun parameterNamespaceOf(section: PropertySection) = when (section) {
   PropertySection.MERGED -> "merged"
   PropertySection.UNMERGED -> "unmerged"
   PropertySection.DIMENSION -> "internal"
+  PropertySection.RECOMPOSITIONS -> "internal"
   else -> ""
 }
 
@@ -156,6 +157,7 @@ class ParameterGroupItem(
  */
 class ParameterReference(
   val nodeId: Long,
+  val anchorHash: Int,
   val kind: ParameterKind,
   val parameterIndex: Int,
   val indices: IntArray

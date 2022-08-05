@@ -252,49 +252,28 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
             val order = Comparator.comparing(CommonAction::getText, Ordering.natural())
 
             // Add separate menu items for other debuggable processes and other profileable processes
-            if (profilers.ideServices.featureConfig.isProfileableEnabled) {
-              fun addOtherProcessesFlyout(tag: String, actions: List<CommonAction>) = when {
-                actions.isNotEmpty() -> {
-                  val title = if (IdeInfo.isGameTool()) "${tag.usLocaleCapitalize()} processes" else "Other $tag processes"
-                  val otherProcessesFlyout = CommonAction(title, null)
-                  otherProcessesFlyout.addChildrenActions(actions)
-                  deviceAction.addChildrenActions(otherProcessesFlyout)
-                }
-                else -> {
-                  val title = if (IdeInfo.isGameTool()) "No $tag processes" else "No other $tag processes"
-                  deviceAction.addChildrenActions(disabledAction(title))
-                }
+            fun addOtherProcessesFlyout(tag: String, actions: List<CommonAction>) = when {
+              actions.isNotEmpty() -> {
+                val title = if (IdeInfo.isGameTool()) "${tag.usLocaleCapitalize()} processes" else "Other $tag processes"
+                val otherProcessesFlyout = CommonAction(title, null)
+                otherProcessesFlyout.addChildrenActions(actions)
+                deviceAction.addChildrenActions(otherProcessesFlyout)
               }
+              else -> {
+                val title = if (IdeInfo.isGameTool()) "No $tag processes" else "No other $tag processes"
+                deviceAction.addChildrenActions(disabledAction(title))
+              }
+            }
 
-              val preferredProcessActions = preferredProcesses.map(annotatedProcessAction).sortedWith(order)
-              if (preferredProcessActions.isNotEmpty()) deviceAction.addChildrenActions(preferredProcessActions)
-              // Only add the separator if there are preferred processes added.
-              if (otherProcesses.isNotEmpty() && deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
-              val (debuggables, profileables) = otherProcesses.partition {
-                profilers.getProcessSupportLevel(it.pid) == SupportLevel.DEBUGGABLE
-              }
-              addOtherProcessesFlyout("debuggable", debuggables.map(plainProcessAction).sortedWith(order))
-              addOtherProcessesFlyout("profileable", profileables.map(plainProcessAction).sortedWith(order))
+            val preferredProcessActions = preferredProcesses.map(annotatedProcessAction).sortedWith(order)
+            if (preferredProcessActions.isNotEmpty()) deviceAction.addChildrenActions(preferredProcessActions)
+            // Only add the separator if there are preferred processes added.
+            if (otherProcesses.isNotEmpty() && deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
+            val (debuggables, profileables) = otherProcesses.partition {
+              profilers.getProcessSupportLevel(it.pid) == SupportLevel.DEBUGGABLE
             }
-            // Legacy menu, where all processes are debuggable
-            else {
-              val preferredProcessActions = preferredProcesses.map(plainProcessAction).sortedWith(order)
-              val otherProcessActions = otherProcesses.map(plainProcessAction).sortedWith(order)
-              if (preferredProcessActions.isNotEmpty()) deviceAction.addChildrenActions(preferredProcessActions)
-              if (otherProcessActions.isNotEmpty()) {
-                // Only add the separator if there are preferred processes added
-                if (deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
-                when {
-                  // In standalone profiler, all processes fall under the "Other processes"
-                  // so there is no point to have this separate flyout
-                  IdeInfo.isGameTool() -> deviceAction.addChildrenActions(otherProcessActions)
-                  else -> CommonAction("Other processes", null).let { otherProcessesFlyout ->
-                    otherProcessesFlyout.addChildrenActions(otherProcessActions)
-                    deviceAction.addChildrenActions(otherProcessesFlyout)
-                  }
-                }
-              }
-            }
+            addOtherProcessesFlyout("debuggable", debuggables.map(plainProcessAction).sortedWith(order))
+            addOtherProcessesFlyout("profileable", profileables.map(plainProcessAction).sortedWith(order))
           }
         }
       }

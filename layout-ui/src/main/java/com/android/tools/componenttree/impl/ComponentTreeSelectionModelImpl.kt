@@ -24,10 +24,17 @@ import javax.swing.tree.TreePath
 /**
  * A [DefaultTreeSelectionModel] where a selection is treated as a list of nodes rather than tree paths.
  */
-class ComponentTreeSelectionModelImpl(private val model: ComponentTreeModelImpl): ComponentTreeSelectionModel, DefaultTreeSelectionModel() {
+class ComponentTreeSelectionModelImpl(
+  private val model: ComponentTreeModelImpl,
+  selectionMode: Int
+): ComponentTreeSelectionModel, DefaultTreeSelectionModel() {
   private val selectionListeners: MutableList<(List<Any>) -> Unit> = ContainerUtil.createConcurrentList()
   private val autoScrollListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private var isUpdating = false
+
+  init {
+    this.selectionMode = selectionMode
+  }
 
   override var currentSelection: List<Any>
     get() = selectionPaths.map { it.lastPathComponent }

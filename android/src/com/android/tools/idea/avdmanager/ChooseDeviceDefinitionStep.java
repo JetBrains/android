@@ -20,9 +20,9 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Consumer;
 import java.util.Optional;
@@ -51,7 +51,7 @@ public final class ChooseDeviceDefinitionStep extends ModelWizardStep<AvdOptions
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myValidatorPanel.registerValidator(getModel().device(), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().device(), new Validator<Optional<Device>>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<Device> value) {
@@ -61,7 +61,7 @@ public final class ChooseDeviceDefinitionStep extends ModelWizardStep<AvdOptions
       }
     });
 
-    myDeviceDefinitionPanel.addDeviceListener(new Consumer<>() {
+    myDeviceDefinitionPanel.addDeviceListener(new Consumer<Device>() {
       @Override
       public void consume(Device device) {
         getModel().device().setNullableValue(device);

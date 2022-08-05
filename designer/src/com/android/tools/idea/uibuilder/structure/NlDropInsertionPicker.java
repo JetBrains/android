@@ -249,9 +249,7 @@ class NlDropInsertionPicker {
                                          @NotNull NlComponent receiver,
                                          @NotNull List<NlComponent> dragged,
                                          boolean ignoreMissingDependency) {
-    return model.canAddComponents(dragged, receiver, receiver.getChild(0), ignoreMissingDependency)
-           || (NlComponentHelperKt.isMorphableToViewGroup(receiver)
-               && !NlComponentUtil.isDescendant(receiver, dragged));
+    return model.canAddComponents(dragged, receiver, receiver.getChild(0), ignoreMissingDependency);
   }
 
   private boolean canSelectLowerDepth(int row, int relativeDepth) {

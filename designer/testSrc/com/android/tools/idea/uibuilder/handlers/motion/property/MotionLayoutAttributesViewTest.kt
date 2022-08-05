@@ -21,6 +21,7 @@ import com.android.SdkConstants.ATTR_ORIENTATION
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.MotionSceneTags.CUSTOM_ATTRIBUTE
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.MotionAttributeRule
@@ -31,7 +32,7 @@ import com.android.tools.idea.uibuilder.property.support.NlTwoStateBooleanContro
 import com.android.tools.property.panel.api.EditorProvider.Companion.create
 import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
-import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable.PTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -63,7 +64,7 @@ class MotionLayoutAttributesViewTest {
   @Before
   fun beforeEachTest() {
     val actionManager = projectRule.mockService(ActionManager::class.java)
-    Mockito.doAnswer { invocation -> SomeAction(invocation.getArgument(0)) }.`when`(actionManager).getAction(ArgumentMatchers.anyString())
+    Mockito.doAnswer { invocation -> SomeAction(invocation.getArgument(0)) }.whenever(actionManager).getAction(ArgumentMatchers.anyString())
   }
 
   @Test

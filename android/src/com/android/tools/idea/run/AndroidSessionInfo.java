@@ -2,7 +2,6 @@
 
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
@@ -12,7 +11,6 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.Arrays;
@@ -24,11 +22,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidSessionInfo {
   public static final Key<AndroidSessionInfo> KEY = new Key<>("KEY");
-  public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<>("ANDROID_DEBUG_CLIENT");
   public static final Key<AndroidVersion> ANDROID_DEVICE_API_LEVEL = new Key<>("ANDROID_DEVICE_API_LEVEL");
 
   @NotNull private final ProcessHandler myProcessHandler;
-  private final RunContentDescriptor myDescriptor;
   @NotNull private final String myExecutorId;
   @NotNull private final String myExecutorActionName;
   @Nullable private final RunConfiguration myRunConfiguration;
@@ -36,25 +32,22 @@ public class AndroidSessionInfo {
 
   @NotNull
   public static AndroidSessionInfo create(@NotNull ProcessHandler processHandler,
-                                          @NotNull RunContentDescriptor descriptor,
                                           @Nullable RunConfiguration runConfiguration,
                                           @NotNull String executorId,
                                           @NotNull String executorActionName,
                                           @NotNull ExecutionTarget executionTarget) {
     AndroidSessionInfo result =
-      new AndroidSessionInfo(processHandler, descriptor, runConfiguration, executorId, executorActionName, executionTarget);
+      new AndroidSessionInfo(processHandler, runConfiguration, executorId, executorActionName, executionTarget);
     processHandler.putUserData(KEY, result);
     return result;
   }
 
   private AndroidSessionInfo(@NotNull ProcessHandler processHandler,
-                             @NotNull RunContentDescriptor descriptor,
                              @Nullable RunConfiguration runConfiguration,
                              @NotNull String executorId,
                              @NotNull String executorActionName,
                              @NotNull ExecutionTarget executionTarget) {
     myProcessHandler = processHandler;
-    myDescriptor = descriptor;
     myRunConfiguration = runConfiguration;
     myExecutorId = executorId;
     myExecutorActionName = executorActionName;
@@ -64,11 +57,6 @@ public class AndroidSessionInfo {
   @NotNull
   public ProcessHandler getProcessHandler() {
     return myProcessHandler;
-  }
-
-  @NotNull
-  public RunContentDescriptor getDescriptor() {
-    return myDescriptor;
   }
 
   @NotNull

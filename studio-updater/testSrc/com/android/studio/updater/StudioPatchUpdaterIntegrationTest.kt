@@ -16,7 +16,7 @@
 package com.android.studio.updater
 
 import com.android.prefs.AbstractAndroidLocations
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils
 import com.google.common.collect.MoreCollectors
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -39,8 +39,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.ArrayList
-import java.util.HashMap
 
 /**
  * Integration test for the studio updater.
@@ -214,13 +212,12 @@ class StudioPatchUpdaterIntegrationTest {
 
   private val updaterFullJar: Path
     get() {
-      val root = getWorkspaceRoot()
       val path = System.getProperty("updater.jar.path", "tools/adt/idea/studio/updater_deploy.jar")
-      val bazelDeployJar = root.resolve(path)
+      val bazelDeployJar = TestUtils.resolveWorkspacePathUnchecked(path)
       if (Files.isRegularFile(bazelDeployJar)) {
         return bazelDeployJar
       }
-      val antJar = root.resolve("tools/idea/out/studio/artifacts/updater-full.jar")
+      val antJar = TestUtils.resolveWorkspacePathUnchecked("tools/idea/out/studio/artifacts/updater-full.jar")
       if (Files.isRegularFile(antJar)) {
         return antJar
       }

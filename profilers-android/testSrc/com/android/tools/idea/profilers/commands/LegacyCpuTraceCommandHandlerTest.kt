@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.commands
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.profilers.LegacyCpuProfilingHandler
 import com.android.tools.idea.protobuf.ByteString
@@ -28,13 +29,12 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth.assertThat
-import io.grpc.ManagedChannel
-import io.grpc.inprocess.InProcessChannelBuilder
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.util.concurrent.LinkedBlockingDeque
 
 class LegacyCpuTraceCommandHandlerTest {
@@ -146,7 +146,7 @@ class LegacyCpuTraceCommandHandlerTest {
     // Start and stop recording on Device 2.
     val testPid2 = 2
     val startTimestamp2 = 30L
-    val traceBytes = byteArrayOf('b'.toByte())
+    val traceBytes = byteArrayOf('b'.code.toByte())
     // Return different trace bytes.
     val mockClient2 = createMockClient(testPid2, traceBytes)
     val eventQueue2 = LinkedBlockingDeque<Common.Event>()
@@ -164,7 +164,7 @@ class LegacyCpuTraceCommandHandlerTest {
   }
 
   companion object {
-    private val FAKE_TRACE_BYTES = byteArrayOf('a'.toByte())
+    private val FAKE_TRACE_BYTES = byteArrayOf('a'.code.toByte())
     private val TRACE_CONFIG = Cpu.CpuTraceConfiguration.newBuilder().apply {
       userOptions = Cpu.CpuTraceConfiguration.UserOptions.newBuilder().apply {
         traceMode = Cpu.CpuTraceMode.INSTRUMENTED
@@ -174,17 +174,17 @@ class LegacyCpuTraceCommandHandlerTest {
 
     fun createMockClient(testPid: Int, traceBytes: ByteArray = FAKE_TRACE_BYTES): Client = mock(Client::class.java).also { thisClient ->
       val mockClientData = mock(ClientData::class.java).apply {
-        `when`(pid).thenReturn(testPid)
-        `when`(methodProfilingStatus).thenReturn(ClientData.MethodProfilingStatus.TRACER_ON)
+        whenever(pid).thenReturn(testPid)
+        whenever(methodProfilingStatus).thenReturn(ClientData.MethodProfilingStatus.TRACER_ON)
       }
       val mockDevice = mock(IDevice::class.java).apply {
-        `when`(getClientName(ArgumentMatchers.anyInt())).thenReturn("TestClient")
-        `when`(getClient(ArgumentMatchers.anyString())).thenReturn(thisClient)
+        whenever(getClientName(ArgumentMatchers.anyInt())).thenReturn("TestClient")
+        whenever(getClient(ArgumentMatchers.anyString())).thenReturn(thisClient)
       }
-      `when`(thisClient.clientData).thenReturn(mockClientData)
-      `when`(thisClient.device).thenReturn(mockDevice)
+      whenever(thisClient.clientData).thenReturn(mockClientData)
+      whenever(thisClient.device).thenReturn(mockDevice)
       // We only have to mock onSuccess(...) for the stop tracing workflow for the command handler to work.
-      `when`(thisClient.stopMethodTracer()).thenAnswer { LegacyCpuProfilingHandler.onSuccess(traceBytes, thisClient) }
+      whenever(thisClient.stopMethodTracer()).thenAnswer { LegacyCpuProfilingHandler.onSuccess(traceBytes, thisClient) }
     }
 
     fun buildStartCommand(testPid: Int, testCommandId: Int): Commands.Command = Commands.Command.newBuilder().apply {

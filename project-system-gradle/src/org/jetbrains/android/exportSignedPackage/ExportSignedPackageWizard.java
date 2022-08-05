@@ -27,12 +27,9 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardClosed;
 import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardGradleSigning;
 import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardGradleSigningFailed;
-import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardIntellijSigning;
-import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardIntellijSigningFailed;
 import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardOkAction;
 import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardOpen;
 
-import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
 import com.android.tools.idea.gradle.model.IdeVariant;
@@ -45,6 +42,8 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -52,14 +51,9 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.SigningWizardEvent;
 import com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool;
-import com.intellij.CommonBundle;
-import com.intellij.ide.IdeBundle;
-import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompileScope;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -68,17 +62,10 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
-import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -87,11 +74,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
-import org.jetbrains.android.AndroidCommonBundle;
-import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -170,12 +153,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     super.doOKAction();
 
     assert myFacet != null;
-    if (AndroidModel.isRequired(myFacet)) {
-      buildAndSignGradleProject();
-    }
-    else {
-      buildAndSignIntellijProject();
-    }
+    assert AndroidModel.isRequired(myFacet);
+    buildAndSignGradleProject();
   }
 
   @Override
@@ -190,27 +169,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     super.show();
   }
 
-  private void buildAndSignIntellijProject() {
-    CompilerManager.getInstance(myProject).make(myCompileScope, (aborted, errors, warnings, compileContext) -> {
-      if (aborted) {
-        trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_COMPILE_ABORTED);
-        return;
-      }
-      if (errors != 0) {
-        trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_COMPILE_ERRORS);
-        return;
-      }
-
-      String title = AndroidBundle.message("android.extract.package.task.title");
-      ProgressManager.getInstance().run(new Task.Backgroundable(myProject, title, true, null) {
-        @Override
-        public void run(@NotNull ProgressIndicator indicator) {
-          createAndAlignApk(myApkPath);
-        }
-      });
-    });
-  }
-
   private void buildAndSignGradleProject() {
     ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Generating Signed APKs", false, null) {
       @Override
@@ -221,7 +179,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
           return;
         }
-        String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+
+        GradleProjectPath gradleProjectPath = GradleProjectPathKt.getGradleProjectPath(myFacet.getModule());
+        if (gradleProjectPath == null) {
+          getLog().error("Unable to get gradle project information for module: " + myFacet.getModule().getName());
+          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
+          return;
+        }
+
         String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(myFacet.getModule());
         if (StringUtil.isEmpty(rootProjectPath)) {
           getLog().error("Unable to get gradle root project path for module: " + myFacet.getModule().getName());
@@ -243,7 +208,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_VARIANTS_SELECTED);
           return;
         }
-        List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel, myBuildVariants, myTargetType);
+        List<String> gradleTasks = getGradleTasks(gradleProjectPath.getPath(), androidModel, myBuildVariants, myTargetType);
         List<String> projectProperties = new ArrayList<>();
         projectProperties.add(createProperty(PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
         projectProperties
@@ -280,6 +245,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
             }
             catch (Exception e) {
               getLog().error("Something went wrong with the encryption tool", e);
+              invokeLaterIfNeeded(() -> Messages.showErrorDialog(
+                getProject(), AndroidBundle.message("android.export.package.bundle.key.export.error.description", e.getMessage()),
+                AndroidBundle.message("android.export.package.bundle.key.export.error.title")));
               trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_ENCRYPTION_ERROR);
               return;
             }
@@ -543,86 +511,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     return myTargetType;
   }
 
-  private void createAndAlignApk(final String apkPath) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(getFacet().getModule());
-    assert platform != null;
-    BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
-    String zipAlignPath = buildTool.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
-    File zipalign = new File(zipAlignPath);
-
-    final boolean runZipAlign = zipalign.isFile();
-    File destFile = null;
-    try {
-      destFile = runZipAlign ? FileUtil.createTempFile("android", ".apk") : new File(apkPath);
-      createApk(destFile);
-    }
-    catch (Exception e) {
-      showErrorInDispatchThread(e.getMessage());
-    }
-    if (destFile == null) {
-      trackWizardIntellijSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_CANNOT_CREATE_APK);
-      return;
-    }
-
-    if (runZipAlign) {
-      File realDestFile = new File(apkPath);
-      String message = AndroidBuildCommonUtils.executeZipAlign(zipAlignPath, destFile, realDestFile);
-      if (message != null) {
-        showErrorInDispatchThread(message);
-        trackWizardIntellijSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_ZIP_ALIGN_ERROR);
-        return;
-      }
-    }
-    ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), () -> {
-      String title = AndroidBundle.message("android.export.package.wizard.title");
-      Project project = getProject();
-      File apkFile = new File(apkPath);
-
-      VirtualFile vApkFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apkFile);
-      if (vApkFile != null) {
-        vApkFile.refresh(true, false);
-      }
-
-      if (!runZipAlign) {
-        Messages.showWarningDialog(project, AndroidCommonBundle.message(
-          "android.artifact.building.cannot.find.zip.align.error"), title);
-      }
-
-      trackWizardIntellijSigning(myProject);
-      if (RevealFileAction.isSupported()) {
-        if (Messages.showOkCancelDialog(project, AndroidBundle.message("android.export.package.success.message", apkFile.getName()),
-                                        title, RevealFileAction.getActionName(), IdeBundle.message("action.close"),
-                                        Messages.getInformationIcon()) == Messages.OK) {
-          RevealFileAction.openFile(apkFile);
-        }
-      }
-      else {
-        Messages.showInfoMessage(project, AndroidBundle.message("android.export.package.success.message", apkFile), title);
-      }
-    });
-  }
-
-  @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
-  private void createApk(@NotNull File destFile) throws IOException, GeneralSecurityException {
-    String srcApkPath = AndroidCompileUtil.getUnsignedApkPath(getFacet());
-    assert srcApkPath != null;
-    File srcApk = new File(FileUtilRt.toSystemDependentName(srcApkPath));
-
-    if (isSigned()) {
-      AndroidBuildCommonUtils.signApk(srcApk, destFile, getPrivateKey(), getCertificate());
-    }
-    else {
-      FileUtil.copy(srcApk, destFile);
-    }
-  }
-
   @NotNull
   private File generatePrivateKeyPath() {
     return new File(myExportKeyPath, ENCRYPTED_PRIVATE_KEY_FILE);
-  }
-
-  private void showErrorInDispatchThread(@NotNull final String message) {
-    invokeLaterIfNeeded(() -> Messages.showErrorDialog(getProject(), "Error: " + message, CommonBundle.getErrorTitle()));
   }
 
   public void setGradleSigningInfo(GradleSigningInfo gradleSigningInfo) {

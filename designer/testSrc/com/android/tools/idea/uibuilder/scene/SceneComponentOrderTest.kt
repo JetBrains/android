@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.model.createAndSelectComponents
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.PlatformTestUtil
 
@@ -31,8 +33,8 @@ class SceneComponentOrderTest : SceneTest() {
     val textView = myModel.find("textView")!!
 
     val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
-    val editText = myModel.createComponent(myModel.surface, editTextTag, null, null, InsertType.CREATE)
-    myModel.addComponents(listOf(editText), constraintLayout, textView, InsertType.CREATE, myModel.surface)
+    val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)!!
+    myModel.createAndSelectComponents(listOf(editText), constraintLayout, textView, myModel.surface.selectionModel)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -48,8 +50,10 @@ class SceneComponentOrderTest : SceneTest() {
     val button = myModel.find("button")!!
 
     val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
-    val editText = myModel.createComponent(myModel.surface, editTextTag, null, null, InsertType.CREATE)
-    myModel.addComponents(listOf(editText), constraintLayout, button, InsertType.CREATE, myModel.surface)
+    val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)!!
+    myModel.addComponents(listOf(editText), constraintLayout, button, InsertType.CREATE) {
+      myModel.surface.selectionModel.setSelection(listOf(editText))
+    }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -64,8 +68,8 @@ class SceneComponentOrderTest : SceneTest() {
     val constraintLayout = myModel.find("root")!!
 
     val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
-    val editText = myModel.createComponent(myModel.surface, editTextTag, null, null, InsertType.CREATE)
-    myModel.addComponents(listOf(editText), constraintLayout, null, InsertType.CREATE, myModel.surface)
+    val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)!!
+    myModel.createAndSelectComponents(listOf(editText), constraintLayout, null, myModel.surface.selectionModel)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -81,7 +85,7 @@ class SceneComponentOrderTest : SceneTest() {
     val textView = myModel.find("textView")!!
     val button = myModel.find("button")!!
 
-    myModel.addComponents(listOf(textView), constraintLayout, null, InsertType.MOVE, myModel.surface)
+    myModel.addComponents(listOf(textView), constraintLayout, null, InsertType.MOVE, null)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -96,7 +100,7 @@ class SceneComponentOrderTest : SceneTest() {
     val textView = myModel.find("textView")!!
     val button = myModel.find("button")!!
 
-    myModel.addComponents(listOf(button), constraintLayout, textView, InsertType.MOVE, myModel.surface)
+    myModel.addComponents(listOf(button), constraintLayout, textView, InsertType.MOVE, null)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -122,7 +126,7 @@ class SceneComponentOrderTest : SceneTest() {
 
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",
-                 component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/root")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")

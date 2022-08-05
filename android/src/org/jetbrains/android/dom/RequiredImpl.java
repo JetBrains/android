@@ -21,7 +21,7 @@ import java.lang.annotation.Annotation;
 /**
  * Implementation of @Required annotation interface to be used for marking DOM attributes as required.
  */
-@SuppressWarnings("ClassExplicitlyAnnotation")
+@SuppressWarnings("BadAnnotationImplementation")
 public class RequiredImpl implements Required {
   @Override
   public boolean value() {

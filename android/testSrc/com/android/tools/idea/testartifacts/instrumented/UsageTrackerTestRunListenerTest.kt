@@ -17,12 +17,14 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.IdeTestOptions
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.stats.UsageTrackerTestRunListener
 import com.android.tools.idea.stats.toProtoValue
@@ -35,10 +37,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.testFramework.HeavyPlatformTestCase
-import junit.framework.TestCase
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
-import kotlin.test.assertNotEquals
 
 class UsageTrackerTestRunListenerTest : HeavyPlatformTestCase() {
   private val serial = "my serial"
@@ -55,11 +54,12 @@ class UsageTrackerTestRunListenerTest : HeavyPlatformTestCase() {
       )
 
       val module = project.gradleModule(":moduleName")
-      TestCase.assertNotNull(module)
 
-      val listener = UsageTrackerTestRunListener(GradleAndroidModel.get(module!!)?.mainArtifact,
+      val listener = UsageTrackerTestRunListener(
+        module!!.getModuleSystem().getTestLibrariesInUse(),
+        AndroidModel.get(module)!!.testOptions!!.executionOption,
         mock(IDevice::class.java)!!.also {
-          `when`(it.serialNumber).thenReturn(serial)
+          whenever(it.serialNumber).thenReturn(serial)
         }
       )
 
@@ -158,7 +158,7 @@ class UsageTrackerTestRunListenerTest : HeavyPlatformTestCase() {
 
   fun testExecutionMapping() {
     for (execution in IdeTestOptions.Execution.values()) {
-      assertNotEquals(TestRun.TestExecution.UNKNOWN_TEST_EXECUTION, execution.toProtoValue())
+      assertThat(execution.toProtoValue()).isNotEqualTo(TestRun.TestExecution.UNKNOWN_TEST_EXECUTION)
     }
   }
 }

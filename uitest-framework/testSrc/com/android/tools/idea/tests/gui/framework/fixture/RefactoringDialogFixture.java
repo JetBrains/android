@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 public class RefactoringDialogFixture extends DialogFixture {
   @NotNull
   public static RefactoringDialogFixture find(@NotNull Robot robot, @NotNull String dialogTitle) {
-    Component dialog = robot.finder().find(new GenericTypeMatcher<>(JDialog.class, true) {
+    Component dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class, true) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
         return dialogTitle.equals(component.getTitle());
@@ -43,7 +43,7 @@ public class RefactoringDialogFixture extends DialogFixture {
 
   @NotNull
   public JButtonFixture getPreviewButton() {
-    return button(new GenericTypeMatcher<>(JButton.class) {
+    return button(new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
       protected boolean isMatching(@NotNull JButton component) {
         return "Preview".equals(component.getText());

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.newpsd
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
@@ -24,9 +23,7 @@ import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
-import org.junit.After
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -40,16 +37,6 @@ class SuggestionsViewTest {
   @Rule
   @JvmField
   val guiTest = PsdGuiTestRule()
-
-  @Before
-  fun setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride()
-  }
 
   @Ignore("b/77848741")
   @Test

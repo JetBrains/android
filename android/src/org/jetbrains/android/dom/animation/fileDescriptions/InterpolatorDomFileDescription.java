@@ -23,7 +23,7 @@ import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class InterpolatorDomFileDescription extends MultipleKnownRootsResourceDomFileDescription<InterpolatorElement> {
+public class InterpolatorDomFileDescription extends MultipleKnownRootsResourceDomFileDescription<InterpolatorElement> {
   /**
    * Map contains name of a styleable with attributes by a tag name.
    * If key maps to {@link Optional#empty()} it means that such tag exists but doesn't have any attributes.
@@ -38,15 +38,19 @@ public final class InterpolatorDomFileDescription extends MultipleKnownRootsReso
     "overshootInterpolator", Optional.of("OvershootInterpolator"),
     "anticipateOvershootInterpolator", Optional.of("AnticipateOvershootInterpolator"),
     "bounceInterpolator", Optional.empty(),
-    "pathInterpolator", Optional.of("PathInterpolator")
-    );
+    "pathInterpolator", Optional.of("PathInterpolator"));
 
   public InterpolatorDomFileDescription() {
     super(InterpolatorElement.class, ResourceFolderType.ANIM, STYLEABLE_BY_TAG.keySet());
   }
 
-  public static @Nullable String getInterpolatorStyleableByTagName(@NotNull String tagName) {
-    Optional<String> optional = STYLEABLE_BY_TAG.get(tagName);
-    return optional != null && optional.isPresent() ? optional.get() : null;
+  @Nullable
+  public static String getInterpolatorStyleableByTagName(@NotNull String tagName) {
+    final Optional<String> optional = STYLEABLE_BY_TAG.get(tagName);
+
+    if (optional != null && optional.isPresent()) {
+      return optional.get();
+    }
+    return null;
   }
 }

@@ -25,6 +25,7 @@ import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
 import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
@@ -166,7 +167,7 @@ object AndroidStudioUsageTracker {
     // Send initial report immediately, hourly from then on.
     scheduler.scheduleWithFixedDelay({ runHourlyReports() }, 0, 1, TimeUnit.HOURS)
     subscribeToEvents()
-    setupFeatureSurveys()
+    setupMetricsListener()
 
     // Studio ping is called immediately without scheduler to make sure
     // ping is not delayed based on scheduler logic, then it is scheduled
@@ -408,7 +409,7 @@ object AndroidStudioUsageTracker {
     }
   }
 
-  fun setupFeatureSurveys() {
+  private fun setupMetricsListener() {
     // Create a coroutine scope tied to a disposable application service
     val scope = AndroidCoroutineScope(MavenClassRegistryManager.getInstance())
     UsageTracker.listener = { event ->
@@ -420,6 +421,7 @@ object AndroidStudioUsageTracker {
     scope.launch {
       channel.openSubscription().consumeEach {
         FeatureSurveys.processEvent(it)
+        DefaultMetricsLogFileProvider.processEvent(it)
       }
     }
   }

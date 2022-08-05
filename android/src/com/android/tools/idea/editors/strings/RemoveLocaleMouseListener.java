@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableListener;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import java.awt.Point;
@@ -28,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 
 final class RemoveLocaleMouseListener implements FrozenColumnTableListener {
   private final StringResourceViewPanel myPanel;
+
+  private final StringResourceWriter myStringResourceWriter = StringResourceWriter.INSTANCE;
 
   RemoveLocaleMouseListener(@NotNull StringResourceViewPanel panel) {
     myPanel = panel;
@@ -45,7 +48,7 @@ final class RemoveLocaleMouseListener implements FrozenColumnTableListener {
     item.setName("removeLocaleMenuItem");
 
     item.addActionListener(e -> {
-      StringsWriteUtils.removeLocale(locale, myPanel.getFacet(), this);
+      myStringResourceWriter.removeLocale(locale, myPanel.getFacet(), this);
       myPanel.reloadData();
     });
 

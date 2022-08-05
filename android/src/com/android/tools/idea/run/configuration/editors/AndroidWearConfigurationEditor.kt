@@ -18,21 +18,28 @@ package com.android.tools.idea.run.configuration.editors
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.execution.ui.ConfigurationModuleSelector
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.LayoutBuilder
 import com.intellij.ui.layout.applyToComponent
@@ -41,6 +48,7 @@ import com.intellij.ui.layout.panel
 import com.intellij.ui.layout.selectedValueIs
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
+import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel
@@ -50,7 +58,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   SettingsEditor<T>() {
 
   private val modulesComboBox = ModulesComboBox()
-  private val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
+  protected val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
     override fun isModuleAccepted(module: Module?): Boolean {
       if (module == null || !super.isModuleAccepted(module)) {
         return false
@@ -62,44 +70,54 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   }
 
   private lateinit var wearComponentFqNameComboBox: ComboBox<String>
-  private var componentName: String? = null
+  protected var componentName: String? = null
+    private set(value) {
+      if (field != value) {
+        field = value
+        onComponentNameChanged(value)
+      }
+    }
   private var installFlags: String = ""
 
   init {
     Disposer.register(project, this)
 
-    modulesComboBox.addActionListener { event ->
-      val module = moduleSelector.module
-      val availableComponents = if (module == null) {
-        emptyList()
-      }
-      else {
-        val facade = JavaPsiFacade.getInstance(project)
-        val surfaceBaseClasses = configuration.componentBaseClassesFqNames.mapNotNull {
-          facade.findClass(it, ProjectScope.getAllScope(project))
+    modulesComboBox.addActionListener {
+      object : Task.Modal(project, AndroidBundle.message("android.run.configuration.loading"), true) {
+        var availableComponents: Set<String> = emptySet()
+
+        override fun run(indicator: ProgressIndicator) {
+          val module = moduleSelector.module
+          if (module == null || DumbService.isDumb(project)) {
+            return
+          }
+          availableComponents = ApplicationManager.getApplication().runReadAction(Computable {findAvailableComponents(module)})
         }
-        surfaceBaseClasses.flatMap { baseClass ->
-          ClassInheritorsSearch.search(baseClass, getComponentSearchScope(module), true)
-            .findAll()
-            // TODO: filter base on manifest index.
-            .filter { !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) }
-            .mapNotNull { it.qualifiedName }
+
+        override fun onFinished() {
+          wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
+          componentName = wearComponentFqNameComboBox.item
+          if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
+            component?.parent?.parent?.apply {
+              removeAll()
+              layout = BorderLayout()
+              add(JBPanelWithEmptyText().withEmptyText("Can't edit configuration while Project is synchronizing"))
+            }
+          }
         }
-      }
-      wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
-      if (availableComponents.isNotEmpty()) {
-        wearComponentFqNameComboBox.item = availableComponents.first()
-      }
+      }.queue()
     }
   }
+
+  open fun onComponentNameChanged(newComponent: String?) {}
 
   override fun resetEditorFrom(runConfiguration: T) {
     moduleSelector.reset(runConfiguration)
     val componentClass = moduleSelector.module?.let { getComponentSearchScope(it) }
     if (componentClass != null) {
-      componentName = runConfiguration.componentName
+      componentName = runConfiguration.componentLaunchOptions.componentName
     }
-    installFlags = runConfiguration.installFlags
+    installFlags = runConfiguration.deployOptions.pmInstallFlags
     (component as DialogPanel).reset()
   }
 
@@ -108,8 +126,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   override fun applyEditorTo(runConfiguration: T) {
     (component as DialogPanel).apply()
     moduleSelector.applyTo(runConfiguration)
-    runConfiguration.componentName = componentName
-    runConfiguration.installFlags = installFlags
+    runConfiguration.componentLaunchOptions.componentName = componentName
+    runConfiguration.deployOptions.pmInstallFlags = installFlags
   }
 
   override fun createEditor() =
@@ -128,7 +146,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
   protected fun LayoutBuilder.getComponentCompoBox() {
     row {
-      label(configuration.userVisibleComponentTypeName)
+      label(configuration.componentLaunchOptions.userVisibleComponentTypeName)
       wearComponentFqNameComboBox = comboBox(
         DefaultComboBoxModel(emptyArray<String>()),
         { componentName },
@@ -138,8 +156,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
             text = when {
               value != null -> value
               modulesComboBox.item == null -> "Module is not chosen"
-              list.selectionModel.maxSelectionIndex == -1 -> "${configuration.userVisibleComponentTypeName} not found"
-              else -> "${configuration.userVisibleComponentTypeName} is not chosen"
+              list.selectionModel.maxSelectionIndex == -1 -> "${configuration.componentLaunchOptions.userVisibleComponentTypeName} not found"
+              else -> "${configuration.componentLaunchOptions.userVisibleComponentTypeName} is not chosen"
             }
           }
         })
@@ -147,6 +165,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
         .constraints(CCFlags.growX, CCFlags.pushX)
         .applyToComponent {
           maximumSize = Dimension(400, maximumSize.height)
+          setMinLength(400)
           addPropertyChangeListener("model") {
             this.isEnabled = (it.newValue as ComboBoxModel<*>).size > 0
           }
@@ -163,5 +182,22 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
           maximumSize = Dimension(400, maximumSize.height)
         }
     }
+  }
+
+  private fun findAvailableComponents(module: Module): Set<String> {
+    ApplicationManager.getApplication().assertIsNonDispatchThread()
+    val facade = JavaPsiFacade.getInstance(project)
+    val surfaceBaseClasses = configuration.componentLaunchOptions.componentBaseClassesFqNames.mapNotNull {
+      facade.findClass(it, ProjectScope.getAllScope(project))
+    }
+    return surfaceBaseClasses.flatMap { baseClass ->
+      ClassInheritorsSearch.search(baseClass, getComponentSearchScope(module), true)
+        .findAll()
+        // TODO: filter base on manifest index.
+        .filter { !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) }
+        .mapNotNull { it.qualifiedName }
+    }.distinct()
+      .sorted()
+      .toSet()
   }
 }

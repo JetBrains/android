@@ -29,6 +29,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
+import com.android.tools.idea.common.error.IssueListener;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
@@ -54,7 +55,6 @@ import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
@@ -71,7 +71,6 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -134,7 +133,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * A generic design surface for use in a graphical editor.
  */
-public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable, ZoomableViewport {
+public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable, ZoomableViewport {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size.
    * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
@@ -191,7 +190,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Filter got {@link #getSceneManagers()} ()} to avoid returning disposed elements
    **/
-  private static final Predicate<SceneManager> FILTER_DISPOSED_SCENE_MANAGERS =
+  private final Predicate<T> FILTER_DISPOSED_SCENE_MANAGERS =
     input -> input != null && FILTER_DISPOSED_MODELS.apply(input.getModel());
 
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10;
@@ -225,11 +224,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected final ArrayList<DesignSurfaceListener> myListeners = new ArrayList<>();
   @GuardedBy("myListenersLock")
   @NotNull private ArrayList<PanZoomListener> myZoomListeners = new ArrayList<>();
-  private final ActionManager myActionManager;
+  private final ActionManager<? extends DesignSurface<T>> myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
   @GuardedBy("myModelToSceneManagersLock")
-  private final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
+  private final LinkedHashMap<NlModel, T> myModelToSceneManagers = new LinkedHashMap<>();
 
   private final SelectionModel mySelectionModel;
   private final ModelListener myModelListener = new ModelListener() {
@@ -252,7 +251,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
 
-  protected final IssueModel myIssueModel = new IssueModel();
+  protected final IssueModel myIssueModel;
   private final IssuePanel myIssuePanel;
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
@@ -265,7 +264,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
 
-  @SurfaceScale private double myMaxFitIntoScale = Double.MAX_VALUE;
+  @SurfaceScale private final double myMaxFitIntoScale;
 
   /**
    * When surface is opened at first time, it zoom-to-fit the content to make the previews fit the initial window size.
@@ -278,7 +277,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   });
 
   @NotNull
-  private final Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider;
+  private final Function<DesignSurface<T>, DesignSurfaceActionHandler> myActionHandlerProvider;
 
   /**
    * See {@link ZoomControlsPolicy}.
@@ -289,33 +288,38 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final AWTEventListener myOnHoverListener;
 
+  @NotNull
+  private final IssueListener myIssueListener;
+
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
-    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
-    @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
-    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
+    @NotNull Function<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
+    @NotNull Function<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
+    @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
+    @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     this(project, parentDisposable, actionManagerProvider, interactionProviderCreator,
-         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy);
+         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy, Double.MAX_VALUE);
   }
 
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
-    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
-    @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
-    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
+    @NotNull Function<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
+    @NotNull Function<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
+    @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
+    @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
-    @NotNull ZoomControlsPolicy zoomControlsPolicy) {
+    @NotNull ZoomControlsPolicy zoomControlsPolicy,
+    double maxFitIntoZoomLevel) {
     super(new BorderLayout());
 
     Disposer.register(parentDisposable, this);
     myProject = project;
     mySelectionModel = selectionModel;
     myZoomControlsPolicy = zoomControlsPolicy;
+    myIssueModel = new IssueModel(this, myProject);
 
     boolean hasZoomControls = myZoomControlsPolicy != ZoomControlsPolicy.HIDDEN;
 
@@ -338,7 +342,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     };
     mySelectionModel.addListener(selectionListener);
-    myInteractionManager = new InteractionManager(this, interactionProviderCreator.apply(this));
 
     myProgressPanel = new MyProgressPanel();
     myProgressPanel.setName("Layout Editor Progress Panel");
@@ -387,8 +390,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
     myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
 
-    myIssuePanel = new IssuePanel(myIssueModel, new DesignSurfaceIssueListenerImpl(this));
-    Disposer.register(this, myIssuePanel);
+    myIssueListener = new DesignSurfaceIssueListenerImpl(this);
+    myIssuePanel = new IssuePanel(myIssueModel, myIssueListener);
 
     add(myLayeredPane);
 
@@ -421,6 +424,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     });
 
+    Interactable interactable = new SurfaceInteractable(this);
+    myInteractionManager = new InteractionManager(this, interactable, interactionProviderCreator.apply(this));
     myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = actionManagerProvider.apply(this);
@@ -451,6 +456,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     else {
       myOnHoverListener = event -> {};
     }
+
+    // Sets the maximum zoom level allowed for ZoomType#FIT.
+    myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
   }
 
   @NotNull
@@ -474,7 +482,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @NotNull
-  protected abstract SceneManager createSceneManager(@NotNull NlModel model);
+  protected abstract T createSceneManager(@NotNull NlModel model);
 
   /**
    * When not null, returns a {@link JPanel} to be rendered next to the primary panel of the editor.
@@ -501,7 +509,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   // Allow a test to override myActionHandlerProvider when the surface is a mockito mock
   @NotNull
-  public Function<DesignSurface, DesignSurfaceActionHandler> getActionHandlerProvider() {
+  public Function<DesignSurface<T>, DesignSurfaceActionHandler> getActionHandlerProvider() {
     return myActionHandlerProvider;
   }
 
@@ -517,6 +525,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @NotNull
   public abstract ItemTransferable getSelectionAsTransferable();
+
+  /**
+   * Returns whether render error panels should be rendered when {@link SceneView}s in this surface have render errors.
+   */
+  public boolean shouldRenderErrorsPanel() {
+    return false;
+  }
 
   /**
    * @return the primary (first) {@link NlModel} if exist. null otherwise.
@@ -549,7 +564,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @NotNull
-  public ImmutableList<SceneManager> getSceneManagers() {
+  public ImmutableList<T> getSceneManagers() {
     myModelToSceneManagersLock.readLock().lock();
     try {
       return ImmutableList.copyOf(Collections2.filter(myModelToSceneManagers.values(), FILTER_DISPOSED_SCENE_MANAGERS));
@@ -568,13 +583,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #addAndRenderModel(NlModel)
    */
   @NotNull
-  private SceneManager addModel(@NotNull NlModel model) {
-    SceneManager manager = getSceneManager(model);
+  private T addModel(@NotNull NlModel model) {
+    T manager = getSceneManager(model);
     if (manager != null) {
       // No need to add same model twice. We just move it to the bottom of the model list since order is important.
       myModelToSceneManagersLock.writeLock().lock();
       try {
-        SceneManager managerToMove = myModelToSceneManagers.remove(model);
+        T managerToMove = myModelToSceneManagers.remove(model);
         if (managerToMove != null) {
           myModelToSceneManagers.put(model, managerToMove);
         }
@@ -594,9 +609,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     finally {
       myModelToSceneManagersLock.writeLock().unlock();
     }
-
-    // Mark the scene view panel as invalid to force the scene views to be updated
-    mySceneViewPanel.invalidate();
 
     if (myIsActive) {
       manager.activate(this);
@@ -627,7 +639,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, it will
    * be moved to the bottom of the list and a refresh will be triggered.
-   * The callback {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
+   * The scene views are updated before starting to render and the callback
+   * {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
    * <br/><br/>
    * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
@@ -638,7 +651,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   public final CompletableFuture<Void> addAndRenderModel(@NotNull NlModel model) {
-    SceneManager modelSceneManager = addModel(model);
+    T modelSceneManager = addModel(model);
+    // Mark the scene view panel as invalid to force the scene views to be updated
+    mySceneViewPanel.invalidate();
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
@@ -658,9 +673,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
    * If it is added before then it just returns the associated {@link SceneManager} which created before.
-   * This function trigger {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} callback immediately.
-   * In the opposite, {@link #addAndRenderModel(NlModel)} triggers {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
-   * when render is completed.
+   * In this function, the scene views are not updated and {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
+   * callback is triggered immediately.
+   * In the opposite, {@link #addAndRenderModel(NlModel)} updates the scene views and triggers
+   * {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} when render is completed.
    * <p>
    * <br/><br/>
    * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
@@ -673,8 +689,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #addAndRenderModel(NlModel)
    */
   @NotNull
-  public final SceneManager addModelWithoutRender(@NotNull NlModel model) {
-    SceneManager manager = addModel(model);
+  public final T addModelWithoutRender(@NotNull NlModel model) {
+    T manager = addModel(model);
 
     EdtExecutorService.getInstance().execute(() -> {
       for (DesignSurfaceListener listener : getListeners()) {
@@ -753,6 +769,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     addModel(model);
+    // Mark the scene view panel as invalid to force the scene views to be updated
+    mySceneViewPanel.invalidate();
 
     return requestRender()
       .whenCompleteAsync((result, ex) -> {
@@ -853,7 +871,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneView getFocusedSceneView() {
-    ImmutableList<SceneManager> managers = getSceneManagers();
+    ImmutableList<T> managers = getSceneManagers();
     if (managers.size() == 1) {
       // Always return primary SceneView In single-model mode,
       SceneManager manager = getSceneManager();
@@ -1015,11 +1033,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         scaled = setScale(1d / getScreenScalingFactor());
         break;
       case FIT:
-      case FIT_INTO:
-        scaled = setScale(getFitScale(type == ZoomType.FIT_INTO));
+        scaled = setScale(getFitScale(false));
         break;
       default:
-      case SCREEN:
         throw new UnsupportedOperationException("Not yet implemented: " + type);
     }
 
@@ -1041,7 +1057,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * This function doesn't consider the legal scale range, which can be get by {@link #getMaxScale()} and {@link #getMinScale()}.
    *
    * @param size    dimension to fit into the view
-   * @param fitInto {@link ZoomType#FIT_INTO}
+   * @param fitInto If true, don't scale to more than 100%
    * @return The scale to make the content fit the design surface
    * @see {@link #getScreenScalingFactor()}
    */
@@ -1248,7 +1264,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return;
     }
     SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
-    state.saveFileScale(model.getFile(), myScale);
+    state.saveFileScale(myProject, model.getVirtualFile(), myScale);
   }
 
   /**
@@ -1260,7 +1276,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return false;
     }
     SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
-    Double previousScale = state.loadFileScale(model.getFile());
+    Double previousScale = state.loadFileScale(myProject, model.getVirtualFile());
     if (previousScale != null) {
       setScale(previousScale);
       return true;
@@ -1390,6 +1406,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
     myIsActive = true;
+    myIssueModel.activate();
+  }
+
+  public void deactivateIssueModel() {
+    myIssueModel.deactivate();
   }
 
   public void deactivate() {
@@ -1400,6 +1421,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
     myIsActive = false;
+    myIssueModel.deactivate();
 
     myInteractionManager.cancelInteraction();
   }
@@ -1496,7 +1518,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Using this method will cause the code not to correctly support multiple previews.
    */
   @Nullable
-  public SceneManager getSceneManager() {
+  public T getSceneManager() {
     NlModel model = getModel();
     return model != null ? getSceneManager(model) : null;
   }
@@ -1505,7 +1527,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return The {@link SceneManager} associated to the given {@link NlModel}.
    */
   @Nullable
-  public SceneManager getSceneManager(@NotNull NlModel model) {
+  public T getSceneManager(@NotNull NlModel model) {
     if (model.getModule().isDisposed()) {
       return null;
     }
@@ -1705,7 +1727,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   public CompletableFuture<Void> requestRender() {
-    ImmutableList<SceneManager> managers = getSceneManagers();
+    ImmutableList<T> managers = getSceneManagers();
     if (managers.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1719,7 +1741,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return A callback which is triggered when the scheduled rendering are completed.
    */
   @NotNull
-  protected CompletableFuture<Void> requestSequentialRender(@NotNull Function<SceneManager, CompletableFuture<Void>> renderRequest) {
+  protected CompletableFuture<Void> requestSequentialRender(@NotNull Function<T, CompletableFuture<Void>> renderRequest) {
     CompletableFuture<Void> callback = new CompletableFuture<>();
     synchronized (myRenderFutures) {
       if (!myRenderFutures.isEmpty()) {
@@ -1735,7 +1757,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     // Cascading the CompletableFuture to make them executing sequentially.
     CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
-    for (SceneManager manager : getSceneManagers()) {
+    for (T manager : getSceneManagers()) {
       renderFuture = renderFuture.thenCompose(it -> {
         CompletableFuture<Void> future = renderRequest.apply(manager);
         invalidate();
@@ -1789,7 +1811,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public Object getData(@NotNull @NonNls String dataId) {
-    if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId)) {
+    if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId) || InteractionManager.CURSOR_RECEIVER.is(dataId)) {
       return this;
     }
     if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
@@ -1880,28 +1902,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myIssuePanel;
   }
 
-  /**
-   * Sets the status of the issue panel.
-   * @param show wether to show or hide the issue panel.
-   * @param userInvoked if true, this was the direct consequence of a user action.
-   */
-  public void setShowIssuePanel(boolean show, boolean userInvoked) {
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      Logger.getInstance(DesignSurface.class)
-        .error("DesignSurface.setShowIssuePanel() should not be called when showing issue panel in IJ's problems panel");
-    }
-    else {
-      UIUtil.invokeLaterIfNeeded(() -> {
-        myIssuePanel.setMinimized(!show);
-        if (userInvoked) {
-          myIssuePanel.disableAutoSize();
-        }
-        revalidate();
-        repaint();
-      });
-    }
-  }
-
   @NotNull
   protected MergingUpdateQueue getErrorQueue() {
     synchronized (myErrorQueueLock) {
@@ -1937,13 +1937,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   abstract public List<NlComponent> getSelectableComponents();
-
-  /**
-   * Sets the maximum zoom level allowed for {@link ZoomType#FIT} or {@link ZoomType#FIT_INTO}. By default there is no maximum value.
-   */
-  public void setMaxFitIntoZoomLevel(@SurfaceZoomLevel double maxFitIntoZoomLevel) {
-    myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
-  }
 
   /**
    * Enables the mouse click display. If enabled, the clicks of the user are displayed in the surface.
@@ -1992,5 +1985,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     VirtualFile file = fileEditor != null ? fileEditor.getFile() : null;
     if (file == null) return;
     UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(myProject).updateNotifications(file));
+  }
+
+  @NotNull
+  public IssueListener getIssueListener() {
+    return myIssueListener;
   }
 }

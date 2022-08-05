@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.surface;
 
 import static com.android.SdkConstants.ATTR_GRAPH;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_CLASS;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT;
@@ -65,7 +66,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.android.utils.ImmutableCollectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -120,7 +120,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * {@link DesignSurface} for the navigation editor.
  */
-public class NavDesignSurface extends DesignSurface {
+public class NavDesignSurface extends DesignSurface<NavSceneManager> {
   private static final int SCROLL_DURATION_MS = 300;
   private static final Object CONNECTION_CLIENT_PROPERTY_KEY = new Object();
   private static final String FAILED_DEPENDENCY = "Failed to add navigation dependency";
@@ -232,7 +232,7 @@ public class NavDesignSurface extends DesignSurface {
 
   @NotNull
   @Override
-  protected SceneManager createSceneManager(@NotNull NlModel model) {
+  protected NavSceneManager createSceneManager(@NotNull NlModel model) {
     return new NavSceneManager(model, this);
   }
 
@@ -408,8 +408,7 @@ public class NavDesignSurface extends DesignSurface {
     ImmutableList<DnDTransferComponent> components =
       getSelectionModel().getSelection().stream()
         .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(), 0, 0))
-        .collect(
-          ImmutableCollectors.toImmutableList());
+        .collect(toImmutableList());
     return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
   }
 
@@ -616,7 +615,7 @@ public class NavDesignSurface extends DesignSurface {
     // track user triggered change
     getAnalyticsManager().trackZoom(type);
     boolean scaled = super.zoom(type, x, y);
-    boolean isFitZoom = type == ZoomType.FIT || type == ZoomType.FIT_INTO;
+    boolean isFitZoom = type == ZoomType.FIT;
 
     if (scaled || isFitZoom) {
       // The padding around the nav editor is calculated when NavSceneManager.requestLayout is called. If we have changed the scale

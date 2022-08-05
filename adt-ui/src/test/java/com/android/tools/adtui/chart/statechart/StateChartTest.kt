@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.chart.statechart
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
@@ -39,7 +40,7 @@ class StateChartTest {
     val stateChart = StateChart(model, mapOf())
     stateChart.setSize(100, 100)
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
   }
 
@@ -52,7 +53,7 @@ class StateChartTest {
     val stateChart = StateChart(model, constColorProvider(Color.BLACK), { "123" })
     stateChart.setSize(100, 100)
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(1))
       .drawString(ArgumentMatchers.eq("123"), ArgumentMatchers.anyFloat(), ArgumentMatchers.anyFloat())
@@ -67,7 +68,7 @@ class StateChartTest {
     val stateChart = StateChart(model, constColorProvider(Color.BLACK), StateChart.defaultTextConverter())
     stateChart.setSize(100, 100)
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(1))
       .drawString(ArgumentMatchers.eq("Test"), ArgumentMatchers.anyFloat(), ArgumentMatchers.anyFloat())
@@ -90,7 +91,7 @@ class StateChartTest {
     val stateChart = StateChart(model, colorMap)
     stateChart.setSize(100, 100)
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
 
     // Because between 0 -> Max Long, values 100 and 101 are so close we end up with a floating point
@@ -132,6 +133,32 @@ class StateChartTest {
   }
 
   @Test
+  fun `series at mouse gives right-most index to mouse's left`() {
+    val model = StateChartModel<Long>()
+    fun seriesOf(vararg xs: Long) = DataSeries { xs.map { SeriesData(it, it) } }
+    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(0, 2, 4, 6, 8, 10)))
+    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(1, 3, 5, 7, 9)))
+
+    val stateChart = StateChart(model, constColorProvider(Color.PINK)).apply {
+      setSize(100, 100)
+    }
+
+    // --1---3---5---7---9--
+    // 0---2---4---6---8---10
+    assertThat(stateChart.seriesIndexAtMouse(Point(5, 25))).isEqualTo(1 to -1)
+    assertThat(stateChart.seriesIndexAtMouse(Point(95, 25))).isEqualTo(1 to 4)
+    assertThat(stateChart.seriesIndexAtMouse(Point(25, 25))).isEqualTo(1 to 0)
+    assertThat(stateChart.seriesIndexAtMouse(Point(10, 80))).isEqualTo(0 to 0)
+    assertThat(stateChart.seriesIndexAtMouse(Point(75, 20))).isEqualTo(1 to 3)
+    assertThat(stateChart.seriesIndexAtMouse(Point(75, 80))).isEqualTo(0 to 3)
+
+    assertThat(stateChart.seriesIndexAtMouse(Point(5, 200))).isEqualTo(null)
+    assertThat(stateChart.seriesIndexAtMouse(Point(5, 101))).isEqualTo(0 to 0)
+    assertThat(stateChart.seriesIndexAtMouse(Point(25, -1))).isEqualTo(1 to 0)
+    assertThat(stateChart.seriesIndexAtMouse(Point(25, -100))).isEqualTo(null)
+  }
+
+  @Test
   fun `chart uses custom renderer`() {
     val model = StateChartModel<Long>()
     fun seriesOf(vararg xs: Long) = DataSeries { xs.map { SeriesData(it, it) } }
@@ -145,7 +172,7 @@ class StateChartTest {
     val stateChart = StateChart(model, ::render).apply { setSize(100, 100) }
 
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(5))
       .drawString(ArgumentMatchers.eq("hi"), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())

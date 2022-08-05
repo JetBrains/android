@@ -28,7 +28,6 @@ import com.android.ddmlib.TimeoutException
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.ddms.DevicePropertyUtil
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportProxy.ProxyCommandHandler
 import com.android.tools.profiler.proto.Commands.Command.CommandType
@@ -48,13 +47,13 @@ import com.android.tools.profiler.proto.Transport.VersionResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
-import io.grpc.ManagedChannel
-import io.grpc.MethodDescriptor
-import io.grpc.ServerCallHandler
-import io.grpc.ServerServiceDefinition
-import io.grpc.StatusRuntimeException
-import io.grpc.stub.ServerCalls
-import io.grpc.stub.StreamObserver
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.MethodDescriptor
+import com.android.tools.idea.io.grpc.ServerCallHandler
+import com.android.tools.idea.io.grpc.ServerServiceDefinition
+import com.android.tools.idea.io.grpc.StatusRuntimeException
+import com.android.tools.idea.io.grpc.stub.ServerCalls
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import org.jetbrains.annotations.TestOnly
@@ -246,7 +245,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
   }
 
   private fun isProfileableSupported() =
-    ddmlibDevice.version.featureLevel >= AndroidVersion.VersionCodes.S && StudioFlags.PROFILEABLE.get()
+    ddmlibDevice.version.featureLevel >= AndroidVersion.VersionCodes.S
 
   override fun clientChanged(client: Client, changeMask: Int) {
     if (Client.CHANGE_NAME in changeMask && client.device === ddmlibDevice && client.clientData.clientDescription != null) {

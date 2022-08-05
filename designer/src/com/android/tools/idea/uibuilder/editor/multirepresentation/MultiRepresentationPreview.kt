@@ -21,7 +21,6 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.runInSmartReadAction
 import com.android.tools.idea.concurrency.runReadAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -229,13 +228,13 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     if (file == null || !file.isValid) return
 
     val providers = providers.filter {
-      runInSmartReadAction(project) { it.accept(project, file) }
+      it.accept(project, file)
     }.toList()
     val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
     val newRepresentations = mutableMapOf<RepresentationName, PreviewRepresentation>()
     // Calculated new representations
     for (provider in providers.filter { it.displayName !in currentRepresentationsNames }) {
-      val representation = runReadAction { provider.createRepresentation (file) }
+      val representation = provider.createRepresentation (file)
       Disposer.register(this@MultiRepresentationPreview, representation)
       shortcutsApplicableComponent?.let {
         invokeLater {
@@ -255,20 +254,26 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
 
     val providerNames = providers.map { it.displayName }.toSet()
     val hadAnyRepresentationsInitialized: Boolean
+    val toDispose = mutableListOf<PreviewRepresentation>()
     synchronized(representations) {
       // Remove unaccepted
-      (representations.keys - providerNames).forEach { name ->
+      (representations.keys - (providerNames - newRepresentations.keys)).forEach { name ->
         representations.remove(name)?.let {
-          Disposer.dispose(it)
+          toDispose.add(it)
         }
       }
       hadAnyRepresentationsInitialized = representations.isNotEmpty()
       representations.putAll(newRepresentations)
     }
+    toDispose.forEach { representation ->
+      invokeAndWaitIfNeeded {
+        Disposer.dispose(representation)
+      }
+    }
 
     if (!hadAnyRepresentationsInitialized) {
       // The first time we load one representation, we try to set it to the one we had saved on disk when saving the state.
-      stateFromDisk?.selectedRepresentationName?.let { currentRepresentationName = it }
+      stateFromDisk?.let { currentRepresentationName = it.selectedRepresentationName }
     }
 
     withContext(uiThread) {
@@ -331,6 +336,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       }
     }
 
+    // TODO(b/238060362): It should not be allowed to execute it in parallel to other invocations from [updateRepresentations]
     updateRepresentationsImpl()
 
     // If the representation is available, restore
@@ -386,7 +392,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   private class RepresentationsSelector(val parent: MultiRepresentationPreview) :
-    DropDownAction(null, "Representations", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
+    DropDownAction(null, "Representations", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
     override fun update(e: AnActionEvent) {
       super.update(e)
       removeAll()
@@ -453,5 +459,6 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
 
   override fun dispose() {
     onDeactivate()
+    representations.clear()
   }
 }

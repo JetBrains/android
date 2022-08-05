@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
+import com.intellij.openapi.util.NlsActions.ActionText
+
+private val logcatFormattingOptions = AndroidLogcatFormattingOptions.getInstance()
 
 /**
  * Formatting options of a Logcat panel.
@@ -27,5 +33,29 @@ internal data class FormattingOptions(
   var tagFormat: TagFormat = TagFormat(),
   var appNameFormat: AppNameFormat = AppNameFormat(),
 ) {
-  fun getHeaderWidth() =  appNameFormat.width() + tagFormat.width() + processThreadFormat.width() + timestampFormat.width()
+  enum class Style(val displayName: @ActionText String) {
+    STANDARD(LogcatBundle.message("logcat.format.action.standard")) {
+      override val formattingOptions: FormattingOptions
+        get() = logcatFormattingOptions.standardFormattingOptions
+    },
+    COMPACT(LogcatBundle.message("logcat.format.action.compact")) {
+      override val formattingOptions: FormattingOptions
+        get() = logcatFormattingOptions.compactFormattingOptions
+    },
+    ;
+
+    // Needs to be abstract so Style enum values do not depend on AndroidLogcatFormattingOptions because AndroidLogcatFormattingOptions has
+    // a field of type Style that needs to be initialized with a value.
+    abstract val formattingOptions: FormattingOptions
+  }
+
+  fun getHeaderWidth() = appNameFormat.width() + tagFormat.width() + processThreadFormat.width() + timestampFormat.width()
+
+  fun getStyle(): Style? {
+    return when {
+      this == logcatFormattingOptions.standardFormattingOptions -> STANDARD
+      this == logcatFormattingOptions.compactFormattingOptions -> COMPACT
+      else -> null
+    }
+  }
 }

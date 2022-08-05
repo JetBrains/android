@@ -19,24 +19,35 @@ import com.android.resources.Density
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.panel.impl.model.util.FakeLineType
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.collect.HashBasedTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 
 class DimensionBuilderTest {
   @get:Rule
-  val app = ApplicationRule()
+  val disposableRule = DisposableRule()
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @Before
   fun before() {
-    app.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
+    val application = ApplicationManager.getApplication()
+    application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
   }
 
   @Test

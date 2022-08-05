@@ -170,7 +170,7 @@ class AndroidInlineUtil {
                                                      Collection<PsiElement> unambiguousUsages,
                                                      Collection<PsiElement> unsupportedUsages,
                                                      Collection<PsiElement> implicitlyInherited) {
-    final MultiMap<PsiElement, String> result = new MultiMap<>();
+    final MultiMap<PsiElement, String> result = new MultiMap<PsiElement, String>();
 
     for (PsiElement usage : nonXmlUsages) {
       result.putValue(usage, "Non-XML reference '" + toString(usage) + "' won't be updated");

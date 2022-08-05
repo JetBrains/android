@@ -185,7 +185,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
                      (wrapWithMerge ? "<merge>\n" + textToExtract + "\n</merge>" : textToExtract));
     documentManager.commitDocument(document);
 
-    final Set<String> unknownPrefixes = new HashSet<>();
+    final Set<String> unknownPrefixes = new HashSet<String>();
 
     newFile.accept(new XmlRecursiveElementVisitor() {
       @Override
@@ -244,7 +244,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
 
   @NotNull
   private static List<XmlTag> collectAllTags(PsiElement from, PsiElement to) {
-    final List<XmlTag> result = new ArrayList<>();
+    final List<XmlTag> result = new ArrayList<XmlTag>();
     PsiElement e = from;
 
     while (e != null) {

@@ -58,7 +58,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDep
   }
 
   private void createAndSetColumnInfos() {
-    ColumnInfo<T, String> specColumnInfo = new ColumnInfo<>("Dependency") {
+    ColumnInfo<T, String> specColumnInfo = new ColumnInfo<T, String>("Dependency") {
       @Override
       @NotNull
       public String valueOf(T dependency) {
@@ -79,7 +79,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDep
       }
     };
 
-    ColumnInfo<T, String> scopeColumnInfo = new ColumnInfo<>("Configuration") {
+    ColumnInfo<T, String> scopeColumnInfo = new ColumnInfo<T, String>("Configuration") {
       @Override
       @Nullable
       public String valueOf(T dependency) {

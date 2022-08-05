@@ -1,7 +1,8 @@
 <component name="libraryTable">
-  <library name="android-test-plugin-host-device-info-proto">
+  <library name="android-test-plugin-host-device-info-proto" type="repository">
+    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-host-device-info-proto:221.0.9.0" />
     <CLASSES>
-      <root url="jar://$WORKSPACE_ROOT$/bazel-bin/tools/base/utp/android-test-plugin-host-device-info-proto/libstudio.android-test-plugin-host-device-info-proto.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-device-info-proto/221.0.9.0/libstudio.android-test-plugin-host-device-info-proto-221.0.9.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

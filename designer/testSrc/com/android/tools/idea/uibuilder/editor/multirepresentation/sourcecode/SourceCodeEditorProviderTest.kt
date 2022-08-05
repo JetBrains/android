@@ -23,9 +23,12 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRe
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.google.common.truth.Truth.assertThat
+import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
+import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.JDOMUtil
@@ -34,6 +37,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.jdom.Element
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -176,6 +180,10 @@ class SourceCodeEditorProviderTest {
     }
     val preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
 
+    runBlocking {
+      preview.awaitForRepresentationsUpdated()
+    }
+
     assertThat(preview.representationNames).isEmpty()
     representation.isAccept = true
     assertThat(preview.representationNames).isEmpty()
@@ -187,9 +195,25 @@ class SourceCodeEditorProviderTest {
       dumbService.isDumb = false
     }
 
+    dumbService.waitForSmartMode()
+
     runBlocking {
       preview.awaitForRepresentationsUpdated()
     }
     assertThat(preview.representationNames).containsExactly("Representation1")
+  }
+
+  // Regression test for b/232045613
+  @Test
+  fun testDoesNotAcceptFilesBecauseOfTheExtension() {
+    var type: FileType = KotlinFileType.INSTANCE
+    val file = object : MockVirtualFile("Preview.kt") {
+      override fun getFileType(): FileType = type
+    }
+    val representation = TestPreviewRepresentationProvider("Representation1", false)
+    val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
+    assertTrue(sourceCodeProvider.accept(project = projectRule.project, file))
+    type = PlainTextFileType.INSTANCE
+    assertFalse(sourceCodeProvider.accept(project = projectRule.project, file))
   }
 }

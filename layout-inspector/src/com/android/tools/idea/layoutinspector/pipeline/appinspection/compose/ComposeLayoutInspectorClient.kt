@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.api.findVersion
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.ide.getOrResolveInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
@@ -29,7 +30,10 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
@@ -44,6 +48,9 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetPara
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsResponse
+import java.util.EnumSet
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 
@@ -60,17 +67,38 @@ val INCOMPATIBLE_LIBRARY_MESSAGE =
 @VisibleForTesting
 const val PROGUARDED_LIBRARY_MESSAGE = "Inspecting Compose layouts might not work properly with code shrinking enabled."
 
+@VisibleForTesting
+const val INSPECTOR_NOT_FOUND_USE_SNAPSHOT = "Could not resolve inspector on maven.google.com. " +
+                                             "Please set use.snapshot.jar flag to use snapshot jars."
+
+@VisibleForTesting
+const val COMPOSE_INSPECTION_NOT_AVAILABLE = "Compose inspection is not available."
+
 private const val PROGUARD_LEARN_MORE = "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
+
+/**
+ * Result from [ComposeLayoutInspectorClient.getComposeables].
+ */
+class GetComposablesResult(
+  /** The response received from the agent */
+  val response: GetComposablesResponse,
+
+  /** This is true, if a recomposition count reset command was sent after the GetComposables command was sent. */
+  val pendingRecompositionCountReset: Boolean
+)
 
 /**
  * The client responsible for interacting with the compose layout inspector running on the target
  * device.
  *
  * @param messenger The messenger that lets us communicate with the view inspector.
+ * @param capabilities Of the containing [InspectorClient]. Some capabilities may be added by this class.
  */
 class ComposeLayoutInspectorClient(
   model: InspectorModel,
+  private val treeSettings: TreeSettings,
   private val messenger: AppInspectorMessenger,
+  private val capabilities: EnumSet<Capability>,
   private val launchMonitor: InspectorClientLaunchMonitor
 ) {
 
@@ -83,6 +111,8 @@ class ComposeLayoutInspectorClient(
       apiServices: AppInspectionApiServices,
       process: ProcessDescriptor,
       model: InspectorModel,
+      treeSettings: TreeSettings,
+      capabilities: EnumSet<Capability>,
       launchMonitor: InspectorClientLaunchMonitor
     ): ComposeLayoutInspectorClient? {
       val jar = if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
@@ -93,14 +123,17 @@ class ComposeLayoutInspectorClient(
           apiServices.findVersion(model.project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId, MINIMUM_COMPOSE_COORDINATE.artifactId)
           ?: return null
 
-        val resolved =
+        try {
           InspectorArtifactService.instance.getOrResolveInspectorJar(model.project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
-        if (resolved == null) {
-          // If here, app is using a version of compose old enough that it was before we embedded inspectors into it
-          InspectorBannerService.getInstance(model.project).setNotification(INCOMPATIBLE_LIBRARY_MESSAGE)
+        }
+        catch (e: AppInspectionArtifactNotFoundException) {
+          if (version.endsWith("-SNAPSHOT")) {
+            InspectorBannerService.getInstance(model.project).setNotification(INSPECTOR_NOT_FOUND_USE_SNAPSHOT)
+          } else {
+            InspectorBannerService.getInstance(model.project).setNotification(COMPOSE_INSPECTION_NOT_AVAILABLE)
+          }
           return null
         }
-        resolved
       }
 
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
@@ -108,7 +141,7 @@ class ComposeLayoutInspectorClient(
       val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, jar, model.project.name, MINIMUM_COMPOSE_COORDINATE, force = true)
       return try {
         val messenger = apiServices.launchInspector(params)
-        ComposeLayoutInspectorClient(model, messenger, launchMonitor)
+        ComposeLayoutInspectorClient(model, treeSettings, messenger, capabilities, launchMonitor).apply { updateSettings() }
       }
       catch (ignored: AppInspectionVersionIncompatibleException) {
         InspectorBannerService.getInstance(model.project).setNotification(INCOMPATIBLE_LIBRARY_MESSAGE)
@@ -128,26 +161,38 @@ class ComposeLayoutInspectorClient(
   }
 
   val parametersCache = ComposeParametersCache(this, model)
-  var lastGeneration = 0
 
-  suspend fun getComposeables(rootViewId: Long, newGeneration: Int): GetComposablesResponse {
+  /**
+   * The caller will supply a running (increasing) number, that can be used to coordinate the responses from
+   * varies commands.
+   */
+  private var lastGeneration = 0
+
+  /**
+   * The value of [lastGeneration] when the last recomposition reset command was sent.
+   */
+  private var lastGenerationReset = 0
+
+  suspend fun getComposeables(rootViewId: Long, newGeneration: Int, forSnapshot: Boolean): GetComposablesResult {
     lastGeneration = newGeneration
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
     val response = messenger.sendCommand {
       getComposablesCommand = GetComposablesCommand.newBuilder().apply {
         this.rootViewId = rootViewId
         generation = lastGeneration
+        extractAllParameters = forSnapshot
       }.build()
     }
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
-    return response.getComposablesResponse
+    return GetComposablesResult(response.getComposablesResponse, lastGenerationReset >= newGeneration)
   }
 
-  suspend fun getParameters(rootViewId: Long, composableId: Long): GetParametersResponse {
+  suspend fun getParameters(rootViewId: Long, composableId: Long, anchorHash: Int): GetParametersResponse {
     val response = messenger.sendCommand {
       getParametersCommand = GetParametersCommand.newBuilder().apply {
         this.rootViewId = rootViewId
         this.composableId = composableId
+        this.anchorHash = anchorHash
         generation = lastGeneration
       }.build()
     }
@@ -178,6 +223,7 @@ class ComposeLayoutInspectorClient(
         this.maxElements = maxElements
         referenceBuilder.apply {
           composableId = reference.nodeId
+          anchorHash = reference.anchorHash
           kind = reference.kind.convert()
           parameterIndex = reference.parameterIndex
           addAllCompositeIndex(reference.indices.asIterable())
@@ -185,6 +231,20 @@ class ComposeLayoutInspectorClient(
       }.build()
     }
     return response.getParameterDetailsResponse
+  }
+
+  suspend fun updateSettings(): UpdateSettingsResponse {
+    lastGenerationReset = lastGeneration
+    val response = messenger.sendCommand {
+      updateSettingsCommand = UpdateSettingsCommand.newBuilder().apply {
+        includeRecomposeCounts = treeSettings.showRecompositions
+        delayParameterExtractions = true
+      }.build()
+    }
+    if (response.hasUpdateSettingsResponse()) {
+      capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    }
+    return response.updateSettingsResponse
   }
 
   fun disconnect() {

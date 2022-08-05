@@ -39,7 +39,7 @@ import javax.swing.JScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolContent<DesignSurface> {
+public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolContent<DesignSurface<?>> {
   private final NlComponentTree myTree;
   private final NlVisibilityGutterPanel myVisibilityGutter = new NlVisibilityGutterPanel();
   private final BackNavigationComponent myNavigationComponent;
@@ -71,7 +71,7 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
   }
 
   @Override
-  public void setToolContext(@Nullable DesignSurface designSurface) {
+  public void setToolContext(@Nullable DesignSurface<?> designSurface) {
     myNavigationComponent.setDesignSurface(designSurface);
     myTree.setDesignSurface((NlDesignSurface)designSurface);
   }

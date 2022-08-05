@@ -15,20 +15,22 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
+import com.android.tools.idea.preview.FilteredPreviewElementProvider
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.google.common.annotations.VisibleForTesting
 
 /**
  * A [PreviewElementProvider] that filters by [groupName].
  *
  * @param delegate the source [PreviewElementProvider] to be filtered.
- * @param groupName the name of the group that will be used to filter the [PreviewElement]s returned from the [delegate].
+ * @param groupName the name of the group that will be used to filter the [ComposePreviewElement]s returned from the [delegate].
  */
 @VisibleForTesting
-class GroupNameFilteredPreviewProvider<P: PreviewElement>(private val delegate: PreviewElementProvider<P>, var groupName: String? = null) :
+class GroupNameFilteredPreviewProvider<P: ComposePreviewElement>(private val delegate: PreviewElementProvider<P>, var groupName: String? = null) :
   PreviewElementProvider<P> {
-  private val filteredPreviewElementProvider = FilteredPreviewElementProvider<P>(
+  private val filteredPreviewElementProvider = FilteredPreviewElementProvider(
     delegate) {
     groupName == null || groupName == it.displaySettings.group
   }
@@ -45,24 +47,24 @@ class GroupNameFilteredPreviewProvider<P: PreviewElement>(private val delegate: 
 }
 
 /**
- *  A [PreviewElementProvider] that filters [PreviewElementInstance] by the Composable instance ID.
+ *  A [PreviewElementProvider] that filters [ComposePreviewElementInstance] by the Composable instance ID.
  *
  * @param delegate the source [PreviewElementProvider] to be filtered.
  */
 @VisibleForTesting
-class SinglePreviewElementInstanceFilteredPreviewProvider(private val delegate: PreviewElementProvider<PreviewElementInstance>): PreviewElementProvider<PreviewElementInstance> {
+class SinglePreviewElementInstanceFilteredPreviewProvider(private val delegate: PreviewElementProvider<ComposePreviewElementInstance>): PreviewElementProvider<ComposePreviewElementInstance> {
   /**
-   * The Composable [PreviewElementInstance] to filter. If no [PreviewElementInstance] is defined by that intsance, then this filter will
+   * The Composable [ComposePreviewElementInstance] to filter. If no [ComposePreviewElementInstance] is defined by that intsance, then this filter will
    * return all the available previews.
    */
   @Volatile
-  var instance: PreviewElementInstance? = null
+  var instance: ComposePreviewElementInstance? = null
 
   private val filteredPreviewElementProvider = FilteredPreviewElementProvider(delegate) {
-    (it as? PreviewElementInstance) == instance
+    (it as? ComposePreviewElementInstance) == instance
   }
 
-  override suspend fun previewElements(): Sequence<PreviewElementInstance> =
+  override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
     filteredPreviewElementProvider.previewElements().let {
       if (it.iterator().hasNext()) it else delegate.previewElements()
     }

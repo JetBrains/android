@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -49,6 +50,19 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
   @NotNull
   public RenameRefactoringDialogFixture clickRefactor() {
     findAndClickButton(this, "Refactor");
+    return this;
+  }
+
+  @NotNull
+  public RenameRefactoringDialogFixture clickSelectAll() {
+    findAndClickButton(this, "Select all");
+    return this;
+  }
+
+  @NotNull
+  public RenameRefactoringDialogFixture clickOk() {
+    findAndClickOkButton(this);
+    waitUntilNotShowing(); // Mac dialogs have an animation, wait until it hides
     return this;
   }
 

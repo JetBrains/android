@@ -5,6 +5,16 @@ iml_module(
     name = "intellij.android.adt.ui",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.ui.iml"],
+    javacopts_from_jps = [
+        "--add-exports",
+        "java.desktop/sun.swing=ALL-UNNAMED",
+        "--add-exports",
+        "java.desktop/java.awt.peer=ALL-UNNAMED",
+        "--add-exports",
+        "java.desktop/sun.awt=ALL-UNNAMED",
+        "--add-exports",
+        "java.desktop/sun.java2d.pipe=ALL-UNNAMED",
+    ],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
@@ -18,6 +28,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
@@ -33,6 +44,7 @@ iml_module(
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )
 

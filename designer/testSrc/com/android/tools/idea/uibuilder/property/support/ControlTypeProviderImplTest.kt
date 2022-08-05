@@ -22,6 +22,7 @@ import com.android.SdkConstants.ATTR_PADDING_BOTTOM
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
@@ -36,7 +37,6 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 @RunsInEdt
 class ControlTypeProviderImplTest {
@@ -53,7 +53,7 @@ class ControlTypeProviderImplTest {
     val property = util.makeFlagsProperty(ANDROID_URI, definition)
     val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)
-    `when`(enumSupportProvider.invoke(property)).thenReturn(enumSupport)
+    whenever(enumSupportProvider.invoke(property)).thenReturn(enumSupport)
     val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
     assertThat(controlTypeProvider(property)).isEqualTo(ControlType.FLAG_EDITOR)
   }
@@ -64,7 +64,7 @@ class ControlTypeProviderImplTest {
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NlPropertyType.DIMENSION)
     val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)
-    `when`(enumSupportProvider.invoke(property)).thenReturn(enumSupport)
+    whenever(enumSupportProvider.invoke(property)).thenReturn(enumSupport)
     val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
     assertThat(controlTypeProvider(property)).isEqualTo(ControlType.COMBO_BOX)
   }

@@ -24,7 +24,7 @@ import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
 
-class HeapSetNodeHRenderer : HRenderer<ClassifierSetHNode?> {
+class HeapSetNodeHRenderer : HRenderer<ClassifierSetHNode> {
   override fun render(g: Graphics2D,
                       node: ClassifierSetHNode,
                       fullDrawingArea: Rectangle2D,

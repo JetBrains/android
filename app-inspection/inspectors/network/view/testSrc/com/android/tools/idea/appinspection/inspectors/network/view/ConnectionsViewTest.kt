@@ -17,12 +17,12 @@ package com.android.tools.idea.appinspection.inspectors.network.view
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.FAKE_CONTENT_TYPE
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.FAKE_RESPONSE_CODE
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
@@ -30,8 +30,14 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.fakeResponseFields
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,8 +59,12 @@ class ConnectionsViewTest {
   @get:Rule
   val edtRule = EdtRule()
 
+  @get:Rule
+  val projectRule = ProjectRule()
+
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
+  private lateinit var scope: CoroutineScope
 
   private val timer = FakeTimer()
 
@@ -72,7 +82,8 @@ class ConnectionsViewTest {
   fun setUp() {
     val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), object : HttpDataModel {
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
       private val dataList = FAKE_DATA
       override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
         return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
@@ -80,8 +91,13 @@ class ConnectionsViewTest {
     })
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, StubNetworkInspectorTracker())
+    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
+  }
+
+  @After
+  fun tearDown() {
+    scope.cancel()
   }
 
   @Test
@@ -117,11 +133,17 @@ class ConnectionsViewTest {
   fun dataRangeControlsVisibleConnections() {
     val view = inspectorView.connectionsView
     val table = getConnectionsTable(view)
-    assertThat(table.rowCount).isEqualTo(0)
+    // With no selection, table should show all connections.
+    model.timeline.reset(0, TimeUnit.SECONDS.toNanos(50))
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange).isEqualTo(model.timeline.dataRange)
+    assertThat(table.rowCount).isEqualTo(4)
+    // When a range is selected, table should only show connections within.
     model.timeline.selectionRange.set(TimeUnit.SECONDS.toMicros(3).toDouble(), TimeUnit.SECONDS.toMicros(10).toDouble())
     assertThat(table.rowCount).isEqualTo(2)
-    model.timeline.selectionRange.set(0.0, 0.0)
-    assertThat(table.rowCount).isEqualTo(0)
+    // Once selection is cleared, table goes back to showing everything.
+    model.timeline.selectionRange.set(0.0, -1.0)
+    assertThat(table.rowCount).isEqualTo(4)
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange).isEqualTo(model.timeline.dataRange)
   }
 
   @Test

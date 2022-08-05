@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.layoutlib;
 
-import com.android.ide.common.rendering.api.LayoutlibCallback;
+import com.android.ide.common.rendering.api.IImageFactory;
 import com.android.ide.common.rendering.api.RenderParams;
 import com.android.ide.common.rendering.api.SessionParams.Key;
 
@@ -31,37 +31,20 @@ import com.android.ide.common.rendering.api.SessionParams.Key;
 public final class RenderParamsFlags {
 
     public static final Key<String> FLAG_KEY_ROOT_TAG =
-      new Key<>("rootTag", String.class);
+        new Key<String>("rootTag", String.class);
     public static final Key<Boolean> FLAG_KEY_DISABLE_BITMAP_CACHING =
-      new Key<>("disableBitmapCaching", Boolean.class);
+        new Key<Boolean>("disableBitmapCaching", Boolean.class);
     public static final Key<Boolean> FLAG_KEY_RENDER_ALL_DRAWABLE_STATES =
-      new Key<>("renderAllDrawableStates", Boolean.class);
-    /**
-     * To tell LayoutLib that the IDE supports RecyclerView.
-     * <p>
-     * Default is false.
-     */
-    public static final Key<Boolean> FLAG_KEY_RECYCLER_VIEW_SUPPORT =
-      new Key<>("recyclerViewSupport", Boolean.class);
-    /**
-     * The application package name. Used via {@link LayoutlibCallback#getFlag(Key)}
-     */
-    public static final Key<String> FLAG_KEY_APPLICATION_PACKAGE =
-      new Key<>("applicationPackage", String.class);
-    /**
-     * To tell LayoutLib that IDE supports providing XML Parser for a file (useful for getting in
-     * memory contents of the file). Used via {@link LayoutlibCallback#getFlag(Key)}
-     */
-    public static final Key<Boolean> FLAG_KEY_XML_FILE_PARSER_SUPPORT =
-      new Key<>("xmlFileParser", Boolean.class);
+        new Key<Boolean>("renderAllDrawableStates", Boolean.class);
+
     /**
      * To tell LayoutLib to not render when creating a new session. This allows controlling when the first
      * layout rendering will happen.
      */
     public static final Key<Boolean> FLAG_DO_NOT_RENDER_ON_CREATE =
-      new Key<>("doNotRenderOnCreate", Boolean.class);
+        new Key<Boolean>("doNotRenderOnCreate", Boolean.class);
     /**
-     * The adaptive icon mask path. Used via {@link LayoutlibCallback#getFlag(Key)}
+     * To tell Layoutlib which path to use for the adaptive icon mask.
      */
     public static final Key<String> FLAG_KEY_ADAPTIVE_ICON_MASK_PATH =
       new Key<>("adaptiveIconMaskPath", String.class);
@@ -73,19 +56,7 @@ public final class RenderParamsFlags {
      * returned by {@link IImageFactory#getImage(int, int)}.
      */
     public static final Key<Boolean> FLAG_KEY_RESULT_IMAGE_AUTO_SCALE =
-      new Key<>("enableResultImageAutoScale", Boolean.class);
-
-    /**
-     * Enables higher-quality shadows in layoutlib.
-     */
-    public static final Key<Boolean> FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW =
-      new Key<>("renderHighQualityShadow", Boolean.class);
-
-    /**
-     * Enables shadow rendering in layoutlib.
-     */
-    public static final Key<Boolean> FLAG_KEY_ENABLE_SHADOW =
-        new Key<>("enableShadow", Boolean.class);
+      new Key<Boolean>("enableResultImageAutoScale", Boolean.class);
 
     /**
      * Enables layout validation calls within rendering.
@@ -100,14 +71,6 @@ public final class RenderParamsFlags {
      */
     public static final Key<Boolean> FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK =
       new Key<>("enableLayoutValidatorImageCheck", Boolean.class);
-
-    /**
-     * Enables layout validation to be optimized during render.
-     * It reduces stresses to studio render and offload burdens to issue display.
-     * {@link #FLAG_KEY_ENABLE_LAYOUT_SCANNER} must be enabled before this can be effective.
-     */
-    public static final Key<Boolean> FLAG_ENABLE_LAYOUT_SCANNER_OPTIMIZATION =
-      new Key<>("enableLayoutValidatorOptimization", Boolean.class);
 
     // Disallow instances.
     private RenderParamsFlags() {}

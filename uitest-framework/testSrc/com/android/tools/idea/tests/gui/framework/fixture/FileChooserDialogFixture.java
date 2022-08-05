@@ -39,7 +39,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
 
   @NotNull
   public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull final String dialogTitle) {
-    return findDialog(robot, new GenericTypeMatcher<>(JDialog.class, true) {
+    return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class, true) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
         return dialogTitle.equals(component.getTitle());

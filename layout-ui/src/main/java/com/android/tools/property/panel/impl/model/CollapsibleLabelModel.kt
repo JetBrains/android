@@ -57,10 +57,12 @@ open class CollapsibleLabelModel(
 
   override var expanded = true
     set(value) {
-      field = value
-      children?.forEach { it.visible = value }
-      properties.setValue(KEY_PREFIX + name, value, defaultExpansionValue)
-      fireValueChanged()
+      if (field != value) {
+        field = value
+        children?.forEach { it.visible = value }
+        properties.setValue(KEY_PREFIX + name, value, defaultExpansionValue)
+        fireValueChanged()
+      }
     }
 
   val icon: Icon?

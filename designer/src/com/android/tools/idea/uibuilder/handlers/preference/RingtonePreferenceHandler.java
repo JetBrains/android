@@ -28,7 +28,6 @@ import static com.android.SdkConstants.PreferenceTags.RINGTONE_PREFERENCE;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
@@ -72,17 +71,18 @@ public final class RingtonePreferenceHandler extends PreferenceHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    if (!super.onCreate(editor, parent, newChild, type)) {
+    if (!super.onCreate(parent, newChild, type)) {
       return false;
     }
 
-    NlWriteCommandActionUtil.run(newChild, "Set RingtonePreference", () -> {
-      newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, RINGTONE_PREFERENCE, "ringtone_preference_"));
-    });
+    if (type == InsertType.CREATE) {
+      NlWriteCommandActionUtil.run(newChild, "Set RingtonePreference", () -> {
+        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, RINGTONE_PREFERENCE, "ringtone_preference_"));
+      });
+    }
     return true;
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.actions
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -28,7 +29,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 
 @RunWith(JUnit4::class)
 class PanSurfaceActionTest {
@@ -44,13 +44,13 @@ class PanSurfaceActionTest {
   @Before
   fun setUp() {
     panAction = PanSurfaceAction
-    `when`(context.getData(PANNABLE_KEY)).thenReturn(pannable)
-    `when`(pannable.isPannable).thenReturn(true)
+    whenever(context.getData(PANNABLE_KEY)).thenReturn(pannable)
+    whenever(pannable.isPannable).thenReturn(true)
   }
 
   @Test
   fun testHiddenAction() {
-    `when`(context.getData(PANNABLE_KEY)).thenReturn(null)
+    whenever(context.getData(PANNABLE_KEY)).thenReturn(null)
     val event = actionEvent
     panAction.update(event)
     assertFalse(event.presentation.isEnabledAndVisible)
@@ -59,7 +59,7 @@ class PanSurfaceActionTest {
   @Test
   fun testDisabledAction() {
     val event = actionEvent
-    `when`(pannable.isPannable).thenReturn(false)
+    whenever(pannable.isPannable).thenReturn(false)
     panAction.update(event)
     assertFalse(event.presentation.isEnabled)
   }
@@ -73,7 +73,7 @@ class PanSurfaceActionTest {
 
   @Test
   fun testIsPanningState() {
-    `when`(pannable.isPanning).thenReturn(true)
+    whenever(pannable.isPanning).thenReturn(true)
     assertTrue(panAction.isSelected(actionEvent))
   }
 

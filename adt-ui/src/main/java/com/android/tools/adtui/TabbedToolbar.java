@@ -55,7 +55,7 @@ public class TabbedToolbar extends JPanel {
   @Nullable private TabLabel myActiveTab;
   @Nullable private TabLabel myMouseOverTab;
   private final HorizontalScrollView myTabScrollView = new HorizontalScrollView(myTabsPanel);
-  private List<Runnable> mySelectionActions = new ArrayList<>();
+  private List<Runnable> mySelectionActions = new ArrayList<Runnable>();
 
   /**
    * Creates a toolbar where the label can be replaces by a custom component.

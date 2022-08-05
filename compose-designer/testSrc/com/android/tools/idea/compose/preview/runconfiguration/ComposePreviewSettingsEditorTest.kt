@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.ui.components.JBTextField
 import org.jetbrains.android.AndroidTestCase
@@ -28,16 +27,10 @@ class ComposePreviewSettingsEditorTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
 
     val runConfigurationFactory = ComposePreviewRunConfigurationType().configurationFactories[0]
     runConfiguration = ComposePreviewRunConfiguration(project, runConfigurationFactory)
     settingsEditor = ComposePreviewSettingsEditor(project, runConfiguration)
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.clearOverride()
   }
 
   fun testResetFrom() {

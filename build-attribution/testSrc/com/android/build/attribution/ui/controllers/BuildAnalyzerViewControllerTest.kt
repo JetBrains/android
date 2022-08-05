@@ -131,6 +131,26 @@ class BuildAnalyzerViewControllerTest {
 
   @Test
   @RunsInEdt
+  fun testDataSetComboBoxSelectionUpdatedToDownloads() {
+    model.selectedData = BuildAnalyzerViewModel.DataSet.OVERVIEW
+
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+    controller.dataSetComboBoxSelectionUpdated(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
+
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
+
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
+      from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
+      // No selection in warnings page
+      to = BuildAttributionUiEvent.Page.PageType.DOWNLOADS_INFO
+    )
+  }
+
+  @Test
+  @RunsInEdt
   fun testDataSetComboBoxSelectionUpdatedToOverview() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
 

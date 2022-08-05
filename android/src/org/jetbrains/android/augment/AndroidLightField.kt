@@ -49,7 +49,8 @@ open class AndroidLightField(
   private val _modifierList: LightModifierList
 
   init {
-    val modifiers = mutableListOf(PsiModifier.PUBLIC, PsiModifier.STATIC)
+    // Declared abstract to exclude from the implementation search.
+    val modifiers = mutableListOf(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.ABSTRACT)
     if (fieldModifier == FieldModifier.FINAL) {
       modifiers += PsiModifier.FINAL
     }

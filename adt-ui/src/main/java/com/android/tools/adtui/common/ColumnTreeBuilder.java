@@ -960,7 +960,9 @@ public class ColumnTreeBuilder {
         g.setColor(StudioColorsKt.getPrimaryPanelBackground());
         g.fillRect(xOffset, bounds.y, containerWidth, bounds.height);
         g.setColor(StudioColorsKt.getBorder());
-        g.drawRect(xOffset, bounds.y, containerWidth, bounds.height);
+        // Draw upper and bottom borders for header row.
+        g.drawLine(xOffset, bounds.y, xOffset + containerWidth, bounds.y);
+        g.drawLine(xOffset, bounds.y + bounds.height, xOffset + containerWidth, bounds.y + bounds.height);
         g.setColor(originalColor);
       }
     }

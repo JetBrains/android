@@ -21,7 +21,7 @@ import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
@@ -36,7 +36,6 @@ import java.awt.Insets
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlin.math.max
 
 
 /**
@@ -117,9 +116,12 @@ private data class LayoutData private constructor(
  */
 @VisibleForTesting
 class SceneViewPeerPanel(val sceneView: SceneView,
+                         private val sceneViewStatusIcon: JComponent?,
                          private val sceneViewToolbar: JComponent?,
                          private val sceneViewBottomBar: JComponent?,
-                         private val sceneViewLeftBar: JComponent?) : JPanel() {
+                         private val sceneViewLeftBar: JComponent?,
+                         private val sceneViewRightBar: JComponent?,
+                         private val sceneViewErrorsPanel: JComponent?) : JPanel() {
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
    * without having to explicitly call [revalidate]
@@ -150,7 +152,8 @@ class SceneViewPeerPanel(val sceneView: SceneView,
           // Extend top to account for the top toolbar
           it.top += sceneViewTopPanel.preferredSize.height
           it.bottom += sceneViewBottomPanel.preferredSize.height
-          it.left += sceneViewLeftPanel.preferredSize.width
+          it.left += maxOf(sceneViewLeftPanel.preferredSize.width, sceneViewStatusIcon?.minimumSize?.width ?: 0)
+          it.right += sceneViewRightPanel.preferredSize.width
         }
         return if (contentSize.width < minimumSize.width ||
                    contentSize.height < minimumSize.height) {
@@ -176,18 +179,19 @@ class SceneViewPeerPanel(val sceneView: SceneView,
         }
       }
 
-    override fun getContentSize(dimension: Dimension?): Dimension = if (sceneView.hasContentSize())
-      sceneView.getContentSize(dimension).also {
-        cachedContentSize.size = it
+    override fun getContentSize(dimension: Dimension?): Dimension =
+      if (sceneView.hasContentSize())
+        sceneView.getContentSize(dimension).also {
+          cachedContentSize.size = it
+        }
+      else if (!sceneView.isVisible || sceneView.hasRenderErrors()) {
+        dimension?.apply { setSize(0, 0) } ?: Dimension(0, 0)
       }
-    else if (!sceneView.isVisible) {
-      dimension?.apply { setSize(0, 0) } ?: Dimension(0, 0)
-    }
-    else {
-      dimension?.apply {
-        size = cachedContentSize
-      } ?: Dimension(cachedContentSize)
-    }
+      else {
+        dimension?.apply {
+          size = cachedContentSize
+        } ?: Dimension(cachedContentSize)
+      }
 
     /**
      * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
@@ -234,6 +238,10 @@ class SceneViewPeerPanel(val sceneView: SceneView,
   val sceneViewTopPanel = JPanel(BorderLayout()).apply {
     border = JBUI.Borders.emptyBottom(TOP_BAR_BOTTOM_MARGIN)
     isOpaque = false
+    // Make the status icon be part of the top panel
+    if(sceneViewStatusIcon != null) {
+      add(sceneViewStatusIcon, BorderLayout.LINE_START)
+    }
     add(modelNameLabel, BorderLayout.CENTER)
     if (sceneViewToolbar != null) {
       add(sceneViewToolbar, BorderLayout.LINE_END)
@@ -241,7 +249,9 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     // The space of name label is sacrified when there is no enough width to display the toolbar.
     // When it happens, the label will be trimmed and show the ellipsis at its tail.
     // User can still hover it to see the full label in the tooltips.
-    val minWidth = MODEL_NAME_LABEL_MIN_WIDTH + (sceneViewToolbar?.minimumSize?.width ?: 0)
+    val minWidth = (sceneViewStatusIcon?.minimumSize?.width ?: 0) +
+                   MODEL_NAME_LABEL_MIN_WIDTH +
+                   (sceneViewToolbar?.minimumSize?.width ?: 0)
     minimumSize = Dimension(minWidth, minimumSize.height)
   }
 
@@ -262,15 +272,32 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     }
   }
 
+  val sceneViewRightPanel = JPanel(BorderLayout()).apply {
+    isOpaque = false
+    isVisible = true
+    if (sceneViewRightBar != null) {
+      add(sceneViewRightBar, BorderLayout.CENTER)
+    }
+  }
+
+  val sceneViewCenterPanel = JPanel(BorderLayout()).apply {
+    isOpaque = false
+    isVisible = true
+    if (sceneViewErrorsPanel != null) {
+      add(sceneViewErrorsPanel, BorderLayout.CENTER)
+    }
+  }
 
   init {
     isOpaque = false
     layout = null
 
     add(sceneViewTopPanel)
+    add(sceneViewCenterPanel)
     add(sceneViewBottomPanel)
     add(sceneViewLeftPanel)
-    // This setup the initial positions of sceneViewTopPanel, sceneViewBottomPanel, and sceneViewLeftPanel.
+    add(sceneViewRightPanel)
+    // This setup the initial positions of sceneViewTopPanel, sceneViewCenterPanel, sceneViewBottomPanel, and sceneViewLeftPanel.
     // Otherwise they are all placed at top-left corner before first time layout.
     doLayout()
   }
@@ -300,21 +327,41 @@ class SceneViewPeerPanel(val sceneView: SceneView,
                                   sceneViewTopPanel.preferredSize.height)
       sceneViewTopPanel.isVisible = true
     }
+    val isEmptyContent = positionableAdapter.scaledContentSize.let { it.height == 0 && it.width == 0 }
+    val leftSectionWidth = maxOf(sceneViewLeftPanel.preferredSize.width, sceneViewStatusIcon?.minimumSize?.width ?: 0)
+    sceneViewCenterPanel.setBounds(leftSectionWidth,
+                                   sceneViewTopPanel.preferredSize.height,
+                                   width + insets.horizontal - leftSectionWidth,
+                                   sceneViewCenterPanel.preferredSize.height)
+    val bottomPanelYOffset = if (isEmptyContent) sceneViewCenterPanel.preferredSize.height else positionableAdapter.scaledContentSize.height
+    sceneViewBottomPanel.setBounds(0, sceneViewTopPanel.preferredSize.height + bottomPanelYOffset, width + insets.horizontal,
+                                   sceneViewBottomPanel.preferredSize.height)
     sceneViewBottomPanel.setBounds(0, sceneViewTopPanel.preferredSize.height + positionableAdapter.scaledContentSize.height, width + insets.horizontal, sceneViewBottomPanel.preferredSize.height)
     sceneViewLeftPanel.setBounds(0, sceneViewTopPanel.preferredSize.height, sceneViewLeftPanel.preferredSize.width, height)
+    sceneViewRightPanel.setBounds(sceneViewLeftPanel.preferredSize.width + positionableAdapter.scaledContentSize.width,
+                                  sceneViewTopPanel.preferredSize.height, sceneViewRightPanel.preferredSize.width, sceneViewRightPanel.preferredSize.height)
     super.doLayout()
   }
 
   /** [Dimension] used to avoid extra allocations calculating [getPreferredSize] */
   override fun getPreferredSize(): Dimension = positionableAdapter.getScaledContentSize(cachedPreferredSize).also {
-    it.width = it.width + positionableAdapter.margin.left + positionableAdapter.margin.right
-    it.height = it.height + positionableAdapter.margin.top + positionableAdapter.margin.bottom
+    val shouldShowCenterPanel = it.width == 0 && it.height == 0
+    val width = if (shouldShowCenterPanel) sceneViewCenterPanel.preferredSize.width else it.width
+    val height = if (shouldShowCenterPanel) sceneViewCenterPanel.preferredSize.height else it.height
+
+    it.width = width + positionableAdapter.margin.left + positionableAdapter.margin.right
+    it.height = height + positionableAdapter.margin.top + positionableAdapter.margin.bottom
   }
 
-  override fun getMinimumSize(): Dimension =
-    Dimension(
-      max(sceneViewTopPanel.minimumSize.width, SCENE_VIEW_PEER_PANEL_MIN_WIDTH),
-      sceneViewBottomPanel.preferredSize.height + sceneViewTopPanel.minimumSize.height + JBUI.scale(20))
+  override fun getMinimumSize(): Dimension {
+    val shouldShowCenterPanel = positionableAdapter.scaledContentSize.let { it.height == 0 && it.width == 0 }
+    val centerPanelWidth = if (shouldShowCenterPanel) sceneViewCenterPanel.minimumSize.width else 0
+    val centerPanelHeight = if (shouldShowCenterPanel) sceneViewCenterPanel.minimumSize.height else 0
+
+    return Dimension(
+      maxOf(sceneViewTopPanel.minimumSize.width, SCENE_VIEW_PEER_PANEL_MIN_WIDTH, centerPanelWidth),
+      sceneViewBottomPanel.preferredSize.height + centerPanelHeight + sceneViewTopPanel.minimumSize.height + JBUI.scale(20))
+  }
 }
 
 /**
@@ -362,27 +409,17 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
     // Invalidate the current components
     removeAll()
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
-      val toolbar = if (StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.get()) {
-        sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
-      }
-      else {
-        null
-      }
-
-      val bottomBar = if(StudioFlags.NELE_SCENEVIEW_BOTTOM_BAR.get()) {
-        sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
-      } else {
-        null
-      }
+      val toolbar = sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
+      val bottomBar = sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
+      val statusIcon = sceneView.surface.actionManager.getSceneViewStatusIcon(sceneView)
 
       // The left bar is only added for the first panel
-      val leftBar = if(StudioFlags.NELE_SCENEVIEW_LEFT_BAR.get() && index == 0) {
-        sceneView.surface.actionManager.getSceneViewLeftBar(sceneView)
-      } else {
-        null
-      }
+      val leftBar = if (index == 0) sceneView.surface.actionManager.getSceneViewLeftBar(sceneView) else null
+      val rightBar = sceneView.surface.actionManager.getSceneViewRightBar(sceneView)
 
-      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar, leftBar).also {
+      val errorsPanel = if (sceneView.surface.shouldRenderErrorsPanel()) SceneViewErrorsPanel { sceneView.hasRenderErrors() } else null
+
+      add(SceneViewPeerPanel(sceneView, statusIcon, toolbar, bottomBar, leftBar, rightBar, errorsPanel).also {
         it.alignmentX = sceneViewAlignment
       })
     }
@@ -419,8 +456,11 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
       for (sceneViewPeerPanel in sceneViewPeerPanels) {
         val positionable = sceneViewPeerPanel.positionableAdapter
         val size = positionable.getScaledContentSize(reusableDimension)
-        @SwingCoordinate val right = positionable.x + size.width
-        @SwingCoordinate val bottom = positionable.y + size.height
+        val hasRenderErrors = sceneViewPeerPanel.sceneView.hasRenderErrors()
+        @SwingCoordinate
+        val right = positionable.x + if (hasRenderErrors) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.width else size.width
+        @SwingCoordinate
+        val bottom = positionable.y + if (hasRenderErrors) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.height else size.height
         // This finds the maximum allowed area for the screen views to paint into. See more details in the
         // ScanlineUtils.kt documentation.
         @SwingCoordinate var minX = findSmallerScanline(verticalRightScanLines, positionable.x, viewportBounds.x)
@@ -445,7 +485,10 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
         maxY = if (maxY < viewportBottom) (maxY + bottom) / 2 else viewportBottom
         clipBounds.setBounds(minX, minY, maxX - minX, maxY - minY)
         g2d.clip = clipBounds
-        sceneViewPeerPanel.sceneView.paint(g2d)
+        // Only paint the scene view if it needs to be painted, otherwise the sceneViewCenterPanel will be painted instead.
+        if (!sceneViewPeerPanel.sceneView.surface.shouldRenderErrorsPanel() || !hasRenderErrors) {
+          sceneViewPeerPanel.sceneView.paint(g2d)
+        }
       }
 
       val interactionLayers = interactionLayersProvider()

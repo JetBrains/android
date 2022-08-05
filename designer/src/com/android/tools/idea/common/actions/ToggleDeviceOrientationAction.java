@@ -44,7 +44,7 @@ public class ToggleDeviceOrientationAction extends AnAction {
       e.getPresentation().setEnabled(false);
       return;
     }
-    DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
     if (surface != null && surface.getConfigurations().stream().allMatch(config -> HardwareConfigHelper.isWear(config.getDevice()))) {
       // If all devices are wear device, disable this action because the orientation is fixed for wear devices.
       e.getPresentation().setEnabled(false);
@@ -55,7 +55,7 @@ public class ToggleDeviceOrientationAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    DesignSurface surface = e.getRequiredData(DesignerDataKeys.DESIGN_SURFACE);
+    DesignSurface<?> surface = e.getRequiredData(DesignerDataKeys.DESIGN_SURFACE);
     surface.getConfigurations()
       .forEach(configuration -> {
         if (HardwareConfigHelper.isWear(configuration.getDevice())) {

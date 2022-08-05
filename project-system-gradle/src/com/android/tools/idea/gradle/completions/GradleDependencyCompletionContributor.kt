@@ -45,6 +45,9 @@ import org.jetbrains.plugins.groovy.GroovyLanguage
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral
+import org.toml.lang.TomlLanguage
+import org.toml.lang.psi.TomlLiteral
+import org.toml.lang.psi.TomlTable
 
 private const val DEPENDENCIES = "dependencies"
 
@@ -90,6 +93,22 @@ private val INSIDE_DEPENDENCIES_LAMBDA_KOTLIN_PATTERN = psiElement(KtLambdaArgum
     }
   })
 
+internal val INSIDE_VERSIONS_TOML_FILE = psiFile().with(
+  object : PatternCondition<PsiFile>(null) {
+    override fun accepts(psiFile: PsiFile, context: ProcessingContext?): Boolean {
+      val vFile = psiFile.virtualFile ?: psiFile.originalFile.virtualFile ?: return false
+      return vFile.name.endsWith(".versions.toml")
+    }
+  }
+)
+
+internal val TOML_LIBRARIES_TABLE_PATTERN = psiElement(TomlTable::class.java).with(
+  object : PatternCondition<TomlTable>(null) {
+    override fun accepts(tomlTable: TomlTable, context: ProcessingContext?): Boolean =
+      tomlTable.header.key?.segments?.map { it.name }?.joinToString(".") == "libraries"
+  }
+)
+
 private val DEPENDENCIES_IN_GRADLE_FILE_PATTERN = psiElement()
   .withLanguage(GroovyLanguage)
   .withParent(GrLiteral::class.java)
@@ -98,32 +117,41 @@ private val DEPENDENCIES_IN_GRADLE_FILE_PATTERN = psiElement()
 
 private val DEPENDENCIES_IN_GRADLE_KTS_FILE_PATTERN = psiElement()
   .withLanguage(KotlinLanguage.INSTANCE)
-  .withParent(psiElement(KtLiteralStringTemplateEntry::class.java))
+  .withParent(KtLiteralStringTemplateEntry::class.java)
   .inFile(psiFile().withName(StandardPatterns.string().endsWith(SdkConstants.EXT_GRADLE_KTS)))
   .inside(true, INSIDE_DEPENDENCIES_LAMBDA_KOTLIN_PATTERN)
 
 private val DEPENDENCIES_IN_BUILD_SRC_KOTLIN_PATTERN = psiElement()
   .withLanguage(KotlinLanguage.INSTANCE)
-  .withParent(psiElement(KtLiteralStringTemplateEntry::class.java))
+  .withParent(KtLiteralStringTemplateEntry::class.java)
   .inFile(INSIDE_BUILD_SRC_PATTERN)
 
 private val DEPENDENCIES_IN_BUILD_SRC_JAVA_PATTERN = psiElement()
   .withLanguage(JavaLanguage.INSTANCE)
-  .withParent(psiElement(PsiLiteralExpression::class.java))
+  .withParent(PsiLiteralExpression::class.java)
   .inFile(INSIDE_BUILD_SRC_PATTERN)
+
+private val LIBRARIES_IN_VERSIONS_TOML_PATTTERN = psiElement()
+  .withLanguage(TomlLanguage)
+  .withParent(TomlLiteral::class.java)
+  .inFile(INSIDE_VERSIONS_TOML_FILE)
+  .withSuperParent(3, TOML_LIBRARIES_TABLE_PATTERN)
 
 /**
  * Allowed pattern for providing auto-completion when managing dependencies in gradle projects.
  *
- * This can be in a "dependencies" closure in a build.gradle or build.gradle.kts file. Or this can be in kotlin/java
- * code in a "buildSrc" directory, which has to sit in the root project directory.
+ * This can be in:
+ * - a "dependencies" closure in a build.gradle or build.gradle.kts file;
+ * - kotlin/java code in a "buildSrc" directory, which has to sit in the root project directory;
+ * - a literal at the top level of the "libraries" table in a file whose name ends ".versions.toml".
  */
 private val ALLOW_CODE_COMPLETION_PATTERN = psiElement()
   .andOr(
     DEPENDENCIES_IN_GRADLE_FILE_PATTERN,
     DEPENDENCIES_IN_GRADLE_KTS_FILE_PATTERN,
     DEPENDENCIES_IN_BUILD_SRC_KOTLIN_PATTERN,
-    DEPENDENCIES_IN_BUILD_SRC_JAVA_PATTERN
+    DEPENDENCIES_IN_BUILD_SRC_JAVA_PATTERN,
+    LIBRARIES_IN_VERSIONS_TOML_PATTTERN,
   )
 
 /**

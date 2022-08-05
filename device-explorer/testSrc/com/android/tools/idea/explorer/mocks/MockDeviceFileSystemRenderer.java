@@ -21,8 +21,8 @@ import com.intellij.ui.SimpleListCellRenderer;
 import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
-public class MockDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
-  private final ListCellRenderer<DeviceFileSystem> myRenderer;
+public class MockDeviceFileSystemRenderer<S extends DeviceFileSystem> implements DeviceFileSystemRenderer<S> {
+  private final ListCellRenderer<S> myRenderer;
 
   public MockDeviceFileSystemRenderer() {
     myRenderer = SimpleListCellRenderer.create("<No device>", DeviceFileSystem::getName);
@@ -30,7 +30,7 @@ public class MockDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
 
   @NotNull
   @Override
-  public ListCellRenderer<DeviceFileSystem> getDeviceNameListRenderer() {
+  public ListCellRenderer<S> getDeviceNameListRenderer() {
     return myRenderer;
   }
 }

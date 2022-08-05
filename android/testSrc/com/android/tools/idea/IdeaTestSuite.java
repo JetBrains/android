@@ -31,6 +31,9 @@ import org.junit.runner.RunWith;
 
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.gradle.project.sync.perf.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
+  // Require resources with spaces (HTML File template)
+  // https://github.com/bazelbuild/bazel/issues/374
+  com.android.tools.idea.actions.annotations.InferAnnotationsTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
   com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationTest.class // b/176807290
 })
@@ -44,7 +47,8 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
 
   static {
     try {
-      linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
+      unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+      linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
       linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
       linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
       // When using iml_module's split_test_target attribute, not all bazel targets will include this dependency.

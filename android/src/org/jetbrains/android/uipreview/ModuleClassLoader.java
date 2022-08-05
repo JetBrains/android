@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoad
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
@@ -44,8 +45,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import kotlin.Unit;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -136,6 +137,8 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
    */
   private final ClassLoader myParentAtConstruction;
 
+  private final AtomicBoolean isDisposed = new AtomicBoolean(false);
+
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
                     @NotNull ClassTransform projectTransformations,
                     @NotNull ClassTransform nonProjectTransformations,
@@ -162,8 +165,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
     myParentAtConstruction = parent;
     myImpl = loader;
     myModuleReference = new WeakReference<>(renderContext.getModule());
-    Disposer.register(renderContext.getModule(), this);
-    Disposer.register(this, loader);
+    Disposer.register(renderContext.getModule(), new WeakReferenceDisposableWrapper(this));
     // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
     myPsiFileProvider = renderContext.getFileProvider();
     myDiagnostics = diagnostics;
@@ -201,10 +203,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
         projectTransformations,
         nonProjectTransformations,
         cache,
-        (fqcn, timeMs, size) -> {
-          diagnostics.classRewritten(fqcn, size, timeMs);
-          return Unit.INSTANCE;
-        }),
+        diagnostics),
       diagnostics);
   }
 
@@ -407,13 +406,19 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
   @Nullable
   ModuleClassLoader copy(@NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     ModuleRenderContext renderContext = getModuleContext();
-    if (renderContext == null) return null;
+    if (isDisposed() || renderContext == null || renderContext.isDisposed()) return null;
     return new ModuleClassLoader(myParentAtConstruction, renderContext, getProjectClassesTransform(), getNonProjectClassesTransform(),
                                  diagnostics);
   }
 
+  public boolean isDisposed() {
+    return isDisposed.get();
+  }
+
   @Override
   public void dispose() {
+    isDisposed.set(true);
+    myImpl.dispose();
     ourDisposeService.execute(() -> {
       waitForCoroutineThreadToStop();
 

@@ -16,8 +16,10 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.intellij.compiler.options.CompileStepBeforeRun
+import com.intellij.execution.RunManager
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
@@ -35,7 +37,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
+    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
 
@@ -56,7 +58,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
 
   override fun tearDown() {
     super.tearDown()
-    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.clearOverride()
+    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 
   override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
@@ -134,6 +136,31 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     assertEquals(newComposePreviewRunConfiguration().composableMethodFqn, configuration.composableMethodFqn)
   }
 
+  fun testSetupConfigurationFromContextMultipreviw() {
+    val file = myFixture.addFileToProjectAndInvalidate(
+      "src/TestMultipreview.kt",
+      // language=kotlin
+      """
+        package my.composable.app
+
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview
+        annotation class MyAnnotation
+
+        @Composable
+        @MyAnnotation
+        fun Preview1() {
+        }
+      """.trimIndent())
+
+    val composableWithMultipreview = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
+    val configuration = createConfigurationFromElement(composableWithMultipreview)
+    assertEquals("Preview1", configuration.name)
+    assertEquals("my.composable.app.TestMultipreviewKt.Preview1", configuration.composableMethodFqn)
+  }
+
   fun testInvalidContexts() {
     val file = myFixture.addFileToProjectAndInvalidate(
       "src/TestNotPreview.kt",
@@ -196,8 +223,14 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     return runConfiguration
   }
 
-  private fun newComposePreviewRunConfiguration() =
-    ComposePreviewRunConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as ComposePreviewRunConfiguration
+  private fun newComposePreviewRunConfiguration(): ComposePreviewRunConfiguration {
+    val templateConfiguration = ComposePreviewRunConfigurationType().configurationFactories[0].createTemplateConfiguration(project)
+    // Create the configuration with the RunManager to make sure that BeforeRunTasks are loaded
+    val runConfiguration = RunManager.getInstance(project)
+      .createConfiguration(templateConfiguration, ComposePreviewRunConfigurationType().configurationFactories[0]).configuration
+    assertTrue(runConfiguration.beforeRunTasks.none { it is CompileStepBeforeRun.MakeBeforeRunTask })
+    return runConfiguration as ComposePreviewRunConfiguration
+  }
 
   private fun configurationContext(element: PsiElement): ConfigurationContext {
     return ConfigurationContext(element)

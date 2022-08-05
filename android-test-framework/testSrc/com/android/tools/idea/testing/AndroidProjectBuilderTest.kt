@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
+import com.android.tools.idea.gradle.project.sync.InternedModels
 import com.android.utils.appendCapitalized
 import com.google.common.truth.Expect
 import org.junit.Rule
@@ -70,16 +71,20 @@ class AndroidProjectBuilderTest {
         .build()
     val model = builder(
       "projectName",
+      ":app",
       File("/root"),
       File("/root/app"),
-      "99.99-agp"
+      "99.99-agp",
+      InternedModels(null)
     )
 
     expect.that(model.androidProject.flavorDimensions).containsExactly("dim1", "dim2")
     expect.that(model.variants.map { it.name })
       .containsAllOf("firstAbcSecondAbcDebug", "firstAbcSecondAbcRelease", "firstAbcSecondXyzDebug", "firstAbcSecondXyzRelease",
                      "firstXyzSecondAbcDebug", "firstXyzSecondAbcRelease", "firstXyzSecondXyzDebug", "firstXyzSecondXyzRelease")
-    expect.that(model.variants.map { it.testApplicationId })
+    expect.that(model.variants.map { it.androidTestArtifact?.applicationId })
+      .containsAllOf("testFirstAbc", "testFirstXyz", "testFirstXyz", "testFirstXyz", "testFirstXyz")
+    expect.that(model.variants.map { it.deprecatedPreMergedTestApplicationId })
       .containsAllOf("testFirstAbc", "testFirstXyz", "testFirstXyz", "testFirstXyz", "testFirstXyz")
     expect.that(model.variants.map { it.versionNameWithSuffix })
       .containsAllOf("firstAbcSuffix", "firstAbcSuffix", "firstAbcSuffix", "firstAbcSuffix", "firstXyzSuffix", "firstXyzSuffix",

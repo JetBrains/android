@@ -73,7 +73,7 @@ public class CLionIntegrationTest {
     guiTest.waitForBackgroundTasks();
 
     // Check unused header import and no errors.
-    String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
+    String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
       .clickOk()
       .getResults();
     assertThat(inspectionResults).contains("Unused");
@@ -107,7 +107,7 @@ public class CLionIntegrationTest {
       .typeText("\nNOT_DEFINED_FUNC();")
       .getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(1);
-    assertThat(errors.get(0)).contains("Can't resolve variable 'NOT_DEFINED_FUNC'");
+    assertThat(errors.get(0)).contains("Implicit declaration of function 'NOT_DEFINED_FUNC' is invalid");
 
     // TODO: Syntax highlighting check.
   }

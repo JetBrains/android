@@ -40,9 +40,10 @@ fun RecipeExecutor.generateCommonModule(
   appTitle: String?, // may be null only for libraries
   useKts: Boolean,
   manifestXml: String,
-  generateTests: Boolean = false,
+  generateGenericLocalTests: Boolean = false,
+  generateGenericInstrumentedTests: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
-  themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.themesData.main.name),
+  themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.apis.minApi, data.themesData.main.name),
   themesXmlNight: String? = null,
   themesXmlV29: String? = null,
   colorsXml: String? = androidModuleColors(),
@@ -50,7 +51,7 @@ fun RecipeExecutor.generateCommonModule(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
   ) {
-  val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = data
+  val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
   val language = projectData.language
   val isLibraryProject = data.isLibrary
@@ -75,7 +76,7 @@ fun RecipeExecutor.generateCommonModule(
       apis.targetApi.apiString,
       useAndroidX,
       formFactorNames = projectData.includedFormFactorNames,
-      hasTests = generateTests,
+      hasTests = generateGenericLocalTests,
       addLintOptions = addLintOptions,
       enableCpp = enableCpp,
       cppStandard = cppStandard
@@ -93,15 +94,19 @@ fun RecipeExecutor.generateCommonModule(
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))
-  if (generateTests) {
-    addTests(packageName, useAndroidX, isLibraryProject, testOut, unitTestOut, language)
+  if (generateGenericLocalTests) {
+    addLocalTests(packageName, localTestOut, language)
+    addTestDependencies()
+  }
+  if (generateGenericInstrumentedTests) {
+    addInstrumentedTests(packageName, useAndroidX, isLibraryProject, instrumentedTestOut, language)
     addTestDependencies()
   }
   proguardRecipe(moduleOut, data.isLibrary)
 
   if (!isLibraryProject) {
     when(iconsGenerationStyle) {
-      IconsGenerationStyle.ALL -> copyIcons(resOut)
+      IconsGenerationStyle.ALL -> copyIcons(resOut, data.apis.targetApi)
       IconsGenerationStyle.MIPMAP_ONLY -> copyMipmapFolder(resOut)
       IconsGenerationStyle.MIPMAP_SQUARE_ONLY -> copyMipmapFile(resOut, "ic_launcher.webp")
       IconsGenerationStyle.NONE -> Unit

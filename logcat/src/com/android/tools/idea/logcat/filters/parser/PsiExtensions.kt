@@ -22,7 +22,7 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 
-private val ESCAPED_CHAR_REGEX = """\\([ :])""".toRegex()
+private val ESCAPED_CHAR_REGEX = """\\([ :'"\\])""".toRegex()
 
 /**
  * Extension functions for [PsiElement] classes.

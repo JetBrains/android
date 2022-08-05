@@ -47,7 +47,7 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
  * Create the models and views for the properties tool content.
  */
 class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable)
-  : JPanel(BorderLayout()), ToolContent<DesignSurface> {
+  : JPanel(BorderLayout()), ToolContent<DesignSurface<*>> {
   private val queue = MergingUpdateQueue(
     UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null, Alarm.ThreadToUse.SWING_THREAD)
   private val componentModel = NlPropertiesModel(this, facet, queue)
@@ -68,7 +68,7 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
                         WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 
-  override fun setToolContext(toolContext: DesignSurface?) {
+  override fun setToolContext(toolContext: DesignSurface<*>?) {
     componentModel.surface = toolContext as? NlDesignSurface
     motionModel.surface = toolContext as? NlDesignSurface
   }

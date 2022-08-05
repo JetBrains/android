@@ -139,7 +139,7 @@ public class ScreenView extends ScreenViewBase {
     }
     builder.add(new ScreenViewLayer(screenView));
 
-    DesignSurface surface = screenView.getSurface();
+    DesignSurface<?> surface = screenView.getSurface();
     SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);

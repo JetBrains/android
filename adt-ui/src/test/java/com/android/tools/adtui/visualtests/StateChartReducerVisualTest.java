@@ -46,7 +46,7 @@ public class StateChartReducerVisualTest extends VisualTest {
     BLACK
   }
 
-  @NotNull private static final StateChartColorProvider<ColorState> COLOR_STATE_COLORS = new StateChartColorProvider<>() {
+  @NotNull private static final StateChartColorProvider<ColorState> COLOR_STATE_COLORS = new StateChartColorProvider<ColorState>() {
     @NotNull
     @Override
     public Color getColor(boolean isMouseOver, @NotNull ColorState value) {

@@ -263,7 +263,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     setUpDiskCleanupLink();
     myBindingsManager.bindTwoWay(
       mySelectedSdkLocation,
-      new AdapterProperty<>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
+      new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
         @NotNull
         @Override
         protected Optional<File> convertFromSourceType(@NotNull String value) {

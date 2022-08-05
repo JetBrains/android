@@ -92,7 +92,7 @@ public class ConvertFrom9PatchTest {
     FileChooserDialogFixture.find(ideFrame.robot())
       .clickOk();
 
-    GenericTypeMatcher<JDialog> matcher = new GenericTypeMatcher<>(JDialog.class) {
+    GenericTypeMatcher<JDialog> matcher = new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         if (Matchers.byType(JDialog.class).matches(dialog)) {

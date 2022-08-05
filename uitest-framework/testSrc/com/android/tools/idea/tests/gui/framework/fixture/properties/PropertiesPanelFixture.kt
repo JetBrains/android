@@ -31,7 +31,7 @@ import com.android.tools.property.panel.impl.ui.ActionButtonBinding
 import com.android.tools.property.panel.impl.ui.CollapsibleLabelPanel
 import com.android.tools.property.panel.impl.ui.GenericLinePanel
 import com.android.tools.property.panel.impl.ui.PropertiesPage
-import com.android.tools.property.ptable2.impl.PTableImpl
+import com.android.tools.property.ptable.impl.PTableImpl
 import com.intellij.util.containers.addIfNotNull
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.AbstractComponentFixture

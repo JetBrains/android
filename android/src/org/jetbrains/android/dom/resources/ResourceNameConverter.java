@@ -91,7 +91,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     if (ResourceFolderType.VALUES == resType) {
       ResourceType type = IdeResourcesUtil.getResourceTypeForResourceTag(tag);
       if (type != null) {
-        return new ResourceReferencePsiElement(new ResourceReference(namespace, type, s), context.getPsiManager(), false);
+        return new ResourceReferencePsiElement(element, new ResourceReference(namespace, type, s), false);
       }
     }
     return null;
@@ -103,7 +103,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
                                @Nullable String resolveResult,
                                ConvertContext context) {
     if (element instanceof ResourceReferencePsiElement) {
-      return ((ResourceReferencePsiElement)element).getPsiManager().areElementsEquivalent(element, resolve(stringValue, context));
+      return ((ResourceReferencePsiElement)element).getManager().areElementsEquivalent(element, resolve(stringValue, context));
     }
     return super.isReferenceTo(element, stringValue, resolveResult, context);
   }

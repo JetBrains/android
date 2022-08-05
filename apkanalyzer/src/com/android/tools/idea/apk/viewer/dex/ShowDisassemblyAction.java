@@ -94,11 +94,18 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
     return true;
   }
 
-  @Nullable
-  private DexElementNode getSelectedNode() {
+  private @Nullable DexElementNode getSelectedNode() {
     TreePath path = myTree.getSelectionPath();
+    if (path == null) {
+      return null;
+    }
+
     Object component = path.getLastPathComponent();
-    return component instanceof DexElementNode ? (DexElementNode)component : null;
+    if (!(component instanceof DexElementNode)) {
+      return null;
+    }
+
+    return (DexElementNode) component;
   }
 
   @Override
@@ -111,7 +118,7 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
     ListeningExecutorService pooledThreadExecutor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
     Path dexPath = (Path)node.getUserObject();
     ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(dexPath));
-    Futures.addCallback(dexFileFuture, new FutureCallback<>() {
+    Futures.addCallback(dexFileFuture, new FutureCallback<DexBackedDexFile>() {
       @Override
       public void onSuccess(@Nullable DexBackedDexFile dexBackedDexFile) {
         assert dexBackedDexFile != null;
@@ -119,8 +126,7 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
         String byteCode;
         try {
           byteCode = getByteCode(dexBackedDexFile, node, myProguardMapSupplier.get());
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
           Messages.showErrorDialog(project, "Unable to get byte code: " + ex.getMessage(), "View Dex Bytecode");
           return;
         }

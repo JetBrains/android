@@ -61,7 +61,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
   @NotNull private final GradleDslWriter myGradleDslWriter;
-  @NotNull private final GradleDslParser myGradleDslParser;
+  @NotNull protected final GradleDslParser myGradleDslParser;
   @NotNull private final BuildModelContext myBuildModelContext;
 
   protected GradleDslFile(@NotNull VirtualFile file,

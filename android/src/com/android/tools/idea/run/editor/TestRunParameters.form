@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.run.editor.TestRunParameters">
-  <grid id="27dc6" binding="myContentPanel" layout-manager="GridLayoutManager" row-count="10" column-count="6" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myContentPanel" layout-manager="GridLayoutManager" row-count="11" column-count="6" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="637" height="256"/>
+      <xy x="20" y="20" width="637" height="290"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -92,9 +92,19 @@
           <text resource-bundle="messages/AndroidBundle" key="android.run.configuration.method.label"/>
         </properties>
       </component>
-      <component id="76829" class="com.intellij.openapi.ui.LabeledComponent" binding="myInstrumentationClassComponent">
+      <component id="c64f7" class="com.intellij.openapi.ui.LabeledComponent" binding="myTestRegexComponent">
         <constraints>
           <grid row="4" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <componentClass value="javax.swing.JPanel"/>
+          <labelLocation value="West"/>
+          <text value="Regex"/>
+        </properties>
+      </component>
+      <component id="76829" class="com.intellij.openapi.ui.LabeledComponent" binding="myInstrumentationClassComponent">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <componentClass value="javax.swing.JPanel"/>
@@ -105,7 +115,7 @@
       </component>
       <component id="4d1f0" class="com.intellij.openapi.ui.LabeledComponent" binding="myInstrumentationArgsComponent">
         <constraints>
-          <grid row="5" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <componentClass value="javax.swing.JPanel"/>
@@ -115,7 +125,7 @@
       </component>
       <component id="8006a" class="com.intellij.ui.TitledSeparator" binding="myTestExecutionOptionsSeparator">
         <constraints>
-          <grid row="6" column="0" row-span="1" col-span="6" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="7" column="0" row-span="1" col-span="6" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Test Execution Options"/>
@@ -124,7 +134,7 @@
       <grid id="dbc61" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
-          <grid row="7" column="0" row-span="1" col-span="6" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="8" column="0" row-span="1" col-span="6" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -154,7 +164,7 @@
       </grid>
       <component id="a43f8" class="com.intellij.openapi.ui.LabeledComponent" binding="myMaxSnapshotsComponent">
         <constraints>
-          <grid row="8" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+          <grid row="9" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
         </constraints>
         <properties>
           <componentClass value="javax.swing.JPanel"/>
@@ -164,7 +174,7 @@
       </component>
       <component id="b8d50" class="javax.swing.JCheckBox" binding="myCompressSnapshotsCheckBox">
         <constraints>
-          <grid row="9" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+          <grid row="10" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Compress snapshots"/>

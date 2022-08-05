@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
 import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
@@ -35,13 +36,13 @@ import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.swing.JButton
 import javax.swing.JEditorPane
+import javax.swing.JLabel
 import javax.swing.JTextField
 import javax.swing.text.html.HTML
 import javax.swing.text.html.HTMLDocument
@@ -123,8 +124,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     // Prepare
     adbService.useMock = true
     runBlocking {
-      Mockito
-        .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
         .thenReturn(AdbCommandResult(1, listOf(), listOf("unknown command")))
 
       // Act
@@ -166,8 +166,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   fun viewShouldShowErrorIfMdnsCheckFails() = runBlocking {
     // Prepare
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(1, listOf(), listOf()))
 
     // Act
@@ -183,8 +182,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   fun viewShouldShowErrorIfMdnsCheckReturnsRandomText() = runBlocking {
     // Prepare
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("ERROR: mdns daemon unavailable"), listOf()))
 
     // Act
@@ -200,8 +198,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   fun viewShouldShowQrCodeIfMdnsCheckSucceeds() = runBlocking {
     // Prepare
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
     // Act
@@ -254,23 +251,19 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       Pair(IDevice.PROP_DEVICE_MODEL, "Pixel 3")))
 
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
       .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), generatedPassword + newLine()))
+    whenever(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), generatedPassword + newLine()))
       .thenReturn(
         AdbCommandResult(0, listOf("Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.waitForOnlineDevice(any()))
+    whenever(adbService.instance.waitForOnlineDevice(any()))
       .thenReturn(phoneDeviceInfo)
 
     // Act
@@ -348,23 +341,19 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       Pair(IDevice.PROP_DEVICE_MODEL, "Pixel 3")))
 
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
+    whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
       .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), phonePairingCode + newLine()))
+    whenever(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), phonePairingCode + newLine()))
       .thenReturn(
         AdbCommandResult(0, listOf("Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"), listOf()))
 
-    Mockito
-      .`when`(adbService.instance.waitForOnlineDevice(any()))
+    whenever(adbService.instance.waitForOnlineDevice(any()))
       .thenReturn(phoneDeviceInfo)
 
     fun enterPairingCode(pairingCodeDialog: DialogWrapper, @Suppress("SameParameterValue") phonePairingCode: String) {
@@ -419,6 +408,10 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       val fakeUi = FakeUi(it.rootPane)
 
+      // Activate the needed page of the JBTabbedPane. Tabs are implemented by JLabel.
+      val pairingCodeTab = fakeUi.getComponent<JLabel> { label -> label.text == "Pair using pairing code" }
+      fakeUi.clickOn(pairingCodeTab)
+
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -446,7 +439,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
   @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)
   fun <V> pumpAndWait(future: Future<V>): V {
-    return pumpEventsAndWaitForFuture(future, testTimeout.remainingUnits, testTimeUnit)
+    return pumpEventsAndWaitForFuture(future, testTimeout.getRemainingUnits(TimeUnit.SECONDS), testTimeUnit)
   }
 
   private fun newLine(): String {

@@ -177,6 +177,13 @@ class FontEditor implements FileEditor {
 
   @NotNull
   @Override
+  public VirtualFile getFile() {
+    return myFile;
+  }
+
+
+  @NotNull
+  @Override
   public String getName() {
     return NAME;
   }
@@ -221,11 +228,6 @@ class FontEditor implements FileEditor {
   @Override
   public StructureViewBuilder getStructureViewBuilder() {
     return null;
-  }
-
-  @Override
-  public @NotNull VirtualFile getFile() {
-    return myFile;
   }
 
   @Override

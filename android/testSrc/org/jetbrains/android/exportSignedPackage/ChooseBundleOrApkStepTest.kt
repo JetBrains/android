@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
@@ -31,7 +32,7 @@ class ChooseBundleOrApkStepTest : PlatformTestCase() {
 
   fun testSetup() {
     val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
-    Mockito.`when`(wizard.project).thenReturn(myProject)
+    whenever(wizard.project).thenReturn(myProject)
 
     val chooseStep = ChooseBundleOrApkStep(wizard)
     assertTrue(chooseStep.myBundleButton.isEnabled)
@@ -40,7 +41,7 @@ class ChooseBundleOrApkStepTest : PlatformTestCase() {
 
   fun testApkSelectedThroughSetting() {
     val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
-    Mockito.`when`(wizard.project).thenReturn(myProject)
+    whenever(wizard.project).thenReturn(myProject)
 
     val settings = GenerateSignedApkSettings.getInstance(wizard.project)
     settings.BUILD_TARGET_KEY = ExportSignedPackageWizard.APK
@@ -52,7 +53,7 @@ class ChooseBundleOrApkStepTest : PlatformTestCase() {
 
   fun testGetHelpId() {
     val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
-    Mockito.`when`(wizard.project).thenReturn(myProject)
+    whenever(wizard.project).thenReturn(myProject)
 
     val chooseStep = ChooseBundleOrApkStep(wizard)
     assertThat(chooseStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")

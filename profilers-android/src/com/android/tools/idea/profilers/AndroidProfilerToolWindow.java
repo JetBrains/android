@@ -59,6 +59,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.io.File;
+import java.util.Locale;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -269,7 +270,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     if (model.endsWith(suffix)) {
       model = model.substring(0, model.length() - suffix.length());
     }
-    if (!StringUtil.isEmpty(manufacturer)) {
+    if (!StringUtil.isEmpty(manufacturer) && !model.toUpperCase(Locale.US).startsWith(manufacturer.toUpperCase(Locale.US))) {
       deviceNameBuilder.append(manufacturer);
       deviceNameBuilder.append(" ");
     }
@@ -290,7 +291,7 @@ public class AndroidProfilerToolWindow implements Disposable {
                            @NotNull IntellijProfilerServices ideProfilerServices) {
       myProject = project;
       myWindow = window;
-      ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
+      ProfilerClient client = new ProfilerClient(TransportService.getChannelName());
       myProfilers = new StudioProfilers(client, ideProfilerServices);
       CodeNavigator navigator = ideProfilerServices.getCodeNavigator();
       // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.

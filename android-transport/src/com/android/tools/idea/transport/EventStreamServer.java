@@ -21,10 +21,10 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.intellij.openapi.Disposable;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
-import io.grpc.inprocess.InProcessServerBuilder;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.Server;
+import com.android.tools.idea.io.grpc.ServerBuilder;
+import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
 public class EventStreamServer implements Disposable {
 
   @NotNull private final String myServerName;
-  @NotNull private final BlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
+  @NotNull private final BlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<Common.Event>();
   @NotNull private final Map<String, ByteString> myByteCache = new HashMap<>();
 
   @NotNull private final Object myServerLock = new Object();

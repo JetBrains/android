@@ -17,9 +17,10 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
+import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.util.LaunchStatus
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
@@ -49,11 +50,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockLaunchStatus: LaunchStatus
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockProcessHandler: ProcessHandler
-  @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
+  @Mock lateinit var mockAndroidModuleModel: GradleAndroidModel
   @Mock lateinit var mockDevice: IDevice
   @Mock lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
   @Mock lateinit var mockIndicator: ProgressIndicator
   val retentionConfiguration = RetentionConfiguration()
+  val extraInstrumentationParams = ""
 
   @Test
   fun testTaskReturnsSuccessForAllInModuleTest() {
@@ -65,14 +67,16 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProcessHandler,
       mockPrinter,
       mockDevice,
+      "testRegex",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration
+      retentionConfiguration,
+      extraInstrumentationParams
     )
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -83,8 +87,10 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq(""),
       eq(""),
+      eq("testRegex"),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -100,12 +106,13 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockDevice,
       "com.example.test",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration)
+      retentionConfiguration,
+      extraInstrumentationParams)
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -116,8 +123,10 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq("com.example.test"),
       eq(""),
       eq(""),
+      eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -133,12 +142,13 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockDevice,
       "com.example.test.TestClass",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration)
+      retentionConfiguration,
+      extraInstrumentationParams)
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -149,8 +159,10 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq("com.example.test.TestClass"),
       eq(""),
+      eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -167,12 +179,13 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       "com.example.test.TestClass",
       "testMethod",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration)
+      retentionConfiguration,
+      extraInstrumentationParams)
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -183,8 +196,10 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq("com.example.test.TestClass"),
       eq("testMethod"),
+      eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -199,14 +214,16 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProcessHandler,
       mockPrinter,
       mockDevice,
+      "",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration
+      retentionConfiguration,
+      extraInstrumentationParams
     )
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -217,8 +234,10 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq(""),
       eq(""),
+      eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -233,12 +252,13 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockDevice,
       "com.example.test",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration)
+      retentionConfiguration,
+      extraInstrumentationParams)
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -249,8 +269,10 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq("com.example.test"),
       eq(""),
       eq(""),
+      eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 

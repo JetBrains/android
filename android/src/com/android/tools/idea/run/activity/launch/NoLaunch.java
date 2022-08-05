@@ -46,7 +46,7 @@ public class NoLaunch extends ActivityLaunchOption<NoLaunch.State> {
     @Override
     public void launch(@NotNull IDevice device,
                        @NotNull App app,
-                       @NotNull AndroidRunConfiguration config, boolean isDebug, @NotNull String extraFlags,
+                       @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
                        @NotNull ConsoleView console) {
     }
   }
@@ -72,7 +72,7 @@ public class NoLaunch extends ActivityLaunchOption<NoLaunch.State> {
   @NotNull
   @Override
   public LaunchOptionConfigurable<State> createConfigurable(@NotNull Project project, @NotNull LaunchOptionConfigurableContext context) {
-    return new LaunchOptionConfigurable<>() {
+    return new LaunchOptionConfigurable<State>() {
       @Nullable
       @Override
       public JComponent createComponent() {

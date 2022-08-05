@@ -26,5 +26,6 @@ private const val BUNDLE_NAME = "messages.LogcatBundle"
 internal object LogcatBundle {
   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
 
+  @JvmStatic
   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String): String = bundleRef.message(key, *params)
 }

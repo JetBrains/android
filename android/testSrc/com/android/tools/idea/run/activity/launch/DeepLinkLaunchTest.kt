@@ -17,8 +17,6 @@ package com.android.tools.idea.run.activity.launch;
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.configuration.execution.createApp
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers
@@ -31,10 +29,9 @@ class DeepLinkLaunchTest : AndroidTestCase() {
     val state = DeepLinkLaunch.State()
     state.DEEP_LINK = "com.example"
     val device = Mockito.mock(IDevice::class.java)
-    val config = AndroidRunConfigurationType.getInstance().factory.createTemplateConfiguration(project) as AndroidRunConfiguration
 
     val app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
-    state.launch(device, app, config, false, "", EmptyTestConsoleView())
+    state.launch(device, app, { emptyList() }, false, "", EmptyTestConsoleView())
     Mockito.verify(device).executeShellCommand(
       ArgumentMatchers.eq(
         "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'com.example'"),

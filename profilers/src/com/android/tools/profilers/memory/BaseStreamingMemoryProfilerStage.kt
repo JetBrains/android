@@ -49,7 +49,7 @@ import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.Logger
-import io.grpc.StatusRuntimeException
+import com.android.tools.idea.io.grpc.StatusRuntimeException
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
@@ -106,7 +106,8 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   }
 
   var liveAllocationSamplingMode = LiveAllocationSamplingMode.NONE
-    private set(mode) {
+    @VisibleForTesting
+    set(mode) {
       if (mode != field) {
         field = mode
         aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE)

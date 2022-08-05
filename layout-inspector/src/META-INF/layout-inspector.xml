@@ -22,6 +22,9 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <fileType name="Layout Inspector" extensions="li"
+              implementationClass="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileType" fieldName="INSTANCE"/>
+
     <facet.toolWindow id="Layout Inspector"
                       facetIdList="android"
                       anchor="bottom"
@@ -36,4 +39,12 @@
   <extensions defaultExtensionNs="com.android.run">
     <androidLaunchTaskContributor implementation="com.android.tools.idea.layoutinspector.LayoutInspectorLaunchTaskContributor"/>
   </extensions>
+
+  <applicationListeners>
+    <listener
+        class="com.android.tools.idea.layoutinspector.pipeline.TransportDeviceManagerListenerImpl"
+        topic="com.intellij.openapi.project.ProjectManagerListener"
+    />
+  </applicationListeners>
+
 </idea-plugin>

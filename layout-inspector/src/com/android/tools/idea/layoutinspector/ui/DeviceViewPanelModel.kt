@@ -70,14 +70,16 @@ class DeviceViewPanelModel(
   @VisibleForTesting
   var yOff = 0.0
 
-  private var rootBounds: Rectangle = Rectangle()
+  private var visibleBounds: Rectangle = Rectangle()
   private var maxDepth: Int = 0
 
-  internal val maxWidth
-    get() = hypot((maxDepth * layerSpacing).toFloat(), rootBounds.width.toFloat()).toInt()
+  @VisibleForTesting // was internal
+  val maxWidth
+    get() = hypot((maxDepth * layerSpacing).toFloat(), visibleBounds.width.toFloat()).toInt()
 
-  internal val maxHeight
-    get() = hypot((maxDepth * layerSpacing).toFloat(), rootBounds.height.toFloat()).toInt()
+  @VisibleForTesting // was internal
+  val maxHeight
+    get() = hypot((maxDepth * layerSpacing).toFloat(), visibleBounds.height.toFloat()).toInt()
 
   val isRotated
     get() = xOff != 0.0 || yOff != 0.0
@@ -107,6 +109,8 @@ class DeviceViewPanelModel(
       field = value
       refresh()
     }
+
+  private var rootBounds = Rectangle()
 
   init {
     model.modificationListeners.add { _, new, _ ->
@@ -156,7 +160,7 @@ class DeviceViewPanelModel(
       stats.rotation.toggledTo3D()
     }
     if (model.isEmpty) {
-      rootBounds = Rectangle()
+      visibleBounds = Rectangle()
       maxDepth = 0
       hitRects = emptyList()
       modificationListeners.forEach { it() }
@@ -167,7 +171,7 @@ class DeviceViewPanelModel(
     val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
     ViewNode.readAccess {
-      root.drawChildren.forEach { buildLevelLists(it, levelLists, levelLists.size, levelLists.size) }
+      root.drawChildren.forEach { buildLevelLists(sequenceOf(it), levelLists, levelLists.size) }
     }
     maxDepth = levelLists.size
 
@@ -176,16 +180,21 @@ class DeviceViewPanelModel(
     var magnitude = 0.0
     var angle = 0.0
     if (maxDepth > 0) {
-      rootBounds = levelLists[0].map { it.node.bounds.bounds }.reduce { acc, bounds -> acc.apply { add(bounds) } }
-      // If nodes are visible (not explicitly hidden via right-click) but filtered out (e.g. by filter system nodes) they won't be in
-      // levelLists but may still paint something. Prior to initial image generation there's no way to know if they will end up painting
-      // or not, but we still need to be able to zoom to fit correctly, so include those bounds here.
+      // Only consider the bounds of visible nodes here, unlike model.root.transitiveBounds.
       ViewNode.readAccess {
-        model.root.flatten()
-          .minus(model.root)
+        visibleBounds = model.root.flatten()
           .filter { model.isVisible(it) }
-          .forEach { node -> rootBounds.add(node.layoutBounds) }
+          .map { it.transitiveBounds.bounds }
+          .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
+
+        fun lowestVisible(node: ViewNode): Sequence<ViewNode> {
+          return if (model.isVisible(node)) sequenceOf(node) else node.children.asSequence().flatMap { lowestVisible(it) }
+        }
+
+        rootBounds = model.root.children.flatMap { lowestVisible(it) }.map { it.transformedBounds.bounds }
+          .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
       }
+
       root.x = rootBounds.x
       root.y = rootBounds.y
       root.width = rootBounds.width
@@ -200,62 +209,105 @@ class DeviceViewPanelModel(
       transform.rotate(angle)
     }
     else {
-      rootBounds = Rectangle()
+      visibleBounds = Rectangle()
     }
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
     hitRects = newHitRects.toList()
     modificationListeners.forEach { it() }
   }
 
+  /**
+   * Figure out in what layer of the rendering the given set of sibling [nodes] should be placed.
+   * The nodes will be placed in the level that is:
+   * 1. At least [minLevel].
+   * 2. Not overlapping with any existing nodes in [levelListCollector], except as in (4).
+   * 3. If the node is non-collapsible, the same level as other sibling nodes, unless siblings themselves overlap, in which case above
+   *    previous siblings.
+   * 4. If the node is collapsible and the highest overlapping level is [minLevel], then at [minLevel].
+   */
   private fun ViewNode.ReadAccess.buildLevelLists(
-    node: DrawViewNode,
+    nodes: Sequence<DrawViewNode>,
     levelListCollector: MutableList<MutableList<LevelListItem>>,
-    minLevel: Int,
-    previousLevel: Int,
+    minLevel: Int
   ) {
-    var newLevelIndex = minLevel
-    val owner = node.findFilteredOwner(treeSettings)
-    if (owner == null || model.isVisible(owner)) {
-      // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view
-      // in the next level above that (that is, the last level, starting from the top, where there's space).
-      val rootArea = Area(node.bounds)
-      // find the last level where this node intersects with what's at that level already.
-      newLevelIndex = levelListCollector
-        .subList(minLevel, levelListCollector.size)
-        .indexOfLast { it.map { (node, _) -> Area(node.bounds) }.any { a -> a.run { intersect(rootArea); !isEmpty } } }
 
-      var shouldDraw = true
-      var isCollapsed = false
-      // If we can collapse, merge into the layer we found if it's the same as our parent node's layer
-      if (node.canCollapse(treeSettings) && newLevelIndex <= previousLevel &&
-          (levelListCollector.getOrNull(previousLevel)?.any {
-            it.node.findFilteredOwner(treeSettings) == node.findFilteredOwner(treeSettings)
-          } == true || (newLevelIndex == -1 && node.findFilteredOwner(treeSettings) == null))) {
-        isCollapsed = true
-        shouldDraw = node.drawWhenCollapsed
-        if (newLevelIndex == -1) {
-          // We didn't find anything to merge into, so just draw at the bottom.
-          newLevelIndex = 0
+    if (nodes.none()) {
+      return
+    }
+
+    // Nodes from this set of siblings should be in the same level, but if they overlap or there are collapsible nodes included, they may
+    // not be. Collapsible nodes that aren't drawn on top of any siblings will in siblingGroups[0], which is reserved for that purpose.
+    // Otherwise, any nodes that overlap with others will be in the list after the latest list with overlapping nodes. E.g. if you have
+    // A, B, C, D, E, where B can merge with the parent, C overlaps A and D overlaps C, the result would be [[B], [A, E], [C], [D]].
+    val siblingGroups = mutableListOf(mutableListOf<DrawViewNode>())
+
+    for (node in nodes) {
+      // first check whether this node overlaps with any already-placed sibling nodes.
+      // Starting from the highest level and going down, find the first level where something intersects with this view. The target will
+      // be the next level above that (that is, the last level, starting from the top, where there's space).
+      // For nodes already in the list we need to consider the bounds of their children as well, since this node and a previous sibling
+      // can't be drawn at the same level if the previous sibling's children will be drawn before this node.
+      val reversedIndex = siblingGroups.reversed().indexOfFirst { it.any { sibling -> sibling.intersects(node, true) } }
+      val siblingListIndex =
+        if (reversedIndex == -1)
+          if (node.canCollapse(treeSettings)) 0 else 1
+        else siblingGroups.size - reversedIndex
+      siblingGroups.getOrAddSublist(siblingListIndex).add(node)
+    }
+
+    // Add the collapsible nodes first, one at a time, since they don't need to be at the same level as each other.
+    for (node in siblingGroups[0]) {
+      if (node.findFilteredOwner(treeSettings).let { it != null && !model.isVisible(it) }) {
+        // It's hidden, just recurse
+        buildLevelLists(node.children(this), levelListCollector, minLevel)
+        continue
+      }
+      val newLevelIndex = if (levelListCollector.isEmpty()) -1 else levelListCollector
+        .subList(minLevel, levelListCollector.size)
+        .indexOfLast { levelList -> levelList.any { (existing, _) -> existing.intersects(node) } }
+
+      // Check if this node actually collapses into the parent
+      if ((newLevelIndex == 0 && (levelListCollector.getOrNull(minLevel)?.any {
+          it.node.findFilteredOwner(treeSettings) == node.findFilteredOwner(treeSettings)
+        } == true) || (newLevelIndex == -1 && node.findFilteredOwner(treeSettings) == null))) {
+        if (node.drawWhenCollapsed) {
+          levelListCollector.getOrAddSublist(minLevel).add(LevelListItem(node, true))
         }
+        buildLevelLists(node.children(this), levelListCollector, minLevel)
       }
       else {
-        // We're not collapsing, so draw in the level above the last level with overlapping contents
-        newLevelIndex++
-      }
-      // The list index we got was from a sublist starting at minLevel, so we have to add minLevel back in.
-      newLevelIndex += minLevel
-
-      if (shouldDraw) {
-        val levelList = levelListCollector.getOrElse(newLevelIndex) {
-          mutableListOf<LevelListItem>().also { levelListCollector.add(it) }
-        }
-        levelList.add(LevelListItem(node, isCollapsed))
+        // Otherwise, add to the next available level
+        levelListCollector.getOrAddSublist(newLevelIndex + minLevel + 1).add(LevelListItem(node, false))
+        buildLevelLists(node.children(this), levelListCollector, newLevelIndex + minLevel + 1)
       }
     }
-    for (drawChild in node.children(this)) {
-      buildLevelLists(drawChild, levelListCollector, 0, newLevelIndex)
+
+    for (siblingGroup in siblingGroups.subList(1, siblingGroups.size)) {
+      val filteredGroup = siblingGroup.filter {
+        val owner = it.findFilteredOwner(treeSettings)
+        owner == null || model.isVisible(owner)
+      }
+      // Find the lowest level that this level can sit on the existing nodes and add them there
+      val newLevelIndex = levelListCollector
+        .subList(minLevel, levelListCollector.size)
+        .indexOfLast { levelList -> levelList.any { (existing, _) -> filteredGroup.any { existing.intersects(it) } } } + minLevel + 1
+      filteredGroup.mapTo(levelListCollector.getOrAddSublist(newLevelIndex)) { LevelListItem(it, false) }
+
+      // recurse on each set of children (including for hidden nodes)
+      for (sibling in siblingGroup) {
+        val owner = sibling.findFilteredOwner(treeSettings)
+        val hidden = owner != null && !model.isVisible(owner)
+        buildLevelLists(sibling.children(this), levelListCollector, if (hidden) minLevel else newLevelIndex)
+      }
     }
   }
+
+  private fun <T> MutableList<MutableList<T>>.getOrAddSublist(index: Int): MutableList<T> = getOrElse(index) {
+    mutableListOf<T>().also { add(it) }
+  }
+
+  private fun DrawViewNode.intersects(other: DrawViewNode, useTransitiveBounds: Boolean = false) =
+    !Area(if (useTransitiveBounds) unfilteredOwner.transitiveBounds else bounds).apply { intersect(Area(other.bounds)) }.isEmpty
 
   private fun rebuildRectsForLevel(
     transform: AffineTransform,

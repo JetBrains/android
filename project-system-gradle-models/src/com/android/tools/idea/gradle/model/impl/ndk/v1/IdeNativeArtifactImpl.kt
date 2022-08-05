@@ -21,13 +21,13 @@ import java.io.File
 import java.io.Serializable
 
 data class IdeNativeArtifactImpl(
-    override val name: String,
-    override val toolChain: String,
-    override val groupName: String,
-    override val sourceFiles: Collection<IdeNativeFile>,
-    override val exportedHeaders: Collection<File>,
-    override val outputFile: File?,
-    override val abi: String,
-    override val targetName: String
+  override val name: String,
+  override val toolChain: String,
+  override val groupName: String,
+  override val sourceFiles: Collection<IdeNativeFile>,
+  override val exportedHeaders: Collection<File>,
+  override val outputFile: File?,
+  override val abi: String,
+  override val targetName: String
 
 ) : IdeNativeArtifact, Serializable

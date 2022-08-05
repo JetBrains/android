@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import static com.android.SdkConstants.NAVIGATION_VIEW;
+import static com.android.AndroidXConstants.NAVIGATION_VIEW;
 import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.createEmptyParser;
 import static com.android.tools.idea.util.DependencyManagementUtil.mapAndroidxName;
 

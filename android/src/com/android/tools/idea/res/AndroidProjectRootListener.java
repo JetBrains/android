@@ -99,8 +99,9 @@ public class AndroidProjectRootListener {
       }
     }
 
+    @Nullable
     @Override
-    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+    public DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
       if (taskFromQueue instanceof MyDumbModeTask && ((MyDumbModeTask)taskFromQueue).myProject.equals(myProject)) return this;
       return null;
     }

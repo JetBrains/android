@@ -33,7 +33,7 @@ import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
 import com.android.tools.profiler.proto.Profiler.ImportSessionRequest;
 import com.android.tools.profiler.proto.Profiler.ImportSessionResponse;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.List;

@@ -40,15 +40,12 @@
       corrupt. There is no point on performing any initialization task if the installation is corrupt.
     -->
     <actionConfigurationCustomizer id="Startup.AndroidStudioInitializer" order="first" implementation="com.android.tools.idea.startup.AndroidStudioInitializer" />
-    <actionConfigurationCustomizer id="Startup.GradleSpecificInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
     <androidStudioInitializer id="Startup.AndroidSdkInitializer" order="last" implementation="com.android.tools.idea.startup.AndroidSdkInitializer" />
 
     <applicationService serviceInterface="com.intellij.openapi.updateSettings.UpdateStrategyCustomization"
                         serviceImplementation="com.android.tools.idea.AndroidStudioUpdateStrategyCustomization"
                         overrides="true"/>
-    <applicationService serviceInterface="com.intellij.openapi.updateSettings.impl.UpdateSettings"
-                        serviceImplementation="com.android.tools.idea.AndroidStudioUpdateSettings"
-                        overrides="true"/>
+
     <!-- overrides UTM-tracking implementation included from JavaIdePlugin.xml: -->
     <applicationService serviceImplementation="com.intellij.openapi.application.IdeUrlTrackingParametersProvider"
                         overrides="true"/>
@@ -61,13 +58,10 @@
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
 
-    <applicationInitializedListener implementation="com.android.tools.idea.stats.AndroidStudioStatisticsJobScheduler"/>
-    <postStartupActivity implementation="com.android.tools.idea.stats.AndroidStudioStatisticsJobScheduler$MyStartupActivity"/>
+    <applicationInitializedListener implementation="com.intellij.internal.statistic.updater.StatisticsStateCollectorsScheduler"/>
   </extensions>
 
   <actions>
-    <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
-
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
     <group id="AndroidToolsGroup" icon="StudioIcons.Common.ANDROID_HEAD" popup="false" keep-content="true" overrides="true"/>
 
@@ -94,6 +88,24 @@
       <add-to-group group-id="Internal.HeapAnalysis"/>
     </action>
 
+    <action class="com.android.tools.idea.diagnostics.heap.HeapStrongReferenceCountAction" id="HeapStrongReferenceCount"
+            text="Count Heap Strong References" internal="true">
+      <add-to-group group-id="Internal.HeapAnalysis"/>
+    </action>
+
+    <group id="Internal.JavaFlightRecorder" text="Java Flight Recorder" popup="true" internal="true">
+      <add-to-group group-id="Internal" anchor="after" relative-to-action="Internal.HeapAnalysis"/>
+    </group>
+    <action class="com.android.tools.idea.diagnostics.jfr.FreezeUiAction" id="FreezeUI"
+            text="Freeze UI" internal="true">
+      <add-to-group group-id="Internal.JavaFlightRecorder" anchor="first"/>
+    </action>
+    <action class="com.android.tools.idea.diagnostics.jfr.RecordingManager$DumpJfrAction" id="DumpJFR"
+            text="Dump JFR Recording" internal="true">
+      <add-to-group group-id="Internal.JavaFlightRecorder" anchor="after" relative-to-action="FreezeUI"/>
+    </action>
+
+
     <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
       <add-to-group group-id="BuildMenu" anchor="first"/>
       <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
@@ -103,17 +115,6 @@
       <reference ref="MakeGradleProject"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
     </group>
-    <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
-    </action>
-    <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
-    </action>
-
-    <action id="WelcomeScreen.RunAndroidAvdManager" class="com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction"
-            icon="StudioIcons.Shell.Menu.AVD_MANAGER">
-      <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.RunAndroidSdkManager" anchor="after"/>
-    </action>
     <action id="WelcomeScreen.RunDeviceManager"
             text="Virtual Device Manager"
             class="com.android.tools.idea.devicemanager.DeviceManagerWelcomeScreenAction"
@@ -121,10 +122,9 @@
       <add-to-group group-id="WelcomeScreen.QuickStart"/>
     </action>
 
-    <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
     <group id="Android.NavBarToolBar">
       <reference id="Android.SyncProject" />
-      <reference id="Android.RunAndroidAvdManager" />
+      <reference id="Android.DeviceManager" />
       <separator/>
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="SearchEverywhere" />
     </group>

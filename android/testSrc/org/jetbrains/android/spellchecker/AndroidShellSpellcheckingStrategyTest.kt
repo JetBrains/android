@@ -25,6 +25,7 @@ import org.jetbrains.android.AndroidTestCase
  *
  * Verifies that gradlew files are the only shell files ignore by spellcheck.
  */
+@org.junit.Ignore("b/233921382")
 class AndroidShellSpellcheckingStrategyTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
@@ -37,7 +38,8 @@ class AndroidShellSpellcheckingStrategyTest : AndroidTestCase() {
     myFixture.checkHighlighting(true, false, false)
   }
 
-  fun testNotIgnoredShellScript() {
+  // TODO(b/232037999): Re-enable this test when flakiness is fixed.
+  fun ignoreTestNotIgnoredShellScript() {
     val typosScript = myFixture.copyFileToProject("spellchecker/gradlew", "typos")
     myFixture.configureFromExistingVirtualFile(typosScript)
     val highlightingResults = myFixture.doHighlighting()

@@ -32,17 +32,22 @@ import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.matchToProcessDescriptor
 import com.android.tools.idea.layoutinspector.snapshots.CaptureSnapshotAction
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
@@ -107,9 +112,14 @@ const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
 
 /**
  * Panel that shows the device screen in the layout inspector.
+ *
+ * @param onDeviceSelected is only invoked when [deviceModel] is used.
  */
 class DeviceViewPanel(
-  val processes: ProcessesModel?,
+  deviceModel: DeviceModel?,
+  val processesModel: ProcessesModel?,
+  onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
+  onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
   private val layoutInspector: LayoutInspector,
   private val viewSettings: DeviceViewSettings,
   disposableParent: Disposable,
@@ -122,29 +132,74 @@ class DeviceViewPanel(
   override val screenScalingFactor = 1.0
 
   override var isPanning = false
-    get() = field || isMiddleMousePressed || isSpacePressed
+    get() = ( field || isMiddleMousePressed || isSpacePressed ) && processesModel?.selectedProcess != null
 
   private var isSpacePressed = false
   private var isMiddleMousePressed = false
   private var lastPanMouseLocation: Point? = null
 
-  private val selectProcessAction: SelectProcessAction? = if (processes != null) {
+  private val selectDeviceAction: SelectDeviceAction? = if (deviceModel != null) {
+    SelectDeviceAction(
+      deviceModel = deviceModel,
+      onDeviceSelected = onDeviceSelected,
+      onProcessSelected = onProcessSelected,
+      detachPresentation = SelectDeviceAction.DetachPresentation(
+        "Stop Inspector",
+        "Stop running the layout inspector against the current device"),
+      onDetachAction = { stopInspectors() },
+      customDeviceAttribution = ::deviceAttribution
+    )
+  }
+  else {
+    null
+  }
+
+  private val selectProcessAction: SelectProcessAction? = if (processesModel != null) {
     SelectProcessAction(
-      model = processes,
+      model = processesModel,
       supportsOffline = false,
       createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
       stopPresentation = SelectProcessAction.StopPresentation(
-        "Stop inspector",
+        "Stop Inspector",
         "Stop running the layout inspector against the current process"),
       onStopAction = { stopInspectors() },
       customDeviceAttribution = ::deviceAttribution
     )
   }
-  else null
+  else {
+    null
+  }
+
+  // TODO remove [selectedProcessAction] once the flag DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
+  private val targetSelectedAction: DropDownActionWithButton? = if (
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
+  ) {
+    if (selectDeviceAction == null) {
+      null
+    }
+    else {
+      DropDownActionWithButton(selectDeviceAction, selectDeviceAction.button)
+    }
+  }
+  else {
+    if (selectProcessAction == null) {
+      null
+    }
+    else {
+      DropDownActionWithButton(selectProcessAction, selectProcessAction.button)
+    }
+  }
 
   private val contentPanel = DeviceViewContentPanel(
-    layoutInspector.layoutInspectorModel, layoutInspector.stats, layoutInspector.treeSettings, viewSettings,
-    { layoutInspector.currentClient }, this, selectProcessAction, disposableParent
+    inspectorModel = layoutInspector.layoutInspectorModel,
+    deviceModel = deviceModel,
+    stats = layoutInspector.stats,
+    treeSettings = layoutInspector.treeSettings,
+    viewSettings = viewSettings,
+    currentClient = { layoutInspector.currentClient },
+    pannable = this,
+    selectTargetAction = targetSelectedAction,
+    disposableParent = disposableParent
   )
 
   private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) = when {
@@ -229,7 +284,7 @@ class DeviceViewPanel(
   private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.model.layerSpacing },
                                                               { contentPanel.rootLocation })
 
-  private val actionToolbar: ActionToolbar = createToolbar(selectProcessAction)
+  private val actionToolbar: ActionToolbar = createToolbar(targetSelectedAction?.dropDownAction)
 
   private val bubbleLabel = JLabel()
 
@@ -257,6 +312,23 @@ class DeviceViewPanel(
       bubble.isVisible = !text.isNullOrBlank()
     }
 
+  /**
+   * If the new [ForegroundProcess] is not debuggable (it's not present in [ProcessesModel]),
+   * [DeviceViewContentPanel] will show an error message.
+   */
+  fun onNewForegroundProcess(foregroundProcess: ForegroundProcess) {
+    if (processesModel == null) {
+      contentPanel.showProcessNotDebuggableText = false
+    }
+    else {
+      val processDescriptor = foregroundProcess.matchToProcessDescriptor(processesModel)
+      contentPanel.showProcessNotDebuggableText = processDescriptor == null
+
+      contentPanel.revalidate()
+      contentPanel.repaint()
+    }
+  }
+
   init {
     loadingPane.addListener(object : JBLoadingPanelListener {
       override fun onLoadingStart() {
@@ -267,6 +339,7 @@ class DeviceViewPanel(
         contentPanel.showEmptyText = true
       }
     })
+
     scrollPane.viewport.layout = viewportLayoutManager
     contentPanel.isFocusable = true
 
@@ -304,14 +377,48 @@ class DeviceViewPanel(
     loadingPane.add(layeredPane, BorderLayout.CENTER)
     add(loadingPane, BorderLayout.CENTER)
     val model = layoutInspector.layoutInspectorModel
-    processes?.addSelectedProcessListeners(newSingleThreadExecutor()) {
-      if (processes.selectedProcess?.isRunning == true) {
+
+    model.attachStageListeners.add { state ->
+      val text = when (state) {
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE -> "Unknown state"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.NOT_STARTED -> "Starting"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING -> "Adb ping success"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS -> "Attach success"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT -> "Start request sent"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED -> "Start request received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.STARTED -> "Started"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT -> "Roots sent"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_RECEIVED -> "Roots received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_INVALIDATION_CALLBACK -> "Capture started"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.SCREENSHOT_CAPTURED -> "Screenshot captured"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_HIERARCHY_CAPTURED -> "Hierarchy captured"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.RESPONSE_SENT -> "Response sent"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LAYOUT_EVENT_RECEIVED -> "View information received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_REQUEST_SENT -> "Compose information request"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_RESPONSE_RECEIVED -> "Compose information received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_REQUESTED -> "Legacy window list requested"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_RECEIVED -> "Legacy window list received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED -> "Legacy hierarchy requested"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED -> "Legacy hierarchy received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED -> "Legacy screenshot requested"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED -> "Legacy screenshot received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.PARSED_COMPONENT_TREE -> "Compose tree parsed"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED -> "Update complete"
+      }
+
+      if (text.isNotEmpty()) {
+        loadingPane.setLoadingText(text)
+      }
+    }
+
+    processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) {
+      if (processesModel.selectedProcess?.isRunning == true) {
         if (model.isEmpty) {
           loadingPane.startLoading()
         }
       }
-      if (processes.selectedProcess == null) {
-        loadingPane.stopLoading()
+      if (processesModel.selectedProcess == null) {
+          loadingPane.stopLoading()
       }
     }
     model.modificationListeners.add { old, new, _ ->
@@ -392,7 +499,7 @@ class DeviceViewPanel(
 
   fun stopInspectors() {
     loadingPane.stopLoading()
-    processes?.stop()
+    processesModel?.stop()
   }
 
   private fun updateLayeredPaneSize() {
@@ -415,9 +522,7 @@ class DeviceViewPanel(
       val root = layoutInspector.layoutInspectorModel.root
       viewportLayoutManager.currentZoomOperation = type
       when (type) {
-        ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
-          newZoom = getFitZoom(root)
-        }
+        ZoomType.FIT -> newZoom = getFitZoom(root)
         ZoomType.ACTUAL -> newZoom = 100
         ZoomType.IN -> newZoom += 10
         ZoomType.OUT -> newZoom -= 10
@@ -479,7 +584,7 @@ class DeviceViewPanel(
     leftGroup.add(Separator.getInstance())
     leftGroup.add(ViewMenuAction)
     leftGroup.add(ToggleOverlayAction)
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS.get() && !layoutInspector.isSnapshot) {
+    if (!layoutInspector.isSnapshot) {
       leftGroup.add(CaptureSnapshotAction)
     }
     leftGroup.add(AlphaSliderAction)
@@ -574,7 +679,7 @@ class MyViewportLayoutManager(
       }
       currentZoomOperation != null -> {
         viewport.viewPosition = when (currentZoomOperation) {
-          ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
+          ZoomType.FIT -> {
             origLayout.layoutContainer(parent)
             val bounds = viewport.extentSize
             val size = viewport.view.preferredSize

@@ -35,6 +35,7 @@ import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
+import com.android.tools.profilers.memory.AllocationSessionArtifact
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
@@ -438,7 +439,8 @@ class SessionsManagerTest {
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
     val legacyAllocationsInfo = AllocationsInfo.newBuilder()
       .setStartTime(legacyAllocationsInfoTimestamp).setEndTime(legacyAllocationsInfoTimestamp + 1).setLegacy(true).build()
-    val liveAllocationsInfo = AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp).build()
+    val liveAllocationsInfo = AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp)
+      .setEndTime(liveAllocationsInfoTimestamp + 1).build()
 
     val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
     myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session1.pid).build())
@@ -471,34 +473,40 @@ class SessionsManagerTest {
 
     // The Hprof and CPU capture artifacts are now included and sorted in ascending order
     sessionItems = myManager.sessionArtifacts
-    assertThat(sessionItems).hasSize(8)
+    assertThat(sessionItems).hasSize(10)
     sessionItem0 = sessionItems[0] as SessionItem
-    val legacyAllocationsItem0 = sessionItems[1] as LegacyAllocationsSessionArtifact
-    val cpuCaptureItem0 = sessionItems[2] as CpuCaptureSessionArtifact
-    val hprofItem0 = sessionItems[3] as HprofSessionArtifact
-    sessionItem1 = sessionItems[4] as SessionItem
-    val legacyAllocationsItem1 = sessionItems[5] as LegacyAllocationsSessionArtifact
-    val cpuCaptureItem1 = sessionItems[6] as CpuCaptureSessionArtifact
-    val hprofItem1 = sessionItems[7] as HprofSessionArtifact
+    val liveAllocationsItem0 = sessionItems[1] as AllocationSessionArtifact
+    val legacyAllocationsItem0 = sessionItems[2] as LegacyAllocationsSessionArtifact
+    val cpuCaptureItem0 = sessionItems[3] as CpuCaptureSessionArtifact
+    val hprofItem0 = sessionItems[4] as HprofSessionArtifact
+    sessionItem1 = sessionItems[5] as SessionItem
+    val liveAllocationsItem1 = sessionItems[6] as AllocationSessionArtifact
+    val legacyAllocationsItem1 = sessionItems[7] as LegacyAllocationsSessionArtifact
+    val cpuCaptureItem1 = sessionItems[8] as CpuCaptureSessionArtifact
+    val hprofItem1 = sessionItems[9] as HprofSessionArtifact
 
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.childArtifacts).containsExactly(legacyAllocationsItem0, cpuCaptureItem0, hprofItem0)
+    assertThat(sessionItem0.childArtifacts).containsExactly(liveAllocationsItem0, legacyAllocationsItem0, cpuCaptureItem0, hprofItem0)
     assertThat(hprofItem0.session).isEqualTo(session2)
     assertThat(hprofItem0.timestampNs).isEqualTo(heapDumpTimestamp - session2Timestamp)
     assertThat(cpuCaptureItem0.session).isEqualTo(session2)
     assertThat(cpuCaptureItem0.timestampNs).isEqualTo(cpuTraceTimestamp - session2Timestamp)
     assertThat(legacyAllocationsItem0.session).isEqualTo(session2)
     assertThat(legacyAllocationsItem0.timestampNs).isEqualTo(legacyAllocationsInfoTimestamp - session2Timestamp)
+    assertThat(liveAllocationsItem0.session).isEqualTo(session2)
+    assertThat(liveAllocationsItem0.timestampNs).isEqualTo(liveAllocationsInfoTimestamp - session2Timestamp)
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.childArtifacts).containsExactly(legacyAllocationsItem1, cpuCaptureItem1, hprofItem1)
+    assertThat(sessionItem1.childArtifacts).containsExactly(liveAllocationsItem1, legacyAllocationsItem1, cpuCaptureItem1, hprofItem1)
     assertThat(hprofItem1.session).isEqualTo(session1)
     assertThat(hprofItem1.timestampNs).isEqualTo(heapDumpTimestamp - session1Timestamp)
     assertThat(cpuCaptureItem1.session).isEqualTo(session1)
     assertThat(cpuCaptureItem1.timestampNs).isEqualTo(cpuTraceTimestamp - session1Timestamp)
     assertThat(legacyAllocationsItem1.session).isEqualTo(session1)
     assertThat(legacyAllocationsItem1.timestampNs).isEqualTo(legacyAllocationsInfoTimestamp - session1Timestamp)
+    assertThat(liveAllocationsItem1.session).isEqualTo(session1)
+    assertThat(liveAllocationsItem1.timestampNs).isEqualTo(liveAllocationsInfoTimestamp - session1Timestamp)
   }
 
   @Test

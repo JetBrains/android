@@ -39,9 +39,9 @@ import com.android.tools.property.panel.impl.model.util.FakeNewPropertyItem
 import com.android.tools.property.panel.impl.model.util.FakePTableModelUpdateListener
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.model.util.FakePropertyModel
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.PTableItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before

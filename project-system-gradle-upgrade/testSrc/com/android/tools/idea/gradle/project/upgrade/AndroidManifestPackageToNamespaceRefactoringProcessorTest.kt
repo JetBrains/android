@@ -41,12 +41,15 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
   val expect: Expect = Expect.createAndEnableStackTrace()
 
   private lateinit var manifestFile : VirtualFile
+  private lateinit var androidTestManifestFile : VirtualFile
 
   @Before
-  fun setUpManifestFile() {
+  fun setUpManifestFiles() {
     runWriteAction {
       manifestFile = projectRule.fixture.tempDirFixture.createFile("src/main/AndroidManifest.xml")
+      androidTestManifestFile = projectRule.fixture.tempDirFixture.createFile("src/androidTest/AndroidManifest.xml")
       assertTrue(manifestFile.isWritable)
+      assertTrue(androidTestManifestFile.isWritable)
     }
   }
 
@@ -74,9 +77,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToNamespaceExpected"))
-    val expectedText = FileUtil.loadFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage").toFile(testDataPath, ""))
-    val actualText = VfsUtilCore.loadText(manifestFile)
-    assertEquals(expectedText, actualText)
+    verifyManifestFileContents(manifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
   }
 
   @Test
@@ -87,15 +88,54 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToConflictingNamespaceExpected"))
-    val expectedText = FileUtil.loadFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage").toFile(testDataPath, ""))
-    val actualText = VfsUtilCore.loadText(manifestFile)
-    assertEquals(expectedText, actualText)
+    verifyManifestFileContents(manifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
   }
 
-  private fun writeToManifestFile(fileName: TestFileName) {
+  @Test
+  fun testAndroidTestPackageToDefaultTestNamespace() {
+    writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToNamespace"))
+    writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))
+    writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithTestPackage"), androidTestManifestFile)
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToNamespaceExpected"))
+    verifyManifestFileContents(manifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
+    verifyManifestFileContents(androidTestManifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
+  }
+
+  @Test
+  fun testAndroidTestPackageToDifferentTestNamespace() {
+    writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToNamespace"))
+    writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))
+    writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithDifferentTestPackage"), androidTestManifestFile)
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToNamespaceWithDifferentTestNamespaceExpected"))
+    verifyManifestFileContents(manifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
+    verifyManifestFileContents(androidTestManifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
+  }
+
+  @Test
+  fun testAndroidTestPackageToSameNamespaceIsBlocked() {
+    writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToNamespace"))
+    writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))
+    writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"), androidTestManifestFile)
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    assertTrue(processor.isBlocked)
+  }
+
+  private fun writeToManifestFile(fileName: TestFileName, file: VirtualFile = manifestFile) {
     val testFile = fileName.toFile(testDataPath, "")
     assertTrue(testFile.exists())
     val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
-    runWriteAction { VfsUtil.saveText(manifestFile, VfsUtilCore.loadText(virtualTestFile!!)) }
+    runWriteAction { VfsUtil.saveText(file, VfsUtilCore.loadText(virtualTestFile!!)) }
+  }
+
+  private fun verifyManifestFileContents(file: VirtualFile, expected: TestFileName) {
+    val expectedText = FileUtil.loadFile(expected.toFile(testDataPath, ""))
+    val actualText = VfsUtilCore.loadText(file)
+    assertEquals(expectedText, actualText)
   }
 }

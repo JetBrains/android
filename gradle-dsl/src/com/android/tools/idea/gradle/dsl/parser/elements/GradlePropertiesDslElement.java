@@ -15,50 +15,39 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
-import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.APPLIED;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.DEFAULT;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.EXISTING;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.MOVED;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.TO_BE_ADDED;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.TO_BE_REMOVED;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
-
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
-import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.Predicates;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
+import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
@@ -73,7 +62,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   @NotNull private final static Predicate<ElementList.ElementItem> PROPERTY_FILTER = VARIABLE_FILTER.negate();
   @NotNull private final static Predicate<ElementList.ElementItem> ANY_FILTER = Predicates.alwaysTrue();
 
-  @NotNull private final ElementList myProperties = new ElementList();
+  @NotNull public final ElementList myProperties = new ElementList();
 
   protected GradlePropertiesDslElement(@Nullable GradleDslElement parent,
                                        @Nullable PsiElement psiElement,
@@ -152,6 +141,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     ElementState oldState = myProperties.replaceElement(element, newElement);
     reorderAndMaybeGetNewIndex(newElement);
     return oldState;
+  }
+
+  private ElementState hidePropertyInternal(@NotNull GradleDslElement element) {
+    return myProperties.hide(element);
   }
 
   public void addAppliedModelProperties(@NotNull GradleDslFile file) {
@@ -683,6 +676,24 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return newElement;
   }
 
+  /**
+   * This method is for postprocessing purposes, in order to be able to alter the raw results of the parser, for example because
+   * of an interpretation imposed on top of the tree-like structure of the Dsl which forces a change of representation.  Implementing
+   * language semantics should generally use {@link PropertyTransform} and
+   * {@link GradlePropertiesDslElement#replaceElement(GradleDslElement, GradleDslElement)}; this is only used for implementing
+   * extra-language semantics.
+   *
+   * @param oldElement the original Dsl element as parsed by the parser
+   * @param newElement the element to replace it with, with its psiElement set up appropriately
+   * @return the new element
+   */
+  @NotNull
+  public GradleDslElement substituteElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    assert newElement.getParent() == this;
+    myProperties.substituteElement(oldElement, newElement);
+    return newElement;
+  }
+
   @Nullable
   public <T> T getLiteral(@NotNull String property, @NotNull Class<T> clazz) {
     GradleDslSimpleExpression expression = getPropertyElement(property, GradleDslSimpleExpression.class);
@@ -740,6 +751,19 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     }
   }
 
+  public void hideProperty(@NotNull GradleDslElement element) {
+    hidePropertyInternal(element);
+    for (GradlePropertiesDslElement holder : element.getHolders()) {
+      if (this != holder) {
+        holder.removePropertyInternal(element);
+      }
+    }
+    GradleDslElement parent = element.getParent();
+    if (this != parent && parent instanceof GradlePropertiesDslElement) {
+      ((GradlePropertiesDslElement)parent).hidePropertyInternal(element);
+    }
+  }
+
   @Override
   @Nullable
   public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
@@ -751,7 +775,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         return lastElement;
       }
 
-      if (Arrays.asList(EXISTING, TO_BE_ADDED, MOVED).contains(item.myElementState)) {
+      if (item.myElementState.isPhysicalInFile()) {
         GradleDslElement currentElement = item.myElement;
         // Don't count empty ProjectPropertiesModel, this can cause the properties to be added at the top of the file where
         // we require that they be below other properties (e.g project(':lib')... should be after include: 'lib').
@@ -831,8 +855,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   protected boolean isStructurallyModified() {
-    Predicate<ElementList.ElementItem> predicate = e -> Arrays.asList(APPLIED, EXISTING, DEFAULT).contains(e.myElementState);
-    return !myProperties.myElements.stream().allMatch(predicate);
+    Predicate<ElementList.ElementItem> predicate = e -> e.myElementState.isStructuralChange();
+    return myProperties.myElements.stream().anyMatch(predicate);
   }
 
   @Override
@@ -972,7 +996,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
     @NotNull
     private List<GradleDslElement> getElementsWhere(@NotNull Predicate<ElementItem> predicate) {
-      return myElements.stream().filter(e -> e.myElementState != TO_BE_REMOVED)
+      return myElements.stream().filter(e -> e.myElementState.isSemanticallyRelevant())
                        .filter(predicate).map(e -> e.myElement).collect(Collectors.toList());
     }
 
@@ -981,7 +1005,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       // We reduce to get the last element stored, this will be the one we want as it was added last and therefore must appear
       // later on in the file.
       GradleDslElement last = myElements.stream()
-        .filter(e -> e.myElementState != TO_BE_REMOVED)
+        .filter(e -> e.myElementState.isSemanticallyRelevant())
         .filter(predicate).map(e -> e.myElement).reduce((first, second) -> second).orElse(null);
       if (last != null) {
         ModelEffectDescription effect = last.getModelEffect();
@@ -1004,8 +1028,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       //  methods or, if we implement .clear(), RESET) are not correctly modelled.
       GradleDslElement lastElement = null;
       for (ElementItem i : myElements) {
-        // Skip removed elements.
-        if (i.myElementState == TO_BE_REMOVED) {
+        // Skip removed or hidden elements.
+        if (!i.myElementState.isSemanticallyRelevant()) {
           continue;
         }
 
@@ -1062,8 +1086,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
           return i;
         }
         ElementItem item = myElements.get(i);
-        if (item.myElementState != TO_BE_REMOVED &&
-            item.myElementState != APPLIED) {
+        if (item.myElementState.isPhysicalInFile()) {
           index--;
         }
       }
@@ -1081,6 +1104,16 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       return oldState;
     }
 
+    private @Nullable ElementState hide(@NotNull GradleDslElement element) {
+      ElementItem item = myElements.stream().filter(e -> element == e.myElement).findFirst().orElse(null);
+      if (item == null) {
+        return null;
+      }
+      ElementState oldState = item.myElementState;
+      item.myElementState = HIDDEN;
+      return oldState;
+    }
+
     @Nullable
     private ElementState replaceElement(@Nullable GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
       for (int i = 0; i < myElements.size(); i++) {
@@ -1089,11 +1122,30 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
           ElementState oldState = item.myElementState;
           item.myElementState = TO_BE_REMOVED;
           ElementState newState = TO_BE_ADDED;
-          if (oldState == APPLIED) {
+          if (Arrays.asList(APPLIED, HIDDEN).contains(oldState)) {
             newState = oldState;
           }
           myElements.add(i, new ElementItem(newElement, newState, false));
           return oldState;
+        }
+      }
+      return null;
+    }
+
+    @Nullable
+    private ElementState substituteElement(@Nullable GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+      for (int i = 0; i < myElements.size(); i++) {
+        ElementItem item = myElements.get(i);
+        if (oldElement == item.myElement) {
+          item.myElement = newElement;
+          if (newElement.getPsiElement() == null) {
+            item.myElementState = TO_BE_ADDED;
+            item.myExistsOnFile = false;
+          } else {
+            item.myElementState = EXISTING;
+            item.myExistsOnFile = true;
+          }
+          return item.myElementState;
         }
       }
       return null;

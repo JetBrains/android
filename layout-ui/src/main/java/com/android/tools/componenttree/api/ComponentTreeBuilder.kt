@@ -18,16 +18,26 @@ package com.android.tools.componenttree.api
 import com.android.tools.componenttree.impl.ComponentTreeModelImpl
 import com.android.tools.componenttree.impl.ComponentTreeSelectionModelImpl
 import com.android.tools.componenttree.impl.TreeImpl
+import com.android.tools.componenttree.treetable.TreeTableImpl
+import com.android.tools.componenttree.treetable.TreeTableModelImpl
+import com.android.tools.componenttree.treetable.UpperRightCorner
+import com.android.tools.idea.flags.StudioFlags
+import com.intellij.designer.componentTree.ComponentTreeBuilder
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.tree.ui.Control
+import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
+import java.awt.GraphicsEnvironment
 import javax.swing.JComponent
+import javax.swing.ScrollPaneConstants
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
-import javax.swing.tree.TreeSelectionModel
+import javax.swing.table.TableCellRenderer
+import javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION
+import javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION
 
 /**
  * A Handler which will display a context popup menu.
@@ -43,16 +53,19 @@ typealias DoubleClickHandler = () -> Unit
  */
 class ComponentTreeBuilder {
   private val nodeTypeMap = mutableMapOf<Class<*>, NodeType<*>>()
+  private var headerRenderer: TableCellRenderer? = null
   private var contextPopup: ContextPopupHandler = { _, _, _ -> }
   private var doubleClick: DoubleClickHandler = { }
   private val badges = mutableListOf<BadgeItem>()
-  private var selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+  private val columns = mutableListOf<ColumnInfo>()
+  private var selectionMode = SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
   private var installTreeSearch = true
   private var isRootVisible = true
   private var showRootHandles = false
   private var horizontalScrollbar = false
   private var autoScroll = false
+  private var dndSupport = false
   private var componentName =  "componentTree"
   private var painter: (() -> Control.Painter?)? = null
   private var installKeyboardActions: (JComponent) -> Unit = {}
@@ -64,9 +77,14 @@ class ComponentTreeBuilder {
   fun <T> withNodeType(type: NodeType<T>) = apply { nodeTypeMap[type.clazz] = type }
 
   /**
+   * Header renderer for the tree column.
+   */
+  fun withHeaderRenderer(renderer: TableCellRenderer) = apply { headerRenderer = renderer }
+
+  /**
    * Allow multiple nodes to be selected in the tree (default is a single selection).
    */
-  fun withMultipleSelection() = apply { selectionMode = TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION }
+  fun withMultipleSelection() = apply { selectionMode = DISCONTIGUOUS_TREE_SELECTION }
 
   /**
    * Add a context popup menu on the tree node item.
@@ -98,9 +116,22 @@ class ComponentTreeBuilder {
   fun withoutTreeSearch() = apply { installTreeSearch = false }
 
   /**
-   * Add a badge icon to go to the right of a tree node item.
+   * Add a column to the right of the tree node item.
+   *
+   * Note: This is only supported by the TreeTable implementation.
    */
-  fun withBadgeSupport(badge: BadgeItem) = apply { badges.add(badge) }
+  fun withColumn(columnInfo: ColumnInfo) = apply { columns.add(columnInfo) }
+
+  /**
+   * Add a badge column to the right of the tree node item.
+   */
+  fun withBadgeSupport(badge: BadgeItem) =
+    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) apply { columns.add(badge) } else apply { badges.add(badge) }
+
+  /**
+   * Add Drag and Drop support.
+   */
+  fun withDnD() = apply { dndSupport = true }
 
   /**
    * Don't show the root node.
@@ -140,26 +171,86 @@ class ComponentTreeBuilder {
   /**
    * Build the tree component and return it with the tree model.
    */
-  fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
+  fun build(): ComponentTreeBuildResult =
+    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) buildTreeTable() else buildTree()
+
+  private fun buildTree(): ComponentTreeBuildResult {
+    if (columns.isNotEmpty()) {
+      Logger.getInstance(ComponentTreeBuilder::class.java).warn("Columns are not supported with the Tree implementations")
+    }
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
-    val selectionModel = ComponentTreeSelectionModelImpl(model)
-    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions)
+    val selectionModel = ComponentTreeSelectionModelImpl(model, selectionMode)
+    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions, selectionModel,
+                        autoScroll, installTreeSearch)
     tree.toggleClickCount = toggleClickCount
     tree.isRootVisible = isRootVisible
     tree.showsRootHandles = !isRootVisible || showRootHandles
-    if (installTreeSearch) {
-      TreeSpeedSearch(tree) { model.toSearchString(it.lastPathComponent) }
-    }
-    selectionModel.selectionMode = selectionMode
-    if (autoScroll) {
-      selectionModel.addAutoScrollListener {
-        tree.selectionRows?.singleOrNull()?.let { tree.scrollRowToVisible(it) }
-      }
-    }
-    tree.selectionModel = selectionModel
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()
-    return Triple(scrollPane, model, selectionModel)
+    return ComponentTreeBuildResult(scrollPane, tree, tree, model, selectionModel, NoOpTableVisibility())
+  }
+
+  private fun buildTreeTable(): ComponentTreeBuildResult {
+    val model = TreeTableModelImpl(columns, nodeTypeMap, invokeLater)
+    val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
+                              installTreeSearch, headerRenderer)
+    table.name = componentName // For UI tests
+    if (dndSupport && !GraphicsEnvironment.isHeadless()) {
+      table.enableDnD()
+    }
+    val tree = table.tree
+    tree.toggleClickCount = toggleClickCount
+    tree.isRootVisible = isRootVisible
+    tree.showsRootHandles = !isRootVisible || showRootHandles
+
+    val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
+    val scrollPane = ScrollPaneFactory.createScrollPane(table, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
+    scrollPane.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, UpperRightCorner())
+    scrollPane.border = JBUI.Borders.empty()
+    return ComponentTreeBuildResult(scrollPane, table, tree, model, table.treeTableSelectionModel, table)
   }
 }
+
+/**
+ * The resulting component tree.
+ */
+class ComponentTreeBuildResult(
+  /**
+   * The top component which is JScrollPane.
+   */
+  val component: JComponent,
+
+  /**
+   * The component that has focus in the component tree.
+   *
+   * Note: This will be:
+   * - the [tree] component if [StudioFlags.USE_COMPONENT_TREE_TABLE] is false
+   * - the TreeTable component if [StudioFlags.USE_COMPONENT_TREE_TABLE] is true
+   */
+  val focusComponent: JComponent,
+
+  /**
+   * The Tree component of the component tree.
+   *
+   * Note: the Tree instance may be just be a renderer instance, and may not have a parent component.
+   */
+  val tree: Tree,
+
+  /**
+   * The component tree model.
+   */
+  val model: ComponentTreeModel,
+
+  /**
+   * The component tree selection model.
+   */
+  val selectionModel: ComponentTreeSelectionModel,
+
+  /**
+   * An object that can be used to modify the tree.
+   *
+   * The visibility of the header and the columns are supported.
+   */
+  val interactions: TableVisibility
+)

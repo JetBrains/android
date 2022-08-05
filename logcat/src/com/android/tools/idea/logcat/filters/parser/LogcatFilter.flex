@@ -70,33 +70,31 @@ WHITE_SPACE=\s
 COLON = ":"
 MINUS = "-"
 TILDE = "~"
+EQUALS = "="
 OR = "|"
 AND = "&"
 LPAREN = "("
 RPAREN = ")"
 
-UNQUOTED_VALUE      = ([^\s()] | "\\ ")+
+UNQUOTED_VALUE      = [^'\"\s()] ([^\s()] | "\\ ")*
 SINGLE_QUOTED_VALUE = ' ([^'] | \\')* '
 DOUBLE_QUOTED_VALUE = \" ([^\"] | \\\")* \"
 STRING_VALUE        = {UNQUOTED_VALUE} | {SINGLE_QUOTED_VALUE} | {DOUBLE_QUOTED_VALUE}
 
 // Keys that accept quoted or unquoted strings.
 TEXT_KEY
-  = "app"
-  | "line"
+  = "line"
   | "message"
-  | "msg"
   | "package"
+  | "process"
   | "tag"
 
 // Keys that accept unquoted, non-whitespace values
 KEY
   = "age"
-  | "fromLevel"
   | "level"
-  | "toLevel"
-
-PROJECT_APP = "app!" | "package!"
+  | "is"
+  | "name"
 
 %state STRING_KVALUE_STATE
 %state REGEX_KVALUE_STATE
@@ -106,9 +104,9 @@ PROJECT_APP = "app!" | "package!"
 
 <YYINITIAL> {
   {MINUS}? {TEXT_KEY} {COLON}          { yybegin(STRING_KVALUE_STATE); return LogcatFilterTypes.STRING_KEY; }
+  {MINUS}? {TEXT_KEY} {EQUALS} {COLON} { yybegin(STRING_KVALUE_STATE); return LogcatFilterTypes.STRING_KEY; }
   {MINUS}? {TEXT_KEY} {TILDE} {COLON}  { yybegin(REGEX_KVALUE_STATE); return LogcatFilterTypes.REGEX_KEY; }
   {KEY} {COLON}                        { yybegin(KVALUE_STATE); return LogcatFilterTypes.KEY; }
-  {PROJECT_APP}                        { return LogcatFilterTypes.PROJECT_APP; }
 
   {OR}                                 { return LogcatFilterTypes.OR; }
   {AND}                                { return LogcatFilterTypes.AND; }

@@ -712,7 +712,6 @@ public class MoreFontsDialog extends DialogWrapper {
   private static class HeaderLabel extends JBLabel {
     private static final Color CONTRAST_BORDER_COLOR = JBColor.lazy(new Supplier<Color>() {
       final Color color = new JBColor(0x9b9b9b, 0x4b4b4b);
-
       @NotNull
       @Override
       public Color get() {

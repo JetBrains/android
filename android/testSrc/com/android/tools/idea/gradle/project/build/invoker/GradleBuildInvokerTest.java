@@ -18,17 +18,14 @@ package com.android.tools.idea.gradle.project.build.invoker;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
-import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
@@ -45,12 +42,10 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.xdebugger.XDebugSession;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Semaphore;
@@ -67,7 +62,6 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   @Mock private NativeDebugSessionFinder myDebugSessionFinder;
 
   private Module[] myModules;
-  @Mock private BuildSettings myBuildSettings;
   @Mock private GradleTaskFinder myTaskFinder;
 
   AutoCloseable myCloseable;
@@ -78,16 +72,8 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     myCloseable = MockitoAnnotations.openMocks(this);
   }
 
-  private GradleBuildInvoker createBuildInvoker(boolean isConfigured) {
+  private GradleBuildInvoker createBuildInvoker() {
     myModules = new Module[]{getModule()};
-
-    // If the project is configured, don't mock the GradleTaskFinder.
-    if (!isConfigured) {
-      ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleTaskFinder.class, myTaskFinder,
-                                          getTestRootDisposable());
-    }
-    ServiceContainerUtil.replaceService(myProject, BuildSettings.class, myBuildSettings, getTestRootDisposable());
-
     return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myGradleTaskExecutor, myDebugSessionFinder);
   }
 
@@ -106,7 +92,10 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanUp() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     // Invoke method to test.
     buildInvoker.cleanProject();
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
@@ -118,8 +107,10 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserTerminatesSession() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
-    setUpTasksForSourceGeneration();
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
@@ -132,8 +123,10 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserDoesNotTerminateSession() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
-    setUpTasksForSourceGeneration();
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
@@ -146,8 +139,10 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserCancelsBuild() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
-    setUpTasksForSourceGeneration();
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
@@ -162,14 +157,8 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     assertNull(request); // Build was canceled, no request created.
 
     // If build was canceled, none of these methods should have been invoked.
-    verify(myBuildSettings, never()).setBuildMode(any());
     verify(myFileDocumentManager, never()).saveAllDocuments();
     assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(0);
-  }
-
-  private void setUpTasksForSourceGeneration() {
-    List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
   }
 
   public void testCompileJava() {
@@ -179,7 +168,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     buildInvoker.compileJava(
       ImmutableList.of(
         Objects.requireNonNull(gradleModule(myProject, ":app")),
@@ -191,21 +180,9 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
-      ":lib:ideSetupTask1",
-      ":lib:ideSetupTask2",
-      ":lib:ideUnitTestSetupTask1",
-      ":lib:ideUnitTestSetupTask2",
-      ":lib:ideAndroidTestSetupTask1",
-      ":lib:ideAndroidTestSetupTask2",
       ":lib:compileDebugUnitTestSources",
       ":lib:compileDebugAndroidTestSources",
       ":lib:compileDebugSources",
-      ":app:ideSetupTask1",
-      ":app:ideSetupTask2",
-      ":app:ideUnitTestSetupTask1",
-      ":app:ideUnitTestSetupTask2",
-      ":app:ideAndroidTestSetupTask1",
-      ":app:ideAndroidTestSetupTask2",
       ":app:compileDebugUnitTestSources",
       ":app:compileDebugAndroidTestSources",
       ":app:compileDebugSources"
@@ -221,13 +198,13 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
       ImmutableList.of(
         Objects.requireNonNull(gradleModule(myProject, ":app")),
         Objects.requireNonNull(gradleModule(myProject, ":lib"))
       ).toArray(new Module[0]),
-      TestCompileType.ALL);
+      TestCompileType.NONE);
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
@@ -245,13 +222,13 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
       ImmutableList.of(
         Objects.requireNonNull(gradleModule(myProject, ":app")),
         Objects.requireNonNull(gradleModule(myProject, ":lib"))
       ).toArray(new Module[0]),
-      TestCompileType.ALL);
+      TestCompileType.NONE);
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
@@ -269,7 +246,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
 
     GradleBuildInvoker.Request request = GradleBuildInvoker.Request.builder(
       myProject,
@@ -297,9 +274,9 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   private void verifyInteractionWithMocks(@NotNull BuildMode buildMode) {
-    verify(myBuildSettings).setBuildMode(buildMode);
     verify(myFileDocumentManager).saveAllDocuments();
     assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(1);
+    assertThat(Objects.requireNonNull(myGradleTaskExecutor.getLastRequest()).getMode()).isEqualTo(buildMode);
   }
 
   @NotNull

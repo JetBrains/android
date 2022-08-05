@@ -1,0 +1,6 @@
+<html>
+<body>
+Formats: enum<br>Values: horizontal, vertical<br><br>Should the layout be a column or a row?  Use "horizontal"
+             for a row, "vertical" for a column.  The default is
+             horizontal.</body>
+</html>

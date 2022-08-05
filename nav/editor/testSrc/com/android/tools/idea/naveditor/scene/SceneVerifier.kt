@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.scene.draw.makeGraphicsMock
@@ -34,14 +35,14 @@ val HANDLE_COLOR = Color(0xf5f5f5)
 @Suppress("UndesirableClassUsage")
 val BUFFERED_IMAGE = BufferedImage(5, 5, BufferedImage.TYPE_INT_ARGB)
 
-fun verifyScene(surface: DesignSurface, verifier: (InOrder, Graphics2D) -> Unit) {
+fun verifyScene(surface: DesignSurface<*>, verifier: (InOrder, Graphics2D) -> Unit) {
   val root = Mockito.mock(Graphics2D::class.java)
 
   val child = Mockito.mock(Graphics2D::class.java)
-  Mockito.`when`(root.create()).thenReturn(child)
+  whenever(root.create()).thenReturn(child)
 
   val graphics = makeGraphicsMock()
-  Mockito.`when`(child.create()).thenReturn(graphics)
+  whenever(child.create()).thenReturn(graphics)
 
   val inOrder = Mockito.inOrder(graphics)
 

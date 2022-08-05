@@ -15,9 +15,11 @@
  */
 package com.android.build.attribution.data
 
-import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleVersions
+import com.android.tools.idea.gradle.util.PropertiesFiles
 import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -29,22 +31,28 @@ import org.jetbrains.kotlin.idea.util.application.runReadAction
 
 data class StudioProvidedInfo(
   val agpVersion: GradleVersion?,
+  val gradleVersion: GradleVersion?,
   val configurationCachingGradlePropertyState: String?,
-  val isInConfigurationCacheTestFlow: Boolean,
+  val buildInvocationType: BuildInvocationType,
   val enableJetifierPropertyState: Boolean,
   val useAndroidXPropertyState: Boolean,
   val buildRequestHolder: BuildRequestHolder
 ) {
 
+  val isInConfigurationCacheTestFlow: Boolean get() = buildInvocationType == BuildInvocationType.CONFIGURATION_CACHE_TRIAL
+
   companion object {
     private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
 
-    fun fromProject(project: Project, buildRequest: BuildRequestHolder) = StudioProvidedInfo(
+    fun fromProject(project: Project, buildRequest: BuildRequestHolder, buildInvocationType: BuildInvocationType) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
+      gradleVersion = GradleVersions.getInstance().getGradleVersion(project),
       configurationCachingGradlePropertyState = runReadAction {
-        project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
+        // First check global user properties as it overrides project properties
+        getUserPropertiesConfigurationCachePropertyState(project) ?:
+        getProjectPropertiesConfigurationCachePropertyState(project)
       },
-      isInConfigurationCacheTestFlow = ConfigurationCacheTestBuildFlowRunner.getInstance(project).runningTestConfigurationCacheBuild,
+      buildInvocationType = buildInvocationType,
       enableJetifierPropertyState = project.isEnableJetifier(),
       useAndroidXPropertyState = project.isAndroidx(),
       buildRequestHolder = buildRequest
@@ -60,5 +68,15 @@ data class StudioProvidedInfo(
         OpenFileDescriptor(project, virtualFile, propertyOffset).navigate(true)
       }
     }
+
+    private fun getUserPropertiesConfigurationCachePropertyState(project: Project): String? {
+      val propertiesFileResult = runCatching {
+        PropertiesFiles.getProperties(GradleUtil.getUserGradlePropertiesFile(project))
+      }
+      return propertiesFileResult.getOrNull()?.getProperty(CONFIGURATION_CACHE_PROPERTY_NAME)
+    }
+
+    private fun getProjectPropertiesConfigurationCachePropertyState(project: Project) =
+      project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
   }
 }

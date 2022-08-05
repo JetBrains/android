@@ -7,6 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
@@ -42,7 +43,7 @@
         <CLASSES />
         <JAVADOC />
         <NATIVE>
-          <root url="file://$WORKSPACE_ROOT$/bazel-bin/tools/adt/idea/android-uitests/native/testing" />
+          <root url="file://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android-uitests/native/testing" />
         </NATIVE>
         <SOURCES />
       </library>

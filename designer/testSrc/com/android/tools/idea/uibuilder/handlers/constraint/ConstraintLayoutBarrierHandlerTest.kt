@@ -1,5 +1,6 @@
 package com.android.tools.idea.uibuilder.handlers.constraint
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
@@ -56,13 +57,13 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
   private fun createNlModelWithBarrier(direction: String): SyncNlModel {
     val builder = model(
       "constraint_barrier.xml",
-      component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+      component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
         .withBounds(0, 0, 1000, 1500)
         .id("@id/constraint")
         .matchParentWidth()
         .matchParentHeight()
         .children(
-          component(SdkConstants.CONSTRAINT_LAYOUT_BARRIER.newName())
+          component(AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER.newName())
             .withBounds(100, 100, 100, 100)
             .id("@+id/barrier")
             .width("wrap_content")
@@ -76,13 +77,13 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
   private fun createNlModelWithBarrierWithoutDirection(): SyncNlModel {
     val builder = model(
       "constraint_barrier.xml",
-      component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+      component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
         .withBounds(0, 0, 1000, 1500)
         .id("@id/constraint")
         .matchParentWidth()
         .matchParentHeight()
         .children(
-          component(SdkConstants.CONSTRAINT_LAYOUT_BARRIER.newName())
+          component(AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER.newName())
             .withBounds(100, 100, 100, 100)
             .id("@+id/barrier")
             .width("wrap_content")

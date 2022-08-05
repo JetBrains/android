@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.common.analytics;
 
+import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.RenderContext;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -45,12 +48,17 @@ import org.jetbrains.annotations.Nullable;
 public class CommonUsageTrackerImpl implements CommonUsageTracker {
   private static final Random sRandom = new Random();
 
+  /**
+   * We don't use the auto-generated id to log user's custom avd. All custom AVDs are tracked as a device which has "_custom_avd" id.
+   */
+  private static final String CUSTOM_AVD_ID = "_custom_avd";
+
   private final Executor myExecutor;
-  private final WeakReference<DesignSurface> myDesignSurfaceRef;
+  private final WeakReference<DesignSurface<?>> myDesignSurfaceRef;
   private final Consumer<AndroidStudioEvent.Builder> myEventLogger;
 
   public CommonUsageTrackerImpl(@NotNull Executor executor,
-                                @Nullable DesignSurface surface,
+                                @Nullable DesignSurface<?> surface,
                                 @NotNull Consumer<AndroidStudioEvent.Builder> eventLogger) {
     myExecutor = executor;
     myDesignSurfaceRef = new WeakReference<>(surface);
@@ -61,7 +69,7 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
    * Generates a {@link LayoutEditorState} containing all the state of the design editor from the given {@link DesignSurface}.
    */
   @NotNull
-  static LayoutEditorState getState(@Nullable DesignSurface surface) {
+  static LayoutEditorState getState(@Nullable DesignSurface<?> surface) {
     LayoutEditorState.Builder builder = LayoutEditorState.newBuilder();
     if (surface == null) {
       return builder.build();
@@ -194,7 +202,18 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
           .setErrorCount(errorCount)
           .setFidelityWarningCount(fidelityWarningCount);
       }
-
+      RenderContext context = result.getRenderContext();
+      if (context != null) {
+        Device device = context.getConfiguration().getDevice();
+        if (device != null) {
+          if (ConfigurationManager.isAvdDevice(device)) {
+            builder.setDeviceId(CUSTOM_AVD_ID);
+          }
+          else {
+            builder.setDeviceId(device.getId());
+          }
+        }
+      }
       event.setRenderResult(builder.build());
     });
   }

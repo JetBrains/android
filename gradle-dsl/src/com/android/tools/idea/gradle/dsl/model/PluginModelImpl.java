@@ -18,12 +18,15 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.InexpressiblePropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.InfixPropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.LiteralToInfixTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.PluginAliasTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PluginNameTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
@@ -41,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class PluginModelImpl implements PluginModel {
+  @NonNls public static final String ALIAS = "alias";
   @NonNls private static final String APPLY = "apply";
   @NonNls public static final String ID = "id";
   @NonNls public static final String KOTLIN = "kotlin";
@@ -97,6 +101,7 @@ public class PluginModelImpl implements PluginModel {
   @Override
   public ResolvedPropertyModel name() {
     return GradlePropertyModelBuilder.create(myCompleteElement)
+      .addTransform(new PluginAliasTransform(ID, ArtifactDependencySpec::getName, ArtifactDependencySpecImpl::setName))
       .addTransform(new PluginNameTransform())
       .buildResolved();
   }
@@ -105,6 +110,7 @@ public class PluginModelImpl implements PluginModel {
   @Override
   public ResolvedPropertyModel version() {
     return GradlePropertyModelBuilder.create(myCompleteElement)
+      .addTransform(new PluginAliasTransform(VERSION, ArtifactDependencySpec::getVersion, ArtifactDependencySpecImpl::setVersion))
       .addTransform(new LiteralToInfixTransform(VERSION))
       .addTransform(new InfixPropertyTransform(VERSION))
       .addTransform(new InexpressiblePropertyTransform())

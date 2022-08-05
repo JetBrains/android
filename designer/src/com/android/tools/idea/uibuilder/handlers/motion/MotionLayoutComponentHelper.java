@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion;
 
 import android.view.View;
-import com.android.SdkConstants;
+import com.android.AndroidXConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -1018,13 +1018,13 @@ public class MotionLayoutComponentHelper {
   private void updateIds(@NotNull NlComponent component) {
     ResourceIdManager manager = ResourceIdManager.get(component.getModel().getModule());
     updateId(manager, component);
-    if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CLASS_MOTION_LAYOUT)) {
       for (NlComponent child : component.getChildren()) {
         updateId(manager, child);
       }
     }
     component = component.getParent();
-    if (component != null && NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
+    if (component != null && NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CLASS_MOTION_LAYOUT)) {
       for (NlComponent child : component.getChildren()) {
         updateId(manager, child);
       }

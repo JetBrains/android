@@ -34,9 +34,6 @@ public enum BuildMode {
   /** Generate Java source only (e.g. R.java). */
   SOURCE_GEN,
 
-  /** Build project with translation support. */
-  ASSEMBLE_TRANSLATE,
-
   /** Build with the Gradle "bundle" task*/
   BUNDLE,
 

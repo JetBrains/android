@@ -77,7 +77,7 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
   @NotNull private final CommonUsageTracker myCommonTracker;
 
   NlUsageTrackerImpl(@NotNull Executor executor,
-                     @Nullable DesignSurface surface,
+                     @Nullable DesignSurface<?> surface,
                      @NotNull Consumer<AndroidStudioEvent.Builder> eventLogger) {
     myCommonTracker = new CommonUsageTrackerImpl(executor, surface, eventLogger);
   }

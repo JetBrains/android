@@ -46,8 +46,14 @@ abstract class SelectionRangeDataChangedListener : SelectionRangeDataListener {
  * A class which handles querying of [HttpData] requests based on the [range] selection.
  * When the range changes, the list will automatically be updated, and this class will notify any
  * listeners.
+ * When the selection is cleared, listeners will get all [HttpData] and will continue
+ * to receive new [HttpData] as they arrive.
  */
-class SelectionRangeDataFetcher(private val dataModel: HttpDataModel, private val range: Range) {
+class SelectionRangeDataFetcher(
+  private val dataModel: HttpDataModel,
+  private val selectionRange: Range,
+  private val dataRange: Range
+) {
   private val aspectObserver = AspectObserver()
   private val listeners = mutableListOf<SelectionRangeDataListener>()
 
@@ -58,7 +64,8 @@ class SelectionRangeDataFetcher(private val dataModel: HttpDataModel, private va
   private var prevDataList: List<HttpData>? = null
 
   init {
-    range.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) { handleRangeUpdated() }
+    selectionRange.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) { handleRangeUpdated() }
+    dataRange.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) { handleRangeUpdated() }
     handleRangeUpdated()
   }
 
@@ -76,7 +83,7 @@ class SelectionRangeDataFetcher(private val dataModel: HttpDataModel, private va
   }
 
   private fun handleRangeUpdated() {
-    val dataList = if (!range.isEmpty) dataModel.getData(range) else emptyList()
+    val dataList = dataModel.getData(if (selectionRange.isEmpty) dataRange else selectionRange)
     prevDataList = dataList.also { fireListeners(it) }
   }
 

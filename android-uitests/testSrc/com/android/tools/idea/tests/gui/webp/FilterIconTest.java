@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class FilterIconTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-  private static final String REG_EXP = "android:autoMirrored";
+  private static final String REG_EXP = "android:autoMirrored=\\\"true\\\"";
 
   /**
    * Verifies the icons can be filtered by name when creating a Vector Asset.
@@ -69,9 +69,10 @@ public class FilterIconTest {
       .filterByNameAndSelect("call")
       .clickOk()
       .clickNext()
+      .selectResFolder("main")
       .clickFinish()
       .getEditor()
-      .open("app/src/main/res/drawable/ic_baseline_call_24.xml")
+      .open("app/src/main/res/drawable/baseline_add_ic_call_24.xml")
       .getCurrentFileContents();
     assertThat(fileContents).containsMatch(REG_EXP);
   }

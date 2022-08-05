@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.ANDROIDX_PKG;
 import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.MATERIAL2_PKG;
-import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.android.SdkConstants.SWITCH;
 import static com.android.SdkConstants.TEXT_VIEW;
@@ -214,23 +214,22 @@ public class DataModel implements Disposable {
   @NotNull
   private static List<String> readFavoriteItems() {
     List<String> favorites = PropertiesComponent.getInstance().getList(FAVORITE_ITEMS);
-    if (favorites != null) {
-      return favorites;
+    if (favorites == null) {
+      return List.of(
+        TEXT_VIEW,
+        BUTTON,
+        IMAGE_VIEW,
+        RECYCLER_VIEW.oldName(),
+        RECYCLER_VIEW.newName(),
+        FRAGMENT_CONTAINER_VIEW,
+        SCROLL_VIEW,
+        SWITCH,
+        PreferenceTags.CHECK_BOX_PREFERENCE,
+        PreferenceTags.EDIT_TEXT_PREFERENCE,
+        PreferenceTags.SWITCH_PREFERENCE,
+        PreferenceTags.PREFERENCE_CATEGORY);
     }
-    return List.of(
-      TEXT_VIEW,
-      BUTTON,
-      IMAGE_VIEW,
-      RECYCLER_VIEW.oldName(),
-      RECYCLER_VIEW.newName(),
-      FRAGMENT_CONTAINER_VIEW,
-      SCROLL_VIEW,
-      SWITCH,
-      PreferenceTags.CHECK_BOX_PREFERENCE,
-      PreferenceTags.EDIT_TEXT_PREFERENCE,
-      PreferenceTags.SWITCH_PREFERENCE,
-      PreferenceTags.PREFERENCE_CATEGORY
-      );
+    return favorites;
   }
 
   @Slow

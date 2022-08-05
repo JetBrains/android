@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_TEXT;
-import static com.android.SdkConstants.COORDINATOR_LAYOUT;
 import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
@@ -27,6 +26,7 @@ import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PR
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -127,7 +127,7 @@ public class PaletteTest extends AndroidTestCase {
   }
 
   private void assertCoordinatorLayoutItem(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, COORDINATOR_LAYOUT.defaultName(), DESIGN_LIB_ARTIFACT, SUGGESTED);
+    assertStandardLayout(item, AndroidXConstants.COORDINATOR_LAYOUT.defaultName(), DESIGN_LIB_ARTIFACT, SUGGESTED);
   }
 
   private void assertIncludeItem(@NotNull Palette.BaseItem item) {

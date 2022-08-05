@@ -35,6 +35,7 @@ import com.intellij.openapi.externalSystem.service.internal.AbstractExternalSyst
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -72,7 +73,8 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
 
     // Verify that GradleSyncInvoker is called, and verify that extra command line options are set.
     verify(syncInvoker)
-      .requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS);
+      .requestProjectSync(project,
+                          new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS), null);
     assertThat(project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY)).asList().containsExactly("--info");
   }
 

@@ -29,8 +29,8 @@ public class AndroidOSProcessHandler extends BaseOSProcessHandler {
   @NonNls private static final String SKIPPING = "skipping";
   @NonNls private static final String DEBUGGABLE_ERROR = "androidmanifest.xml already defines debuggable";
 
-  private final List<String> myInfoMessages = new ArrayList<>();
-  private final List<String> myErrorMessages = new ArrayList<>();
+  private final List<String> myInfoMessages = new ArrayList<String>();
+  private final List<String> myErrorMessages = new ArrayList<String>();
   
   public AndroidOSProcessHandler(@NotNull final Process process, @NotNull final String commandLine) {
     super(process, commandLine, null);

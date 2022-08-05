@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.metrics
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -31,6 +32,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewStr
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -38,16 +40,14 @@ import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.DisposableRule
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.anyDouble
-import org.mockito.Mockito.`when`
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -113,8 +113,8 @@ class AppInspectionInspectorMetricsTest {
 
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    waitForCondition(1, TimeUnit.SECONDS) { usages.size == 3 }
-    assertThat(usages).hasSize(3)
+    waitForCondition(10, TimeUnit.SECONDS) { usages.size == 4 }
+    assertThat(usages).hasSize(4)
 
     usages[0].studioEvent.let { studioEvent ->
       val deviceInfo = studioEvent.deviceInfo
@@ -140,6 +140,11 @@ class AppInspectionInspectorMetricsTest {
     }
     usages[2].studioEvent.let { studioEvent ->
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
+      assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_ERROR)
+      assertThat(inspectorEvent.errorInfo.attachErrorState).isEqualTo(AttachErrorState.START_REQUEST_SENT)
+    }
+    usages[3].studioEvent.let { studioEvent ->
+      val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
     }
   }
@@ -154,13 +159,13 @@ class AppInspectionInspectorMetricsTest {
     val getUsages = { usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.INITIAL_RENDER } }
 
-    inspectorRule.asyncLaunchLatch = CountDownLatch(1)
+    inspectorRule.startLaunch(2)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    inspectorRule.asyncLaunchLatch.await()
-    waitForCondition(1, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
+    inspectorRule.awaitLaunch()
+    waitForCondition(10, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
     var rootId = 1L
     val skiaParser = mock<SkiaParser>().also {
-      `when`(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer { SkiaViewNode(rootId, listOf()) }
+      whenever(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer { SkiaViewNode(rootId, listOf()) }
     }
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
 
@@ -183,17 +188,16 @@ class AppInspectionInspectorMetricsTest {
     window2!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
     // disconnecting causes two separate events
-    inspectorRule.asyncLaunchLatch = CountDownLatch(2)
+    inspectorRule.startLaunch(4)
     // Now disconnect and reconnect. This should generate another event.
     inspectorRule.processNotifier.fireDisconnected(MODERN_PROCESS)
-    inspectorRule.asyncLaunchLatch.await()
-    waitForCondition(1, TimeUnit.SECONDS) { !inspectorRule.inspectorClient.isConnected }
+    inspectorRule.awaitLaunch()
+    waitForCondition(10, TimeUnit.SECONDS) { !inspectorRule.inspectorClient.isConnected }
 
-    inspectorRule.asyncLaunchLatch = CountDownLatch(1)
+    inspectorRule.startLaunch(2)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    inspectorRule.asyncLaunchLatch.await()
-    inspectorRule.asyncLaunchLatch = CountDownLatch(1)
-    waitForCondition(1, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
+    inspectorRule.awaitLaunch()
+    waitForCondition(10, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
     val (window3, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),

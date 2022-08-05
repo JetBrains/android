@@ -1,6 +1,5 @@
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +35,7 @@ public class AndroidStudioGradleSettings extends GradleSettings{
   }
 
   static void configureForAndroidStudio(@NotNull GradleProjectSettings projectSettings) {
-    projectSettings.setResolveModulePerSourceSet(StudioFlags.USE_MODULE_PER_SOURCE_SET.get());
+    projectSettings.setResolveModulePerSourceSet(true);
     projectSettings.setTestRunner(TestRunner.GRADLE);
     projectSettings.setUseQualifiedModuleNames(true);
   }

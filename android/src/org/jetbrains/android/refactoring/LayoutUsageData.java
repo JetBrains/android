@@ -49,7 +49,7 @@ public class LayoutUsageData {
   }
 
   private static void inlineSingleTag(XmlTag includeTag, XmlTag includeParentTag, XmlTag layoutRootTag) {
-    final Map<String, String> attributesToAdd = new HashMap<>();
+    final Map<String, String> attributesToAdd = new HashMap<String, String>();
 
     for (XmlAttribute attribute : includeTag.getAttributes()) {
       final String namespace = attribute.getNamespace();
@@ -59,7 +59,7 @@ public class LayoutUsageData {
       }
     }
     final XmlTag newTag = (XmlTag)includeTag.replace(layoutRootTag.copy());
-    final List<XmlAttribute> toDelete = new ArrayList<>();
+    final List<XmlAttribute> toDelete = new ArrayList<XmlAttribute>();
 
     for (XmlAttribute attribute : newTag.getAttributes()) {
       if (attribute.isNamespaceDeclaration()) {
@@ -88,8 +88,8 @@ public class LayoutUsageData {
   private static void inlineMultiTags(XmlTag includeTag, XmlTag includeTagParent, XmlTag mergeTag, Project project)
     throws AndroidRefactoringErrorException {
     final Map<String, String> namespacesFromParent = includeTagParent.getLocalNamespaceDeclarations();
-    final Map<String, String> namespacesToAddToParent = new HashMap<>();
-    final Map<String, String> namespacesToAddToEachTag = new HashMap<>();
+    final Map<String, String> namespacesToAddToParent = new HashMap<String, String>();
+    final Map<String, String> namespacesToAddToEachTag = new HashMap<String, String>();
 
     for (Map.Entry<String, String> entry : mergeTag.getLocalNamespaceDeclarations().entrySet()) {
       final String prefix = entry.getKey();

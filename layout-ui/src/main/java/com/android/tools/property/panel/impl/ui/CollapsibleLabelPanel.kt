@@ -65,13 +65,6 @@ class CollapsibleLabelPanel(
 
   private val expandButton = IconWithFocusBorder { if (model.expandable) expandAction else null }
   private val actionButtons = mutableListOf<FocusableActionButton>()
-  private val updater = object : ToolbarUpdater(this) {
-    override fun updateActionsImpl(forced: Boolean) {
-      if (!ApplicationManager.getApplication().isDisposed) {
-        actionButtons.forEach { it.update() }
-      }
-    }
-  }
 
   val text: String?
     get() = label.text
@@ -104,6 +97,13 @@ class CollapsibleLabelPanel(
         actionButtons.add(button)
       }
       add(buttonPanel, BorderLayout.EAST)
+      object : ToolbarUpdater(this) {
+        override fun updateActionsImpl(forced: Boolean) {
+          if (!ApplicationManager.getApplication().isDisposed) {
+            actionButtons.forEach { it.update() }
+          }
+        }
+      }
     }
     label.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(event: MouseEvent) {

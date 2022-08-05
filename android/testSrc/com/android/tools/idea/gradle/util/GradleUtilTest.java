@@ -24,7 +24,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.utils.FileUtils;
 import com.google.common.collect.Lists;
@@ -135,15 +134,6 @@ public class GradleUtilTest {
     assertEquals("androidTestApi", GradleUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", true));
     assertEquals("compileOnly", GradleUtil.mapConfigurationName("provided", "3.0.0-alpha1", true));
     assertEquals("testCompileOnly", GradleUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", true));
-  }
-
-  @Test
-  public void useCompatibilityConfigurationNames() {
-    assertTrue(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("2.3.2")));
-    assertFalse(GradleUtil.useCompatibilityConfigurationNames((GradleVersion)null));
-    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0-alpha1")));
-    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0")));
-    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("4.0.0")));
   }
 
   @Test

@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -101,7 +102,7 @@ class MultipleColorIconProviderTest {
     ResourceFile.createSingle(File("source"), asset.resourceItem as ResourceMergerItem, "")
 
     val resourceResolver = Mockito.mock(ResourceResolver::class.java)
-    Mockito.`when`(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(
+    whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(
       ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "my_color", "#00F")
     )
 

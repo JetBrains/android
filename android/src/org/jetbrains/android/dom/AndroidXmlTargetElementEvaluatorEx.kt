@@ -17,23 +17,27 @@ package org.jetbrains.android.dom
 
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.TargetElementEvaluatorEx
-import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.XmlTargetElementEvaluator
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
 /**
- * Extends the functionality of [XmlTargetElementEvaluator]
+ * Extends the functionality of [XmlTargetElementEvaluator].
  *
  * This is necessary because Android resource references in XML start with the '@' symbol, which is not included in the default
- * implementation for Java identifiers, @see [TargetElementUtil.isIdentifierPart], but remains part of the resource reference.
+ * implementation for Java identifiers, @see [Character.isJavaIdentifierPart], but remains part of the resource reference.
  */
-class AndroidXmlTargetElementEvaluatorEx : XmlTargetElementEvaluator(), TargetElementEvaluatorEx{
+class AndroidXmlTargetElementEvaluatorEx : XmlTargetElementEvaluator(), TargetElementEvaluatorEx {
   override fun isIdentifierPart(file: PsiFile, text: CharSequence, offset: Int): Boolean {
-    val character = text?.get(offset) ?: return false
-     return if (file?.androidFacet != null) {
+    val character = text[offset]
+     return if (file.androidFacet != null) {
       Character.isJavaIdentifierPart(character) || character == '@'
     } else {
       Character.isJavaIdentifierPart(character)
     }
+  }
+
+  override fun includeSelfInGotoImplementation(element: PsiElement): Boolean {
+    return false
   }
 }

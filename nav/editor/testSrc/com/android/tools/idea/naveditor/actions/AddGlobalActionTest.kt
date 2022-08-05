@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.naveditor.NavEditorRule
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
-import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.isAction
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
-class AddGlobalActionTest : NavTestCase() {
+class AddGlobalActionTest {
+
+  @get:Rule
+  val navRule = NavEditorRule()
+
+  @Test
   fun testRun() {
-    val model = model("nav.xml") {
+    val model = navRule.model("nav.xml") {
       navigation {
         fragment("f1")
         fragment("f2")
@@ -38,8 +46,8 @@ class AddGlobalActionTest : NavTestCase() {
       AddGlobalAction(model.surface, model.find("f2")!!).actionPerformed(mock(AnActionEvent::class.java))
       val root = model.components[0]
       val action = root.children.first { it.isAction }
-      assertEquals(model.find("f2")!!, action.actionDestination)
-      assertSameElements(model.surface.selectionModel.selection, action)
+      assertThat(action.actionDestination).isEqualTo(model.find("f2"))
+      assertThat(model.surface.selectionModel.selection).containsExactly(action)
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
                                  .setActionInfo(NavActionInfo.newBuilder()

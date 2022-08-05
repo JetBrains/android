@@ -56,7 +56,7 @@ class AppInspectionDiscoveryService : Disposable {
     TransportService.getInstance()
   }
 
-  private val client = TransportClient(TransportService.CHANNEL_NAME)
+  private val client = TransportClient(TransportService.channelName)
   private val streamManager = TransportStreamManager.createManager(client.transportStub, AndroidDispatchers.workerThread)
 
   private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)

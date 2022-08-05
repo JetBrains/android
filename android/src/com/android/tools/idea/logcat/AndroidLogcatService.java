@@ -367,7 +367,9 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private void stopReceiving(@NotNull IDevice device) {
     synchronized (myLock) {
       if (myLogReceivers.containsKey(device)) {
-        myLogReceivers.get(device).cancel();
+        AndroidLogcatReceiver receiver = myLogReceivers.get(device);
+        receiver.cancel();
+        Disposer.dispose(receiver);
         myLogReceivers.remove(device);
         myLogBuffers.remove(device);
       }

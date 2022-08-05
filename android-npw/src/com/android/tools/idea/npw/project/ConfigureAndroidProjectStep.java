@@ -23,7 +23,7 @@ import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.module.AndroidApiLevelComboBoxKt.ensureDefaultApiLevelAtLeastRecommended;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
-import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
+import static com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.computeCommentInsets;
 import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.createCommentComponent;
@@ -57,7 +57,6 @@ import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.template.Category;
@@ -65,6 +64,7 @@ import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
+import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.HelpTooltip;
@@ -89,6 +89,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,6 +112,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JTextField myAppName;
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
+  private JBLabel myProjectLanguageLabel;
+  private JPanel myAppCompatPanel;
   private JBCheckBox myAppCompatCheck;
   private JBCheckBox myWearCheck;
   private JBCheckBox myTvCheck;
@@ -144,9 +147,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
-    File sdkPath = getSdkManagerLocalPath();
     LicenseAgreementStep licenseAgreementStep =
-      new LicenseAgreementStep(new LicenseAgreementModel(sdkPath == null ? null: sdkPath.toPath()), myInstallLicenseRequests);
+      new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), myInstallLicenseRequests);
 
     InstallSelectedPackagesStep installPackagesStep =
       new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
@@ -196,7 +198,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
 
     myValidatorPanel.registerValidator(myProjectModel.getPackageName(),
-                                       value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
+                                       value -> Validator.Result.fromNullableMessage(AndroidUtils.validatePackageName(value)));
 
     myValidatorPanel.registerValidator(myProjectModel.getLanguage(), value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("android.wizard.validate.select.language")));
@@ -233,11 +235,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     ensureDefaultApiLevelAtLeastRecommended();
     myFormFactorSdkControls.startDataLoading(toWizardFormFactor(formFactor), minSdk);
-    boolean isKotlinOnly;
     setTemplateThumbnail(newTemplate);
-    isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
+    boolean isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
 
-    myProjectLanguage.setEnabled(!isKotlinOnly);
+    myProjectLanguage.setVisible(!isKotlinOnly);
+    myProjectLanguageLabel.setVisible(!isKotlinOnly);
     if (isKotlinOnly) {
       myProjectModel.getLanguage().setValue(Language.Kotlin);
     }
@@ -324,6 +326,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     else {
       myAppCompatCheck.setEnabled(true);
     }
+
+    boolean isKotlin = template != null && template.getConstraints().contains(TemplateConstraint.Kotlin);
+    myAppCompatPanel.setVisible(!isKotlin);
   }
 
   private static boolean hasValidSdkComposeVersion(VersionItem skdItem, @Nullable Template renderTemplate) {

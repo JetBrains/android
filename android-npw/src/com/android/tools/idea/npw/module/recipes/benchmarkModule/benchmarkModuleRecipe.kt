@@ -47,6 +47,7 @@ fun RecipeExecutor.generateBenchmarkModule(
   save(benchmarkProguardRules(), moduleOut.resolve("benchmark-proguard-rules.pro"))
 
   val bg = buildGradle(
+    packageName,
     buildApi.apiString,
     minApi.apiString,
     targetApi.apiString,
@@ -64,8 +65,8 @@ fun RecipeExecutor.generateBenchmarkModule(
   addDependency("junit:junit:4.+", "androidTestImplementation", "4.13.2")
   addDependency("androidx.benchmark:benchmark-junit4:+", "androidTestImplementation", minRev)
 
-  save(androidManifestXml(packageName), moduleOut.resolve("src/main/AndroidManifest.xml"))
-  save(testAndroidManifestXml(packageName), moduleOut.resolve("src/androidTest/AndroidManifest.xml"))
+  save(androidManifestXml(), moduleOut.resolve("src/main/AndroidManifest.xml"))
+  save(testAndroidManifestXml(), moduleOut.resolve("src/androidTest/AndroidManifest.xml"))
   save(gitignore(), moduleOut.resolve(".gitignore"))
 
   if (language == Language.Kotlin) {

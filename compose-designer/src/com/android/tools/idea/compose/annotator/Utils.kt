@@ -19,8 +19,15 @@ import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 
-internal fun AndroidModuleSystem.isPickerEnabled(): Boolean =
+private fun AndroidModuleSystem.isComposeEnabled(): Boolean =
   StudioFlags.COMPOSE_EDITOR_SUPPORT.get() &&
-  StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get() &&
-  ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled &&
   this.usesCompose
+
+internal fun AndroidModuleSystem.isPreviewPickerEnabled(): Boolean =
+  isComposeEnabled() &&
+  StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get() &&
+  ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled
+
+internal fun AndroidModuleSystem.isSpringPickerEnabled(): Boolean =
+  isComposeEnabled() &&
+  StudioFlags.COMPOSE_SPRING_PICKER.get()

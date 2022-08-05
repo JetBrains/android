@@ -19,12 +19,14 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.ROOT2
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
@@ -32,13 +34,13 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
+import com.android.tools.idea.layoutinspector.window
 import com.google.common.base.Objects
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
@@ -192,19 +194,28 @@ class DeviceViewPanelModelTest {
         view(VIEW1, Rectangle(10, -10, 50, 100)) {
           image()
         }
+        view(VIEW3, 20, 20, 10, 10)
       }
     }
+    val window1 = window(ROOT2, ROOT2, -10, 0, 10, 10) {
+      view(VIEW2, Rectangle(-10, 0, 10, 10)) {
+        image()
+      }
+    }
+    model.update(window1, listOf(ROOT, ROOT2), 0)
+
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     panelModel.rotate(0.1, 0.2)
-    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(0, -10, 100, 210))
+    // Only the bounds of the roots themselves should be taken into account.
+    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(-10, 0, 110, 200))
     // ensure that nothing changes when we rotate more
     panelModel.rotate(0.1, 0.2)
-    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(0, -10, 100, 210))
-    // Hide the subview and verify the bounds reduce
-    model.hideSubtree(model[VIEW1]!!)
-    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(0, 0, 100, 200))
+    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(-10, 0, 110, 200))
+    // Show only a subtree and verify the bounds reduce
+    model.showOnlySubtree(model[VIEW3]!!)
+    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(20, 20, 10, 10))
   }
 
   @Test
@@ -215,7 +226,7 @@ class DeviceViewPanelModelTest {
     val treeSettings = FakeTreeSettings()
     val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
     val client: InspectorClient = mock()
-    `when`(client.capabilities).thenReturn(capabilities)
+    whenever(client.capabilities).thenReturn(capabilities)
 
     val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings) { client }
     panelModel.rotate(0.1, 0.2)
@@ -267,6 +278,30 @@ class DeviceViewPanelModelTest {
     }
     panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     assertEquals(listOf(VIEW3, VIEW2, VIEW1, ROOT), panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
+  }
+
+  @Test
+  fun testAllNodesInvisible() {
+    val model = model {
+      view(ROOT, Rectangle(0, 0, 100, 200)) {
+        view(VIEW1, Rectangle(10, 10, 50, 100)) {
+          view(VIEW2, 10, 10, 10, 10)
+        }
+        view(VIEW3, 50, 50, 20, 20)
+      }
+    }
+    val treeSettings = FakeTreeSettings()
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
+    panelModel.layerSpacing = 0
+    model.showOnlySubtree(model[VIEW1]!!)
+    model.hideSubtree(model[VIEW1]!!)
+    panelModel.refresh()
+
+    assertThat(model.root.x).isEqualTo(0)
+    assertThat(model.root.y).isEqualTo(0)
+    assertThat(model.root.width).isEqualTo(0)
+    assertThat(model.root.height).isEqualTo(0)
+    assertThat(panelModel.maxWidth)
   }
 
   private fun checkRects(expectedTransforms: Map<Long, ComparingTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {

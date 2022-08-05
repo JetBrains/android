@@ -17,6 +17,8 @@ iml_module(
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module]",
     ],
 )
 
@@ -25,6 +27,12 @@ iml_module(
     name = "intellij.android.debuggers.tests",
     iml_files = ["intellij.android.debuggers.tests.iml"],
     test_class = "com.android.tools.idea.debuggers.DebuggersTestSuite",
+    # keep sorted
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:sources",
+        "//tools/adt/idea/android/testData",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -37,11 +45,14 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "libjava_sites",
     jars = ["//tools/base/deploy/sites:libjava_sites.jar"],
     visibility = ["//visibility:public"],

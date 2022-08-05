@@ -32,11 +32,12 @@ import icons.StudioIcons
 /**
  * Filter menu group
  */
-object FilterGroupAction : DropDownAction("Filter", "View options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
+object FilterGroupAction : DropDownAction("Filter", "View Options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
   init {
     add(SystemNodeFilterAction)
     add(HighlightSemanticsAction)
     add(CallstackAction)
+    add(RecompositionCounts)
     add(SupportLines)
   }
 }
@@ -90,9 +91,7 @@ object HighlightSemanticsAction : ToggleAction("Highlight Semantics Layers") {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible =
-      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
-      isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
+    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
   }
 }
 
@@ -119,12 +118,33 @@ object SupportLines : ToggleAction("Show Support Lines", null, null) {
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     LayoutInspector.get(event)?.treeSettings?.supportLines = state
-    event.tree()?.repaint()
+    event.treePanel()?.component?.repaint()
   }
 }
 
-private fun isActionVisible(event: AnActionEvent, vararg capabilities: Capability): Boolean =
+object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, null) {
+
+  override fun isSelected(event: AnActionEvent): Boolean =
+    LayoutInspector.get(event)?.treeSettings?.showRecompositions ?: DEFAULT_RECOMPOSITIONS
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    val inspector = LayoutInspector.get(event) ?: return
+    inspector.treeSettings.showRecompositions = state
+    val panel = event.treePanel()
+    panel?.updateRecompositionColumnVisibility()
+    panel?.resetRecompositionCounts()
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) &&
+                                   StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
+                                   StudioFlags.USE_COMPONENT_TREE_TABLE.get()
+  }
+}
+
+fun isActionVisible(event: AnActionEvent, vararg capabilities: Capability): Boolean =
   LayoutInspector.get(event)?.currentClient?.let { client ->
     !client.isConnected || // If not running, default to visible so user can modify selection when next client is connected
-    capabilities.any { client.capabilities.contains(it) }
+    capabilities.all { client.capabilities.contains(it) }
   } ?: true

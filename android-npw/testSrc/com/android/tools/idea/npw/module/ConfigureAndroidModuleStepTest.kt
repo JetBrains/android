@@ -39,6 +39,7 @@ import org.junit.Test
 
 @RunsInEdt
 class ConfigureAndroidModuleStepTest {
+  private val myInvokeStrategy = TestInvokeStrategy()
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels(
@@ -51,7 +52,6 @@ class ConfigureAndroidModuleStepTest {
 
   @Before
   fun setUp() {
-    myInvokeStrategy = TestInvokeStrategy()
     BatchInvoker.setOverrideStrategy(myInvokeStrategy)
   }
 
@@ -205,10 +205,5 @@ class ConfigureAndroidModuleStepTest {
     newModuleModel.androidSdkInfo.value = androidQFinal
     myInvokeStrategy.updateAllSteps()
     assertThat(configureAndroidModuleStep.canGoForward().get()).isFalse()
-
-  }
-
-  companion object {
-    private lateinit var myInvokeStrategy: TestInvokeStrategy
   }
 }

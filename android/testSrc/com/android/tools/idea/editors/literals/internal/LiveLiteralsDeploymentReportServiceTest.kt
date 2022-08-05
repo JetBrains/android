@@ -16,10 +16,11 @@
 package com.android.tools.idea.editors.literals.internal
 
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.project.Project
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -43,8 +44,13 @@ internal class LiveLiteralsDeploymentReportServiceTest {
 
   @Before
   fun setup() {
-    StudioFlags.COMPOSE_LIVE_LITERALS.override(true)
+    LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
     service = LiveLiteralsDeploymentReportService.getInstanceForTesting(project, MoreExecutors.directExecutor())
+  }
+
+  @After
+  fun tearDown() {
+    LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 
   @Test

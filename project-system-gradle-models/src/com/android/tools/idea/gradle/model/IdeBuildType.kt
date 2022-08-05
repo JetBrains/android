@@ -16,29 +16,29 @@
 package com.android.tools.idea.gradle.model
 
 interface IdeBuildType : IdeBaseConfig {
-    /** Whether the build type is configured to generate a debuggable apk. */
-    val isDebuggable: Boolean
+  /** Whether the build type is configured to generate a debuggable apk. */
+  val isDebuggable: Boolean
 
-    /** Whether the build type is configured to generate an apk with debuggable native code. */
-    val isJniDebuggable: Boolean
+  /** Whether the build type is configured to generate an apk with debuggable native code. */
+  val isJniDebuggable: Boolean
 
-    /** Whether the build type is configured to generate an apk with debuggable renderscript code. */
-    val isRenderscriptDebuggable: Boolean
+  /** Whether the build type is configured to generate an apk with debuggable renderscript code. */
+  val isRenderscriptDebuggable: Boolean
 
-    /** The optimization level of the renderscript compilation. */
-    val renderscriptOptimLevel: Int
+  /** The optimization level of the renderscript compilation. */
+  val renderscriptOptimLevel: Int
 
-    /**
-     * Specifies whether to enable code shrinking for this build type.
-     *
-     * By default, when you enable code shrinking by setting this property to `true`,
-     * the Android plugin uses ProGuard.
-     *
-     * To learn more, read
-     * [Shrink Your Code and Resources](https://developer.android.com/studio/build/shrink-code.html).
-     */
-    val isMinifyEnabled: Boolean
+  /**
+   * Specifies whether to enable code shrinking for this build type.
+   *
+   * By default, when you enable code shrinking by setting this property to `true`,
+   * the Android plugin uses ProGuard.
+   *
+   * To learn more, read
+   * [Shrink Your Code and Resources](https://developer.android.com/studio/build/shrink-code.html).
+   */
+  val isMinifyEnabled: Boolean
 
-    /** Whether zipalign is enabled for this build type. */
-    val isZipAlignEnabled: Boolean
+  /** Whether zipalign is enabled for this build type. */
+  val isZipAlignEnabled: Boolean
 }

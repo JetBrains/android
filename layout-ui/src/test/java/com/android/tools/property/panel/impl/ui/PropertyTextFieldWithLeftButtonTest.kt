@@ -20,9 +20,9 @@ import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
-import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
+import com.intellij.testFramework.ApplicationRule
+import org.junit.ClassRule
 import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -31,8 +31,11 @@ import java.awt.event.MouseEvent
 
 class PropertyTextFieldWithLeftButtonTest {
 
-  @get:Rule
-  val appRule = PropertyAppRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @Test
   fun testDoubleClickOnTextFieldIsHandledByContainer() {

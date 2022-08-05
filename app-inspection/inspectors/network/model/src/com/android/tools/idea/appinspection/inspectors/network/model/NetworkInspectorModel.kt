@@ -27,7 +27,9 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModelImpl
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asExecutor
 
 private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(1, 5, 5)
@@ -38,14 +40,33 @@ private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(
 class NetworkInspectorModel(
   services: NetworkInspectorServices,
   dataSource: NetworkInspectorDataSource,
-  val connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource),
+  scope: CoroutineScope,
+  connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource, services.usageTracker, scope),
   startTimeStampNs: Long = 0
 ) : AspectModel<NetworkInspectorAspect>() {
+
+  enum class DetailContent {
+    CONNECTION,
+    RULE,
+    EMPTY
+  }
+
+  var detailContent: DetailContent = DetailContent.EMPTY
+    set(value) {
+      if (field != value) {
+        field = value
+        aspect.changed(NetworkInspectorAspect.DETAILS)
+      }
+    }
 
   val name = "NETWORK"
 
   // If null, means no connection to show in the details pane.
   var selectedConnection: HttpData? = null
+    private set
+
+  // If null, means no rule to show in the details pane.
+  var selectedRule: RuleData? = null
     private set
 
   val aspect = AspectModel<NetworkInspectorAspect>()
@@ -56,7 +77,7 @@ class NetworkInspectorModel(
   val trafficAxis = ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()
   val stackTraceModel = StackTraceModel(services.navigationProvider.codeNavigator)
   val rangeSelectionModel = RangeSelectionModel(timeline.selectionRange, timeline.viewRange)
-  val selectionRangeDataFetcher = SelectionRangeDataFetcher(connectionsModel, timeline.selectionRange)
+  val selectionRangeDataFetcher = SelectionRangeDataFetcher(connectionsModel, timeline.selectionRange, timeline.dataRange)
 
   var tooltip: TooltipModel? = null
     set(value) {
@@ -82,13 +103,33 @@ class NetworkInspectorModel(
 
   /**
    * Sets the active connection, or clears the previously selected active connection if given data is null.
+   * Setting a non-null connection will deselect [selectedRule].
    */
   fun setSelectedConnection(data: HttpData?): Boolean {
     if (selectedConnection == data) {
       return false
     }
     selectedConnection = data
+    if (data == null && detailContent == DetailContent.CONNECTION) {
+      detailContent = DetailContent.EMPTY
+    }
     aspect.changed(NetworkInspectorAspect.SELECTED_CONNECTION)
+    return true
+  }
+
+  /**
+   * Sets the active interception rule, or clears the previously selected one if given rule is null.
+   * Setting a non-null rule will deselect [selectedConnection].
+   */
+  fun setSelectedRule(rule: RuleData?): Boolean {
+    if (selectedRule == rule) {
+      return false
+    }
+    selectedRule = rule
+    if (rule == null && detailContent == DetailContent.RULE) {
+      detailContent = DetailContent.EMPTY
+    }
+    aspect.changed(NetworkInspectorAspect.SELECTED_RULE)
     return true
   }
 }

@@ -19,6 +19,7 @@ package com.android.tools.idea.configurations
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.HardwareConfigHelper.isAutomotive
+import com.android.ide.common.rendering.HardwareConfigHelper.isDesktop
 import com.android.ide.common.rendering.HardwareConfigHelper.isMobile
 import com.android.ide.common.rendering.HardwareConfigHelper.isNexus
 import com.android.ide.common.rendering.HardwareConfigHelper.isTv
@@ -27,13 +28,13 @@ import com.android.ide.common.rendering.HardwareConfigHelper.sortDevicesByScreen
 import com.android.ide.common.rendering.api.HardwareConfig
 import com.android.resources.Density
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.avdmanager.AvdManagerUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Computable
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.AvdManagerUtils
 import kotlin.math.roundToInt
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
@@ -43,6 +44,7 @@ enum class DeviceGroup {
   NEXUS_XL,
   NEXUS_TABLET,
   WEAR,
+  DESKTOP,
   TV,
   AUTOMOTIVE,
   GENERIC,
@@ -93,6 +95,7 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> =
       when {
         isAutomotive(it) -> DeviceGroup.AUTOMOTIVE
         isWear(it) -> DeviceGroup.WEAR
+        isDesktop(it) -> DeviceGroup.DESKTOP
         isTv(it) -> DeviceGroup.TV
         isNexus(it) && it.manufacturer != HardwareConfig.MANUFACTURER_GENERIC -> sizeGroupNexus(it)
         isMobile(it) && it.manufacturer == HardwareConfig.MANUFACTURER_GENERIC -> DeviceGroup.GENERIC
@@ -105,7 +108,7 @@ private fun sizeGroupNexus(device: Device): DeviceGroup {
   val diagonalLength = device.defaultHardware.screen.diagonalLength
   return when {
     diagonalLength < 5 -> DeviceGroup.NEXUS
-    diagonalLength < 6.5 -> DeviceGroup.NEXUS_XL
+    diagonalLength < 7 -> DeviceGroup.NEXUS_XL
     else -> DeviceGroup.NEXUS_TABLET
   }
 }

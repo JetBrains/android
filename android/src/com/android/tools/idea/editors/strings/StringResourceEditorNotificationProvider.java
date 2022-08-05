@@ -62,8 +62,9 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
       super(fileEditor, null, EditorColors.READONLY_BACKGROUND_COLOR);
     }
 
+    @NotNull
     @Override
-    public @NotNull Color getFallbackBackgroundColor() {
+    public Color getFallbackBackgroundColor() {
       return UIUtil.getPanelBackground();
     }
   }

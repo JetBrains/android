@@ -21,14 +21,21 @@ import static com.android.resources.ScreenSize.NORMAL;
 import static com.android.resources.ScreenSize.XLARGE;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.xml.XmlFormatPreferences;
+import com.android.ide.common.xml.XmlFormatStyle;
+import com.android.ide.common.xml.XmlPrettyPrinter;
+import com.android.manifmerger.ManifestSystemProperty;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
+import com.android.tools.idea.projectsystem.ManifestOverrides;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.utils.concurrency.AsyncSupplier;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Clock;
@@ -42,6 +49,7 @@ import java.util.Map;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
 
 @SuppressWarnings("javadoc")
 public class MergedManifestManagerTest extends AndroidTestCase {
@@ -330,6 +338,56 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     updateManifestContents(originalContent.replace("unittest", "unittest2"));
     assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
     assertEquals("com.android.unittest2", supplier.getNow().getPackage());
+  }
+
+  public void testNamespaceAndApplicationIdFromProjectSystem() throws Exception {
+
+    TestProjectSystem projectSystem = new TestProjectSystem(getProject());
+    projectSystem.setNamespace("com.example.namespace.from.project.system");
+    projectSystem.setManifestOverrides(new ManifestOverrides(ImmutableMap.of(
+      ManifestSystemProperty.Document.PACKAGE, "com.example.application.id"
+    ), ImmutableMap.of()));
+    projectSystem.useInTests();
+
+    @Language("xml")
+    final String manifestWithoutPackageName = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'>\n" +
+                                   "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
+                                  "        <activity\n" +
+                                  "            android:name='.prefs.PrefsActivity'\n" +
+                                  "            android:label='@string/prefs_title' />\n" +
+                                   "</manifest>\n";
+    updateManifestContents(manifestWithoutPackageName);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
+
+    // We've never loaded a snapshot so that must return null
+    assertNull(supplier.getNow());
+
+    // Once the snapshot is loaded it should be cached.
+    assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
+    Document document = supplier.getNow().getDocument();
+    assertNotNull(document);
+
+    assertEquals(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    package=\"com.example.application.id\" >\n" +
+      "\n" +
+      "    <uses-sdk\n" +
+      "        android:minSdkVersion=\"9\"\n" +
+      "        android:targetSdkVersion=\"24\" />\n" +
+      "\n" +
+      "    <activity\n" +
+      "        android:name=\"com.example.namespace.from.project.system.prefs.PrefsActivity\"\n" +
+      "        android:label=\"@string/prefs_title\" />\n" +
+      "\n" +
+      "    <application />\n" +
+      "\n" +
+      "</manifest>\n" +
+      "",
+      XmlPrettyPrinter.prettyPrint(document, XmlFormatPreferences.defaults(), XmlFormatStyle.get(document), "\n", true)
+    );
+
+    assertEquals("com.example.namespace.from.project.system", supplier.getNow().getPackage());
   }
 
   @SuppressWarnings("ConstantConditions")

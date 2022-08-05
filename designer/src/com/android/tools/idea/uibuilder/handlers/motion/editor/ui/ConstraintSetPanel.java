@@ -613,7 +613,7 @@ class ConstraintSetPanel extends JPanel {
         }
       }
     }
-    return new ArrayList<>();
+    return new ArrayList<MTag>();
   }
 
   public void setListeners(MotionEditorSelector listeners) {

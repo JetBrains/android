@@ -48,6 +48,11 @@ interface Asset {
   val resourceItem: ResourceItem
 
   /**
+   * A modification counter that changes when the resource content has been updated. Can be used to guarantee cache freshness.
+   */
+  val modificationStamp: Long
+
+  /**
    * The [ResourceUrl] for this [Asset]. Eg: @color/my_resource.
    *
    * Returns the appropriate [ResourceUrl] according to its [ResourceNamespace] and whether this [Asset] represents a theme attribute.
@@ -124,7 +129,9 @@ data class BaseAsset (
   override val type: ResourceType,
   override val name: String = "resource_name",
   override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external")
-) : Asset
+) : Asset {
+  override val modificationStamp = -1L
+}
 
 /**
  * A Design [Asset] on disk.
@@ -152,6 +159,9 @@ data class DesignAsset(
 
   override val key: AssetKey
     get() = AssetKey(name, type, file.path)
+
+  override val modificationStamp
+    get() = file.modificationStamp
 }
 
 fun getDesignAssets(

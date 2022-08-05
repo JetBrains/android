@@ -20,9 +20,9 @@ import static com.android.SdkConstants.CONSTRAINT_BARRIER_END;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_LEFT;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_RIGHT;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_START;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
 import static com.android.SdkConstants.SHERPA_URI;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
@@ -54,7 +54,7 @@ public class ConstraintLayoutBarrierHandler extends ConstraintHelperHandler {
   @NotNull
   @Override
   public Icon getIcon(@NotNull NlComponent component) {
-    if (!CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName())) {
+    if (!AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName())) {
       return super.getIcon(component);
     }
     if (isVertical(component)) {

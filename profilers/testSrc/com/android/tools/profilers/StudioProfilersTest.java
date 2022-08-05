@@ -38,12 +38,12 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
-import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
@@ -213,8 +213,6 @@ public final class StudioProfilersTest {
   @Test
   public void testDebuggableProcessNotReportedAsProfileable() {
     Assume.assumeTrue(myNewEventPipeline);
-    myIdeProfilerServices.enableProfileable(true);
-    myIdeProfilerServices.enableProfileableInQr(true);
 
     Common.Device device = FAKE_DEVICE;
     myTransportService.addDevice(device);
@@ -328,8 +326,6 @@ public final class StudioProfilersTest {
   @Test
   public void TestDiscoverProfileableCommand() {
     Assume.assumeTrue(myNewEventPipeline);
-    myIdeProfilerServices.enableProfileable(true);
-    myIdeProfilerServices.enableProfileableInQr(true);
     // Devices that have executed the DISCOVER_PROFILEABLE command.
     List<Long> discoveringStreamIds = myTransportService.getDiscoveringProfileableStreamIds();
     assertThat(discoveringStreamIds).isEmpty();
@@ -645,8 +641,6 @@ public final class StudioProfilersTest {
 
   @Test
   public void shouldOpenCpuProfileStageIfStartupProfilingStarted() {
-    myIdeProfilerServices.enableStartupCpuProfiling(true);
-
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
 
@@ -1288,8 +1282,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
 
     // When energy flag is enabled and device is O, GetDirectStages returns Energy stage.
     Common.Device deviceOreo = createDevice(AndroidVersion.VersionCodes.O, "FakeDeviceO", Common.Device.State.ONLINE);
@@ -1301,7 +1294,6 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
       MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class,
       EnergyProfilerStage.class).inOrder();
 
     // When energy flag is disabled and device is O, GetDirectStages does not return Energy stage.
@@ -1310,8 +1302,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
 
     // When custom event flag is enabled and device is O, GetDirectStages returns Custom Event stage.
     myIdeProfilerServices.enableCustomEventVisualization(true);
@@ -1320,7 +1311,6 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
       MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class,
       CustomEventProfilerStage.class).inOrder();
 
     // When custom event flag is disabled and device is O, GetDirectStages does not return Custom Event stage.
@@ -1329,8 +1319,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
   }
 
   @Test
@@ -1354,8 +1343,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
 
     // When energy flag is enabled and the session is O, GetDirectStages returns Energy stage.
     Common.Session sessionO = Common.Session.newBuilder()
@@ -1375,7 +1363,6 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
       MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class,
       EnergyProfilerStage.class).inOrder();
 
     // When energy flag is disabled and the session is pre-O, GetDirectStages does not return Energy stage.
@@ -1383,8 +1370,7 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      NetworkProfilerStage.class).inOrder();
+      MainMemoryProfilerStage.class).inOrder();
   }
 
   @Test
@@ -1583,6 +1569,19 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getSessionsManager().getSelectedSession().getSessionId()).isEqualTo(finishedSession.getSessionId());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myProfilers.getSessionsManager().getSelectedSession().getSessionId()).isEqualTo(finishedSession.getSessionId());
+  }
+
+  @Test
+  public void runAsyncResumesWithIntermediateValue() throws InterruptedException {
+    int[] box = {0};
+    CountDownLatch latch = new CountDownLatch(1);
+    myIdeProfilerServices.runAsync(() -> 1 + 2,
+                                   n -> {
+                                     box[0] = n;
+                                     latch.countDown();
+                                   });
+    assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+    assertThat(box[0]).isEqualTo(3);
   }
 
   private static Common.Device createDevice(int featureLevel, @NotNull String serial, @NotNull Common.Device.State state) {

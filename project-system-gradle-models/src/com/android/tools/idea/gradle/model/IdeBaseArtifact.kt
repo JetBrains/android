@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.model
 import java.io.File
 import java.io.Serializable
 
-interface IdeBaseArtifact : Serializable {
+interface IdeBaseArtifactCore : Serializable {
   /** Name of the artifact. This should match [ArtifactMetaData.getName].  */
   val name: IdeArtifactName
 
@@ -67,7 +67,7 @@ interface IdeBaseArtifact : Serializable {
    * have run, all the generated source files etc. that the IDE needs to know about should be in
    * place.
    */
-  val ideSetupTaskNames: Collection<String>
+  val ideSetupTaskNames: List<String>
 
   /**
    * Returns all the source folders that are generated. This is typically folders for the R, the
@@ -78,9 +78,10 @@ interface IdeBaseArtifact : Serializable {
    */
   val generatedSourceFolders: Collection<File>
   val isTestArtifact: Boolean
-  val level2Dependencies: IdeDependencies
-  val unresolvedDependencies: List<IdeUnresolvedDependencies>
+  val unresolvedDependencies: List<IdeUnresolvedDependency>
+}
 
-  // See: http://b/71706169
-  fun addGeneratedSourceFolder(generatedSourceFolder: File)
+interface IdeBaseArtifact : IdeBaseArtifactCore {
+  val compileClasspath: IdeDependencies
+  val runtimeClasspath: IdeDependencies
 }

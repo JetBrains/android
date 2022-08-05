@@ -43,6 +43,7 @@ public final class LaunchOptions {
     private final Map<String, Object> myExtraOptions = new HashMap<>();
     private boolean myDeployAsInstant = false;
     private boolean myAlwaysInstallWithPm = false;
+    private boolean myClearAppStorage = false;
 
     private Builder() {
     }
@@ -58,7 +59,8 @@ public final class LaunchOptions {
                                myClearLogcatBeforeStart,
                                myExtraOptions,
                                myDeployAsInstant,
-                               myAlwaysInstallWithPm);
+                               myAlwaysInstallWithPm,
+                               myClearAppStorage);
     }
 
     @NotNull
@@ -119,6 +121,12 @@ public final class LaunchOptions {
       myAlwaysInstallWithPm = alwaysInstallWithPm;
       return this;
     }
+
+    @NotNull
+    public Builder setClearAppStorage(boolean clearAppStorage) {
+      myClearAppStorage = clearAppStorage;
+      return this;
+    }
   }
 
   @NotNull
@@ -136,6 +144,7 @@ public final class LaunchOptions {
   private final Map<String, Object> myExtraOptions;
   private final boolean myDeployAsInstant;
   private final boolean myAlwaysInstallWithPm;
+  private final boolean myClearAppStorage;
 
   private LaunchOptions(boolean deploy,
                         @Nullable Function<Optional<IDevice>, String> pmInstallOptions,
@@ -146,7 +155,8 @@ public final class LaunchOptions {
                         boolean clearLogcatBeforeStart,
                         @NotNull Map<String, Object> extraOptions,
                         boolean deployAsInstant,
-                        boolean alwaysInstallWithPm) {
+                        boolean alwaysInstallWithPm,
+                        boolean clearAppStorage) {
     myDeploy = deploy;
     myPmInstallOptions = pmInstallOptions;
     myAllUsers = allUsers;
@@ -157,6 +167,7 @@ public final class LaunchOptions {
     myExtraOptions = ImmutableMap.copyOf(extraOptions);
     myDeployAsInstant = deployAsInstant;
     myAlwaysInstallWithPm = alwaysInstallWithPm;
+    myClearAppStorage = clearAppStorage;
   }
 
   public boolean isDeploy() {
@@ -176,6 +187,8 @@ public final class LaunchOptions {
   }
 
   public boolean getAlwaysInstallWithPm() { return myAlwaysInstallWithPm; }
+
+  public boolean isClearAppStorage() { return myClearAppStorage; }
 
   @NotNull
   public List<String> getDisabledDynamicFeatures() {

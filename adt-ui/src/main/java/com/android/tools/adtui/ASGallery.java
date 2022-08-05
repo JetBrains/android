@@ -142,7 +142,7 @@ public class ASGallery<E> extends JBList {
     installListeners();
     installKeyboardActions();
     if (!disableSpeedSearch) {
-      TreeUIHelper.getInstance().installListSpeedSearch(this, new Convertor<>() {
+      TreeUIHelper.getInstance().installListSpeedSearch(this, new Convertor<Object, String>() {
         @Override
         public String convert(Object o) {
           return myLabelProvider.apply((E)o);
@@ -328,7 +328,7 @@ public class ASGallery<E> extends JBList {
     }
 
     public static <P, R> Function<P, Optional<R>> wrap(Function<P, R> function) {
-      return new ToOptionalFunction<>(function);
+      return new ToOptionalFunction<P, R>(function);
     }
 
     @Override

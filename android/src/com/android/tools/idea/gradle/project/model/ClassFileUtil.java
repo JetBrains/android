@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
+
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -66,7 +68,9 @@ public class ClassFileUtil {
     // User modifications on the source file might not always result on a new .class file.
     // We use the project modification time instead to display the warning more reliably.
     long lastBuildTimestamp = classFile.getTimeStamp();
-    Long projectBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp();
+    ProjectSystemBuildManager.BuildResult buildResult = getProjectSystem(project).getBuildManager().getLastBuildResult();
+    Long projectBuildTimestamp =
+      buildResult.getStatus() != ProjectSystemBuildManager.BuildStatus.UNKNOWN ? buildResult.getTimestampMillis() : null;
     if (projectBuildTimestamp != null) {
       lastBuildTimestamp = projectBuildTimestamp;
     }

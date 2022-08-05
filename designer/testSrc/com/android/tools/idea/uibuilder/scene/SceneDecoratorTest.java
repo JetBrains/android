@@ -17,12 +17,12 @@ package com.android.tools.idea.uibuilder.scene;
 
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CHECK_BOX;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.PROGRESS_BAR;
 import static com.android.SdkConstants.SEEK_BAR;
 import static com.android.SdkConstants.SWITCH;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
@@ -34,7 +34,7 @@ public class SceneDecoratorTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT.defaultName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/root")
                    .withBounds(0, 0, 1000, 1000)
                    .width("1000dp")

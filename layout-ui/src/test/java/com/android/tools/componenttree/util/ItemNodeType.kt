@@ -15,7 +15,12 @@
  */
 package com.android.tools.componenttree.util
 
+import com.android.tools.adtui.ImageUtils.iconToImage
 import com.android.tools.componenttree.api.ViewNodeType
+import com.intellij.util.ui.TextTransferable
+import icons.StudioIcons
+import java.awt.Image
+import java.awt.datatransfer.Transferable
 
 class ItemNodeType : ViewNodeType<Item>() {
   override val clazz = Item::class.java
@@ -35,4 +40,21 @@ class ItemNodeType : ViewNodeType<Item>() {
   override fun isEnabled(node: Item) = true
 
   override fun isDeEmphasized(node: Item) = false
+
+  override fun canInsert(node: Item, data: Transferable) =
+    node.canInsert ?: node.children.isNotEmpty()
+
+  override fun insert(node: Item, data: Transferable, before: Any?): Boolean {
+    if (!node.acceptInsert) {
+      return false
+    }
+    node.insertions.add(data to before)
+    return true
+  }
+
+  override fun createTransferable(node: Item): Transferable =
+    TextTransferable(StringBuffer(node.tagName))
+
+  override fun createDragImage(node: Item): Image =
+    iconToImage(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK)
 }

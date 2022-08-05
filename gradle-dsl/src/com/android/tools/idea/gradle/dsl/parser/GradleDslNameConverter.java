@@ -29,7 +29,8 @@ public interface GradleDslNameConverter {
   enum Kind {
     NONE,
     GROOVY,
-    KOTLIN
+    KOTLIN,
+    TOML,
   }
 
   /**

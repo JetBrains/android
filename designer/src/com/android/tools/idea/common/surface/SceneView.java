@@ -23,9 +23,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.ScaleKt;
-import com.android.tools.idea.common.model.SecondarySelectionModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -97,7 +95,7 @@ public abstract class SceneView {
     return new Rectangle(sceneView.getX(), sceneView.getY(), size.width, size.height);
   };
 
-  @NotNull private final DesignSurface mySurface;
+  @NotNull private final DesignSurface<?> mySurface;
   @NotNull private final SceneManager myManager;
   private final Object myLayersCacheLock = new Object();
   @GuardedBy("myLayersCacheLock")
@@ -113,7 +111,7 @@ public abstract class SceneView {
    */
   @NotNull private final SceneContext myContext = new SceneViewTransform();
 
-  public SceneView(@NotNull DesignSurface surface, @NotNull SceneManager manager, @NotNull ShapePolicy shapePolicy) {
+  public SceneView(@NotNull DesignSurface<?> surface, @NotNull SceneManager manager, @NotNull ShapePolicy shapePolicy) {
     mySurface = surface;
     myManager = manager;
     myShapePolicy = shapePolicy;
@@ -189,23 +187,9 @@ public abstract class SceneView {
     return getSceneManager().getModel().getConfiguration();
   }
 
-  /**
-   * @deprecated This method will be removed in the future. The Model should be obtained by {@link SceneManager#getModel()} instead.
-   */
-  @Deprecated
-  @NotNull
-  public NlModel getModel() {
-    return myManager.getModel();
-  }
-
   @NotNull
   public SelectionModel getSelectionModel() {
     return getSurface().getSelectionModel();
-  }
-
-  @NotNull
-  public SecondarySelectionModel getSecondarySelectionModel() {
-    return getSurface().getSecondarySelectionModel();
   }
 
   /**
@@ -217,7 +201,7 @@ public abstract class SceneView {
   }
 
   @NotNull
-  public DesignSurface getSurface() {
+  public DesignSurface<?> getSurface() {
     return mySurface;
   }
 
@@ -288,7 +272,6 @@ public abstract class SceneView {
 
   /**
    * Called by the surface when the {@link SceneView} needs to be painted
-   * @param graphics
    */
   final void paint(@NotNull Graphics2D graphics) {
     if (!myIsVisible) {
@@ -389,7 +372,7 @@ public abstract class SceneView {
 
     @NotNull
     @Override
-    public DesignSurface getSurface() {
+    public DesignSurface<?> getSurface() {
       return SceneView.this.getSurface();
     }
 

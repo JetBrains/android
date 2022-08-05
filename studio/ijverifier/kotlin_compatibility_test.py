@@ -16,7 +16,7 @@ def fail(msg):
   sys.exit(1)
 
 
-def run_verifier(verifier, ide, jre, ignored_problems, report_dir):
+def run_verifier(verifier, ide, plugin, jre, ignored_problems, report_dir):
   verifier_home = os.path.join(tmpdir, "plugin-verifier-home")
   log = os.path.join(outdir, "plugin-verifier-log.txt")
 
@@ -25,7 +25,7 @@ def run_verifier(verifier, ide, jre, ignored_problems, report_dir):
     verifier,
     "--jvm_flag=-Dplugin.verifier.home.dir=%s" % verifier_home,
     "check-plugin",
-    "path:%s/plugins/Kotlin" % ide,
+    "path:%s" % plugin,
     ide,
     "-runtime-dir", jre,
     "-ignored-problems", ignored_problems,
@@ -72,6 +72,7 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument("--verifier", required=True)
   parser.add_argument("--ide_zip", required=True)
+  parser.add_argument("--plugin", required=True)
   parser.add_argument("--java_runtime", required=True)
   parser.add_argument("--ignored_problems", required=True)
   args = parser.parse_args()
@@ -84,6 +85,7 @@ if __name__ == '__main__':
   run_verifier(
     verifier = args.verifier,
     ide = ide_unzipped,
+    plugin = args.plugin,
     jre = args.java_runtime,
     ignored_problems = args.ignored_problems,
     report_dir = report_dir,

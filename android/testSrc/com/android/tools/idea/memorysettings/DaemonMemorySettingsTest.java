@@ -18,6 +18,7 @@ package com.android.tools.idea.memorysettings;
 import static com.android.utils.FileUtils.join;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.PlatformTestCase;
@@ -35,7 +36,7 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myGradleUserHome = System.getProperty("gradle.user.home");
-    File gradlePropertiesFile = GradleProperties.getUserGradlePropertiesFile();
+    File gradlePropertiesFile = GradleUtil.getUserGradlePropertiesFile(myProject);
     if (gradlePropertiesFile.exists()) {
       myGradleProperties = new GradleProperties(gradlePropertiesFile);
     }
@@ -55,7 +56,7 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
       myGradleProperties.save();
     }
     else {
-      File gradlePropertiesFile = GradleProperties.getUserGradlePropertiesFile();
+      File gradlePropertiesFile = GradleUtil.getUserGradlePropertiesFile(myProject);
       if (gradlePropertiesFile.exists()) {
         gradlePropertiesFile.delete();
       }
@@ -95,7 +96,7 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
     File tempProjectDir = createTempDir("project");
     File projectPropertiesFile = createFile(tempProjectDir, "gradle.properties", propertiesContent[2]);
 
-    return new DaemonMemorySettings(new GradleProperties(projectPropertiesFile));
+    return new DaemonMemorySettings(myProject, new GradleProperties(projectPropertiesFile));
   }
 
   private File createFile(File parentDir, String name, String content) throws Exception {

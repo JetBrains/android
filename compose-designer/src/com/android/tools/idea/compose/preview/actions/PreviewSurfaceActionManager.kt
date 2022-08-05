@@ -28,13 +28,16 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 /**
  * [ActionManager] to be used by the Compose Preview.
  */
-internal class PreviewSurfaceActionManager(private val surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
+internal class PreviewSurfaceActionManager(private val surface: DesignSurface<LayoutlibSceneManager>) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
   private val copyResultImageAction = CopyResultImageAction(
     {
       // Copy the model of the current selected object (if any)
@@ -63,21 +66,17 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
     ActionManagerEx.getInstanceEx().createActionToolbar(
       "sceneView",
       DefaultActionGroup(
+        listOf(Separator()) +
         listOfNotNull(
-          Separator(),
           StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
             StudioFlags.COMPOSE_INDIVIDUAL_PIN_PREVIEW.ifEnabled {
-              PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+              PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }
             }
           },
-          StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
-            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
-          },
-          StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
-            EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
-          },
-          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
-        )
+          AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext },
+          EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
+          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
+        ).disabledIfRefreshingOrRenderErrors(sceneView).visibleOnlyInComposeStaticPreview()
       ),
       true,
       false
@@ -85,9 +84,35 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
       // Do not allocate space for the "see more" chevron if not needed
       setReservePlaceAutoPopupIcon(false)
       setShowSeparatorTitles(true)
-      setTargetComponent(sceneView.surface)
+      targetComponent = sceneView.surface
     }.component.apply {
       isOpaque = false
       border = JBUI.Borders.empty()
     }
+
+  override fun getSceneViewStatusIcon(sceneView: SceneView): JComponent {
+    val component = ActionManagerEx.getInstanceEx().createActionToolbar(
+      "sceneView",
+      DefaultActionGroup(ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview()),
+      true,
+      false
+    ).apply {
+      targetComponent = sceneView.surface
+      (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
+    }.component.apply {
+      isOpaque = false
+      border = JBUI.Borders.empty()
+    }
+
+    return JPanel(BorderLayout()).apply {
+      border = JBUI.Borders.empty()
+      isOpaque = false
+      isVisible = true
+      add(component, BorderLayout.LINE_END)
+
+      // Make the size to be fixed, even when the no icon is visible
+      minimumSize = component.minimumSize
+      preferredSize = component.minimumSize
+    }
+  }
 }

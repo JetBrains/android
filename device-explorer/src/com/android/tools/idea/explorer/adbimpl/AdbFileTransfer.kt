@@ -22,16 +22,14 @@ import com.android.ddmlib.SyncService.ISyncProgressMonitor
 import com.android.tools.idea.adblib.ddmlibcompatibility.pullFile
 import com.android.tools.idea.adblib.ddmlibcompatibility.pushFile
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.catchingAsync
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.concurrency.transformAsync
+import com.android.tools.idea.explorer.cancelAndThrow
 import com.android.tools.idea.explorer.fs.FileTransferProgress
 import com.android.tools.idea.explorer.fs.ThrottledProgress
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.base.Stopwatch
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.file.Path
 import java.util.concurrent.Executor
@@ -39,160 +37,154 @@ import java.util.concurrent.Executor
 private val LOGGER = logger<AdbFileTransfer>()
 
 class AdbFileTransfer(
-  private val myDevice: IDevice,
-  private val myFileOperations: AdbFileOperations,
+  private val device: IDevice,
+  private val fileOperations: AdbFileOperations,
   progressExecutor: Executor,
-  taskExecutor: Executor
+  private val dispatcher: CoroutineDispatcher
 ) {
-  private val myProgressExecutor = FutureCallbackExecutor.wrap(progressExecutor)
-  private val myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
+  private val progressExecutor = FutureCallbackExecutor.wrap(progressExecutor)
 
-  fun downloadFile(
+  suspend fun downloadFile(
     remoteFileEntry: AdbFileListingEntry,
     localPath: Path,
     progress: FileTransferProgress
-  ): ListenableFuture<Unit> {
+  ) {
     return downloadFileWorker(remoteFileEntry.fullPath, remoteFileEntry.size, localPath, progress)
   }
 
-  fun downloadFile(
+  suspend fun downloadFile(
     remotePath: String,
     remotePathSize: Long,
     localPath: Path,
     progress: FileTransferProgress
-  ): ListenableFuture<Unit> {
+  ) {
     return downloadFileWorker(remotePath, remotePathSize, localPath, progress)
   }
 
-  fun downloadFileViaTempLocation(
+  suspend fun downloadFileViaTempLocation(
     remotePath: String,
     remotePathSize: Long,
     localPath: Path,
     progress: FileTransferProgress,
     runAs: String?
-  ): ListenableFuture<Unit> {
+  ) {
     // Note: We should reach this code only if the device is not root, in which case
     // trying a "pullFile" would fail because of permission error (reading from the /data/data/
     // directory), so we copy the file to a temp. location, then pull from that temp location.
-
-    return myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY).transformAsync(myTaskExecutor) { tempFile: String ->
+    val tempFile = fileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
+    try {
       // Copy the remote file to the temporary remote location
-      val futureDownload = myFileOperations.copyFileRunAs(remotePath, tempFile, runAs).transformAsync(myTaskExecutor) {
-        downloadFile(tempFile, remotePathSize, localPath, progress)
-      }
-      myTaskExecutor.finallyAsync(futureDownload) {
-        myFileOperations.deleteFile(tempFile)
-      }
+      fileOperations.copyFileRunAs(remotePath, tempFile, runAs)
+      downloadFile(tempFile, remotePathSize, localPath, progress)
+    } finally {
+      fileOperations.deleteFile(tempFile)
     }
   }
 
-  fun uploadFile(
+  suspend fun uploadFile(
     localPath: Path,
     remotePath: String,
     progress: FileTransferProgress
-  ): ListenableFuture<Unit> {
+  ) {
     return uploadFileWorker(localPath, remotePath, progress)
   }
 
-  fun uploadFileViaTempLocation(
+  suspend fun uploadFileViaTempLocation(
     localPath: Path,
     remotePath: String,
     progress: FileTransferProgress,
     runAs: String?
-  ): ListenableFuture<Unit> {
-    return myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY).transformAsync(myTaskExecutor) { tempFile ->
+  ) {
+    val tempFile = fileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
+    try {
       // Upload to temporary location
-      val futureCopy = uploadFile(localPath, tempFile, progress).transformAsync(myTaskExecutor) {
-        myFileOperations.copyFileRunAs(tempFile, remotePath, runAs)
-      }
-      myTaskExecutor.finallyAsync(futureCopy) { myFileOperations.deleteFile(tempFile) }
+      uploadFile(localPath, tempFile, progress)
+      fileOperations.copyFileRunAs(tempFile, remotePath, runAs)
+    } finally {
+      fileOperations.deleteFile(tempFile)
     }
   }
 
-  private fun downloadFileWorker(
+  private suspend fun downloadFileWorker(
     remotePath: String,
     remotePathSize: Long,
     localPath: Path,
     progress: FileTransferProgress
-  ): ListenableFuture<Unit> {
-    val futurePull: ListenableFuture<Unit> =
+  ) {
+    try {
       if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
-        myTaskExecutor.executeAsync {
+        withContext(dispatcher) {
           val stopwatch = Stopwatch.createStarted()
           pullFile(
-            myDevice,
+            device,
             remotePath,
             localPath.toString(),
-            SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize))
-          LOGGER.info( "Pull file took $stopwatch to execute: \"$remotePath\" -> \"$localPath\"")
-        }
-      } else {
-        syncService.transform(myTaskExecutor) { syncService ->
-          syncService.use {
-            val stopwatch = Stopwatch.createStarted()
-            syncService.pullFile(
-              remotePath,
-              localPath.toString(),
-              SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize))
-            LOGGER.info( "Pull file took $stopwatch to execute: \"$remotePath\" -> \"$localPath\"")
-          }
+            SingleFileProgressMonitor(progressExecutor, progress, remotePathSize))
+          LOGGER.info("Pull file took $stopwatch to execute: \"$remotePath\" -> \"$localPath\"")
         }
       }
-    return futurePull.catchingAsync(myTaskExecutor, SyncException::class.java) { syncError: SyncException ->
+      else {
+        syncService().use { syncService ->
+          val stopwatch = Stopwatch.createStarted()
+          syncService.pullFile(
+            remotePath,
+            localPath.toString(),
+            SingleFileProgressMonitor(progressExecutor, progress, remotePathSize))
+          LOGGER.info("Pull file took $stopwatch to execute: \"$remotePath\" -> \"$localPath\"")
+        }
+      }
+    } catch (syncError: SyncException) {
       if (syncError.wasCanceled()) {
         // Simply forward cancellation as the cancelled exception
-        Futures.immediateCancelledFuture()
+        cancelAndThrow()
       } else {
         LOGGER.info("Error pulling file from \"$remotePath\" to \"$localPath\"", syncError)
-        Futures.immediateFailedFuture(syncError)
+        throw syncError
       }
     }
   }
 
-  private fun uploadFileWorker(
+  private suspend fun uploadFileWorker(
     localPath: Path,
     remotePath: String,
     progress: FileTransferProgress
-  ): ListenableFuture<Unit> {
-    val futurePush: ListenableFuture<Unit> =
+  ) {
+    try {
       if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
-        myTaskExecutor.executeAsync {
+        withContext(dispatcher) {
           val fileLength = localPath.toFile().length()
           val stopwatch = Stopwatch.createStarted()
-          pushFile(myDevice,
+          pushFile(device,
                    localPath.toString(),
                    remotePath,
-                   SingleFileProgressMonitor(myProgressExecutor, progress, fileLength))
+                   SingleFileProgressMonitor(progressExecutor, progress, fileLength))
           LOGGER.info( "Push file took $stopwatch to execute: \"$localPath\" -> \"$remotePath\"")
         }
       } else {
-        syncService.transform(myTaskExecutor) { syncService ->
-          syncService.use {
-            val fileLength = localPath.toFile().length()
-            val stopwatch = Stopwatch.createStarted()
-            syncService.pushFile(
-              localPath.toString(),
-              remotePath,
-              SingleFileProgressMonitor(myProgressExecutor, progress, fileLength))
-            LOGGER.info( "Push file took $stopwatch to execute: \"$localPath\" -> \"$remotePath\"")
-          }
+        syncService().use { syncService ->
+          val fileLength = localPath.toFile().length()
+          val stopwatch = Stopwatch.createStarted()
+          syncService.pushFile(
+            localPath.toString(),
+            remotePath,
+            SingleFileProgressMonitor(progressExecutor, progress, fileLength))
+          LOGGER.info("Push file took $stopwatch to execute: \"$localPath\" -> \"$remotePath\"")
         }
       }
-
-    return futurePush.catchingAsync(myTaskExecutor, SyncException::class.java) { syncError: SyncException ->
+    } catch (syncError: SyncException) {
       if (syncError.wasCanceled()) {
         // Simply forward cancellation as the cancelled exception
-        Futures.immediateCancelledFuture()
+        cancelAndThrow()
       } else {
         LOGGER.info("Error pushing file from \"$localPath\" to \"$remotePath\"", syncError)
-        Futures.immediateFailedFuture(syncError)
+        throw syncError
       }
     }
   }
 
-  private val syncService: ListenableFuture<SyncService>
-    get() = myTaskExecutor.executeAsync {
-      myDevice.syncService ?: throw IOException("Unable to open synchronization service to device")
+  private suspend fun syncService() =
+    withContext(dispatcher) {
+      device.syncService ?: throw IOException("Unable to open synchronization service to device")
     }
 
   /**

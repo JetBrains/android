@@ -86,7 +86,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
     // field is recognized by an earlier documentation provider (the generic Java javadoc one?) as
     // something we have documentation for. We do however get a chance to fetch documentation for it;
     // that's this call, so in that case we insert our javadoc rendering into the fetched documentation.
-    String doc = ApplicationManager.getApplication().runReadAction(new Computable<>() {
+    String doc = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
       @Override
       public String compute() {
         if (isFrameworkFieldDeclaration(element)) {

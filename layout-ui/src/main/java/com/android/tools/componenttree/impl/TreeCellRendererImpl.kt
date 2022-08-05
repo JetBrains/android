@@ -49,15 +49,16 @@ class TreeCellRendererImpl(
 
   override fun getTreeCellRendererComponent(
     tree: JTree,
-    value: Any?,
+    value: Any,
     selected: Boolean,
     expanded: Boolean,
     leaf: Boolean,
     row: Int,
     hasFocus: Boolean
   ): Component {
-    val renderer = model.rendererOf(value) ?: return panel.apply { removeAll() }
-    val component = renderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus)
+    val renderer = model.rendererOf(value)
+    // the "hasFocus" parameter is wrong when there are multiple selected nodes so check the tree instead:
+    val component = renderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, tree.hasFocus())
     panel.add(component, BorderLayout.WEST)
     panel.currentDepth = model.computeDepth(value)
     panel.updateBadges(value, row, selected, tree.hasFocus())

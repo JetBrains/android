@@ -32,6 +32,7 @@ import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils.MOTION_LAYOUT_PROPERTIES;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
@@ -312,7 +313,7 @@ public class MotionUtils {
    */
   public static @Nullable NlComponent getMotionLayoutAncestor(@NotNull NlComponent component) {
     NlComponent motionLayout = component;
-    while (!NlComponentHelperKt.isOrHasSuperclass(motionLayout, SdkConstants.MOTION_LAYOUT)) {
+    while (!NlComponentHelperKt.isOrHasSuperclass(motionLayout, AndroidXConstants.MOTION_LAYOUT)) {
       ViewHandler handler = NlComponentHelperKt.getViewHandler(motionLayout);
       if (handler instanceof MotionLayoutHandler) {
         return motionLayout;

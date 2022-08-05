@@ -82,6 +82,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
@@ -91,14 +92,13 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrI
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
-
 /**
  * Generic parser to parse .gradle files.
  * <p>
  * <p>It parses any general application statements or assigned statements in the .gradle file directly and stores them as key value pairs
  * in the {@link GradleBuildModelImpl}. For every closure block section like {@code android{}}, it will create block elements like
- * {@link AndroidModelImpl}. See {@link #getBlockElement(List, GradlePropertiesDslElement)} for all the block elements currently supported
- * by this parser.
+ * {@link AndroidModelImpl}. See {@link GradlePropertiesDslElement#getChildPropertiesElementDescription(String)} for the mapping from
+ * names to the block elements currently supported by this parser.
  */
 public class GroovyDslParser extends GroovyDslNameConverter implements GradleDslParser {
   @NotNull private final GroovyFile myPsiFile;
@@ -183,7 +183,11 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
         if (e instanceof GradleDslSimpleExpression) {
           synchronized (myExtractValueSet) {
             Pair<GradleDslSimpleExpression, PsiElement> key = new Pair<>(context, literal);
-            if (myExtractValueSet.contains(key)) return literal.getText();
+            if (myExtractValueSet.contains(key)) {
+              // in the course of attempting to resolve literal in context, we are now trying again to perform that exact same
+              // resolution: break the circularity by returning DslRawText to indicate that there was a problem.
+              return new GroovyDslRawText(literal.getText());
+            }
             myExtractValueSet.add(key);
             try {
               return ((GradleDslSimpleExpression)e).getValue();
@@ -312,6 +316,16 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       return false;
     }
 
+    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement ||
+        referenceExpression.getFirstChild() instanceof GrMethodCallExpression) {
+      PsiElement operator = referenceExpression.getLastChild();
+      if (operator.textMatches("version") || operator.textMatches("apply")) {
+        // TODO(b/165576187): as with the Kotlin version, the association between Dsl and Psi is not right for individual plugin
+        //  properties, because the tree structures are not aligned.
+        return processPluginDeclaration(expression, dslElement);
+      }
+    }
+
     // If the reference has multiple parts i.e google().with then strip the end as these kind of calls are not supported.
     if (expression.getChildren().length > 1 &&
         referenceExpression.getChildren().length == 1 &&
@@ -438,7 +452,8 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     if (referenceExpression == null) {
       return false;
     }
-    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement) {
+    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement ||
+        referenceExpression.getFirstChild() instanceof GrMethodCallExpression) {
       PsiElement operator = referenceExpression.getLastChild();
       if (operator.textMatches("version") || operator.textMatches("apply")) {
         // TODO(b/165576187): as with the Kotlin version, the association between Dsl and Psi is not right for individual plugin
@@ -516,7 +531,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     return true;
   }
 
-  boolean processPluginDeclaration(GrApplicationStatement statement, GradlePropertiesDslElement parent) {
+  boolean processPluginDeclaration(GrMethodCall statement, GradlePropertiesDslElement parent) {
     GradlePropertiesDslElement pluginElement;
     if (parent instanceof GradleDslInfixExpression) {
       pluginElement = parent;
@@ -526,15 +541,22 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       parent.addParsedElement(pluginElement);
     }
     GrReferenceExpression referenceExpression = (GrReferenceExpression)statement.getFirstChild();
-    GrApplicationStatement innerApplicationStatement = (GrApplicationStatement)referenceExpression.getFirstChild();
-    boolean success = parseGrApplication(innerApplicationStatement, pluginElement);
+    PsiElement innerElement = referenceExpression.getFirstChild();
+    boolean success = false;
+    if (innerElement instanceof GrApplicationStatement) {
+      success = parseGrApplication((GrApplicationStatement)innerElement, pluginElement);
+    }
+    else if (innerElement instanceof GrMethodCallExpression) {
+      success = parseGrMethodCall((GrMethodCallExpression)innerElement, pluginElement);
+    }
+    if (!success) return false;
     PsiElement operator = referenceExpression.getLastChild();
-    PsiElement operand = statement.getLastChild().getFirstChild();
-    if (!(operand instanceof GrExpression)) return false;
-    GrExpression value = (GrExpression) operand;
+    PsiElement[] operands = statement.getExpressionArguments();
+    if (operands.length != 1) return false;
+    GrExpression value = (GrExpression) operands[0];
     GradleDslElement propertyElement = getExpressionElement(pluginElement, value, GradleNameElement.from(operator, this), value);
     pluginElement.addParsedElement(propertyElement);
-    return success;
+    return true;
   }
 
   @NotNull

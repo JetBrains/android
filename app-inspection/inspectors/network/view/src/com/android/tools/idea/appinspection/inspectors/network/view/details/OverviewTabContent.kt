@@ -38,7 +38,6 @@ import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.labels.BoldLabel
-import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.PlatformColors
 import com.intellij.util.ui.UIUtil
@@ -73,7 +72,7 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
   override fun createComponent(): JComponent {
     val layout: TabularLayout = TabularLayout("*").setVGap(PAGE_VGAP)
     contentPanel = JPanel(layout)
-    contentPanel.border = JBEmptyBorder(PAGE_VGAP, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
+    contentPanel.border = JBUI.Borders.empty(PAGE_VGAP, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
     val overviewScroll: JBScrollPane = createVerticalScrollPane(contentPanel)
     overviewScroll.verticalScrollBar.unitIncrement = SCROLL_UNIT
     overviewScroll.addComponentListener(object : ComponentAdapter() {

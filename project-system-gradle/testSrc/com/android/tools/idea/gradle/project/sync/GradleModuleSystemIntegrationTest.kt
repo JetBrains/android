@@ -19,10 +19,13 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.DependencyScopeType.ANDROID_TEST
 import com.android.tools.idea.projectsystem.DependencyScopeType.MAIN
 import com.android.tools.idea.projectsystem.DependencyScopeType.UNIT_TEST
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.AgpIntegrationTestDefinition
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
@@ -31,23 +34,58 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
+import com.google.common.truth.Truth.assertThat
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.annotations.Contract
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.io.File
 
-class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
+abstract class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
+
+  @RunWith(Parameterized::class)
+  class CurrentAgp : GradleModuleSystemIntegrationTest() {
+
+    companion object {
+      @Suppress("unused")
+      @Contract(pure = true)
+      @JvmStatic
+      @Parameterized.Parameters(name = "{0}")
+      fun test(): Collection<*> {
+        return tests.map { listOf(it).toTypedArray() }
+      }
+    }
+  }
+
+  companion object {
+    val tests =
+      listOf(TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT))
+  }
+
+  data class TestDefinition(
+    override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
+  ) : AgpIntegrationTestDefinition {
+    override val name: String = ""
+    override fun toString(): String = displayName()
+    override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDefinition = copy(agpVersion = agpVersion)
+  }
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
 
   @get:Rule
-  var testName = TestName()
-
-  @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
+
+  @JvmField
+  @Parameterized.Parameter(0)
+  var testDefinition: TestDefinition? = null
+
+  override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
+    return testDefinition?.agpVersion ?: AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  }
 
   @Test
   fun manifestOverrides() {
@@ -56,35 +94,69 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
 
       run {
         val overrides = project.gradleModule(":app")!!.getModuleSystem().getManifestOverrides().directOverrides
-        expect.that(overrides[ManifestSystemProperty.FUNCTIONAL_TEST]).isNull()
-        expect.that(overrides[ManifestSystemProperty.HANDLE_PROFILING]).isNull()
-        expect.that(overrides[ManifestSystemProperty.LABEL]).isNull()
-        expect.that(overrides[ManifestSystemProperty.MAX_SDK_VERSION]).isNull()
-        expect.that(overrides[ManifestSystemProperty.MIN_SDK_VERSION]).isEqualTo("16")
-        expect.that(overrides[ManifestSystemProperty.NAME]).isNull()
-        expect.that(overrides[ManifestSystemProperty.PACKAGE]).isEqualTo("uninitialized.application.id")
-        expect.that(overrides[ManifestSystemProperty.TARGET_PACKAGE]).isNull()
-        expect.that(overrides[ManifestSystemProperty.TARGET_SDK_VERSION]).isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
-        expect.that(overrides[ManifestSystemProperty.VERSION_CODE]).isEqualTo("20")
-        expect.that(overrides[ManifestSystemProperty.VERSION_NAME]).isEqualTo("1.secondAbc-firstAbc-secondAbc-debug")
-        expect.that(ManifestSystemProperty.values().size).isEqualTo(11)
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.FUNCTIONAL_TEST]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.HANDLE_PROFILING]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.LABEL]).isNull()
+        expect.that(overrides[ManifestSystemProperty.UsesSdk.MAX_SDK_VERSION]).isNull()
+        expect.that(overrides[ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION]).isEqualTo("16")
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.NAME]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("com.example.multiflavor.firstAbc.secondAbc.debug")
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.TARGET_PACKAGE]).isNull()
+        expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION]).isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
+        expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_CODE]).isEqualTo("20")
+        expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_NAME]).isEqualTo("1.secondAbc-firstAbc-secondAbc-debug")
+        expect.that(overrides[ManifestSystemProperty.Profileable.SHELL]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Profileable.ENABLED]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Application.TEST_ONLY]).isNull()
+        expect.that(ManifestSystemProperty.values.size).isEqualTo(14)
       }
       run {
         switchVariant(project, ":app", "firstXyzSecondXyzRelease")
         val overrides = project.gradleModule(":app")!!.getModuleSystem().getManifestOverrides().directOverrides
-        expect.that(overrides[ManifestSystemProperty.FUNCTIONAL_TEST]).isNull()
-        expect.that(overrides[ManifestSystemProperty.HANDLE_PROFILING]).isNull()
-        expect.that(overrides[ManifestSystemProperty.LABEL]).isNull()
-        expect.that(overrides[ManifestSystemProperty.MAX_SDK_VERSION]).isNull()
-        expect.that(overrides[ManifestSystemProperty.MIN_SDK_VERSION]).isEqualTo("16")
-        expect.that(overrides[ManifestSystemProperty.NAME]).isNull()
-        expect.that(overrides[ManifestSystemProperty.PACKAGE]).isEqualTo("uninitialized.application.id")
-        expect.that(overrides[ManifestSystemProperty.TARGET_PACKAGE]).isNull()
-        expect.that(overrides[ManifestSystemProperty.TARGET_SDK_VERSION]).isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
-        expect.that(overrides[ManifestSystemProperty.VERSION_CODE]).isEqualTo("31")
-        expect.that(overrides[ManifestSystemProperty.VERSION_NAME]).isEqualTo("1.0-secondXyz-release")
-        expect.that(ManifestSystemProperty.values().size).isEqualTo(11)
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.FUNCTIONAL_TEST]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.HANDLE_PROFILING]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.LABEL]).isNull()
+        expect.that(overrides[ManifestSystemProperty.UsesSdk.MAX_SDK_VERSION]).isNull()
+        expect.that(overrides[ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION]).isEqualTo("16")
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.NAME]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("com.example.multiflavor.secondXyz.release")
+        expect.that(overrides[ManifestSystemProperty.Instrumentation.TARGET_PACKAGE]).isNull()
+        expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION]).isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
+        expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_CODE]).isEqualTo("31")
+        expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_NAME]).isEqualTo("1.0-secondXyz-release")
+        expect.that(overrides[ManifestSystemProperty.Profileable.SHELL]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Profileable.ENABLED]).isNull()
+        expect.that(overrides[ManifestSystemProperty.Application.TEST_ONLY]).isNull()
+        expect.that(ManifestSystemProperty.values.size).isEqualTo(14)
       }
+    }
+  }
+
+  @Test
+  fun manifestOverridesInLibrary() {
+    prepareGradleProject(TestProjectToSnapshotPaths.INCLUDE_FROM_LIB, "withLib")
+    openPreparedProject("withLib") { project ->
+      val overrides = project.gradleModule(":lib")!!.getModuleSystem().getManifestOverrides().directOverrides
+      assertThat(overrides).containsExactlyEntriesIn(mapOf(
+        ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to "16",
+        ManifestSystemProperty.Document.PACKAGE to "com.example.lib",
+        ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+        ManifestSystemProperty.Manifest.VERSION_CODE to "1",
+        ManifestSystemProperty.Manifest.VERSION_NAME to "1.0",
+      ))
+    }
+  }
+
+  @Test
+  fun manifestOverridesInSeparateTest() {
+    prepareGradleProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE, "withTestOnly")
+    openPreparedProject("withTestOnly") { project ->
+      val overrides = project.gradleModule(":test")!!.getModuleSystem().getManifestOverrides().directOverrides
+      assertThat(overrides).containsExactlyEntriesIn(mapOf(
+        ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to "16",
+        ManifestSystemProperty.Document.PACKAGE to "com.example.android.app.testmodule",
+        ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+      ))
     }
   }
 
@@ -102,6 +174,26 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         val packageName = project.gradleModule(":app")!!.getModuleSystem().getPackageName()
         expect.that(packageName).isEqualTo("com.example.multiflavor")
       }
+    }
+  }
+
+  @Test
+  fun allApplicationIds() {
+    prepareGradleProject(TestProjectToSnapshotPaths.MULTI_FLAVOR, "project")
+    openPreparedProject("project") { project ->
+      val appIds = AndroidModel.get(project.gradleModule(":app")!!)?.allApplicationIds.orEmpty()
+      expect.that(appIds).isEqualTo(
+        setOf(
+          "com.example.multiflavor.firstAbc.secondAbc.debug",
+          "com.example.multiflavor.firstAbc.secondXyz.debug",
+          "com.example.multiflavor.secondAbc.debug",
+          "com.example.multiflavor.secondXyz.debug",
+          "com.example.multiflavor.firstAbc.secondAbc.release",
+          "com.example.multiflavor.firstAbc.secondXyz.release",
+          "com.example.multiflavor.secondAbc.release",
+          "com.example.multiflavor.secondXyz.release"
+        )
+      )
     }
   }
 
@@ -147,7 +239,6 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> =

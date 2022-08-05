@@ -327,7 +327,7 @@ public class LayoutMetadata {
     // Also set the values on the same elements in any resource variations
     // of the same layout
     // TODO: This should be done after a brief delay, say 50ms
-    final List<XmlTag> list = ApplicationManager.getApplication().runReadAction(new Computable<>() {
+    final List<XmlTag> list = ApplicationManager.getApplication().runReadAction(new Computable<List<XmlTag>>() {
       @Override
       @Nullable
       public List<XmlTag> compute() {

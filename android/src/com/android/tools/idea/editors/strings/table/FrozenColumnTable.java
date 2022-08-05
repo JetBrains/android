@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.IntUnaryOperator;
 import javax.swing.Action;
 import javax.swing.JScrollPane;
@@ -576,7 +577,7 @@ public class FrozenColumnTable<M extends TableModel> {
 
   @VisibleForTesting
   @NotNull
-  public final Object getColumnAt(int viewColumnIndex) {
+  public final List<Object> getColumnAt(int viewColumnIndex) {
     int count = myFrozenTable.getColumnCount();
 
     if (viewColumnIndex < count) {

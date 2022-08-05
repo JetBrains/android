@@ -64,22 +64,4 @@ class VisualLintIssues {
       _map[issue.hashCode()] = issue
     }
   }
-
-  fun addAll(errorType: VisualLintErrorType, issues: List<Issue>) {
-    issues.forEach {
-      add(errorType, it)
-    }
-  }
-
-  override fun toString(): String {
-    if (list.isEmpty()) {
-      return "VisualLintIssues empty."
-    }
-    val builder = StringBuilder()
-    builder.append("VisualLintIssues : \n")
-    list.forEach {
-      builder.append(" ----- ${it.summary}")
-    }
-    return builder.toString()
-  }
 }

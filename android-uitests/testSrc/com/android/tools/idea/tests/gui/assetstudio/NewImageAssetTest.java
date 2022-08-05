@@ -56,6 +56,7 @@ public class NewImageAssetTest {
     assertThat(step.getPreviewPanelIconNames(0)).containsExactly("anydpi", "xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
     step.wizard()
       .clickNext()
+      .selectResFolder("main")
       .clickFinish();
 
     FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);

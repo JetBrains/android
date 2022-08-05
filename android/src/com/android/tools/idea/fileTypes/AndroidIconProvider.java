@@ -16,13 +16,20 @@
 package com.android.tools.idea.fileTypes;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.ide.projectView.impl.ProjectRootsUtil.isModuleContentRoot;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
+import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
+import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
+import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.rendering.FlagManager;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.IconProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -81,5 +88,43 @@ public class AndroidIconProvider extends IconProvider {
     }
 
     return null;
+  }
+
+  @NotNull
+  public static Icon getModuleIcon(@NotNull Module module) {
+    if (ModuleSystemUtil.isHolderModule(module) || ModuleSystemUtil.isMainModule(module)) {
+      return getAndroidModuleIcon(getModuleSystem(module));
+    } else if (ModuleSystemUtil.isAndroidTestModule(module)) {
+      return ANDROID_MODULE;
+    }
+
+
+    return AllIcons.Nodes.Module;
+  }
+
+  @NotNull
+  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleSystem androidModuleSystem) {
+    return getAndroidModuleIcon(androidModuleSystem.getType());
+  }
+
+  @NotNull
+  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleSystem.Type androidProjectType) {
+    switch (androidProjectType) {
+      case TYPE_NON_ANDROID:
+        return AllIcons.Nodes.Module;
+      case TYPE_APP:
+        return ANDROID_MODULE;
+      case TYPE_FEATURE:
+      case TYPE_DYNAMIC_FEATURE:
+        return FEATURE_MODULE;
+      case TYPE_INSTANTAPP:
+        return INSTANT_APPS;
+      case TYPE_LIBRARY:
+        return LIBRARY_MODULE;
+      case TYPE_TEST:
+        return ANDROID_TEST_ROOT;
+      default:
+        return ANDROID_MODULE;
+    }
   }
 }

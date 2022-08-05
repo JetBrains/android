@@ -86,12 +86,12 @@ public class HeapDumpInstanceObjectTest {
     targetInstance.addFieldValue(Type.OBJECT, "objectTest", classInstance);
     targetInstance.addFieldValue(Type.BOOLEAN, "boolTest", true);
     targetInstance.addFieldValue(Type.CHAR, "charTest", 'a');
-    targetInstance.addFieldValue(Type.FLOAT, "floatTest", new Float(1f));
-    targetInstance.addFieldValue(Type.DOUBLE, "doubleTest", new Double(2.0));
-    targetInstance.addFieldValue(Type.BYTE, "byteTest", new Byte((byte)1));
-    targetInstance.addFieldValue(Type.SHORT, "shortTest", new Short((short)3));
-    targetInstance.addFieldValue(Type.INT, "intTest", new Integer(4));
-    targetInstance.addFieldValue(Type.LONG, "longTest", new Integer(5));
+    targetInstance.addFieldValue(Type.FLOAT, "floatTest", 1f);
+    targetInstance.addFieldValue(Type.DOUBLE, "doubleTest", 2.0);
+    targetInstance.addFieldValue(Type.BYTE, "byteTest", (byte)1);
+    targetInstance.addFieldValue(Type.SHORT, "shortTest", (short)3);
+    targetInstance.addFieldValue(Type.INT, "intTest", 4);
+    targetInstance.addFieldValue(Type.LONG, "longTest", 5);
     targetInstance.addFieldValue(Type.OBJECT, "classTest", classObj);
     targetInstance.addFieldValue(Type.OBJECT, "stringTest", stringInstance);
     targetInstance.addFieldValue(Type.OBJECT, "nullTest", null);
@@ -172,12 +172,12 @@ public class HeapDumpInstanceObjectTest {
     classObj.addStaticField(Type.OBJECT, "staticObj", classInstance);
     classObj.addStaticField(Type.BOOLEAN, "staticBool", true);
     classObj.addStaticField(Type.CHAR, "staticChar", 'a');
-    classObj.addStaticField(Type.FLOAT, "staticFloat", new Float(1f));
-    classObj.addStaticField(Type.DOUBLE, "staticDouble", new Double(2.0));
-    classObj.addStaticField(Type.BYTE, "staticByte", new Byte((byte)1));
-    classObj.addStaticField(Type.SHORT, "staticShort", new Short((short)3));
-    classObj.addStaticField(Type.INT, "staticInt", new Integer(4));
-    classObj.addStaticField(Type.LONG, "staticLong", new Integer(5));
+    classObj.addStaticField(Type.FLOAT, "staticFloat", 1f);
+    classObj.addStaticField(Type.DOUBLE, "staticDouble", 2.0);
+    classObj.addStaticField(Type.BYTE, "staticByte", (byte)1);
+    classObj.addStaticField(Type.SHORT, "staticShort", (short)3);
+    classObj.addStaticField(Type.INT, "staticInt", 4);
+    classObj.addStaticField(Type.LONG, "staticLong", 5);
 
     ClassDb.ClassEntry mockClassEntry = myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS);
     myCaptureObject.addInstance(classInstance, new HeapDumpInstanceObject(myCaptureObject, classInstance, mockClassEntry, OBJECT));

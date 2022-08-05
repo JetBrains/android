@@ -18,8 +18,11 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.NullMonitorStage
@@ -29,6 +32,9 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.registerServiceInstance
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,12 +49,16 @@ class CpuCaptureStageTest {
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
 
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
   private lateinit var profilers: StudioProfilers
 
   private val services = FakeIdeProfilerServices()
 
   @Before
   fun setUp() {
+    ApplicationManager.getApplication().registerServiceInstance(TransportService::class.java, TransportServiceTestImpl(transportService))
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -73,11 +83,12 @@ class CpuCaptureStageTest {
 
   @Test
   fun parsingFailureGoesToNullStage() {
-    val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), SESSION_ID)
-    profilers.stage = stage
+    services.enableEventsPipeline(true)
+    profilers.sessionsManager.importSessionFromFile(CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"))
+    profilers.sessionsManager.update()
     assertThat(services.notification).isNotNull()
     assertThat(profilers.stage).isInstanceOf(NullMonitorStage::class.java)
+    assertThat(profilers.session).isEqualTo(Common.Session.getDefaultInstance())
   }
 
   @Test

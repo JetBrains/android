@@ -22,6 +22,6 @@ import org.jetbrains.annotations.Nullable;
 
 public interface CustomPanel {
   JPanel getPanel();
-  void useComponent(@Nullable NlComponent component, @Nullable DesignSurface surface);
+  void useComponent(@Nullable NlComponent component, @Nullable DesignSurface<?> surface);
   void refresh();
 }

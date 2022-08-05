@@ -17,7 +17,6 @@ package com.intellij.testGuiFramework.launcher
 
 import com.android.prefs.AbstractAndroidLocations
 import com.android.testutils.TestUtils
-import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.tests.gui.framework.AnalyticsTestUtils
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
@@ -160,7 +159,8 @@ object GuiTestLauncher {
       "-Didea.config.path=${GuiTests.getConfigDirPath()}",
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
-      "-Didea.is.integration.test=true",
+      "-Didea.force.use.core.classloader=true",
+      "-Didea.trust.all.projects=true",
       "-Ddisable.android.first.run=true",
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
@@ -169,6 +169,7 @@ object GuiTestLauncher {
     /* Move Menu bar into IDEA window on Mac OS. Required for test framework to access Menu */
     if (SystemInfo.isMac) {
       options += "-Dapple.laf.useScreenMenuBar=false"
+      options += "-DjbScreenMenuBar.enabled=false"
     }
     /* aspects agent options */
     if (JavaVersion.current().feature < 9) {  // b/134524025
@@ -180,7 +181,7 @@ object GuiTestLauncher {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
       val jvmtiAgent =
-          TestUtils.resolveWorkspacePath("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
+        TestUtils.resolveWorkspacePathUnchecked("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
       if (Files.exists(jvmtiAgent)) {
         options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
@@ -219,9 +220,9 @@ object GuiTestLauncher {
   }
 
   private fun getJdkPathForGradle(): String? {
-    val jdk = File(getWorkspaceRoot().toFile(), "prebuilts/studio/jdk")
-    if (jdk.exists()) {
-      return File(jdk, "BUILD").toPath().toRealPath().toFile().getParentFile().absolutePath
+    val jdk = TestUtils.resolveWorkspacePathUnchecked("prebuilts/studio/jdk")
+    if (Files.exists(jdk)) {
+      return jdk.resolve("BUILD").toRealPath().parent.toString()
     }
     return null
   }

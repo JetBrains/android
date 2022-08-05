@@ -47,32 +47,34 @@ class VisualizationToolWindowFactoryTest {
 
   @Test
   fun testAvailableWhenOpeningProject() {
-    val toolWindow = VisualizationTestToolWindow(projectRule.project)
-
     val factory = VisualizationToolWindowFactory()
-    factory.isApplicable(projectRule.project)
 
+    // Not available when no file is opened.
+    assertFalse(factory.shouldBeAvailable(projectRule.project))
+
+    // Available when a layout file is opened.
     val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
-      factory.init(toolWindow)
     }
-    assertTrue(toolWindow.isAvailable)
+    assertTrue(factory.shouldBeAvailable(projectRule.project))
 
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      FileEditorManager.getInstance(projectRule.project).closeFile(layoutFile.virtualFile)
+    }
 
+    // Not available when there is no opened layout file.
     val ktFile = projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       projectRule.fixture.openFileInEditor(ktFile.virtualFile)
-      factory.init(toolWindow)
     }
-    assertFalse(toolWindow.isAvailable)
+    assertFalse(factory.shouldBeAvailable(projectRule.project))
   }
 
   @Test
   fun testAvailableWhenSwitchingFile() {
     val toolWindow = VisualizationTestToolWindow(projectRule.project)
     val factory = VisualizationToolWindowFactory()
-    factory.isApplicable(projectRule.project)
     WriteCommandAction.runWriteCommandAction(projectRule.project) { factory.init(toolWindow) }
 
     val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
@@ -99,15 +101,13 @@ class VisualizationToolWindowFactoryTest {
   fun testAvailableWhenClosingFile() {
     val toolWindow = VisualizationTestToolWindow(projectRule.project)
     val factory = VisualizationToolWindowFactory()
-    factory.isApplicable(projectRule.project)
+    factory.init(toolWindow)
 
     val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
-      factory.init(toolWindow)
     }
     assertTrue(toolWindow.isAvailable)
-
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       FileEditorManager.getInstance(projectRule.project).closeFile(layoutFile.virtualFile)

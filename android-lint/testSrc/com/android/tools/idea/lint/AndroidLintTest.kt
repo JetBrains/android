@@ -21,6 +21,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.StubGoogleMavenRepository
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.LoggedUsage
@@ -57,6 +58,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintExifInterfaceInspectio
 import com.android.tools.idea.lint.inspections.AndroidLintExportedContentProviderInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedReceiverInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedServiceInspection
+import com.android.tools.idea.lint.inspections.AndroidLintExtraTextInspection
 import com.android.tools.idea.lint.inspections.AndroidLintGradleDeprecatedInspection
 import com.android.tools.idea.lint.inspections.AndroidLintGridLayoutInspection
 import com.android.tools.idea.lint.inspections.AndroidLintHardcodedTextInspection
@@ -85,6 +87,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintMotionSceneFileValidat
 import com.android.tools.idea.lint.inspections.AndroidLintNetworkSecurityConfigInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNonResizeableActivityInspection
+import com.android.tools.idea.lint.inspections.AndroidLintNotificationPermissionInspection
 import com.android.tools.idea.lint.inspections.AndroidLintObsoleteLayoutParamInspection
 import com.android.tools.idea.lint.inspections.AndroidLintObsoleteSdkIntInspection
 import com.android.tools.idea.lint.inspections.AndroidLintOldTargetApiInspection
@@ -93,7 +96,6 @@ import com.android.tools.idea.lint.inspections.AndroidLintParcelClassLoaderInspe
 import com.android.tools.idea.lint.inspections.AndroidLintParcelCreatorInspection
 import com.android.tools.idea.lint.inspections.AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection
 import com.android.tools.idea.lint.inspections.AndroidLintPermissionImpliesUnsupportedHardwareInspection
-import com.android.tools.idea.lint.inspections.AndroidLintProguardInspection
 import com.android.tools.idea.lint.inspections.AndroidLintPxUsageInspection
 import com.android.tools.idea.lint.inspections.AndroidLintReferenceTypeInspection
 import com.android.tools.idea.lint.inspections.AndroidLintRegisteredInspection
@@ -109,6 +111,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintSourceLockedOrientatio
 import com.android.tools.idea.lint.inspections.AndroidLintSpUsageInspection
 import com.android.tools.idea.lint.inspections.AndroidLintStringEscapingInspection
 import com.android.tools.idea.lint.inspections.AndroidLintStringShouldBeIntInspection
+import com.android.tools.idea.lint.inspections.AndroidLintSuspiciousImportInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSwitchIntDefInspection
 import com.android.tools.idea.lint.inspections.AndroidLintTextFieldsInspection
 import com.android.tools.idea.lint.inspections.AndroidLintTypographyDashesInspection
@@ -246,6 +249,11 @@ class AndroidLintTest : AndroidTestCase() {
     return sb.toString()
   }
 
+  fun testExtraText() {
+    deleteManifest()
+    doTestHighlighting(AndroidLintExtraTextInspection(), "AndroidManifest.xml", "xml")
+  }
+
   fun testHardcodedString() {
     doTestHighlighting(AndroidLintHardcodedTextInspection(), "/res/layout/layout.xml", "xml")
     // Make sure we only have the extract quickfix and the suppress quickfix: not the disable inspection fix, and
@@ -289,6 +297,10 @@ class AndroidLintTest : AndroidTestCase() {
       val loggedLintSessions = usageTracker.usages.stream()
         .filter { usage: LoggedUsage -> usage.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_SESSION }
         .collect(Collectors.toList())
+      if (!AnalyticsSettings.optedIn) {
+        assertThat(loggedLintSessions).isEmpty()
+        return
+      }
       assertThat(loggedLintSessions).hasSize(2)
       val session = loggedLintSessions[0]!!.studioEvent.lintSession
       assertThat(session.analysisType).isEqualTo(AnalysisType.IDE_FILE)
@@ -339,7 +351,8 @@ class AndroidLintTest : AndroidTestCase() {
       // Make sure we're submitting around 1% of reports.
       // This test is not flaky because we're using a fixed seed to the random generator!
       val percentage = loggedLintSessions.size * 100.0 / rolls
-      assertEquals("Unexpected percentage of reports submitted", 1.047, percentage, 0.001)
+      val expectedPercentage = if (AnalyticsSettings.optedIn) 1.047 else 0.0
+      assertEquals("Unexpected percentage of reports submitted", expectedPercentage, percentage, 0.001)
     } finally {
       usageTracker.close()
       cleanAfterTesting()
@@ -535,15 +548,38 @@ class AndroidLintTest : AndroidTestCase() {
   fun testSuppressInitJava() {
     // Regression test for https://issuetracker.google.com/151164628
     doTestWithFix(AndroidLintSdCardPathInspection(),
-                  "Suppress: Add @SuppressLint(\"SdCardPath\") annotation",
+                  "Suppress SdCardPath with an annotation",
                   "/src/p1/p2/Foo.java", "java")
   }
 
   fun testSuppressInit() {
     // Regression test for https://issuetracker.google.com/151164628 (Kotlin)
     doTestWithFix(AndroidLintClickableViewAccessibilityInspection(),
-                  "Suppress: Add @SuppressLint(\"ClickableViewAccessibility\") annotation",
+                  "Suppress ClickableViewAccessibility with an annotation",
                   "/src/p1/p2/suppressInit.kt", "kt")
+  }
+
+  fun testSuppressImportJava() {
+    // Regression test for https://issuetracker.google.com/216663026 (Java)
+    doTestWithFix(AndroidLintSuspiciousImportInspection(),
+                  "Suppress SuspiciousImport with a comment",
+                  "/src/p1/p2/SuppressImportJava.java", "java")
+  }
+
+  fun testSuppressImportJavaCombine() {
+    // Like testSuppressImportJava, but here there is already an existing //noinspection
+    // comment on the line; verifies that we simply add the id to the list, not doubling
+    // up comments etc.
+    doTestWithFix(AndroidLintSuspiciousImportInspection(),
+                  "Suppress SuspiciousImport with a comment",
+                  "/src/p1/p2/SuppressImportJava.java", "java")
+  }
+
+  fun testSuppressImportKotlin() {
+    // Regression test for https://issuetracker.google.com/216663026 (Kotlin)
+    doTestWithFix(AndroidLintSuspiciousImportInspection(),
+                  "Suppress SuspiciousImport with a comment",
+                  "/src/p1/p2/SuppressImportKotlin.kt", "kt")
   }
 
   fun testExportedService() {
@@ -594,6 +630,27 @@ class AndroidLintTest : AndroidTestCase() {
       AndroidLintMissingPermissionInspection(),
       "Add permission check",
       "/src/p1/p2/LocationTest.kt", "kt")
+  }
+
+  fun testNotificationPermission() {
+    val manifest = myFixture.addFileToProject("AndroidManifest.xml", """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="p1.p2">
+          <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="33" />
+          <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+      </manifest>
+      """.trimIndent())
+    doTestWithFix(
+      AndroidLintNotificationPermissionInspection(),
+      "Add Permission POST_NOTIFICATIONS",
+      "/src/test/pkg/notificationPermission.kt", "kt")
+    val updatedManifest = manifest.text
+    assertEquals("""
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="p1.p2">
+          <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="33" />
+          <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+          <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+      </manifest>
+    """.trimIndent(), updatedManifest)
   }
 
   fun testUselessLeaf() {
@@ -657,7 +714,7 @@ class AndroidLintTest : AndroidTestCase() {
     testProjectSystem.useInTests()
     testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.module,
                                     GradleVersion.parse("+"))
-    myFixture.copyFileToProject("$globalTestDir/ActionBarActivity.java.txt", "src/android/support/v7/app/ActionBarActivity.java")
+    myFixture.copyFileToProject("$globalTestDir/AppCompatActivity.java.txt", "src/android/support/v7/app/AppCompatActivity.java")
     myFixture.copyFileToProject("$globalTestDir/ActionMode.java.txt", "src/android/support/v7/view/ActionMode.java")
     doTestWithFix(AndroidLintAppCompatMethodInspection(),
                   "Replace with getSupportActionBar()", "/src/test/pkg/AppCompatTest.java", "java")
@@ -1028,7 +1085,9 @@ class AndroidLintTest : AndroidTestCase() {
     val proguardCfgPath = myFixture.copyFileToProject("$globalTestDir/proguard.cfg", "proguard.cfg")
     myFacet.properties.RUN_PROGUARD = true
     myFacet.properties.myProGuardCfgFiles = listOf(proguardCfgPath.url)
+/* b/233921381
     doGlobalInspectionTest(AndroidLintProguardInspection())
+b/233921381 */
   }
 
   fun testManifestOrder() {
@@ -1117,7 +1176,7 @@ class AndroidLintTest : AndroidTestCase() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Suppress: Add @SuppressLint(\"NewApi\") annotation",
+      "Suppress NewApi with an annotation",
       "/src/p1/p2/MyActivity.java", "java")
   }
 
@@ -1398,7 +1457,7 @@ class AndroidLintTest : AndroidTestCase() {
     }
     val testProjectSystem = TestProjectSystem(project)
     testProjectSystem.useInTests()
-    testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.module,
+    testProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myFixture.module,
                                     GradleVersion.parse("+"))
     doTestWithFix(AndroidLintAppCompatCustomViewInspection(),
                   "Extend AppCompat widget instead", "/src/p1/p2/MyButton.java", "java")
@@ -1472,6 +1531,8 @@ class AndroidLintTest : AndroidTestCase() {
     // note: the test file needs updating when major/minor versions of AGP are removed from the offline
     // Google Maven cache, and in particular there may be no way to get this test to pass (i.e. to show a
     // warning) if the only stable AGP version in the offline Google Maven cache is a .0 patchlevel version.
+    // Check changes in tools/base/sdk-common/src/main/resources/versions-offline/com/android/tools/build/group-index.xml
+    // and update adt/idea/android-lint/testData/lint/oldBetaPlugin.gradle
     doTestHighlighting(AndroidLintAndroidGradlePluginVersionInspection(), "build.gradle", "gradle")
   }
 

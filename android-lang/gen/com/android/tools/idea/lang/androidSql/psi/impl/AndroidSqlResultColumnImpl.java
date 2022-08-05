@@ -38,6 +38,7 @@ public class AndroidSqlResultColumnImpl extends ASTWrapperPsiElement implements 
     visitor.visitResultColumn(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

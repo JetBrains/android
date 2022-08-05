@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.EDIT_TEXT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -32,6 +31,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
@@ -66,12 +66,12 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
-    ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT.defaultName());
-    ComponentDescriptor textView = builder.findByPath(CONSTRAINT_LAYOUT.defaultName(), TEXT_VIEW);
+    ComponentDescriptor parent = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName());
+    ComponentDescriptor textView = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName(), TEXT_VIEW);
     ComponentDescriptor editText = parent.addChild(component(EDIT_TEXT)
                                                      .withBounds(220, 440, 400, 60)
                                                      .width("200dp")
@@ -103,29 +103,22 @@ public class SceneCreationTest extends SceneTest {
   }
 
   public void testSceneDisposal() {
-    DesignSurface surfaceNoSpy = NlDesignSurface.build(getProject(), getTestRootDisposable());
-    DesignSurface surface = spy(surfaceNoSpy);
-    Disposer.register(surfaceNoSpy, surface); // When real object is disposed, dispose the spy and its registered children
-
     SelectionModel selectionModel = spy(new DefaultSelectionModel());
-    when(surface.getSelectionModel()).thenReturn(selectionModel);
+    DesignSurface<?> surface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).setSelectionModel(selectionModel).build();
 
     // Create a sample model
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
     SyncNlModel model = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE,
                                            null, null, myFacet, xmlFile.getVirtualFile());
-    model.setDesignSurface(surface);
 
-    // Setting the model on the surface registers the listener
-    surface.setModel(model);
-
-    Scene scene = surface.getScene();
+    SceneManager manager = surface.addModelWithoutRender(model);
+    Scene scene = manager.getScene();
     InOrder inOrder = inOrder(selectionModel);
     inOrder.verify(selectionModel).addListener(scene);
     inOrder.verify(selectionModel, never()).removeListener(scene);
 
-    // Disposal of the model should remove the listener
-    Disposer.dispose(model);
+    // Disposal of the SceneManager should remove the listeners from Scene.
+    Disposer.dispose(manager);
     inOrder.verify(selectionModel).removeListener(scene);
     inOrder.verify(selectionModel, never()).addListener(scene);
   }
@@ -133,12 +126,12 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneReparenting() {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
-    ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT.defaultName());
-    parent.addChild(component(CONSTRAINT_LAYOUT.defaultName())
+    ComponentDescriptor parent = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName());
+    parent.addChild(component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                       .id("@id/layout")
                       .withBounds(200, 300, 200, 200)
                       .width("200dp")
@@ -167,11 +160,11 @@ public class SceneCreationTest extends SceneTest {
     Configuration config = model.getConfiguration();
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
 
-    Scene scene = new SyncLayoutlibSceneManager(model).getScene();
+    Scene scene = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene();
     scene.setAnimated(false);
 
-    ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT.defaultName());
-    ComponentDescriptor textView = builder.findByPath(CONSTRAINT_LAYOUT.defaultName(), TEXT_VIEW);
+    ComponentDescriptor parent = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName());
+    ComponentDescriptor textView = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName(), TEXT_VIEW);
     SceneComponent sceneTextView = scene.getRoot().getChildren().get(0);
 
     float dpiFactor =  560 / 160f;
@@ -195,7 +188,7 @@ public class SceneCreationTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT.defaultName())
+                                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")

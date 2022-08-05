@@ -186,6 +186,12 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
       callChartRangeChanged();
     }
 
+    @Override
+    public void onRemoved() { }
+
+    @Override
+    public void onReattached() { }
+
     @NotNull
     private JPanel createChartPanel() {
       Range selectionRange = myProfilersView.getStudioProfilers().getTimeline().getSelectionRange();
@@ -264,6 +270,16 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
       myPanel.add(createChartPanel(), CARD_CONTENT);
       myFlameChart.getAspect().addDependency(myObserver).onChange(CaptureDetails.FlameChart.Aspect.NODE, this::nodeChanged);
       nodeChanged();
+    }
+
+    @Override
+    public void onRemoved() {
+      myFlameChart.onRemoved();
+    }
+
+    @Override
+    public void onReattached() {
+      myFlameChart.onReattached();
     }
 
     @NotNull

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.rendering.Locale;
+import com.android.ide.common.resources.Locale;
+import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBList;
@@ -27,7 +28,7 @@ final class LocaleList extends JBList<Locale> {
     super(locales);
 
     setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
-      label.setIcon(value.getFlagImage());
+      label.setIcon(FlagManager.getFlagImage(value));
       label.setText(Locale.getLocaleLabel(value, false));
     }));
     setFixedCellHeight(20);

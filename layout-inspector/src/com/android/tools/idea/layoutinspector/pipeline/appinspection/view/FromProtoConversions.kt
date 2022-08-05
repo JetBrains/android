@@ -104,9 +104,10 @@ import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_WATCH
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.resource.data.Locale
 import com.android.tools.idea.layoutinspector.resource.data.Resource
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import java.awt.Polygon
 import java.awt.Shape
 
@@ -170,10 +171,16 @@ fun LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.toAttachErrorSt
     else -> AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   }
 
+fun LayoutInspectorViewProtocol.ErrorCode.toAttachErrorCode() =
+  when (this) {
+    LayoutInspectorViewProtocol.ErrorCode.NO_HARDWARE_ACCELERATION -> AttachErrorCode.NO_HARDWARE_ACCELERATION
+    LayoutInspectorViewProtocol.ErrorCode.NO_ROOT_VIEWS_FOUND -> AttachErrorCode.NO_ROOT_VIEWS_FOUND
+    else -> AttachErrorCode.UNKNOWN_VIEW_AGENT_ERROR
+  }
+
 fun LayoutInspectorViewProtocol.Quad.toShape(): Shape {
   return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)
 }
-
 
 /**
  * Create a [FolderConfiguration] based on a [LayoutInspectorViewProtocol.Configuration] proto received from a device.

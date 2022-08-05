@@ -43,10 +43,10 @@ class BlazeArtifactResolverTest {
         return artifactDir
       }
     }
-    val httpResolver = TestArtifactResolver { null }
+    val httpResolver = TestArtifactResolver { throw RuntimeException("shouldn't hit this") }
     val resolver = BlazeArtifactResolver(httpResolver, moduleSystemResolver)
     val inspectorJar = resolver.resolveArtifact(artifactCoordinate)
-    assertThat(inspectorJar!!.fileName.toString()).isEqualTo("inspector.jar")
+    assertThat(inspectorJar.fileName.toString()).isEqualTo("inspector.jar")
   }
 
   @Test
@@ -60,10 +60,10 @@ class BlazeArtifactResolverTest {
         return artifactDir
       }
     }
-    val httpResolver = TestArtifactResolver { null }
+    val httpResolver = TestArtifactResolver { throw RuntimeException("shouldn't hit this") }
     val resolver = BlazeArtifactResolver(httpResolver, moduleSystemResolver)
     val inspectorJar = resolver.resolveArtifact(artifactCoordinate)
-    assertThat(inspectorJar!!.fileName.toString()).isEqualTo("library.aar")
+    assertThat(inspectorJar.fileName.toString()).isEqualTo("library.aar")
   }
 
   @Test

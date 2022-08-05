@@ -44,10 +44,10 @@ class ComposeFoldingBuilderTest {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.stubComposableAnnotation(ComposeFqNames.root)
     myFixture.addFileToProject(
-      "src/${ComposeLibraryNamespace.ANDROIDX_COMPOSE.packageName.replace(".", "/")}/Modifier.kt",
+      "src/${COMPOSE_UI_PACKAGE.replace(".", "/")}/Modifier.kt",
       // language=kotlin
       """
-    package ${ComposeLibraryNamespace.ANDROIDX_COMPOSE.packageName}
+    package $COMPOSE_UI_PACKAGE
 
     interface Modifier {
       fun adjust():Modifier

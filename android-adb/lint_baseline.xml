@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 7.4.0-dev">
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adblib/AndroidAdbLoggerFactory.kt"
+            line="26"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adblib/AndroidAdbSessionHost.kt"
+            line="28"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/PairDevicesUsingWiFiService.kt"
+            line="34"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/PairDevicesUsingWiFiService.kt"
+            line="36"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/PairDevicesUsingWiFiService.kt"
+            line="46"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/PairDevicesUsingWiFiService.kt"
+            line="50"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/PairingCodePairingDialog.kt"
+            line="33"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/RandomProvider.kt"
+            line="24"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/SimpleDialog.kt"
+            line="40"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/WiFiPairingNotificationServiceImpl.kt"
+            line="26"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/WiFiPairingPanel.kt"
+            line="33"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/WiFiPairingPanel.kt"
+            line="51"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/adb/wireless/WiFiPairingPanel.kt"
+            line="57"/>
+    </issue>
+
+</issues>

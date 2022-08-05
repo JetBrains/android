@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework
 
+import com.android.tools.idea.stats.ConsentDialog
 import com.android.tools.idea.tests.gui.framework.fixture.ConsentDialogFixture.Companion.find
 import com.intellij.openapi.application.PathManager
 import com.intellij.util.io.exists
@@ -24,7 +25,6 @@ import java.lang.Boolean.getBoolean
 import java.nio.file.Files
 import java.nio.file.Paths
 
-private const val ENABLE_DIALOG_PROPERTY = "enable.android.analytics.consent.dialog.for.test"
 private const val ENABLE_LOGGING_PROPERTY = "enable.android.analytics.logging.for.test"
 
 private val consentFile
@@ -32,9 +32,6 @@ private val consentFile
 
 private val analyticsSettingsFile
   get() = Paths.get(System.getProperty("user.home")).resolve(".android/analytics.settings")
-
-private val enableDialog
-  get() = getBoolean(ENABLE_DIALOG_PROPERTY)
 
 private val enableLogging
   get() = getBoolean(ENABLE_LOGGING_PROPERTY)
@@ -50,7 +47,7 @@ fun deleteAnalyticsFile() {
 fun setupConsentFile() {
   deleteConsentFile()
 
-  if (enableDialog) {
+  if (ConsentDialog.isConsentDialogEnabledInTests) {
     return
   }
 
@@ -69,7 +66,7 @@ fun setupAnalyticsFile() {
 
   // To suppress the consent dialog when logging is disabled, write an analytics settings file
   // with a lastOptinPromptVersion far in the future
-  if (!enableDialog && !enableLogging) {
+  if (!ConsentDialog.isConsentDialogEnabledInTests && !enableLogging) {
     analyticsSettingsFile.toFile().writeText(
       "{\"userId\":\"e7048a7a-7bae-4093-85dc-c4c1f99190cd\",\"saltSkew\":-1,\"lastOptinPromptVersion\":\"9999.9999\"}")
   }
@@ -83,14 +80,14 @@ class AnalyticsTestUtils {
   companion object {
     @JvmStatic
     val vmDialogOption
-      get() = "-D$ENABLE_DIALOG_PROPERTY=$enableDialog"
+      get() = "-D${ConsentDialog.ENABLE_DIALOG_PROPERTY}=${ConsentDialog.isConsentDialogEnabledInTests}"
 
     val vmLoggingOption
       get() = "-D$ENABLE_LOGGING_PROPERTY=$enableLogging"
 
     @JvmStatic
     fun dismissConsentDialogIfShowing(robot: Robot) {
-      if (!enableDialog) {
+      if (!ConsentDialog.isConsentDialogEnabledInTests) {
         return
       }
       val fixture = try {

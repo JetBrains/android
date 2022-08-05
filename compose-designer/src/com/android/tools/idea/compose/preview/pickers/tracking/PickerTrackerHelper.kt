@@ -20,7 +20,9 @@ import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.toMutableConfig
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.diagnostic.Logger
+import kotlin.math.roundToInt
 
 internal object PickerTrackerHelper {
   /**
@@ -28,19 +30,19 @@ internal object PickerTrackerHelper {
    *
    * Note that the dpi is converted to one of the common Density buckets.
    */
-  fun densityBucketOfDeviceConfig(config: DeviceConfig): PickerTrackableValue {
+  fun densityBucketOfDeviceConfig(config: DeviceConfig): PreviewPickerValue {
     val configCopy = config.toMutableConfig().apply { dimUnit = DimUnit.px } // We need pixel dimensions to calculate density
-    val density = AvdScreenData.getScreenDensity(null, false, configCopy.dpi.toDouble(), configCopy.height)
+    val density = AvdScreenData.getScreenDensity(null, false, configCopy.dpi.toDouble(), configCopy.height.roundToInt())
     return when (density) {
-      Density.LOW -> PickerTrackableValue.DENSITY_LOW
-      Density.MEDIUM -> PickerTrackableValue.DENSITY_MEDIUM
-      Density.HIGH -> PickerTrackableValue.DENSITY_HIGH
-      Density.XHIGH -> PickerTrackableValue.DENSITY_X_HIGH
-      Density.XXHIGH -> PickerTrackableValue.DENSITY_XX_HIGH
-      Density.XXXHIGH -> PickerTrackableValue.DENSITY_XXX_HIGH
+      Density.LOW -> PreviewPickerValue.DENSITY_LOW
+      Density.MEDIUM -> PreviewPickerValue.DENSITY_MEDIUM
+      Density.HIGH -> PreviewPickerValue.DENSITY_HIGH
+      Density.XHIGH -> PreviewPickerValue.DENSITY_X_HIGH
+      Density.XXHIGH -> PreviewPickerValue.DENSITY_XX_HIGH
+      Density.XXXHIGH -> PreviewPickerValue.DENSITY_XXX_HIGH
       else -> {
         Logger.getInstance(this::class.java).warn("Unexpected density bucket: ${density.name}")
-        PickerTrackableValue.UNKNOWN
+        PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       }
     }
   }

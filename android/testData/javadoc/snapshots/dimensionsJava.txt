@@ -1,0 +1,18 @@
+<html>
+<body>
+<table><tr><th valign="top">Flavor/Library</th><th valign="top">Configuration</th><th valign="top">Value</th></tr>
+<tr><td valign="top"><b> (app)</b></td>
+<td valign="top">Default</td>
+<td valign="top">200dp</td>
+</tr>
+<tr><td valign="top"><b></b></td>
+<td valign="top">land</td>
+<td valign="top">200px</td>
+</tr>
+<tr><td valign="top"><b></b></td>
+<td valign="top">sw720dp</td>
+<td valign="top">300dip</td>
+</tr>
+</table>
+</body>
+</html>

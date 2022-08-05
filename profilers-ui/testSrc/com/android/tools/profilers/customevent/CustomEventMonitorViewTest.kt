@@ -27,7 +27,9 @@ import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESP
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
@@ -36,6 +38,9 @@ class CustomEventMonitorViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
   private lateinit var monitorView: CustomEventMonitorView
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @Before
   fun setUp() {

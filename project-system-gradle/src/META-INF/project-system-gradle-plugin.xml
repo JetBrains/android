@@ -18,6 +18,10 @@
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends>org.jetbrains.kotlin</depends>
   <depends optional="true" config-file="project-system-gradle-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+  <extensions defaultExtensionNs="com.android">
+    <androidStartupActivity implementation="com.android.tools.idea.gradle.util.LastBuildOrSyncStartupActivity" />
+    <moduleImporter implementation="com.android.tools.idea.gradle.project.GradleModuleImporter$GradleAndroidModuleImporter" />
+  </extensions>
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider"/>
   </extensions>
@@ -27,7 +31,11 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"
                         serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter"/>
+    <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
+
+    <projectConfigurable groupId="build" id="gradle.compiler"
+                         provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider"/>
     <androidStudioInitializer id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                               implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleOpenProjectProcessorInitializer"/>
@@ -36,9 +44,21 @@
                        order="first, before gradle"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.actions.BuildsToPathsMapper"
                     serviceImplementation="com.android.tools.idea.gradle.project.build.BuildsToPathsMapperImpl"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager" />
+    <projectService serviceImplementation="com.android.tools.idea.gradle.LibraryFilePaths"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches"/>
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter"
+                    serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporterImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantUpdater"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectStructure"/>
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.GradleSyncState"
+        serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateImpl"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.util.LastBuildOrSyncService" />
+    <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android,android-gradle"
                       anchor="left"
@@ -46,20 +66,24 @@
                       icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS"
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
     <notificationGroup id="Android Gradle Tasks" displayType="BALLOON"/>
+    <notificationGroup id="Android SDK Setup Issues" displayType="STICKY_BALLOON" />
     <notificationGroup id="Android Gradle Sync Issues" displayType="STICKY_BALLOON" />
-    <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleMPPModuleDataService"/>
+    <notificationGroup id="Detected Gradle source sets" displayType="BALLOON"/>
     <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinGradleAndroidModuleModelProjectDataService"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NdkModuleModelDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.JavaModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectCleanupDataService" />
+    <!-- Custom BuildOutputParsers, runs first so that it has higher priority to handle messages than other parsers provided by external system -->
+    <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
+    <externalSystemOutputParserProvider implementation="com.android.tools.idea.gradle.project.build.output.GradleOutputParserProvider"
+                                        id="gradle" order="first"/>
     <externalSystemViewContributor id="android" order="before com.intellij.openapi.externalSystem.view.ExternalSystemViewDefaultContributor"
                                    implementation="com.android.tools.idea.projectsystem.gradle.GradleTaskEmptyContributor"/>
     <externalSystemExecutionConsoleManager implementation="com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager"
                                            order="before gradle"/>
-    <resolveScopeProvider implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactResolveScopeProvider" order="first"/>
-    <useScopeOptimizer implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactUseScopeOptimizer"/>
+    <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$SyncStateUpdater" />
+    <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.util.LastBuildOrSyncListener" />
     <externalProjectDataService implementation="com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService" order="last"/>
     <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
@@ -68,15 +92,103 @@
     <cachesInvalidator implementation="com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesInvalidator"/>
     <completion.contributor language="any"
                             implementationClass="com.android.tools.idea.gradle.completions.GradleDependencyCompletionContributor" />
+    <completion.confidence language="any"
+                           id="EnableAutoPopupInStringLiteralForGradleDependencyCompletion"
+                           implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInStringLiteralForGradleDependencyCompletion"
+                           order="first"/>
+    <completion.contributor language="TOML"
+                            implementationClass="com.android.tools.idea.gradle.completions.TomlVersionRefCompletionContributor" />
+    <completion.contributor language="TOML"
+                            implementationClass="com.android.tools.idea.gradle.completions.TomlVersionCatalogCompletionContributor" />
+    <completion.confidence language="TOML"
+                           id="EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion"
+                           implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion" />
+    <completion.confidence language="TOML"
+                           id="EnableAutoPopupInTomlVersionCatalogCompletion"
+                           implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInTomlVersionCatalogCompletion" />
+    <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
+    <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
+    <usageTypeProvider id="org.jetbrains.android.refactoring.GradleUsageTypeProvider"
+                       implementation="org.jetbrains.android.refactoring.GradleUsageTypeProvider" order="first" />
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
+    <intentionAction>
+      <className>org.jetbrains.android.intentions.AndroidAddLibraryDependencyAction</className>
+      <category>Android</category>
+    </intentionAction>
   </extensions>
-  <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <gradleModelFacade implementation="org.jetbrains.kotlin.android.configure.AndroidGradleModelFacade"/>
-  </extensions>
+  <projectListeners>
+    <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
+              topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.setup.post.SetUpRunConfigurationsSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.setup.post.RecordAgpVersionSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+    <listener class="com.android.tools.idea.gradle.variant.view.BuildVariantView$SyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+  </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-    <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver" order="first"/>
+    <orderEnumerationHandlerFactory implementation="com.android.tools.idea.gradle.project.AndroidGradleOrderEnumeratorHandlerFactory"/>
+    <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver"/>
     <projectResolve implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidMPPGradleProjectResolver"/>
+    <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidDslContributor"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.build.output.DataBindingIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.CachedDependencyNotFoundIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ClassLoadingIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ConnectionPermissionDeniedIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.CorruptGradleDependencyIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.DaemonContextMismatchIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.DexDisabledIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.DuplicateClassIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.FailedToParseSdkIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ErrorOpeningZipFileIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.Gradle2RequiredIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDslMethodNotFoundIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.IncompatibleAgpVersionsIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.InternetConnectionIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingBuildToolsIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingCMakeIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidPluginIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSdkIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingDependencyIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.NdkToolchainMissingABIIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnexpectedIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownHostIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingPlatformIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingNdkIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportIssueChecker"/>
+    <issueChecker id="UnsupportedGradleVersionIssueChecker" implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.gradle.sync">
+    <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.IgnoredBuildScriptSetupStep"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.ide">
+    <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.android.actions">
+    <newResourceCreationHandler
+      implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />
   </extensions>
   <actions>
+    <group id="Library.Properties">
+      <separator/>
+      <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
+    </group>
+    <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
+    </action>
+    <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
+    <group id="GradleProjectStructureActions">
+      <separator/>
+      <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
+      <add-to-group group-id="BuildMenu" anchor="last"/>
+      <separator/>
+    </group>
     <group id="Internal.Android.Gradle" internal="true">
       <action id="Android.FixAndroidRunConfigurations"
               class="com.android.tools.idea.projectsystem.gradle.actions.FixAndroidRunConfigurationsAction">
@@ -98,10 +210,5 @@
             class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectIdeModelAction">
       <add-to-group group-id="Internal.Android"/>
     </action>
-    <action internal="true" id="Android.DumpProjectData"
-            class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectDataAction">
-      <add-to-group group-id="Internal.Android"/>
-    </action>
-
   </actions>
 </idea-plugin>

@@ -46,21 +46,43 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
 %state STATE_JAVA_SECTION_BODY
 %state STATE_FLAG_ARGS
 %state STATE_FILE_NAME
+%state STATE_CLASS_FILTER
 
 %%
 <YYINITIAL> {
-    {WHITE_SPACE}                          { return WHITE_SPACE; }
-    "@"                                    { yybegin(STATE_FILE_NAME); return AT; }
-    {FLAG_TOKEN}                           { yybegin(STATE_FLAG_ARGS); return FLAG_TOKEN; }
-    {LINE_CMT}                             { return LINE_CMT; }
+  {WHITE_SPACE}                          { return WHITE_SPACE; }
+  "@"                                    { yybegin(STATE_FILE_NAME); return AT; }
+  "-dontwarn"                            { yybegin(STATE_CLASS_FILTER); return FLAG_TOKEN; }
+  "-dontnote"                            { yybegin(STATE_CLASS_FILTER); return FLAG_TOKEN; }
+  "-adaptclassstrings"                   { yybegin(STATE_CLASS_FILTER); return FLAG_TOKEN; }
+  {FLAG_TOKEN}                           { yybegin(STATE_FLAG_ARGS); return FLAG_TOKEN; }
+  {LINE_CMT}                             { return LINE_CMT; }
 }
 
 <STATE_FILE_NAME> {
-    {FILE_NAME}                         { yybegin(YYINITIAL); return FILE_NAME; }
-    {SINGLE_QUOTED_STRING}              { yybegin(YYINITIAL); return SINGLE_QUOTED_STRING; }
-    {DOUBLE_QUOTED_STRING}              { yybegin(YYINITIAL); return DOUBLE_QUOTED_STRING; }
-    {UNTERMINATED_SINGLE_QUOTED_STRING} { yybegin(YYINITIAL); return UNTERMINATED_SINGLE_QUOTED_STRING; }
-    {UNTERMINATED_DOUBLE_QUOTED_STRING} { yybegin(YYINITIAL); return UNTERMINATED_DOUBLE_QUOTED_STRING; }
+  {FILE_NAME}                         { yybegin(YYINITIAL); return FILE_NAME; }
+  {SINGLE_QUOTED_STRING}              { yybegin(YYINITIAL); return SINGLE_QUOTED_STRING; }
+  {DOUBLE_QUOTED_STRING}              { yybegin(YYINITIAL); return DOUBLE_QUOTED_STRING; }
+  {UNTERMINATED_SINGLE_QUOTED_STRING} { yybegin(YYINITIAL); return UNTERMINATED_SINGLE_QUOTED_STRING; }
+  {UNTERMINATED_DOUBLE_QUOTED_STRING} { yybegin(YYINITIAL); return UNTERMINATED_DOUBLE_QUOTED_STRING; }
+}
+
+<STATE_CLASS_FILTER> {
+  {WHITE_SPACE}                          { return WHITE_SPACE; }
+
+  ","                                    { return COMMA; }
+  "."                                    { return DOT; }
+  "**"                                   { return DOUBLE_ASTERISK; }
+  "*"                                    { return ASTERISK; }
+
+  {SINGLE_QUOTED_STRING}                 { return SINGLE_QUOTED_CLASS; }
+  {DOUBLE_QUOTED_STRING}                 { return DOUBLE_QUOTED_CLASS; }
+  {UNTERMINATED_SINGLE_QUOTED_STRING}    { return UNTERMINATED_SINGLE_QUOTED_CLASS; }
+  {UNTERMINATED_DOUBLE_QUOTED_STRING}    { return UNTERMINATED_DOUBLE_QUOTED_CLASS; }
+  {JAVA_IDENTIFIER}                      { return JAVA_IDENTIFIER; }
+  {JAVA_IDENTIFIER_WITH_WILDCARDS}       { return JAVA_IDENTIFIER_WITH_WILDCARDS; }
+  {FLAG_TOKEN}                           { yypushback(yytext().length()); yybegin(YYINITIAL);}
+  {LINE_CMT}                             { return LINE_CMT; }
 }
 
 <STATE_FLAG_ARGS> {

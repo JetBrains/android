@@ -20,19 +20,20 @@ import com.android.tools.idea.uibuilder.property.NlNewPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.property.panel.api.TableLineModel;
-import com.android.tools.property.ptable2.PTableItem;
+import com.android.tools.property.ptable.PTableItem;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class AddMotionFieldAction extends AnAction {
+  private static final String ADD_ATTRIBUTE = "Add attribute";
   private final NlNewPropertyItem myNewProperty;
   private TableLineModel myLineModel;
 
   public AddMotionFieldAction(@NotNull MotionLayoutAttributesModel model,
                               @NotNull PropertiesTable<NlPropertyItem> properties) {
-    super(null, "Add attribute", AllIcons.General.Add);
+    super(ADD_ATTRIBUTE, ADD_ATTRIBUTE, AllIcons.General.Add);
     myNewProperty = new NlNewPropertyItem(model, properties, (item) -> item.getRawValue() == null, (delegate) -> null);
   }
 

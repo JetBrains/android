@@ -42,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ThreadSamplingReportContributor implements DiagnosticReportContributor {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.diagnostics.ThreadSamplingReportContributor");
+  private static final int MAX_REPORT_LENGTH_BYTES = 200_000;
 
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
   private final ThreadMXBean myThreadMXBean = ManagementFactory.getThreadMXBean();
@@ -122,7 +123,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
   }
 
   private void prepareReport(long totalFreezeDurationMs) {
-    final StringBuilder sb = new StringBuilder();
+    final TruncatingStringBuilder sb = new TruncatingStringBuilder(MAX_REPORT_LENGTH_BYTES, "\n...report truncated...");
     final Map<Long, ThreadCallTree> threadMap = new HashMap<>();
     long intervalMs = myConfiguration.getIntervalMs();
     synchronized (mySampledStacks) {
@@ -147,7 +148,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     if (awtThread != null) {
       // Put time-annotated tree for AWT thread before all other threads.
       sb.append(awtThread.getReportString(myConfiguration.getFrameTimeIgnoreThresholdMs()));
-      sb.append('\n');
+      sb.append("\n");
     }
 
     for (ThreadCallTree callTree : threadMap.values()) {
@@ -156,7 +157,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
         continue;
       }
       sb.append(callTree.getReportString(myConfiguration.getFrameTimeIgnoreThresholdMs()));
-      sb.append('\n'); // empty line between threads
+      sb.append("\n"); // empty line between threads
     }
 
     myReport = sb.toString();

@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
 import org.jetbrains.annotations.NotNull;
@@ -90,7 +95,13 @@ public class DeleteStringAction extends AbstractAction {
           col == StringResourceTableModel.RESOURCE_FOLDER_COLUMN ||
           col == StringResourceTableModel.UNTRANSLATABLE_COLUMN) {
         // if it's not a translation we are deleting, then call the delete action for the whole string
-        myPanel.removeSelectedKeys();
+        StringResourceTableModel model = table.getModel();
+        List<ResourceItem> items = Arrays.stream(table.getSelectedModelRowIndices())
+          .mapToObj(model::getKey)
+          .flatMap(key -> model.getRepository().getItems(key).stream())
+          .collect(Collectors.toUnmodifiableList());
+        Project project = myPanel.getFacet().getModule().getProject();
+        StringResourceWriter.INSTANCE.safeDelete(project, items, myPanel::reloadData);
         return;
       }
     }

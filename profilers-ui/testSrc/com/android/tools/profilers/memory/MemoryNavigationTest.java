@@ -41,6 +41,7 @@ import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.testFramework.ApplicationRule;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -54,6 +55,7 @@ public class MemoryNavigationTest {
   @Rule public final FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
                         new FakeMemoryService());
+  @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
 
   private MainMemoryProfilerStage myStage;
   private MainMemoryProfilerStageView myStageView;

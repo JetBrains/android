@@ -55,6 +55,7 @@ public final class AndroidRunConfigurationEditorTest {
         facet -> false,
         configuration1,
         true,
+        false,
         moduleSelector -> configurationSpecificEditor);
 
     DeployTargetContext deployTargetContext = new DeployTargetContext(providers);

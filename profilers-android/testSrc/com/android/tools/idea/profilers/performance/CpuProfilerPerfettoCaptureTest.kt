@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.performance
 
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl
+import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils.getTraceFile
 import com.intellij.openapi.util.Disposer
 import org.junit.After
@@ -33,8 +34,11 @@ class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Before
   fun setUp() {
     // Use a real instance of TPD Service instead of the fake one.
+    class TestIdeServices: FakeIdeProfilerServices() {
+      override val traceProcessorService get() = this@CpuProfilerPerfettoCaptureTest.traceProcessorService
+    }
     traceProcessorService = TraceProcessorServiceImpl()
-    myIdeServices.traceProcessorService = traceProcessorService
+    myIdeServices = TestIdeServices()
   }
 
   @After
@@ -45,7 +49,6 @@ class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
 
   @Test
   fun measureMemoryOfImportPerfettoWithTPD_10s() {
-    myIdeServices.enableUseTraceProcessor(true)
     loadCaptureAndReport(
       "Perfetto-TPD-10-sec",
       getTraceFile("performance/perfetto_10s_tanks.trace"),
@@ -54,7 +57,6 @@ class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
 
   @Test
   fun measureMemoryOfImportPerfettoWithTPD_60s() {
-    myIdeServices.enableUseTraceProcessor(true)
     myIdeServices.setShouldProceedYesNoDialog(true) // Because the trace file is larger than 100 Mb, it triggers the dialog
     loadCaptureAndReport(
       "Perfetto-TPD-60-sec",
@@ -64,7 +66,6 @@ class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
 
   @Test
   fun measureMemoryOfImportPerfettoWithTPD_120s() {
-    myIdeServices.enableUseTraceProcessor(true)
     myIdeServices.setShouldProceedYesNoDialog(true) // Because the trace file is larger than 100 Mb, it triggers the dialog
     loadCaptureAndReport(
       "Perfetto-TPD-120-sec",

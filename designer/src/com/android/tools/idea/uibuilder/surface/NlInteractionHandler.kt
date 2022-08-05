@@ -32,7 +32,7 @@ import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Rectangle
 
-class NlInteractionHandler(private val surface: DesignSurface): InteractionHandlerBase(surface) {
+class NlInteractionHandler(private val surface: DesignSurface<*>): InteractionHandlerBase(surface) {
   private val scope = AndroidCoroutineScope(surface)
 
   override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int, modifiersEx: Int): Interaction? {

@@ -47,7 +47,7 @@ public final class EnergyEventStateChart {
     .add(EnergyDuration.Kind.UNKNOWN, UIUtil.TRANSPARENT_COLOR)
     .build();
 
-  private static final StateChartColorProvider<Common.Event> DURATION_STATE_COLOR_PROVIDER = new StateChartColorProvider<>() {
+  private static final StateChartColorProvider<Common.Event> DURATION_STATE_COLOR_PROVIDER = new StateChartColorProvider<Common.Event>() {
     @NotNull
     @Override
     public Color getColor(boolean isMouseOver, @NotNull Common.Event value) {

@@ -22,6 +22,7 @@ import com.intellij.ui.components.JBList
 import java.awt.BorderLayout
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import javax.swing.DefaultListSelectionModel
 import javax.swing.ListModel
 import javax.swing.ListSelectionModel
 
@@ -37,6 +38,18 @@ class ComponentList(model: ListModel<NlComponent>, cellRenderer: ColoredListCell
 
   init {
     list.isOpaque = false
+    list.selectionModel = object: DefaultListSelectionModel() {
+      // By default selecting -1 does nothing, but we want it to clear the selection
+      // for the case when the cursor moves from an element in this list to one not in the list.
+      override fun setSelectionInterval(index0: Int, index1: Int) {
+        if (index0 == -1 && index1 == -1) {
+          clearSelection()
+        }
+        else {
+          super.setSelectionInterval(index0, index1)
+        }
+      }
+    }
     list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
     list.fixedCellWidth = 1
     list.cellRenderer = cellRenderer

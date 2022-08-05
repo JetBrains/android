@@ -33,7 +33,7 @@ abstract class LayoutEditorFileType(private val paletteMetadataId: String? = nul
 
   abstract fun getLayoutEditorStateType(): LayoutEditorState.Type
 
-  override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups =
+  override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups =
     DefaultNlToolbarActionGroups(surface as NlDesignSurface)
 
   override fun isEditable() = true

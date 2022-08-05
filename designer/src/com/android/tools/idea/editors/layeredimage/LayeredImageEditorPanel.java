@@ -30,7 +30,7 @@ import org.intellij.images.editor.ImageEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacade, Disposable {
+class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacade, Disposable {
   private final ThreeComponentsSplitter myContentSplitter;
   private final JComponent myContentComponent;
   private final Image myImage;

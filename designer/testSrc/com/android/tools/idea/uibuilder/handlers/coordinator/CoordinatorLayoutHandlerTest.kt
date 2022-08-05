@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.api.InsertType
@@ -114,7 +115,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
     )
     val handler = CoordinatorLayoutHandler()
     val editor = mock(ViewEditor::class.java)
-    handler.onChildInserted(editor, myModel.components.first(), bottomAppBar, InsertType.CREATE)
+    handler.onChildInserted(myModel.components.first(), bottomAppBar, InsertType.CREATE)
     UIUtil.dispatchAllInvocationEvents()
 
     val fab = myModel.find("fab")!!
@@ -144,7 +145,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
 
   override fun createModel(): ModelBuilder {
     val builder = model("coordinator.xml",
-                        component(SdkConstants.COORDINATOR_LAYOUT.newName())
+                        component(AndroidXConstants.COORDINATOR_LAYOUT.newName())
                           .withBounds(0, 0, 1000, 1000)
                           .matchParentWidth()
                           .matchParentHeight()
@@ -161,7 +162,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
                               .id("@id/checkbox")
                               .width("20dp")
                               .height("20dp"),
-                            component(SdkConstants.FLOATING_ACTION_BUTTON.newName())
+                            component(AndroidXConstants.FLOATING_ACTION_BUTTON.newName())
                               .withBounds(200, 400, 64, 64)
                               .id("@id/fab")
                               .width("64dp")

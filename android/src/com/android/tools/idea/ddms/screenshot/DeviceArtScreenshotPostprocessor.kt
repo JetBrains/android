@@ -17,45 +17,23 @@ package com.android.tools.idea.ddms.screenshot
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.ImageUtils.circularClip
 import com.android.tools.adtui.device.DeviceArtPainter
-import com.intellij.util.ui.ImageUtil.applyQualityRenderingHints
-import java.awt.AlphaComposite
-import java.awt.geom.Area
-import java.awt.geom.Ellipse2D
+import java.awt.Color
 import java.awt.image.BufferedImage
-import kotlin.math.max
 
 /**
  * A [ScreenshotPostprocessor] using [DeviceArtPainter].
  */
 class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
   @Slow
-  override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?): BufferedImage {
+  override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
     screenshotImage as DeviceScreenshotImage
     if (framingOption == null) {
-      return if (screenshotImage.isRoundScreen) circularClip(screenshotImage.image) else screenshotImage.image
+      return if (screenshotImage.isRoundScreen) circularClip(screenshotImage.image, backgroundColor) else screenshotImage.image
     }
     val frameDescriptor = (framingOption as DeviceArtFramingOption).deviceArtDescriptor
-    val framedImage = DeviceArtPainter.createFrame(screenshotImage.image, frameDescriptor, false, false)
+    val framedImage = DeviceArtPainter.createFrame(screenshotImage.image, frameDescriptor)
     return ImageUtils.cropBlank(framedImage, null) ?: throw IllegalArgumentException("The screenshot is completely transparent")
-  }
-
-  private fun circularClip(image: BufferedImage): BufferedImage {
-    val mask = ImageUtils.createDipImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
-    mask.createGraphics().apply {
-      applyQualityRenderingHints(this)
-      val diameter = max(image.width, image.height).toDouble()
-      fill(Area(Ellipse2D.Double(0.0, 0.0, diameter, diameter)))
-      dispose()
-    }
-    val shapedImage = ImageUtils.createDipImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
-    shapedImage.createGraphics().apply {
-      applyQualityRenderingHints(this)
-      drawImage(image, 0, 0, null)
-      composite = AlphaComposite.getInstance(AlphaComposite.DST_IN)
-      drawImage(mask, 0, 0, null)
-      dispose()
-    }
-    return shapedImage
   }
 }

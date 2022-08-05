@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import org.mockito.Mockito.`when`
 import java.awt.event.MouseEvent.BUTTON1
 
 /**
@@ -43,7 +42,7 @@ class ScreenDragTargetTest : NavTestCase() {
     }
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
+    whenever(surface.focusedSceneView).thenReturn(view)
 
     val scene = model.surface.scene!!
     scene.layout(0, SceneContext.get())

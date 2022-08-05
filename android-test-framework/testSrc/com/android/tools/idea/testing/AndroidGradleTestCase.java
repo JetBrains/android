@@ -21,6 +21,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.LastBuildOrSyncServiceKt.emulateStartupActivityForTest;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidGradleTests.shouldUseRemoteRepositories;
 import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
@@ -34,14 +35,15 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -52,7 +54,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -79,7 +80,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import junit.framework.AssertionFailedError;
 import org.jetbrains.android.AndroidTempDirTestFixture;
@@ -155,7 +156,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       // To ensure that application IDs are loaded from the listing file as needed, we must register the required listeners.
       // This is normally done within an AndroidStartupActivity but these are not run in tests.
       // TODO(b/159600848)
-      GradleBuildOutputUtil.emulateStartupActivityForTest(getProject());
+      emulateStartupActivityForTest(getProject());
     }
 
     // Use per-project code style settings so we never modify the IDE defaults.
@@ -260,15 +261,16 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    @Nullable String chosenModuleName,
                                    @Nullable String gradleVersion,
                                    @Nullable String gradlePluginVersion) throws Exception {
-    loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null);
+    loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null, null);
   }
 
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName,
                                    @Nullable String gradleVersion,
                                    @Nullable String gradlePluginVersion,
-                                   @Nullable String kotlinVersion) throws Exception {
-    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion);
+                                   @Nullable String kotlinVersion,
+                                   @Nullable String ndkVersion) throws Exception {
+    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
     importProject();
 
     prepareProjectForTest(getProject(), chosenModuleName);
@@ -307,37 +309,49 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                       @Nullable String gradleVersion,
                                       @Nullable String gradlePluginVersion,
                                       @Nullable String kotlinVersion,
+                                      @Nullable String ndkVersion,
                                       File... localRepos) throws IOException {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, localRepos);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
-    return prepareProjectForImport(relativePath, null, null, null);
+    return prepareProjectForImport(relativePath, null, null, null, null);
   }
 
   @NotNull
-  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath) throws IOException {
-    return prepareProjectForImport(relativePath, targetPath, null, null, null);
+  protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath) throws IOException {
+    return prepareProjectForImport(relativePath, targetPath, null, null, null, null);
   }
 
+  /**
+   * All overloads of this method should be final, please to not remove.
+   */
   @NotNull
-  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath,
-                                         @Nullable String gradleVersion, @Nullable String gradlePluginVersion, @Nullable String kotlinVersion) throws IOException {
+  protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
+                                         @NotNull File targetPath,
+                                         @Nullable String gradleVersion,
+                                         @Nullable String gradlePluginVersion,
+                                         @Nullable String kotlinVersion,
+                                         @Nullable String ndkVersion) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
 
     prepareGradleProject(
       projectSourceRoot,
       targetPath,
-      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, kotlinVersion, getAdditionalRepos().toArray(new File[0])));
+      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion,
+                                   getAdditionalRepos().toArray(new File[0])));
     return targetPath;
   }
 
   @NotNull
-  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @Nullable String gradleVersion,
-                                         @Nullable String gradlePluginVersion, @Nullable String kotlinVersion) throws IOException {
+  protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
+                                         @Nullable String gradleVersion,
+                                         @Nullable String gradlePluginVersion,
+                                         @Nullable String kotlinVersion,
+                                         @Nullable String ndkVersion) throws IOException {
     File projectRoot = new File(FileUtilRt.toSystemDependentName(getProject().getBasePath()));
-    return prepareProjectForImport(relativePath, projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion);
+    return prepareProjectForImport(relativePath, projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
   }
 
   @NotNull
@@ -355,7 +369,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
 
   protected void generateSources() throws InterruptedException {
-    GradleInvocationResult result =
+    GradleBuildResult result =
       invokeGradle(getProject(), invoker -> invoker.generateSources(ModuleManager.getInstance(getProject()).getModules()));
     assertTrue("Generating sources failed.", result.isBuildSuccessful());
     refreshProjectFiles();
@@ -380,36 +394,29 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   @NotNull
-  protected static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask)
-    throws InterruptedException {
+  protected static <T extends GradleBuildResult> T invokeGradle(
+    @NotNull Project project,
+    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask) {
     return invokeGradle(project, gradleInvocationTask, null);
   }
 
-  @NotNull
-  protected static GradleInvocationResult invokeGradle(@NotNull Project project,
-                                                       @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask,
-                                                       @Nullable Long sourceFolderTimeoutMillis
-  ) throws InterruptedException {
-    Ref<GradleInvocationResult> resultRef = new Ref<>();
-    CountDownLatch latch = new CountDownLatch(1);
+  protected static <T extends GradleBuildResult> T invokeGradle(
+    @NotNull Project project,
+    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask,
+    @Nullable Long sourceFolderTimeoutMillis
+  ) {
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
-    GradleBuildInvoker.AfterGradleInvocationTask task = result -> {
-      resultRef.set(result);
-      latch.countDown();
-    };
+    ListenableFuture<T> future = gradleInvocationTask.apply(gradleBuildInvoker);
 
-    gradleBuildInvoker.add(task);
-
+    T result;
     try {
-      gradleInvocationTask.consume(gradleBuildInvoker);
+      result = future.get(5, MINUTES);
     }
-    finally {
-      gradleBuildInvoker.remove(task);
+    catch (Exception e) {
+      throw new RuntimeException(e);
     }
 
-    latch.await(5, MINUTES);
-    GradleInvocationResult result = resultRef.get();
     refreshProjectFiles();
     ApplicationManager.getApplication().invokeAndWait(() -> {
       try {

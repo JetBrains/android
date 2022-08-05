@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
-import com.android.SdkConstants
+import com.android.SdkConstants.FD_RES_XML
+import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
@@ -24,7 +26,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.intellij.ide.PowerSaveMode
-import org.mockito.Mockito
 
 class LayoutlibSceneManagerTest: SceneTest() {
 
@@ -44,17 +45,17 @@ class LayoutlibSceneManagerTest: SceneTest() {
     val nlSurface = myScene.designSurface as NlDesignSurface
     val sceneManager = nlSurface.sceneManager!!
 
-    Mockito.`when`(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+    whenever(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNull(sceneManager.secondarySceneView)
 
-    Mockito.`when`(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
+    whenever(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNull(sceneManager.secondarySceneView)
 
-    Mockito.`when`(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT)
+    whenever(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNotNull(sceneManager.secondarySceneView)
@@ -81,8 +82,8 @@ class LayoutlibSceneManagerTest: SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model(SdkConstants.FD_RES_XML, "preference.xml",
-                 component(SdkConstants.TAG_PREFERENCE_SCREEN)
+    return model(FD_RES_XML, "preference.xml",
+                 component(PREFERENCE_SCREEN)
                    .withBounds(0, 0, 1000, 1000)
                    .matchParentWidth()
                    .matchParentHeight()

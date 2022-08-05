@@ -62,6 +62,22 @@
                      key="inspection.dimension.limit.name"
                      level="WARNING"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewFontScaleMustBeGreaterThanZero"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.font.scale.name"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewApiLevelMustBeValid"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.api.level.name"
+                     level="ERROR"/>
+
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMultipleParameterProvidersInspection"
                      language="kotlin"
                      enabledByDefault="true"
@@ -94,6 +110,30 @@
                      key="inspection.preview.device.spec.name"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNotSupportedInUnitTestFiles"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.unit.test.files"
+                     level="ERROR"/>
+
+    <fileType name="DeviceSpecFile"
+              language="DeviceSpec"
+              implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecFileType"
+              fieldName="INSTANCE"
+              extensions="dspec"/>
+    <lang.parserDefinition language="DeviceSpec"
+                           implementationClass="com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition"/>
+    <languageInjector implementation="com.android.tools.idea.compose.preview.util.device.DeviceSpecInjector"/>
+    <completion.contributor language="DeviceSpec"
+                            id="DeviceSpecContributor"
+                            implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecCompletionContributor"/>
+    <lang.syntaxHighlighterFactory
+      language="DeviceSpec"
+      implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecSyntaxHighlighterFactory"
+      />
+
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
@@ -106,12 +146,11 @@
     <codeInsight.lineMarkerProvider
         language="kotlin"
         implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerLineMarkerProvider"/>
+    <codeInsight.lineMarkerProvider
+        language="kotlin"
+        implementationClass="com.android.tools.idea.compose.annotator.SpringPickerLineMarkerProvider"/>
 
     <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.android.tools.idea.compose.preview">
-    <composeEditorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewNotificationProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode">
@@ -131,11 +170,12 @@
   <actions>
     <action id="Android.Designer.ComposeIssueNotificationAction"
             icon="StudioIcons.Common.ERROR"
-            class="com.android.tools.idea.compose.preview.actions.ComposeIssueNotificationAction"
+            class="com.android.tools.idea.common.actions.IssueNotificationAction"
             text="Toggle Issue Panel"
             description="Toggle the visibility of Issue Panel"
             use-shortcut-of="Android.Designer.IssueNotificationAction" />
-    <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.ForcePreviewDaemonStop" />
+    <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.internal.ForcePreviewDaemonStop" />
+    <action internal="true" id="FastRefresh.SimulateAutoDisable" class="com.android.tools.idea.compose.preview.actions.internal.SimulateFastPreviewAutoDisable" />
   </actions>
 
 </idea-plugin>

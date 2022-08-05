@@ -36,10 +36,10 @@ interface InteractivePreviewUsageTracker {
 
   companion object {
     private val NOP_TRACKER = InteractiveNopTracker()
-    private val MANAGER = DesignerUsageTrackerManager<InteractivePreviewUsageTracker, DesignSurface>(
+    private val MANAGER = DesignerUsageTrackerManager<InteractivePreviewUsageTracker, DesignSurface<*>>(
       { executor, _, eventLogger -> InteractiveComposePreviewUsageTracker(executor, eventLogger) }, NOP_TRACKER
     )
 
-    fun getInstance(surface: DesignSurface?) = MANAGER.getInstance(surface)
+    fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
   }
 }

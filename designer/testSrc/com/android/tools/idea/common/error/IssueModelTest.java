@@ -26,38 +26,38 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.mock.MockApplication;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class IssueModelTest {
+
+  @Rule
+  public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+
   private IssueModel myIssueModel;
-  private Disposable myDisposable;
 
   @Before
   public void setUp() throws Exception {
-    myIssueModel = new IssueModel(MoreExecutors.directExecutor());
-    myDisposable = Disposer.newDisposable();
-    ApplicationManager.setApplication(new MockApplication(myDisposable), myDisposable);
+    myIssueModel = IssueModel.createForTesting(myProjectRule.getTestRootDisposable(), myProjectRule.getProject());
   }
 
   @Test
   public void setRenderErrorModel() {
+    VirtualFile file = myProjectRule.fixture.addFileToProject("res/layout/layout.xml", "").getVirtualFile();
+
     RenderErrorModel.Issue issue = MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR);
     RenderErrorModel renderErrorModel = createRenderErrorModel(issue);
 
@@ -65,6 +65,7 @@ public class IssueModelTest {
     assertFalse(hasRenderError());
     assertEquals(0, myIssueModel.getIssueCount());
     NlModel sourceNlModel = Mockito.mock(NlModel.class);
+    Mockito.when(sourceNlModel.getVirtualFile()).thenReturn(file);
     myIssueModel.addIssueProvider(new RenderIssueProvider(sourceNlModel, renderErrorModel));
     assertTrue(myIssueModel.hasIssues());
     assertTrue(hasRenderError());
@@ -189,7 +190,8 @@ public class IssueModelTest {
 
   @Test
   public void limitMaxNumberOfIssues() {
-    IssueModel limitedIssueModel = new IssueModel(MoreExecutors.directExecutor(), 5);
+    IssueModel limitedIssueModel =
+      IssueModel.createForTesting(myProjectRule.getTestRootDisposable(), myProjectRule.getProject(), 5);
     assertFalse(limitedIssueModel.hasIssues());
     limitedIssueModel.addIssueProvider(new RenderIssueProvider(
       null,
@@ -250,11 +252,6 @@ public class IssueModelTest {
 
     myIssueModel.removeIssueProvider(fakeProvider);
     assertTrue(fakeProvider.getListeners().isEmpty());
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    Disposer.dispose(myDisposable);
   }
 
   public boolean hasRenderError() {

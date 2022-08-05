@@ -26,53 +26,43 @@ import com.android.tools.idea.ui.resourcemanager.model.Mapper
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.model.getAssetSets
 import com.android.tools.idea.ui.resourcemanager.nightModeMapper
-import com.intellij.ide.IdeEventQueue
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
-import org.junit.After
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.ClassRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
-import java.awt.EventQueue
 import java.util.regex.MatchResult
 import java.util.regex.Pattern
-import kotlin.test.assertTrue
 
-
+@RunsInEdt
 class ImporterTest {
+  companion object {
+    @JvmField
+    @ClassRule
+    val appRule = ApplicationRule()
+  }
 
-  lateinit var disposable: Disposable
+  @get:Rule
+  val edtRule = EdtRule()
+
   private val supportedTypes = setOf("png", "jpg")
-
-  @Before
-  fun setUp() {
-    // Since the ApplicationManager does not restore 'null' application on Dispose
-    // make sure IdeEventQueue is initialized before we setApplication to a not-null value to
-    // prevent later attempts to initialize it accessing the already disposed MockApplication.
-    assertTrue(EventQueue.isDispatchThread(), Thread.currentThread().toString()) // IdeEventQueue should only be initialized on EDT
-    IdeEventQueue.getInstance()
-    disposable = Disposer.newDisposable()
-    ApplicationManager.setApplication(MockApplication(disposable), disposable)
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(disposable)
-  }
 
   @Test
   fun getCreateAsset() {
-    val directory = getExternalResourceDirectory(
-      "icon.png",
-      "icon@2x.png",
-      "icon@3x.jpg",
-      "image.jpg",
-      "image@4x.jpg",
-      "image@4x_dark.jpg"
-    )
+    val directory = runWriteAction {
+      getExternalResourceDirectory(
+        "icon.png",
+        "icon@2x.png",
+        "icon@3x.jpg",
+        "image.jpg",
+        "image@4x.jpg",
+        "image@4x_dark.jpg"
+      )
+    }
 
     val assetSets = getAssetSets(
       directory,
@@ -107,16 +97,17 @@ class ImporterTest {
 
   @Test
   fun getCreateAssetMultiDir() {
-    val directory = getExternalResourceDirectory()
-    with(directory.createChildDirectory(this, "fr")) {
-      createChildData(this, "icon.png")
-      createChildData(this, "icon@2x.png")
-      createChildData(this, "image@4x.jpg")
-    }
-
-    with(directory.createChildDirectory(this, "en")) {
-      createChildData(this, "image.jpg")
-      createChildData(this, "icon@3x.jpg")
+    val directory = runWriteAction { getExternalResourceDirectory() }
+    runWriteAction {
+      with(directory.createChildDirectory(this, "fr")) {
+        createChildData(this, "icon.png")
+        createChildData(this, "icon@2x.png")
+        createChildData(this, "image@4x.jpg")
+      }
+      with(directory.createChildDirectory(this, "en")) {
+        createChildData(this, "image.jpg")
+        createChildData(this, "icon@3x.jpg")
+      }
     }
 
     val localeMapper = object : Mapper<LocaleQualifier> {

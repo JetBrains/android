@@ -17,9 +17,9 @@ package com.android.tools.idea.uibuilder.menu;
 
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.AUTO_URI;
-import static com.android.SdkConstants.CLASS_MEDIA_ROUTE_ACTION_PROVIDER;
 import static com.android.SdkConstants.MEDIA_ROUTER_LIB_ARTIFACT;
 
+import com.android.AndroidXConstants;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -36,7 +36,7 @@ public final class CastButtonHandler extends MenuHandler {
   }
 
   static boolean handles(@NotNull NlAttributesHolder button) {
-    return CLASS_MEDIA_ROUTE_ACTION_PROVIDER.isEquals(button.getAttribute(AUTO_URI, "actionProviderClass"));
+    return AndroidXConstants.CLASS_MEDIA_ROUTE_ACTION_PROVIDER.isEquals(button.getAttribute(AUTO_URI, "actionProviderClass"));
   }
 
   @NotNull

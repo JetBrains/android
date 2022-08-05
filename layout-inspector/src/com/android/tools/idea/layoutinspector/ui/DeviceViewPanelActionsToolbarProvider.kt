@@ -153,7 +153,7 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
 object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
   override val zoomLabelGroup = DefaultActionGroup().apply {
     add(ZoomLabelAction)
-    add(ZoomResetAction())
+    add(ZoomResetAction)
   }
 
   val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction) }

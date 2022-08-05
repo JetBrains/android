@@ -17,10 +17,11 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFilesFromListingFileOrLogError;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputFilesFromListingFile;
+import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputListingFile;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.resolveIn;
 import static java.util.Collections.emptyList;
 
 import com.android.builder.model.AppBundleProjectBuildOutput;
@@ -43,7 +44,6 @@ import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
@@ -51,13 +51,15 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.android.tools.idea.gradle.util.BuildOutputUtil;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -88,12 +90,11 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * Provides the information on APKs to install for run configurations in Gradle projects.
  */
-public class GradleApkProvider implements ApkProvider {
+public final class GradleApkProvider implements ApkProvider {
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final GradleApplicationIdProvider myApplicationIdProvider;
   @NotNull private final PostBuildModelProvider myOutputModelProvider;
@@ -128,12 +129,14 @@ public class GradleApkProvider implements ApkProvider {
     myAlwaysDeployApkFromBundle = alwaysDeployApkFromBundle;
   }
 
-  @VisibleForTesting
-  protected OutputKind getOutputKind(@Nullable AndroidVersion targetDevicesMinVersion) {
+  private static OutputKind getOutputKind(@NotNull Module module,
+                                          boolean alwaysDeployApkFromBundle,
+                                          boolean isTest,
+                                          @Nullable AndroidVersion targetDevicesMinVersion) {
     if (DynamicAppUtils.useSelectApksFromBundleBuilder(
-      myFacet.getModule(),
-      myAlwaysDeployApkFromBundle,
-      isTest(),
+      module,
+      alwaysDeployApkFromBundle,
+      isTest,
       targetDevicesMinVersion
     )) {
       return GradleApkProvider.OutputKind.AppBundleOutputModel;
@@ -143,9 +146,6 @@ public class GradleApkProvider implements ApkProvider {
     }
   }
 
-  @TestOnly
-  boolean isTest() { return myTest; }
-
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
@@ -154,17 +154,23 @@ public class GradleApkProvider implements ApkProvider {
       getLogger().warn("Android model is null. Sync might have failed");
       return Collections.emptyList();
     }
-    return getApks(device.getAbis(), device.getVersion(), androidModel, androidModel.getSelectedVariant());
+    return getApks(device.getAbis(),
+                   device.getVersion(),
+                   androidModel,
+                   androidModel.getSelectedVariant(),
+                   getOutputKind(myFacet.getModule(), myAlwaysDeployApkFromBundle, myTest, device.getVersion()));
   }
 
   @NotNull
   public List<ApkInfo> getApks(@NotNull List<String> deviceAbis,
                                @NotNull AndroidVersion deviceVersion,
                                @NotNull GradleAndroidModel androidModel,
-                               @NotNull IdeVariant variant) throws ApkProvisionException {
+                               @NotNull IdeVariant variant,
+                               @NotNull OutputKind outputKind) throws ApkProvisionException {
     List<ApkInfo> apkList = new ArrayList<>();
 
     IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
+    Logger logger = getLogger();
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_APP ||
         projectType == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
         projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST ||
@@ -173,11 +179,11 @@ public class GradleApkProvider implements ApkProvider {
                        ? myApplicationIdProvider.getTestPackageName()
                        : myApplicationIdProvider.getPackageName();
       if (pkgName == null) {
-        getLogger().warn("Package name is null. Sync might have failed");
+        logger.warn("Package name is null. Sync might have failed");
         return Collections.emptyList();
       }
 
-      switch (getOutputKind(deviceVersion)) {
+      switch (outputKind) {
         case Default:
           // Collect the base (or single) APK file, then collect the dependent dynamic features for dynamic
           // apps (assuming the androidModel is the base split).
@@ -230,6 +236,14 @@ public class GradleApkProvider implements ApkProvider {
         }
       }
     }
+    logger.info(String.format("APKs for %s:", this.myFacet.getModule()));
+    for (ApkInfo info : apkList) {
+      logger.info(String.format("  %s =>", info.getApplicationId()));
+      for (ApkFileUnit file : info.getFiles()) {
+        logger.info(String.format("    %s : %s", file.getModuleName(), file.getApkFile()));
+      }
+    }
+
     return apkList;
   }
 
@@ -237,8 +251,7 @@ public class GradleApkProvider implements ApkProvider {
   private List<ApkFileUnit> collectDependentFeaturesApks(@NotNull GradleAndroidModel androidModel,
                                                          @NotNull List<String> deviceAbis,
                                                          @NotNull AndroidVersion deviceVersion) {
-    IdeAndroidProject project = androidModel.getAndroidProject();
-    return DynamicAppUtils.getDependentFeatureModulesForBase(myFacet.getModule().getProject(), project)
+    return getModuleSystem(myFacet).getDynamicFeatureModules()
       .stream()
       .map(module -> {
         // Find the output APK of the module
@@ -376,9 +389,10 @@ public class GradleApkProvider implements ApkProvider {
         String.format("Couldn't get post build model. Module: %s Variant: %s", facet.getModule().getName(), variantName));
     }
 
-    ModelCache modelCache = ModelCache.create();
+    ModelCache.V1 modelCache = ModelCache.createForPostBuildModels();
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(getGradlePath(facet.getModule()));
+      InstantAppProjectBuildOutput outputModel =
+        outputModels.findInstantAppProjectBuildOutput(getGradlePathAsStringForPostBuildModels(facet.getModule()));
       if (outputModel == null) {
         throw new ApkProvisionException(
           "Couldn't get post build model for Instant Apps. Please, make sure to use plugin 3.0.0-alpha10 or later.");
@@ -392,7 +406,8 @@ public class GradleApkProvider implements ApkProvider {
     }
     else {
       @SuppressWarnings("deprecation")
-      ProjectBuildOutput outputModel = outputModels.findProjectBuildOutput(getGradlePath(facet.getModule()));
+      ProjectBuildOutput outputModel =
+        outputModels.findProjectBuildOutput(getGradlePathAsStringForPostBuildModels(facet.getModule()));
       if (outputModel == null) {
         throw new ApkProvisionException(
           String.format("Couldn't get post build model. Module: %s Variant: %s", facet.getModule().getName(), variantName));
@@ -447,7 +462,10 @@ public class GradleApkProvider implements ApkProvider {
       Module targetModule = ApplicationManager.getApplication().runReadAction(
         (Computable<Module>)() -> {
           Project project = myFacet.getModule().getProject();
-          return findModuleByGradlePath(project, targetGradlePath);
+          GradleProjectPath projectPath = getGradleProjectPath(myFacet.getHolderModule());
+          if (projectPath == null) return null;
+          GradleProjectPath targetProjectPath = new GradleHolderProjectPath(projectPath.getBuildRoot(), targetGradlePath);
+          return resolveIn(targetProjectPath, project);
         });
 
       if (targetModule == null) {
@@ -483,27 +501,28 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  @Override
-  public List<ValidationError> validate() {
+  public static ImmutableList<ValidationError> doValidate(@NotNull AndroidFacet androidFacet,
+                                                          boolean isTest,
+                                                          boolean alwaysDeployApkFromBundle) {
     ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
 
-    GradleAndroidModel androidModuleModel = GradleAndroidModel.get(myFacet);
+    GradleAndroidModel androidModuleModel = GradleAndroidModel.get(androidFacet);
     if (androidModuleModel == null) {
       Runnable requestProjectSync =
-        () -> ProjectSystemUtil.getSyncManager(myFacet.getModule().getProject())
+        () -> ProjectSystemUtil.getSyncManager(androidFacet.getModule().getProject())
           .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
       result.add(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
       return result.build();
     }
 
-    if (myAlwaysDeployApkFromBundle) {
+    if (alwaysDeployApkFromBundle) {
       if (StringUtil.isEmpty(androidModuleModel.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName())) {
-        ValidationError error = ValidationError.fatal("Bundle task not supported for module '" + myFacet.getModule().getName() + "'");
+        ValidationError error = ValidationError.fatal("Bundle task not supported for module '" + androidFacet.getModule().getName() + "'");
         result.add(error);
       }
     }
 
-    if (isTest()) {
+    if (isTest) {
       IdeAndroidArtifact testArtifact = androidModuleModel.getArtifactForAndroidTest();
       if (testArtifact == null) {
         IdeVariant selectedVariant = androidModuleModel.getSelectedVariant();
@@ -513,10 +532,15 @@ public class GradleApkProvider implements ApkProvider {
 
     // Note: Instant apps and app bundles outputs are assumed to be signed
     AndroidVersion targetDevicesMinVersion = null; // NOTE: ApkProvider.validate() runs in a device-less context.
+    Module module = androidFacet.getModule();
     //noinspection ConstantConditions
     if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
-        getOutputKind(targetDevicesMinVersion) == OutputKind.AppBundleOutputModel ||
-        isArtifactSigned(androidModuleModel)) {
+        GradleApkProvider.getOutputKind(module,
+                                        alwaysDeployApkFromBundle,
+                                        isTest,
+                                        targetDevicesMinVersion
+        ) == OutputKind.AppBundleOutputModel ||
+        GradleApkProvider.isArtifactSigned(androidModuleModel, isTest)) {
       return result.build();
     }
 
@@ -524,7 +548,6 @@ public class GradleApkProvider implements ApkProvider {
       AndroidBundle.message("run.error.apk.not.signed", androidModuleModel.getSelectedVariant().getDisplayName());
 
     Runnable quickFix = () -> {
-      Module module = myFacet.getModule();
       ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
       if (service instanceof AndroidProjectSettingsService) {
         ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
@@ -554,14 +577,14 @@ public class GradleApkProvider implements ApkProvider {
 
     List<File> apkFiles;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      String outputListingFile = GradleBuildOutputUtil
+      String outputListingFile = BuildOutputUtil
         .getOutputListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
                               OutputType.ApkFromBundle);
-      apkFiles = outputListingFile != null ? getOutputFilesFromListingFileOrLogError(outputListingFile) : emptyList();
+      apkFiles = outputListingFile != null ? getOutputFilesFromListingFile(outputListingFile) : emptyList();
     }
     else {
       apkFiles = collectApkFilesFromPostBuildModel(outputModelProvider,
-                                                   getGradlePath(module),
+                                                   getGradlePathAsStringForPostBuildModels(module),
                                                    androidModel.getSelectedVariant().getName());
     }
 
@@ -631,8 +654,8 @@ public class GradleApkProvider implements ApkProvider {
     return fileName.substring(0, separatorIndex);
   }
 
-  private boolean isArtifactSigned(GradleAndroidModel androidModuleModel) {
-    IdeAndroidArtifact artifact = myTest ? androidModuleModel.getArtifactForAndroidTest() : androidModuleModel.getMainArtifact();
+  private static boolean isArtifactSigned(GradleAndroidModel androidModuleModel, boolean isTest) {
+    IdeAndroidArtifact artifact = isTest ? androidModuleModel.getArtifactForAndroidTest() : androidModuleModel.getMainArtifact();
     return artifact != null && artifact.isSigned();
   }
 
@@ -679,5 +702,11 @@ public class GradleApkProvider implements ApkProvider {
                                              Joiner.on(", ").join(abis));
       throw new ApkProvisionException(message);
     }
+  }
+
+  @Nullable
+  private static String getGradlePathAsStringForPostBuildModels(@NotNull Module module) {
+    GradleProjectPath gradleProjectPath = getGradleProjectPath(module);
+    return gradleProjectPath != null ? gradleProjectPath.getPath() : null;
   }
 }

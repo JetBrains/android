@@ -834,6 +834,15 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
+  public @NotNull GradleDslElement getHolder() {
+    GradleDslElement element = getElement();
+    if (element == null) return myPropertyHolder;
+    GradleDslElement parent = element.getParent();
+    if (parent == null) return myPropertyHolder;
+    return parent;
+  }
+
+  @Override
   @Nullable
   public GradleDslElement getRawElement() {
     return myElement;

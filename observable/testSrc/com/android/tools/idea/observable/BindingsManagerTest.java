@@ -73,7 +73,7 @@ public final class BindingsManagerTest {
     CountListener listener = new CountListener();
     stringList.addListener(listener);
 
-    bindings.bind(stringList, new MapExpression<>(numericList) {
+    bindings.bind(stringList, new MapExpression<Integer, String>(numericList) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -155,7 +155,7 @@ public final class BindingsManagerTest {
     ObservableList<String> dest = new ObservableList<>();
     ObservableList<Integer> src = new ObservableList<>();
 
-    bindings.bind(dest, new MapExpression<>(src) {
+    bindings.bind(dest, new MapExpression<Integer, String>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -211,7 +211,7 @@ public final class BindingsManagerTest {
     ObservableList<String> dest = new ObservableList<>();
     ObservableList<Integer> src = new ObservableList<>();
 
-    bindings.bind(dest, new MapExpression<>(src) {
+    bindings.bind(dest, new MapExpression<Integer, String>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {

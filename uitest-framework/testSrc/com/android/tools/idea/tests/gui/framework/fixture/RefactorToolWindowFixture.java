@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.tree.TreeModel;
 import org.jetbrains.annotations.NotNull;
@@ -41,4 +43,10 @@ public class RefactorToolWindowFixture extends ToolWindowFixture {
     int numChildren = model.getChildCount(root);
     return numChildren == 0;
   }
+
+  public void clickDoRefactorButton() {
+    JButton doRefactorButton = myRobot.finder().find(Matchers.byText(JButton.class, "Do Refactor"));
+    myRobot.click(doRefactorButton);
+  }
+
 }

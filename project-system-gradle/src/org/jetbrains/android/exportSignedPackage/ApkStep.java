@@ -148,7 +148,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
         myProGuardConfigFilesPanel.setUrls(facet.getProperties().myProGuardCfgFiles);
       }
       else {
-        final List<String> urls = new ArrayList<>();
+        final List<String> urls = new ArrayList<String>();
         urls.add(AndroidFacetProperties.PROGUARD_SYSTEM_CFG_FILE_URL);
         final Pair<VirtualFile, Boolean> pair = AndroidCompileUtil.getDefaultProguardConfigFile(facet);
 

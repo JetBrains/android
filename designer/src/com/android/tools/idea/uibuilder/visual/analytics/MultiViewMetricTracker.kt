@@ -17,9 +17,10 @@ package com.android.tools.idea.uibuilder.visual.analytics
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.visual.ConfigurationSet
+import com.android.tools.idea.uibuilder.visual.UserDefinedCustom
 import com.google.wireless.android.sdk.stats.MultiViewEvent.MultiViewEventType
 
-fun trackOpenConfigSet(surface: DesignSurface, configSet: ConfigurationSet) {
+fun trackOpenConfigSet(surface: DesignSurface<*>, configSet: ConfigurationSet) {
   when (configSet) {
     ConfigurationSet.PixelDevices -> track(surface, MultiViewEventType.OPEN_PIXEL_DEVICES)
     ConfigurationSet.WearDevices -> track(surface, MultiViewEventType.OPEN_WEAR_DEVICES)
@@ -27,10 +28,12 @@ fun trackOpenConfigSet(surface: DesignSurface, configSet: ConfigurationSet) {
     ConfigurationSet.PredefinedCustom -> track(surface, MultiViewEventType.OPEN_CUSTOM_CONFIGURATION_SETS)
     ConfigurationSet.ColorBlindMode -> track(surface, MultiViewEventType.OPEN_COLOR_BLIND_MODE)
     ConfigurationSet.LargeFont -> track(surface, MultiViewEventType.OPEN_LARGE_FONT)
+    ConfigurationSet.WindowSizeDevices -> track(surface, MultiViewEventType.OPEN_REFERENCE_DEVICES)
+    is UserDefinedCustom -> track(surface, MultiViewEventType.OPEN_USER_DEFINED_CUSTOM_SETS)
     else -> track(surface, MultiViewEventType.UNKNOWN_EVENT_TYPE)
   }
 }
 
-private fun track(surface: DesignSurface, eventType: MultiViewEventType) {
+private fun track(surface: DesignSurface<*>, eventType: MultiViewEventType) {
   InternalMultiViewMetricTrackerFactory.getInstance(surface).track(eventType)
 }

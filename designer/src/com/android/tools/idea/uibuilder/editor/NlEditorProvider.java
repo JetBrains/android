@@ -17,6 +17,9 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.DesignerEditorProvider;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
@@ -41,5 +44,13 @@ public class NlEditorProvider extends DesignerEditorProvider {
   @Override
   public String getEditorTypeId() {
     return NlEditorKt.NL_EDITOR_ID;
+  }
+
+  @Override
+  protected void handleCaretChanged(@NotNull SceneView sceneView,
+                                    @NotNull ImmutableList<NlComponent> views) {
+    // TODO: handle preference screen intent special case if needed.
+    SelectionModel selectionModel = sceneView.getSelectionModel();
+    selectionModel.setSelection(views);
   }
 }

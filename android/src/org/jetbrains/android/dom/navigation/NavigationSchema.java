@@ -23,6 +23,7 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.OTHER;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
@@ -540,8 +541,8 @@ public class NavigationSchema implements Disposable {
     Map<String, DestinationType> destinationClassToType = new HashMap<>();
 
     destinationClassToType.put(SdkConstants.CLASS_ACTIVITY, ACTIVITY);
-    destinationClassToType.put(SdkConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT);
-    destinationClassToType.put(SdkConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT);
+    destinationClassToType.put(AndroidXConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT);
+    destinationClassToType.put(AndroidXConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT);
     destinationClassToType.put(NAV_GRAPH_DESTINATION, NAVIGATION);
 
     for (TypeRef destinationClassRef : myTagToDestinationClass.values()) {
@@ -624,7 +625,7 @@ public class NavigationSchema implements Disposable {
   }
 
   /**
-   * A Navigator can have a specific destination class defined by a annotation on its NavDestination type parameter, which can be inherited
+   * A Navigator can have a specific destination class defined by an annotation on its NavDestination type parameter, which can be inherited
    * from the parent NavDestination type if not defined.
    * This method updates navigatorToDestinationClassCollector with the mapping for the given navClass.
    */

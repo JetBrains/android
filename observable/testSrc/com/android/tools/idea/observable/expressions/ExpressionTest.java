@@ -40,7 +40,7 @@ public final class ExpressionTest {
   @Test
   public void testSimpleExpression() throws Exception {
     final IntProperty intValue = new IntValueProperty(13);
-    final Expression<String> intToString = new Expression<>(intValue) {
+    final Expression<String> intToString = new Expression<String>(intValue) {
       @NotNull
       @Override
       public String get() {

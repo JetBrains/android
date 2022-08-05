@@ -18,7 +18,7 @@ package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeTypeResolutionInterceptorExtension
 import com.android.tools.compose.ComposeWritableSlices.INFERRED_COMPOSABLE_DESCRIPTOR
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.psi.KtElement
@@ -39,7 +39,7 @@ class ComposePluginTypeResolutionInterceptorExtension : ComposeTypeResolutionInt
     descriptor: AnonymousFunctionDescriptor
   ): AnonymousFunctionDescriptor {
 
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER.get()) {
+    if (LiveEditAdvancedConfiguration.getInstance().useEmbeddedCompiler) {
       return super.interceptFunctionLiteralDescriptor(expression, context, descriptor)
     }
 

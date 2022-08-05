@@ -16,6 +16,9 @@
 
 package com.android.tools.idea.run.tasks;
 
+import static com.android.tools.idea.run.tasks.LaunchResult.Result.ERROR;
+
+import com.android.ddmlib.AdbHelper;
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.deploy.proto.Deploy;
@@ -39,6 +42,7 @@ import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.BaseAction;
+import com.android.utils.ILogger;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -47,6 +51,8 @@ import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.filters.HyperlinkInfo;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
@@ -57,12 +63,14 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -118,10 +126,59 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return 20;
   }
 
+  public List<Deployer.Result> run(IDevice device, ConsoleView console, ILogger logger) throws DeployerException {
+    ConsolePrinter printer = new ConsolePrinter() {
+      @Override
+      public void stdout(@NotNull String message) {
+        console.print(message, ConsoleViewContentType.NORMAL_OUTPUT);
+      }
+
+      @Override
+      public void stderr(@NotNull String message) {
+        console.print(message, ConsoleViewContentType.ERROR_OUTPUT);
+      }
+    };
+
+    return doRun(device, printer, new Canceller() {
+      @Override
+      public boolean cancelled() {
+        ProgressIndicator indicator = ProgressIndicatorProvider.getGlobalProgressIndicator();
+        return indicator != null && indicator.isCanceled();
+      }
+    }, logger);
+  }
+
   @Override
   public LaunchResult run(@NotNull LaunchContext launchContext) {
-    Stopwatch stopwatch = Stopwatch.createStarted();
+    IDevice device = launchContext.getDevice();
+    Executor executor = launchContext.getExecutor();
+    ConsolePrinter printer = launchContext.getConsolePrinter();
     LogWrapper logger = new LogWrapper(LOG);
+
+    try {
+      launchContext.setLaunchApp(shouldTaskLaunchApp());
+      List<Deployer.Result> results = doRun(device, printer, new Canceller() {
+        @Override
+        public boolean cancelled() {
+          return launchContext.getProgressIndicator().isCanceled();
+        }
+      }, logger);
+      if (results.stream().anyMatch(result -> result.needsRestart)) {
+        // TODO: fall back to using the suggested action, rather than blindly rerun
+        launchContext.setKillBeforeLaunch(true);
+        launchContext.setLaunchApp(true);
+      }
+    }
+    catch (DeployerException e) {
+      LOG.warn(String.format("%s failed: %s %s", getDescription(), e.getMessage(), e.getDetails()));
+      return toLaunchResult(executor, e, printer);
+    }
+    return new LaunchResult();
+  }
+
+  private List<Deployer.Result> doRun(@NotNull IDevice device, ConsolePrinter printer, Canceller canceller, ILogger logger)
+    throws DeployerException {
+    Stopwatch stopwatch = Stopwatch.createStarted();
 
     // Collection that will accumulate metrics for the deployment.
     MetricsRecorder metrics = new MetricsRecorder();
@@ -130,10 +187,9 @@ public abstract class AbstractDeployTask implements LaunchTask {
     // Wall-clock start time for the deployment.
     long wallClockStartMs = System.currentTimeMillis();
 
-    IDevice device = launchContext.getDevice();
-    Executor executor = launchContext.getExecutor();
-    ConsolePrinter printer = launchContext.getConsolePrinter();
     AdbClient adb = new AdbClient(device, logger);
+
+    AdbHelper.setAbbExecAllowed(StudioFlags.DDMLIB_ABB_EXEC_INSTALL_ENABLE.get());
 
     AdbInstaller.Mode adbInstallerMode = AdbInstaller.Mode.DAEMON;
     if (!StudioFlags.APPLY_CHANGES_KEEP_CONNECTION_ALIVE.get()) {
@@ -162,29 +218,15 @@ public abstract class AbstractDeployTask implements LaunchTask {
     Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
                                      installer, ideService, metrics, logger, option);
     List<String> idsSkippedInstall = new ArrayList<>();
+    List<Deployer.Result> results = new ArrayList<>();
     for (ApkInfo apkInfo : myPackages) {
-      try {
-        launchContext.setLaunchApp(shouldTaskLaunchApp());
-        Deployer.Result result = perform(device, deployer, apkInfo, new Canceller() {
-          @Override
-          public boolean cancelled() {
-            return launchContext.getProgressIndicator().isCanceled();
-          }
-        });
+      Deployer.Result result = perform(device, deployer, apkInfo, canceller);
 
-        if (result.skippedInstall) {
-          idsSkippedInstall.add(apkInfo.getApplicationId());
-        }
-        if (result.needsRestart) {
-          // TODO: fall back to using the suggested action, rather than blindly rerun
-          launchContext.setKillBeforeLaunch(true);
-          launchContext.setLaunchApp(true);
-        }
+      if (result.skippedInstall) {
+        idsSkippedInstall.add(apkInfo.getApplicationId());
       }
-      catch (DeployerException e) {
-        logger.warning("%s failed: %s %s", getDescription(), e.getMessage(), e.getDetails());
-        return toLaunchResult(executor, e, printer);
-      }
+
+      results.add(result);
     }
 
     addSubTaskDetails(metrics.getDeployMetrics(), vmClockStartNs, wallClockStartMs);
@@ -204,7 +246,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).notify(myProject);
     }
 
-    return new LaunchResult();
+    return results;
   }
 
   abstract protected String getFailureTitle();
@@ -221,7 +263,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   }
 
   protected static List<String> getPathsToInstall(@NotNull ApkInfo apkInfo) {
-    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkFile).map(File::getPath).collect(Collectors.toList());
+    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).map(Path::toString).collect(Collectors.toList());
   }
 
   @NotNull
@@ -283,7 +325,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   public LaunchResult toLaunchResult(@NotNull Executor executor, @NotNull DeployerException e, @NotNull ConsolePrinter printer) {
     LaunchResult result = new LaunchResult();
-    result.setSuccess(false);
+    result.setResult(ERROR);
 
     StringBuilder bubbleError = new StringBuilder(getFailureTitle());
     bubbleError.append("\n");
@@ -306,8 +348,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
       }
     }
 
-    result.setError(bubbleError.toString());
-    result.setConsoleError(getFailureTitle() + "\n" + e.getMessage() + "\n" + e.getDetails());
+    result.setMessage(bubbleError.toString());
+    result.setConsoleMessage(getFailureTitle() + "\n" + e.getMessage() + "\n" + e.getDetails());
     result.setErrorId(e.getId());
 
     DeploymentHyperlinkInfo hyperlinkInfo = new DeploymentHyperlinkInfo(executor, resolutionAction, printer);

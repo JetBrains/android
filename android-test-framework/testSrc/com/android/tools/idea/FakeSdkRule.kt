@@ -21,6 +21,7 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
@@ -29,7 +30,6 @@ import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.NamedExternalResource
 import org.junit.runner.Description
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.`when`
 import java.io.File
 import java.nio.file.Path
 
@@ -60,11 +60,11 @@ class FakeSdkRule(val projectRule: AndroidProjectRule, val sdkPath: Path = creat
     val sdkHandler = AndroidSdkHandler(sdkPath, null, repoManager)
 
     val ideSdks = spy(IdeSdks.getInstance())
-    `when`(ideSdks.androidSdkPath).thenReturn(File(sdkPath.toString()))
+    whenever(ideSdks.androidSdkPath).thenReturn(File(sdkPath.toString()))
     IdeComponents(projectRule.fixture).replaceApplicationService(IdeSdks::class.java, ideSdks)
 
     val androidSdks = spy(AndroidSdks.getInstance())
-    `when`(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
+    whenever(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
     IdeComponents(projectRule.fixture).replaceApplicationService(AndroidSdks::class.java, androidSdks)
   }
 

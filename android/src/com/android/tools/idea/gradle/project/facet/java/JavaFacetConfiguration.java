@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,6 @@ import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
-import com.intellij.openapi.util.InvalidDataException;
-import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.util.xmlb.XmlSerializer;
-import org.jdom.Element;
 
 public class JavaFacetConfiguration implements FacetConfiguration {
   public boolean BUILDABLE;
@@ -33,12 +29,7 @@ public class JavaFacetConfiguration implements FacetConfiguration {
   }
 
   @Override
-  public void readExternal(Element element) throws InvalidDataException {
-    XmlSerializer.deserializeInto(this, element);
-  }
-
-  @Override
-  public void writeExternal(Element element) throws WriteExternalException {
-    XmlSerializer.serializeInto(this, element);
+  public String toString() {
+    return "JavaFacetConfiguration: BUILDABLE - " + BUILDABLE;
   }
 }

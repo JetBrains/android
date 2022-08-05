@@ -16,13 +16,19 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.project.sync.snapshots.SnapshotContext
+import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest.TestDef
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpSourceProviders
-import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
@@ -30,49 +36,63 @@ import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
 /**
- * Snapshot tests for 'Source Providers'.
+ * Snapshot test definitions for 'Source Providers'. (To run tests see
+ * [com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest])
  *
  * The pre-recorded sync results can be found in testData/sourceProvidersSnapshots/ *.txt files.
  *
  * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
  * target as "//tools/adt/idea/android:intellij.android.core.tests_tests ---test_filter=SourceProvidersSnapshotComparisonTest".
  */
+
+data class SourceProvidersTestDef(
+  override val testProject: TestProject,
+  override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
+) : TestDef {
+  override val name: String = testProject.projectName
+
+  override fun toString(): String = testProject.projectName
+
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDef {
+    return copy(agpVersion = agpVersion)
+  }
+
+  override fun isCompatible(): Boolean {
+    return agpVersion == AGP_CURRENT
+  }
+
+  override fun runTest(root: File, project: Project) {
+    val text = project.dumpSourceProviders()
+    val snapshotContext = SnapshotContext(testProject.projectName, agpVersion, "tools/adt/idea/android/testData/snapshots/sourceProviders")
+    snapshotContext.assertIsEqualToSnapshot(text)
+  }
+
+  companion object {
+    val tests: List<SourceProvidersTestDef> = listOf(
+      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION),
+      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK),
+      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK),
+      SourceProvidersTestDef(TestProject.APP_WITH_ML_MODELS),
+      SourceProvidersTestDef(TestProject.MULTI_FLAVOR),
+      SourceProvidersTestDef(TestProject.PSD_SAMPLE_GROOVY),
+      SourceProvidersTestDef(TestProject.COMPOSITE_BUILD),
+      SourceProvidersTestDef(TestProject.APP_WITH_BUILDSRC),
+      SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+      SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
+      SourceProvidersTestDef(TestProject.TEST_FIXTURES),
+      SourceProvidersTestDef(TestProject.KOTLIN_KAPT),
+      SourceProvidersTestDef(TestProject.KOTLIN_MULTIPLATFORM),
+      SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_COMMONROOTS),
+      SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_SIMPLE),
+    )
+  }
+}
+
 class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/sourceProviders"
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos() =
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
-
-
-  fun testSimpleApplication() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testWithMlModels() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testMultiFlavor() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.MULTI_FLAVOR)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testNestedProjects() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testCompositeBuild() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testWithBuildSrc() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC)
-    assertIsEqualToSnapshot(text)
-  }
 
   fun testJpsWithQualifiedNames() {
     val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectToSnapshotPaths.JPS_WITH_QUALIFIED_NAMES))
@@ -89,41 +109,5 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
     assertIsEqualToSnapshot(text)
-  }
-
-  fun testCompatibilityWithAndroidStudio36Project() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testCompatibilityWithAndroidStudio36NoImlProject() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testTestFixtures() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testKotlinKapt() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.KOTLIN_KAPT)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testKotlinMpp() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM)
-    assertIsEqualToSnapshot(text)
-  }
-
-  private fun importSyncAndDumpProject(
-    projectDir: String,
-    patch: ((projectRootPath: File) -> Unit)? = null
-  ): String {
-    val projectRootPath = prepareProjectForImport(projectDir)
-    patch?.invoke(projectRootPath)
-    importProject()
-
-    return project.dumpSourceProviders()
   }
 }

@@ -198,11 +198,11 @@ public class ProfilerColors {
 
   public static final Color MONITOR_DISABLED = new JBColor(0xF8F8F8, 0x333436);
 
+  public static final Color MONITOR_ERROR = new JBColor(0xFFEEEE, 0x332222);
+
   public static final Color MONITOR_MAX_LINE = new JBColor(0xCCCDCD, 0x494949);
 
   public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0x3F4142);
-
-  public static final Color NOTIFICATION_BACKGROUND = new JBColor(0xFFF8D1, 0x1D3857);
 
   public static final Color NETWORK_CONNECTIONS_COLOR = new JBColor(new Color(0xEFC4B2), new Color(0x7D6B64));
 

@@ -20,9 +20,8 @@ import com.android.fakeadbserver.CommandHandler
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
-import com.android.tools.compose.findComposeToolingNamespace
+import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.bleak.UseBleak
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -42,14 +41,11 @@ import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
-import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -76,20 +72,6 @@ class ComposePreviewTest {
   @get:Rule
   val adbRule: FakeAdbRule = FakeAdbRule().initAbdBridgeDuringSetup(false).withDeviceCommandHandler(commandHandler)
 
-  @Before
-  fun setUp() {
-    StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.override(true)
-    StudioFlags.COMPOSE_ANIMATED_PREVIEW.override(true)
-    StudioFlags.COMPOSE_ANIMATION_INSPECTOR.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.clearOverride()
-    StudioFlags.COMPOSE_ANIMATED_PREVIEW.clearOverride()
-    StudioFlags.COMPOSE_ANIMATION_INSPECTOR.clearOverride()
-  }
-
   private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt", assertNoNotifications: Boolean = true):
     SplitEditorFixture {
     // Open the main compose activity and check that the preview is present
@@ -107,11 +89,7 @@ class ComposePreviewTest {
     }
   }
 
-  private fun getSyncedProjectFixture() = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
-                                                                                             null,
-                                                                                             null,
-                                                                                             "1.5.31",
-                                                                                             GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
+  private fun getSyncedProjectFixture() = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
 
   @Test
   @Throws(Exception::class)
@@ -125,8 +103,7 @@ class ComposePreviewTest {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
 
-    // Commented until b/156216008 is solved
-    //assertFalse(composePreview.hasRenderErrors())
+    assertFalse(composePreview.hasRenderErrors())
 
     clearClipboard()
     assertFalse(Toolkit.getDefaultToolkit().systemClipboard.getContents(this).isDataFlavorSupported(DataFlavor.imageFlavor))
@@ -179,10 +156,9 @@ class ComposePreviewTest {
 
   @Throws(Exception::class)
   private fun openAndClosePreview(fixture: IdeFrameFixture) {
-    val composePreview = openComposePreview(fixture)
+    val composePreview = openComposePreview(fixture).waitForSceneViewsCount(1)
 
-    // Commented until b/156216008 is solved
-    //assertFalse(composePreview.hasRenderErrors())
+    assertFalse(composePreview.hasRenderErrors())
 
     // Verify that the element rendered correctly by checking it's not empty
     val singleSceneView = composePreview.designSurface.allSceneViews.single().size()
@@ -212,8 +188,7 @@ class ComposePreviewTest {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
 
-    // Commented until b/156216008 is solved
-    //assertFalse(composePreview.hasRenderErrors())
+    assertFalse(composePreview.hasRenderErrors())
 
     val editor = fixture.editor
     editor.select("(@Preview)")
@@ -271,7 +246,7 @@ class ComposePreviewTest {
 
   @Test
   @Throws(Exception::class)
-  fun testInteractiveSwitch() {
+  fun testInteractivePreview() {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
@@ -281,20 +256,18 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW).click()
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .waitUntilEnabledAndShowing()
+      .click()
 
     composePreview
       .waitForRenderToFinish()
 
     composePreview.waitForSceneViewsCount(1)
 
-    val animationInspectorButton = composePreview
-      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    // There are no animations, so it's disabled
-    assertFalse(animationInspectorButton.isEnabled)
-
     composePreview
-      .findActionButtonByText("Stop Interactive Preview")
+      .findActionButtonByText("Stop Interactive Mode")
+      .waitUntilEnabledAndShowing()
       .click()
 
     composePreview
@@ -378,7 +351,7 @@ class ComposePreviewTest {
     guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())
     assertNotNull(otherComposePreview.findAnimationInspector())
 
-    // Clicking on the "Stop Animation Inspection" button should close the animation preview panel (and go to interactive mode)
+    // Clicking on the "Stop Animation Inspection" button should close the animation preview panel
     otherComposePreview
       .waitForRenderToFinish()
       .waitForSceneViewsCount(1)
@@ -393,23 +366,15 @@ class ComposePreviewTest {
   @Test
   @Throws(Exception::class)
   fun testDeployPreview() {
-    val fixture = getSyncedProjectFixture()
-
-    val previewActivityName = fixture.project.allModules()
-      .filter { it.name.contains("app") }
-      .map { it.findComposeToolingNamespace() }
-      .distinct()
-      .single()
-      .previewActivityName
-
     // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
     AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
-    adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
+    adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29")
 
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
     commandHandler.composablePackageName = "google.simpleapplication"
     commandHandler.composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
-    commandHandler.previewActivityName = previewActivityName
+    commandHandler.previewActivityName = COMPOSE_PREVIEW_ACTIVITY_FQN
 
     composePreview.designSurface
       .allSceneViews
@@ -423,7 +388,7 @@ class ComposePreviewTest {
     val launchingPreview = Pattern.compile(".*Launching 'Preview1' on Google Pix3l.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(launchingPreview), 10)
     // We should display the adb shell command containing androidx.compose.ui.tooling.preview.PreviewActivity, which wraps the @Composable
-    val previewActivityPattern = previewActivityName.replace(".", "\\.")
+    val previewActivityPattern = COMPOSE_PREVIEW_ACTIVITY_FQN.replace(".", "\\.")
     val previewActivity = Pattern.compile(".*${previewActivityPattern}.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(previewActivity), 10)
 

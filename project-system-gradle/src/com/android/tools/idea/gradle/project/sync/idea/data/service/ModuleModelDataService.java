@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.ModuleModel;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 
 public abstract class ModuleModelDataService<T extends ModuleModel> extends AbstractProjectDataService<T, Module> {
   @Override
@@ -68,11 +68,10 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
 
       for (Module module : modelsProvider.getModules()) {
         if (!ExternalSystemApiUtil.isExternalSystemAwareModule(projectData.getOwner(), module)) continue;
-        if (ExternalSystemApiUtil.getExternalModuleType(module) != null) continue;
 
         final String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
         if (projectData.getLinkedExternalProjectPath().equals(rootProjectPath)) {
-          if (modelsByModuleName.get(module.getName()) == null) {
+          if (modelsByModuleName.get(ModuleSystemUtil.getHolderModule(module).getName()) == null) {
             orphanIdeModules.add(module);
           }
         }
@@ -100,13 +99,6 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
           // This happens when there are multiple *iml files for one module, which can be caused by opening a project created on a different machine,
           // or opening projects with both Intellij and Studio, or moving existing module to different locations.
           moduleName = module.getName();
-        }
-
-        for (DataNode<?> node : dataNode.getParent().getChildren()){
-          if (node.getKey().equals(GradleSourceSetData.KEY)){
-            GradleSourceSetData sourceSetData = (GradleSourceSetData)node.getData();
-            index.put(sourceSetData.getIdeParentGrouping(), dataNode);
-          }
         }
       }
       index.put(moduleName, dataNode);

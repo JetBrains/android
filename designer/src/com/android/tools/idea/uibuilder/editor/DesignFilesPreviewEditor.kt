@@ -26,6 +26,7 @@ import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceSettings
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
@@ -77,8 +78,8 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   override fun getEditorId() = DESIGN_FILES_PREVIEW_EDITOR_ID
 
   override fun createEditorPanel(): DesignerEditorPanel {
-    val workBench = WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this)
-    val surface: (panel: DesignerEditorPanel) -> DesignSurface = {
+    val workBench = WorkBench<DesignSurface<*>>(myProject, WORKBENCH_NAME, this, this)
+    val surface: (panel: DesignerEditorPanel) -> DesignSurface<*> = {
       NlDesignSurface.builder(myProject, this)
         .setActionManagerProvider { surface ->
           PreviewEditorActionManagerProvider(surface as NlDesignSurface, file?.toPsiFile(myProject)?.typeOf())
@@ -87,7 +88,10 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         .apply {
           val screenViewProvider = if (StudioFlags.NELE_DRAWABLE_BACKGROUND_MENU.get()) {
             when (file?.toPsiFile(project)?.typeOf()) {
-              is AdaptiveIconFileType, is DrawableFileType -> DrawableScreenViewProvider()
+              is AdaptiveIconFileType, is DrawableFileType -> {
+                val lastBackgroundType = DesignSurfaceSettings.getInstance(project).surfaceState.loadDrawableBackgroundType(project, file!!)
+                DrawableScreenViewProvider(lastBackgroundType)
+              }
               else -> NlScreenViewProvider.RENDER
             }
           }
@@ -128,7 +132,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     }
   }
 
-  private fun addAnimationToolbar(surface: DesignSurface, model: NlModel?): JPanel? {
+  private fun addAnimationToolbar(surface: DesignSurface<*>, model: NlModel?): JPanel? {
     val toolbar = if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFileType) {
       AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
     }
@@ -155,10 +159,12 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         override fun selectionChanged(event: FileEditorManagerEvent) {
           if ((event.oldEditor as? DesignToolsSplitEditor)?.designerEditor == this@DesignFilesPreviewEditor) {
             // pause the animation when this editor loses the focus.
-            toolbar.pause()
+            if (toolbar.getPlayStatus() == PlayStatus.PLAY) {
+              toolbar.pause()
+            }
           }
           else if ((event.newEditor as? DesignToolsSplitEditor)?.designerEditor == this@DesignFilesPreviewEditor) {
-            // Needs to reinflate when grabbing the focus back.  This makes sure the elapsed frame time is correct when animation resuming.
+            // Needs to reinflate when grabbing the focus back. This makes sure the elapsed frame time is correct when animation resuming.
             toolbar.forceElapsedReset = true
           }
         }
@@ -187,7 +193,7 @@ class PreviewEditorActionManagerProvider(surface: NlDesignSurface,
 /**
  * Animation listener for <animated-vector>.
  */
-private class AnimatedVectorListener(val surface: DesignSurface) : AnimationListener {
+private class AnimatedVectorListener(val surface: DesignSurface<*>) : AnimationListener {
   override fun animateTo(controller: AnimationController, framePositionMs: Long) {
     (surface.sceneManager as? LayoutlibSceneManager)?.let {
       if (framePositionMs <= 0L) {
@@ -227,7 +233,7 @@ private class AnimatedVectorListener(val surface: DesignSurface) : AnimationList
 /**
  * Animation listener for <animation-list>.
  */
-private class AnimationListListener(val surface: DesignSurface) : AnimationListener {
+private class AnimationListListener(val surface: DesignSurface<*>) : AnimationListener {
   private var currentAnimationDrawable: AnimationDrawable? = null
   private var modelTimeMap = listOf<Long>()
 
@@ -293,7 +299,7 @@ private class AnimationListListener(val surface: DesignSurface) : AnimationListe
  * Animation listener for <animated-selector> file.
  * <animated-selector> may have embedded <animated-vector> and/or <animation-list>.
  */
-private class AnimatedSelectorListener(val surface: DesignSurface) : AnimationListener {
+private class AnimatedSelectorListener(val surface: DesignSurface<*>) : AnimationListener {
   private val animatedVectorDelegate = AnimatedVectorListener(surface)
   private val animationListDelegate = AnimationListListener(surface)
 

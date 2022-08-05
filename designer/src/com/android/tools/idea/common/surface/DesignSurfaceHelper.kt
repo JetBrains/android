@@ -47,10 +47,17 @@ fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String
 }
 
 fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, asset: String) {
-  val path = MaterialDesignIcons.getPathForBasename(asset)
+  val path = MaterialDesignIcons.getPathForBasename(asset) ?: run {
+    logger.warn("Cannot find the material icon path for $asset")
+    return@copyVectorAssetToMainModuleSourceSet
+  }
 
   try {
-    InputStreamReader(IconGenerator::class.java.classLoader.getResourceAsStream(path), Charsets.UTF_8).use {
+    val inputStream = IconGenerator::class.java.classLoader.getResourceAsStream(path) ?: run {
+      logger.warn("Cannot load the material icon for $asset")
+      return@copyVectorAssetToMainModuleSourceSet
+    }
+    InputStreamReader(inputStream, Charsets.UTF_8).use {
       reader -> createResourceFile(project, facet, FD_RES_DRAWABLE, asset + DOT_XML, CharStreams.toString(reader))
     }
   }
@@ -104,7 +111,7 @@ private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, chi
  * If a native crash caused by layoutlib is detected, show an error message instead of the design surface in the workbench.
  * This includes a hyperlink that will re-enable the design surface and run the {@link Runnable} argument.
  */
-fun WorkBench<DesignSurface>.handleLayoutlibNativeCrash(runnable: Runnable) {
+fun WorkBench<DesignSurface<*>>.handleLayoutlibNativeCrash(runnable: Runnable) {
   val message = "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue."
   val actionData = ActionData("Re-enable rendering") {
     Bridge.setNativeCrash(false)

@@ -17,7 +17,9 @@ cc_library(
     linkstatic = 1,
     deps = [
         "//prebuilts/studio/jdk:jni_headers",
-        "@skia_repo//:libskia",
+        "@prebuilt_skia//:libskia",
+        "@freetype_repo//:libft2",
+        "@libpng_repo//:libpng",
     ],
     alwayslink = 1,
 )

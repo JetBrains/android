@@ -58,7 +58,7 @@ public class XmlWrongFileTypeInspection extends LocalInspectionTool {
   /**
    * Function for extracting quoted folder name from {@link ResourceFolderType}.
    */
-  private static final Function<ResourceFolderType, String> TYPE_NAME_FUNCTION = new Function<>() {
+  private static final Function<ResourceFolderType, String> TYPE_NAME_FUNCTION = new Function<ResourceFolderType, String>() {
     @NotNull
     @Override
     public String apply(ResourceFolderType input) {

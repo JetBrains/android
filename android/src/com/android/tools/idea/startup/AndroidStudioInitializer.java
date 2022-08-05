@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE;
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE_PROJECT;
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_MAKE_MODULE;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.actions.CreateClassAction;
-import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.instrumentation.threading.ThreadingChecker;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
@@ -35,8 +31,6 @@ import com.android.tools.idea.stats.ConsentDialog;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.google.common.base.Predicates;
 import com.intellij.concurrency.JobScheduler;
-import com.intellij.ide.fileTemplates.FileTemplate;
-import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -76,17 +70,13 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   public void customize(@NotNull ActionManager actionManager) {
     checkInstallation();
     setUpNewFilePopupActions(actionManager);
-    setUpMakeActions(actionManager);
     disableGroovyLanguageInjection();
-
-    if (StudioFlags.CUSTOM_JAVA_NEW_CLASS_DIALOG.get()) {
-      replaceNewClassDialog(actionManager);
-    }
 
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
 
     setupAnalytics();
+    setupThreadingAgentEventListener();
     hideRarelyUsedIntellijActions(actionManager);
     setupResourceManagerActions(actionManager);
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
@@ -205,25 +195,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     Actions.hideAction(actionManager, "Groovy.NewScript");
   }
 
-  // The original actions will be visible only on plain IDEA projects.
-  private static void setUpMakeActions(ActionManager actionManager) {
-    // 'Build' > 'Make Project' action
-    Actions.hideAction(actionManager, "CompileDirty");
-
-    // 'Build' > 'Make Modules' action
-    // We cannot simply hide this action, because of a NPE.
-    Actions.replaceAction(actionManager, ACTION_MAKE_MODULE, new MakeIdeaModuleAction());
-
-    // 'Build' > 'Rebuild' action
-    Actions.hideAction(actionManager, ACTION_COMPILE_PROJECT);
-
-    // 'Build' > 'Compile Modules' action
-    Actions.hideAction(actionManager, ACTION_COMPILE);
-
-    // Additional 'Build' action from com.jetbrains.cidr.execution.build.CidrBuildTargetAction
-    Actions.hideAction(actionManager, "Build");
-  }
-
   // Fix https://code.google.com/p/android/issues/detail?id=201624
   private static void disableGroovyLanguageInjection() {
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
@@ -242,20 +213,13 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     });
   }
 
-  private static void replaceNewClassDialog(ActionManager actionManager) {
-    Actions.replaceAction(actionManager, "NewClass", new CreateClassAction());
-
-    // Update the text for the file creation templates.
-    FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
-    for (String templateName : new String[]{"Singleton", "Class", "Interface", "Enum", "AnnotationType"}) {
-      FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
-      template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
-    }
-  }
-
   private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {
     // Hide the Save File as Template action due to its rare use in Studio.
     Actions.hideAction(actionManager, "SaveFileAsTemplate");
+  }
+
+  private static void setupThreadingAgentEventListener() {
+    ThreadingChecker.initialize();
   }
 
   @NotNull

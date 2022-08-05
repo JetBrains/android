@@ -24,22 +24,23 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ex.ToolWindowEx
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
+import java.awt.event.KeyEvent
 import javax.swing.JComponent
 
 abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
-  override fun init(toolWindow: ToolWindow) {
-    toolWindow.setToHideOnEmptyContent(true)
-  }
-
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val stateManager = SplittingTabsStateManager.getInstance(project)
     stateManager.registerToolWindow(toolWindow)
 
     val contentManager = toolWindow.contentManager
-    (toolWindow as ToolWindowEx).setTabActions(
-      NewTabAction(SplittingTabsBundle.lazyMessage("SplittingTabsToolWindow.newTab")) { createNewTab(project, contentManager) })
+    val newTabAction = NewTabAction(SplittingTabsBundle.lazyMessage("SplittingTabsToolWindow.newTab")) {
+      createNewTab(project, contentManager)
+    }
+    newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, toolWindow.component)
+    (toolWindow as ToolWindowEx).setTabActions(newTabAction)
 
     val toolWindowState = stateManager.getToolWindowState(toolWindow.id)
     if (toolWindowState.tabStates.isEmpty()) {
@@ -48,6 +49,17 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
     else {
       restoreTabs(project, contentManager, toolWindowState)
     }
+
+    project.messageBus.connect().subscribe(
+      ToolWindowManagerListener.TOPIC,
+      object : ToolWindowManagerListener {
+        override fun toolWindowShown(shownToolWindow: ToolWindow) {
+          if (toolWindow === shownToolWindow && toolWindow.isVisible && contentManager.isEmpty) {
+            // open a new session if all tabs were closed manually
+            createNewTab(project, contentManager)
+          }
+        }
+      })
   }
 
   abstract fun generateTabName(tabNames: Set<String>): String
@@ -60,10 +72,21 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
     }
   }
 
-  private fun createNewTab(project: Project, contentManager: ContentManager, tabState: TabState? = null, requestFocus: Boolean = false) {
+  private fun createNewTab(
+    project: Project, contentManager: ContentManager, tabState: TabState? = null, requestFocus: Boolean = false): Content {
     val content = createContent(project, contentManager, tabState)
     contentManager.addContent(content)
     contentManager.setSelectedContent(content, requestFocus)
+    return content
+  }
+
+  protected fun createNewTab(toolWindow: ToolWindowEx, tabName: String): Content {
+    val contentManager = toolWindow.contentManager
+    val content = createContent(toolWindow.project, contentManager, tabState = null)
+    contentManager.addContent(content)
+    contentManager.setSelectedContent(content, true)
+    content.displayName = tabName
+    return content
   }
 
   private fun createContent(project: Project, contentManager: ContentManager, tabState: TabState?): Content {

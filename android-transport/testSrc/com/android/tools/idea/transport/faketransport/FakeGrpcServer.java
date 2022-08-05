@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.transport.faketransport;
 
+import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
@@ -54,8 +55,8 @@ import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartResponse;
 import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
 import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopResponse;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import io.grpc.BindableService;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.BindableService;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -97,6 +98,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     cpuService.myServer = server;
     energyService.myServer = server;
     server.myCpuService = cpuService;
+    TransportService.setTestChannelName(server.getName());
     return server;
   }
 

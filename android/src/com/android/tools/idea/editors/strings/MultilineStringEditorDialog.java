@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.rendering.Locale;
+import com.android.ide.common.resources.Locale;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;

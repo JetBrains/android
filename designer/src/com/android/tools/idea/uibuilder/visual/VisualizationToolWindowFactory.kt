@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.getFolderType
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
@@ -29,6 +30,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -43,9 +45,35 @@ import kotlinx.coroutines.withContext
  * framework.
  */
 class VisualizationToolWindowFactory : ToolWindowFactory {
+
   companion object {
     // Must be same as the tool window id in designer.xml
     const val TOOL_WINDOW_ID = "Layout Validation"
+
+    @JvmStatic
+    fun hasVisibleValidationWindow(project: Project): Boolean {
+      val validation = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)
+      return validation != null && validation.isVisible
+    }
+
+    @JvmStatic
+    fun getVisualizationContent(project: Project): VisualizationContent? {
+      val component = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)?.contentManager?.component ?: return null
+      return DataManager.getInstance().getDataContext(component).getData(VisualizationContent.VISUALIZATION_CONTENT)
+    }
+
+    /**
+     * Open the validation tool and set the [ConfigurationSet].
+     * If validation tool is open already, then this function changes the [ConfigurationSet].
+     * If visualization tool is not activated (user cannot find the tab in the side toolbar), then this function does nothing.
+     */
+    fun openAndSetConfigurationSet(project: Project, config: ConfigurationSet) {
+      val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return
+      if (!window.isAvailable) {
+        return
+      }
+      window.show { getVisualizationContent(project)?.setConfigurationSet(config) }
+    }
   }
 
   override fun init(toolWindow: ToolWindow) {

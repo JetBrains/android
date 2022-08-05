@@ -521,28 +521,35 @@ public class LintIdeClient extends LintClient implements Disposable {
   @NonNull
   @Override
   public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
-    return new DefaultUastParser(project, myProject) {
-      @NonNull
-      @Override
-      protected DefaultJavaEvaluator createEvaluator(@Nullable com.android.tools.lint.detector.api.Project project,
-                                                     @NonNull Project p) {
-        return new DefaultJavaEvaluator(p, project) {
-          // Use JavaDirectoryService. From the CLI we avoid it.
-          @Nullable
-          @Override
-          public PsiPackage getPackage(@NonNull PsiElement node) {
-            PsiFile containingFile = node.getContainingFile();
-            if (containingFile != null) {
-              PsiDirectory dir = containingFile.getParent();
-              if (dir != null) {
-                return JavaDirectoryService.getInstance().getPackage(dir);
-              }
+    return new IdeUastParser(project, myProject);
+  }
+
+  private static class IdeUastParser extends DefaultUastParser {
+    IdeUastParser(com.android.tools.lint.detector.api.Project project, Project ideaProject) {
+      super(project, ideaProject);
+      setPrepared(true);
+    }
+
+    @NonNull
+    @Override
+    protected DefaultJavaEvaluator createEvaluator(@Nullable com.android.tools.lint.detector.api.Project project,
+                                                   @NonNull Project p) {
+      return new DefaultJavaEvaluator(p, project) {
+        // Use JavaDirectoryService. From the CLI we avoid it.
+        @Nullable
+        @Override
+        public PsiPackage getPackage(@NonNull PsiElement node) {
+          PsiFile containingFile = node.getContainingFile();
+          if (containingFile != null) {
+            PsiDirectory dir = containingFile.getParent();
+            if (dir != null) {
+              return JavaDirectoryService.getInstance().getPackage(dir);
             }
-            return null;
           }
-        };
-      }
-    };
+          return null;
+        }
+      };
+    }
   }
 
   @NonNull
@@ -750,6 +757,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     return connection;
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   @NonNull
   public ClassLoader createUrlClassLoader(@NonNull URL[] urls, @NonNull ClassLoader parent) {
@@ -758,5 +766,35 @@ public class LintIdeClient extends LintClient implements Disposable {
       .allowLock(!(ApplicationManager.getApplication().isUnitTestMode() && SystemInfo.isWindows))
       .files(Arrays.stream(urls).map(it -> Paths.get(UrlClassLoader.urlToFilePath(it.getPath()))).collect(Collectors.toList()))
       .get();
+  }
+
+  @NotNull
+  @Override
+  public ClassLoader createUrlClassLoader(@NotNull List<? extends File> files, @NotNull ClassLoader parent) {
+    return UrlClassLoader.build()
+      .parent(parent)
+      .allowLock(!(ApplicationManager.getApplication().isUnitTestMode() && SystemInfo.isWindows))
+      .files(files.stream().map(File::toPath).collect(Collectors.toList()))
+      .get();
+  }
+
+  @Override
+  public boolean isEdited(@NotNull File file, boolean returnIfUnknown, long savedSinceMsAgo) {
+    VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    if (vFile != null) {
+      FileDocumentManager documentManager = FileDocumentManager.getInstance();
+      if (documentManager.isFileModified(vFile)) {
+        return true;
+      }
+      if (savedSinceMsAgo >= 0L) {
+        // Edited (but saved) recently?
+        long modified = file.lastModified();
+        long now = System.currentTimeMillis();
+        if (modified == 0L) { // file access permission issues etc
+          return returnIfUnknown;
+        } else return now - modified < savedSinceMsAgo;
+      }
+    }
+    return false;
   }
 }

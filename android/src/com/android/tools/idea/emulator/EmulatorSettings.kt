@@ -30,28 +30,36 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
   private var initialized = false
 
   var launchInToolWindow = true
-    get() = field
     set(value) {
       if (field != value) {
         field = value
-        // Notify listeners if this is the main EmulatorSettings instance and it has been already initialized.
-        if (initialized && this == getInstance()) {
-          ApplicationManager.getApplication().messageBus.syncPublisher(EmulatorSettingsListener.TOPIC).emulatorSettingsChanged(this)
-        }
+        notifyListeners()
+      }
+    }
+
+  var synchronizeClipboard = true
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
       }
     }
 
   var snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
 
-  /**
-   * Show the "AVD launched standalone" notification for a TV or automotive AVD.
-   */
-  var showLaunchedStandaloneNotification = true
-
-  /**
-   * Show the "AVD launched standalone" notification for a foldable AVD.
-   */
-  var showLaunchedStandaloneNotificationForFoldable = true
+  var cameraVelocityControls = DEFAULT_CAMERA_VELOCITY_CONTROLS
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
 
   override fun getState(): EmulatorSettings {
     return this
@@ -63,6 +71,13 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
 
   override fun initializeComponent() {
     initialized = true
+  }
+
+  private fun notifyListeners() {
+    // Notify listeners if this is the main EmulatorSettings instance, and it has been already initialized.
+    if (initialized && this == getInstance()) {
+      ApplicationManager.getApplication().messageBus.syncPublisher(EmulatorSettingsListener.TOPIC).settingsChanged(this)
+    }
   }
 
   companion object {
@@ -77,6 +92,12 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
     ASK_BEFORE_DELETING("Ask before deleting"),
     DO_NOT_DELETE("Do not delete")
   }
+
+  enum class CameraVelocityControls(val keys: String, val label: String) {
+    WASDQE("WASDQE", "WASDQE (for QWERTY keyboard)"),
+    ZQSDAE("ZQSDAE", "ZQSDAE (for AZERTY keyboard)"),
+  }
 }
 
 val DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY = EmulatorSettings.SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING
+val DEFAULT_CAMERA_VELOCITY_CONTROLS = EmulatorSettings.CameraVelocityControls.WASDQE

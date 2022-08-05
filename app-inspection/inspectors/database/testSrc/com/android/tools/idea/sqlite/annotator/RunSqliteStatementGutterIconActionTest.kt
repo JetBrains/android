@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.annotator
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
@@ -44,7 +45,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -71,18 +71,18 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
 
     mockAppInspectionIdeServices = mock(AppInspectionIdeServices::class.java)
-    `when`(mockDatabaseInspectorProjectService.getIdeServices()).thenReturn(mockAppInspectionIdeServices)
+    whenever(mockDatabaseInspectorProjectService.getIdeServices()).thenReturn(mockAppInspectionIdeServices)
 
     mouseEvent = mock(MouseEvent::class.java)
-    `when`(mouseEvent.component).thenReturn(mock(Component::class.java))
-    `when`(mouseEvent.point).thenReturn(Point(0, 0))
+    whenever(mouseEvent.component).thenReturn(mock(Component::class.java))
+    whenever(mouseEvent.point).thenReturn(Point(0, 0))
 
     viewFactory = FakeDatabaseInspectorViewsFactory()
   }
 
   fun testDoNothingWhenDatabaseIsNotOpen() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
 
     buildActionFromJavaFile("select * from Foo")
 
@@ -95,8 +95,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testRunSqliteStatementWhenDatabaseIsOpen() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo")
 
@@ -111,8 +111,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testRunSqliteStatementWhenDatabaseIsOpenKotlin() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromKotlinFile("select * from Foo")
 
@@ -130,11 +130,11 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     val databases = listOf(sqliteDatabaseId1, sqliteDatabaseId2).sortedBy { database -> database.name }
     val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
     val spyPopupChooserBuilder = spy(FakePopupChooserBuilder::class.java)
-    `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
-    `when`(mockJBPopupFactory.createComponentPopupBuilder(any(JComponent::class.java), eq(null))).thenReturn(FakeComponentPopupBuilder())
+    whenever(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
+    whenever(mockJBPopupFactory.createComponentPopupBuilder(any(JComponent::class.java), eq(null))).thenReturn(FakeComponentPopupBuilder())
 
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
 
     buildActionFromJavaFile("select * from Foo")
 
@@ -155,8 +155,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementWithNoPositionalParameters() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = 42")
 
@@ -171,8 +171,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsPositionalParameters() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = ?")
 
@@ -198,8 +198,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsMultiplePositionalParameters() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = ? and name = ?")
 
@@ -227,8 +227,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsMultiplePositionalNumberedParameters() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = ?1 and name = ?2")
 
@@ -255,8 +255,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsPositionalParametersInComparison() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id > ?")
 
@@ -281,8 +281,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsPositionalParametersInExpressionAndComparison() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = (? >> name)")
 
@@ -308,8 +308,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsNamedParameters1() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = :anId")
 
@@ -335,8 +335,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsMultipleNamedParameters() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = :anId and name = :aName")
 
@@ -363,8 +363,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsNamedParameters2() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = ?1")
 
@@ -390,8 +390,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsNamedParameters3() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = ?")
 
@@ -417,8 +417,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsNamedParameters4() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = @anId")
 
@@ -444,8 +444,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testSqlStatementContainsNamedParameters5() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = \$anId")
 
@@ -474,8 +474,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id")
 
@@ -497,11 +497,11 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     val databases = listOf(sqliteDatabaseId1, sqliteDatabaseId2).sortedBy { database -> database.name }
     val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
     val spyPopupChooserBuilder = spy(FakePopupChooserBuilder::class.java)
-    `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
-    `when`(mockJBPopupFactory.createComponentPopupBuilder(any(JComponent::class.java), eq(null))).thenReturn(FakeComponentPopupBuilder())
+    whenever(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
+    whenever(mockJBPopupFactory.createComponentPopupBuilder(any(JComponent::class.java), eq(null))).thenReturn(FakeComponentPopupBuilder())
 
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
 
     buildActionFromJavaFile("select * from Foo")
 
@@ -518,8 +518,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testRunFromGutterIconOpensToolWindowDirectly() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = 1")
 
@@ -532,8 +532,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testRunFromGutterIconOpensToolWindowFromDialog() {
     // Prepare
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    whenever(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    whenever(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
 
     buildActionFromJavaFile("select * from Foo where id = :anId")
 

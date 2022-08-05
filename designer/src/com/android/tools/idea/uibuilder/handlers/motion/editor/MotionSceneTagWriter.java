@@ -236,7 +236,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     deleteRun = new DeleteTag() {
       @Override
       public void delete(String cmd) {
-        WriteCommandAction.runWriteCommandAction(root.mProject, cmd, null, () -> {
+        WriteCommandAction.<XmlTag>runWriteCommandAction(root.mProject, cmd, null, () -> {
           CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mModel.getFile().getVirtualFile());
           CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mXmlFile.getVirtualFile());
           myXmlTag.delete();

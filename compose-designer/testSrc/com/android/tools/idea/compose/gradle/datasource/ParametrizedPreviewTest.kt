@@ -19,9 +19,12 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.StaticPreviewProvider
+import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
+import com.android.tools.idea.compose.preview.util.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
+import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -32,6 +35,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -72,41 +77,64 @@ class ParametrizedPreviewTest {
    * Checks the rendering of the default `@Preview` in the Compose template.
    */
   @Test
-  fun testParametrizedPreview() = runBlocking {
+  fun testParametrizedPreviews() = runBlocking {
     val project = projectRule.project
 
-    val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
+    val parametrizedPreviews = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
                                                         ProjectRootManager.getInstance(project).contentRoots[0])!!
 
-    val elements = PreviewElementTemplateInstanceProvider(
-      StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                              .filter { it.displaySettings.name == "TestWithProvider" }))
-      .previewElements()
-    assertEquals(3, elements.count())
+    run {
+      val elements = PreviewElementTemplateInstanceProvider(
+        StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                                .filter { it.displaySettings.name == "TestWithProvider" }))
+        .previewElements()
+      assertEquals(3, elements.count())
 
-    elements.forEach {
-      renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
+      elements.forEach {
+        assertTrue(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get()?.renderResult?.isSuccess ?: false)
+      }
     }
-  }
 
-  /**
-   * Checks the rendering of the default `@Preview` in the Compose template.
-   */
-  @Test
-  fun testLoremIpsumInstance() = runBlocking {
-    val project = projectRule.project
+    run {
+      val elements = PreviewElementTemplateInstanceProvider(
+        StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                                .filter { it.displaySettings.name == "TestWithProviderInExpression" }))
+        .previewElements()
+      assertEquals(3, elements.count())
 
-    val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
-                                                        ProjectRootManager.getInstance(project).contentRoots[0])!!
+      elements.forEach {
+        assertTrue(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get()?.renderResult?.isSuccess ?: false)
+      }
+    }
 
-    val elements = PreviewElementTemplateInstanceProvider(
-      StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                              .filter { it.displaySettings.name == "TestLorem" }))
-      .previewElements()
-    assertEquals(1, elements.count())
+    // Test LoremIpsum default provider
+    run {
+      val elements = PreviewElementTemplateInstanceProvider(
+        StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                                .filter { it.displaySettings.name == "TestLorem" }))
+        .previewElements()
+      assertEquals(1, elements.count())
 
-    elements.forEach {
-      renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
+      elements.forEach {
+        assertTrue(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get()?.renderResult?.isSuccess ?: false)
+      }
+    }
+
+    // Test handling provider that throws an exception
+    run {
+      val elements = PreviewElementTemplateInstanceProvider(
+        StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                                .filter { it.displaySettings.name == "TestFailingProvider" }))
+        .previewElements()
+      assertEquals(1, elements.count())
+
+      elements.forEach {
+        // Check that we create a SingleComposePreviewElementInstance that fails to render because we'll try to render a composable
+        // pointing to the fake method used to handle failures to load the PreviewParameterProvider.
+        assertEquals("google.simpleapplication.FailingProvider.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD", it.composableMethodFqn)
+        assertTrue(it is SingleComposePreviewElementInstance)
+        assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
+      }
     }
   }
 }

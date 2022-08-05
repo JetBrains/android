@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.executeDeviceAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
@@ -73,7 +74,7 @@ class EmulatorViewRule : TestRule {
   }
 
   fun executeAction(actionId: String, emulatorView: EmulatorView) {
-    executeEmulatorAction(actionId, emulatorView, projectRule.project)
+    executeDeviceAction(actionId, emulatorView, projectRule.project)
   }
 
   fun getFakeEmulator(emulatorView: EmulatorView): FakeEmulator {

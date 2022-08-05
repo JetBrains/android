@@ -17,6 +17,7 @@ package com.android.tools.idea.whatsnew.assistant
 
 import com.android.build.attribution.BuildAttributionStateReporter
 import com.android.build.attribution.ui.BuildAttributionUiManager
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.assistant.StatefulButtonNotifier
 import com.android.tools.idea.assistant.StatefulButtonNotifier.BUTTON_STATE_TOPIC
 import com.android.tools.idea.assistant.datamodel.ActionData
@@ -34,7 +35,6 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 
 class BuildAnalyzerShowActionStateManagerTest {
 
@@ -109,10 +109,10 @@ class BuildAnalyzerShowActionStateManagerTest {
   fun testStateUpdateTriggersButtonRefresh() {
     val projectMocks = mockProject()
     val buttonStateNotifier: StatefulButtonNotifier = mock(StatefulButtonNotifier::class.java)
-    `when`(projectMocks.messageBus.syncPublisher(eq(BUTTON_STATE_TOPIC))).thenReturn(buttonStateNotifier)
+    whenever(projectMocks.messageBus.syncPublisher(eq(BUTTON_STATE_TOPIC))).thenReturn(buttonStateNotifier)
 
     var capturedSubscriptionListener: BuildAttributionStateReporter.Notifier? = null
-    `when`(projectMocks.messageBusConnection.subscribe(eq(BuildAttributionStateReporter.FEATURE_STATE_TOPIC), any())).then {
+    whenever(projectMocks.messageBusConnection.subscribe(eq(BuildAttributionStateReporter.FEATURE_STATE_TOPIC), any())).then {
       capturedSubscriptionListener = it.getArgument(1)
       Unit
     }
@@ -139,11 +139,11 @@ class BuildAnalyzerShowActionStateManagerTest {
     val buildAttributionStateReporterMock: BuildAttributionStateReporter = mock(BuildAttributionStateReporter::class.java)
 
     init {
-      `when`(project.messageBus).thenReturn(messageBus)
-      `when`(messageBus.connect(eq(project))).thenReturn(messageBusConnection)
-      `when`(project.getService(eq(BuildAttributionUiManager::class.java))).thenReturn(buildAttributionUiManagerMock)
-      `when`<BuildAttributionStateReporter>(buildAttributionUiManagerMock.stateReporter).thenReturn(buildAttributionStateReporterMock)
-      `when`(buildAttributionStateReporterMock.currentState()).thenReturn(BuildAttributionStateReporter.State.NO_DATA)
+      whenever(project.messageBus).thenReturn(messageBus)
+      whenever(messageBus.connect(eq(project))).thenReturn(messageBusConnection)
+      whenever(project.getService(eq(BuildAttributionUiManager::class.java))).thenReturn(buildAttributionUiManagerMock)
+      whenever<BuildAttributionStateReporter>(buildAttributionUiManagerMock.stateReporter).thenReturn(buildAttributionStateReporterMock)
+      whenever(buildAttributionStateReporterMock.currentState()).thenReturn(BuildAttributionStateReporter.State.NO_DATA)
       WhatsNewMetricsTracker.getInstance().open(project, false)
     }
   }

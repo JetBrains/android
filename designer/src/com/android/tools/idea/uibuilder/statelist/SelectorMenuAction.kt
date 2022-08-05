@@ -91,7 +91,7 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
   }
 }
 
-class StateListMenu(designSurface: DesignSurface, callback: () -> Unit): JComponent() {
+class StateListMenu(designSurface: DesignSurface<*>, callback: () -> Unit): JComponent() {
   init {
     val height = State.values().size * STATE_ITEM_HEIGHT_PX
 
@@ -108,7 +108,7 @@ class StateListMenu(designSurface: DesignSurface, callback: () -> Unit): JCompon
   }
 }
 
-private fun createStateItem(designSurface: DesignSurface, state: State, callback: () -> Unit): JPanel {
+private fun createStateItem(designSurface: DesignSurface<*>, state: State, callback: () -> Unit): JPanel {
   val stateItemPanel = JPanel(GridBagLayout()).apply {
     preferredSize = JBUI.size(PICKER_WIDTH_PX, STATE_ITEM_HEIGHT_PX)
     border = JBUI.Borders.empty(0, 2, 2, 2)
@@ -165,17 +165,17 @@ private fun createStateItem(designSurface: DesignSurface, state: State, callback
   return stateItemPanel
 }
 
-private fun isSelected(surface: DesignSurface, state: State): Boolean {
+private fun isSelected(surface: DesignSurface<*>, state: State): Boolean {
   val imageView = getImageView(surface) ?: return false
   return Ints.contains(imageView.drawableState, state.intValue)
 }
 
-private fun getImageView(surface: DesignSurface): ImageView? {
+private fun getImageView(surface: DesignSurface<*>): ImageView? {
   val layoutlibSceneManager = surface.sceneManager as? LayoutlibSceneManager ?: return null
   return layoutlibSceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as? ImageView
 }
 
-private fun setState(surface: DesignSurface, state: State, enabled: Boolean) {
+private fun setState(surface: DesignSurface<*>, state: State, enabled: Boolean) {
   val image = getImageView(surface) ?: return
   val states = image.drawableState
   val stateValue = state.intValue

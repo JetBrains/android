@@ -167,6 +167,32 @@ public class DomPsiConverter {
     return domNode.getTextRange();
   }
 
+  /** Trims the whitespace from the given node range (which must correspond to the full range of the node) */
+  public static TextRange trim(@NonNull Node node, TextRange range) {
+    if (node.getNodeType() == Node.TEXT_NODE && node instanceof DomText) {
+      String text = ((DomNode)node).myElement.getText();
+      if (text != null) {
+        for (int i = 0; i < text.length(); i++) {
+          if (!Character.isWhitespace(text.charAt(i))) {
+            if (i > 0) {
+              int j = text.length() - 1;
+              while (j > i) {
+                if (!Character.isWhitespace(text.charAt(j))) {
+                  break;
+                }
+                j--;
+              }
+              return TextRange.create(range.getStartOffset() + i, range.getEndOffset() - (text.length() - 1 - j));
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    return range;
+  }
+
   /**
    * Gets the {@link TextRange} for a {@link Node} created with this converter
    */
@@ -1009,6 +1035,12 @@ public class DomPsiConverter {
     @Override
     public short getNodeType() {
       return Node.ELEMENT_NODE;
+    }
+
+    @NotNull
+    @Override
+    public String getPrefix() {
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myTag::getNamespacePrefix);
     }
 
     @NotNull

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.newpsd
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.StudioRobot
@@ -26,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestio
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForDialogToClose
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,18 +41,12 @@ class EditableConfigurationsTest {
 
   @Before
   fun setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true)
     // Under StudioRobot, typing into an editor happens character-by-character below a certain limit.  The EditorComboBox implementation
     // we currently use will pop up a completion window, which will update and disappear at uncertain times, and testing for the presence
     // of this window is also unreliable.  We work around this in these tests by using replaceText() with long strings, which the
     // StudioRobot will paste all in one go; the reliability of these tests is consequently dependent on the robot's implementation
     // strategy.
     assertThat(StudioRobot.MAX_CHARS_TO_TYPE).isAtMost(8)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride()
   }
 
   @RunIn(TestGroup.UNRELIABLE)

@@ -19,14 +19,15 @@ package org.jetbrains.android.intentions;
 import static com.android.SdkConstants.CLASS_CONTEXT;
 import static com.android.SdkConstants.CLASS_FRAGMENT;
 import static com.android.SdkConstants.CLASS_RESOURCES;
-import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.STRING_RES_ANNOTATION;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_EXTERNAL;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
+import com.android.AndroidXConstants;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
@@ -91,7 +92,6 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -218,7 +218,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     final AndroidFacet facet = AndroidFacet.getInstance(file);
     assert facet != null;
 
-    final String aPackage = getPackage(facet);
+    final String aPackage = ProjectSystemUtil.getModuleSystem(facet).getPackageName();
     if (aPackage == null) {
       Messages.showErrorDialog(project, AndroidBundle.message("package.not.found.error"), CommonBundle.getErrorTitle());
       return;
@@ -372,8 +372,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     final boolean extendsContext = getContainingInheritorOf(element, CLASS_CONTEXT) != null;
     final boolean extendsFragment =
       getContainingInheritorOf(element, CLASS_FRAGMENT) != null ||
-      getContainingInheritorOf(element, CLASS_V4_FRAGMENT.oldName()) != null ||
-      getContainingInheritorOf(element, CLASS_V4_FRAGMENT.newName()) != null;
+      getContainingInheritorOf(element, AndroidXConstants.CLASS_V4_FRAGMENT.oldName()) != null ||
+      getContainingInheritorOf(element, AndroidXConstants.CLASS_V4_FRAGMENT.newName()) != null;
 
     final String rJavaFieldName = IdeResourcesUtil.getRJavaFieldName(resName);
     final String field = aPackage + ".R." + resType.getName() + '.' + rJavaFieldName;
@@ -440,13 +440,6 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
         JavaCodeStyleManager.getInstance(project).shortenClassReferences(file, marker.getStartOffset(), marker.getEndOffset());
       }
     });
-  }
-
-  @Nullable
-  private static String getPackage(@NotNull AndroidFacet facet) {
-    Manifest manifest = Manifest.getMainManifest(facet);
-    if (manifest == null) return null;
-    return manifest.getPackage().getValue();
   }
 
   @Nullable

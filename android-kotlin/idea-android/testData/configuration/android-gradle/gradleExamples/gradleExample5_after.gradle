@@ -1,5 +1,5 @@
 apply plugin: 'android'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdkVersion 15
@@ -34,7 +34,9 @@ if (android.testVariants.size() != 1) {
 }
 
 buildscript {
-    ext.kotlin_version = '$VERSION$'
+    ext {
+        kotlin_version = '$VERSION$'
+    }
     repositories {
         mavenCentral()
     }
@@ -43,9 +45,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
-repositories {
-    mavenCentral()
-}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

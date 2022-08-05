@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TAG;
 import static com.android.SdkConstants.TEXT_VIEW;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -36,7 +35,7 @@ public class ScoutArrangeTest4 extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT.defaultName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/content_main")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
@@ -58,7 +57,7 @@ public class ScoutArrangeTest4 extends SceneTest {
                        .withBounds(650, 1150, 200, 50)
                        .width("200dp")
                        .height("50dp"),
-                     component(CLASS_CONSTRAINT_LAYOUT_BARRIER.defaultName()).id("@+id/barrier")
+                     component(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.defaultName()).id("@+id/barrier")
                        .withBounds(50, 750, 200, 40)
                        .withAttribute("app:barrierDirection", "left")
                        .width("100dp")
@@ -85,7 +84,8 @@ public class ScoutArrangeTest4 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintStart_toEndOf=\"@+id/barrier\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        app:layout_constraintVertical_bias=\"0.5\" />");
 
     buildScene();
   }

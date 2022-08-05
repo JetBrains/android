@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.tools.idea.projectsystem.SourceProvidersKt.getManifestFiles;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.concurrency.Immutable;
@@ -24,20 +23,24 @@ import com.android.manifmerger.Actions;
 import com.android.manifmerger.ManifestMerger2;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlDocument;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.project.SyncTimestampUtil;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
 import com.android.tools.idea.projectsystem.MergedManifestContributors;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -53,6 +56,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.apache.commons.io.input.CharSequenceInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -322,6 +326,9 @@ final class MergedManifestInfo {
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
     manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING);
+    if(!isVersionAtLeast7_4_0(facet.getModule().getProject()))
+      manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.DISABLE_STRIP_LIBRARY_TARGET_SDK);
+
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
     manifestMergerInvoker.addNavigationFiles(VfsUtilCore.virtualToIoFiles(navigationFiles));
 
@@ -331,7 +338,12 @@ final class MergedManifestInfo {
     }
     manifestMergerInvoker.addBundleManifests(libraryManifests);
 
-    ManifestOverrides overrides = ProjectSystemUtil.getModuleSystem(facet.getModule()).getManifestOverrides();
+    AndroidModuleSystem androidModuleSystem = ProjectSystemUtil.getModuleSystem(facet.getModule());
+    String packageName = androidModuleSystem.getPackageName();
+    if (packageName != null) {
+      manifestMergerInvoker.setNamespace(packageName);
+    }
+    ManifestOverrides overrides = androidModuleSystem.getManifestOverrides();
     overrides.getPlaceholders().forEach(manifestMergerInvoker::setPlaceHolderValue);
     overrides.getDirectOverrides().forEach(manifestMergerInvoker::setOverride);
 
@@ -365,7 +377,7 @@ final class MergedManifestInfo {
         // We do not want to do this check if we have no library manifests.
         // findModuleForFile does not work for other build systems (e.g. bazel)
         if (!libManifests.isEmpty()) {
-          Module moduleContainingManifest = getAndroidModuleForManifest(vFile);
+          Module moduleContainingManifest = getAndroidModuleForFileIfManifest(vFile);
           if (moduleContainingManifest != null && !module.equals(moduleContainingManifest)) {
             MergedManifestSnapshot manifest = MergedManifestManager.getFreshSnapshotInCallingThread(moduleContainingManifest);
 
@@ -394,28 +406,30 @@ final class MergedManifestInfo {
       }
 
       @Nullable
-      private Module getAndroidModuleForManifest(@NotNull VirtualFile vFile) {
-        // See https://code.google.com/p/android/issues/detail?id=219141
-        // Earlier, we used to get the module containing a manifest by doing: ModuleUtilCore.findModuleForFile(vFile, project)
-        // This method of getting the module simply returns the module that contains this file. However, if the manifest sources are
-        // remapped, this could be incorrect. i.e. for a project with the following structure:
-        //     root
-        //       |--- modules/a
-        //       |       |------- build.gradle
-        //       |--- external/a
-        //               |------- AndroidManifest.xml
-        // where the build.gradle remaps the sources to point to $root/external/a/AndroidManifest.xml, obtaining the module containing the
-        // file will return root where it should have been "a". So the correct scheme is to actually iterate through all the modules in the
-        // project and look at their source providers
-        return ProjectSystemUtil.getAndroidFacets(project).stream()
-          .filter(androidFacet -> getManifestFiles(androidFacet).contains(vFile))
-          .findFirst()
-          .map(androidFacet -> ModuleSystemUtil.getMainModule(androidFacet.getModule()))
-          .orElse(null);
+      private Module getAndroidModuleForFileIfManifest(@NotNull VirtualFile vFile) {
+        Module module = ModuleUtilCore.findModuleForFile(vFile, project);
+        if (module == null) {
+          return null;
+        }
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet == null) {
+          return null;
+        }
+        SourceProviders sourceProviders = SourceProviders.getInstance(androidFacet);
+        if (Iterables.tryFind(sourceProviders.getSources().getManifestFiles(), it -> Objects.equals(it, vFile)).isPresent()) {
+          return androidFacet.getMainModule();
+        }
+        return null;
       }
     });
 
-
     return manifestMergerInvoker.merge();
+  }
+
+  private static boolean isVersionAtLeast7_4_0(Project project) {
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
+    return androidPluginInfo != null &&
+           androidPluginInfo.getPluginVersion() != null &&
+           androidPluginInfo.getPluginVersion().isAtLeast(7, 4, 0);
   }
 }

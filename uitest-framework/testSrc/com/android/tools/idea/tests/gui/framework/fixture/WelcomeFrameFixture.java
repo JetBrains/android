@@ -27,7 +27,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.options.newEditor.SettingsTreeView;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.RecentProjectPanel;
 import com.intellij.ui.components.JBList;
@@ -78,7 +78,7 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   public FileChooserDialogFixture profileOrDebugApk(@NotNull File apk) {
     // The file chooser is quite slow and we don't have a good way to find when loading finished (there used to be
     // a loading spinner, but was removed from the platform). To make sure we don't have to wait, we pre-inject the path.
-    PropertiesComponent.getInstance().setValue("last.apk.imported.location", FileUtilRt.toSystemDependentName(apk.getPath()));
+    PropertiesComponent.getInstance().setValue("last.apk.imported.location", FileUtil.toSystemDependentName(apk.getPath()));
 
     clickMoreOptionsItem("Profile or Debug APK");
     return FileChooserDialogFixture.findDialog(robot(), "Select APK File");
@@ -123,13 +123,18 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
       .clickPath("Appearance & Behavior/System Settings/Android SDK");
   }
 
+  public void openSdkManagerFromMoreOptions() {
+    clickMoreOptionsItem("SDK Manager");
+  }
+
+
   private void findAndClickButton(@NotNull String text) {
-    JComponent buttonLabel = GuiTests.waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<>(JComponent.class) {
+    JComponent buttonLabel = GuiTests.waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<JComponent>(JComponent.class) {
       @Override
       protected boolean isMatching(@NotNull JComponent comp) {
         // Depending if the Welcome Wizard has recent Projects, we can have a buttons at the top or a JLabel inside a panel.
-        return (comp instanceof JBOptionButton && text.equals(((JButton)comp).getText())) ||
-               (comp instanceof JLabel && text.equals(((JLabel)comp).getText()));
+        return (comp instanceof JBOptionButton && text.equals(((JButton) comp).getText())) ||
+               (comp instanceof JLabel && text.equals(((JLabel) comp).getText()));
       }
     });
 
@@ -145,11 +150,11 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   private void clickMoreOptionsItem(@NotNull String text) {
-    JComponent moreActionsLabel = GuiTests.waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<>(JComponent.class) {
+    JComponent moreActionsLabel = GuiTests.waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<JComponent>(JComponent.class) {
       @Override
       protected boolean isMatching(@NotNull JComponent comp) {
         // Depending if the Welcome Wizard has recent Projects, we can have a buttons at the top or a JLabel inside a panel.
-        return (comp instanceof JButton && "More Actions".equals(((JButton)comp).getText())) ||
+        return (comp instanceof JButton && "More Actions".equals(((JButton) comp).getText())) ||
                (comp instanceof ActionButton && "More Actions".equals(((ActionButton)comp).getAction().getTemplateText()));
       }
     });

@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsolePrinter
@@ -41,14 +40,8 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
     val runConfigurationFactory = ComposePreviewRunConfigurationType().configurationFactories[0]
     runConfiguration = TestComposePreviewRunConfiguration(project, runConfigurationFactory)
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.clearOverride()
   }
 
   fun testAmStartOptionsWithComposableMethod() {

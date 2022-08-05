@@ -209,7 +209,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   @NotNull
   private ActionButton findToolbarButton(@NotNull final String tooltip) {
-    return waitUntilShowingAndEnabled(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<>(ActionButton.class) {
+    return waitUntilShowingAndEnabled(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton actionButton) {
         return tooltip.equals(actionButton.getAction().getTemplatePresentation().getDescription());

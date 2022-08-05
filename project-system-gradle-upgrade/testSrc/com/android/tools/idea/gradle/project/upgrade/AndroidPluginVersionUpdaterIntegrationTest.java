@@ -43,7 +43,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myVersionUpdater = new AndroidPluginVersionUpdater(getProject());
+    myVersionUpdater = new AndroidPluginVersionUpdaterImpl(getProject());
   }
 
   @Override

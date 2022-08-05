@@ -40,15 +40,15 @@ public class AidlFile extends PsiFileBase {
   }
 
   public String getPackageName() {
-    AidlPackageStatement packageStatement = PsiTreeUtil.findChildOfType(this, AidlPackageStatement.class);
+    AidlPackage packageStatement = PsiTreeUtil.findChildOfType(this, AidlPackage.class);
     if (packageStatement != null) {
-      return packageStatement.getQualifiedName().getText();
+      return packageStatement.getQualifiedName().getQualifiedName();
     }
     return "";
   }
 
-  public Collection<AidlImportStatement> getImportStatements() {
-    return PsiTreeUtil.findChildrenOfType(this, AidlImportStatement.class);
+  public Collection<AidlImport> getImportStatements() {
+    return PsiTreeUtil.findChildrenOfType(this, AidlImport.class);
   }
 
   @NotNull

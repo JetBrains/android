@@ -28,14 +28,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidBuildScriptNode extends PsiFileNode {
-  static final String MODULE_PREFIX = "Module: ";
-  static final String PROJECT_PREFIX = "Project: ";
 
   @Nullable private final String myQualifier;
+  private final int myOrder;
 
-  AndroidBuildScriptNode(@NotNull Project project, @NotNull PsiFile value, @NotNull ViewSettings settings, @Nullable String qualifier) {
+  AndroidBuildScriptNode(@NotNull Project project,
+                         @NotNull PsiFile value,
+                         @NotNull ViewSettings settings,
+                         @Nullable String qualifier,
+                         int order) {
     super(project, value, settings);
     myQualifier = qualifier;
+    myOrder = order;
   }
 
   @Override
@@ -56,32 +60,7 @@ public class AndroidBuildScriptNode extends PsiFileNode {
   @Override
   @Nullable
   public Comparable getSortKey() {
-    String priority;
-
-    // We want the build scripts to be ordered as follows:
-    //   1. The Root Module/Project level build script should come first.
-    //   2. The module build scripts should come next
-    //   3. Within a module, we want all the build scripts grouped together
-    //   4. Finally, we want all the global and project wide build scripts.
-    // This is achieved in a very simple way by the priorities set below.
-    if (myQualifier != null) {
-      if (myQualifier.startsWith(PROJECT_PREFIX)) {
-        priority = "1-";
-      }
-      else if (myQualifier.startsWith(MODULE_PREFIX)) {
-        priority = "2-";
-      }
-      else {
-        priority = "3-";
-      }
-      priority += myQualifier + "-";
-    }
-    else {
-      priority = "4-";
-    }
-
-    PsiFile file = getValue();
-    return file != null ? priority + file.getName() : priority;
+    return myOrder;
   }
 
   @Override

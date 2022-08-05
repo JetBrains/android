@@ -25,7 +25,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 
 object AnimatedStateListFileType : DrawableFileType(setOf(SdkConstants.TAG_ANIMATED_SELECTOR)) {
-  override fun getToolbarActionGroups(surface: DesignSurface) = StateListActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>) = StateListActionGroups(surface)
 }
 
 const val TEMP_ANIMATED_SELECTOR_FOLDER = "drawable-temp"
@@ -39,7 +39,7 @@ object AnimatedStateListTempFileType : DrawableFileType(setOf()) {
            ApplicationManager.getApplication().runReadAction(Computable { file.parent?.name == TEMP_ANIMATED_SELECTOR_FOLDER })
   }
 
-  override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups {
+  override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups {
     return StateListActionGroups(surface)
   }
 }

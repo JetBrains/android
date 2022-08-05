@@ -23,13 +23,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ApplicationIdProvider {
   /**
-   * @return The package name of the main APK - the app to launch, or the app under test.
+   * @return The application ID (manifest package attribute) of the main APK - the app to launch, or the app under test.
    */
   @NotNull
   String getPackageName() throws ApkProvisionException;
 
   /**
-   * @return The package name of the test APK, or null if none.
+   * @return The application ID (manifest package attribute) of the test APK, or null if none.
    */
   @Nullable
   String getTestPackageName() throws ApkProvisionException;

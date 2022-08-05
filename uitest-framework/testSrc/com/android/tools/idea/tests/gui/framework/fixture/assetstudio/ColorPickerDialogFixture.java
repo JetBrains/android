@@ -40,7 +40,7 @@ public class ColorPickerDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   }
 
   public ColorPickerDialogFixture setHexColor(@NotNull String hexColor) {
-    JTextField hexField = GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<>(JTextField.class) {
+    JTextField hexField = GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<JTextField>(JTextField.class) {
       @Override
       protected boolean isMatching(@NotNull JTextField component) {
         return component.getDocument().getLength() == 6;

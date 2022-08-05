@@ -27,6 +27,9 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.E
 
 class DeepLinkInspectorBuilder : ComponentListInspectorBuilder(TAG_DEEP_LINK, DeepLinkCellRenderer()) {
   override fun title(component: NlComponent) = "Deep Links"
+  override fun addActionText(component: NlComponent) = "Add deep link"
+  override fun deleteActionText(component: NlComponent) = "Remove deep link"
+
   override fun onAdd(parent: NlComponent) {
     invokeDialog(null, parent)
   }

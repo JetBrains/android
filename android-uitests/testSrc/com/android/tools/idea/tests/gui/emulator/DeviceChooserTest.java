@@ -144,7 +144,7 @@ public class DeviceChooserTest {
     assertThat(icon).isNotNull();
 
     // Check the Stop button on Run Tool Window should be disabled.
-    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<>(ActionButton.class) {
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         if (!component.isShowing()) {
@@ -158,8 +158,7 @@ public class DeviceChooserTest {
             .in(component)
             .get();
           myPlace.set(place);
-        }
-        catch (ReflectionError e) {
+        } catch (ReflectionError e) {
           System.err.println("ReflectionError: " + e.getMessage());
           throw e;
         }

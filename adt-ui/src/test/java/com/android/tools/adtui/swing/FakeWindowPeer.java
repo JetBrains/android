@@ -160,21 +160,6 @@ class FakeWindowPeer implements WindowPeer {
     throw new UnsupportedOperationException();
   }
 
-  //todo remove when switching to Java 17. Method was removed from java.awt.peer.ContainerPeer
-  public Image createImage(ImageProducer producer) {
-    throw new UnsupportedOperationException();
-  }
-
-  //todo remove when switching to Java 17. Method was removed from java.awt.peer.ContainerPeer
-  public boolean prepareImage(Image img, int w, int h, ImageObserver o) {
-    return false;
-  }
-
-  //todo remove when switching to Java 17. Method was removed from java.awt.peer.ContainerPeer
-  public int checkImage(Image img, int w, int h, ImageObserver o) {
-    return 0;
-  }
-
   @Override
   public GraphicsConfiguration getGraphicsConfiguration() {
     throw new UnsupportedOperationException();

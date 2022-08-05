@@ -102,7 +102,7 @@ public abstract class NewKeyForm {
     if (aliasList == null) {
       return prefix + '0';
     }
-    Set<String> aliasSet = new HashSet<>();
+    Set<String> aliasSet = new HashSet<String>();
     for (String alias : aliasList) {
       aliasSet.add(StringUtil.toLowerCase(alias));
     }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property.testutils
 
 import com.android.SdkConstants.ATTR_CONTEXT
+import com.android.SdkConstants.FD_RES_LAYOUT
+import com.android.SdkConstants.FD_RES_XML
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.NEW_ID_PREFIX
 import com.android.SdkConstants.TOOLS_URI
@@ -45,16 +47,30 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
    *  - Bounds are always added.
    *  - IDs are set to the tagName if an ID is not specified.
    */
-  fun createComponents(vararg descriptors: ComponentDescriptor, parentTag: String = LINEAR_LAYOUT): List<NlComponent> {
+  fun createComponents(
+    vararg descriptors: ComponentDescriptor,
+    parentTag: String = LINEAR_LAYOUT,
+    resourceFolder: String = FD_RES_LAYOUT
+  ): List<NlComponent> {
     var y = 0
     for (descriptor in descriptors) {
       descriptor.withBounds(0, y, 100, 100)
       y += 100
-      if (descriptor.id == null) {
+      if (descriptor.id == null && resourceFolder == FD_RES_LAYOUT) {
         descriptor.id(NEW_ID_PREFIX + descriptor.tagName)
       }
     }
-    val builder = model(
+    val builder = when (resourceFolder) {
+      FD_RES_XML -> model(
+        resourceFolder,
+        "preferences.xml",
+        component(parentTag)
+          .withBounds(0, 0, 1000, 1500)
+          .children(*descriptors)
+      )
+
+      FD_RES_LAYOUT -> model(
+        resourceFolder,
         "linear.xml",
         component(parentTag)
           .withBounds(0, 0, 1000, 1500)
@@ -63,11 +79,15 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
           .matchParentHeight()
           .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
           .children(*descriptors)
-    )
+      )
+
+      else -> throw NotImplementedError()
+    }
     val nlModel = builder.build()
     val result = mutableListOf<NlComponent>()
-    for (descriptor in descriptors) {
-      result.add(nlModel.find(stripPrefixFromId(descriptor.id!!))!!)
+    when (resourceFolder) {
+      FD_RES_XML -> descriptors.mapNotNullTo(result) { descriptor -> nlModel.find { it.tagName == descriptor.tagName } }
+      else -> descriptors.mapNotNullTo(result) { nlModel.find(stripPrefixFromId(it.id!!)) }
     }
     return result
   }

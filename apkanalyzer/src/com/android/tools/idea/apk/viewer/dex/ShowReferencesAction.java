@@ -90,7 +90,7 @@ public class ShowReferencesAction extends AnAction {
     ListenableFuture<DexReferences> references = myDexFileViewer.getDexReferences();
     assert references != null;
 
-    Futures.addCallback(references, new FutureCallback<>() {
+    Futures.addCallback(references, new FutureCallback<DexReferences>() {
       @Override
       public void onSuccess(@Nullable DexReferences result) {
         showReferenceTree(e, node, project, result);

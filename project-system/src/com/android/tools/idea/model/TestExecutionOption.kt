@@ -25,3 +25,20 @@ enum class TestExecutionOption {
     /** On device orchestration is used, with androidx class names.  */
     ANDROIDX_TEST_ORCHESTRATOR
 }
+
+data class TestOptions(
+  val executionOption: TestExecutionOption?,
+  val animationsDisabled: Boolean,
+  val instrumentationRunner: String?,
+  val instrumentationRunnerArguments: Map<String, String>
+) {
+  companion object {
+    @JvmField
+    val DEFAULT: TestOptions = TestOptions(
+      executionOption = null,
+      animationsDisabled = false,
+      instrumentationRunner = null,
+      instrumentationRunnerArguments = emptyMap()
+    )
+  }
+}

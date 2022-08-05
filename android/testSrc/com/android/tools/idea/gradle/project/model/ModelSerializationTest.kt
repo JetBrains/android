@@ -18,22 +18,24 @@ package com.android.tools.idea.gradle.project.model
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
+import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
-import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
@@ -41,7 +43,7 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
-import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
@@ -53,10 +55,6 @@ import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
-import com.android.tools.idea.gradle.model.java.GradleModuleVersionImpl
-import com.android.tools.idea.gradle.model.java.JarLibraryDependency
-import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot
-import com.android.tools.idea.gradle.model.java.JavaModuleDependency
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -69,8 +67,6 @@ import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
 import com.intellij.serialization.SkipNullAndEmptySerializationFilter
 import com.intellij.serialization.WriteConfiguration
-import junit.framework.TestCase
-import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModelImpl
 import org.junit.Test
 import java.io.File
 import java.io.Serializable
@@ -101,23 +97,24 @@ class ModelSerializationTest : AndroidGradleTestCase() {
       listOf("plugin1", "plugin2"),
       null,
       "4.1.10",
-      "3.6.0-dev",
-      KaptGradleModelImpl(true, File("some/path"), listOf()))
+      "3.6.0-dev"
+    )
   }
 
   @Test
-  fun testAndroidModuleModel() = assertSerializable(disableEqualsCheck = true) {
+  fun testAndroidModuleModel() = assertSerializable {
     setupTestProjectFromAndroidModel(
       project,
       Projects.getBaseDirPath(project),
       true,
       AndroidModuleModelBuilder(
-        ":moduleName", null, "3.6.0", "variantName", AndroidProjectBuilder())
+        ":moduleName", null, "3.6.0", "debug", AndroidProjectBuilder())
     )
 
     val module = project.gradleModule(":moduleName")
-    TestCase.assertNotNull(module)
-    GradleAndroidModel.get(module!!)!!
+    Truth.assertThat(module).isNotNull()
+
+    (GradleAndroidModel.get(module!!)!!.data as GradleAndroidModelDataImpl)
   }
 
   @Test
@@ -148,26 +145,6 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     )
   }
 
-  @Test
-  fun testGradleModuleVersionImpl() = assertSerializable {
-    GradleModuleVersionImpl("group", "name", "version")
-  }
-
-  @Test
-  fun testJarLibraryDependency() = assertSerializable {
-    JarLibraryDependency("name", null, null, null, null, null, false)
-  }
-
-  @Test
-  fun testJavaModuleContentRoot() = assertSerializable {
-    JavaModuleContentRoot(File("rootDir"), listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
-  }
-
-  @Test
-  fun testJavaModuleDependency() = assertSerializable {
-    JavaModuleDependency("moduleName", "moduleId", null, false)
-  }
-
   /*
    * END IDE ONLY MODULES
    * BEGIN LEVEL TWO DEPENDENCY MODELS
@@ -175,7 +152,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
 
   @Test
   fun testLevel2AndroidLibrary() = assertSerializable {
-    IdeAndroidLibraryImpl(
+    IdeAndroidLibraryImpl.create(
       "artifactAddress",
       "name",
       File("folder"),
@@ -194,7 +171,34 @@ class ModelSerializationTest : AndroidGradleTestCase() {
       "publicResources",
       File("artifactFile"),
       "symbolFile",
-      true
+      deduplicate = { this }
+    )
+  }
+
+  @Test
+  fun testLevel2AndroidLibraryDependency() = assertSerializable {
+    IdeAndroidLibraryDependencyImpl(
+      IdeAndroidLibraryImpl.create(
+        "artifactAddress",
+        "name",
+        File("folder"),
+        "manifest",
+        listOf("compileJarFiles"),
+        listOf("runtimeJarFiles"),
+        "resFolder",
+        File("resStaticLibrary"),
+        "assetsFolder",
+        "jniFolder",
+        "aidlFolder",
+        "renderscriptFolder",
+        "prouardRules",
+        "lintJar",
+        "externalAnnotations",
+        "publicResources",
+        File("artifactFile"),
+        "symbolFile",
+        deduplicate = { this }
+      )
     )
   }
 
@@ -202,10 +206,10 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testLevel2JavaLibrary() = Truth.assertThat(IdeJavaLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testLevel2ModuleLibrary() = Truth.assertThat(IdeModuleLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testLevel2ModuleLibrary() = Truth.assertThat(IdePreResolvedModuleLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testLevel2Dependencies() = Truth.assertThat(IdeDependenciesImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testDependencyCores() = Truth.assertThat(IdeDependenciesCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   /*
    * END LEVEL2 DEPENDENCY MODELS
@@ -216,7 +220,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testAaptOptions() = Truth.assertThat(IdeAaptOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testAndroidArtifact() = Truth.assertThat(IdeAndroidArtifactImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testAndroidArtifactCore() = Truth.assertThat(IdeAndroidArtifactCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testAndroidArtifactOutput() = Truth.assertThat(IdeAndroidArtifactOutputImpl::class.java).isAssignableTo(Serializable::class.java)
@@ -234,7 +238,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testFilterData() = Truth.assertThat(IdeFilterDataImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testJavaArtifact() = Truth.assertThat(IdeJavaArtifactImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testJavaArtifactCore() = Truth.assertThat(IdeJavaArtifactCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testJavaCompileOptions() = Truth.assertThat(IdeJavaCompileOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
@@ -285,7 +289,10 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testTestOptions() = Truth.assertThat(IdeTestOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testVariant() = Truth.assertThat(IdeVariantImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testBasicVariant() = Truth.assertThat(IdeBasicVariantImpl::class.java).isAssignableTo(Serializable::class.java)
+
+  @Test
+  fun testVariantCore() = Truth.assertThat(IdeVariantCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testVectorDrawablesOptions() = Truth.assertThat(IdeVectorDrawablesOptionsImpl::class.java).isAssignableTo(Serializable::class.java)

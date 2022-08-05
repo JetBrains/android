@@ -19,10 +19,11 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
+import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.google.common.truth.Truth.assertThat
@@ -34,7 +35,6 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 import org.mockito.quality.Strictness
 import java.util.concurrent.ExecutorService
@@ -47,7 +47,6 @@ class AndroidTestApplicationLaunchTaskTest {
 
   @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
-  @Mock lateinit var mockAndroidArtifact: IdeAndroidArtifact
   @Mock lateinit var mockProcessHandler: AndroidProcessHandler
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockITestRunListener: ITestRunListener
@@ -58,7 +57,7 @@ class AndroidTestApplicationLaunchTaskTest {
 
   private fun createMockDevice(version: AndroidVersion): IDevice {
     val mockDevice = mock(IDevice::class.java)
-    `when`(mockDevice.version).thenReturn(version)
+    whenever(mockDevice.version).thenReturn(version)
     return mockDevice
   }
 
@@ -66,7 +65,7 @@ class AndroidTestApplicationLaunchTaskTest {
     return AndroidTestApplicationLaunchTask(
       "instrumentationTestRunner",
       "testApplicationId",
-      mockAndroidArtifact,
+      null,
       /*waitForDebugger=*/ false,
       "instrumentationOptions",
       listOf(mockITestRunListener),
@@ -100,17 +99,17 @@ class AndroidTestApplicationLaunchTaskTest {
   @Test
   fun run() {
     val mockDevice = createMockDevice(AndroidVersion(26))
-    `when`(mockLaunchContext.device).thenReturn(mockDevice)
-    `when`(mockLaunchContext.consolePrinter).thenReturn(mockPrinter)
-    `when`(mockLaunchContext.launchStatus).thenReturn(mockLaunchStatus)
-    `when`(mockLaunchStatus.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockLaunchContext.device).thenReturn(mockDevice)
+    whenever(mockLaunchContext.consolePrinter).thenReturn(mockPrinter)
+    whenever(mockLaunchContext.launchStatus).thenReturn(mockLaunchStatus)
+    whenever(mockLaunchStatus.processHandler).thenReturn(mockProcessHandler)
 
     val launchTask = createLaunchTask()
 
     val result = launchTask.run(mockLaunchContext)
 
     requireNotNull(result)
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
 
     verify(mockPrinter).stdout(eq("Running tests\n"))
     verify(mockProcessHandler).detachDevice(eq(mockDevice))

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_LAYOUT_MANAGER;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
 import static com.android.SdkConstants.CALENDAR_VIEW;
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_LAYOUT_MANAGER;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
 import static com.android.SdkConstants.FD_RES_DRAWABLE;
@@ -35,12 +35,6 @@ import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -56,7 +50,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
@@ -73,7 +66,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
@@ -99,6 +92,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -197,7 +191,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
    * @param parserFactory an optional factory for creating XML parsers.
-   * @param classLoader the {@link ClassLoader} to use for loading classes from Layoutlib.
+   * @param moduleClassLoader the {@link ClassLoader} to use for loading classes from Layoutlib.
    */
   public LayoutlibCallbackImpl(@NotNull RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
@@ -474,7 +468,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       if (myParserCount > MAX_PARSER_INCLUDES) {
         // Unlikely large number of includes. Look for cyclic dependencies in the available files.
         if (findCycles()) {
-          throw new RuntimeException("Aborting rendering");
+          throw new RuntimeException(
+            String.format("Cycle found (count=%3$d) evaluating '%1$s' with path '%2$s' (parserFiles=%4$s)",
+                          layoutName, xml.toDebugString(), myParserCount, StringUtil.join(myParserFiles, ", ")));
         }
 
         // Also reset counter to 0 so we don't check on every subsequent iteration.
@@ -855,32 +851,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Nullable
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T> T getFlag(@NotNull SessionParams.Key<T> key) {
-    if (key.equals(FLAG_KEY_APPLICATION_PACKAGE)) {
-      return (T)getPackage();
-    }
-    if (key.equals(FLAG_KEY_RECYCLER_VIEW_SUPPORT)) {
-      return (T)Boolean.TRUE;
-    }
-    if (key.equals(FLAG_KEY_XML_FILE_PARSER_SUPPORT)) {
-      return (T)Boolean.TRUE;
-    }
-    if (key.equals(FLAG_KEY_ADAPTIVE_ICON_MASK_PATH)) {
-      return (T)myAdaptiveIconMaskPath;
-    }
-    if (key.equals(FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW)) {
-      return (T)Boolean.TRUE;
-    }
-    if (key.equals(FLAG_KEY_ENABLE_SHADOW)) {
-      return (T)Boolean.TRUE;
-    }
-    return null;
+  public String getResourcePackage() {
+    return ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
   }
 
   @Nullable
-  private String getPackage() {
+  public String getApplicationId() {
     try {
       return RenderSecurityManager.runInSafeRegion(myCredential, () -> {
         // This section might access system properties or access disk but it does not leak information back to Layoutlib so it can be
@@ -898,16 +874,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull
   @Override
   public Class<?> findClass(@NotNull String name) throws ClassNotFoundException {
-    try {
-      Class<?> aClass = myClassLoader.loadClass(name, false);
-      if (aClass != null) {
-        return aClass;
-      }
-      throw new ClassNotFoundException(name + " not found.");
+    Class<?> aClass = myClassLoader.loadClass(name, false);
+    if (aClass != null) {
+      return aClass;
     }
-    catch (InconvertibleClassError e) {
-      throw new ClassNotFoundException(name + " not found.", e);
-    }
+    throw new ClassNotFoundException(name + " not found.");
   }
 
   @Override

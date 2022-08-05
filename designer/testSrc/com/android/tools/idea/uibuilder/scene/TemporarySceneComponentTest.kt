@@ -17,16 +17,16 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.TemporarySceneComponent
-import org.mockito.Mockito
 
 open class TemporarySceneComponentTest: SceneTest() {
 
   fun testSetDragging() {
     val mockNlComponent = LayoutTestUtilities.createMockComponent()
-    Mockito.`when`(mockNlComponent.tagName).thenReturn(TEXT_VIEW)
+    whenever(mockNlComponent.tagName).thenReturn(TEXT_VIEW)
     val sceneComponent = TemporarySceneComponent(myScene, mockNlComponent)
 
     assertFalse(sceneComponent.isDragging)

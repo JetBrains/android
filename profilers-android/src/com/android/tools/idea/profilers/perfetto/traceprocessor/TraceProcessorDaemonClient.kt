@@ -23,8 +23,8 @@ import com.google.common.base.Ticker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
-import io.grpc.ManagedChannel
-import io.grpc.netty.NettyChannelBuilder
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 
 /**
  * gRPC client used to communicate with the daemon (which runs a gRPC server).

@@ -31,22 +31,30 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.DisplayModeValue
+import com.android.tools.idea.emulator.EmptyStreamObserver
+import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
+import java.awt.EventQueue
 
 /**
  * Sets a display mode for a resizable AVD.
  */
-internal sealed class DisplayModeAction(val mode: DisplayModeValue) : AbstractEmulatorAction() {
+internal sealed class DisplayModeAction(
+  val mode: DisplayModeValue,
+) : AbstractEmulatorAction(configFilter = { it.displayModes.isNotEmpty() }) {
 
   override fun actionPerformed(event: AnActionEvent) {
-    if (getCurrentDisplayMode(event) != mode) {
+    val emulatorView = getEmulatorView(event) ?: return
+    if (mode != emulatorView.displayMode?.displayModeId) {
       val emulator = getEmulatorController(event) ?: return
-      emulator.setDisplayMode(mode)
+      emulator.setDisplayMode(mode, object : EmptyStreamObserver<Empty>() {
+        override fun onCompleted() {
+          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+            emulatorView.displayModeChanged(mode)
+          }
+        }
+      })
     }
-  }
-
-  override fun update(event: AnActionEvent) {
-    event.presentation.isEnabled = hasDisplayModes(event)
   }
 
   class Desktop : DisplayModeAction(DisplayModeValue.DESKTOP)
@@ -57,9 +65,6 @@ internal sealed class DisplayModeAction(val mode: DisplayModeValue) : AbstractEm
 
   class Tablet : DisplayModeAction(DisplayModeValue.TABLET)
 }
-
-internal fun hasDisplayModes(event: AnActionEvent): Boolean =
-  isEmulatorConnected(event) && (getEmulatorController(event)?.emulatorConfig?.displayModes?.isNotEmpty() ?: false)
 
 internal fun getCurrentDisplayMode(event: AnActionEvent) =
   getEmulatorView(event)?.displayMode?.displayModeId ?: DisplayModeValue.UNRECOGNIZED

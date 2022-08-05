@@ -25,6 +25,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.containers.getIfSingle
 import com.intellij.util.containers.isEmpty
 import org.junit.Before
 import org.junit.Test
@@ -101,10 +103,10 @@ class NlAtfIssueTest : LayoutTestCase() {
     val result = ScannerTestHelper.createTestIssueBuilder().build()
     val atfIssue = NlAtfIssue(result, TestSource(), mockModel)
 
-    assertEquals(1, atfIssue.fixes.count())
-    atfIssue.fixes.forEach {  ignore ->
-      assertEquals("Ignore", ignore.buttonText)
-    }
+    assertEquals(0, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.suppresses.count())
+    val ignore = atfIssue.suppresses.getIfSingle()!!
+    assertEquals("Suppress", ignore.buttonText)
   }
 
   @Test
@@ -116,16 +118,16 @@ class NlAtfIssueTest : LayoutTestCase() {
       .build()
     val atfIssue = NlAtfIssue(result, testSrc, mockModel, mockEventListener)
 
-    assertEquals(1, atfIssue.fixes.count())
-    atfIssue.fixes.forEach {  ignore ->
-      // Simulate ignore button click
-      ignore.runnable.run()
+    assertEquals(0, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.suppresses.count())
+    val ignore = atfIssue.suppresses.getIfSingle()!!
+    // Simulate ignore button click
+    ignore.action.run()
 
-      assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
-      assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
-      assertEquals(srcClass, testSrc.setAttrArgCaptor.value)
-      verify(mockEventListener).onIgnoreButtonClicked(result)
-    }
+    assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
+    assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
+    assertEquals(srcClass, testSrc.setAttrArgCaptor.value)
+    verify(mockEventListener).onIgnoreButtonClicked(result)
   }
 
   @Test
@@ -140,16 +142,17 @@ class NlAtfIssueTest : LayoutTestCase() {
       .build()
     val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
-    assertEquals(1, atfIssue.fixes.count())
-    atfIssue.fixes.forEach {  ignore ->
-      // Simulate ignore button click
-      ignore.runnable.run()
+    assertEquals(0, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.suppresses.count())
+    val ignore = atfIssue.suppresses.getIfSingle()!!
 
-      assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
-      assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
-      val expected = "$getAttrResult,$srcClass"
-      assertEquals(expected, testSrc.setAttrArgCaptor.value)
-    }
+    // Simulate ignore button click
+    ignore.action.run()
+
+    assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
+    assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
+    val expected = "$getAttrResult,$srcClass"
+    assertEquals(expected, testSrc.setAttrArgCaptor.value)
   }
 
   @Test
@@ -165,13 +168,12 @@ class NlAtfIssueTest : LayoutTestCase() {
     val atfIssue = NlAtfIssue(result, testSrc, mockModel, mockEventListener)
 
     // Both fix button and ignore button are displayed
-    assertEquals(2, atfIssue.fixes.count())
-    atfIssue.fixes.filter{it.buttonText == "Fix"}.forEach {  fix ->
-      // Simulate fix button click
-      fix.runnable.run()
-
-      verify(mockEventListener).onApplyFixButtonClicked(result)
-    }
+    assertEquals(1, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.suppresses.count())
+    val fix = atfIssue.fixes.getIfSingle()!!
+    // Simulate fix button click
+    fix.action.run()
+    verify(mockEventListener).onApplyFixButtonClicked(result)
   }
 
   @Test
@@ -205,7 +207,8 @@ class NlAtfIssueTest : LayoutTestCase() {
     val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
     // Both fix button and ignore button are displayed
-    assertEquals(2, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.suppresses.count())
   }
 
   @Test
@@ -242,7 +245,8 @@ class NlAtfIssueTest : LayoutTestCase() {
     val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
     // Both fix button and ignore button are displayed
-    assertEquals(2, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.fixes.count())
+    assertEquals(1, atfIssue.suppresses.count())
   }
 
   @Test
@@ -269,6 +273,7 @@ class NlAtfIssueTest : LayoutTestCase() {
   }
 
   class TestSource : IssueSource, NlAttributesHolder {
+    override val file: VirtualFile? = null
     override val displayText: String = "displayText"
 
     var getAttrResult = ""

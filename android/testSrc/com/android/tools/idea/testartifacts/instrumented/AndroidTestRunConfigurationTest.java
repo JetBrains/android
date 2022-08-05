@@ -19,7 +19,7 @@ import static com.android.tools.idea.testartifacts.TestConfigurationTesting.crea
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.util.List;
@@ -41,7 +41,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
       createAndroidTestConfigurationFromClass(getProject(), TEST_APP_CLASS_NAME);
     assertInstanceOf(androidTestRunConfiguration, AndroidTestRunConfiguration.class);
 
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myAndroidFacet);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(myAndroidFacet);
     assertThat(androidModel).isNotNull();
     assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("debug");
 

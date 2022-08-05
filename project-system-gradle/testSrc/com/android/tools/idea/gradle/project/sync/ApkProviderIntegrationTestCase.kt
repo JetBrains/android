@@ -20,15 +20,19 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.sync.Target.ManuallyAssembled
 import com.android.tools.idea.gradle.project.sync.Target.NamedAppTargetRunConfiguration
 import com.android.tools.idea.gradle.project.sync.Target.TestTargetRunConfiguration
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getBuiltApksForSelectedVariant
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
@@ -42,7 +46,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.COMPOSITE_BUILD,
-        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app"),
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
       ),
       expectApks =
       """
@@ -56,6 +60,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_35 to it,
           AGP_40 to it,
           AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
           AGP_CURRENT to """
                     ApplicationId: com.test.compositeapp
                     File: project/app/build/intermediates/apk/debug/app-debug.apk
@@ -70,7 +76,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.COMPOSITE_BUILD,
-        target = NamedAppTargetRunConfiguration(externalSystemModuleId = "TestCompositeLib1:app"),
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = "TestCompositeLib1:app:main"),
       ),
       expectApks =
       """
@@ -84,6 +90,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_35 to it,
           AGP_40 to it,
           AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
           AGP_CURRENT to """
               ApplicationId: com.test.composite1
               File: project/TestCompositeLib1/app/build/intermediates/apk/debug/app-debug.apk
@@ -104,14 +112,23 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         AGP_CURRENT to """
               ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt
             """,
+        AGP_71 to """
+              ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt
+            """,
+        AGP_70 to """
+              ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
+            """,
+        AGP_42 to """
+              ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
+            """,
         AGP_41 to """
               ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
             """,
         AGP_40 to """
-              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
+              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app.main Variant: debug
             """,
         AGP_35 to """
-              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
+              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app.main Variant: debug
             """
       )
     ),
@@ -132,6 +149,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_35 to it,
           AGP_40 to it,
           AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: one.name.defaultConfig.debug
             File: project/app/build/intermediates/apk/debug/app-debug.apk
@@ -181,13 +200,22 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
         target = ManuallyAssembled(":app", forTests = false),
       ),
-      expectApks = """
+      expectApks = mapOf(
+        AGP_71 to """
+            ApplicationId: one.name.defaultConfig.debug
+            File: project/app/build/intermediates/apk/debug/app-debug.apk
+            Files:
+              Application_ID_Suffix_Test_App.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+            RequiredInstallationOptions: []
+          """,
+        AGP_CURRENT to """
             ApplicationId: one.name.defaultConfig.debug
             File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
           """
+      )
     ),
     def(
       stackMarker = { it() },
@@ -213,6 +241,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_35 to it,
           AGP_40 to it,
           AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: google.simpleapplication
             File: project/app/build/intermediates/apk/debug/app-debug.apk
@@ -235,7 +265,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = TestProjectPaths.SIMPLE_APPLICATION,
         target = ManuallyAssembled(":app", forTests = true),
       ),
-      expectApks = """
+      expectApks = mapOf(
+        AGP_CURRENT to """
             ApplicationId: google.simpleapplication
             File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
@@ -247,7 +278,21 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
+          """,
+        AGP_71 to  """
+            ApplicationId: google.simpleapplication
+            File: project/app/build/intermediates/apk/debug/app-debug.apk
+            Files:
+              project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+            RequiredInstallationOptions: []
+
+            ApplicationId: google.simpleapplication.test
+            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+            Files:
+               -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+            RequiredInstallationOptions: []
           """
+      )
     ),
     def(
       stackMarker = { it() },
@@ -273,6 +318,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_35 to it,
           AGP_40 to it,
           AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
           AGP_CURRENT to
             """
             ApplicationId: com.example.android.app
@@ -309,6 +356,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_35 to it,
           AGP_40 to it,
           AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: google.simpleapplication
             File: *>java.lang.IllegalArgumentException
@@ -352,27 +401,23 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = TestProjectPaths.DYNAMIC_APP,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
       ),
-      expectApks =
-      """
-                ApplicationId: google.simpleapplication
-                File: *>java.lang.IllegalArgumentException
-                Files:
-                  simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
-                  simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
-                  simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
-                RequiredInstallationOptions: []
-
-                ApplicationId: google.simpleapplication.test
-                File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-                Files:
-                   -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-                RequiredInstallationOptions: []
-            """.let {
-        listOf(
-          AGP_35 to it,
-          AGP_40 to it,
-          AGP_41 to it,
-          AGP_CURRENT to """
+      expectApks = mapOf(
+        *(arrayOf(AGP_35, AGP_40, AGP_41, AGP_42, AGP_70) eachTo """
+              ApplicationId: google.simpleapplication
+              File: *>java.lang.IllegalArgumentException
+              Files:
+                simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
+                simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
+                simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
+              RequiredInstallationOptions: []
+              
+              ApplicationId: google.simpleapplication.test
+              File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+              Files:
+                 -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """),
+        AGP_CURRENT to """
               ApplicationId: google.simpleapplication
               File: *>java.lang.IllegalArgumentException
               Files:
@@ -386,9 +431,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               Files:
                  -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
               RequiredInstallationOptions: []
-            """,
-        )
-      }.toMap()
+            """
+      )
     ),
     def(
       stackMarker = { it() },
@@ -431,7 +475,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.DYNAMIC_APP,
-        target = TestTargetRunConfiguration("com.example.instantapp.ExampleInstrumentedTest"),
+        target = TestTargetRunConfiguration("com.example.feature1.ExampleInstrumentedTest"),
       ),
       // Do not run with the current version of the AGP.
       IGNORE = { if (agpVersion == AGP_CURRENT) TODO("b/189202602") },
@@ -454,6 +498,36 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
             """,
+        *(arrayOf(AGP_42, AGP_70, AGP_72) eachTo """
+              ApplicationId: google.simpleapplication
+              File: *>java.lang.IllegalArgumentException
+              Files:
+                base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
+              RequiredInstallationOptions: []
+
+              ApplicationId: com.example.feature1.test
+              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              Files:
+                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """
+        ),
+        *(arrayOf(AGP_71) eachTo """
+              ApplicationId: google.simpleapplication
+              File: *>java.lang.IllegalArgumentException
+              Files:
+                base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
+              RequiredInstallationOptions: []
+
+              ApplicationId: com.example.feature1.test
+              File: project/feature1/build/intermediates/apk/androidTest/debug/feature1-debug-androidTest.apk
+              Files:
+                 -> project/feature1/build/intermediates/apk/androidTest/debug/feature1-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """
+        ),
         AGP_40 to """
               ApplicationId: google.simpleapplication
               File: *>java.lang.IllegalArgumentException
@@ -522,6 +596,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_35 to it,
           AGP_40 to it,
           AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: google.testapplication
             File: project/app/build/intermediates/apk/debug/app-debug.apk
@@ -570,6 +646,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_35 to it,
           AGP_40 to it,
           AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
           AGP_CURRENT to """
               ApplicationId: google.simpleapplication
               File: project/app/build/intermediates/apk/release/app-release-unsigned.apk
@@ -632,11 +710,7 @@ private data class ApkProviderTest(
     ): ApkProvider {
       val module = project.gradleModule(gradlePath)!!
       val androidFacet = AndroidFacet.getInstance(module)!!
-      return object : ApkProvider {
-        override fun validate(): List<ValidationError> = emptyList()
-        override fun getApks(ignored: IDevice): Collection<ApkInfo> =
-          getBuiltApksForSelectedVariant(androidFacet, forTests).orEmpty()
-      }
+      return ApkProvider { getBuiltApksForSelectedVariant(androidFacet, forTests).orEmpty() }
     }
 
     val apkProvider = when (scenario.target) {
@@ -660,7 +734,10 @@ private data class ApkProviderTest(
 
       fun Collection<ApkInfo>.toTestString() = joinToString("\n\n") { it.toTestString() }
 
-      expect.that(apkProvider.validate().joinToString { it.message }).isEqualTo(expectValidate.forVersion())
+      val validationErrors = runConfiguration
+        ?.let { project.getProjectSystem().validateRunConfiguration(runConfiguration) }
+        .orEmpty()
+      expect.that(validationErrors.joinToString { it.message }).isEqualTo(expectValidate.forVersion())
 
       val apks = runCatching { apkProvider.getApks(device) }
       expect.that(apks.toTestString { this.toTestString() }).isEqualTo(expectApks.forVersion())

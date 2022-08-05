@@ -28,7 +28,7 @@ public class NativeCallStackSet extends ClassifierSet {
 
   @NotNull
   public static Classifier createDefaultClassifier() {
-    return new NativeFunctionClassifier(0);
+    return NativeFunctionClassifier.of(0);
   }
 
   public NativeCallStackSet(@NotNull Memory.AllocationStack.StackFrame stackFrame, int callstackDepth) {
@@ -51,6 +51,6 @@ public class NativeCallStackSet extends ClassifierSet {
   @NotNull
   @Override
   public Classifier createSubClassifier() {
-    return new NativeFunctionClassifier(myCallstackDepth);
+    return NativeFunctionClassifier.of(myCallstackDepth);
   }
 }

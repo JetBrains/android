@@ -3,4 +3,5 @@ skip: tools/base/**/*
 skip: android/**/*
 skip: designer/**/*
 skip: smali/**/*
+skip: whats-new-assistant/**/*
 skip: artwork/compatibilityResources/**/*

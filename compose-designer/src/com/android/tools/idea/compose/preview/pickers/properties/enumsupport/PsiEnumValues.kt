@@ -17,8 +17,45 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.SdkConstants
 import com.android.tools.idea.compose.preview.pickers.properties.ClassPsiCallParameter
+import com.android.tools.idea.compose.preview.pickers.properties.PsiCallParameterPropertyItem
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+
+/**
+ * Base interface for psi pickers, to support tracking assigned values.
+ */
+internal interface PsiEnumValue : EnumValue {
+  val trackableValue: PreviewPickerValue
+
+  override fun select(property: PropertyItem): Boolean =
+    if (property is PsiCallParameterPropertyItem) {
+      property.writeNewValue(value, false, trackableValue)
+      true
+    }
+    else {
+      super.select(property)
+    }
+
+  companion object {
+    fun withTooltip(value: String, display: String, description: String?, trackingValue: PreviewPickerValue) =
+      DescriptionEnumValue(value, display, trackingValue, description)
+
+    fun indented(value: String, display: String, trackingValue: PreviewPickerValue) =
+      object : PsiEnumValueImpl(value = value, display = display, trackableValue = trackingValue) {
+        override val indented: Boolean = true
+      }
+  }
+}
+
+/**
+ * Base implementation of [PsiEnumValue], should aim to cover most use-cases found in [EnumValue].
+ */
+internal open class PsiEnumValueImpl(
+  override val value: String?,
+  override val display: String,
+  override val trackableValue: PreviewPickerValue
+) : PsiEnumValue
 
 /**
  * Base interface that makes use of [ClassPsiCallParameter] functionality.
@@ -46,12 +83,19 @@ internal interface BaseClassEnumValue : EnumValue {
    */
   val resolvedValue: String
 
+  /**
+   * One of the supported tracking options that best represents the value assigned by this instance, use
+   * [PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED] if there's no suitable option.
+   */
+  val trackableValue: PreviewPickerValue
+
+
   override val value: String?
     get() = resolvedValue
 
   override fun select(property: PropertyItem): Boolean {
     if (property is ClassPsiCallParameter) {
-      property.importAndSetValue(fqClass, valueToWrite, fqFallbackValue)
+      property.importAndSetValue(fqClass, valueToWrite, fqFallbackValue, trackableValue)
     }
     else {
       property.value = fqFallbackValue
@@ -124,6 +168,9 @@ internal class UiModeWithNightMaskEnumValue(
     val nightModeValue = if (isNight) 0x20 else 0x10
     return@run ((uiModeTypeResolvedValue.toIntOrNull() ?: 0) or nightModeValue).toString()
   }
+
+  override val trackableValue: PreviewPickerValue =
+    if (isNight) PreviewPickerValue.UI_MODE_NIGHT else PreviewPickerValue.UI_MODE_NOT_NIGHT
 
   override val indented: Boolean = true
 
@@ -200,25 +247,7 @@ internal enum class UiMode(
   VR("UI_MODE_TYPE_VR_HEADSET", "Vr", "7");
 
   override val fqClass: String = SdkConstants.CLASS_CONFIGURATION
-}
-
-/**
- * Default implementation for the `device` parameter. When selected, sets the property value as a reference of the selected Device.
- *
- * `device = Devices.PIXEL`
- *
- * @param classConstant The simple value name that references a `device` field in the Devices class
- * @param display Display name seen in the dropdown menu
- * @param resolvedValue The value the constant resolves to, will usually be in the form of "id:..." or "name:..."
- * @param fqClass The fully qualified Class name, used to property import the class into the file
- */
-internal class DeviceEnumValueImpl(
-  override val classConstant: String,
-  override val display: String,
-  override val resolvedValue: String,
-  override val fqClass: String
-) : ClassConstantEnumValue {
-  override val indented: Boolean = true
+  override val trackableValue: PreviewPickerValue = PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
 }
 
 /**
@@ -241,6 +270,7 @@ internal enum class Device(
   PIXEL_5("PIXEL_5", "Pixel 5", "id:pixel_5");
 
   override val fqClass: String = "androidx.compose.ui.tooling.preview.Devices" // We assume this class for pre-defined Devices
+  override val trackableValue: PreviewPickerValue = PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
 }
 
 /**
@@ -263,13 +293,14 @@ internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValu
 }
 
 /**
- * [EnumValue] that includes a description, to be shown as a tooltip in [PsiEnumValueCellRenderer]
+ * [PsiEnumValue] that includes a description, shown as a tooltip in [PsiEnumValueCellRenderer].
  */
 internal data class DescriptionEnumValue(
   override val value: String,
   override val display: String,
-  val description: String? = null
-): EnumValue {
+  override val trackableValue: PreviewPickerValue,
+  val description: String?
+) : PsiEnumValue {
   override val indented: Boolean = true
   override fun toString(): String = value
 }

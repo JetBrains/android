@@ -36,6 +36,7 @@ import com.android.tools.profilers.cpu.CpuCaptureParser
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -46,6 +47,9 @@ class FlameChartDetailsViewTest {
   @JvmField
   @Rule
   val grpcChannel = FakeGrpcChannel("FlameChartDetailsViewTest", FakeTransportService(timer))
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilersView: StudioProfilersView
   private val capture = CpuProfilerUITestUtils.validCapture()
@@ -78,7 +82,7 @@ class FlameChartDetailsViewTest {
     val atraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Cpu.CpuTraceType.ATRACE, 1, null).get()
 
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                           listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)),
+                                                           listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)!!),
                                                            atraceCapture) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
     val treeChart = TreeWalker(flameChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
@@ -88,7 +92,7 @@ class FlameChartDetailsViewTest {
   @Test
   fun showsContentWhenNodeIsNotNull() {
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                           listOf(capture.getCaptureNode(capture.mainThreadId)),
+                                                           listOf(capture.getCaptureNode(capture.mainThreadId)!!),
                                                            capture) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 

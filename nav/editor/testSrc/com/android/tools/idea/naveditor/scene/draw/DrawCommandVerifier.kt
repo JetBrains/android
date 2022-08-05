@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.testutils.MockitoKt.whenever
 import com.intellij.ui.JreHiDpiUtil
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.InOrder
@@ -329,15 +330,15 @@ fun makeGraphicsMock() : Graphics2D {
   val graphics = Mockito.mock(Graphics2D::class.java)
 
   val metrics = Mockito.mock(FontMetrics::class.java)
-  Mockito.`when`(graphics.fontMetrics).thenReturn(metrics)
-  Mockito.`when`(graphics.getFontMetrics(any())).thenReturn(metrics)
+  whenever(graphics.fontMetrics).thenReturn(metrics)
+  whenever(graphics.getFontMetrics(any())).thenReturn(metrics)
 
   val configuration = Mockito.mock(GraphicsConfiguration::class.java)
-  Mockito.`when`(graphics.deviceConfiguration).thenReturn(configuration)
+  whenever(graphics.deviceConfiguration).thenReturn(configuration)
   val device = Mockito.mock(GraphicsDevice::class.java)
-  Mockito.`when`(configuration.device).thenReturn(device)
+  whenever(configuration.device).thenReturn(device)
   val transform = Mockito.mock(AffineTransform::class.java)
-  Mockito.`when`(configuration.defaultTransform).thenReturn(transform)
+  whenever(configuration.defaultTransform).thenReturn(transform)
 
   return graphics
 }

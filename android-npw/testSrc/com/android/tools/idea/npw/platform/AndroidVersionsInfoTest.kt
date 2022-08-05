@@ -23,11 +23,11 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.getCodeName
 import com.android.sdklib.internal.androidTarget.MockAddonTarget
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 
@@ -140,7 +140,7 @@ class AndroidVersionsInfoTest {
   fun previewTargetShouldReturnPreviewInLabel() {
     val androidVersion = AndroidVersion(HIGHEST_KNOWN_API, "PREVIEW_CODE_NAME")
     val androidTarget: IAndroidTarget = mock(IAndroidTarget::class.java)
-    `when`(androidTarget.version).thenReturn(androidVersion)
+    whenever(androidTarget.version).thenReturn(androidVersion)
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
     assertThat(versionItem.toString()).contains("PREVIEW_CODE_NAME")
   }
@@ -149,8 +149,8 @@ class AndroidVersionsInfoTest {
   fun platformTargetShouldReturnAndroidDesertNameInLabel() {
     val androidVersion = AndroidVersion(HIGHEST_KNOWN_API, null)
     val androidTarget: IAndroidTarget = mock(IAndroidTarget::class.java)
-    `when`(androidTarget.version).thenReturn(androidVersion)
-    `when`(androidTarget.isPlatform).thenReturn(true)
+    whenever(androidTarget.version).thenReturn(androidVersion)
+    whenever(androidTarget.isPlatform).thenReturn(true)
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
     assertThat(versionItem.toString()).contains(getCodeName(HIGHEST_KNOWN_API))
   }
@@ -163,15 +163,15 @@ class AndroidVersionsInfoTest {
   fun nonPlatformTargetShouldReturnAddonNameInLabel() {
     val androidVersion = AndroidVersion(HIGHEST_KNOWN_API, null /*codename*/)
     val androidTarget = mock(IAndroidTarget::class.java)
-    `when`(androidTarget.version).thenReturn(androidVersion)
-    `when`(androidTarget.isPlatform).thenReturn(false)
-    `when`(androidTarget.vendor).thenReturn("AddonVendor")
-    `when`(androidTarget.name).thenReturn("AddonName")
+    whenever(androidTarget.version).thenReturn(androidVersion)
+    whenever(androidTarget.isPlatform).thenReturn(false)
+    whenever(androidTarget.vendor).thenReturn("AddonVendor")
+    whenever(androidTarget.name).thenReturn("AddonName")
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
     assertThat(versionItem.toString())
       .isEqualTo(AndroidTargetHash.getAddonHashString("AddonVendor", "AddonName", androidVersion))
   }
 }
 
-private const val OLDER_VERSION = HIGHEST_KNOWN_STABLE_API - 1
-private const val FUTURE_VERSION = HIGHEST_KNOWN_STABLE_API + 2
+private const val OLDER_VERSION = HIGHEST_KNOWN_API - 1
+private const val FUTURE_VERSION = HIGHEST_KNOWN_API + 1

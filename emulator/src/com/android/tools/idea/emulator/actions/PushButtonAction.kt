@@ -30,7 +30,7 @@ import javax.swing.JComponent
 /**
  * An action represented by a push button that may do two different things when the button is
  * pressed and when the button is released. Classes implementing this interface should not do
- * anything in the [actionPerformed] method since it is never called. The [buttonPressed] and
+ * anything in the `actionPerformed` method since it is never called. The [buttonPressed] and
  * [buttonReleased] methods are used instead.
  */
 interface PushButtonAction : CustomComponentAction {
@@ -45,7 +45,6 @@ interface PushButtonAction : CustomComponentAction {
    */
   fun buttonReleased(event: AnActionEvent)
 
-  @JvmDefault
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     return MyActionButton(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension.Companion.getKaptModel
-import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension.Companion.getKotlinModel
-import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension.Companion.registerTestHelperProjectResolver
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.getKaptModel
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.getKotlinModel
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.registerTestHelperProjectResolver
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
@@ -29,7 +29,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 @RunsInEdt
@@ -37,9 +36,6 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  @get:Rule
-  var testName = TestName()
 
   @Test
   fun kotlinSingleVariantSync() {
@@ -61,7 +57,6 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
   override fun getAdditionalRepos(): Collection<File> = emptyList()

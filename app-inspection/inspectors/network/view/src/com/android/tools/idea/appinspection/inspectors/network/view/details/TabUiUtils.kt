@@ -15,16 +15,31 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
+import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.common.borderLight
 import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.ui.TitledSeparator
+import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.scale
+import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.Font
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.lang.Integer.max
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -42,6 +57,8 @@ val PAGE_VGAP = scale(28)
 val SECTION_VGAP = scale(10)
 
 const val SECTION_TITLE_HEADERS = "Headers"
+
+const val REGEX_TEXT = "Regex"
 
 /**
  * Creates a panel with a vertical flowing layout and a consistent style.
@@ -80,8 +97,8 @@ fun createHideablePanel(
   val htmlTitle = String.format("<html><b>%s</b></html>", title)
   return HideablePanel.Builder(htmlTitle, content)
     .setNorthEastComponent(northEastComponent)
-    .setPanelBorder(JBEmptyBorder(10, 0, 0, 0))
-    .setContentBorder(JBEmptyBorder(10, 12, 0, 0))
+    .setPanelBorder(JBUI.Borders.empty(10, 0, 0, 0))
+    .setContentBorder(JBUI.Borders.empty(10, 12, 0, 0))
     .build()
 }
 
@@ -131,4 +148,74 @@ fun findComponentWithUniqueName(root: JComponent, name: String): JComponent? {
     .toList()
   check(matches.size <= 1) { "More than one component found with the name: $name" }
   return if (matches.size == 1) matches[0] as JComponent else null
+}
+
+/**
+ * Create a component that shows a category [name] with [TitledSeparator] and a list of following
+ * [entryComponents].
+ */
+fun createCategoryPanel(
+  name: String?,
+  vararg entryComponents: Pair<JComponent, JComponent>
+): JPanel {
+  val panel = JPanel(VerticalLayout(6))
+  if (name != null) {
+    val headingPanel = TitledSeparator(name)
+    headingPanel.minimumSize = Dimension(0, 34)
+    panel.add(headingPanel)
+  }
+  val bodyPanel = JPanel(TabularLayout("Fit,*")).apply { border = JBUI.Borders.empty() }
+
+  for ((index, components) in entryComponents.withIndex()) {
+    val (component1, component2) = components
+    val component2Panel = JPanel(BorderLayout()).apply {
+      border = JBUI.Borders.empty(5, 10)
+
+      add(component2, BorderLayout.CENTER)
+    }
+
+    bodyPanel.add(component1, TabularLayout.Constraint(index, 0))
+    bodyPanel.add(component2Panel, TabularLayout.Constraint(index, 1))
+  }
+  panel.add(bodyPanel)
+  return panel
+}
+
+/**
+ * Create a [JBTextField] with preferred [width] and focus lost listener.
+ */
+fun createTextField(
+  initialText: String?,
+  hintText: String,
+  name: String? = null,
+  focusLost: (String) -> Unit = {}
+) = JBTextField(initialText).apply {
+  emptyText.appendText(hintText)
+  // Adjust TextField size to contain hintText properly
+  preferredSize = Dimension(max(preferredSize.width, emptyText.preferredSize.width + font.size),
+                            max(preferredSize.height, emptyText.preferredSize.height))
+  border = BorderFactory.createLineBorder(borderLight)
+  this.name = name
+  addFocusListener(object : FocusAdapter() {
+    override fun focusLost(e: FocusEvent) {
+      focusLost(text.trim())
+    }
+  })
+}
+
+/**
+ * Returns a [JPanel] of a [JBCheckBox] with Regex icon and label.
+ */
+fun JBCheckBox.withRegexLabel(): JPanel {
+  val label = JBLabel(REGEX_TEXT)
+  label.icon = AllIcons.Actions.RegexHovered
+  label.disabledIcon = AllIcons.Actions.Regex
+  label.iconTextGap = 0
+  addPropertyChangeListener {
+    label.isEnabled = this@withRegexLabel.isEnabled
+  }
+  return JPanel(HorizontalLayout(0)).apply {
+    add(this@withRegexLabel)
+    add(label)
+  }
 }

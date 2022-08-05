@@ -20,4 +20,7 @@
     <blockModel implementation="com.android.tools.idea.gradle.dsl.model.GradleDefaultBlockModels"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings"/>
+  </extensions>
 </idea-plugin>

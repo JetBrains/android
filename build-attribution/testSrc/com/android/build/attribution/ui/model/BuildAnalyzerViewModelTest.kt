@@ -16,19 +16,15 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.MockUiData
-import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
 import org.junit.Test
 
 
 class BuildAnalyzerViewModelTest {
-
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
 
   private var callsCount = 0
   private val listenerMock: () -> Unit = {
@@ -45,6 +41,17 @@ class BuildAnalyzerViewModelTest {
   @Test
   fun testInitialDataSetSelection() {
     assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)
+  }
+
+  @Test
+  fun testInitialDataSetListOrderWithDownloadsEnabled() {
+    val model = BuildAnalyzerViewModel(mockData, warningSuppressions)
+    assertThat(model.availableDataSets).containsExactly(
+      BuildAnalyzerViewModel.DataSet.OVERVIEW,
+      BuildAnalyzerViewModel.DataSet.TASKS,
+      BuildAnalyzerViewModel.DataSet.WARNINGS,
+      BuildAnalyzerViewModel.DataSet.DOWNLOADS
+    ).inOrder()
   }
 
   @Test
@@ -66,72 +73,27 @@ class BuildAnalyzerViewModelTest {
   }
 
   @Test
-  fun testShouldWarnAboutNoGCSetting() {
-    fun testCase(
-      javaVersionUsed: Int?,
-      isGarbageCollectorSettingSet: Boolean?,
-      expectedResult: Boolean
-    ) {
-      mockData.buildSummary  = mockData.mockBuildOverviewData(javaVersionUsed, isGarbageCollectorSettingSet)
-      expect.that(model.shouldWarnAboutNoGCSetting).isEqualTo(expectedResult)
-    }
-
-    testCase(javaVersionUsed = null, isGarbageCollectorSettingSet = null, expectedResult = false)
-    testCase(javaVersionUsed = 8, isGarbageCollectorSettingSet = false, expectedResult = false)
-    testCase(javaVersionUsed = 9, isGarbageCollectorSettingSet = false, expectedResult = true)
-    testCase(javaVersionUsed = 10, isGarbageCollectorSettingSet = false, expectedResult = true)
-    testCase(javaVersionUsed = 11, isGarbageCollectorSettingSet = false, expectedResult = true)
-    testCase(javaVersionUsed = 12, isGarbageCollectorSettingSet = false, expectedResult = true)
-    testCase(javaVersionUsed = 13, isGarbageCollectorSettingSet = false, expectedResult = true)
-    testCase(javaVersionUsed = 14, isGarbageCollectorSettingSet = false, expectedResult = true)
-    testCase(javaVersionUsed = 15, isGarbageCollectorSettingSet = false, expectedResult = true)
-    testCase(javaVersionUsed = 8, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 9, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 10, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 11, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 12, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 13, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 14, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 15, isGarbageCollectorSettingSet = true, expectedResult = false)
-  }
-
-  @Test
-  fun testShouldWarnAboutNoGCSettingWhenSuppressed() {
-    warningSuppressions.suppressNoGCSettingWarning = true
-    fun testCase(
-      javaVersionUsed: Int?,
-      isGarbageCollectorSettingSet: Boolean?,
-      expectedResult: Boolean
-    ) {
-      mockData.buildSummary  = mockData.mockBuildOverviewData(javaVersionUsed, isGarbageCollectorSettingSet)
-      expect.that(model.shouldWarnAboutNoGCSetting).isEqualTo(expectedResult)
-    }
-
-    testCase(javaVersionUsed = 8, isGarbageCollectorSettingSet = false, expectedResult = false)
-    testCase(javaVersionUsed = 9, isGarbageCollectorSettingSet = false, expectedResult = false)
-    testCase(javaVersionUsed = 10, isGarbageCollectorSettingSet = false, expectedResult = false)
-    testCase(javaVersionUsed = 11, isGarbageCollectorSettingSet = false, expectedResult = false)
-    testCase(javaVersionUsed = 12, isGarbageCollectorSettingSet = false, expectedResult = false)
-    testCase(javaVersionUsed = 13, isGarbageCollectorSettingSet = false, expectedResult = false)
-    testCase(javaVersionUsed = 14, isGarbageCollectorSettingSet = false, expectedResult = false)
-    testCase(javaVersionUsed = 15, isGarbageCollectorSettingSet = false, expectedResult = false)
-    testCase(javaVersionUsed = 8, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 9, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 10, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 11, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 12, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 13, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 14, isGarbageCollectorSettingSet = true, expectedResult = false)
-    testCase(javaVersionUsed = 15, isGarbageCollectorSettingSet = true, expectedResult = false)
-  }
-
-  @Test
   fun testJetifierWarningAutoSelectedOnCheckJetifierBuilds() {
     mockData.jetifierData = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, lastCheckJetifierBuildTimestamp = 0, checkJetifierBuild = true)
     val model = BuildAnalyzerViewModel(mockData, warningSuppressions).apply {
       dataSetSelectionListener = listenerMock
     }
-    model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
-    assertThat(callsCount).isEqualTo(0)
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
+  }
+
+  /**
+   * This test is needed to make sure we show downloads page in dropdown if flag is true even if analyzer did not run
+   * because of older gradle version. Initial intention was to not show the page in that case but as we changed it, let's better test.
+   */
+  @Test
+  fun testDownloadsPageShownInComboBoxWhenNoDataBecauseOfGradle() {
+    mockData.downloadsData = DownloadsAnalyzer.GradleDoesNotProvideEvents
+    assertThat(model.availableDataSets).contains(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
+  }
+
+  @Test
+  fun testDownloadsPageNotShownInComboBoxWhenAnalyzerIsDisabled() {
+    mockData.downloadsData = DownloadsAnalyzer.AnalyzerIsDisabled
+    assertThat(model.availableDataSets).doesNotContain(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
   }
 }

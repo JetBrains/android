@@ -39,7 +39,7 @@ import org.junit.rules.RuleChain
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
-import javax.swing.JCheckBox
+import javax.swing.JComboBox
 
 /**
  * Tests for [EmulatorScreenshotAction].
@@ -83,13 +83,14 @@ class EmulatorScreenshotActionTest {
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
 
+    clipComboBox.selectFirstMatch("Display Shape")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     var image = ui.getComponent<ImageComponent>().document.value
     assertAppearance(image, "WithoutFrame")
-    val frameCheckbox = ui.getComponent<JCheckBox>()
-    ui.clickOn(frameCheckbox)
+    clipComboBox.selectFirstMatch("Show Device Frame")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     image = ui.getComponent<ImageComponent>().document.value
@@ -107,7 +108,16 @@ class EmulatorScreenshotActionTest {
 
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): Path {
-    return TestUtils.resolveWorkspacePath("$GOLDEN_FILE_PATH/${name}.png")
+    return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
+  }
+
+  private fun <E> JComboBox<E>.selectFirstMatch(text: String) {
+    for (i in 0 until model.size) {
+      if (model.getElementAt(i).toString() == text) {
+        selectedIndex = i
+        return
+      }
+    }
   }
 }
 

@@ -17,15 +17,12 @@ package com.android.tools.idea.tests.gui.projectstructure;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,16 +31,6 @@ import org.junit.runner.RunWith;
 public class AddAppCompatLibTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-
-  @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.

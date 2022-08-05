@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeApiVersion
-import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeProductFlavor
-import com.android.tools.idea.gradle.model.IdeVectorDrawablesOptions
 import java.io.File
 import java.io.Serializable
 
@@ -26,7 +23,7 @@ data class IdeProductFlavorImpl(
   override val name: String,
   override val applicationIdSuffix: String?,
   override val versionNameSuffix: String?,
-  override val resValues: Map<String, IdeClassField>,
+  override val resValues: Map<String, IdeClassFieldImpl>,
   override val proguardFiles: Collection<File>,
   override val consumerProguardFiles: Collection<File>,
   override val manifestPlaceholders: Map<String, String>,
@@ -35,8 +32,8 @@ data class IdeProductFlavorImpl(
   override val applicationId: String?,
   override val versionCode: Int?,
   override val versionName: String?,
-  override val minSdkVersion: IdeApiVersion?,
-  override val targetSdkVersion: IdeApiVersion?,
+  override val minSdkVersion: IdeApiVersionImpl?,
+  override val targetSdkVersion: IdeApiVersionImpl?,
   override val maxSdkVersion: Int?,
   override val testApplicationId: String?,
   override val testInstrumentationRunner: String?,
@@ -44,5 +41,5 @@ data class IdeProductFlavorImpl(
   override val testHandleProfiling: Boolean?,
   override val testFunctionalTest: Boolean?,
   override val resourceConfigurations: Collection<String>,
-  override val vectorDrawables: IdeVectorDrawablesOptions?
+  override val vectorDrawables: IdeVectorDrawablesOptionsImpl?
 ) : IdeProductFlavor, Serializable

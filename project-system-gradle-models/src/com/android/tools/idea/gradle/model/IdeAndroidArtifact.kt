@@ -18,9 +18,25 @@ package com.android.tools.idea.gradle.model
 import java.io.File
 import java.io.Serializable
 
-interface IdeAndroidArtifact : Serializable, IdeBaseArtifact {
-  @Deprecated("Deprecated as of 4.2. Application ID is now only provided post-build")
-  val applicationId: String
+interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
+
+  /**
+   * The application ID of this artifact.
+   *
+   * Known for:
+   *  - Application plugin main artifacts
+   *  - AndroidTest components of all project types
+   *  - Test-only plugin main artifacts
+   *
+   *  Not included (null) for:
+   *   - Library plugin main artifacts, as no APK is produced
+   *   - UnitTest components, also as no APK is produced
+   *   - Dynamic feature plugin main artifacts, as the application ID comes from the base
+   *     application, and is therefore not available in dynamic feature projects during
+   *     configuration. In this case Android Studio must look at the dependency graph to find the
+   *     base application to find this value.
+   */
+  val applicationId: String?
 
   /**
    * Returns the name of the [IdeSigningConfig] used for the signing. If none are setup or if
@@ -61,6 +77,7 @@ interface IdeAndroidArtifact : Serializable, IdeBaseArtifact {
   val abiFilters: Set<String>
 
   val buildInformation: IdeBuildTasksAndOutputInformation
+
   /**
    * Returns the code shrinker used by this artifact or null if no shrinker is used to build this
    * artifact.
@@ -74,4 +91,8 @@ interface IdeAndroidArtifact : Serializable, IdeBaseArtifact {
    * @since 7.2
    */
   val modelSyncFiles: Collection<IdeModelSyncFile>
+  val compileClasspathCore: IdeDependenciesCore
+  val runtimeClasspathCore: IdeDependenciesCore
 }
+
+interface IdeAndroidArtifact : IdeAndroidArtifactCore, IdeBaseArtifact

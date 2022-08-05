@@ -100,7 +100,7 @@ public final class CorePropertiesDemo {
     myBindings.bind(new TextProperty(myAgeLabel), new FormatExpression("%d", person.myAge));
     myBindings.bindTwoWay(new SelectedProperty(myCitizenshipCheckBox), person.myIsCitizen);
     final TextProperty employerName = new TextProperty(myEmployerTextField);
-    myBindings.bind(person.myEmployer, new Expression<>(employerName) {
+    myBindings.bind(person.myEmployer, new Expression<Optional<String>>(employerName) {
       @NotNull
       @Override
       public Optional<String> get() {
@@ -108,7 +108,7 @@ public final class CorePropertiesDemo {
       }
     });
     SelectedItemProperty<Gender> selectedGender = new SelectedItemProperty<>(myGenderCombo);
-    myBindings.bind(person.myGender, new TransformOptionalExpression<>(Gender.OTHER, selectedGender) {
+    myBindings.bind(person.myGender, new TransformOptionalExpression<Gender, Gender>(Gender.OTHER, selectedGender) {
       @NotNull
       @Override
       protected Gender transform(@NotNull Gender gender) {
@@ -127,7 +127,7 @@ public final class CorePropertiesDemo {
       }
     });
     myBindings.bind(new TextProperty(myCanVoteLabel), new YesNoExpression(person.myIsCitizen.and(person.myAge.isGreaterThanEqualTo(16))));
-    myBindings.bind(new TextProperty(myHasEmployerLabel), new TransformOptionalExpression<>("No", person.myEmployer) {
+    myBindings.bind(new TextProperty(myHasEmployerLabel), new TransformOptionalExpression<String, String>("No", person.myEmployer) {
       @NotNull
       @Override
       protected String transform(@NotNull String value) {

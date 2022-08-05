@@ -16,22 +16,22 @@
 package com.android.tools.idea.npw.assetstudio
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.material.icons.MaterialIconsCopyHandler
-import com.android.tools.idea.material.icons.MaterialVdIcons
-import com.android.tools.idea.material.icons.MaterialVdIconsLoader
-import com.android.tools.idea.material.icons.common.BundledIconsUrlProvider
-import com.android.tools.idea.material.icons.common.BundledMetadataUrlProvider
-import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
-import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
-import com.android.tools.idea.material.icons.common.SdkMaterialIconsUrlProvider
-import com.android.tools.idea.material.icons.common.SdkMetadataUrlProvider
-import com.android.tools.idea.material.icons.download.MaterialIconsDownloader
-import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
-import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadataDownloadCacheService
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getIconsSdkTargetPath
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getMetadata
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.hasMetadataFileInSdkPath
 import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider.Status
+import com.android.tools.idea.npw.assetstudio.material.icons.MaterialIconsCopyHandler
+import com.android.tools.idea.npw.assetstudio.material.icons.MaterialVdIcons
+import com.android.tools.idea.npw.assetstudio.material.icons.MaterialVdIconsLoader
+import com.android.tools.idea.npw.assetstudio.material.icons.common.BundledIconsUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.common.BundledMetadataUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsMetadataUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.common.SdkMaterialIconsUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.common.SdkMetadataUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.download.updateIconsAtDir
+import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadataDownloadCacheService
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getIconsSdkTargetPath
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getMetadata
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.hasMetadataFileInSdkPath
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -142,7 +142,7 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
           }
           if (StudioFlags.ASSET_DOWNLOAD_MATERIAL_ICONS.get()) {
             // Then, download the most recent metadata file and any new icons.
-            downloadMetadataAndIcons(metadata, backgroundExecutor, progressIndicator)
+            updateMetadataAndIcons(metadata, backgroundExecutor, progressIndicator)
           }
         }
       }
@@ -184,19 +184,23 @@ private fun copyBundledIcons(metadata: MaterialIconsMetadata, icons: MaterialVdI
   }
 }
 
-private fun downloadMetadataAndIcons(existingMetadata: MaterialIconsMetadata,
-                                     executor: ExecutorService,
-                                     progressIndicator: ProgressIndicator) {
+private fun updateMetadataAndIcons(existingMetadata: MaterialIconsMetadata,
+                                   executor: ExecutorService,
+                                   progressIndicator: ProgressIndicator) {
   val targetPath = getIconsSdkTargetPath()
   if (targetPath == null) {
     LOG.warn("No Android Sdk folder, can't download any material icons.")
     return
   }
   ApplicationManager.getApplication().getService(MaterialIconsMetadataDownloadCacheService::class.java).getMetadata().whenCompleteAsync(
-    BiConsumer { newMetadata, _ ->
+    { newMetadata, _ ->
       ProgressManager.getInstance().runProcess(
-        { MaterialIconsDownloader(existingMetadata, newMetadata).downloadTo(targetPath) }, progressIndicator)
-    }, executor)
+        { updateIconsAtDir(existingMetadata, newMetadata, targetPath.toPath()) },
+        progressIndicator
+      )
+    },
+    executor
+  )
 }
 
 /**

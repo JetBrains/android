@@ -66,7 +66,7 @@ data class HttpData(
         return unzippedResponsePayload
       }
       else {
-        if (responseHeader.getField("content-encoding").toLowerCase().contains("gzip")) {
+        if (responseHeader.getField("content-encoding").lowercase().contains("gzip")) {
           try {
             GZIPInputStream(ByteArrayInputStream(rawResponsePayload.toByteArray())).use { inputStream ->
               unzippedResponsePayload = ByteString.copyFrom(inputStream.readBytes())

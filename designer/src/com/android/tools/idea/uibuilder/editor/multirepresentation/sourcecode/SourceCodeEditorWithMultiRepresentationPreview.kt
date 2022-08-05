@@ -50,11 +50,9 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(private val projec
   }
 
   override fun createRightToolbarActionGroup(): ActionGroup? =
-    textEditor.editor.project?.let {
-      DefaultActionGroup(
-        listOfNotNull(
-          LiveLiteralsStatusAction(it)
-        )
-      )
+    textEditor.editor.project?.let { project ->
+      LiveLiteralsStatusAction.getAction(project)?.let {
+        DefaultActionGroup(listOfNotNull(it))
+      }
     }
 }

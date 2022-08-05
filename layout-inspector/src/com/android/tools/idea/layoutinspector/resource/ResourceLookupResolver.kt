@@ -27,6 +27,7 @@ import com.android.SdkConstants.PREFIX_RESOURCE_REF
 import com.android.SdkConstants.PREFIX_THEME_REF
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_SELECTOR
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -203,6 +204,7 @@ class ResourceLookupResolver(
   /**
    * Attempt to determine if [attributeName] refers to a dimension.
    */
+  @Slow
   fun isDimension(view: ViewNode, attributeName: String): Boolean {
     if (view is ComposeViewNode) {
       return false

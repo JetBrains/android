@@ -82,7 +82,7 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
 
     // Find the panel containing the new "device feature" entry (it is the last panel added in the container)
     JPanel container = robot().finder().findByName("ModuleDownloadConditions.myDeviceFeaturesContainer", JPanel.class);
-    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<>(JPanel.class) {
+    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<JPanel>(JPanel.class) {
       @Override
       protected boolean isMatching(@NotNull JPanel component) {
         return component.getParent() == container;
@@ -101,7 +101,7 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
   public ConfigureDynamicFeatureDeliveryStepFixture<W> removeConditionalDeliveryFeature(@NotNull DeviceFeatureKind featureKind, @NotNull String value) {
     // Find the panel containing the "device feature" entry matching feature kind and value
     JPanel container = robot().finder().findByName("ModuleDownloadConditions.myDeviceFeaturesContainer", JPanel.class);
-    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<>(JPanel.class) {
+    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<JPanel>(JPanel.class) {
       @Override
       protected boolean isMatching(@NotNull JPanel component) {
         return component.getParent() == container;

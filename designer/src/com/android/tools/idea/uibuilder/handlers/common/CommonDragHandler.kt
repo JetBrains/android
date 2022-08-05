@@ -29,7 +29,6 @@ import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.handlers.DelegatingViewGroupHandler
-import com.android.tools.idea.uibuilder.handlers.TabLayoutHandler
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHandler
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceScreenHandler
 import com.android.tools.idea.uibuilder.menu.ItemHandler
@@ -127,7 +126,6 @@ internal class CommonDragHandler(editor: ViewEditor,
       MenuHandler::class,
       PreferenceCategoryHandler::class,
       PreferenceScreenHandler::class,
-      TabLayoutHandler::class
     )
 
     @JvmStatic

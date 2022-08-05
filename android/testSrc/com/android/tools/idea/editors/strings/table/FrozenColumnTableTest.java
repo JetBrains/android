@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import org.junit.Rule;
@@ -41,5 +44,24 @@ public final class FrozenColumnTableTest {
     scrollableTable.getRowHeight();
 
     assertEquals(29, frozenColumnTable.getRowHeight());
+  }
+
+  @Test
+  public void leIsScrollableEvenWithoutLocales() {
+    Object[][] data = new Object[][] {
+      new Object[]{"east", "app/src/main/res", false, "east"},
+      new Object[]{"west", "app/src/main/res", false, "west"},
+      new Object[]{"north", "app/src/main/res", false, "north"}
+    };
+    Object[] columns = new Object[]{"Key", "Resource Folder", "Untranslatable", "Default Value"};
+    DefaultTableModel model = new DefaultTableModel(data, columns);
+    FrozenColumnTable frozenColumnTable = new FrozenColumnTable(model, 4);
+    frozenColumnTable.getFrozenTable().createDefaultColumnsFromModel();
+    frozenColumnTable.getScrollableTable().createDefaultColumnsFromModel();
+    JScrollPane pane = (JScrollPane)frozenColumnTable.getScrollPane();
+    pane.setBounds(0, 0, 800, 20);
+    new FakeUi(pane, 1.0, true);
+    pane.doLayout();
+    assertThat(pane.getVerticalScrollBar().isVisible()).isTrue();
   }
 }

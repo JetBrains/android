@@ -16,38 +16,30 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
 import com.android.tools.idea.util.LinkedAndroidModuleGroup
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.firstNotNullResult
-import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 object ModuleUtil {
   @JvmStatic
-  fun getModuleName(artifact: IdeBaseArtifact): String = getModuleName(artifact.name)
-
-  @JvmStatic
   fun getModuleName(artifactName: IdeArtifactName): String {
     return when (artifactName) {
-      IdeArtifactName.MAIN -> IdeModuleSourceSet.MAIN.sourceSetName
-      IdeArtifactName.UNIT_TEST -> IdeModuleSourceSet.UNIT_TEST.sourceSetName
-      IdeArtifactName.ANDROID_TEST -> IdeModuleSourceSet.ANDROID_TEST.sourceSetName
-      IdeArtifactName.TEST_FIXTURES -> IdeModuleSourceSet.TEST_FIXTURES.sourceSetName
+      IdeArtifactName.MAIN -> IdeModuleWellKnownSourceSet.MAIN.sourceSetName
+      IdeArtifactName.UNIT_TEST -> IdeModuleWellKnownSourceSet.UNIT_TEST.sourceSetName
+      IdeArtifactName.ANDROID_TEST -> IdeModuleWellKnownSourceSet.ANDROID_TEST.sourceSetName
+      IdeArtifactName.TEST_FIXTURES -> IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName
     }
   }
-
-  @JvmStatic
-  fun Project.isModulePerSourceSetEnabled(): Boolean = GradleUtil.getGradleProjectSettings(this)?.isResolveModulePerSourceSet ?: false
 
   /**
    * Do not use this method outside of project system code.
@@ -62,12 +54,11 @@ object ModuleUtil {
     val holderModule = dataToModuleMap(data) ?: return
     // Clear the links, this prevents old links from being used
     holderModule.putUserData(LINKED_ANDROID_MODULE_GROUP, null)
-    if (!holderModule.project.isModulePerSourceSetEnabled()) return
     var unitTestModule : Module? = null
     var androidTestModule : Module? = null
     var testFixturesModule : Module? = null
     var mainModule : Module? = null
-    findAll(GradleSourceSetData.KEY).forEach {
+    ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).forEach {
       when(val sourceSetName = it.data.externalName.substringAfterLast(":")) {
         getModuleName(IdeArtifactName.MAIN) -> mainModule = dataToModuleMap(it.data)
         getModuleName(IdeArtifactName.UNIT_TEST) -> unitTestModule = dataToModuleMap(it.data)
@@ -91,15 +82,20 @@ object ModuleUtil {
     linkAndroidModuleGroup { ideModelProvider.findIdeModule(it) }
 
   @JvmStatic
-  fun GradleSourceSetData.getIdeModuleSourceSet() =
-    IdeModuleSourceSet.values().firstOrNull { sourceSetEnum -> sourceSetEnum.sourceSetName == moduleName }
+  fun Module.unlinkAndroidModuleGroup() {
+    val androidModuleGroup = getUserData(LINKED_ANDROID_MODULE_GROUP) ?: return
+    androidModuleGroup.getModules().filter { !it.isDisposed }.forEach { it.putUserData(LINKED_ANDROID_MODULE_GROUP, null) }
+  }
+
+  @JvmStatic
+  fun GradleSourceSetData.getIdeModuleSourceSet(): IdeModuleSourceSet = IdeModuleSourceSetImpl.wellKnownOrCreate(moduleName)
 }
 
 fun String.removeSourceSetSuffixFromExternalProjectID() : String = removeSourceSetSuffix(":")
 
 fun String.removeSourceSetSuffixFromModuleName() : String = removeSourceSetSuffix(".")
 
-private fun String.removeSourceSetSuffix(delimiter: String) : String = IdeArtifactName.values().firstNotNullResult { artifactName ->
+private fun String.removeSourceSetSuffix(delimiter: String) : String = IdeArtifactName.values().firstNotNullOfOrNull { artifactName ->
   val moduleName = getModuleName(artifactName)
   val suffix = "$delimiter$moduleName"
   if (this.endsWith(suffix)) {

@@ -33,10 +33,12 @@ public class ProguardR8ConstructorNameImpl extends ProguardR8ClassMemberNameImpl
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ProguardR8Visitor visitor) {
     visitor.visitConstructorName(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ProguardR8Visitor) accept((ProguardR8Visitor)visitor);
     else super.accept(visitor);

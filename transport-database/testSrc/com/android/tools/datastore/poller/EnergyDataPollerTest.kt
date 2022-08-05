@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.poller
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.datastore.DataStorePollerTest
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.FakeLogService
@@ -37,7 +38,7 @@ import com.android.tools.profiler.proto.Transport.TimeRequest
 import com.android.tools.profiler.proto.Transport.TimeResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.collect.Lists
-import io.grpc.stub.StreamObserver
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -46,7 +47,6 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.util.concurrent.TimeUnit
 
 class EnergyDataPollerTest : DataStorePollerTest() {
@@ -210,14 +210,14 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
   @Before
   fun setUp() {
-    `when`(dataStoreService.getTransportClient(ArgumentMatchers.anyLong())).thenReturn(
+    whenever(dataStoreService.getTransportClient(ArgumentMatchers.anyLong())).thenReturn(
       TransportServiceGrpc.newBlockingStub(grpcService.channel))
-    `when`(dataStoreService.getProfilerClient(ArgumentMatchers.anyLong())).thenReturn(
+    whenever(dataStoreService.getProfilerClient(ArgumentMatchers.anyLong())).thenReturn(
       ProfilerServiceGrpc.newBlockingStub(grpcService.channel))
-    `when`(dataStoreService.getCpuClient(ArgumentMatchers.anyLong())).thenReturn(CpuServiceGrpc.newBlockingStub(grpcService.channel))
-    `when`(dataStoreService.getNetworkClient(ArgumentMatchers.anyLong())).thenReturn(
+    whenever(dataStoreService.getCpuClient(ArgumentMatchers.anyLong())).thenReturn(CpuServiceGrpc.newBlockingStub(grpcService.channel))
+    whenever(dataStoreService.getNetworkClient(ArgumentMatchers.anyLong())).thenReturn(
       NetworkServiceGrpc.newBlockingStub(grpcService.channel))
-    `when`(dataStoreService.getEnergyClient(ArgumentMatchers.anyLong())).thenReturn(EnergyServiceGrpc.newBlockingStub(grpcService.channel))
+    whenever(dataStoreService.getEnergyClient(ArgumentMatchers.anyLong())).thenReturn(EnergyServiceGrpc.newBlockingStub(grpcService.channel))
 
     energyService.startMonitoringApp(
       EnergyProfiler.EnergyStartRequest.newBuilder().setSession(SESSION).build(),

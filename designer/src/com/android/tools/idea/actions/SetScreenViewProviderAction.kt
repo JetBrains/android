@@ -16,15 +16,15 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import org.jetbrains.android.util.AndroidBundle.message
 
 /**
- * [ToggleAction] to that sets an specific [NlScreenViewProvider] to the [NlDesignSurface].
+ * [ToggleAction] to that sets an specific [ScreenViewProvider] to the [NlDesignSurface].
  */
-class SetScreenViewProviderAction(private val sceneModeProvider: NlScreenViewProvider,
+class SetScreenViewProviderAction(private val sceneModeProvider: ScreenViewProvider,
                                   private val designSurface: NlDesignSurface) : ToggleAction(
   sceneModeProvider.displayName, message("android.layout.screenview.action.description", sceneModeProvider.displayName), null) {
   override fun isSelected(e: AnActionEvent) = designSurface.screenViewProvider == sceneModeProvider

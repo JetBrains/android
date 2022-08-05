@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.android.tools.idea.namespacing
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.actionSystem.AnAction
@@ -22,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.PSI_FILE
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.PlainTextLanguage
+import org.jetbrains.android.facet.AndroidFacet
 
 class ShowFileResourcesAction : AnAction("Show resources defined in file") {
   override fun actionPerformed(e: AnActionEvent) {
@@ -29,7 +31,8 @@ class ShowFileResourcesAction : AnAction("Show resources defined in file") {
     val project = psiFile.project
     val virtualFile = psiFile.virtualFile
     val resFolder = virtualFile?.parent?.parent ?: return
-    val repository = ResourceFolderRegistry.getInstance(project).getCached(resFolder)?.nonNamespaced ?: return
+    val facet = AndroidFacet.getInstance(psiFile) ?: return
+    val repository = ResourceFolderRegistry.getInstance(project).getCached(resFolder, facet.namespacing) ?: return
     val definedInFile = repository.allResources.filter { it.getSourceAsVirtualFile() == virtualFile }
     val textOutput = definedInFile.joinToString(
       prefix = "Resources defined in ${virtualFile.path}\n\n",

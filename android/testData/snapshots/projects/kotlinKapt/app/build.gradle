@@ -17,6 +17,18 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+    
+    flavorDimensions 'type'
+
+    productFlavors {
+        local {
+            dimension = 'type'
+        }
+        remote {
+            dimension = 'type'
+        }
+    }
+    
     buildTypes {
         release {
             minifyEnabled false

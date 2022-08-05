@@ -35,7 +35,7 @@ public class ResourcesDomFileDescription extends DomFileDescription<Resources> {
   }
 
   public static boolean isResourcesFile(@NotNull final XmlFile file) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<>() {
+    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {
         return IdeResourcesUtil.isInResourceSubdirectoryInAnyVariant(file, "values");

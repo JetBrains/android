@@ -22,12 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class ConnectionAssistantDevicePickerHelpAction : DevicePickerHelpAction() {
   override fun actionPerformed(e: AnActionEvent) {
-    if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
-      val action = OpenAssistSidePanelAction()
-      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, e.project!!)
-    } else {
-      super.actionPerformed(e)
-    }
+    OpenAssistSidePanelAction().openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, e.project!!)
   }
 
   override fun closeDialog() = true

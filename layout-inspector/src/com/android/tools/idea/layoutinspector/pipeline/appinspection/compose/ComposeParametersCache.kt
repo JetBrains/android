@@ -16,11 +16,12 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ViewNodeCache
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
-import com.android.tools.property.ptable2.PTableGroupModification
+import com.android.tools.property.ptable.PTableGroupModification
 import com.intellij.openapi.application.ApplicationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +45,8 @@ class ComposeParametersCache(
 ) : ViewNodeCache<ComposeParametersData>(model), ViewNodeAndResourceLookup by model {
 
   override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ComposeParametersData? {
-    val response = client?.getParameters(root.drawId, node.drawId) ?: return null
+    val anchorHash = (node as? ComposeViewNode)?.anchorHash ?: 0
+    val response = client?.getParameters(root.drawId, node.drawId, anchorHash) ?: return null
     return if (response != GetParametersResponse.getDefaultInstance()) {
       ComposeParametersDataGenerator(StringTableImpl(response.stringsList), this).generate(root.drawId, response.parameterGroup)
     }

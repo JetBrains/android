@@ -31,6 +31,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.energy.FakeEnergyService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,8 +46,11 @@ class CustomEventProfilerStageViewTest {
   private lateinit var view: StudioProfilersView
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CustomEventProfilerStageViewTest", transportService, FakeProfilerService(timer),
+  val grpcChannel = FakeGrpcChannel("CustomEventProfilerStageViewTest", transportService, FakeProfilerService(timer),
                                     FakeEnergyService())
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @Before
   fun setUp() {

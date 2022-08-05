@@ -19,18 +19,18 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
+import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
-import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
+import com.android.tools.idea.run.tasks.ClearAppStorageTask;
 import com.android.tools.idea.run.tasks.ClearLogcatTask;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.DeployTask;
@@ -136,7 +136,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       } else {
         myLogger.warn(e);
       }
-      launchStatus.terminateLaunch("Unable to determine application id: " + e, /*destroyProcess=*/terminateLaunchOnError);
+      launchStatus.terminateLaunch(e.getMessage(), /*destroyProcess=*/terminateLaunchOnError);
       return Collections.emptyList();
     }
     catch (IllegalStateException e) {
@@ -162,6 +162,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     List<LaunchTask> tasks = new ArrayList<>();
+    DeployType deployType = getDeployType();
+
     List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
     // Add packages to the deployment, filtering out any dynamic features that are disabled.
     List<ApkInfo> packages = myApkProvider.getApks(device).stream()
@@ -169,8 +171,11 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       .collect(Collectors.toList());
 
     Computable<String> installPathProvider = () -> EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller();
-    switch (getDeployType()) {
+    switch (deployType) {
       case RUN_INSTANT_APP:
+        if (myLaunchOptions.isClearAppStorage()) {
+          tasks.add(new ClearAppStorageTask(packageName));
+        }
         AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
         DeepLinkLaunch.State state = (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
         assert state != null;
@@ -184,7 +189,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myLaunchOptions.getAlwaysInstallWithPm(),
           installPathProvider));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
+
         break;
       case APPLY_CODE_CHANGES:
         tasks.add(new ApplyCodeChangesTask(
@@ -194,9 +200,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myLaunchOptions.getAlwaysInstallWithPm(),
           installPathProvider));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
         break;
       case DEPLOY:
+        if (myLaunchOptions.isClearAppStorage()) {
+          tasks.add(new ClearAppStorageTask(packageName));
+        }
         tasks.add(new DeployTask(
           myProject,
           packages,
@@ -205,7 +214,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myLaunchOptions.getAlwaysInstallWithPm(),
           installPathProvider));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }
@@ -247,7 +256,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @Nullable
   @Override
-  public ConnectDebuggerTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version) {
+  public ConnectDebuggerTask getConnectDebuggerTask() {
     if (!myLaunchOptions.isDebug()) {
       return null;
     }
@@ -265,13 +274,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     if (androidDebuggerState != null) {
       //noinspection unchecked
       return debugger.getConnectDebuggerTask(myEnv,
-                                             version,
                                              myApplicationIdProvider,
                                              myFacet,
-                                             androidDebuggerState,
-                                             myRunConfig.getType().getId());
+                                             androidDebuggerState);
     }
 
+    logger.warn("No debugger state present and cannot get debugger task");
     return null;
   }
 

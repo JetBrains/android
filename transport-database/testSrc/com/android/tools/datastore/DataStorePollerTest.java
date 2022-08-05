@@ -21,8 +21,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.android.tools.datastore.poller.PollRunner;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Common;
-import io.grpc.stub.StreamObserver;
 
 public class DataStorePollerTest {
 

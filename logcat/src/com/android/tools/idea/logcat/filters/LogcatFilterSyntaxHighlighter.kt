@@ -18,14 +18,12 @@ package com.android.tools.idea.logcat.filters
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexerAdapter
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.intellij.lexer.Lexer
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.HighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.colors.TextAttributesKey.EMPTY_ARRAY
@@ -37,14 +35,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 
-// TODO(aalbert): Tweak colors further using `additionalTextAttributes` in logcat.xml
-internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey) {
-  KEY(DefaultLanguageHighlighterColors.KEYWORD),
-  KVALUE(DefaultLanguageHighlighterColors.KEYWORD),
-  STRING_KVALUE(DefaultLanguageHighlighterColors.KEYWORD),
-  REGEX_KVALUE(DefaultLanguageHighlighterColors.KEYWORD),
+internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey? = null) {
+  KEY,
+  KVALUE,
+  STRING_KVALUE,
+  REGEX_KVALUE,
   VALUE(HighlighterColors.TEXT),
-  PROJECT_APP(DefaultLanguageHighlighterColors.KEYWORD),
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
   ;
 
@@ -63,7 +59,6 @@ internal class LogcatFilterSyntaxHighlighter : SyntaxHighlighterBase() {
     KVALUE -> LogcatFilterTextAttributes.KVALUE.keys
     STRING_KVALUE -> LogcatFilterTextAttributes.STRING_KVALUE.keys
     REGEX_KVALUE -> LogcatFilterTextAttributes.REGEX_KVALUE.keys
-    PROJECT_APP -> LogcatFilterTextAttributes.PROJECT_APP.keys
     VALUE -> LogcatFilterTextAttributes.VALUE.keys
     TokenType.BAD_CHARACTER -> LogcatFilterTextAttributes.BAD_CHARACTER.keys
     else -> EMPTY_ARRAY

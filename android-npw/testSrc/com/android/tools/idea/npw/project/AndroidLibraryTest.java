@@ -43,12 +43,11 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 
 public class AndroidLibraryTest extends AndroidGradleTestCase {
-  private static TestInvokeStrategy myInvokeStrategy;
+  private final TestInvokeStrategy myInvokeStrategy = new TestInvokeStrategy();
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myInvokeStrategy = new TestInvokeStrategy();
     BatchInvoker.setOverrideStrategy(myInvokeStrategy);
   }
 
@@ -81,7 +80,7 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     requestSyncAndWait();
 
     // Create a Wizard and add an Activity to the lib module
-    NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.getProjectFilePath(), "");
+    NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, "");
     RenderTemplateModel render = RenderTemplateModel.fromFacet(
       libAndroidFacet, "com.example", template, "command", new ProjectSyncInvoker.DefaultProjectSyncInvoker(), true,
       NEW_MODULE

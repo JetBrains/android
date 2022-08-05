@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.targets;
 
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -426,7 +427,7 @@ public class MotionLayoutAnchorTargetTest extends SceneTest {
 
   @Override
   public ModelBuilder createModel() {
-    return model("model.xml", component(SdkConstants.MOTION_LAYOUT.defaultName())
+    return model("model.xml", component(AndroidXConstants.MOTION_LAYOUT.defaultName())
       .id("@+id/root")
       .withBounds(0, 0, 1000, 1000)
       .children(component(BUTTON)

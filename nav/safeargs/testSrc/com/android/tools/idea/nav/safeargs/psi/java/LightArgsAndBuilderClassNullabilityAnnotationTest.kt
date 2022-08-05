@@ -166,6 +166,6 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
   }
 }
 
-class TypeNullabilityMapping(val before: String, val after: String, val isReturnTypeNullable: Boolean) {
+data class TypeNullabilityMapping(val before: String, val after: String, val isReturnTypeNullable: Boolean) {
   constructor(beforeAndAfter: String, nullability: Boolean) : this(beforeAndAfter, beforeAndAfter, nullability)
 }

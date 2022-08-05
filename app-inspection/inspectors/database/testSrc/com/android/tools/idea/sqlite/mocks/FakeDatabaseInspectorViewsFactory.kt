@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.ExportDialogParams
@@ -28,7 +29,6 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.`when`
 import javax.swing.JComponent
 
 open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
@@ -40,8 +40,8 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   private val exportInProgressView: ExportInProgressView = mock()
 
   init {
-    `when`(tableView.component).thenReturn(mock<JComponent>())
-    `when`(sqliteEvaluatorView.tableView).thenReturn(tableView)
+    whenever(tableView.component).thenReturn(mock<JComponent>())
+    whenever(sqliteEvaluatorView.tableView).thenReturn(tableView)
   }
 
   override fun createTableView(): TableView = tableView

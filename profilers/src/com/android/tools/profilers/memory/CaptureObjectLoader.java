@@ -46,7 +46,7 @@ public class CaptureObjectLoader {
       ListenableFutureTask.create(() -> captureObject.load(queryRange, queryJoiner) ? captureObject : null);
     myOutstandingLoadingTask = task;
 
-    Futures.addCallback(task, new FutureCallback<>() {
+    Futures.addCallback(task, new FutureCallback<CaptureObject>() {
       @Override
       public void onSuccess(@Nullable CaptureObject result) {
         removeTask();

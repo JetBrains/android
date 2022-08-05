@@ -42,10 +42,10 @@ import static com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_TINT;
 import static com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_TINT_MODE;
 import static com.android.SdkConstants.ATTR_TEXT_COLOR_HINT;
 import static com.android.SdkConstants.MATERIAL2_PKG;
-import static com.android.SdkConstants.TEXT_INPUT_EDIT_TEXT;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.xml.XmlBuilder;
@@ -97,7 +97,7 @@ public class TextInputLayoutHandler extends LinearLayoutHandler {
     boolean isMaterial2 = tagName.startsWith(MATERIAL2_PKG);
     switch (xmlType) {
       case COMPONENT_CREATION:
-        String textInputEditTextTag = isMaterial2 ? TEXT_INPUT_EDIT_TEXT.newName() : TEXT_INPUT_EDIT_TEXT.oldName();
+        String textInputEditTextTag = isMaterial2 ? AndroidXConstants.TEXT_INPUT_EDIT_TEXT.newName() : AndroidXConstants.TEXT_INPUT_EDIT_TEXT.oldName();
         return new XmlBuilder()
           .startTag(tagName)
           .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)

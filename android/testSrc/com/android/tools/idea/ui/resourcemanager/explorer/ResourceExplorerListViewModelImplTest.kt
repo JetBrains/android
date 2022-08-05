@@ -22,6 +22,7 @@ import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addAndroidModule
@@ -94,7 +95,7 @@ class ResourceExplorerListViewModelImplTest {
     val pngDrawable = projectRule.getPNGResourceItem()
     val asset = Asset.fromResourceItem(pngDrawable) as DesignAsset
     val iconSize = 32 // To compensate the 10% margin around the icon
-    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
+    whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
     val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
     viewModel.updateUiCallback = { if (it == ResourceExplorerListViewModel.UpdateUiReason.IMAGE_CACHE_CHANGED) uiCallbackLatch.countDown() }
 
@@ -121,7 +122,7 @@ class ResourceExplorerListViewModelImplTest {
     val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
     val asset = Asset.fromResourceItem(pngDrawable) as DesignAsset
     val iconSize = 32 // To compensate the 10% margin around the icon
-    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
+    whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
     val emptyIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { latch.countDown() })
     assertTrue(latch.await(1, TimeUnit.SECONDS))
 
@@ -172,15 +173,15 @@ class ResourceExplorerListViewModelImplTest {
     val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
     val asset = Asset.fromResourceItem(pngDrawable) as DesignAsset
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
-    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
+    whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
 
-    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.SECONDS)
     Truth.assertThat(summary).containsEntry("Name", "png")
     Truth.assertThat(summary).containsEntry("Reference", "@drawable/png")
     Truth.assertThat(summary).containsEntry("Type", "PNG")
     Truth.assertThat(summary).containsEntry("Configuration", "default")
     Truth.assertThat(summary).containsEntry("Value", "png.png")
-    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.SECONDS)).isEmpty()
   }
 
   @Test
@@ -190,16 +191,16 @@ class ResourceExplorerListViewModelImplTest {
       ResourceNamespace.RES_AUTO, ResourceType.LAYOUT).values().first()
     val asset = Asset.fromResourceItem(layoutResource) as DesignAsset
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
-    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
+    whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
 
     val viewModel = createViewModel(projectRule.module, ResourceType.LAYOUT)
-    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.SECONDS)
     Truth.assertThat(summary).containsEntry("Name", "data_binding_layout")
     Truth.assertThat(summary).containsEntry("Reference", "@layout/data_binding_layout")
     Truth.assertThat(summary).containsEntry("Type", "Data Binding (TextView)")
     Truth.assertThat(summary).containsEntry("Configuration", "default")
     Truth.assertThat(summary).containsEntry("Value", "data_binding_layout.xml")
-    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.SECONDS)).isEmpty()
   }
 
   @Test
@@ -208,14 +209,14 @@ class ResourceExplorerListViewModelImplTest {
       ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values().first { it.name == "avatars" }
     val asset = Asset.fromResourceItem(sampleResource, ResourceType.DRAWABLE)
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
-    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
+    whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
 
     val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
-    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.SECONDS)
     Truth.assertThat(summary).containsEntry("Name", "avatars")
     Truth.assertThat(summary).containsEntry("Reference", "@tools:sample/avatars")
     Truth.assertThat(summary).containsEntry("Configuration", "default")
-    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.SECONDS)).isEmpty()
   }
 
   @Test
@@ -227,16 +228,16 @@ class ResourceExplorerListViewModelImplTest {
     ResourceFile.createSingle(File("res/values/attrs.xml"), attrResource, "")
     val asset = Asset.fromResourceItem(attrResource, ResourceType.COLOR)
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
-    Mockito.`when`(resourceResolver.findItemInTheme(asset.resourceItem.referenceToSelf)).thenReturn(colorResource.resourceValue)
-    Mockito.`when`(resourceResolver.resolveResValue(colorResource.resourceValue)).thenReturn(colorResource.resourceValue)
+    whenever(resourceResolver.findItemInTheme(asset.resourceItem.referenceToSelf)).thenReturn(colorResource.resourceValue)
+    whenever(resourceResolver.resolveResValue(colorResource.resourceValue)).thenReturn(colorResource.resourceValue)
 
     val viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
-    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.SECONDS)
     Truth.assertThat(summary).containsEntry("Name", "my_attr")
     Truth.assertThat(summary).containsEntry("Reference", "?attr/my_attr")
     Truth.assertThat(summary).containsEntry("Configuration", "default")
     Truth.assertThat(summary).containsEntry("Value", "#3F51B5")
-    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.SECONDS)).isEmpty()
   }
 
   @Test

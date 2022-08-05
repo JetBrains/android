@@ -81,15 +81,14 @@ public final class IncludeHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     // When dropping an include tag, ask the user which layout to include if
     // the layout attribute is not pre-populated.
     String layoutAttr = newChild.getAttribute(null, ATTR_LAYOUT);
     if (insertType == InsertType.CREATE && layoutAttr == null) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT));
+      String src = ViewEditor.displayResourceInput(newChild.getModel(), EnumSet.of(ResourceType.LAYOUT));
       if (src != null) {
         return NlWriteCommandActionUtil.compute(newChild, "Create Include", () -> {
           newChild.setAttribute(null, ATTR_LAYOUT, src);
@@ -106,16 +105,13 @@ public final class IncludeHandler extends ViewHandler {
   }
 
   @Override
-  public void onActivateInComponentTree(@NotNull NlComponent component, @NotNull ViewEditor editor) {
-    openIncludedLayout(component, editor);
+  public void onActivateInComponentTree(@NotNull NlComponent component) {
+    openIncludedLayout(component);
   }
 
   @Override
-  public void onActivateInDesignSurface(@NotNull NlComponent component,
-                                        @NotNull ViewEditor editor,
-                                        @AndroidCoordinate int x,
-                                        @AndroidCoordinate int y) {
-    openIncludedLayout(component, editor);
+  public void onActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    openIncludedLayout(component);
   }
 
   /**
@@ -124,11 +120,11 @@ public final class IncludeHandler extends ViewHandler {
    *
    * @param component  The include component
    */
-  public static void openIncludedLayout(@NotNull NlComponent component, @NotNull ViewEditor editor) {
+  public static void openIncludedLayout(@NotNull NlComponent component) {
     String attribute = component.getAttribute(null, ATTR_LAYOUT);
     if (attribute == null) {
       return;
     }
-    editor.openResourceFile(attribute);
+    ViewEditor.openResourceFile(component.getModel(), attribute);
   }
 }

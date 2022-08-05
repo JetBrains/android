@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector
 
+import com.android.AndroidXConstants.BOTTOM_NAVIGATION_VIEW
+import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
+import com.android.AndroidXConstants.TAB_LAYOUT
+import com.android.AndroidXConstants.TEXT_INPUT_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ADDITIONAL_PADDING_END_FOR_ICON
 import com.android.SdkConstants.ATTR_ADDITIONAL_PADDING_START_FOR_ICON
@@ -131,16 +135,12 @@ import com.android.SdkConstants.ATTR_TINT
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BOTTOM_APP_BAR
-import com.android.SdkConstants.BOTTOM_NAVIGATION_VIEW
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.CHIP
 import com.android.SdkConstants.CHIP_GROUP
-import com.android.SdkConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.MATERIAL_BUTTON
-import com.android.SdkConstants.TAB_LAYOUT
-import com.android.SdkConstants.TEXT_INPUT_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -251,7 +251,7 @@ class ViewInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
-    util.checkEditor(2, ANDROID_URI, ATTR_BACKGROUND_TINT)
+    util.checkEditor(2, AUTO_URI, ATTR_BACKGROUND_TINT)
     util.checkEditor(3, AUTO_URI, ATTR_FAB_ALIGNMENT_MODE)
     util.checkEditor(4, AUTO_URI, ATTR_FAB_ANIMATION_MODE)
     util.checkEditor(5, AUTO_URI, ATTR_FAB_CRADLE_MARGIN)
@@ -281,8 +281,8 @@ class ViewInspectorBuilderTest {
     util.checkEditor(7, ANDROID_URI, ATTR_INSET_TOP)
     util.checkEditor(8, ANDROID_URI, ATTR_INSET_BOTTOM)
     util.checkEditor(9, ANDROID_URI, ATTR_BACKGROUND)
-    util.checkEditor(10, ANDROID_URI, ATTR_BACKGROUND_TINT)
-    util.checkEditor(11, ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
+    util.checkEditor(10, AUTO_URI, ATTR_BACKGROUND_TINT)
+    util.checkEditor(11, AUTO_URI, ATTR_BACKGROUND_TINT_MODE)
     util.checkEditor(12, AUTO_URI, ATTR_ICON)
     util.checkEditor(13, AUTO_URI, ATTR_ICON_PADDING)
     util.checkEditor(14, AUTO_URI, ATTR_ICON_TINT)
@@ -356,7 +356,7 @@ class ViewInspectorBuilderTest {
     util.checkEditor(5, AUTO_URI, ATTR_MENU)
     util.checkEditor(6, AUTO_URI, ATTR_ITEM_BACKGROUND)
     util.checkEditor(7, AUTO_URI, ATTR_ITEM_TEXT_COLOR)
-    util.checkEditor(8, ANDROID_URI, ATTR_ELEVATION)
+    util.checkEditor(8, AUTO_URI, ATTR_ELEVATION)
     assertThat(util.inspector.lines).hasSize(9)
   }
 
@@ -378,7 +378,7 @@ class ViewInspectorBuilderTest {
     util.checkEditor(5, AUTO_URI, ATTR_MENU)
     util.checkEditor(6, AUTO_URI, ATTR_ITEM_BACKGROUND)
     util.checkEditor(7, AUTO_URI, ATTR_ITEM_TEXT_COLOR)
-    util.checkEditor(8, ANDROID_URI, ATTR_ELEVATION)
+    util.checkEditor(8, AUTO_URI, ATTR_ELEVATION)
     assertThat(util.inspector.lines).hasSize(9)
   }
 
@@ -395,13 +395,13 @@ class ViewInspectorBuilderTest {
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_SRC)
     util.checkEditor(2, "", ATTR_STYLE)
-    util.checkEditor(3, ANDROID_URI, ATTR_BACKGROUND_TINT)
-    util.checkEditor(4, ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
+    util.checkEditor(3, AUTO_URI, ATTR_BACKGROUND_TINT)
+    util.checkEditor(4, AUTO_URI, ATTR_BACKGROUND_TINT_MODE)
     util.checkEditor(5, AUTO_URI, ATTR_RIPPLE_COLOR)
     util.checkEditor(6, ANDROID_URI, ATTR_TINT)
     util.checkEditor(7, AUTO_URI, ATTR_FAB_SIZE)
     util.checkEditor(8, AUTO_URI, ATTR_FAB_CUSTOM_SIZE)
-    util.checkEditor(9, ANDROID_URI, ATTR_ELEVATION)
+    util.checkEditor(9, AUTO_URI, ATTR_ELEVATION)
     util.checkEditor(10, AUTO_URI, ATTR_HOVERED_FOCUSED_TRANSLATION_Z)
     util.checkEditor(11, AUTO_URI, ATTR_PRESSED_TRANSLATION_Z)
     util.checkEditor(12, AUTO_URI, ATTR_BORDER_WIDTH)
@@ -425,13 +425,13 @@ class ViewInspectorBuilderTest {
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_SRC)
     util.checkEditor(2, "", ATTR_STYLE)
-    util.checkEditor(3, ANDROID_URI, ATTR_BACKGROUND_TINT)
-    util.checkEditor(4, ANDROID_URI, ATTR_BACKGROUND_TINT_MODE)
+    util.checkEditor(3, AUTO_URI, ATTR_BACKGROUND_TINT)
+    util.checkEditor(4, AUTO_URI, ATTR_BACKGROUND_TINT_MODE)
     util.checkEditor(5, AUTO_URI, ATTR_RIPPLE_COLOR)
     util.checkEditor(6, ANDROID_URI, ATTR_TINT)
     util.checkEditor(7, AUTO_URI, ATTR_FAB_SIZE)
     util.checkEditor(8, AUTO_URI, ATTR_FAB_CUSTOM_SIZE)
-    util.checkEditor(9, ANDROID_URI, ATTR_ELEVATION)
+    util.checkEditor(9, AUTO_URI, ATTR_ELEVATION)
     util.checkEditor(10, AUTO_URI, ATTR_HOVERED_FOCUSED_TRANSLATION_Z)
     util.checkEditor(11, AUTO_URI, ATTR_PRESSED_TRANSLATION_Z)
     util.checkEditor(12, AUTO_URI, ATTR_BORDER_WIDTH)

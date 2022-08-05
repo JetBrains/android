@@ -84,7 +84,7 @@ private val ROW_CELL_BORDER_UNFOCUSED get() = BorderFactory.createCompoundBorder
 private val BOTTOM_PANEL_BORDER get()  = JBUI.Borders.empty(5, 8, 10, 10)
 
 private val PRIMARY_FONT get() = StartupUiUtil.getLabelFont().deriveFont(mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_DEMIBOLD,
-                                                                               TextAttribute.SIZE to JBUI.scaleFontSize(14f)))
+                                                                              TextAttribute.SIZE to JBUI.scaleFontSize(14f)))
 
 private val SECONDARY_FONT_SIZE get() = JBUI.scaleFontSize(12f).toFloat()
 

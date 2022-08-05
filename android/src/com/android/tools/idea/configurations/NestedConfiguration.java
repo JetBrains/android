@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.resources.Locale;
 import com.android.resources.NightMode;
 import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.Locale;
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

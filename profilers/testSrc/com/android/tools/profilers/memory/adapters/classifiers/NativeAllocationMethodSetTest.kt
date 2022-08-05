@@ -15,20 +15,20 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 class NativeAllocationMethodSetTest {
   @Test
   fun subClassifierIsDefault() {
     val callstackSet = NativeAllocationMethodSet("Test")
     assertThat(callstackSet.createSubClassifier()).isEqualTo(
-      Classifier.IDENTITY_CLASSIFIER)
+      Classifier.Id)
   }
 
   @Test
@@ -36,14 +36,14 @@ class NativeAllocationMethodSetTest {
     val callstackSet = NativeAllocationMethodSet("Test")
     val filter = Filter("Test")
     callstackSet.applyFilter(filter, false, true)
-    assertThat(callstackSet.matches(filter)).isTrue()
+    assertThat(filter.matches(callstackSet.stringForMatching)).isTrue()
   }
 
   @Test
   fun classifier() {
     val classifier = NativeAllocationMethodSet.createDefaultClassifier()
     val instanceObject = mock(InstanceObject::class.java)
-    `when`(instanceObject.classEntry).thenReturn(
+    whenever(instanceObject.classEntry).thenReturn(
       ClassDb.ClassEntry(0, 0, "Test"))
     val callstackSet = classifier.getClassifierSet(instanceObject, true)
     assertThat(callstackSet).isInstanceOf(NativeAllocationMethodSet::class.java)

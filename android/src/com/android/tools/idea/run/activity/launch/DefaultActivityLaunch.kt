@@ -51,13 +51,13 @@ class DefaultActivityLaunch : ActivityLaunchOption<DefaultActivityLaunch.State>(
 
     override fun launch(device: IDevice,
                         app: App,
-                        config: AndroidRunConfiguration,
+                        apkProvider: ApkProvider,
                         isDebug: Boolean,
                         extraFlags: String,
                         console: ConsoleView) {
       ProgressManager.checkCanceled()
       val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-      val activityQualifiedName = getActivityLocatorForLaunch(config.apkProvider!!).getQualifiedActivityName(device)
+      val activityQualifiedName = getActivityLocatorForLaunch(apkProvider).getQualifiedActivityName(device)
       val receiver: IShellOutputReceiver = AndroidBackgroundTaskReceiver(console)
       app.activateComponent(ComponentType.ACTIVITY, activityQualifiedName, extraFlags, mode, receiver)
     }

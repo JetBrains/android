@@ -50,7 +50,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
       override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = listOf(
         AlwaysRunTaskData(taskA, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
-        AlwaysRunTaskData(taskB, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS),
+        AlwaysRunTaskData(taskB, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
         AlwaysRunTaskData(taskC, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
       )
 
@@ -90,7 +90,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
       override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = listOf(
         AlwaysRunTaskData(taskA, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
-        AlwaysRunTaskData(taskB, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS),
+        AlwaysRunTaskData(taskB, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
         AlwaysRunTaskData(nonCritPathTask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
       )
 
@@ -136,7 +136,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
       override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = listOf(
         AlwaysRunTaskData(taskA, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
-        AlwaysRunTaskData(taskB, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS),
+        AlwaysRunTaskData(taskB, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
         AlwaysRunTaskData(nonCritPathTask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
       )
 

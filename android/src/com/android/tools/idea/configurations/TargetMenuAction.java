@@ -19,7 +19,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -31,6 +30,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.Locale;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

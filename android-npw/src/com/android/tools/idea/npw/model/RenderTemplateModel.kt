@@ -28,6 +28,8 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.KeystoreUtils.getSha1DebugKeystoreSilently
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
@@ -48,7 +50,6 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
@@ -108,7 +109,7 @@ class RenderTemplateModel private constructor(
   }
 
   val module: Module?
-    get() = androidFacet?.module
+    get() = androidFacet?.module?.getMainModule()
 
   val hasActivity: Boolean get() = newTemplate != Template.NoActivity
 
@@ -144,6 +145,8 @@ class RenderTemplateModel private constructor(
         )
         category = newTemplate.category
         isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3)
+        useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
+        useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value
 
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
@@ -155,7 +158,7 @@ class RenderTemplateModel private constructor(
         setFacet(androidFacet)
 
         // Register application-wide settings
-        val applicationPackage = getPackageName(androidFacet)
+        val applicationPackage = androidFacet.getModuleSystem().getPackageName()
         if (this@RenderTemplateModel.packageName.get() != applicationPackage) {
           projectTemplateDataBuilder.applicationPackage = applicationPackage
         }
@@ -195,7 +198,7 @@ class RenderTemplateModel private constructor(
     ): Boolean {
       paths.moduleRoot ?: return false
 
-      if (newTemplate.category == Category.Compose) {
+      if (newTemplate.constraints.contains(TemplateConstraint.Compose)) {
         // Compose requires this specific Kotlin
         moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion =
           getComposeKotlinVersion(isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3))
@@ -274,6 +277,6 @@ class RenderTemplateModel private constructor(
         Language.Java
     }
 
-    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.5.31"
+    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.6.21"
   }
 }

@@ -26,7 +26,20 @@ private val log = Logger.getInstance(AndroidLiveEditDeployMonitor::class.java)
 
 fun reportLiveEditError(exception: LiveEditUpdateException) {
   // TODO: Temp solution. These probably need to go somewhere when we have a UI.
-  report("E: Live Edit ${exception.error.message}: \n ${exception.details} \n")
+  report("E: Live Edit " + errorMessage(exception))
+}
+
+fun errorMessage(exception: LiveEditUpdateException) : String {
+  when (exception.error) {
+    LiveEditUpdateException.Error.COMPILATION_ERROR -> {
+      return "Compilation Error${exception.source?.let {" in ${it.name}"}}. Live Edit is temporary paused until all errors are fixed."
+    }
+    LiveEditUpdateException.Error.ANALYSIS_ERROR -> {
+      return "Compilation Error${exception.source?.let {" in ${it.name}"}}. Live Edit is temporary paused until all errors are fixed."
+    }
+    else -> { }
+  }
+  return "${exception.error.message}: \n ${exception.details} \n"
 }
 
 /**
@@ -34,7 +47,7 @@ fun reportLiveEditError(exception: LiveEditUpdateException) {
  */
 fun reportDeployerError(error: LiveUpdateDeployer.UpdateLiveEditError) {
   // TODO: Temp solution. These probably need to go somewhere when we have a UI.
-  report("E: Live Edit ${error.msg}\n")
+  report("E: Live Edit ${error.message}\n")
 }
 
 fun reportDeployPerformance(metric: PerformanceTracker) {

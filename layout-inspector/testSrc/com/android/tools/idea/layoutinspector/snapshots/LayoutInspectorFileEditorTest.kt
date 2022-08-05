@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.adtui.swing.SetPortableUiFontRule
@@ -39,7 +40,6 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import java.awt.image.BufferedImage
 import java.io.ObjectOutputStream
 import java.nio.file.Files
@@ -61,7 +61,7 @@ class LayoutInspectorFileEditorTest {
     val graphics = generatedImage.createGraphics()
     val file = createInMemoryFileSystemAndFolder("").resolve("myFile.li")
     val fakeVersion = mock<ProtocolVersion>()
-    `when`(fakeVersion.value).thenReturn("99")
+    whenever(fakeVersion.value).thenReturn("99")
     ObjectOutputStream(Files.newOutputStream(file)).use {
       it.writeUTF(LayoutInspectorCaptureOptions(fakeVersion, "myTitle").toString())
     }
@@ -73,7 +73,7 @@ class LayoutInspectorFileEditorTest {
       doLayout()
       paint(graphics)
     }
-    CheckUtil.assertImageSimilarPerPlatform(TestUtils.resolveWorkspacePath(TEST_DATA_PATH), "snapshotVersionError", generatedImage,
+    CheckUtil.assertImageSimilarPerPlatform(TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH), "snapshotVersionError", generatedImage,
                                             0.01)
   }
 
@@ -81,7 +81,7 @@ class LayoutInspectorFileEditorTest {
   fun editorCreatesCorrectSettings() {
     val editor = LayoutInspectorFileEditor(
       projectRule.project,
-      TestUtils.resolveWorkspacePath("$TEST_DATA_PATH/snapshot.li")
+      TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/snapshot.li")
     )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
@@ -98,7 +98,7 @@ class LayoutInspectorFileEditorTest {
   fun editorCreatesCorrectSettingsForCompose() {
     val editor = LayoutInspectorFileEditor(
       projectRule.project,
-      TestUtils.resolveWorkspacePath("$TEST_DATA_PATH/compose-snapshot.li")
+      TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/compose-snapshot.li")
     )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component

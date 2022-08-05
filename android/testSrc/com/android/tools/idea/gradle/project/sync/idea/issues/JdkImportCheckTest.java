@@ -59,10 +59,6 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     super.tearDown();
   }
 
-  public void testDoCheckCanSyncWithNullJdk() {
-    assertThat(runCheckJdkErrorMessage(null)).startsWith("Jdk location is not set");
-  }
-
   public void testDoCheckWithJdkWithoutHomePath() {
     Sdk jdk = mock(Sdk.class);
     when(jdk.getHomePath()).thenReturn(null);
@@ -115,7 +111,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     StudioFlags.GRADLE_SYNC_RECREATE_JDK.override(true);
     try {
       runCheckWithValid();
-      verify(myMockIdeSdks).recreateOrAddJdkInTable(any());
+      verify(myMockIdeSdks).recreateOrAddJdkInTable(any(), any());
     }
     finally {
       StudioFlags.GRADLE_SYNC_RECREATE_JDK.clearOverride();
@@ -126,7 +122,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     StudioFlags.GRADLE_SYNC_RECREATE_JDK.override(false);
     try {
       runCheckWithValid();
-      verify(myMockIdeSdks, never()).recreateOrAddJdkInTable(any());
+      verify(myMockIdeSdks, never()).recreateOrAddJdkInTable(any(), any());
     }
     finally {
       StudioFlags.GRADLE_SYNC_RECREATE_JDK.clearOverride();
@@ -151,7 +147,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
 
   private static String runCheckJdkErrorMessage(@Nullable Sdk jdk) {
     try {
-      JdkImportCheck.checkJdkErrorMessage(jdk);
+      JdkImportCheck.validateJdk(jdk);
       return ""; // No error
     } catch (JdkImportCheckException e) {
       return e.getMessage();

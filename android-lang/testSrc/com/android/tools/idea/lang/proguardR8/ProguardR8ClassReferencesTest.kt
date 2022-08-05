@@ -370,4 +370,25 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(classes).isNotEmpty()
     assertThat(classes.map { it.lookupString }).containsAllOf("myPackage1", "myPackage2")
   }
+
+  fun testClassFilter() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package com;
+
+      public class MyClass {
+       class InnerClass {}
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
+        - -dontwarn com.MyClass${"$"}Inner${caret}Class
+    """.trimIndent()
+    )
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.MyClass.InnerClass"))
+  }
 }

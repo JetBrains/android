@@ -34,8 +34,6 @@
     <projectService serviceImplementation="com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService"/>
     <projectService serviceInterface="com.android.tools.idea.explorer.DeviceExplorerFileManager"
                     serviceImplementation="com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl" />
-    <projectService serviceInterface="com.android.tools.idea.explorer.DeviceExplorerViewService"
-                    serviceImplementation="com.android.tools.idea.explorer.DeviceExplorerViewServiceImpl" />
     <projectService serviceInterface="com.android.tools.idea.explorer.fs.DeviceFileDownloaderService"
                     serviceImplementation="com.android.tools.idea.explorer.fs.DeviceFileDownloaderServiceImpl" />
     <facet.toolWindow id="Device File Explorer"

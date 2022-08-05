@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.metrics
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
@@ -26,11 +27,13 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMoni
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.stats.AnonymizerUtil
+import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.DisposableRule
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -43,13 +46,13 @@ class LegacyInspectorMetricsTest {
 
   private val disposableRule = DisposableRule()
   private val scheduler = VirtualTimeScheduler()
-  private val launchMonitor = InspectorClientLaunchMonitor(scheduler)
+  private val launchMonitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor(), scheduler)
   private val windowIdsRetrievedLock = CountDownLatch(1)
 
   private val windowIds = mutableListOf<String>()
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = Mockito.mock(LegacyTreeLoader::class.java)
-    Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenAnswer {
+    whenever(loader.getAllWindowIds(ArgumentMatchers.any())).thenAnswer {
       windowIdsRetrievedLock.countDown()
       windowIds
     }
@@ -65,6 +68,11 @@ class LegacyInspectorMetricsTest {
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
+
+  @Before
+  fun setUp() {
+    inspectorRule.attachDevice(LEGACY_DEVICE)
+  }
 
   @Test
   fun testAttachSuccessAfterProcessConnected() {

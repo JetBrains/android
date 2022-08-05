@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
@@ -26,7 +27,7 @@ class CpuFullTraceAnalysisModelTest {
   @Test
   fun analysisTabs() {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(this.range).thenReturn(Range())
+      whenever(this.range).thenReturn(Range())
     }
     val model = CpuFullTraceAnalysisModel(capture, Range())
     val analysisModels = model.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()

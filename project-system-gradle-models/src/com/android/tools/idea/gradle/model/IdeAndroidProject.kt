@@ -20,18 +20,14 @@ import java.io.Serializable
 
 interface IdeAndroidProject : Serializable {
   /**
-   * Returns the model version. This is a string in the format X.Y.Z
-   *
-   * @return a string containing the model version.
+   * Returns the AGP version. This is a string in the format X.Y.Z
    */
   val agpVersion: String
 
   /**
-   * Returns the name of the module.
-   *
-   * @return the name of the module.
+   * Returns a project path together with the name and location of the build containing it.
    */
-  val name: String
+  val projectPath: IdeProjectPath
 
   /**
    * Returns the type of project: Android application, library, feature, instantApp.
@@ -66,10 +62,8 @@ interface IdeAndroidProject : Serializable {
    * This does not include test variant. Test variants are additional artifacts in their
    * respective variant info.
    *
-   * @return a list of all the variant names.
-   * @since 3.2.
    */
-  val variantNames: Collection<String>?
+  val basicVariants: Collection<IdeBasicVariant>
 
   /**
    * Returns a list of all the flavor dimensions, may be empty.
@@ -129,21 +123,20 @@ interface IdeAndroidProject : Serializable {
 
   /**
    * Returns true if this is the base feature split.
-   *
-   * @return true if this is the base feature split
-   * @since 2.4
    */
   val isBaseSplit: Boolean
 
   /**
    * Returns the list of dynamic features.
    *
-   *
-   * The values are Gradle path. Only valid for base splits.
-   *
-   * @return
    */
   val dynamicFeatures: Collection<String>
+
+  /**
+   * The Gradle path of the base feature (if a dynamic feature).
+   */
+  val baseFeature: String?
+
   val viewBindingOptions: IdeViewBindingOptions?
   val dependenciesInfo: IdeDependenciesInfo?
 
@@ -185,4 +178,8 @@ interface IdeAndroidProject : Serializable {
    * Returns the testNamespace of the main artifact.
    */
   val testNamespace: String?
+
+  val isKaptEnabled: Boolean
 }
+
+val IdeAndroidProject.variantNames: Collection<String> get() = basicVariants.map { it.name }

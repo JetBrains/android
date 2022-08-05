@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.ddmlib.Log
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.logcat.LogCatHeader
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogcatHeader
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
@@ -28,6 +28,9 @@ import java.time.Instant
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
+
+// Timeout when waiting for things to happen. 1 sec works too but when running stress test locally with --runs_per_test= it takes longer
+internal const val TIMEOUT_SEC = 5L
 
 /**
  * Waits for [MessageProcessor] to idle and execute some code.
@@ -38,28 +41,42 @@ import javax.swing.SwingUtilities
  *
  * Note that this cannot work on the UI Thread itself because [runInEdtAndWait] would return immediately.
  */
-internal fun MessageProcessor.onIdle(run: () -> Any) {
+internal fun MessageProcessor.onIdle(run: () -> Unit) {
   assert(!SwingUtilities.isEventDispatchThread())
-  waitForCondition(5, TimeUnit.SECONDS, this::isChannelEmpty)
+  waitForCondition(TIMEOUT_SEC, TimeUnit.SECONDS, this::isChannelEmpty)
 
   // This call depends on AndroidExecutors.workerThreadExecutor being replaced by a ThreadPoolExecutor that allows operations that are
   // prohibited by the one provided by the framework (BackendThreadPoolExecutor). See AndroidExecutorsRule for how to inject a compliant
   // executor.
-  awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+  awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, TimeUnit.SECONDS)
   runInEdtAndWait {
     run()
   }
 }
 
 /**
- * Convenience creation of a [LogCatMessage] for testing
+ * Convenience creation of a [LogcatMessage] for testing
  */
-fun logCatMessage(
-  logLevel: Log.LogLevel = INFO,
+internal fun logcatMessage(
+  logLevel: LogLevel = INFO,
   pid: Int = 1,
   tid: Int = 2,
-  appName: String = "com.example.app",
+  appId: String = "com.example.app",
   tag: String = "ExampleTag",
-  timestamp: Instant = Instant.EPOCH,
+  timestamp: Instant = Instant.ofEpochSecond(10), // Instant.EPOCH has a special meaning to the formatter.
   message: String = "message",
-): LogCatMessage = LogCatMessage(LogCatHeader(logLevel, pid, tid, appName, tag, timestamp), message)
+): LogcatMessage = LogcatMessage(LogcatHeader(logLevel, pid, tid, appId, "", tag, timestamp), message)
+
+/**
+ * Convenience creation of a [LogcatMessage] for testing
+ */
+internal fun logcatMessage(
+  logLevel: LogLevel = INFO,
+  pid: Int = 1,
+  tid: Int = 2,
+  appId: String = "com.example.app",
+  processName: String = "com.example.app",
+  tag: String = "ExampleTag",
+  timestamp: Instant = Instant.ofEpochSecond(10), // Instant.EPOCH has a special meaning to the formatter.
+  message: String = "message",
+): LogcatMessage = LogcatMessage(LogcatHeader(logLevel, pid, tid, appId, processName, tag, timestamp), message)

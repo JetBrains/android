@@ -17,62 +17,77 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
-import com.android.tools.deployer.model.component.WatchFace.ShellCommand.SHOW_WATCH_FACE
+import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
-import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
+import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.configuration.AppRunSettings
+import com.android.tools.idea.run.configuration.WearBaseClasses
+import com.android.tools.idea.run.configuration.WearSurfaceLaunchOptions
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ConsoleViewContentType
-import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.util.Disposer
-import java.util.concurrent.TimeUnit
+import org.jetbrains.android.util.AndroidBundle
 
+private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
 
-class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
-  override val configuration = environment.runProfile as AndroidWatchFaceConfiguration
+open class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment,
+                                                 deployTarget: DeployTarget,
+                                                 appRunSettings: AppRunSettings,
+                                                 applicationIdProvider: ApplicationIdProvider,
+                                                 apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
+                                                                                                              appRunSettings,
+                                                                                                              applicationIdProvider,
+                                                                                                              apkProvider) {
+  private val watchFaceLaunchOptions = appRunSettings.componentLaunchOptions as WatchFaceLaunchOptions
+  override fun getStopCallback(console: ConsoleView, isDebug: Boolean) = getStopWatchFaceCallback(console, isDebug)
 
   @WorkerThread
-  override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
-    val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
-    if (isDebug && devices.size > 1) {
-      throw ExecutionException("Debugging is allowed only for single device")
-    }
-    val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
-    Disposer.register(project, console)
-    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
-    val applicationInstaller = getApplicationInstaller()
+  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean) {
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val processHandler = WatchFaceProcessHandler(console)
-    devices.forEach { device ->
-      processHandler.addDevice(device)
-      indicator?.checkCanceled()
-      indicator?.text = "Installing app"
-      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
-        console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
-      }
-      val receiver = AndroidLaunchReceiver({ indicator?.isCanceled == true }, console)
-      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
-      console.printShellCommand(SHOW_WATCH_FACE)
-      device.executeShellCommand(SHOW_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
+    val version = device.getWearDebugSurfaceVersion()
+    if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
+      throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
-    ProgressManager.checkCanceled()
-    return createRunContentDescriptor(devices, processHandler, console)
+    setWatchFace(app, mode)
+    showWatchFace(device, console)
+  }
+
+  private fun setWatchFace(app: App, mode: AppComponent.Mode) {
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()?.apply {
+      checkCanceled()
+      text = "Launching the watch face"
+    }
+    val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
+    try {
+      app.activateComponent(watchFaceLaunchOptions.componentType, watchFaceLaunchOptions.componentName!!, mode, outputReceiver)
+    }
+    catch (ex: DeployerException) {
+      throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)
+    }
   }
 }
 
+class WatchFaceLaunchOptions : WearSurfaceLaunchOptions {
+  override val componentType = ComponentType.WATCH_FACE
+  override val userVisibleComponentTypeName: String = AndroidBundle.message("android.run.configuration.watchface")
+  override val componentBaseClassesFqNames = WearBaseClasses.WATCH_FACES
+  override var componentName: String? = null
+}
 
-class WatchFaceProcessHandler(private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
-
-  override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
-
-    console.printShellCommand(UNSET_WATCH_FACE)
-    device.executeShellCommand(UNSET_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
+private fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
+  val receiver = CommandResultReceiver()
+  device.executeShellCommand(UNSET_WATCH_FACE, console, receiver)
+  if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+    console.printError("Warning: Watch face was not stopped.")
+  }
+  if (isDebug) {
+    stopDebugApp(device)
   }
 }

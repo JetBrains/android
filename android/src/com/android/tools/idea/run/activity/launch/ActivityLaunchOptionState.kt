@@ -17,10 +17,11 @@ package com.android.tools.idea.run.activity.launch
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.App
-import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider
+import com.android.tools.idea.run.configuration.ComponentLaunchOptions
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.intellij.execution.ExecutionException
@@ -29,7 +30,10 @@ import org.jetbrains.android.facet.AndroidFacet
 
 // Each Launch Option should extend this class and add a set of public fields such that they can be saved/restored using
 // DefaultJDOMExternalizer
-abstract class ActivityLaunchOptionState {
+abstract class ActivityLaunchOptionState : ComponentLaunchOptions {
+  override val componentType = ComponentType.ACTIVITY
+  override val userVisibleComponentTypeName = "Activity"
+  var amFlags = ""
   abstract fun getLaunchTask(
     applicationId: String,
     facet: AndroidFacet,
@@ -47,7 +51,7 @@ abstract class ActivityLaunchOptionState {
   @Throws(ExecutionException::class)
   abstract fun launch(device: IDevice,
                       app: App,
-                      config: AndroidRunConfiguration,
+                      apkProvider: ApkProvider,
                       isDebug: Boolean,
                       extraFlags: String,
                       console: ConsoleView)

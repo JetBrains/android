@@ -14,7 +14,8 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assume.assumeTrue
@@ -53,11 +54,17 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     profilers.stage = stage
+
+    if (isLive) {
+      stage.liveAllocationSamplingMode = FULL
+      stage.startLiveDataTimeline()
+    }
   }
 
   @Test
   fun `stage starts tracking when entered then stops when stopped`() {
     assumeTrue(isLive)
+    stage.liveAllocationSamplingMode = SAMPLED
     val handler = transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING) as MemoryAllocTracking
     val prevCommand = handler.lastCommand
     assertThat(stage.hasEndedTracking).isFalse()
@@ -67,7 +74,7 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     assertThat(stage.hasEndedTracking).isTrue()
     assertThat(stage.confirmExitMessage).isNull()
     tickOneSec()
-    assertThat(stage.liveAllocationSamplingMode).isEqualTo(NONE)
+    assertThat(stage.liveAllocationSamplingMode).isEqualTo(SAMPLED)  // Stop command doesn't change sampling mode
     assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
     assertThat(handler.lastCommand.commandId).isNotEqualTo(prevCommand.commandId)
   }
@@ -99,7 +106,6 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     val prevCommand = handler.lastCommand
     stage.exit()
     tickOneSec()
-    assertThat(stage.getLiveAllocationSamplingModeFromData()).isEqualTo(NONE)
     assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
     assertThat(handler.lastCommand.commandId).isNotEqualTo(prevCommand.commandId)
   }

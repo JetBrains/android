@@ -247,6 +247,9 @@ public class FutureCallbackExecutor implements Executor {
    *
    * <p>Returns a {@link ListenableFuture} that completes when all tasks have completed.
    *
+   * <p>Any exception that occurs is silently ignored, and execution continues with the next element;
+   * the result future will only ever complete successfully.
+   *
    * @param iterator    The source of elements to process
    * @param taskFactory A factory {@link Function} that returns a {@link ListenableFuture} for a given element
    * @param <T>         The type of the elements to process

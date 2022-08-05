@@ -42,6 +42,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("dataBinding", false, buildFeatures.dataBinding())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
     assertEquals("viewBinding", false, buildFeatures.viewBinding())
+    assertEquals("prefab", false, buildFeatures.prefab())
   }
 
   @Test
@@ -54,10 +55,12 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("dataBinding", false, buildFeatures.dataBinding())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
     assertEquals("viewBinding", false, buildFeatures.viewBinding())
+    assertEquals("prefab", false, buildFeatures.prefab())
     buildFeatures.compose().setValue(true)
     buildFeatures.dataBinding().setValue(true)
     buildFeatures.mlModelBinding().setValue(true)
     buildFeatures.viewBinding().setValue(true)
+    buildFeatures.prefab().setValue(true)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
@@ -65,6 +68,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("dataBinding", true, buildFeatures.dataBinding())
     assertEquals("mlModelBinding", true, buildFeatures.mlModelBinding())
     assertEquals("viewBinding", true, buildFeatures.viewBinding())
+    assertEquals("prefab", true, buildFeatures.prefab())
   }
 
   @Test
@@ -77,10 +81,12 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertMissingProperty("dataBinding", buildFeatures.dataBinding())
     assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())
     assertMissingProperty("viewBinding", buildFeatures.viewBinding())
+    assertMissingProperty("prefab", buildFeatures.prefab())
     buildFeatures.compose().setValue(false)
     buildFeatures.dataBinding().setValue(false)
     buildFeatures.mlModelBinding().setValue(false)
     buildFeatures.viewBinding().setValue(false)
+    buildFeatures.prefab().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
@@ -88,6 +94,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("dataBinding", false, buildFeatures.dataBinding())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
     assertEquals("viewBinding", false, buildFeatures.viewBinding())
+    assertEquals("prefab", false, buildFeatures.prefab())
   }
 
   @Test
@@ -100,10 +107,12 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertMissingProperty("dataBinding", buildFeatures.dataBinding())
     assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())
     assertMissingProperty("viewBinding", buildFeatures.viewBinding())
+    assertMissingProperty("prefab", buildFeatures.prefab())
     buildFeatures.compose().setValue(false)
     buildFeatures.dataBinding().setValue(false)
     buildFeatures.mlModelBinding().setValue(false)
     buildFeatures.viewBinding().setValue(false)
+    buildFeatures.prefab().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
@@ -111,6 +120,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("dataBinding", false, buildFeatures.dataBinding())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
     assertEquals("viewBinding", false, buildFeatures.viewBinding())
+    assertEquals("prefab", false, buildFeatures.prefab())
   }
 
   @Test
@@ -124,10 +134,12 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("dataBinding", false, buildFeatures.dataBinding())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
     assertEquals("viewBinding", false, buildFeatures.viewBinding())
+    assertEquals("prefab", false, buildFeatures.prefab())
     buildFeatures.compose().delete()
     buildFeatures.dataBinding().delete()
     buildFeatures.mlModelBinding().delete()
     buildFeatures.viewBinding().delete()
+    buildFeatures.prefab().delete()
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, "")
     buildFeatures = buildModel.android().buildFeatures()
@@ -136,5 +148,6 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertMissingProperty("dataBinding", buildFeatures.dataBinding())
     assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())
     assertMissingProperty("viewBinding", buildFeatures.viewBinding())
+    assertMissingProperty("prefab", buildFeatures.prefab())
   }
 }

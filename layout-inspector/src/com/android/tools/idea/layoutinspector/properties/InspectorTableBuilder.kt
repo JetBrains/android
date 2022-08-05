@@ -22,7 +22,7 @@ import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.TableUIProvider
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTableItem
 
 class InspectorTableBuilder(
   private val title: String,

@@ -74,7 +74,7 @@ public class ScreenshotTaker {
    */
   private BufferedImage takeDesktopScreenshot() {
     festRobot.waitForIdle();
-    return execute(new GuiQuery<>() {
+    return execute(new GuiQuery<BufferedImage>() {
       @Override
       protected @Nullable BufferedImage executeInEDT() {
         Rectangle r = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());

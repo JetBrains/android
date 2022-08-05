@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.structure.model.ModuleKind
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModel
@@ -26,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.intellij.icons.AllIcons
+import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
 import javax.swing.Icon
 
@@ -34,17 +34,18 @@ class PsJavaModule(
   override val gradlePath: String
   ) : PsModule(parent, ModuleKind.JAVA) {
   override val descriptor by JavaModuleDescriptors
-  var resolvedModel: JavaModuleModel? = null ; private set
+  var resolvedModel: ExternalProject? = null ; private set
   override var rootDir: File? = null ; private set
   override val projectType: PsModuleType = PsModuleType.JAVA
   override val icon: Icon = AllIcons.Nodes.Module
   private var myDependencyCollection: PsDeclaredJavaDependencyCollection? = null
   private var myResolvedDependencyCollection: PsResolvedJavaDependencyCollection? = null
 
-  fun init(name: String, parentModule: PsModule?, resolvedModel: JavaModuleModel?, parsedModel: GradleBuildModel?) {
+  fun init(name: String, parentModule: PsModule?, resolvedModel: ExternalProject?, parsedModel: GradleBuildModel?) {
     super.init(name, parentModule, parsedModel)
     this.resolvedModel = resolvedModel
-    rootDir = resolvedModel?.contentRoots?.firstOrNull()?.rootDirPath
+    rootDir = resolvedModel?.projectDir
+    myResolvedDependencyCollection = null
     myDependencyCollection?.let { it.refresh(); fireDependenciesReloadedEvent() }
   }
 
@@ -76,9 +77,10 @@ class PsJavaModule(
                         "testImplementation",
                         "testRuntime",
                         "testRuntimeOnly")
+    val projectConfigs = resolvedModel?.artifactsByConfiguration?.keys ?: setOf()
     return when {
       onlyImportantFor != null -> defaultImportant.toList()
-      else -> (defaultImportant + defaultOther + resolvedModel?.configurations.orEmpty().toSet()).toList()
+      else -> (defaultImportant + defaultOther + projectConfigs).toList()
     }
   }
 

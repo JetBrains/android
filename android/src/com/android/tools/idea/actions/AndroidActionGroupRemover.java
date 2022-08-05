@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -56,7 +56,7 @@ public class AndroidActionGroupRemover extends ActionGroup {
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+    if (project != null && ProjectSystemUtil.requiresAndroidModel(project)) {
       presentation.setEnabledAndVisible(false);
       return;
     }

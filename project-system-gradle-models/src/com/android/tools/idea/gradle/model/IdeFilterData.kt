@@ -16,6 +16,6 @@
 package com.android.tools.idea.gradle.model
 
 interface IdeFilterData {
-    val identifier: String
-    val filterType: String
+  val identifier: String
+  val filterType: String
 }

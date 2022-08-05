@@ -123,7 +123,7 @@ public final class AdtModuleImporter extends ModuleImporter {
     Set<ModuleToImport> modules = new HashSet<>();
     for (final Map.Entry<String, File> entry : adtProjects.entrySet()) {
       VirtualFile location = findFileByIoFile(entry.getValue(), false);
-      modules.add(new ModuleToImport(entry.getKey(), location, new Supplier<>() {
+      modules.add(new ModuleToImport(entry.getKey(), location, new Supplier<Iterable<String>>() {
         @Override
         public Iterable<String> get() {
           return gradleImport.getProjectDependencies(entry.getKey());

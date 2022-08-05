@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.android.dom.inspections.MavenClassResolverUtils;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -154,7 +153,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     if ((manifest != null && manifestPackage == null) || myUseManifestBasePackage) {
       Module module = context.getModule();
       if (module != null) {
-        manifestPackage = AndroidManifestUtils.getPackageName(module);
+        manifestPackage = ProjectSystemUtil.getModuleSystem(module).getPackageName();
       }
     }
     return manifestPackage;

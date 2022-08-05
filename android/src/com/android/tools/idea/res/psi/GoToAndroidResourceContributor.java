@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res.psi;
 
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule;
+
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -66,6 +68,6 @@ public class GoToAndroidResourceContributor extends GoToSymbolProvider {
 
   @Override
   protected boolean acceptModule(@NotNull Module module) {
-    return AndroidFacet.getInstance(module) != null;
+    return AndroidFacet.getInstance(module) != null && isMainModule(module);
   }
 }

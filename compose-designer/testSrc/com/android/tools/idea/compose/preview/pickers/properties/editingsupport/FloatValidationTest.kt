@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.pickers.properties.editingsupport
 
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
-import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingValidation
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -35,8 +34,8 @@ class FloatValidationTest {
     assertEquals(EDITOR_NO_ERROR, validator("1f"))
     assertEquals(EDITOR_NO_ERROR, validator("1"))
 
-    assertEquals(ERROR_NAN, validator("Test"))
-    assertEquals(ERROR_NAN, validator("1.0 f"))
+    assertEquals(ERROR_NOT_FLOAT, validator("Test"))
+    assertEquals(ERROR_NOT_FLOAT, validator("1.0 f"))
 
     assertEquals(ERROR_GREATER_THAN_ZERO, validator("0"))
     assertEquals(ERROR_GREATER_THAN_ZERO, validator("-1"))
@@ -49,7 +48,3 @@ class FloatValidationTest {
     assertEquals(WARN_FORMAT, validator("1.0d"))
   }
 }
-
-private val ERROR_GREATER_THAN_ZERO = Pair(EditingErrorCategory.ERROR, "Should be greater than zero")
-private val ERROR_NAN = Pair(EditingErrorCategory.ERROR, "Not a Float")
-private val WARN_FORMAT = Pair(EditingErrorCategory.WARNING, "Use the proper suffix (f) e.g: 1.0f")

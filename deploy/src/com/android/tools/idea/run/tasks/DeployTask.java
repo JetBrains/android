@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 public class DeployTask extends AbstractDeployTask {
 
   private static final Logger LOG = Logger.getInstance(DeployTask.class);
-  private static final String ID = "DEPLOY";
+  public static final String ID = "DEPLOY";
 
   private final String[] userInstallOptions;
   private final boolean installOnAllUsers;

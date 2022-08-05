@@ -18,16 +18,15 @@ package com.android.tools.idea.compose.documentation
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.compose.ComposeLibraryNamespace
-import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
-import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.documentation.DocumentationComponent
@@ -57,8 +56,8 @@ import org.jetbrains.annotations.Nls
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.findAnnotation
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -160,9 +159,8 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
   private fun renderImage(previewElement: KtNamedFunction): CompletableFuture<BufferedImage?> {
     val facet = AndroidFacet.getInstance(previewElement) ?: return CompletableFuture.completedFuture(null)
-    val uiToolingPackageName = previewElement.module?.findComposeToolingNamespace() ?: return CompletableFuture.completedFuture(null)
     val previewElementName = getFullNameForPreview(previewElement)
-    return renderPreviewElement(facet, previewFromMethodName(previewElementName, uiToolingPackageName))
+    return renderPreviewElement(facet, previewFromMethodName(previewElementName))
       .whenComplete { _, _ ->
         if (StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW.get()) {
           Thread.sleep(3000)
@@ -170,12 +168,10 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
       }
   }
 
-  private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
-
-  private fun previewFromMethodName(fqName: String, composeLibraryNamespace: ComposeLibraryNamespace): SinglePreviewElementInstance {
+  private fun previewFromMethodName(fqName: String): SingleComposePreviewElementInstance {
     val scheme = EditorColorsManager.getInstance().globalScheme
     val background = scheme.getColor(EditorColors.DOCUMENTATION_COLOR) ?: scheme.defaultBackground
-    return SinglePreviewElementInstance(
+    return SingleComposePreviewElementInstance(
       composableMethodFqn = fqName,
       displaySettings = PreviewDisplaySettings(
         name = "",
@@ -185,8 +181,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
         backgroundColor = ColorUtil.toHtmlColor(background)),
       previewElementDefinitionPsi = null,
       previewBodyPsi = null,
-      configuration = nullConfiguration,
-      composeLibraryNamespace = composeLibraryNamespace)
+      configuration = PreviewConfiguration.cleanAndGet())
   }
 
   /**
@@ -221,8 +216,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
   private fun PsiElement.isPreview() = this is KtNamedFunction &&
                                        annotationEntries.any { it.shortName?.asString() == COMPOSE_PREVIEW_ANNOTATION_NAME } &&
-                                       (this.findAnnotation(ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.previewAnnotationNameFqName) != null ||
-                                        this.findAnnotation(ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewAnnotationNameFqName) != null)
+                                       this.findAnnotation(FqName(COMPOSE_PREVIEW_ANNOTATION_FQN)) != null
 
   private fun getOriginalDoc(element: PsiElement?, originalElement: PsiElement?): String? = ReadAction.compute<String?, Throwable> {
     if (element?.isValid != true) return@compute null

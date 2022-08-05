@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.fixtures
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
-import org.mockito.Mockito
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL
 
@@ -56,9 +56,9 @@ class MouseWheelEventBuilder(@SwingCoordinate x: Int, @SwingCoordinate y: Int) :
 
   override fun build(): MouseWheelEvent {
     val event = createMockEvent(MouseWheelEvent::class.java)
-    Mockito.`when`(event.scrollAmount).thenReturn(scrollAmount)
-    Mockito.`when`(event.scrollType).thenReturn(scrollType)
-    Mockito.`when`(event.unitsToScroll).thenReturn(unitsToScroll)
+    whenever(event.scrollAmount).thenReturn(scrollAmount)
+    whenever(event.scrollType).thenReturn(scrollType)
+    whenever(event.unitsToScroll).thenReturn(unitsToScroll)
     return event
   }
 }

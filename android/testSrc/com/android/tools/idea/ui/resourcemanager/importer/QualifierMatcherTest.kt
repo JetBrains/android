@@ -16,10 +16,13 @@
 package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.ide.common.resources.configuration.DensityQualifier
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
+import com.android.ide.common.resources.configuration.ScreenOrientationQualifier
 import com.android.resources.Density
 import com.android.resources.NightMode
+import com.android.resources.ScreenOrientation
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -34,6 +37,16 @@ class QualifierMatcherTest {
     val (resourceName, qualifiers) = qualifierLexer.parsePath("/test/Path/file.png")
     assertEquals("file", resourceName)
     assertEquals(0, qualifiers.size)
+    checkResult(qualifierLexer.parsePath("/test/Path/file-en-rGB-land.png"), "file",
+                LocaleQualifier("en-rGB", "en", "GB", null),
+                ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE))
+    checkResult(qualifierLexer.parsePath("/test/Path-en-rGB-land/file-not-qualifiers.png"), "file_not_qualifiers",
+                LocaleQualifier("en-rGB", "en", "GB", null),
+                ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE))
+    checkResult(qualifierLexer.parsePath("/test/en-rGB-land/file-not-qualifiers.png"), "file_not_qualifiers",
+                LocaleQualifier("en-rGB", "en", "GB", null),
+                ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE))
+    checkResult(qualifierLexer.parsePath("/test/Path-not-qualifiers/file-not-qualifiers.png"), "file_not_qualifiers")
   }
 
   @Test

@@ -23,6 +23,9 @@ import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Before
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
@@ -53,7 +56,7 @@ class NetworkInspectorModelTest {
           txSpeed = 4
         }.build()
       }.build()
-    )))
+    )), CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher()))
     model.timeline.viewRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
   }
 
@@ -149,6 +152,4 @@ class NetworkInspectorModelTest {
     assertThat(model.selectedConnection).isEqualTo(data)
     assertThat(connectionChanged).isEqualTo(true)
   }
-
-
 }

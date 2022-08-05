@@ -37,7 +37,6 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -45,6 +44,7 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.CommonActionsPanel
 import com.intellij.ui.table.TableView
+import com.intellij.util.ui.UIUtil
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -188,6 +188,9 @@ class ManageSnapshotsDialogTest {
     // Wait for the snapshot to be created and the snapshot list to be updated.
     waitForCondition(2, TimeUnit.SECONDS) { table.items.size == 4 }
     val secondSnapshot = checkNotNull(table.selectedObject)
+    // Edit the second snapshot without making any changes.
+    editSnapshot(actionsPanel, secondSnapshot.displayName, secondSnapshot.description, false)
+    assertThat(isUseToBoot(table, 1)).isTrue() // The first snapshot is still used to boot.
     // Create third snapshot.
     ui.clickOn(takeSnapshotButton)
     // Wait for the snapshot to be created and the snapshot list to be updated.
@@ -210,7 +213,7 @@ class ManageSnapshotsDialogTest {
     // Remove the two selected snapshots.
     performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
 
-    assertThat(table.items.size == 3)
+    assertThat(table.items.size).isEqualTo(3)
     assertThat(table.selectedRowCount).isEqualTo(1)
     selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.snapshotId).isEqualTo(incompatibleSnapshotId)
@@ -221,7 +224,7 @@ class ManageSnapshotsDialogTest {
     // Remove the incompatible snapshot.
     performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
 
-    assertThat(table.items.size == 2)
+    assertThat(table.items.size).isEqualTo(2)
     assertThat(table.selectedRowCount).isEqualTo(1)
     selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.displayName).isEqualTo(firstSnapshotName)
@@ -456,8 +459,8 @@ class ManageSnapshotsDialogTest {
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): Path {
     // The image is slightly taller on Mac due to a slight layout difference.
-    val platformSuffix = if (SystemInfo.isMac) "_Mac" else ""
-    return TestUtils.resolveWorkspacePath("$GOLDEN_FILE_PATH/$name$platformSuffix.png")
+    val platformSuffix = if (UIUtil.isRetina()) "_Mac" else ""
+    return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/$name$platformSuffix.png")
   }
 }
 

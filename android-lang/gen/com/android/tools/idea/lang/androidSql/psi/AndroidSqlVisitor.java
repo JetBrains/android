@@ -215,10 +215,6 @@ public class AndroidSqlVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
-  public void visitFunctionName(@NotNull AndroidSqlFunctionName o) {
-    visitNameElement(o);
-  }
-
   public void visitGroupByClause(@NotNull AndroidSqlGroupByClause o) {
     visitPsiElement(o);
   }

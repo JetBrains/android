@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAllRecursively;
 
@@ -76,7 +75,6 @@ public class DataNodeCaches {
   private static void clearCaches(@NotNull DataNode<ProjectData> cache) {
     clearCachesOfType(cache, GRADLE_MODULE_MODEL);
     clearCachesOfType(cache, ANDROID_MODEL);
-    clearCachesOfType(cache, JAVA_MODULE_MODEL);
     clearCachesOfType(cache, NDK_MODEL);
   }
 

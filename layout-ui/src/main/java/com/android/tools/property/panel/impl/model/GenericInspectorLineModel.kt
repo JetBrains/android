@@ -60,7 +60,7 @@ open class GenericInspectorLineModel : InspectorLineModel {
   }
 
   override fun removeValueChangedListener(listener: ValueChangedListener) {
-    listeners.add(listener)
+    listeners.remove(listener)
   }
 
   protected fun fireValueChanged() {

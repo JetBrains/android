@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.resources.ResourceType
+import com.android.tools.idea.ui.resourcemanager.importer.QualifierMatcher
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -90,7 +91,8 @@ interface ResourceImporter {
       return null
     }
     return if (DesignAssetRendererManager.getInstance().hasViewer(virtualFile)) {
-      DesignAsset(virtualFile, listOf(), ResourceType.RAW)
+      val qualifierMatcherResult = QualifierMatcher().parsePath(file.path)
+      DesignAsset(virtualFile, qualifierMatcherResult.qualifiers.toList(), ResourceType.RAW, qualifierMatcherResult.resourceName)
     }
     else {
       LOG.warn("No viewer for: ${virtualFile.name}.")

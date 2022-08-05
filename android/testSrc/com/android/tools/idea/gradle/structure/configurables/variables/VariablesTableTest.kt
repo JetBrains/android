@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Shadowe
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.childNodes
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
+import com.android.tools.idea.gradle.structure.daemon.PsSdkIndexCheckerDaemon
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
@@ -61,6 +62,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     override val analyzerDaemon: PsAnalyzerDaemon get() = throw UnsupportedOperationException()
     override val project: PsProject = project
     override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon get() = throw UnsupportedOperationException()
+    override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon get() =  throw UnsupportedOperationException()
     override val uiSettings: PsUISettings get() = throw UnsupportedOperationException()
     override val selectedModule: String get() = throw UnsupportedOperationException()
     override val mainConfigurable: ProjectStructureConfigurable get() = throw UnsupportedOperationException()

@@ -32,11 +32,20 @@ import com.android.sdklib.repository.targets.SystemImage
 import com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG
 import com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.someRoot
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionCannotFindAdbDeviceException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
@@ -45,8 +54,10 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.MetricsTrackerRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -65,9 +76,13 @@ import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.addManifest
+import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.execution.RunManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -81,22 +96,22 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.`when`
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private val OTHER_MODERN_PROCESS = MODERN_DEVICE.createProcess(name = "com.other", streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 /** Timeout used in this test. While debugging, you may want to extend the timeout */
-private const val TIMEOUT = 1L
+private const val TIMEOUT = 10L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 class AppInspectionInspectorClientTest {
@@ -133,58 +148,42 @@ class AppInspectionInspectorClientTest {
     // Validate all the progress events happen in order. Note that those generated on the device side are synthetic, since we're not
     // using the real agent in this test.
     // TODO(b/203712328): Because of a problem with the test framework, this test will pass even without the fix included in the same commit
+
+    val modelUpdatedLatch = ReportingCountDownLatch(1)
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
     val inOrder = inOrder(monitor)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_RECEIVED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_INVALIDATION_CALLBACK)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.SCREENSHOT_CAPTURED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_HIERARCHY_CAPTURED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.RESPONSE_SENT)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LAYOUT_EVENT_RECEIVED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_REQUEST_SENT)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.PARSED_COMPONENT_TREE)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.ADB_PING)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.ATTACH_SUCCESS)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.START_REQUEST_SENT)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.START_RECEIVED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.ROOTS_EVENT_SENT)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.ROOTS_EVENT_RECEIVED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.VIEW_INVALIDATION_CALLBACK)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.SCREENSHOT_CAPTURED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.VIEW_HIERARCHY_CAPTURED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.RESPONSE_SENT)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.LAYOUT_EVENT_RECEIVED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.PARSED_COMPONENT_TREE)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.MODEL_UPDATED)
   }
 
   @Test
   fun inspectorStartsFetchingContinuouslyOnConnectIfLiveMode() = runBlocking {
     InspectorClientSettings.isCapturingModeOn = true
 
-    val startFetchReceived = CompletableDeferred<Unit>()
+    val startFetchReceived = ReportingCountDownLatch(1)
     inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
       assertThat(command.startFetchCommand.continuous).isTrue()
-      startFetchReceived.complete(Unit)
-    }
-
-    // Initial fetch additionally triggers requests for composables
-    val composeCommands = ArrayBlockingQueue<ComposeProtocol.Command>(1)
-    inspectionRule.composeInspector.listenWhen({ true }) { command ->
-      composeCommands.add(command)
-    }
-
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    startFetchReceived.await() // If here, we already successfully connected (and sent an initial command)
-    assertThat(inspectorRule.inspectorClient).isInstanceOf(AppInspectionInspectorClient::class.java)
-
-    // View Inspector layout event -> Compose Inspector get composables command
-    composeCommands.take().let { command ->
-      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
-    }
-  }
-
-  @Test
-  fun inspectorRequestsSingleFetchIfSnapshotMode() = runBlocking {
-    InspectorClientSettings.isCapturingModeOn = false
-
-    val startFetchReceived = CompletableDeferred<Unit>()
-    inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
-      assertThat(command.startFetchCommand.continuous).isFalse()
-      startFetchReceived.complete(Unit)
+      startFetchReceived.countDown()
     }
 
     // Initial fetch additionally triggers requests for composables
@@ -194,9 +193,92 @@ class AppInspectionInspectorClientTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    startFetchReceived.await() // If here, we already successfully connected (and sent an initial command)
+    startFetchReceived.await(TIMEOUT, TIMEOUT_UNIT) // If here, we already successfully connected (and sent an initial command)
+    assertThat(inspectorRule.inspectorClient).isInstanceOf(AppInspectionInspectorClient::class.java)
+    assertThat(inspectorRule.inspectorClient.capabilities).contains(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+
+    // View Inspector layout event -> Compose Inspector update settings command
+    composeCommands.take().let { command ->
+      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
+      assertThat(command.updateSettingsCommand.includeRecomposeCounts).isFalse()
+      assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
+    }
+    // View Inspector layout event -> Compose Inspector get composables commands
+    composeCommands.take().let { command ->
+      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
+    }
+
+    inspectorRule.inspector.treeSettings.showRecompositions = true
+    (inspectorRule.inspectorClient as AppInspectionInspectorClient).updateRecompositionCountSettings()
+
+    composeCommands.take().let { command ->
+      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
+      assertThat(command.updateSettingsCommand.includeRecomposeCounts).isTrue()
+      assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
+    }
+  }
+
+  @Test
+  fun recomposingNotSupported() = runBlocking {
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.simulateComposeVersionWithoutUpdateSettingsCommand()
+
+    InspectorClientSettings.isCapturingModeOn = true
+    inspectorRule.inspector.treeSettings.showRecompositions = true
+
+    val startFetchReceived = ReportingCountDownLatch(1)
+    inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
+      assertThat(command.startFetchCommand.continuous).isTrue()
+      startFetchReceived.countDown()
+    }
+
+    // Initial fetch additionally triggers requests for composables
+    val composeCommands = ArrayBlockingQueue<ComposeProtocol.Command>(2)
+    inspectionRule.composeInspector.listenWhen({ true }) { command ->
+      composeCommands.add(command)
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    startFetchReceived.await(TIMEOUT, TIMEOUT_UNIT) // If here, we already successfully connected (and sent an initial command)
+    assertThat(inspectorRule.inspectorClient).isInstanceOf(AppInspectionInspectorClient::class.java)
+    assertThat(inspectorRule.inspectorClient.capabilities).doesNotContain(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+
+    // View Inspector layout event -> Compose Inspector update settings command
+    composeCommands.take().let { command ->
+      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
+      assertThat(command.updateSettingsCommand.includeRecomposeCounts).isTrue()
+      assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
+    }
+    // View Inspector layout event -> Compose Inspector get composables commands
+    composeCommands.take().let { command ->
+      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
+    }
+  }
+
+  @Test
+  fun inspectorRequestsSingleFetchIfSnapshotMode() = runBlocking {
+    InspectorClientSettings.isCapturingModeOn = false
+
+    val startFetchReceived = ReportingCountDownLatch(1)
+    inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
+      assertThat(command.startFetchCommand.continuous).isFalse()
+      startFetchReceived.countDown()
+    }
+
+    // Initial fetch additionally triggers requests for composables
+    val composeCommands = ArrayBlockingQueue<ComposeProtocol.Command>(3)
+    inspectionRule.composeInspector.listenWhen({ true }) { command ->
+      composeCommands.add(command)
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    startFetchReceived.await(TIMEOUT, TIMEOUT_UNIT) // If here, we already successfully connected (and sent an initial command)
     assertThat(inspectorRule.inspectorClient).isInstanceOf(AppInspectionInspectorClient::class.java)
 
+    // View Inspector layout event -> Compose Inspector get update settings command
+    composeCommands.take().let { command ->
+      assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
+    }
     // View Inspector layout event -> Compose Inspector get composables command
     composeCommands.take().let { command ->
       assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
@@ -306,6 +388,8 @@ class AppInspectionInspectorClientTest {
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(error.await()).isEqualTo(startFetchError)
+    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message)
+      .isEqualTo("Failed to start fetching or whatever")
   }
 
   @Test
@@ -314,7 +398,7 @@ class AppInspectionInspectorClientTest {
     val banner = InspectorBanner(inspectorRule.project)
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.text.text).isEqualTo(INCOMPATIBLE_LIBRARY_MESSAGE)
   }
 
@@ -324,6 +408,7 @@ class AppInspectionInspectorClientTest {
     val banner = InspectorBanner(inspectorRule.project)
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
     assertThat(banner.text.text).isEqualTo(PROGUARDED_LIBRARY_MESSAGE)
   }
@@ -396,6 +481,8 @@ class AppInspectionInspectorClientTest {
       ViewProtocol.Response.newBuilder().setStopFetchResponse(ViewProtocol.StopFetchResponse.getDefaultInstance()).build()
     }
 
+    var sawInitialFirstBatchEvent = false
+    var sawInitialSecondBatchEvent = false
     val treeEventsHandled = ReportingCountDownLatch(1)
     inspectorRule.launcher.addClientChangedListener { client ->
       client.registerTreeEventCallback { data ->
@@ -403,13 +490,29 @@ class AppInspectionInspectorClientTest {
           assertThat(viewEvent.rootView.id).isEqualTo(1)
 
           if (handlingFirstBatch) {
-            handlingFirstBatch = false
-            assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(10.toByte())
-            client.stopFetching() // Triggers second batch of layout events
+            if (!sawInitialFirstBatchEvent && viewEvent.screenshot.bytes.byteAt(0) < 10) {
+              // This will get called at some point between when we start generating events and after we get to event 10.
+              // If we haven't gotten to event 10 yet, wait a little until the rest can be ready for us. After this we should expect the
+              // next available event to be 10.
+              sawInitialFirstBatchEvent = true
+              Thread.sleep(100)
+            }
+            else {
+              handlingFirstBatch = false
+              assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(10.toByte())
+              client.stopFetching() // Triggers second batch of layout events
+            }
           }
           else {
-            assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(20.toByte())
-            treeEventsHandled.countDown()
+            if (!sawInitialSecondBatchEvent && viewEvent.screenshot.bytes.byteAt(0) < 20) {
+              // Same as above with the second batch of events, up to event 20.
+              sawInitialSecondBatchEvent = true
+              Thread.sleep(100)
+            }
+            else {
+              assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(20.toByte())
+              treeEventsHandled.countDown()
+            }
           }
         }
       }
@@ -489,8 +592,11 @@ class AppInspectionInspectorClientTest {
 
       // Also verify that the ComposeView do not contain the MaterialTextView nor the RippleContainer in its children:
       val composeView = inspectorRule.inspectorModel[6]!!
-      assertThat(composeView.qualifiedName).isEqualTo("android.view.ComposeView")
-      assertThat(composeView.children.single().qualifiedName).isEqualTo("Surface")
+      assertThat(composeView.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
+      val surface = composeView.children.single() as ComposeViewNode
+      assertThat(surface.qualifiedName).isEqualTo("Surface")
+      assertThat(surface.recompositions.count).isEqualTo(7)
+      assertThat(surface.recompositions.skips).isEqualTo(14)
     }
   }
 
@@ -499,12 +605,12 @@ class AppInspectionInspectorClientTest {
     InspectorClientSettings.isCapturingModeOn = true
     val banner = InspectorBanner(inspectorRule.project)
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
-      layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
+      com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
         startFetchResponseBuilder.error = "here's my error"
       }.build()
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.text.text).isEqualTo("here's my error")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
   }
@@ -514,13 +620,13 @@ class AppInspectionInspectorClientTest {
     InspectorClientSettings.isCapturingModeOn = false
     val banner = InspectorBanner(inspectorRule.project)
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
-      layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
+      com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
         startFetchResponseBuilder.error = "here's my error"
       }.build()
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.text.text).isEqualTo("here's my error")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
   }
@@ -545,6 +651,8 @@ class AppInspectionInspectorClientTest {
     PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+
     assertThat(banner.isVisible).isFalse()
   }
 
@@ -556,6 +664,8 @@ class AppInspectionInspectorClientTest {
     val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+
     val actionPanel = banner.components[1] as JPanel
     val doNotShowAction = actionPanel.components[1] as HyperlinkLabel
     doNotShowAction.doClick()
@@ -568,6 +678,7 @@ class AppInspectionInspectorClientTest {
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isFalse()
   }
 
@@ -580,6 +691,8 @@ class AppInspectionInspectorClientTest {
     val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+
     assertThat(banner.isVisible).isFalse()
   }
 
@@ -632,6 +745,47 @@ class AppInspectionInspectorClientTest {
     assertThat(inspectorRule.inspectorModel.resourceLookup.fontScale).isEqualTo(1.5f)
   }
 
+  @Test
+  fun testResetOnPendingCommand() {
+    val commandLatch = CommandLatch(TIMEOUT, TIMEOUT_UNIT)
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree(withSemantics = true, latch = commandLatch)
+
+    var modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    var node = inspectorRule.inspectorModel[-2] as ComposeViewNode
+    assertThat(node.recompositions.count).isEqualTo(7)
+    assertThat(node.recompositions.skips).isEqualTo(14)
+
+    // Enable the latch such that the GetComposables response is delayed below.
+    commandLatch.enabled = true
+
+    // Trigger a GetComposables command to be sent.
+    modelUpdatedLatch = ReportingCountDownLatch(1)
+    inspectorState.triggerLayoutCapture(rootId = 1)
+
+    // While waiting for the GetComposables response: send a reset recompose counts command
+    commandLatch.waitForCommand {
+      val client = inspectorRule.inspectorClient as AppInspectionInspectorClient
+      client.updateRecompositionCountSettings()
+    }
+
+    // Wait to receive the composables from the command sent before the reset
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    // The recomposition counts should be 0 even if the counts were read as non-zero.
+    node = inspectorRule.inspectorModel[-2] as ComposeViewNode
+    assertThat(node.recompositions.count).isEqualTo(0)
+    assertThat(node.recompositions.skips).isEqualTo(0)
+  }
+
   private fun setUpRunConfiguration(enableInspectionWithoutRestart: Boolean = false) {
     addManifest(inspectorRule.projectRule.fixture)
     AndroidRunConfigurations.getInstance().createRunConfiguration(AndroidFacet.getInstance(inspectorRule.projectRule.module)!!)
@@ -643,11 +797,14 @@ class AppInspectionInspectorClientTest {
   }
 
   private fun verifyActivityRestartBanner(banner: InspectorBanner, runConfigActionExpected: Boolean) {
-    assertThat(banner.isVisible).isTrue()
-    assertThat(banner.text.text).isEqualTo("The activity was restarted. This can be avoided by enabling " +
-                                           "\"Connect without restarting activity\" in the run configuration options.")
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+    assertThat(banner.text.text).isEqualTo("The activity was restarted. This can be avoided by selecting " +
+                                           "\"Enable view attribute inspection\" in the developer options on the device or " +
+                                           "by enabling \"Connect without restarting activity\" in the run configuration options.")
     val service = InspectorBannerService.getInstance(inspectorRule.project)
     service.DISMISS_ACTION.actionPerformed(mock())
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+
     val actionPanel = banner.getComponent(1) as JPanel
     if (runConfigActionExpected) {
       assertThat(actionPanel.componentCount).isEqualTo(3)
@@ -688,14 +845,16 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val packages = RepositoryPackages(listOf(sdkPackage), listOf())
     val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
     val banner = InspectorBanner(inspectorRule.project)
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
       val client = AppInspectionInspectorClient(processDescriptor2, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
-                                                mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+                                                mock(), mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                                 sdkHandler = sdkHandler)
       // shouldn't get an exception
-      client.connect()
+      client.connect(inspectorRule.project)
     })
 
   }
@@ -713,17 +872,17 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val packages = RepositoryPackages(listOf(sdkPackage), listOf())
     val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
     val banner = InspectorBanner(inspectorRule.project)
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
       val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
-                                                mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+                                                mock(), mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                                 sdkHandler = sdkHandler)
-      client.connect()
+      client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
-      invokeAndWaitIfNeeded {
-        UIUtil.dispatchAllInvocationEvents()
-      }
+      invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
       assertThat(banner.isVisible).isTrue()
       assertThat(banner.text.text).isEqualTo(API_29_BUG_MESSAGE)
     })
@@ -738,13 +897,11 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     packages.setRemotePkgInfos(listOf(remotePackage))
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
       val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
-                                                mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+                                                mock(), mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                                 sdkHandler = sdkHandler)
-      client.connect()
+      client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
-      invokeAndWaitIfNeeded {
-        UIUtil.dispatchAllInvocationEvents()
-      }
+      invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
       assertThat(banner.isVisible).isTrue()
       assertThat(banner.text.text).isEqualTo("$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE")
     })
@@ -815,8 +972,8 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
 
     inspectorRule.adbRule.attachDevice(
       processDescriptor.device.serial, processDescriptor.device.manufacturer, processDescriptor.device.model,
-      processDescriptor.device.version, processDescriptor.device.apiLevel.toString(), DeviceState.HostConnectionType.LOCAL,
-      "myAvd-$apiLevel", "/android/avds/myAvd-$apiLevel"
+      processDescriptor.device.version, processDescriptor.device.apiLevel.toString(), processDescriptor.abiCpuArch,
+      DeviceState.HostConnectionType.LOCAL, "myAvd-$apiLevel", "/android/avds/myAvd-$apiLevel"
     )
 
     return processDescriptor
@@ -824,10 +981,19 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
 }
 
 class AppInspectionInspectorClientWithFailingClientTest {
+  private val usageTrackerRule = MetricsTrackerRule()
   private val disposableRule = DisposableRule()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val monitor = spy(InspectorClientLaunchMonitor()).also {
-    `when`(it.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)).thenThrow(RuntimeException("expected"))
+  private var throwOnState: AttachErrorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
+  private var exceptionToThrow: Exception = RuntimeException("expected")
+  private val monitor = spy(InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor())).also {
+    doAnswer { invocation ->
+      val state = invocation.arguments[0] as AttachErrorState
+      if (state == throwOnState) {
+        throw exceptionToThrow
+      }
+      null
+    }.whenever(it).updateProgress(any(AttachErrorState::class.java))
   }
 
   private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor))) {
@@ -835,14 +1001,100 @@ class AppInspectionInspectorClientWithFailingClientTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(usageTrackerRule).around(disposableRule)!!
 
   @Test
   fun errorShownOnNoAgentWithApi29() {
+    throwOnState = AttachErrorState.START_REQUEST_SENT
     val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.text.text).isEqualTo("Unable to detect a live inspection service. To enable live inspections, restart the device.")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+    val usages = usageTrackerRule.testTracker.usages
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
+    assertThat(usages).hasSize(4)
+    assertThat(usages.map { it.studioEvent.dynamicLayoutInspectorEvent.type }).containsExactly(
+      DynamicLayoutInspectorEventType.ATTACH_REQUEST,
+      DynamicLayoutInspectorEventType.ATTACH_SUCCESS,
+      DynamicLayoutInspectorEventType.ATTACH_ERROR,
+      DynamicLayoutInspectorEventType.SESSION_DATA
+    ).inOrder()
+  }
+
+  @Test
+  fun errorLoggedOnException() {
+    throwOnState = AttachErrorState.ATTACH_SUCCESS
+    val banner = InspectorBanner(inspectorRule.project)
+    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+    assertThat(banner.text.text).isEqualTo("Unable to detect a live inspection service. To enable live inspections, restart the device.")
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+    val usages = usageTrackerRule.testTracker.usages
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
+    assertThat(usages).hasSize(3)
+    assertThat(usages.map { it.studioEvent.dynamicLayoutInspectorEvent.type }).containsExactly(
+      DynamicLayoutInspectorEventType.ATTACH_REQUEST,
+      DynamicLayoutInspectorEventType.ATTACH_ERROR,
+      DynamicLayoutInspectorEventType.SESSION_DATA
+    ).inOrder()
+  }
+
+  @Test
+  fun noHardwareAcceleration() = runBlocking {
+    throwOnState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE // do not throw !!!
+
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.simulateNoHardwareAccelerationErrorFromStartCapturing()
+
+    val startFetchReceived = ReportingCountDownLatch(1)
+    inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
+      assertThat(command.startFetchCommand.continuous).isTrue()
+      startFetchReceived.countDown()
+    }
+
+    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    startFetchReceived.await(TIMEOUT, TIMEOUT_UNIT) // If here, we already successfully connected (and sent an initial command)
+
+    val usages = usageTrackerRule.testTracker.usages
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
+    assertThat(usages).hasSize(4)
+    val event2 = usages[2].studioEvent.dynamicLayoutInspectorEvent
+    assertThat(event2.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_ERROR)
+    assertThat(event2.errorInfo.attachErrorCode).isEqualTo(AttachErrorCode.NO_HARDWARE_ACCELERATION)
+  }
+
+  @Test
+  fun testErrorsFromAppInspection() {
+    checkException(AppInspectionCannotFindAdbDeviceException("expected"), AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE)
+    checkException(AppInspectionProcessNoLongerExistsException("expected"), AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS)
+    checkException(AppInspectionVersionIncompatibleException("expected"), AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION)
+    checkException(AppInspectionLibraryMissingException("expected"), AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY)
+    checkException(AppInspectionAppProguardedException("expected"), AttachErrorCode.APP_INSPECTION_PROGUARDED_APP)
+    checkException(AppInspectionArtifactNotFoundException("expected"), AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND)
+    checkException(object : AppInspectionServiceException("expected") {}, AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR)
+  }
+
+  private fun checkException(exception: Exception, expected: AttachErrorCode) {
+    throwOnState = AttachErrorState.ATTACH_SUCCESS
+    exceptionToThrow = exception
+    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+    val usages = usageTrackerRule.testTracker.usages
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
+    assertThat(usages).hasSize(3)
+    assertThat(usages.map { it.studioEvent.dynamicLayoutInspectorEvent.type }).containsExactly(
+      DynamicLayoutInspectorEventType.ATTACH_REQUEST,
+      DynamicLayoutInspectorEventType.ATTACH_ERROR,
+      DynamicLayoutInspectorEventType.SESSION_DATA
+    ).inOrder()
+    assertThat(usages[1].studioEvent.dynamicLayoutInspectorEvent.errorInfo.attachErrorCode).isEqualTo(expected)
+    inspectorRule.disconnect()
+    usageTrackerRule.testTracker.usages.clear()
   }
 }

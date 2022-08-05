@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.SdkConstants
-import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.AndroidTileConfigurationExecutor
-import com.intellij.execution.Executor
+import com.android.tools.idea.run.configuration.execution.TileLaunchOptions
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle
@@ -31,8 +34,8 @@ class AndroidTileConfigurationType :
     ID,
     AndroidBundle.message("android.tile.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
-    StudioIcons.Shell.Filetree.ANDROID_PROJECT
-  ) {
+    StudioIcons.Wear.TILES_RUN_CONFIG
+  ), DumbAware {
   companion object {
     const val ID = "AndroidTileConfigurationType"
   }
@@ -46,10 +49,14 @@ class AndroidTileConfigurationType :
 }
 
 class AndroidTileConfiguration(project: Project, factory: ConfigurationFactory) : AndroidWearConfiguration(project, factory) {
-  override val componentType = ComponentType.TILE
-  override val userVisibleComponentTypeName = AndroidBundle.message("android.run.configuration.tile")
-  override val componentBaseClassesFqNames = arrayOf(SdkConstants.CLASS_TILE_SERVICE)
+  override val componentLaunchOptions: TileLaunchOptions = TileLaunchOptions()
 
-  override fun getState(executor: Executor, environment: ExecutionEnvironment) = AndroidTileConfigurationExecutor(environment)
+  override fun getExecutor(environment: ExecutionEnvironment,
+                           deployTarget: DeployTarget,
+                           appRunSettings: AppRunSettings,
+                           applicationIdProvider: ApplicationIdProvider,
+                           apkProvider: ApkProvider): AndroidConfigurationExecutor {
+    return AndroidTileConfigurationExecutor(environment, deployTarget, appRunSettings, applicationIdProvider, apkProvider)
+  }
 }
 

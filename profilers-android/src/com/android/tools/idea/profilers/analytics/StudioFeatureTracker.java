@@ -336,16 +336,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectCpuKernelElement() {
-    track(AndroidProfilerEvent.Type.KERNEL_VIEW_CLICKED);
-  }
-
-  @Override
-  public void trackToggleCpuKernelHideablePanel() {
-    track(AndroidProfilerEvent.Type.KERNEL_VIEW_TOGGLED);
-  }
-
-  @Override
   public void trackToggleCpuThreadsHideablePanel() {
     track(AndroidProfilerEvent.Type.THREADS_VIEW_TOGGLED);
   }
@@ -416,11 +406,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackSelectCaptureFlameChart() {
     track(AndroidProfilerEvent.Type.SELECT_FLAME_CHART);
-  }
-
-  @Override
-  public void trackSelectCaptureCallChart() {
-    track(AndroidProfilerEvent.Type.SELECT_CALL_CHART);
   }
 
   @Override
@@ -504,11 +489,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectNetworkDetailsHeaders() {
-    track(AndroidProfilerEvent.Type.SELECT_DETAILS_HEADERS);
-  }
-
-  @Override
   public void trackSelectNetworkDetailsResponse() {
     track(AndroidProfilerEvent.Type.SELECT_DETAILS_RESPONSE);
   }
@@ -521,11 +501,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackSelectNetworkDetailsStack() {
     track(AndroidProfilerEvent.Type.SELECT_DETAILS_STACK);
-  }
-
-  @Override
-  public void trackSelectNetworkDetailsError() {
-    track(AndroidProfilerEvent.Type.SELECT_DETAILS_ERROR);
   }
 
   @Override
@@ -703,6 +678,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
     );
   }
 
+  @Override
+  public void trackLoading(AndroidProfilerEvent.Loading loading) {
+    newTracker(AndroidProfilerEvent.Type.LOADING).setLoading(loading).track();
+  }
+
   /**
    * Convenience method for creating a new tracker with all the minimum data supplied.
    */
@@ -741,6 +721,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private AdtUiTrackGroupMetadata myTrackGroupMetadata;
     @Nullable private AdtUiBoxSelectionMetadata myBoxSelectionMetadata;
     private int myEventCount = 0;
+    @Nullable private AndroidProfilerEvent.Loading myLoading;
 
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
@@ -860,6 +841,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    private Tracker setLoading(AndroidProfilerEvent.Loading loading) {
+      myLoading = loading;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
 
@@ -917,6 +904,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
         case TOGGLE_ALL_FRAMES: // Fallthrough
         case TOGGLE_LIFECYCLE:
           profilerEvent.setEventCount(myEventCount);
+          break;
+        case LOADING:
+          profilerEvent.setLoading(myLoading);
           break;
         default:
           break;

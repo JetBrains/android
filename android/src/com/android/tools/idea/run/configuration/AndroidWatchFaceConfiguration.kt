@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.SdkConstants
-import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.execution.AndroidWatchFaceConfigurationExecutor
-import com.intellij.execution.Executor
+import com.android.tools.idea.run.configuration.execution.WatchFaceLaunchOptions
+import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle
@@ -31,8 +33,8 @@ class AndroidWatchFaceConfigurationType :
     ID,
     AndroidBundle.message("android.watchface.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
-    StudioIcons.Shell.Filetree.ANDROID_PROJECT
-  ) {
+    StudioIcons.Wear.WATCH_FACE_RUN_CONFIG
+  ), DumbAware {
   companion object {
     const val ID = "AndroidWatchFaceConfigurationType"
   }
@@ -46,9 +48,14 @@ class AndroidWatchFaceConfigurationType :
 }
 
 class AndroidWatchFaceConfiguration(project: Project, factory: ConfigurationFactory) : AndroidWearConfiguration(project, factory) {
-  override val componentType = ComponentType.WATCH_FACE
-  override val userVisibleComponentTypeName = AndroidBundle.message("android.run.configuration.watchface")
-  override val componentBaseClassesFqNames = arrayOf(SdkConstants.CLASS_WATCHFACE_WSL, SdkConstants.CLASS_WATCHFACE_ANDROIDX)
-  override fun getState(executor: Executor, environment: ExecutionEnvironment) = AndroidWatchFaceConfigurationExecutor(environment)
+  override val componentLaunchOptions = WatchFaceLaunchOptions()
+
+  override fun getExecutor(
+    environment: ExecutionEnvironment,
+    deployTarget: DeployTarget,
+    appRunSettings: AppRunSettings,
+    applicationIdProvider: ApplicationIdProvider,
+    apkProvider: ApkProvider
+  ) = AndroidWatchFaceConfigurationExecutor(environment, deployTarget, appRunSettings, applicationIdProvider, apkProvider)
 }
 

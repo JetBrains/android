@@ -142,7 +142,7 @@ class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
   }
 
   private fun getCodeLocation(chart: HTreeChart<ClassifierSetHNode>): CodeLocation? {
-    val nativeSet = chart.getFocusedNode()?.data
+    val nativeSet = chart.focusedNode?.data
     if (nativeSet is NativeCallStackSet) {
       if (!Strings.isNullOrEmpty(nativeSet.fileName)) {
         return CodeLocation.Builder(nativeSet.name) // Expects class name but we don't have that so we use the function.

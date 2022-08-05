@@ -26,7 +26,9 @@ import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.tools.idea.flags.StudioFlags
 import kotlinx.collections.immutable.toImmutableMap
+import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 interface BuildEventsAnalysisResult {
@@ -78,6 +80,7 @@ interface BuildEventsAnalysisResult {
   fun getJavaVersion(): Int?
   fun isGCSettingSet(): Boolean?
   fun buildUsesConfigurationCache(): Boolean
+  fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result
 }
 
 /**
@@ -97,10 +100,11 @@ class BuildEventsAnalyzersProxy(
   private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(taskContainer)
   private val configurationCachingCompatibilityAnalyzer = ConfigurationCachingCompatibilityAnalyzer()
   private val jetifierUsageAnalyzer = JetifierUsageAnalyzer()
+  private val downloadsAnalyzer = StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get().ifTrue { DownloadsAnalyzer() }
 
 
   val buildAnalyzers: List<BaseAnalyzer<*>>
-    get() = listOf(
+    get() = listOfNotNull(
       alwaysRunTasksAnalyzer,
       annotationProcessorsAnalyzer,
       criticalPathAnalyzer,
@@ -109,7 +113,8 @@ class BuildEventsAnalyzersProxy(
       projectConfigurationAnalyzer,
       tasksConfigurationIssuesAnalyzer,
       configurationCachingCompatibilityAnalyzer,
-      jetifierUsageAnalyzer
+      jetifierUsageAnalyzer,
+      downloadsAnalyzer
     )
 
   override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
@@ -210,5 +215,9 @@ class BuildEventsAnalyzersProxy(
 
   override fun getTasksSharingOutput(): List<TasksSharingOutputData> {
     return tasksConfigurationIssuesAnalyzer.result.tasksSharingOutput
+  }
+
+  override fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {
+    return downloadsAnalyzer?.result ?: DownloadsAnalyzer.AnalyzerIsDisabled
   }
 }

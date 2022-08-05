@@ -33,7 +33,7 @@ public final class Matchers {
 
   @NotNull
   public static <T extends JComponent> FluentMatcher<T> byText(Class<T> componentType, @NotNull String text) {
-    return new FluentMatcher<>(componentType) {
+    return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         // Appearance of MNEMONIC can be platform-dependent, so be careful modifying this.
@@ -46,7 +46,7 @@ public final class Matchers {
 
   @NotNull
   public static <T extends Dialog> FluentMatcher<T> byTitle(Class<T> dialogType, @NotNull String title) {
-    return new FluentMatcher<>(dialogType) {
+    return new FluentMatcher<T>(dialogType) {
       @Override
       protected boolean isMatching(@NotNull T dialog) {
         return title.equals(dialog.getTitle());
@@ -56,7 +56,7 @@ public final class Matchers {
 
   @NotNull
   public static <T extends Component> FluentMatcher<T> byType(Class<T> componentType) {
-    return new FluentMatcher<>(componentType) {
+    return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return true;
@@ -66,7 +66,7 @@ public final class Matchers {
 
   @NotNull
   public static <T extends Component> FluentMatcher<T> byName(Class<T> componentType, @NotNull String name) {
-    return new FluentMatcher<>(componentType) {
+    return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return name.equals(component.getName());
@@ -76,7 +76,7 @@ public final class Matchers {
 
   @NotNull
   public static <T extends JLabel> FluentMatcher<T> byIcon(Class<T> componentType, @Nullable Icon icon) {
-    return new FluentMatcher<>(componentType) {
+    return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return Objects.equals(icon, component.getIcon());
@@ -86,7 +86,7 @@ public final class Matchers {
 
   @NotNull
   public static FluentMatcher<ActionButton> buttonWithIcon(@Nullable Icon icon) {
-    return new FluentMatcher<>(ActionButton.class) {
+    return new FluentMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         return Objects.equals(icon, component.getIcon());
@@ -96,7 +96,7 @@ public final class Matchers {
 
   @NotNull
   public static <T extends JComponent> FluentMatcher<T> byTooltip(Class<T> componentType, @NotNull String tooltip) {
-    return new FluentMatcher<>(componentType) {
+    return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return tooltip.equals(component.getToolTipText());
@@ -108,7 +108,7 @@ public final class Matchers {
   public static <T extends JComponent> FluentMatcher<T> byClientProperty(Class<T> componentType,
                                                                          @NotNull Object key,
                                                                          @NotNull Class<?> valueClass) {
-    return new FluentMatcher<>(componentType) {
+    return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return valueClass.isInstance(component.getClientProperty(key));

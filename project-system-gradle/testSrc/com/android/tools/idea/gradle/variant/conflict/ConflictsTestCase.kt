@@ -24,8 +24,12 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import org.jetbrains.android.AndroidTestCase
 
 abstract class ConflictsTestCase : AndroidTestCase() {
-  protected fun appModuleBuilder(selectedVariant: String = "debug", dependOnVariant: String? = "debug") = AndroidModuleModelBuilder(
-    ":app",
+  protected fun appModuleBuilder(
+    appPath: String = ":app",
+    selectedVariant: String = "debug",
+    dependOnVariant: String? = "debug"
+  ) = AndroidModuleModelBuilder(
+    appPath,
     selectedVariant,
     AndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", dependOnVariant)) })
   )

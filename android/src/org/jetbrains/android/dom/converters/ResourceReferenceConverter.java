@@ -18,6 +18,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
@@ -397,9 +398,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     PsiFile file = element != null ? element.getContainingFile() : null;
 
     if (type == ResourceType.ID && onlyNamespace != ResourceNamespace.ANDROID && file != null && isNonValuesResourceFile(file)) {
-      // TODO: namespaces
-      for (String id : IdeResourcesUtil.findIdsInFile(file)) {
-        result.add(referenceTo(prefix, type.getName(), null, id, explicitResourceType));
+      for (ResourceUrl url : IdeResourcesUtil.findIdUrlsInFile(file)) {
+        result.add(referenceTo(prefix, type.getName(), url.namespace, url.name, explicitResourceType));
       }
     }
     else {
@@ -505,21 +505,21 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, false);
 
-    if (parsed == null || !parsed.isReference()) {
-      ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
-
+    if (parsed != null && parsed.isReference()) {
+      String errorMessage = parsed.getErrorMessage();
+      if (errorMessage != null) {
+        return "Invalid resource reference - " + StringUtil.decapitalize(errorMessage);
+      }
+    }
+    else {
       if (myResourceTypes.contains(ResourceType.STRING)) {
         // Anything is allowed
         return null;
       }
 
+      ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
       if (additionalConverter != null) {
         return additionalConverter.getErrorMessage(s, context);
-      }
-    } else {
-      String errorMessage = parsed.getErrorMessage();
-      if (errorMessage != null) {
-        return errorMessage;
       }
     }
 

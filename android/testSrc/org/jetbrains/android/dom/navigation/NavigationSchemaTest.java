@@ -19,6 +19,7 @@ import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 
 import com.android.AndroidProjectTypes;
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavTestUtil;
 import com.android.tools.idea.testing.Dependencies;
@@ -46,7 +47,6 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -166,7 +166,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
   public void testDestinationClassByTag() {
     NavigationSchema schema = NavigationSchema.get(myModule);
     PsiClass activity = findClass(SdkConstants.CLASS_ACTIVITY);
-    PsiClass fragment = findClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
+    PsiClass fragment = findClass(AndroidXConstants.CLASS_V4_FRAGMENT.oldName());
     PsiClass navGraph = findClass("androidx.navigation.NavGraph");
     PsiClass custom = findClass("OtherNavigatorWithDestination.MyActualDestination");
 
@@ -238,7 +238,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(
       getProject(), () -> {
         try {
-          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes(StandardCharsets.UTF_8));
+          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes());
         }
         catch (Exception e) {
           fail(e.getMessage());

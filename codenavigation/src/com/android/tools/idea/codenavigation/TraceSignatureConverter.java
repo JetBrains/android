@@ -62,7 +62,7 @@ final class TraceSignatureConverter {
       return String.valueOf(PRIMITIVE_TYPES.get(psiType));
     }
     else if (psiType instanceof PsiClassType) {
-      return "L" + psiType.getCanonicalText().replaceAll("\\.", "/") + ";";
+      return "L" + psiType.getCanonicalText().replace('.', '/') + ";";
     }
     return null;
   }

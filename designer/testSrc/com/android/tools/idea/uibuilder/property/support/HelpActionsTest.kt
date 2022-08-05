@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_FONT_FAMILY
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
@@ -24,11 +25,11 @@ import com.android.SdkConstants.ATTR_SRC
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.CLASS_VIEWGROUP
-import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.FQCN_IMAGE_VIEW
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.EXPECTED_TEXT_TOOLTIP
@@ -49,7 +50,6 @@ import org.mockito.Mockito.eq
 import org.mockito.Mockito.isNull
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 
 class HelpActionsTest {
 
@@ -130,7 +130,7 @@ class HelpActionsTest {
 
   private fun toHelpUrl(componentName: String, propertyName: String): String? {
     val property = mock(NlPropertyItem::class.java)
-    `when`(property.name).thenReturn(propertyName)
+    whenever(property.name).thenReturn(propertyName)
     return HelpActions.toHelpUrl(componentName, property)
   }
 }

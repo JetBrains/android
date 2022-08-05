@@ -4,7 +4,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.facet.ProjectFacetManager;
 import java.io.File;
@@ -37,9 +36,6 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
 
     List<GradleFacet> androidGradleFacets = ProjectFacetManager.getInstance(getProject()).getFacets(GradleFacet.getFacetTypeId());
     assertEquals(8, androidGradleFacets.size());
-
-    List<JavaFacet> androidJavaFacets = ProjectFacetManager.getInstance(getProject()).getFacets(JavaFacet.getFacetTypeId());
-    assertEquals(2, androidJavaFacets.size());
   }
 
   public void testLinkedProjectsDoNotRemoveEachOtherFacetsSequential() throws Exception {
@@ -68,8 +64,5 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
 
     List<GradleFacet> androidGradleFacets = ProjectFacetManager.getInstance(getProject()).getFacets(GradleFacet.getFacetTypeId());
     assertEquals(8, androidGradleFacets.size());
-
-    List<JavaFacet> androidJavaFacets = ProjectFacetManager.getInstance(getProject()).getFacets(JavaFacet.getFacetTypeId());
-    assertEquals(2, androidJavaFacets.size());
   }
 }

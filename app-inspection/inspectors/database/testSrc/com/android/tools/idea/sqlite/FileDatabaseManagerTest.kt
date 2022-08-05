@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.explorer.fs.DeviceFileDownloaderService
 import com.android.tools.idea.explorer.fs.DownloadProgress
@@ -25,14 +26,13 @@ import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.testing.runDispatching
-import com.google.common.util.concurrent.Futures
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 
 class FileDatabaseManagerTest : LightPlatformTestCase() {
 
@@ -56,7 +56,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     ) as SqliteDatabaseId.LiveSqliteDatabaseId
 
     val virtualFile = mock<VirtualFile>()
-    `when`(virtualFile.path).thenReturn("/data/data/com.example.package/databases/db-file")
+    whenever(virtualFile.path).thenReturn("/data/data/com.example.package/databases/db-file")
     fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(virtualFile)) as SqliteDatabaseId.FileSqliteDatabaseId
 
     deviceFileDownloaderService = mock()
@@ -68,19 +68,17 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     )
   }
 
-  fun testOpenOfflineDatabases() {
+  fun testOpenOfflineDatabases() = runBlocking {
     // Prepare
     val file1 = MockVirtualFile("f1")
     val file2 = MockVirtualFile("f2")
     val file3 = MockVirtualFile("f3")
 
-    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
-      Futures.immediateFuture(
-        mapOf(
-          "/data/data/com.example.package/databases/db-file" to file1,
-          "/data/data/com.example.package/databases/db-file-shm" to file2,
-          "/data/data/com.example.package/databases/db-file-wal" to file3
-        )
+    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
+      mapOf(
+        "/data/data/com.example.package/databases/db-file" to file1,
+        "/data/data/com.example.package/databases/db-file-shm" to file2,
+        "/data/data/com.example.package/databases/db-file-wal" to file3
       )
     )
 
@@ -102,17 +100,15 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     assertEquals(DatabaseFileData(file1, listOf(file2, file3)), offlineDatabaseData)
   }
 
-  fun testOpenOfflineDatabaseNoMainFileThrows() {
+  fun testOpenOfflineDatabaseNoMainFileThrows() = runBlocking {
     // Prepare
     val file2 = mock<VirtualFile>()
     val file3 = mock<VirtualFile>()
 
-    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
-      Futures.immediateFuture(
-        mapOf(
-          "/data/data/com.example.package/databases/db-file-shm" to file2,
-          "/data/data/com.example.package/databases/db-file-wal" to file3
-        )
+    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
+      mapOf(
+        "/data/data/com.example.package/databases/db-file-shm" to file2,
+        "/data/data/com.example.package/databases/db-file-wal" to file3
       )
     )
 
@@ -129,9 +125,9 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     }
   }
 
-  fun testFileDownloadFailedExceptionIsHandled() {
+  fun testFileDownloadFailedExceptionIsHandled() = runBlocking {
     // Prepare
-    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any()))
+    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any()))
       .thenThrow(DeviceFileDownloaderService.FileDownloadFailedException::class.java)
 
     // Act

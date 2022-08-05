@@ -16,11 +16,10 @@
 
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main
 
-fun androidManifestXml(packageName: String, targetPackageName: String) =
+fun androidManifestXml(targetPackageName: String) =
 """<?xml version="1.0" encoding="utf-8"?>
 <manifest
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    package="$packageName">
+    xmlns:android="http://schemas.android.com/apk/res/android">
     <queries>
         <package android:name="$targetPackageName" />
     </queries>

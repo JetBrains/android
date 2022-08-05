@@ -30,24 +30,8 @@ import java.util.concurrent.TimeUnit
 class PerfettoParserTest {
 
   @Test
-  fun `with useTraceProcessor disabled`() {
-    val services = FakeIdeProfilerServices()
-    services.enableUseTraceProcessor(false)
-
-    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
-
-    val parser = PerfettoParser(MainProcessSelector(), services)
-    val capture = parser.parse(traceFile, 1)
-
-    assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
-    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
-  }
-
-  @Test
   fun `with useTraceProcessor enabled`() {
     val services = FakeIdeProfilerServices()
-    services.enableUseTraceProcessor(true)
-
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
@@ -67,7 +51,6 @@ class PerfettoParserTest {
                                                                      .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
                                                                      .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
                                                                      .build().toByteArray())
-    services.enableUseTraceProcessor(true)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
@@ -88,7 +71,6 @@ class PerfettoParserTest {
                                                                      .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
                                                                      .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
                                                                      .build().toByteArray())
-    services.enableUseTraceProcessor(true)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
@@ -114,9 +96,7 @@ class PerfettoParserTest {
 
   @Test
   fun parseAndroidFrameLayers() {
-    val services = FakeIdeProfilerServices().apply {
-      enableUseTraceProcessor(true)
-    }
+    val services = FakeIdeProfilerServices()
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace")
 
     val parser = PerfettoParser(MainProcessSelector("android.com.java.profilertester"), services)

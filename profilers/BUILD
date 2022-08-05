@@ -27,6 +27,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/base/perflib:studio.android.sdktools.perflib[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -49,6 +50,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
         "//tools/adt/idea/codenavigation[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )
 
@@ -74,8 +77,10 @@ kotlin_test(
     ],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "traceprocessor-proto",
     jars = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos.jar"],
     visibility = ["//visibility:public"],

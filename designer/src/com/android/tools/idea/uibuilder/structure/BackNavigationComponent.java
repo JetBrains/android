@@ -46,7 +46,7 @@ public class BackNavigationComponent extends JPanel {
 
   private final DesignSurfaceListener mySurfaceListener;
   private final JLabel myBackLabel;
-  @Nullable private DesignSurface myDesignSurface;
+  @Nullable private DesignSurface<?> myDesignSurface;
   private final BackNavigationListener myMouseAdapter;
 
   public BackNavigationComponent() {
@@ -88,18 +88,18 @@ public class BackNavigationComponent extends JPanel {
   private DesignSurfaceListener createDesignSurfaceListener() {
     return new DesignSurfaceListener() {
       @Override
-      public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+      public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
         updateBackNavigation();
       }
 
       @Override
-      public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+      public boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
         return false;
       }
     };
   }
 
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
+  public void setDesignSurface(@Nullable DesignSurface<?> designSurface) {
     if (myDesignSurface != null) {
       myDesignSurface.removeListener(mySurfaceListener);
     }
@@ -111,7 +111,7 @@ public class BackNavigationComponent extends JPanel {
   }
 
   @Nullable
-  public DesignSurface getDesignSurface() {
+  public DesignSurface<?> getDesignSurface() {
     return myDesignSurface;
   }
 

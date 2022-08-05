@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,132 +16,46 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.NullOutputReceiver
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.configuration.AndroidWearConfiguration
-import com.intellij.debugger.DebuggerManagerEx
-import com.intellij.debugger.DefaultDebugEnvironment
-import com.intellij.debugger.engine.JavaDebugProcess
-import com.intellij.debugger.engine.RemoteDebugProcessHandler
-import com.intellij.execution.DefaultExecutionResult
-import com.intellij.execution.ExecutionException
-import com.intellij.execution.ExecutionResult
-import com.intellij.execution.Executor
-import com.intellij.execution.configurations.RemoteConnection
-import com.intellij.execution.configurations.RemoteState
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.ApplicationTerminator
+import com.android.tools.idea.run.debug.attachJavaDebuggerToClient
+import com.android.tools.idea.run.debug.waitForClientReadyForDebug
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
-import com.intellij.openapi.project.Project
-import com.intellij.xdebugger.XDebugProcess
-import com.intellij.xdebugger.XDebugProcessStarter
-import com.intellij.xdebugger.XDebugSession
-import com.intellij.xdebugger.XDebuggerManager
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.xdebugger.impl.XDebugSessionImpl
+import org.jetbrains.concurrency.Promise
 
-class DebugSessionStarter(private val environment: ExecutionEnvironment) {
+class DebugSessionStarter(private val environment: ExecutionEnvironment, applicationIdProvider: ApplicationIdProvider) {
 
-  private val configuration = environment.runProfile as AndroidWearConfiguration
-  private val project = configuration.project
-  private val appId = project.getProjectSystem().getApplicationIdProvider(configuration)?.packageName
-                      ?: throw RuntimeException("Cannot get ApplicationIdProvider")
+  private val project = environment.project
+  private val appId = applicationIdProvider.packageName
 
   @WorkerThread
-  fun attachDebuggerToClient(device: IDevice, processHandler: AndroidProcessHandlerForDevices, consoleView: ConsoleView): RunContentDescriptor {
-    waitForClient(device)
-    val client = device.getClient(appId)
-    val debugPort = client.debuggerListenPort.toString()
-    val remoteConnection = RemoteConnection(true, "localhost", debugPort, false)
-    ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Attaching debugger"
-    return invokeAndWaitIfNeeded {
-      val debugState = object : RemoteState {
-        override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult {
-          val process = AndroidRemoteDebugProcessHandler(project, consoleView, processHandler)
-          consoleView.attachToProcess(process)
-          return DefaultExecutionResult(consoleView, process)
-        }
+  fun attachDebuggerToClient(device: IDevice,
+                             destroyRunningProcess: (IDevice) -> Unit,
+                             consoleView: ConsoleView): Promise<XDebugSessionImpl> {
 
-        override fun getRemoteConnection() = remoteConnection
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
+    ProgressManager.checkCanceled()
+    indicator?.text = "Waiting for a client"
+    val client = waitForClientReadyForDebug(device, listOf(appId))
+
+    ProgressManager.checkCanceled()
+    indicator?.text = "Attaching debugger"
+    return attachJavaDebuggerToClient(
+      project,
+      client,
+      environment,
+      consoleView,
+      null,
+      destroyRunningProcess
+    )
+      .onError {
+        destroyRunningProcess(device)
+        ApplicationTerminator(device, appId).killApp()  // Terminate the process to make it ready for future debugging.
       }
-
-      val debugEnvironment = DefaultDebugEnvironment(environment, debugState, remoteConnection, false)
-      val debuggerSession = DebuggerManagerEx.getInstanceEx(project).attachVirtualMachine(debugEnvironment)
-                            ?: throw ExecutionException("Could not attach the virtual machine")
-
-      val debugSession = XDebuggerManager.getInstance(project).startSession(environment, object : XDebugProcessStarter() {
-        override fun start(session: XDebugSession): XDebugProcess {
-          return JavaDebugProcess.create(session, debuggerSession)
-        }
-      })
-
-      debugSession.runContentDescriptor
-    }
-  }
-
-  @WorkerThread
-  private fun waitForClient(device: IDevice): Client {
-    ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Waiting for a process to start"
-    val appProcessCountDownLatch = CountDownLatch(1)
-    val listener = object : AndroidDebugBridge.IDeviceChangeListener {
-      override fun deviceConnected(device: IDevice) {}
-      override fun deviceDisconnected(device: IDevice) {}
-
-      override fun deviceChanged(changedDevice: IDevice, changeMask: Int) {
-        if (changedDevice == device && changeMask and IDevice.CHANGE_CLIENT_LIST != 0) {
-          val clients = changedDevice.clients
-          if (clients.find { it.clientData.packageName == appId } != null) {
-            appProcessCountDownLatch.countDown()
-            AndroidDebugBridge.removeDeviceChangeListener(this)
-          }
-        }
-      }
-    }
-    AndroidDebugBridge.addDeviceChangeListener(listener)
-
-    if (device.getClient(appId) != null) {
-      appProcessCountDownLatch.countDown()
-      AndroidDebugBridge.removeDeviceChangeListener(listener)
-    }
-
-    if (!appProcessCountDownLatch.await(15, TimeUnit.SECONDS)) {
-      device.executeShellCommand(AndroidRemoteDebugProcessHandler.CLEAR_DEBUG_APP_COMMAND, NullOutputReceiver(), 5, TimeUnit.SECONDS)
-      throw ExecutionException("Process $appId is not found. Aborting session.")
-    }
-
-    return device.getClient(appId)
-  }
-}
-
-/**
- * [processHandler] is handler responsible for monitoring app process on devices. For example [WatchFaceProcessHandler].
- * [AndroidRemoteDebugProcessHandler] is responsible for monitoring debugger process.
- */
-class AndroidRemoteDebugProcessHandler(
-  project : Project,
-  private val console: ConsoleView,
-  private val processHandler: AndroidProcessHandlerForDevices
-) : RemoteDebugProcessHandler(project, false) {
-
-  companion object {
-    const val CLEAR_DEBUG_APP_COMMAND = "am clear-debug-app"
-  }
-
-  override fun detachIsDefault() = false
-
-  override fun destroyProcess() {
-    super.destroyProcess()
-    processHandler.destroyProcess()
-    processHandler.devices.forEach {
-      console.printShellCommand(CLEAR_DEBUG_APP_COMMAND)
-      it.executeShellCommand(CLEAR_DEBUG_APP_COMMAND, AndroidConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console), 5,
-                             TimeUnit.SECONDS)
-    }
   }
 }

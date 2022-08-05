@@ -36,8 +36,8 @@ import icons.StudioIcons
 import javax.swing.Icon
 import javax.swing.JComponent
 
-class TreePanel : ToolContent<DesignSurface> {
-  private var designSurface: DesignSurface? = null
+class TreePanel : ToolContent<DesignSurface<*>> {
+  private var designSurface: DesignSurface<*>? = null
   private val componentTree: JComponent
   @VisibleForTesting
   val componentTreeModel: ComponentTreeModel
@@ -56,11 +56,11 @@ class TreePanel : ToolContent<DesignSurface> {
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withComponentName("navComponentTree")
 
-    val (tree, model, selectionModel) = builder.build()
-    componentTree = tree
-    componentTreeModel = model
-    componentTreeSelectionModel = selectionModel
-    selectionModel.addSelectionListener { updateSelection() }
+    val result = builder.build()
+    componentTree = result.component
+    componentTreeModel = result.model
+    componentTreeSelectionModel = result.selectionModel
+    componentTreeSelectionModel.addSelectionListener { updateSelection() }
   }
 
   @VisibleForTesting
@@ -80,7 +80,7 @@ class TreePanel : ToolContent<DesignSurface> {
     surface.needsRepaint()
   }
 
-  override fun setToolContext(toolContext: DesignSurface?) {
+  override fun setToolContext(toolContext: DesignSurface<*>?) {
     designSurface?.let {
       it.selectionModel?.removeListener(contextSelectionListener)
       it.models.firstOrNull()?.removeListener(modelListener)

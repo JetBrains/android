@@ -20,19 +20,24 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener
-import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
 import org.jetbrains.ide.PooledThreadExecutor
 import java.io.File
 import java.io.FileNotFoundException
@@ -44,7 +49,10 @@ import java.util.function.Supplier
  * long running operations either raise events or return a Future.
  */
 @UiThread
-class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileSystemService<AdbDeviceFileSystem> {
+class AdbDeviceFileSystemService @NonInjectable constructor (val adbSupplier: Supplier<File?>)
+    : Disposable, DeviceFileSystemService<AdbDeviceFileSystem> {
+
+  constructor(project: Project) : this({ AdbFileProvider.fromProject(project)?.adbFile })
 
   companion object {
     @JvmStatic
@@ -53,147 +61,115 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
     var LOGGER = logger<AdbDeviceFileSystemService>()
   }
 
+  private val coroutineScope = AndroidCoroutineScope(this)
   private val edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
-  private val taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
+  private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
+  /**
+   * Each device connected to ADB is represented by an AdbDeviceFileSystem here.
+   * The list is initially populated in the DebugBridgeChangeListener, then maintained
+   * by the DeviceChangeListener.
+   */
   private val myDevices: MutableList<AdbDeviceFileSystem> = ArrayList()
-  private val myListeners: MutableList<DeviceFileSystemServiceListener> = ArrayList()
-  private var myState = State.Initial
-  private var myBridge: AndroidDebugBridge? = null
-  private var myDeviceChangeListener: DeviceChangeListener? = null
-  private var myDebugBridgeChangeListener: DebugBridgeChangeListener? = null
-  private var myAdb: File? = null
-  private var myStartServiceFuture = SettableFuture.create<Unit>()
+  private val listeners: MutableList<DeviceFileSystemServiceListener> = ArrayList()
+  private var state = State.Initial
+  private var bridge: AndroidDebugBridge? = null
+  private val deviceChangeListener = DeviceChangeListener()
+  private val debugBridgeChangeListener = DebugBridgeChangeListener()
+  private var adb: File? = null
+  private var deviceListSynced = CompletableDeferred<Unit>(coroutineScope.coroutineContext[Job])
 
   override fun dispose() {
-    AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener)
-    AndroidDebugBridge.removeDebugBridgeChangeListener(myDebugBridgeChangeListener)
-    myBridge = null
+    AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener)
+    AndroidDebugBridge.removeDebugBridgeChangeListener(debugBridgeChangeListener)
+    bridge = null
     myDevices.clear()
-    myListeners.clear()
+    listeners.clear()
   }
 
   enum class State {
     Initial, SetupRunning, SetupDone
   }
 
-  val deviceList: List<AdbDeviceFileSystem>
-    get() = myDevices
-
   override fun addListener(listener: DeviceFileSystemServiceListener) {
-    myListeners.add(listener)
+    listeners.add(listener)
   }
 
   override fun removeListener(listener: DeviceFileSystemServiceListener) {
-    myListeners.remove(listener)
+    listeners.remove(listener)
   }
 
   /**
    * Starts the service using an ADB File.
    *
-   *
-   * If this method is called when the service is starting or is already started, the returned future completes immediately.
-   *
-   * To restart the service using a different ADB file, call [AdbDeviceFileSystemService.restart]
+   * If this method is called when the service is starting or is already started, it returns immediately.
    */
-  override fun start(adbSupplier: Supplier<File?>): ListenableFuture<Unit> {
-    if (myState == State.SetupRunning || myState == State.SetupDone) {
-      return myStartServiceFuture
+  @UiThread
+  override suspend fun start() {
+    if (state == State.SetupRunning || state == State.SetupDone) {
+      return
     }
     val adb = adbSupplier.get()
     if (adb == null) {
       LOGGER.warn("ADB not found")
-      return Futures.immediateFailedFuture(FileNotFoundException("Android Debug Bridge not found."))
+      throw FileNotFoundException("Android Debug Bridge not found.")
     }
-    myAdb = adb
-    myDeviceChangeListener = DeviceChangeListener()
-    myDebugBridgeChangeListener = DebugBridgeChangeListener()
-    AndroidDebugBridge.addDeviceChangeListener(myDeviceChangeListener!!)
-    AndroidDebugBridge.addDebugBridgeChangeListener(myDebugBridgeChangeListener!!)
-    return startDebugBridge()
-  }
+    this.adb = adb
 
-  private fun startDebugBridge(): ListenableFuture<Unit> {
-    val adb = checkNotNull(myAdb)
-    myState = State.SetupRunning
-    myStartServiceFuture = SettableFuture.create()
-    val debugBridgeFuture = AdbService.getInstance().getDebugBridge(adb)
-    edtExecutor.addCallback(debugBridgeFuture, object : FutureCallback<AndroidDebugBridge> {
-      override fun onSuccess(bridge: AndroidDebugBridge?) {
-        LOGGER.info("Successfully obtained debug bridge")
-        myState = State.SetupDone
-        myStartServiceFuture.set(Unit)
-      }
+    AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
+    AndroidDebugBridge.addDebugBridgeChangeListener(debugBridgeChangeListener)
 
-      override fun onFailure(t: Throwable) {
-        LOGGER.warn("Unable to obtain debug bridge", t)
-        myState = State.Initial
-        if (t.message != null) {
-          myStartServiceFuture.setException(t)
-        } else {
-          myStartServiceFuture.setException(RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, adb), t))
-        }
-      }
-    })
-    return myStartServiceFuture
-  }
+    state = State.SetupRunning
+    try {
+      // We don't actually assign to myBridge here, we do that in the DebugBridgeChangeListener
+      AdbService.getInstance().getDebugBridge(adb).await()
+      LOGGER.info("Successfully obtained debug bridge")
 
-  override fun restart(adbSupplier: Supplier<File?>): ListenableFuture<Unit> {
-    if (myState == State.Initial) {
-      return start(adbSupplier)
-    }
-    checkState(State.SetupDone)
+      // Wait for the DebugBridgeChangeListener callback to execute before we return, so that we
+      // have the initial device list. At this point, it will already be scheduled; we just need
+      // to yield the UI thread to it.
+      deviceListSynced.await()
 
-    val futureResult = SettableFuture.create<Unit>()
-    taskExecutor.execute {
-      try {
-        AdbService.getInstance().terminateDdmlib()
-      } catch (t: Throwable) {
-        futureResult.setException(t)
-        return@execute
-      }
-      edtExecutor.execute {
-        val futureStart = startDebugBridge()
-        edtExecutor.addCallback(futureStart, object : FutureCallback<Unit> {
-          override fun onSuccess(result: Unit?) {
-            futureResult.set(Unit)
-          }
-
-          override fun onFailure(t: Throwable) {
-            futureResult.setException(t)
-          }
-        })
+      state = State.SetupDone
+    } catch (t: Throwable) {
+      LOGGER.warn("Unable to obtain debug bridge", t)
+      state = State.Initial
+      if (t.message != null) {
+        throw t
+      } else {
+        throw RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, adb), t)
       }
     }
-    return futureResult
   }
 
-  override val devices: ListenableFuture<List<AdbDeviceFileSystem>>
+  override val devices: List<AdbDeviceFileSystem>
     get() {
       checkState(State.SetupDone)
-      return Futures.immediateFuture(myDevices)
+      return myDevices
     }
 
   private fun checkState(state: State) {
-    check(myState == state)
+    check(this.state == state)
   }
 
   private inner class DebugBridgeChangeListener : IDebugBridgeChangeListener {
     override fun bridgeChanged(bridge: AndroidDebugBridge?) {
       LOGGER.info("Debug bridge changed")
-      edtExecutor.execute {
-        if (myBridge != null) {
+      coroutineScope.launch(uiThread) {
+        if (this@AdbDeviceFileSystemService.bridge != null) {
           myDevices.clear()
-          myListeners.forEach { it.serviceRestarted() }
-          myBridge = null
+          listeners.forEach { it.serviceRestarted() }
         }
+        this@AdbDeviceFileSystemService.bridge = bridge
         if (bridge != null) {
-          myBridge = bridge
           if (bridge.hasInitialDeviceList()) {
             for (device in bridge.devices) {
-              myDevices.add(AdbDeviceFileSystem(device, edtExecutor, taskExecutor))
+              myDevices.add(AdbDeviceFileSystem(coroutineScope, device, edtExecutor, dispatcher))
             }
           }
         }
+        // From this point on, either we already got the device from the bridge,
+        // or we'll hear about it in DeviceChangeListener.
+        deviceListSynced.complete(Unit)
       }
     }
   }
@@ -201,20 +177,20 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
   private inner class DeviceChangeListener : IDeviceChangeListener {
     override fun deviceConnected(device: IDevice) {
       LOGGER.info(String.format("Device connected: %s", device))
-      edtExecutor.execute {
+      coroutineScope.launch(uiThread) {
         if (findDevice(device) == null) {
-          val newDevice = AdbDeviceFileSystem(device, edtExecutor, taskExecutor)
+          val newDevice = AdbDeviceFileSystem(coroutineScope, device, edtExecutor, dispatcher)
           myDevices.add(newDevice)
-          myListeners.forEach { it.deviceAdded(newDevice) }
+          listeners.forEach { it.deviceAdded(newDevice) }
         }
       }
     }
 
     override fun deviceDisconnected(device: IDevice) {
       LOGGER.info(String.format("Device disconnected: %s", device))
-      edtExecutor.execute {
+      coroutineScope.launch(uiThread) {
         findDevice(device)?.let {
-          myListeners.forEach { l -> l.deviceRemoved(it) }
+          listeners.forEach { l -> l.deviceRemoved(it) }
           myDevices.remove(it)
         }
       }
@@ -222,9 +198,9 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
 
     override fun deviceChanged(device: IDevice, changeMask: Int) {
       LOGGER.info(String.format("Device changed: %s", device))
-      edtExecutor.execute {
+      coroutineScope.launch(uiThread) {
         findDevice(device)?.let {
-          myListeners.forEach { l -> l.deviceUpdated(it) }
+          listeners.forEach { l -> l.deviceUpdated(it) }
         }
       }
     }

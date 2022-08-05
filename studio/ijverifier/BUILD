@@ -9,6 +9,8 @@ py_test(
         "$(location //prebuilts/tools/common/intellij-plugin-verifier)",
         "--ide_zip",
         "$(location //prebuilts/studio/intellij-sdk:studio-sdk-full-linux.zip)",
+        "--plugin",
+        "prebuilts/tools/common/kotlin-plugin/Kotlin",
         "--java_runtime",
         "prebuilts/studio/jdk/jdk11/linux",
         "--ignored_problems",
@@ -17,6 +19,7 @@ py_test(
     data = [
         "kotlin_ignored_problems.txt",
         "//prebuilts/studio/intellij-sdk:studio-sdk-full-linux.zip",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/jdk:jdk11_runtime_linux_files",
         "//prebuilts/tools/common/intellij-plugin-verifier",
     ],

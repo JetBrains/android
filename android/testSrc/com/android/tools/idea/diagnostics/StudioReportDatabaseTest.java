@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -139,8 +140,8 @@ public class StudioReportDatabaseTest {
     paths.put("actionsDiagnostics", actions);
     paths.put("memoryUseDiagnostics", memoryUse);
     paths.put("profileDiagnostics", profile);
-    db.appendReport(new FreezeReport(threadDump, paths, false, 20L, "Freeze report"));
-    db.appendReport(new FreezeReport(threadDump, paths, true, null, "Freeze report"));
+    db.appendReport(new FreezeReport(threadDump, paths, new HashMap<>(), false, 20L, "Freeze report"));
+    db.appendReport(new FreezeReport(threadDump, paths, new HashMap<>(), true, null, "Freeze report"));
 
     List<DiagnosticReport> diagnosticReports = db.reapReports();
     FreezeReport report = (FreezeReport) diagnosticReports.get(0);
@@ -157,7 +158,7 @@ public class StudioReportDatabaseTest {
 
   @Test
   public void testEmptyFreezeReport() throws IOException {
-    db.appendReport(new FreezeReport(null, new TreeMap<>(), false, null, null));
+    db.appendReport(new FreezeReport(null, new TreeMap<>(), new TreeMap<>(), false, null, null));
     FreezeReport report = (FreezeReport) db.reapReports().get(0);
 
     assertNull(report.getThreadDumpPath());

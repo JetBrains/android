@@ -53,7 +53,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
 import java.awt.geom.Rectangle2D
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -79,7 +78,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
   init {
     val tableModel = ThreadsTableModel(model.selectionRangeDataFetcher)
-    threadsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.ordinal)
+    threadsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.ordinal, true)
     val timelineRenderer = TimelineRenderer(threadsTable, model)
     threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).cellRenderer = BorderlessTableCellRenderer()
     threadsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal).cellRenderer = timelineRenderer
@@ -104,15 +103,16 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     threadsTable.setRowSorter(sorter)
     threadsTable.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
-        val selection = model.timeline.selectionRange
+        val selection = timelineRenderer.activeRange
         val data = findHttpDataUnderCursor(threadsTable, selection, e)
         if (data != null) {
           model.setSelectedConnection(data)
+          model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
           e.consume()
         }
       }
     })
-    install(threadsTable, model, parentPane)
+    threadsTable.addMouseMotionListener(TooltipView(threadsTable, parentPane, timelineRenderer.activeRange))
     observer = AspectObserver()
     model.aspect.addDependency(observer)
       .onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
@@ -162,7 +162,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
   }
 
   private class TimelineRenderer(private val table: JTable, private val model: NetworkInspectorModel) :
-    TimelineTable.CellRenderer(model.timeline), TableModelListener {
+    TimelineTable.CellRenderer(model.timeline, true), TableModelListener {
     private val connectionsInfo = mutableListOf<JComponent>()
 
     init {
@@ -178,7 +178,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       connectionsInfo.clear()
       for (index in 0 until table.model.rowCount) {
         val data = table.model.getValueAt(index, 1) as List<HttpData>
-        connectionsInfo.add(ConnectionsInfoComponent(table, data, model))
+        connectionsInfo.add(ConnectionsInfoComponent(table, data, model, activeRange))
       }
     }
 
@@ -191,10 +191,12 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
    * A component that responsible for rendering information of the given connections,
    * such as connection names, warnings, and lifecycle states.
    */
-  private class ConnectionsInfoComponent(private val table: JTable,
-                                         private val dataList: List<HttpData>,
-                                         private val model: NetworkInspectorModel) : JComponent() {
-    private val range = model.timeline.selectionRange
+  private class ConnectionsInfoComponent(
+    private val table: JTable,
+    private val dataList: List<HttpData>,
+    private val model: NetworkInspectorModel,
+    private val range: Range
+  ) : JComponent() {
 
     init {
       font = SMALL_FONT
@@ -270,9 +272,10 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     }
   }
 
-  private class TooltipView(private val table: JTable, model: NetworkInspectorModel, parentPane: TooltipLayeredPane) :
-    MouseAdapter() {
-    private val range = model.timeline.selectionRange
+  private class TooltipView(
+    private val table: JTable,
+    parentPane: TooltipLayeredPane,
+    private val range: Range) : MouseAdapter() {
     private val content = JPanel(TabularLayout("*", "*")).apply {
       border = TOOLTIP_BORDER
       background = TOOLTIP_BACKGROUND
@@ -301,7 +304,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       if (data.javaThreads.size > 1) {
         val divider = JPanel()
         divider.preferredSize = Dimension(0, 5)
-        divider.border = BorderFactory.createMatteBorder(0, 0, 1, 0, NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER)
+        divider.border = JBUI.Borders.customLineBottom(NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER)
         divider.background = content.background
         content.add(divider, TabularLayout.Constraint(content.componentCount, 0))
         val alsoAccessedByLabel = newTooltipLabel("Also accessed by:")
@@ -330,17 +333,6 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       label.font = TOOLTIP_BODY_FONT
       return label
     }
-  }
-
-  /**
-   * Construct our tooltip view and attach it to the target table.
-   */
-  private fun install(
-    table: JTable,
-    model: NetworkInspectorModel,
-    parentPane: TooltipLayeredPane
-  ) {
-    table.addMouseMotionListener(TooltipView(table, model, parentPane))
   }
 
   companion object {

@@ -5,14 +5,19 @@ iml_module(
     name = "intellij.android.common",
     srcs = ["src"],
     iml_files = ["intellij.android.common.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    lint_baseline = "lint_baseline.xml",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.AndroidCommonTestSuite",
+    # keep sorted
+    test_data = [
+        "//tools/adt/idea/android-common/testData",
+    ],
     test_srcs = ["test"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
@@ -26,5 +31,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )

@@ -123,7 +123,7 @@ final class DeviceSkinUpdater {
                                    @Nullable Path studioSkins,
                                    @Nullable Path sdkSkins,
                                    boolean emulatorSupportsWebP) {
-    if (device.toString().isEmpty() || device.isAbsolute() || device.equals(device.getFileSystem().getPath(AvdManagerUtils.NO_SKIN))) {
+    if (device.toString().isEmpty() || device.isAbsolute() || device.equals(device.getFileSystem().getPath(SkinUtils.NO_SKIN))) {
       return device;
     }
 
@@ -153,7 +153,7 @@ final class DeviceSkinUpdater {
   @VisibleForTesting
   @NotNull Path updateSkinsImpl(@NotNull Path device) {
     assert !device.toString().isEmpty() && !device.isAbsolute() &&
-           !device.equals(device.getFileSystem().getPath(AvdManagerUtils.NO_SKIN)) : device;
+           !device.equals(device.getFileSystem().getPath(SkinUtils.NO_SKIN)) : device;
 
     Path sdkDeviceSkins = mySdkSkins.resolve(device);
     Path studioDeviceSkins = getStudioDeviceSkins(device);

@@ -17,8 +17,10 @@ package com.android.tools.idea.common.error
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableCollection
+import com.intellij.util.messages.Topic
 
 abstract class IssueProvider {
+
   // Unfortunately we have to use Runnable here for java interop
   @VisibleForTesting
   val listeners = mutableListOf<Runnable>()
@@ -27,5 +29,23 @@ abstract class IssueProvider {
   fun addListener(listener: Runnable) = listeners.add(listener)
   fun removeListener(listener: Runnable) = listeners.remove(listener)
 
-  fun notifyModified() = listeners.forEach { it.run() }
+  fun notifyModified() {
+    listeners.forEach { it.run() }
+  }
+}
+
+fun interface IssueProviderListener {
+
+  companion object {
+    @Topic.ProjectLevel
+    @JvmField
+    val TOPIC: Topic<IssueProviderListener> = Topic(IssueProviderListener::class.java.name,
+                                                    IssueProviderListener::class.java,
+                                                    Topic.BroadcastDirection.NONE)
+  }
+
+  /**
+   * Updates the list of issues coming from the given source.
+   */
+  fun issueUpdated(source: Any, issues: List<Issue>)
 }

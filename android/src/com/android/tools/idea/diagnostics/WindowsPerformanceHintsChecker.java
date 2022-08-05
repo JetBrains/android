@@ -46,6 +46,7 @@ import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.DateTimeException;
@@ -100,7 +101,7 @@ public class WindowsPerformanceHintsChecker {
             public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
               BuildMode mode = context != null ? context.getBuildMode() : null;
               if (status.isBuildSuccessful()) {
-                if (mode == BuildMode.ASSEMBLE || mode == BuildMode.ASSEMBLE_TRANSLATE || mode == BuildMode.REBUILD ||
+                if (mode == BuildMode.ASSEMBLE || mode == BuildMode.REBUILD ||
                     mode == BuildMode.BUNDLE || mode == BuildMode.APK_FROM_BUNDLE) {
                   application.executeOnPooledThread(() -> checkWindowsDefender(project, true));
                 }
@@ -346,6 +347,8 @@ public class WindowsPerformanceHintsChecker {
         if (!found) {
           result.put(path, false);
         }
+      } catch (NoSuchFileException ignored) {
+        // if path doesn't exist, it doesn't matter if it's excluded, and we don't need to log this fact.
       } catch (IOException e) {
         LOG.warn("Windows Defender exclusion check couldn't get real path for " + path, e);
       }

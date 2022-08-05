@@ -75,7 +75,7 @@ public class MEUI {
   public static Insets dialogBottomButtonInsets() { return MEUI.insets(12, 12, 12, 12); }
 
   public static MEComboBox<String> makeComboBox(String[] a) {
-    return new MEComboBox<>(a);
+    return new MEComboBox<String>(a);
   }
 
   public static void invokeLater(Runnable runnable) {

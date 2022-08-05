@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -38,7 +39,6 @@ import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import javax.swing.JButton
@@ -68,7 +68,7 @@ class SuppressLogTagsActionTest {
 
     preferences = ApplicationManager.getApplication().getService(AndroidLogcatGlobalPreferences::class.java)
 
-    `when`(mockDeviceContext.selectedDevice).thenReturn(mock(IDevice::class.java))
+    whenever(mockDeviceContext.selectedDevice).thenReturn(mock(IDevice::class.java))
   }
 
   @After
@@ -191,9 +191,9 @@ class SuppressLogTagsActionTest {
     val event = mock(AnActionEvent::class.java)
     val editor = mock(Editor::class.java)
 
-    `when`(event.getData(CommonDataKeys.EDITOR)).thenReturn(editor)
-    `when`(event.getData(CommonDataKeys.PROJECT)).thenReturn(projectRule.project)
-    `when`(editor.document).thenReturn(DocumentImpl(logcatText))
+    whenever(event.getData(CommonDataKeys.EDITOR)).thenReturn(editor)
+    whenever(event.getData(CommonDataKeys.PROJECT)).thenReturn(projectRule.project)
+    whenever(editor.document).thenReturn(DocumentImpl(logcatText))
 
     return event
   }

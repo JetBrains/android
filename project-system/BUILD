@@ -5,7 +5,7 @@ iml_module(
     name = "intellij.android.projectSystem",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    lint_baseline = "lint_baseline.xml",
     test_srcs = ["testSrc"],
     test_tags = ["manual"],  # testSrc here is for related test infrastructure, not tests
     visibility = ["//visibility:public"],
@@ -17,8 +17,10 @@ iml_module(
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )

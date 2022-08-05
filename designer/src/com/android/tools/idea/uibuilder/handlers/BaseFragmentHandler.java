@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.AndroidXConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_CLASS;
 import static com.android.SdkConstants.ATTR_DEFAULT_NAV_HOST;
@@ -23,15 +24,15 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_NAV_GRAPH;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CLASS_FRAGMENT;
-import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.FQCN_NAV_HOST_FRAGMENT;
 import static com.android.SdkConstants.VALUE_TRUE;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
+import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.AttributeBrowser;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -59,18 +60,6 @@ class BaseFragmentHandler extends ViewHandler {
       ATTR_NAV_GRAPH);
   }
 
-  @Override
-  @Nullable
-  public AttributeBrowser getBrowser(@NotNull String attributeName) {
-    if (attributeName.equals(ATTR_NAME)) {
-      return BaseFragmentHandler::browseClasses;
-    }
-    if (attributeName.equals(ATTR_NAV_GRAPH)) {
-      return BaseFragmentHandler::browseNavs;
-    }
-    return null;
-  }
-
   @NotNull
   @Override
   public String getTitleAttributes(@NotNull NlComponent component) {
@@ -92,21 +81,21 @@ class BaseFragmentHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType != InsertType.CREATE) {
       return true;
     }
 
+    NlModel model = newChild.getModel();
     String className = newChild.getAttribute(ANDROID_URI, ATTR_NAME);
     if (className != null) {
       if (!FQCN_NAV_HOST_FRAGMENT.equals(className)) {
         return true;
       }
 
-      String src = browseNavs(editor, null);
+      String src = browseNavs(model, null);
       if (src == null) {
         // Remove the view; the insertion was canceled
         return false;
@@ -118,7 +107,7 @@ class BaseFragmentHandler extends ViewHandler {
         return true;
       });
     }
-    String src = browseClasses(editor, null);
+    String src = browseClasses(model, null);
     if (src == null) {
       return false;
     }
@@ -130,26 +119,24 @@ class BaseFragmentHandler extends ViewHandler {
   }
 
   @Nullable
-  static String browseClasses(@NotNull ViewEditor editor, @Nullable String existingValue) {
-    return editor.displayClassInput("Fragments",
-                                    Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT.oldName(), CLASS_V4_FRAGMENT.newName()),
-                                    null,
-                                    existingValue);
+  static String browseClasses(@NotNull NlModel model, @Nullable String existingValue) {
+    return ViewEditor.displayClassInput(model,
+                                        "Fragments",
+                                        Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT.oldName(), CLASS_V4_FRAGMENT.newName()),
+                                        null,
+                                        existingValue);
   }
 
   @Nullable
-  static String browseNavs(@NotNull ViewEditor editor, @Nullable String existingValue) {
-    return editor.displayResourceInput("Navigation Graphs", EnumSet.of(ResourceType.NAVIGATION));
+  static String browseNavs(@NotNull NlModel model, @Nullable String existingValue) {
+    return ViewEditor.displayResourceInput(model, "Navigation Graphs", EnumSet.of(ResourceType.NAVIGATION));
   }
 
   @Override
-  public void onActivateInDesignSurface(@NotNull NlComponent component,
-                                        ViewEditor editor,
-                                        int x,
-                                        int y) {
+  public void onActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
     String graph = component.getAttribute(AUTO_URI, ATTR_NAV_GRAPH);
     if (graph != null) {
-      editor.openResourceFile(graph);
+      ViewEditor.openResourceFile(component.getModel(), graph);
     }
   }
 }

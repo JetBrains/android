@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.property.ui
 
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.property.panel.api.TableLineModel
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModelUpdateListener
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.PTableModelUpdateListener
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent

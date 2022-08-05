@@ -12,7 +12,6 @@ import com.intellij.psi.PsiManager;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import org.jetbrains.annotations.NotNull;
 
 public class VirtualFileWrapper implements IAbstractFile {
@@ -27,12 +26,12 @@ public class VirtualFileWrapper implements IAbstractFile {
   @Override
   public InputStream getContents() throws StreamException {
     final String content = getFileContent();
-    return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    return new ByteArrayInputStream(content.getBytes());
   }
 
   @NotNull
   private String getFileContent() {
-    return ApplicationManager.getApplication().runReadAction(new Computable<>() {
+    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
       @Override
       public String compute() {
         if (!myFile.isValid()) {

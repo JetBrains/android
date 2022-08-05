@@ -18,6 +18,7 @@ package com.android.tools.idea.run.tasks
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.InstallOptions
 import com.android.tools.deployer.model.App
@@ -36,7 +37,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.eq
@@ -44,7 +44,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import org.mockito.Spy
 
@@ -66,10 +65,10 @@ class DeployTaskTest {
     application.registerService(IdeUICustomization::class.java)
     MockitoAnnotations.initMocks(this)
     application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
-    `when`(deployer.install(any(), any(), any(), any())).thenReturn(
+    whenever(deployer.install(any(), any(), any(), any())).thenReturn(
       Deployer.Result(false, false, false, App("id", emptyList(), device, logger))
     )
-    `when`(canceller.cancelled()).thenReturn(false)
+    whenever(canceller.cancelled()).thenReturn(false)
   }
 
   @After
@@ -79,8 +78,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeploy() {
-    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().build()
 
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
@@ -90,8 +89,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeployWithUserPmOptions() {
-    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setUserInstallOptions("-v").build()
 
     val deployTask = DeployTask(project, listOf(), "-v", true, false, installPathProvider)
@@ -101,8 +100,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeployEmbedded() {
-    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().build()
 
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
@@ -112,8 +111,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeployEmbeddedWithUserPmOptions() {
-    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().setUserInstallOptions("-v").build()
 
     val deployTask = DeployTask(project, listOf(), "-v", true, false, installPathProvider)
@@ -123,8 +122,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeployApi28() {
-    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallFullApk().setDontKill().build()
 
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
@@ -134,8 +133,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeployApi28WithUserPmOptions() {
-    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions =
       InstallOptions.builder().setAllowDebuggable().setInstallFullApk().setDontKill().setUserInstallOptions("-v").build()
 
@@ -146,8 +145,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeployToCurrentUserOnly() {
-    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallOnUser(InstallOptions.CURRENT_USER).setInstallFullApk().setDontKill().build()
 
     val deployTask = DeployTask(project, listOf(), null, false, false, installPathProvider)
@@ -157,8 +156,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeployPostInstallForceStopPreN() {
-    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
 
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
@@ -167,8 +166,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeployPostInstallForceStopPostN() {
-    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
 
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
@@ -216,10 +215,10 @@ class DeployTaskTest {
   }
 
   private fun deployApkWithRequiredInstallOptions(deviceApiLevel: Int) {
-    `when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
-    `when`(device.version).thenReturn(AndroidVersion(deviceApiLevel))
+    whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    whenever(device.version).thenReturn(AndroidVersion(deviceApiLevel))
     val mockApkInfo = mock(ApkInfo::class.java)
-    `when`(mockApkInfo.requiredInstallOptions).thenReturn(
+    whenever(mockApkInfo.requiredInstallOptions).thenReturn(
       setOf(ApkInfo.AppInstallOption.FORCE_QUERYABLE, ApkInfo.AppInstallOption.GRANT_ALL_PERMISSIONS))
 
     val deployTask = DeployTask(project, listOf(mockApkInfo), null, true, false, installPathProvider)

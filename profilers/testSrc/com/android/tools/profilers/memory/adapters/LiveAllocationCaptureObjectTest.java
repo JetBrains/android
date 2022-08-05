@@ -148,26 +148,21 @@ public class LiveAllocationCaptureObjectTest {
     @Parameter(1)
     public String myHeapName;
 
-    @Parameter(2)
-    public Boolean myJniRefTracking;
-
     private ProfilerClient myProfilerClient;
 
     @Before
     @Override
     public void before() {
       super.before();
-      myIdeProfilerServices.enableJniReferenceTracking(myJniRefTracking);
       myIdeProfilerServices.enableEventsPipeline(true);
       myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 
-    @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}")
+    @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}")
     public static Object[] getHeapParameters() {
       return new Object[]{
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false},
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true},
-        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true},
+        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME},
+        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME},
       };
     }
 
@@ -733,7 +728,6 @@ public class LiveAllocationCaptureObjectTest {
     @Override
     public void before() {
       super.before();
-      myIdeProfilerServices.enableJniReferenceTracking(true);
       myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 

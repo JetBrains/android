@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.AndroidXConstants.TAB_ITEM;
 import static com.android.SdkConstants.ANDROID_MATERIAL_PKG;
 import static com.android.SdkConstants.ATTR_BACKGROUND;
 import static com.android.SdkConstants.ATTR_STYLE;
@@ -45,21 +46,28 @@ import static com.android.SdkConstants.ATTR_TAB_TEXT_COLOR;
 import static com.android.SdkConstants.ATTR_TAB_UNBOUNDED_RIPPLE;
 import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.ATTR_THEME;
-import static com.android.SdkConstants.TAB_ITEM;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler;
+import com.android.tools.idea.uibuilder.handlers.frame.FrameDragTarget;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -124,8 +132,7 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent node,
                           @NotNull InsertType insertType) {
     // Hide the implementation from HorizontalScrollViewHandler
@@ -135,12 +142,15 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   @Override
   public boolean acceptsChild(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild) {
-    return TAB_ITEM.isEquals(newChild.getTagName());
+    return isTabItem(newChild);
+  }
+
+  private static boolean isTabItem(@NotNull NlComponent child) {
+    return TAB_ITEM.isEquals(child.getTagName());
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent layout,
+  public void onChildInserted(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
     if (newChild.getAndroidAttribute(ATTR_TEXT) == null) {
@@ -155,5 +165,35 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new FrameDragHandler(editor, this, layout, components, type);
+  }
+
+  @Override
+  public @NotNull List<Target> createChildTargets(@NotNull SceneComponent parentComponent,
+                                                  @NotNull SceneComponent childComponent) {
+    return ImmutableList.of(new FrameDragTarget());
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
+    if (!draggedComponents.stream().allMatch(it -> isTabItem(it.getNlComponent()))) {
+      // To drag into TabLayout, all dragged components must be TAB_ITEM.
+      return Collections.emptyList();
+    }
+
+    List<Placeholder> retList = new ArrayList<>();
+    List<SceneComponent> children = component.getChildren().stream()
+      .filter(it -> !(it instanceof TemporarySceneComponent))
+      .collect(Collectors.toList());
+
+    if (children.size() == 0) {
+      retList.add(new ViewGroupPlaceholder(component));
+    }
+    else {
+      for (SceneComponent child : children) {
+        retList.add(new TabLayoutPlaceholder(component, child));
+      }
+      retList.add(new TabLayoutPlaceholder(component, null));
+    }
+    return retList;
   }
 }

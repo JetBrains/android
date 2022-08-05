@@ -1,9 +1,6 @@
 // Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections;
 
-import static com.android.SdkConstants.INT_DEF_ANNOTATION;
-import static com.android.SdkConstants.STRING_DEF_ANNOTATION;
-import static com.android.SdkConstants.SUPPORT_ANNOTATIONS_PREFIX;
 import static com.android.SdkConstants.TYPE_DEF_FLAG_ATTRIBUTE;
 import static com.android.SdkConstants.TYPE_DEF_VALUE_ATTRIBUTE;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.COLOR_INT_ANNOTATION;
@@ -13,7 +10,9 @@ import static com.android.tools.lint.detector.api.ResourceEvaluator.DIMENSION_MA
 import static com.android.tools.lint.detector.api.ResourceEvaluator.PX_ANNOTATION;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.RES_SUFFIX;
 
+import com.android.AndroidXConstants;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ExpectedTypeInfo;
 import com.intellij.codeInsight.completion.CompletionContributor;
@@ -66,7 +65,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,7 +105,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
     Constraints allowedValues = getAllowedValues(pos);
     if (allowedValues == null) return;
 
-    final Set<PsiElement> allowed = new THashSet<>(new TObjectHashingStrategy<>() {
+    final Set<PsiElement> allowed = new THashSet<PsiElement>(new TObjectHashingStrategy<PsiElement>() {
       @Override
       public int computeHashCode(PsiElement object) {
         return 0;
@@ -124,13 +122,13 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       for (ResourceType resourceType : ((ResourceTypeAllowedValues)allowedValues).types) {
         // We should *not* offer completion for non-resource type resource types such as "public"; these
         // are markers for @ColorInt and @Px
-        if (resourceType == COLOR_INT_MARKER_TYPE || resourceType == DIMENSION_MARKER_TYPE) {
+        if (resourceType.isSynthetic()) {
           continue;
         }
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(pos.getProject());
         String code = "R." + resourceType.getName();
         // Look up the fully qualified name of the application package
-        String fqcn = AndroidManifestUtils.getPackageName(facet);
+        String fqcn = ProjectSystemUtil.getModuleSystem(facet).getPackageName();
         String qualifiedCode = fqcn + "." + code;
         Project project = facet.getModule().getProject();
         PsiClass cls = JavaPsiFacade.getInstance(project).findClass(qualifiedCode, GlobalSearchScope.allScope(project));
@@ -177,7 +175,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       }
     }
 
-    result.runRemainingContributors(parameters, new Consumer<>() {
+    result.runRemainingContributors(parameters, new Consumer<CompletionResult>() {
       @Override
       public void consume(CompletionResult completionResult) {
         LookupElement element = completionResult.getLookupElement();
@@ -225,8 +223,8 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
         continue;
       }
 
-      if (SUPPORT_ANNOTATIONS_PREFIX.isPrefix(qualifiedName) || qualifiedName.startsWith("test.pkg.")) {
-        if (INT_DEF_ANNOTATION.isEquals(qualifiedName) || STRING_DEF_ANNOTATION.isEquals(qualifiedName)) {
+      if (AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.isPrefix(qualifiedName) || qualifiedName.startsWith("test.pkg.")) {
+        if (AndroidXConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName) || AndroidXConstants.STRING_DEF_ANNOTATION.isEquals(qualifiedName)) {
           if (type != null && !(annotation instanceof PsiCompiledElement)) { // Don't fetch constants from .class files: can't hold data
             constraint = merge(getAllowedValuesFromTypedef(type, annotation, manager), constraint);
           }
@@ -419,15 +417,15 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
   public static ResourceType getResourceTypeFromAnnotation(@NotNull String qualifiedName) {
     String resourceTypeName;
 
-    if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.oldName())) {
-      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.oldName().length())) +
+    if (qualifiedName.startsWith(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.oldName())) {
+      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.oldName().length())) +
                          qualifiedName
-                           .substring(SUPPORT_ANNOTATIONS_PREFIX.oldName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
+                           .substring(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.oldName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
     }
     else {
-      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.newName().length())) +
+      resourceTypeName = Character.toLowerCase(qualifiedName.charAt(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.newName().length())) +
                          qualifiedName
-                           .substring(SUPPORT_ANNOTATIONS_PREFIX.newName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
+                           .substring(AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.newName().length() + 1, qualifiedName.length() - RES_SUFFIX.length());
     }
     return ResourceType.fromClassName(resourceTypeName);
   }

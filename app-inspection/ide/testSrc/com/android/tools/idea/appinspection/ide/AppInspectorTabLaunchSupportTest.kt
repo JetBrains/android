@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.process.SimpleProcessListener
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -90,9 +91,9 @@ class AppInspectorTabLaunchSupportTest {
       appInspectionServiceRule.apiServices,
       projectRule.project,
       object : InspectorArtifactService {
-        override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+        override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
           return if (artifactCoordinate == unresolvedLibrary) {
-            null
+            throw AppInspectionArtifactNotFoundException("not found")
           } else {
             Paths.get("resolved", "jar")
           }

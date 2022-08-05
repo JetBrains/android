@@ -19,9 +19,11 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
+import java.awt.image.BufferedImage;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,10 +40,9 @@ public class TestableThumbnailManager extends ThumbnailManager {
     myPreviousManager = previousManager;
   }
 
-  public static void register(@NotNull AndroidFacet facet, @NotNull Disposable parentDisposable) {
+  public static void register(@NotNull AndroidFacet facet) {
     ThumbnailManager newInstance = new TestableThumbnailManager(facet, ThumbnailManager.getInstance(facet));
     ThumbnailManager.setInstance(facet, newInstance);
-    Disposer.register(parentDisposable, newInstance);
   }
 
   @Override
@@ -50,12 +51,25 @@ public class TestableThumbnailManager extends ThumbnailManager {
     super.onDispose();
   }
 
-  @Nullable
+  @NotNull
   @Override
-  protected RenderTask createTask(@NotNull AndroidFacet facet,
-                                  @NotNull XmlFile file,
-                                  @NotNull Configuration configuration,
-                                  @NotNull RenderService renderService) {
-    return RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration);
+  public CompletableFuture<BufferedImage> getImage(@NotNull XmlFile xmlFile,
+                                                   @NotNull VirtualFile file,
+                                                   @NotNull Configuration configuration) {
+    try {
+      return CompletableFuture.completedFuture(super.getImage(xmlFile, file, configuration).get());
+    }
+    catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException("ThumbnailManager failed at rendering", e);
+    }
+  }
+
+  @NotNull
+  @Override
+  protected CompletableFuture<RenderTask> createTask(@NotNull AndroidFacet facet,
+                                                     @NotNull XmlFile file,
+                                                     @NotNull Configuration configuration,
+                                                     @NotNull RenderService renderService) {
+    return CompletableFuture.completedFuture(RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration));
   }
 }

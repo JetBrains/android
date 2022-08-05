@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.common.assistant.HelpPanelBundle
@@ -153,11 +154,10 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 
   private fun getDirectType(tagName: String): Type {
-    if (SdkConstants.MOTION_LAYOUT.isEquals(tagName) &&
-        StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get() &&
+    if (AndroidXConstants.MOTION_LAYOUT.isEquals(tagName) &&
         StudioFlags.NELE_MOTION_LAYOUT_ASSISTANT.get()) {
       return Type.MOTION_LAYOUT
-    } else if (SdkConstants.CONSTRAINT_LAYOUT.isEquals(tagName) &&
+    } else if (AndroidXConstants.CONSTRAINT_LAYOUT.isEquals(tagName) &&
                StudioFlags.NELE_CONSTRAINT_LAYOUT_ASSISTANT.get()) {
       return Type.CONSTRAINT_LAYOUT
     }

@@ -20,6 +20,7 @@ package com.android.tools.idea.projectsystem
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.util.messages.Topic
 
 /**
@@ -80,8 +81,6 @@ interface ProjectSystemSyncManager {
     FAILURE(false),
     /** The user has compilation errors or errors in build system files */
     PARTIAL_SUCCESS(true),
-    /** The sync failed due to problems with source generation */
-    SOURCE_GENERATION_FAILURE(false),
     /**
      * The project state was loaded from the cached result of the last successful sync, but may not reflect the current state of the project
      * (e.g. the initial project sync was skipped without checking to see if the cached state was valid).
@@ -94,15 +93,21 @@ interface ProjectSystemSyncManager {
   }
 
   /** The requestor's reason for syncing the project */
-  enum class SyncReason {
-    /** The project is being loaded */
-    PROJECT_LOADED,
-    /** The project has been modified */
-    PROJECT_MODIFIED,
-    /** The project has been modified (dependency updated) */
-    PROJECT_DEPENDENCY_UPDATED,
-    /** The user requested the sync directly (by pushing the button) */
-    USER_REQUEST;
+  data class SyncReason(val forStats: Trigger) {
+    companion object {
+      /** The project is being loaded */
+      @JvmField
+      val PROJECT_LOADED = SyncReason(Trigger.TRIGGER_PROJECT_REOPEN)
+      /** The project has been modified */
+      @JvmField
+      val PROJECT_MODIFIED = SyncReason(Trigger.TRIGGER_PROJECT_MODIFIED)
+      /** The project has been modified (dependency updated) */
+      @JvmField
+      val PROJECT_DEPENDENCY_UPDATED = SyncReason(Trigger.TRIGGER_GRADLEDEPENDENCY_UPDATED)
+      /** The user requested the sync directly (by pushing the button) */
+      @JvmField
+      val USER_REQUEST = SyncReason(Trigger.TRIGGER_USER_REQUEST)
+    }
   }
 
   /** Listener which provides a callback for when syncs complete */
@@ -114,3 +119,5 @@ interface ProjectSystemSyncManager {
 
 /** Endpoint for broadcasting changes in global sync status */
 @JvmField val PROJECT_SYSTEM_SYNC_TOPIC = Topic(SyncResultListener::class.java)
+
+fun Trigger.toReason(): ProjectSystemSyncManager.SyncReason = ProjectSystemSyncManager.SyncReason(this)

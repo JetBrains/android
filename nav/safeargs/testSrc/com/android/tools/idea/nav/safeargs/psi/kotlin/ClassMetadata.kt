@@ -120,7 +120,7 @@ internal fun ResolutionScope.classesInScope(nameFilter: (String) -> Boolean = { 
 
 private fun KotlinType.asString(): String {
   return when (this) {
-    is ErrorType -> debugMessage
+    is ErrorType -> debugMessage.removePrefix("Unresolved type for ")
     else -> fqName!!.asString()
   }
 }

@@ -37,10 +37,12 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static XDisplayRule display = new XDisplayRule();
 
   static {
-    linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+    linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/android-uitests/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
     unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
+    linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
 
     List<File> additionalPlugins = getExternalPlugins();
     if (!additionalPlugins.isEmpty()) {
@@ -63,7 +65,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
     List<File> plugins = new ArrayList<>(1);
 
     // Enable Bazel plugin if it's available
-    File aswb = TestUtils.resolveWorkspacePath("tools/adt/idea/android-uitests/aswb").toFile();
+    File aswb = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/android-uitests/aswb").toFile();
     if (aswb.exists()) {
       plugins.add(aswb);
     }

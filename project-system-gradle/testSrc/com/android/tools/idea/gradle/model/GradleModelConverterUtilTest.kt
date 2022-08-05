@@ -16,15 +16,15 @@
 
 package com.android.tools.idea.gradle.model
 
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
+import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.DynamicResourceValue
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.resources.ResourceType
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
-import com.android.tools.idea.gradle.project.model.classFieldsToDynamicResourceValues
-import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -39,24 +39,9 @@ class GradleModelConverterUtilTest {
     @get:Rule
     val expect = Expect.createAndEnableStackTrace()
 
-    @Test
-    fun testClassFieldsToDynamicResourceValues() {
-        val input = mapOf(
-            "foo" to IdeClassFieldImpl(type = ResourceType.STRING.getName(), name = "foo", value = "baz"),
-            "foo2" to IdeClassFieldImpl(type = ResourceType.INTEGER.getName(), name = "foo2", value = "123"))
-        val output = classFieldsToDynamicResourceValues(input)
-
-        val expectedOutput = mapOf(
-            "foo" to DynamicResourceValue(ResourceType.STRING, "baz"),
-            "foo2" to DynamicResourceValue(ResourceType.INTEGER, "123")
-        )
-
-        assertThat(output).isEqualTo(expectedOutput)
-    }
-
   @Test
   fun testConvertAndroidLibrary() {
-    val original = IdeAndroidLibraryImpl(
+    val original = IdeAndroidLibraryImpl.create(
       artifactAddress = "artifact:address:1.0",
       name = "artifact:address:1.0",
       folder = File("libraryFolder"),
@@ -75,13 +60,13 @@ class GradleModelConverterUtilTest {
       publicResources = "publicResources",
       artifact = File("artifactFile"),
       symbolFile = "symbolFile",
-      isProvided = false
+      deduplicate = { this }
     )
     val result = convertLibraryToExternalLibrary(original)
 
     with(original) {
       expect.that(result.address).isEqualTo(artifactAddress)
-      expect.that(result.location).isEqualTo(artifact.toPathString())
+      expect.that(result.location).isEqualTo(artifact?.toPathString())
       expect.that(result.manifestFile).isEqualTo(PathString(manifest))
       expect.that(result.resFolder).isEqualTo(RecursiveResourceFolder(PathString(resFolder)))
       expect.that(result.assetsFolder).isEqualTo(PathString(assetsFolder))

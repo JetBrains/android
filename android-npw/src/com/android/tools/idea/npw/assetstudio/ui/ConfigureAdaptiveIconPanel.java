@@ -716,16 +716,16 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.bind(myIconGenerator.outputName(), myOutputName);
     myGeneralBindings.bindTwoWay(myIconGenerator.backgroundImageAsset(), myBackgroundImageAsset);
 
-    myGeneralBindings.bindTwoWay(myBackgroundColor, myIconGenerator.backgroundColor());
-    myGeneralBindings.bindTwoWay(myShowSafeZone, myIconGenerator.showSafeZone());
-    myGeneralBindings.bindTwoWay(myGenerateLegacyIcon, myIconGenerator.generateLegacyIcon());
+    myGeneralBindings.bindTwoWay(myIconGenerator.backgroundColor(), myBackgroundColor);
+    myGeneralBindings.bindTwoWay(myIconGenerator.showSafeZone(), myShowSafeZone);
+    myGeneralBindings.bindTwoWay(myIconGenerator.generateLegacyIcon(), myGenerateLegacyIcon);
     if (myIconGenerator instanceof LauncherIconGenerator) {
       LauncherIconGenerator iconGenerator = (LauncherIconGenerator)myIconGenerator;
-      myGeneralBindings.bindTwoWay(myGenerateRoundIcon, iconGenerator.generateRoundIcon());
-      myGeneralBindings.bindTwoWay(myGeneratePlayStoreIcon, iconGenerator.generatePlayStoreIcon());
-      myGeneralBindings.bindTwoWay(myLegacyIconShape, iconGenerator.legacyIconShape());
-      myGeneralBindings.bindTwoWay(myShowGrid, iconGenerator.showGrid());
-      myGeneralBindings.bindTwoWay(myPreviewDensity, iconGenerator.previewDensity());
+      myGeneralBindings.bindTwoWay(iconGenerator.generateRoundIcon(), myGenerateRoundIcon);
+      myGeneralBindings.bindTwoWay(iconGenerator.generatePlayStoreIcon(), myGeneratePlayStoreIcon);
+      myGeneralBindings.bindTwoWay(iconGenerator.legacyIconShape(), myLegacyIconShape);
+      myGeneralBindings.bindTwoWay(iconGenerator.showGrid(), myShowGrid);
+      myGeneralBindings.bindTwoWay(iconGenerator.previewDensity(), myPreviewDensity);
     }
     myGeneralBindings.bindTwoWay(myIconGenerator.foregroundLayerName(), myForegroundLayerName);
     myGeneralBindings.bindTwoWay(myIconGenerator.backgroundLayerName(), myBackgroundLayerName);

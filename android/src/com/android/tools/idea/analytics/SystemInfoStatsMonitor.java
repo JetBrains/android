@@ -24,7 +24,6 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.startup.AndroidSdkInitializer;
 import com.google.common.base.Joiner;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -197,7 +196,7 @@ public class SystemInfoStatsMonitor {
                                           @NotNull Revision lowestEmulatorRevision,
                                           @NotNull AndroidSdkHandler handler) throws ExecutionException {
     LocalPackage emulatorPackage = handler.getLocalPackage(SdkConstants.FD_EMULATOR,
-                                                           new StudioLoggerProgressIndicator(AndroidSdkInitializer.class));
+                                                           new StudioLoggerProgressIndicator(SystemInfoStatsMonitor.class));
     if (emulatorPackage == null) {
       throw new ExecutionException("No SDK emulator package");
     }

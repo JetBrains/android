@@ -451,7 +451,10 @@ internal fun methodCallBlockName(expression: KtCallExpression): String? {
   //  buildTypes.getByName("$foo") { ... }
   //  buildTypes.getByName(foo) { ... }
   val argument = arguments[0].getArgumentExpression()
-  return if (argument is KtStringTemplateExpression) argument.literalContents() else null
+  return when (argument) {
+    is KtStringTemplateExpression -> argument.literalContents()
+    else -> null
+  }
 }
 
 // TODO(xof): I would have liked to mark this with @VisibleForTesting, but the visibility that it would otherwise need

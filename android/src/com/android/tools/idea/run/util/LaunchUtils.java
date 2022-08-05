@@ -15,38 +15,30 @@
  */
 package com.android.tools.idea.run.util;
 
+import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
-import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryUsedFeaturesFromManifestIndex;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_REQUIRED;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
+import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.UsedFeatureRawText;
-import com.intellij.execution.Executor;
-import com.intellij.execution.impl.ExecutionManagerImpl;
-import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
+import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
-import java.util.Collection;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 public class LaunchUtils {
   /**
@@ -57,8 +49,7 @@ public class LaunchUtils {
   }
 
   public static boolean canDebugApp(@NotNull AndroidFacet facet) {
-    Boolean isDebuggable = AndroidModuleInfo.getInstance(facet).isDebuggable();
-    return (isDebuggable == null || isDebuggable);
+    return getModuleSystem(facet).isDebuggable();
   }
 
   public static boolean isDebuggableDevice(@NotNull IDevice device) {
@@ -69,74 +60,28 @@ public class LaunchUtils {
   /**
    * Returns whether the watch hardware feature is required for the given facet.
    */
+  @Slow
+  @WorkerThread
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    Project project = facet.getModule().getProject();
-    Collection<UsedFeatureRawText> usedFeatures =
-      DumbService.getInstance(project).runReadActionInSmartMode(() -> queryUsedFeaturesFromManifestIndex(facet));
+    ApplicationManager.getApplication().assertIsNonDispatchThread();
 
-    return usedFeatures.stream()
-      .anyMatch(feature -> UsesFeature.HARDWARE_TYPE_WATCH.equals(feature.getName()) &&
-                           (feature.getRequired() == null || VALUE_TRUE.equals(feature.getRequired())));
-  }
+    if (AndroidFacet.getInstance(facet.getModule()) == null) {
+      Logger.getInstance(LaunchUtils.class).warn("calling isWatchFeatureRequired when facet is not ready yet");
+      return false;
+    }
 
-  public static void showNotification(@NotNull final Project project,
-                                      @NotNull final Executor executor,
-                                      @NotNull final String sessionName,
-                                      @NotNull final String message,
-                                      @NotNull final NotificationType type,
-                                      @Nullable final NotificationListener errorNotificationListener) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        if (project.isDisposed()) {
-          return;
-        }
-
-        String toolWindowId = executor.getToolWindowId();
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
-        if (toolWindow.isVisible() && errorNotificationListener == null) {
-          return;
-        }
-
-        final String link = "toolWindow_" + sessionName;
-        final String notificationMessage = String.format("Session <a href='%s'>'%s'</a>: %s", link, sessionName, message);
-
-        NotificationGroup group = getNotificationGroup(toolWindowId);
-        group.createNotification(notificationMessage, type).setListener(new NotificationListener() {
-          @Override
-          public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-            boolean handled = false;
-            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED && link.equals(event.getDescription())) {
-              for (RunContentDescriptor d : ExecutionManagerImpl.getAllDescriptors(project)) {
-                if (sessionName.equals(d.getDisplayName())) {
-                  final Content content = d.getAttachedContent();
-                  if (content != null) {
-                    content.getManager().setSelectedContent(content);
-                  }
-                  toolWindow.activate(null, true, true);
-                  handled = true;
-                  break;
-                }
-              }
-            }
-
-            if (!handled && errorNotificationListener != null) {
-              errorNotificationListener.hyperlinkUpdate(notification, event);
-            }
-          }
-        }).notify(project);
+    try {
+      MergedManifestSnapshot info = MergedManifestManager.getMergedManifest(facet.getModule()).get();
+      Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
+      if (usesFeatureElem != null) {
+        String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
+        return isEmpty(required) || VALUE_TRUE.equals(required);
       }
-
-      @NotNull
-      private NotificationGroup getNotificationGroup(@NotNull String toolWindowId) {
-        String displayId = "Launch Notifications for " + toolWindowId;
-        NotificationGroup group = NotificationGroup.findRegisteredGroup(displayId);
-        if (group == null) {
-          group = NotificationGroup.toolWindowGroup(displayId, toolWindowId, true, PluginId.getId("org.jetbrains.android"));
-        }
-        return group;
-      }
-    });
+    }
+    catch (ExecutionException | InterruptedException ex) {
+      Logger.getInstance(LaunchUtils.class).warn(ex);
+    }
+    return false;
   }
 
   public static void initiateDismissKeyguard(@NotNull final IDevice device) {
@@ -147,15 +92,12 @@ public class LaunchUtils {
     if (canDismissKeyguard.compareTo(device.getVersion()) <= 0) {
       // It is not necessary to wait for the keyguard to be dismissed. On a slow emulator, this seems
       // to take a while (6s on my machine)
-      ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            device.executeShellCommand("wm dismiss-keyguard", new NullOutputReceiver(), 10, TimeUnit.SECONDS);
-          }
-          catch (Exception e) {
-            Logger.getInstance(LaunchUtils.class).warn("Unable to dismiss keyguard before launching activity");
-          }
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        try {
+          device.executeShellCommand("wm dismiss-keyguard", new NullOutputReceiver(), 10, TimeUnit.SECONDS);
+        }
+        catch (Exception e) {
+          Logger.getInstance(LaunchUtils.class).warn("Unable to dismiss keyguard before launching activity");
         }
       });
     }

@@ -40,7 +40,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
 
   public ProGuardConfigFilesPanel() {
     super(new BorderLayout());
-    myModel = new CollectionListModel<>();
+    myModel = new CollectionListModel<String>();
     myList = new JBList(myModel);
 
     final ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myList).
@@ -90,7 +90,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
     if (paths.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<String> result = new ArrayList<>(paths.size());
+    final List<String> result = new ArrayList<String>(paths.size());
 
     for (String path : paths) {
       String url = VfsUtilCore.pathToUrl(path);
@@ -114,7 +114,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
   }
 
   public void setOsPaths(@NotNull List<String> paths) {
-    myModel = new CollectionListModel<>(paths);
+    myModel = new CollectionListModel<String>(paths);
     myList.setModel(myModel);
   }
 

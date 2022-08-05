@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,22 @@ public class AidlBodyImpl extends AidlPsiCompositeElementImpl implements AidlBod
     visitor.visitBody(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AidlVisitor) accept((AidlVisitor)visitor);
     else super.accept(visitor);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlAnnotationElement> getAnnotationElementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlAnnotationElement.class);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlEnumDeclaration> getEnumDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlEnumDeclaration.class);
   }
 
   @Override
@@ -52,6 +65,12 @@ public class AidlBodyImpl extends AidlPsiCompositeElementImpl implements AidlBod
   @NotNull
   public List<AidlParcelableDeclaration> getParcelableDeclarationList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlParcelableDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlUnionDeclaration> getUnionDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlUnionDeclaration.class);
   }
 
 }

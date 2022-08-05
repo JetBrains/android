@@ -1,0 +1,4 @@
+<html>
+<body>
+Formats: boolean, reference<br><br>my attr 2 docs for MyView2</body>
+</html>

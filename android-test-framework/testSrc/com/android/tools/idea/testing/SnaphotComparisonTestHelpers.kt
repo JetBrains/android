@@ -23,6 +23,10 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.PathUtil.toSystemDependentName
+import com.intellij.util.PathUtil.toSystemIndependentName
+import com.intellij.util.io.systemIndependentPath
+import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
 typealias ProjectDumpAction = (project: Project, projectDumper: ProjectDumper) -> Unit
@@ -51,3 +55,26 @@ fun Project.saveAndDump(
 private fun getOfflineM2Repositories(): List<File> =
   (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() + AndroidGradleTests.getLocalRepositoryDirectories())
     .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
+
+fun normalizeHtmlForTests(project: Project, doc: String): String {
+  return doc
+    .replacePath(TestUtils.resolveWorkspacePath("").systemIndependentPath, "{ROOT}")
+    .replacePath(project.basePath!!, "{PROJECT}")
+    .replacePath(toSystemIndependentName(FileUtil.getTempDirectory()), "{TMP}")
+    .replace("<BR/>", "<BR/>\n")
+    .replace("</tr>", "</tr>\n")
+    .replace("</td>", "</td>\n")
+    .replace("</table>", "</table>\n")
+    .replace("<html>", "<html>\n")
+    .replace("<body>", "<body>\n")
+    .replace("</html>", "</html>\n")
+    .replace("</body>", "</body>\n")
+    .trim()
+}
+
+private fun String.replacePath(path: @SystemIndependent String, replacement: String): String {
+  return this
+    .replace("/$path", replacement)
+    .replace(path, replacement)
+    .replace(toSystemDependentName(path), replacement)
+}

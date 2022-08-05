@@ -19,13 +19,11 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
-import static com.intellij.openapi.actionSystem.PlatformCoreDataKeys.MODULE;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.util.containers.ContainerUtil.newConcurrentSet;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -36,19 +34,17 @@ import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderEx;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.Consumer;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -61,8 +57,6 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
-  @NotNull private final ProjectFileIndex myProjectFileIndex;
-
   private volatile boolean myNewProject;
   private volatile boolean myImportedProject;
   private final ProjectFacetManager myFacetManager;
@@ -75,7 +69,6 @@ public class GradleProjectInfo {
 
   public GradleProjectInfo(@NotNull Project project) {
     myProject = project;
-    myProjectFileIndex = ProjectFileIndex.getInstance(myProject);
     myFacetManager = ProjectFacetManager.getInstance(myProject);
   }
 
@@ -137,14 +130,6 @@ public class GradleProjectInfo {
   }
 
   /**
-   * Indicates whether the project has Gradle facets.
-   * e.g. this is used to check if an opened Gradle project has already been imported or not yet.
-   */
-  public boolean hasGradleFacets() {
-    return myFacetManager.hasFacets(GradleFacet.getFacetTypeId());
-  }
-
-  /**
    * Indicates whether the project has a file which gradle could use to perform initialization, either of a "single project" or a
    * "multi-project" build.
    *
@@ -183,68 +168,6 @@ public class GradleProjectInfo {
   }
 
   /**
-   * Applies the given {@link Consumer} to each module in the project that contains an {@code AndroidFacet}.
-   *
-   * @param consumer the {@code Consumer} to apply.
-   */
-  public void forEachAndroidModule(@NotNull Consumer<AndroidFacet> consumer) {
-    ReadAction.run(() -> {
-      if (myProject.isDisposed()) {
-        return;
-      }
-
-      for (Module module : ProjectSystemUtil.getAndroidModulesForDisplay(myProject, null)) {
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null && GradleFacet.getInstance(module) != null) {
-          consumer.consume(androidFacet);
-        }
-      }
-    });
-  }
-
-  /**
-   * Attempts to retrieve the {@link AndroidModuleModel} for the module containing the given file.
-   * <p/>
-   * This method will return {@code null} if the file is "excluded" or if the module the file belongs to is not an Android module.
-   *
-   * @param file the given file.
-   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the file is "excluded" or if the
-   * module the file belongs to is not an Android module.
-   */
-  @Nullable
-  public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file) {
-    return findAndroidModelInModule(file, true /* ignore "excluded files */);
-  }
-
-  /**
-   * Attempts to retrieve the {@link AndroidModuleModel} for the module containing the given file.
-   *
-   * @param file           the given file.
-   * @param honorExclusion if {@code true}, this method will return {@code null} if the given file is "excluded".
-   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the module is not an Android
-   * module.
-   */
-  @Nullable
-  public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file, boolean honorExclusion) {
-    Module module = findModuleForFile(file, honorExclusion);
-    if (module == null) {
-      return null;
-    }
-
-    if (module.isDisposed()) {
-      getLog().warn("Attempted to get an Android Facet from a disposed module");
-      return null;
-    }
-
-    return AndroidModuleModel.get(module);
-  }
-
-  @Nullable
-  private Module findModuleForFile(@NotNull VirtualFile file, boolean honorExclusion) {
-    return myProjectFileIndex.getModuleForFile(file, honorExclusion);
-  }
-
-  /**
    * Returns the modules to build based on the current selection in the 'Project' tool window. If the module that corresponds to the project
    * is selected, all the modules in such projects are returned. If there is no selection, an empty array is returned.
    *
@@ -273,7 +196,7 @@ public class GradleProjectInfo {
       }
       return modules;
     }
-    Module module = MODULE.getData(dataContext);
+    Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
     if (module != null) {
       return isProjectModule(module) ? ModuleManager.getInstance(myProject).getModules() : new Module[]{module};
     }
@@ -322,10 +245,5 @@ public class GradleProjectInfo {
     }
     String basePath = module.getProject().getBasePath();
     return basePath != null && filesEqual(moduleRootFolderPath, new File(basePath)) && !GradleFacet.isAppliedTo(module);
-  }
-
-  @NotNull
-  private Logger getLog() {
-    return Logger.getInstance(getClass());
   }
 }

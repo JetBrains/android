@@ -1239,7 +1239,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       });
       regionModel.add(FAKE_VALUE);
       if (!myShowAllRegions.isSelected() && languageCode != null) {
-        preferred.set(LocaleManager.getLanguageRegion(languageCode));
         final List<String> relevant = LocaleManager.getRelevantRegions(languageCode);
         for (String code : relevant) {
           regionModel.add(code);

@@ -23,7 +23,6 @@ import com.intellij.ui.ColoredListCellRenderer;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JList;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,10 +70,10 @@ public abstract class DeployTargetProvider {
    * Prompt the user for whatever input might be required at the time of the launch and return a customized {@link DeployTarget}.
    * A return value of null indicates that the launch should be canceled.
    *
-   * @param runConfigId a unique ID identifying the run configuration context from which this is being invoked
+   * @param project
    */
   @Nullable
-  public DeployTarget showPrompt(@NotNull AndroidFacet facet) {
+  public DeployTarget showPrompt(@NotNull Project project) {
     throw new IllegalStateException();
   }
 

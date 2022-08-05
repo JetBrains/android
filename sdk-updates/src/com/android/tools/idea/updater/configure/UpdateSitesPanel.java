@@ -20,8 +20,11 @@ import com.android.repository.api.SettingsController;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
@@ -33,6 +36,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Panel that shows the current {@link RepositorySource}s.
@@ -59,8 +63,20 @@ public class UpdateSitesPanel {
 
   private void createUIComponents() {
     mySourcesLoadingIcon = new AsyncProcessIcon(CommonBundle.getLoadingTreeNodeText());
-    mySourcesTableModel = new SourcesTableModel(() -> mySourcesLoadingPanel.setVisible(true),
-                                                () -> mySourcesLoadingPanel.setVisible(false), ModalityState.current());
+    Runnable finishLoadingCallback = () -> {
+      mySourcesLoadingPanel.setVisible(false);
+
+      DataManager dataManager = DataManager.getInstance();
+      DataContext dataContext = dataManager.getDataContext(myRootPanel);
+      @Nullable Settings settings = Settings.KEY.getData(dataContext);
+      if (settings != null) {
+        // Since loading happens asynchronously, the states of the apply/reset buttons won't be updated unless we force a revalidation.
+        settings.revalidate();
+      }
+    };
+
+    mySourcesTableModel =
+      new SourcesTableModel(() -> mySourcesLoadingPanel.setVisible(true), finishLoadingCallback, ModalityState.current());
     myUpdateSitesTable = new TableView<>(mySourcesTableModel);
     ToolbarDecorator userDefinedDecorator = ToolbarDecorator.createDecorator(myUpdateSitesTable);
     mySourcesPanel = addExtraActions(userDefinedDecorator).createPanel();

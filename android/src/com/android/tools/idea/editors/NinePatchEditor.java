@@ -24,6 +24,9 @@ import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorState;
@@ -32,11 +35,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ModalityUiUtil;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.function.Supplier;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -50,7 +56,7 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private final Project myProject;
-  private final VirtualFile myFile;
+  private VirtualFile myFile;
 
   private BufferedImage myBufferedImage;
   private ImageEditorPanel myImageEditorPanel;
@@ -71,7 +77,12 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
     myFile = file;
     try {
       myBufferedImage = loadImage(file);
-      myImageEditorPanel = new ImageEditorPanel(null, myBufferedImage, myFile.getName());
+      Supplier<Color> helpBackgroundColor = () -> {
+        EditorColorsScheme globalScheme = EditorColorsManager.getInstance().getGlobalScheme();
+        return globalScheme.getColor(EditorColors.NOTIFICATION_BACKGROUND);
+      };
+
+      myImageEditorPanel = new ImageEditorPanel(null, myBufferedImage, myFile.getName(), helpBackgroundColor, JBColor::border);
       myImageEditorPanel.getViewer().addPatchUpdateListener(this);
     } catch (IOException e) {
       LOG.error("Unexpected exception while reading 9-patch file", e);
@@ -110,6 +121,12 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
     });
 
     myDirtyFlag = false;
+  }
+
+  @NotNull
+  @Override
+  public VirtualFile getFile() {
+    return myFile;
   }
 
   @NotNull
@@ -171,11 +188,6 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   @Override
   public StructureViewBuilder getStructureViewBuilder() {
     return null;
-  }
-
-  @Override
-  public @NotNull VirtualFile getFile() {
-    return myFile;
   }
 
   @Override

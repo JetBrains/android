@@ -2,7 +2,6 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <option name="BUILD_PROCESS_HEAP_SIZE" value="2048" />
-    <option name="USE_RELEASE_OPTION" value="false" />
     <excludeFromCompile>
       <file url="file://$PROJECT_DIR$/../profilers/testSrc/com/android/tools/profilers/performance/DataSeriesPerformanceTest.kt" />
     </excludeFromCompile>
@@ -40,13 +39,14 @@
         <module name="aswb.jcgdi.blaze.plugin.base" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="11" />
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="intellij.android.adt.swingp" options="-Xlint:unchecked --add-exports java.desktop/sun.java2d=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED" />
-      <module name="intellij.android.adt.ui" options="-Xlint:unchecked --add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/java.awt.peer=ALL-UNNAMED --add-exports java.desktop/sun.java2d.pipe=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED" />
-      <module name="intellij.android.core" options="-Xlint:unchecked --add-exports java.desktop/sun.awt.image=ALL-UNNAMED --add-exports jdk.attach/sun.tools.attach=ALL-UNNAMED" />
+      <module name="android-ndk.tests" options="--add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
+      <module name="aswb.third_party.intellij.bazel.plugin.java" options="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
+      <module name="intellij.android.adt.swingp" options="--add-exports java.desktop/sun.java2d=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED" />
+      <module name="intellij.android.adt.ui" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/java.awt.peer=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED --add-exports java.desktop/sun.java2d.pipe=ALL-UNNAMED" />
+      <module name="intellij.android.core" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED --add-exports jdk.attach/sun.tools.attach=ALL-UNNAMED" />
     </option>
   </component>
 </project>

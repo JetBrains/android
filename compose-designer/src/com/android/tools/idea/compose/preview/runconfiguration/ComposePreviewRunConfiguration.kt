@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -32,6 +32,8 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import org.jdom.Element
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.toUElementOfType
 
 private const val CONFIGURATION_ELEMENT_NAME = "compose-preview-run-configuration"
 private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
@@ -152,8 +154,9 @@ open class ComposePreviewRunConfiguration(
     val composableFqn = composableMethodFqn ?: return false
 
     JavaPsiFacade.getInstance(project).findClass(composableFqn.substringBeforeLast("."), GlobalSearchScope.projectScope(project))
-      ?.findMethodsByName(composableFqn.substringAfterLast("."))?.forEach { method ->
-        if (method.annotations.any { PREVIEW_ANNOTATION_FQNS.contains(it.qualifiedName) }) return@isValidComposableSet true
+      ?.findMethodsByName(composableFqn.substringAfterLast("."), true)
+      ?.forEach { method ->
+        if (method.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true) return@isValidComposableSet true
       }
 
     return false

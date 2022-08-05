@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 public class ApkFileUnit {
@@ -35,5 +36,10 @@ public class ApkFileUnit {
   @NotNull
   public File getApkFile() {
     return myApkFile;
+  }
+
+  @NotNull
+  public Path getApkPath() {
+    return myApkFile.toPath();
   }
 }

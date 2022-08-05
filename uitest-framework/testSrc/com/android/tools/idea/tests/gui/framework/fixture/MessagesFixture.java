@@ -18,21 +18,16 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.JDOMUtil;
 import java.awt.Container;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
-import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,11 +43,6 @@ public class MessagesFixture {
 
   @NotNull
   public static MessagesFixture findByTitle(@NotNull Robot robot, @NotNull String title, long secondsToWait) {
-    if (Messages.canShowMacSheetPanel()) {
-      JPanelFixture panelFixture = findMacSheetByTitle(robot, title);
-      JDialog dialog = (JDialog)SwingUtilities.getWindowAncestor(panelFixture.target());
-      return new MessagesFixture(panelFixture, dialog);
-    }
     MessageDialogFixture dialog = MessageDialogFixture.findByTitle(robot, title, secondsToWait);
     return new MessagesFixture(dialog, dialog.target());
   }
@@ -97,23 +87,6 @@ public class MessagesFixture {
     Wait.seconds(1).expecting("not showing").until(() -> !myDialog.isShowing());
   }
 
-  @NotNull
-  static JPanelFixture findMacSheetByTitle(@NotNull Robot robot, @NotNull String title) {
-    JPanel sheetPanel = waitUntilShowing(robot, new GenericTypeMatcher<>(JPanel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JPanel panel) {
-        // FIXME: 0cd838a3446179badf9a0161d0a8bd4bbe5c166f/ba20ae9c3103066e341c51c3ea527fc837d2a73f
-        //  ([platform] dropping obsolete implementations of macOS message dialogs; wiring clients to `MessagesService`)
-        return false;
-      }
-    });
-
-    String sheetTitle = "fixme";
-    assertThat(sheetTitle).named("Sheet title").isEqualTo(title);
-
-    return new MacSheetPanelFixture(robot, sheetPanel);
-  }
-
   @Nullable
   public <T extends JComponent> T find(GenericTypeMatcher<T> matcher) {
     return myDelegate.robot().finder().find(myDelegate.target(), matcher);
@@ -121,20 +94,6 @@ public class MessagesFixture {
 
   interface Delegate {
     @NotNull String getMessage();
-  }
-
-  private static class MacSheetPanelFixture extends JPanelFixture implements Delegate {
-    public MacSheetPanelFixture(@NotNull Robot robot, @NotNull JPanel target) {
-      super(robot, target);
-    }
-
-    @Override
-    @NotNull
-    public String getMessage() {
-      // FIXME: 0cd838a3446179badf9a0161d0a8bd4bbe5c166f/ba20ae9c3103066e341c51c3ea527fc837d2a73f
-      //  ([platform] dropping obsolete implementations of macOS message dialogs; wiring clients to `MessagesService`)
-      return "fixme";
-    }
   }
 
   @Nullable

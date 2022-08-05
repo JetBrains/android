@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.systemIndependentPath
@@ -170,7 +171,11 @@ fun Project.dumpSourceProviders(): String {
             nest("GeneratedAndroidTestSources:") { sourceProviderManager.generatedAndroidTestSources.dump("GeneratedAndroidTestSources") }
             nest("GeneratedTestFixturesSources:") { sourceProviderManager.generatedTestFixturesSources.dump("GeneratedTestFixturesSources") }
             nest(
-              "CurrentAndSomeFrequentlyUsedInactiveSourceProviders:") { sourceProviderManager.currentAndSomeFrequentlyUsedInactiveSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
+              "CurrentAndSomeFrequentlyUsedInactiveSourceProviders:"
+            ) {
+              sourceProviderManager.currentAndSomeFrequentlyUsedInactiveSourceProviders.sortedBy { it.adjustedName() }
+                .forEach { it.dump() }
+            }
             nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
             nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }
             nest("CurrentAndroidTestSourceProviders:") { sourceProviderManager.currentAndroidTestSourceProviders.forEach { it.dump() } }
@@ -178,6 +183,14 @@ fun Project.dumpSourceProviders(): String {
           }
         }
       }
+    val buildConfigurationFiles = getProjectSystem().getBuildConfigurationSourceProvider()?.getBuildConfigurationFiles().orEmpty()
+    if (buildConfigurationFiles.isNotEmpty()) {
+      nest("Build configuration files:") {
+        buildConfigurationFiles.sortedBy { it.groupOrder }.forEach {
+          out("${it.file.url.toPrintablePath()} : ${it.displayName} [${it.groupOrder}]")
+        }
+      }
+    }
   }
     .trimIndent()
 }

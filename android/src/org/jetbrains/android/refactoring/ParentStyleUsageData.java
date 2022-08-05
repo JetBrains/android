@@ -58,7 +58,7 @@ class ParentStyleUsageData implements StyleUsageData {
   }
 
   private static Map<String, String> toId2ValueMap(Map<AndroidAttributeInfo, String> info2ValueMap) {
-    final Map<String, String> result = new HashMap<>(info2ValueMap.size());
+    final Map<String, String> result = new HashMap<String, String>(info2ValueMap.size());
 
     for (Map.Entry<AndroidAttributeInfo, String> entry : info2ValueMap.entrySet()) {
       result.put(entry.getKey().getAttributeId(), entry.getValue());

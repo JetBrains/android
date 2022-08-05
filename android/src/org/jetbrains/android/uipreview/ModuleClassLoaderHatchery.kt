@@ -82,7 +82,7 @@ private class Clutch(private val cloner: (ModuleClassLoader) -> ModuleClassLoade
    * Should be called when the clutch is no longer needed to free all the resources.
    */
   fun destroy() {
-    generateSequence { eggs.poll() }.forEach { Disposer.dispose(it) }
+    generateSequence { eggs.poll() }.forEach { it.cancel() }
   }
 
   fun getStats(): Stats {
@@ -142,9 +142,6 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
    */
   @Synchronized
   fun incubateIfNeeded(donor: ModuleClassLoader, cloner: (ModuleClassLoader) -> ModuleClassLoader?): Boolean {
-    // Out of date class loaders can not be used as donors
-    if (!donor.isUserCodeUpToDate) return false
-
     if (storage.find { it.isCompatible(
         donor.parent, donor.projectClassesTransform, donor.nonProjectClassesTransform) } != null) {
       return false

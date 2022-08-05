@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -63,14 +64,15 @@ class DeviceMenuAction2Test {
   @Test
   fun testActions() {
     val configuration = Mockito.mock(Configuration::class.java)
-    Mockito.`when`(configuration.module).thenReturn(projectRule.projectRule.module)
-    Mockito.`when`(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
+    whenever(configuration.module).thenReturn(projectRule.projectRule.module)
+    whenever(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     val holder = ConfigurationHolder { configuration }
     val menuAction = DeviceMenuAction2(holder) { _, _ -> }
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     val presentationFactory = PresentationFactory()
     val actual = runInEdtAndGet {
-      Utils.expandActionGroup(false, menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR)
+      @Suppress("UnstableApiUsage")
+      Utils.expandActionGroup(menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR)
       prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, presentationFactory)
     }
     val expected = """
@@ -79,7 +81,9 @@ class DeviceMenuAction2Test {
     Foldable (674 × 841 dp, xxhdpi)
     Tablet (1280 × 800 dp, xxhdpi)
     Desktop (1920 × 1080 dp, xxhdpi)
-    Phones and Tablets
+    Phones
+        Pixel 6 (411 × 914 dp, xxhdpi)
+        Pixel 6 Pro (411 × 891 dp, xxxhdpi)
         Pixel 5 (393 × 851 dp, xxhdpi)
         Pixel 4 (393 × 829 dp, xxhdpi)
         Pixel 4 XL (411 × 869 dp, xxxhdpi)
@@ -92,14 +96,19 @@ class DeviceMenuAction2Test {
         Pixel 2 XL (411 × 823 dp, 560dpi)
         Pixel (411 × 731 dp, 420dpi)
         Pixel XL (411 × 731 dp, 560dpi)
+        Nexus 6 (411 × 731 dp, 560dpi)
+        Nexus 6P (411 × 731 dp, 560dpi)
+        Nexus 5X (411 × 731 dp, 420dpi)
+    Tablets
         Pixel C (1280 × 900 dp, xhdpi)
         Nexus 10 (1280 × 800 dp, xhdpi)
         Nexus 9 (1024 × 768 dp, xhdpi)
         Nexus 7 (600 × 960 dp, xhdpi)
         Nexus 7 (2012) (601 × 962 dp, hdpi)
-        Nexus 6 (411 × 731 dp, 560dpi)
-        Nexus 6P (411 × 731 dp, 560dpi)
-        Nexus 5X (411 × 731 dp, 420dpi)
+    Desktop
+        Small Desktop (1366 × 768 dp, mdpi)
+        Medium Desktop (1920 × 1080 dp, xhdpi)
+        Large Desktop (1920 × 1080 dp, mdpi)
     ------------------------------------------------------
     Wear
     Wear OS Small Round (192 × 192 dp, xhdpi)
@@ -131,7 +140,7 @@ class DeviceMenuAction2Test {
         4.7" WXGA (640 × 360 dp, xhdpi)
         5.1" WVGA (480 × 800 dp, mdpi)
         5.4" FWVGA (480 × 854 dp, mdpi)
-        Resizable (411 × 891 dp, xxhdpi)
+        Resizable (Experimental) (411 × 891 dp, xxhdpi)
         6.7" Horizontal Fold-in (360 × 879 dp, xxhdpi)
         7" WSVGA (Tablet) (1024 × 600 dp, mdpi)
         7.4" Rollable (610 × 925 dp, xxhdpi)

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.2.0-dev">
+<issues format="5" by="lint 7.4.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -102,7 +102,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="1480"/>
+            line="1504"/>
     </issue>
 
     <issue
@@ -278,7 +278,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineCycleTarget.java"
-            line="143"/>
+            line="146"/>
     </issue>
 
     <issue
@@ -286,7 +286,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineCycleTarget.java"
-            line="147"/>
+            line="150"/>
     </issue>
 
     <issue
@@ -294,7 +294,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineCycleTarget.java"
-            line="170"/>
+            line="173"/>
     </issue>
 
     <issue
@@ -302,7 +302,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineCycleTarget.java"
-            line="177"/>
+            line="180"/>
     </issue>
 
     <issue
@@ -394,35 +394,107 @@
     </issue>
 
     <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/uibuilder/mockup/editor/creators/WidgetCreator.java"
-            line="234"/>
+            file="src/com/android/tools/idea/uibuilder/analytics/AnimationToolbarAnalyticsManager.kt"
+            line="41"/>
     </issue>
 
     <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/uibuilder/mockup/editor/creators/WidgetCreator.java"
-            line="236"/>
+            file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
+            line="286"/>
     </issue>
 
     <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/uibuilder/mockup/editor/creators/WidgetCreator.java"
-            line="248"/>
+            file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
+            line="287"/>
     </issue>
 
     <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/uibuilder/mockup/editor/creators/WidgetCreator.java"
-            line="250"/>
+            file="src/com/android/tools/idea/common/scene/draw/CompositeDrawCommand.kt"
+            line="27"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/surface/DesignSurfaceHelper.kt"
+            line="41"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/surface/DesignSurfaceShortcut.kt"
+            line="42"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
+            line="83"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
+            line="99"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
+            line="103"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
+            line="107"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/common/editor/SplitEditor.kt"
+            line="71"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/assistant/Template.kt"
+            line="61"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationToolWindowFactory.kt"
+            line="101"/>
     </issue>
 
     <issue
@@ -462,7 +534,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/BorderLayer.java"
-            line="62"/>
+            line="60"/>
     </issue>
 
     <issue
@@ -574,14 +646,6 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="209"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="210"/>
     </issue>
 
@@ -606,7 +670,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="218"/>
+            line="213"/>
     </issue>
 
     <issue
@@ -638,7 +702,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="242"/>
+            line="222"/>
     </issue>
 
     <issue
@@ -654,7 +718,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="247"/>
+            line="244"/>
     </issue>
 
     <issue
@@ -662,7 +726,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="261"/>
+            line="248"/>
     </issue>
 
     <issue
@@ -678,7 +742,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="268"/>
+            line="263"/>
     </issue>
 
     <issue
@@ -687,6 +751,14 @@
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="269"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            line="270"/>
     </issue>
 
     <issue
@@ -710,6 +782,14 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
+            line="277"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
             line="278"/>
     </issue>
 
@@ -722,19 +802,99 @@
     </issue>
 
     <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="280"/>
+            file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
+            line="103"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/uibuilder/mockup/colorextractor/DoublesColorExtractor.java"
-            line="145"/>
+            file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
+            line="103"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
+            line="105"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
+            line="105"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
+            line="37"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
+            line="37"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/common/surface/Interactable.kt"
+            line="35"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/common/surface/Interactable.kt"
+            line="35"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/common/surface/InteractionHandler.kt"
+            line="235"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/common/surface/InteractionHandler.kt"
+            line="235"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/common/surface/InteractionHandler.kt"
+            line="332"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/common/surface/InteractionHandler.kt"
+            line="332"/>
     </issue>
 
     <issue
@@ -742,7 +902,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
-            line="64"/>
+            line="74"/>
     </issue>
 
     <issue
@@ -750,7 +910,15 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
-            line="64"/>
+            line="74"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MESaveGif.java"
+            line="83"/>
     </issue>
 
     <issue
@@ -790,7 +958,47 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/model/NlComponent.java"
-            line="101"/>
+            line="100"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/preview/PreviewElementDebugLogger.kt"
+            line="44"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/preview/PreviewElementDebugLogger.kt"
+            line="44"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
+            line="656"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
+            line="823"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
+            line="981"/>
     </issue>
 
     <issue
@@ -818,11 +1026,83 @@
     </issue>
 
     <issue
-        id="SwingWorker"
-        message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/uibuilder/mockup/colorextractor/DoublesColorExtractor.java"
-            line="132"/>
+            file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
+            line="183"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
+            line="183"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
+            line="581"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
+            line="581"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
+            line="131"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
+            line="131"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
+            line="135"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
+            line="135"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
+            line="176"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
+            line="176"/>
     </issue>
 
 </issues>

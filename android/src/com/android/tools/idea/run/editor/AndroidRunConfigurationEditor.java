@@ -83,6 +83,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
                                        Predicate<AndroidFacet> libraryProjectValidator,
                                        T config,
                                        boolean showLogcatCheckbox,
+                                       boolean isAndroidTest,
                                        Function<ConfigurationModuleSelector, ConfigurationSpecificEditor<T>> configurationSpecificEditorFactory) {
     Disposer.register(project, this);
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
@@ -97,7 +98,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
           return false;
         }
 
-        if (!ModuleSystemUtil.isHolderModule(module)) {
+        if (!ModuleSystemUtil.isMainModule(module) && !isAndroidTest) {
+          return false;
+        }
+
+        if (!ModuleSystemUtil.isAndroidTestModule(module) && isAndroidTest) {
           return false;
         }
 
@@ -129,13 +134,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     AndroidDebuggerContext androidDebuggerContext = config.getAndroidDebuggerContext();
-    myModulesComboBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        Module module = myModulesComboBox.getSelectedModule();
-        androidDebuggerContext.setDebuggeeModuleProvider(() -> module);
-      }
-    });
 
     if (androidDebuggerContext.getAndroidDebuggers().size() > 1) {
       myAndroidDebuggerPanel = new AndroidDebuggerPanel(config, androidDebuggerContext);
@@ -261,8 +259,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       SwingHelper.createHtmlViewer(true, null, UIUtil.getPanelBackground(), UIUtil.getContextHelpForeground());
     myActivityRestartDescription.setText(
       "<html>Enabling this option sets a required global flag on the device at deploy time. This avoids having to later restart the " +
-      "activity in order to enable the flag when connecting to the Layout Inspector. " +
-      "<a href=\"https://developer.android.com/r/studio-ui/layout-inspector-activity-restart\">Learn more</a></html>");
+      "activity in order to enable the flag when connecting to the Layout Inspector.<br/>" +
+      "An alternative is to activate \"Enable view attribute inspection\" in the developer options on the device. " +
+      "<a href=\"https://developer.android.com/r/studio-ui/layout-inspector-activity-restart\">Learn more</a><br/></html>");
     myActivityRestartDescription.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
   }
 }

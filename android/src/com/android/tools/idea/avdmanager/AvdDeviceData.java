@@ -21,7 +21,6 @@ import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenRatio;
 import com.android.sdklib.devices.ButtonType;
 import com.android.sdklib.devices.CameraLocation;
 import com.android.sdklib.devices.Device;
@@ -62,7 +61,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class AvdDeviceData {
   private StringProperty myName = new StringValueProperty();
-  private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<>();
+  private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<IdDisplay>();
   private StringProperty myManufacturer = new StringValueProperty();
   private StringProperty myTagId = new StringValueProperty();
   private StringProperty myDeviceId = new StringValueProperty();
@@ -83,15 +82,14 @@ public final class AvdDeviceData {
   private IntProperty myScreenFoldedWidth3 = new IntValueProperty();
   private IntProperty myScreenFoldedHeight3 = new IntValueProperty();
 
-  private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<>(new Storage(0, Storage.Unit.MiB));
+  private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<Storage>(new Storage(0, Storage.Unit.MiB));
 
   private BoolProperty myHasHardwareButtons = new BoolValueProperty();
   private BoolProperty myHasHardwareKeyboard = new BoolValueProperty();
-  private OptionalProperty<Navigation> myNavigation = new OptionalValueProperty<>();
+  private OptionalProperty<Navigation> myNavigation = new OptionalValueProperty<Navigation>();
 
   private BoolProperty mySupportsLandscape = new BoolValueProperty();
   private BoolProperty mySupportsPortrait = new BoolValueProperty();
-  private BoolProperty myNotLong = new BoolValueProperty();
 
   private BoolProperty myHasBackCamera = new BoolValueProperty();
   private BoolProperty myHasFrontCamera = new BoolValueProperty();
@@ -101,19 +99,38 @@ public final class AvdDeviceData {
   private BoolProperty myHasGps = new BoolValueProperty();
   private BoolProperty myHasProximitySensor = new BoolValueProperty();
   private BoolProperty myHasSdCard = new BoolValueProperty();
-  private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<>();
+  private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<File>();
   private OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
 
   private BoolValueProperty myIsTv = new BoolValueProperty();
   private BoolValueProperty myIsWear = new BoolValueProperty();
+  private BoolValueProperty myIsDesktop = new BoolValueProperty();
   private BoolValueProperty myIsScreenRound = new BoolValueProperty();
   private IntValueProperty myScreenChinSize = new IntValueProperty();
   private State myDefaultState;
   private File myLastSkinFolder;
   private Dimension myLastSkinDimension;
-  private ObjectProperty<Density> myDensity = new ObjectValueProperty<>(Density.MEDIUM);
+  private ObjectProperty<Density> myDensity = new ObjectProperty<Density>() {
+    private Density myDensity = Density.MEDIUM;
 
-  private OptionalProperty<Software> mySoftware = new OptionalValueProperty<>();
+    @Override
+    protected void setDirectly(@NotNull Density value) {
+      myDensity = value;
+    }
+
+    @Override
+    public @NotNull Density get() {
+      if (myOriginalDpi == myScreenDpi.get()) {
+        return myDensity;
+      } else {
+        return AvdScreenData.getScreenDensity(myDeviceId.get(), isTv().get(), myScreenDpi.get(), myScreenResolutionHeight.get());
+      }
+    }
+  };
+
+  private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
+
+  private double myOriginalDpi;
 
   private DoubleExpression myScreenDpi =
     // Every time the screen size is changed we calculate its dpi to validate it on the step
@@ -315,11 +332,6 @@ public final class AvdDeviceData {
   }
 
   @NotNull
-  public BoolProperty notLong() {
-    return myNotLong;
-  }
-
-  @NotNull
   public BoolProperty supportsPortrait() {
     return mySupportsPortrait;
   }
@@ -385,6 +397,9 @@ public final class AvdDeviceData {
   }
 
   @NotNull
+  public BoolProperty isDesktop() { return myIsDesktop; }
+
+  @NotNull
   public BoolProperty isScreenRound() {
     return myIsScreenRound;
   }
@@ -412,6 +427,8 @@ public final class AvdDeviceData {
     myDiagonalScreenSize.set(5.0);
     myScreenResolutionWidth.set(1080);
     myScreenResolutionHeight.set(1920);
+    myOriginalDpi = AvdScreenData.calculateDpi(
+      myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
     myScreenFoldedWidth.set(0);
     myScreenFoldedHeight.set(0);
     myScreenFoldedWidth2.set(0);
@@ -427,7 +444,6 @@ public final class AvdDeviceData {
 
     mySupportsPortrait.set(true);
     mySupportsLandscape.set(true);
-    myNotLong.set(false);
     myDensity.set(Density.MEDIUM);
 
     myHasFrontCamera.set(true);
@@ -491,6 +507,8 @@ public final class AvdDeviceData {
     myDiagonalScreenSize.set(screen.getDiagonalLength());
     myScreenResolutionWidth.set(screen.getXDimension());
     myScreenResolutionHeight.set(screen.getYDimension());
+    myOriginalDpi = AvdScreenData.calculateDpi(
+      myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
     myScreenFoldedXOffset.set(screen.getFoldedXOffset());
     myScreenFoldedYOffset.set(screen.getFoldedYOffset());
     myScreenFoldedWidth.set(screen.getFoldedWidth());
@@ -528,9 +546,6 @@ public final class AvdDeviceData {
       if (state.getOrientation().equals(ScreenOrientation.LANDSCAPE)) {
         mySupportsLandscape.set(true);
       }
-      if (state.getHardware().getScreen().getRatio().equals(ScreenRatio.NOTLONG)) {
-        myNotLong.set(true);
-      }
     }
 
     myHasFrontCamera.set(defaultHardware.getCamera(CameraLocation.FRONT) != null);
@@ -543,6 +558,7 @@ public final class AvdDeviceData {
 
     myIsTv.set(HardwareConfigHelper.isTv(device));
     myIsWear.set(HardwareConfigHelper.isWear(device));
+    myIsDesktop.set(HardwareConfigHelper.isDesktop(device));
     myIsScreenRound.set(device.isScreenRound());
     myScreenChinSize.set(device.getChinSize());
 
@@ -569,24 +585,16 @@ public final class AvdDeviceData {
     // compute width and height to take orientation into account.
     int finalWidth, finalHeight;
 
-    if (myNotLong.get()) {
-      // The device is 'not long': its width and height are
-      // pretty similar. Accept the user's values directly.
-      finalWidth = width;
-      finalHeight = height;
+    // Update dimensions according to the orientation setting.
+    // Landscape should always be more wide than tall;
+    // portrait should be more tall than wide.
+    if (orientation == ScreenOrientation.LANDSCAPE) {
+      finalWidth = Math.max(width, height);
+      finalHeight = Math.min(width, height);
     }
     else {
-      // The height and width are significantly different.
-      // Landscape should always be more wide than tall;
-      // portrait should be more tall than wide.
-      if (orientation == ScreenOrientation.LANDSCAPE) {
-        finalWidth = Math.max(width, height);
-        finalHeight = Math.min(width, height);
-      }
-      else {
-        finalWidth = Math.min(width, height);
-        finalHeight = Math.max(width, height);
-      }
+      finalWidth = Math.min(width, height);
+      finalHeight = Math.max(width, height);
     }
     return new Dimension(finalWidth, finalHeight);
   }
@@ -597,12 +605,15 @@ public final class AvdDeviceData {
    */
   @NotNull
   public ScreenOrientation getDefaultDeviceOrientation() {
-    if (myDefaultState != null && myDefaultState.getOrientation() == ScreenOrientation.LANDSCAPE && mySupportsLandscape.get()) {
-      return ScreenOrientation.LANDSCAPE;
+    if (mySupportsLandscape.get()) {
+      if ((myDefaultState != null && myDefaultState.getOrientation() == ScreenOrientation.LANDSCAPE) ||
+          myIsTv.get() || myIsDesktop.get() || !mySupportsPortrait.get()) {
+        return ScreenOrientation.LANDSCAPE;
+      }
     }
-
-    return (mySupportsPortrait.get())
-           ? ScreenOrientation.PORTRAIT
-           : (mySupportsLandscape.get()) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.SQUARE;
+    if (mySupportsPortrait.get()) {
+      return ScreenOrientation.PORTRAIT;
+    }
+    return ScreenOrientation.SQUARE;
   }
 }

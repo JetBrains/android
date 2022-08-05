@@ -15,26 +15,30 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.tools.idea.ddms.DeviceContext
-import com.android.tools.idea.ddms.DevicePanel
+import com.android.adblib.AdbSession
+import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.DeviceComboBox
+import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTracker
+import com.android.tools.idea.logcat.filters.FilterTextComponent
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
+import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.EditorTextField
 import com.intellij.util.ui.JBUI
-import java.awt.Component
+import kotlinx.coroutines.flow.Flow
 import java.awt.Font
 import java.awt.LayoutManager
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.GroupLayout
-import javax.swing.JCheckBox
+import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.ToolTipManager
 
 /**
  * A header for the Logcat panel.
@@ -42,43 +46,31 @@ import javax.swing.ToolTipManager
 internal class LogcatHeaderPanel(
   project: Project,
   val logcatPresenter: LogcatPresenter,
-  deviceContext: DeviceContext,
   packageNamesProvider: PackageNamesProvider,
   filter: String,
-  showOnlyProjectApps: Boolean,
+  initialDevice: Device?,
+  adbSession: AdbSession,
 ) : JPanel() {
-  private val deviceComboBox: Component
-  private val filterTextField = EditorTextField(filter, project, LogcatFilterFileType)
-
-  // TODO(aalbert): This is a temp UX. Will probably be changed to something that can select individual apps from the project as well.
-  private val projectAppsCheckbox = object : JCheckBox(LogcatBundle.message("logcat.filter.project.apps")) {
-    init {
-      ToolTipManager.sharedInstance().registerComponent(this)
-    }
-
-    override fun getToolTipText(event: MouseEvent): String =
-      packageNamesProvider.getPackageNames().joinToString("<br/>", "<html>", "</html>")
-  }
+  private val deviceComboBox = DeviceComboBox(
+    logcatPresenter,
+    initialDevice,
+    DeviceComboBoxDeviceTracker(project, initialDevice, adbSession))
   private val filterParser = LogcatFilterParser(project, packageNamesProvider)
 
-  init {
-    // TODO(aalbert): DevicePanel uses the project as a disposable parent. This doesn't work well with multiple tabs/splitters where we
-    //  have an instance per tab/split and would like to be disposed when the container closes.
-    //  It's not yet clear if we will and up using DevicePanel or not, so will not make changes to it just yet.
-    val devicePanel = DevicePanel(project, deviceContext)
-    deviceComboBox = devicePanel.deviceComboBox
+  private val filterComponent: FilterTextComponent = FilterTextComponent.createComponent(project, logcatPresenter, filterParser, filter)
 
-    filterTextField.apply {
+  private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
+
+  init {
+    filterComponent.apply {
       font = Font.getFont(Font.MONOSPACED)
       addDocumentListener(object : DocumentListener {
         override fun documentChanged(event: DocumentEvent) {
-          logcatPresenter.applyFilter(filterParser.parse(text))
+          runInEdt {
+            logcatPresenter.applyFilter(filterParser.parse(text))
+          }
         }
       })
-    }
-    projectAppsCheckbox.apply {
-      isSelected = showOnlyProjectApps
-      addItemListener { logcatPresenter.setShowOnlyProjectApps(projectAppsCheckbox.isSelected) }
     }
 
     addComponentListener(object : ComponentAdapter() {
@@ -86,11 +78,30 @@ internal class LogcatHeaderPanel(
         layout = if (width > JBUI.scale(500)) createWideLayout() else createNarrowLayout()
       }
     })
+
+    helpIcon.let {
+      toolTipText = LogcatBundle.message("logcat.help.tooltip")
+      it.addMouseListener(object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          BrowserUtil.browse("https://d.android.com/r/studio-ui/logcat/help")
+        }
+      })
+    }
   }
 
-  fun getFilterText() = filterTextField.text
+  fun trackSelectedDevice(): Flow<Device> = deviceComboBox.trackSelectedDevice()
 
-  fun isShowProjectApps() = projectAppsCheckbox.isSelected
+  var filter: String
+    get() = filterComponent.text
+    set(value) {
+      filterComponent.text = value
+    }
+
+  fun selectDevice(serialNumber: String) {
+    deviceComboBox.selectDevice(serialNumber)
+  }
+
+  fun getSelectedDevice(): Device? = deviceComboBox.selectedItem as? Device
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)
@@ -103,35 +114,32 @@ internal class LogcatHeaderPanel(
     layout.setHorizontalGroup(
       layout.createSequentialGroup()
         .addComponent(deviceComboBox, minWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
-        .addComponent(filterTextField, minWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
-        .addComponent(projectAppsCheckbox)
+        .addComponent(filterComponent.component)
+        .addComponent(helpIcon)
     )
     layout.setVerticalGroup(
       layout.createParallelGroup(GroupLayout.Alignment.CENTER)
         .addComponent(deviceComboBox)
-        .addComponent(filterTextField)
-        .addComponent(projectAppsCheckbox)
+        .addComponent(filterComponent.component)
+        .addComponent(helpIcon)
     )
     return layout
   }
 
   private fun createNarrowLayout(): LayoutManager {
     val layout = GroupLayout(this)
-
     layout.autoCreateContainerGaps = true
     layout.autoCreateGaps = true
 
     layout.setHorizontalGroup(
       layout.createParallelGroup()
         .addGroup(layout.createSequentialGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createSequentialGroup().addComponent(filterTextField))
-        .addGroup(layout.createSequentialGroup().addComponent(projectAppsCheckbox))
+        .addGroup(layout.createSequentialGroup().addComponent(filterComponent.component))
     )
     layout.setVerticalGroup(
       layout.createSequentialGroup()
         .addGroup(layout.createParallelGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterTextField))
-        .addGroup(layout.createParallelGroup().addComponent(projectAppsCheckbox))
+        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterComponent.component))
     )
     return layout
   }

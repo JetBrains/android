@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.adtui.ImageUtils
 import java.awt.Dimension
 import java.awt.Graphics2D
@@ -82,27 +81,27 @@ class AnchoredImage(val image: BufferedImage, val size: Dimension, val anchorPoi
    * Creates another [AnchoredImage] that is result of rotating and scaling this one. Returns null
    * if the scaled image has zero width or height.
    *
-   * @param rotation the rotation that is applied to the image and the display rectangle
+   * @param orientationQuadrants the rotation that is applied to the image and the display rectangle
    * @param scaleX the X-axis scale factor applied to the rotated image
    * @param scaleY the Y-axis scale factor applied to the rotated image
    */
-  fun rotatedAndScaled(rotation: SkinRotation, scaleX: Double, scaleY: Double): AnchoredImage? {
-    val rotatedSize = size.rotated(rotation)
+  fun rotatedAndScaled(orientationQuadrants: Int, scaleX: Double, scaleY: Double): AnchoredImage? {
+    val rotatedSize = size.rotatedByQuadrants(orientationQuadrants)
     val width = rotatedSize.width.scaled(scaleX)
     val height = rotatedSize.height.scaled(scaleY)
     if (width == 0 || height == 0) {
       return null // Degenerate image.
     }
-    val rotatedAnchorPoint = anchorPoint.rotated(rotation)
-    val rotatedOffset = offset.rotated(rotation)
+    val rotatedAnchorPoint = anchorPoint.rotatedByQuadrants(orientationQuadrants)
+    val rotatedOffset = offset.rotatedByQuadrants(orientationQuadrants)
     val transformedOffset =
-      when (rotation) {
-        SkinRotation.LANDSCAPE -> Point(rotatedOffset.x.scaled(scaleX), rotatedOffset.y.scaled(scaleY) - height)
-        SkinRotation.REVERSE_PORTRAIT -> Point(rotatedOffset.x.scaled(scaleX) - width, rotatedOffset.y.scaled(scaleY) - height)
-        SkinRotation.REVERSE_LANDSCAPE -> Point(rotatedOffset.x.scaled(scaleX) - width, rotatedOffset.y.scaled(scaleY))
+      when (orientationQuadrants) {
+        1 -> Point(rotatedOffset.x.scaled(scaleX), rotatedOffset.y.scaled(scaleY) - height)
+        2 -> Point(rotatedOffset.x.scaled(scaleX) - width, rotatedOffset.y.scaled(scaleY) - height)
+        3 -> Point(rotatedOffset.x.scaled(scaleX) - width, rotatedOffset.y.scaled(scaleY))
         else -> Point(rotatedOffset.x.scaled(scaleX), rotatedOffset.y.scaled(scaleY))
       }
-    val transformedImage = ImageUtils.rotateByQuadrantsAndScale(image, rotation.ordinal, width, height)
+    val transformedImage = ImageUtils.rotateByQuadrantsAndScale(image, orientationQuadrants, width, height)
     return AnchoredImage(transformedImage, Dimension(width, height), rotatedAnchorPoint, transformedOffset)
   }
 }
@@ -119,9 +118,9 @@ enum class AnchorPoint(val x: Int, val y: Int) {
   /**
    * Returns the anchor point corresponding to this one after rotating the display rectangle.
    *
-   * @param rotation the rotation of the display rectangle
+   * @param rotation the rotation of the display rectangle in quadrants counterclockwise
    */
-  fun rotated(rotation: SkinRotation): AnchorPoint {
-    return values()[(ordinal + rotation.ordinal) % values().size]
+  fun rotatedByQuadrants(rotation: Int): AnchorPoint {
+    return values()[(ordinal + rotation) % values().size]
   }
 }

@@ -83,11 +83,10 @@ public class ChooseDeviceDefinitionStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   private JTableFixture getTableFixture() {
-    final TableView deviceList = robot().finder().find(target(), new GenericTypeMatcher<>(TableView.class) {
+    final TableView deviceList = robot().finder().find(target(), new GenericTypeMatcher<TableView>(TableView.class) {
       @Override
       protected boolean isMatching(@NotNull TableView component) {
-        return component.getRowCount() > 0 &&
-               component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
+        return component.getRowCount() > 0 && component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
       }
     });
     return new JTableFixture(robot(), deviceList);

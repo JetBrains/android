@@ -17,7 +17,7 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.io.FilePaths;

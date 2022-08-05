@@ -28,6 +28,9 @@ abstract class ComponentTreeNode(val description: String) {
   abstract val childrenToInstall: Collection<InstallableComponent>
   abstract val isChecked: Boolean
   abstract val immediateChildren: Collection<ComponentTreeNode>
+  val allChildren: Collection<ComponentTreeNode>
+    get() = listOf(this).plus(immediateChildren.flatMap { it.allChildren })
+
   abstract val isEnabled: Boolean
   abstract val steps: Collection<ModelWizardStep<*>>
 

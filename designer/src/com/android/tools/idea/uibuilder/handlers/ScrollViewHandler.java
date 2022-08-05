@@ -68,8 +68,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent parent,
+  public void onChildInserted(@NotNull NlComponent parent,
                               @NotNull NlComponent child,
                               @NotNull InsertType insertType) {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
@@ -77,16 +76,15 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent node,
                           @NotNull InsertType insertType) {
-    if (insertType.isCreate()) {
+    if (insertType == InsertType.CREATE) {
       // Insert a default linear layout (which will in turn be registered as
       // a child of this node and the create child method above will set its
       // fill parent attributes, its id, etc.
       NlWriteCommandActionUtil.run(node, "Create Scroll View", () -> {
-        NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.PROGRAMMATIC);
+        NlComponent linear = NlComponentHelperKt.createChild(node, FQCN_LINEAR_LAYOUT, null, InsertType.PROGRAMMATIC);
         if (linear != null) {
           linear.setAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
         }

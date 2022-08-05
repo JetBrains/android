@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FD_RES_RAW;
-import static java.lang.Math.max;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
-import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
-import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -32,7 +32,10 @@ import com.android.tools.idea.util.FileExtensions;
 import com.intellij.AppTopics;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -71,6 +74,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
+import org.jetbrains.plugins.gradle.config.GradleFileType;
 
 /**
  * Project component that tracks events that are potentially relevant to Android-specific IDE features.
@@ -243,30 +247,31 @@ public class AndroidFileChangeListener implements Disposable {
     return parentName.startsWith(FD_RES_RAW);
   }
 
+  public static boolean isGradleFile(@NotNull PsiFile psiFile) {
+    if (GradleFileType.isGradleFile(psiFile)) {
+      return true;
+    }
+    FileType fileType = psiFile.getFileType();
+    if (fileType.getName().equals("Kotlin") && psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
+      return true;
+    }
+    // Do not test getFileType() as this will differ depending on whether the toml plugin is active or not.
+    if (psiFile.getName().endsWith(".versions.toml")) {
+      return true;
+    }
+    if (fileType == PropertiesFileType.INSTANCE &&
+        (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName()))) {
+      return true;
+    }
+
+    return false;
+  }
 
   private void dispatch(@Nullable VirtualFile file, @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
     if (file != null) {
-      dispatchToRegistry(file, invokeCallback);
+      myRegistry.dispatchToRepositories(file, invokeCallback);
     }
     dispatchToResourceNotificationManager(invokeCallback);
-  }
-
-  private void dispatchToRegistry(@NotNull VirtualFile file,
-                                  @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
-    while (file != null) {
-      ResourceFolderRegistry.CachedRepositories cached = myRegistry.getCached(file);
-      if (cached != null) {
-        if (cached.namespaced != null) {
-          invokeCallback.consume(cached.namespaced.getPsiListener());
-        }
-        if (cached.nonNamespaced != null) {
-          invokeCallback.consume(cached.nonNamespaced.getPsiListener());
-        }
-        return;
-      }
-
-      file = file.getParent();
-    }
   }
 
   private void dispatchToResourceNotificationManager(@NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
@@ -345,28 +350,15 @@ public class AndroidFileChangeListener implements Disposable {
         return;
       }
 
-      ResourceFolderRegistry.CachedRepositories cachedRepositories;
-      if (created.isDirectory()) {
-        cachedRepositories = myRegistry.getCached(parent);
-      }
-      else {
-        VirtualFile grandParent = parent.getParent();
-        cachedRepositories = grandParent == null ? null : myRegistry.getCached(grandParent);
-      }
-
-      if (cachedRepositories != null) {
-        ResourceUpdateTracer.log(() -> "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated: Dispatching to repositories");
-        onFileOrDirectoryCreated(created, cachedRepositories.namespaced);
-        onFileOrDirectoryCreated(created, cachedRepositories.nonNamespaced);
-      }
+      VirtualFile resDir = created.isDirectory() ? parent : parent.getParent();
+      myRegistry.dispatchToRepositories(resDir, (repository, dir) -> onFileOrDirectoryCreated(created, repository));
     }
 
     private @NotNull String pathForLogging(@Nullable VirtualFile parent, @NotNull String childName) {
       if (parent == null) {
         return childName;
       }
-      PathString path = FileExtensions.toPathString(parent).resolve(childName);
-      return path.subpath(max(path.getNameCount() - 4, 0), path.getNameCount()).getNativePath();
+      return ResourceUpdateTracer.pathForLogging(FileExtensions.toPathString(parent).resolve(childName), myRegistry.getProject());
     }
 
     private static void onFileOrDirectoryCreated(@NotNull VirtualFile created, @Nullable ResourceFolderRepository repository) {
@@ -437,8 +429,18 @@ public class AndroidFileChangeListener implements Disposable {
       if (psiFile == null) {
         VirtualFile virtualFile = myFileDocumentManager.getFile(document);
         if (virtualFile != null) {
-          myRegistry.dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan);
+          runInWriteAction(() -> myRegistry.dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan));
         }
+      }
+    }
+
+    private void runInWriteAction(@NotNull Runnable runnable) {
+      Application application = ApplicationManager.getApplication();
+      if (application.isWriteAccessAllowed()) {
+        runnable.run();
+      }
+      else {
+        application.invokeLater(() -> application.runWriteAction(runnable));
       }
     }
   }
@@ -471,7 +473,7 @@ public class AndroidFileChangeListener implements Disposable {
       else if (isRelevantFile(psiFile)) {
         dispatchChildAdded(event, psiFile.getVirtualFile());
       }
-      else if (isGradleFileEdit(psiFile)) {
+      else if (isGradleFile(psiFile)) {
         notifyGradleEdit();
       }
 
@@ -515,7 +517,7 @@ public class AndroidFileChangeListener implements Disposable {
         VirtualFile file = psiFile.getVirtualFile();
         dispatchChildRemoved(event, file);
       }
-      else if (isGradleFileEdit(psiFile)) {
+      else if (isGradleFile(psiFile)) {
         notifyGradleEdit();
       }
 
@@ -544,7 +546,7 @@ public class AndroidFileChangeListener implements Disposable {
         if (isRelevantFile(psiFile)) {
           dispatchChildReplaced(event, file);
         }
-        else if (isGradleFileEdit(psiFile)) {
+        else if (isGradleFile(psiFile)) {
           notifyGradleEdit();
         }
 
@@ -563,10 +565,6 @@ public class AndroidFileChangeListener implements Disposable {
 
     private void dispatchChildReplaced(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
       dispatch(virtualFile, listener -> listener.childReplaced(event));
-    }
-
-    private boolean isGradleFileEdit(@NotNull PsiFile psiFile) {
-      return GradleFiles.getInstance(myProject).isGradleFile(psiFile);
     }
 
     private void notifyGradleEdit() {

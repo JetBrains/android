@@ -17,7 +17,10 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.androidProjectType
+import com.android.tools.idea.projectsystem.containsFile
+import com.android.tools.idea.projectsystem.isContainedBy
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.JavaExecutionUtil
@@ -29,6 +32,7 @@ import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.execution.junit.JUnitUtil
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase
+import com.intellij.execution.junit2.PsiMemberParameterizedLocation
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VirtualFile
@@ -39,6 +43,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiUtilCore
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType
 
@@ -50,7 +55,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
   override fun setupConfigurationFromContext(configuration: AndroidTestRunConfiguration,
                                              context: ConfigurationContext,
                                              sourceElementRef: Ref<PsiElement>): Boolean {
-    val configurator = AndroidTestConfigurator(context) ?: return false
+    val configurator = AndroidTestConfigurator.createFromContext(context) ?: return false
     if (!configurator.configure(configuration, sourceElementRef)) {
       return false
     }
@@ -80,7 +85,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
 
   override fun isConfigurationFromContext(configuration: AndroidTestRunConfiguration, context: ConfigurationContext): Boolean {
     val expectedConfig = configurationFactory.createTemplateConfiguration(configuration.project) as AndroidTestRunConfiguration
-    val configurator = AndroidTestConfigurator(context) ?: return false
+    val configurator = AndroidTestConfigurator.createFromContext(context) ?: return false
     if (!configurator.configure(expectedConfig, Ref())) {
       return false
     }
@@ -89,7 +94,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     }
 
     return when (configuration.TESTING_TYPE) {
-      AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> configuration.PACKAGE_NAME.isEmpty()
+      AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> configuration.TEST_NAME_REGEX == expectedConfig.TEST_NAME_REGEX
       AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE -> configuration.PACKAGE_NAME == expectedConfig.PACKAGE_NAME
       AndroidTestRunConfiguration.TEST_CLASS -> configuration.CLASS_NAME == expectedConfig.CLASS_NAME
       AndroidTestRunConfiguration.TEST_METHOD -> configuration.CLASS_NAME == expectedConfig.CLASS_NAME &&
@@ -120,9 +125,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
  * A helper class responsible for configuring [AndroidTestRunConfiguration] properly based on given information.
  * This is a stateless class and you can call [configure] method as many times as you wish.
  */
-private class AndroidTestConfigurator(private val module: Module,
-                                      private val facet: AndroidFacet,
-                                      private val testScopes: TestArtifactSearchScopes,
+private class AndroidTestConfigurator(private val facet: AndroidFacet,
                                       private val location: Location<PsiElement>,
                                       private val virtualFile: VirtualFile) {
   companion object {
@@ -130,13 +133,12 @@ private class AndroidTestConfigurator(private val module: Module,
      * Creates [AndroidTestConfigurator] from a given context.
      * Returns null if the context is not applicable for android test.
      */
-    operator fun invoke(context: ConfigurationContext): AndroidTestConfigurator? {
+    fun createFromContext(context: ConfigurationContext): AndroidTestConfigurator? {
       val location = context.location ?: return null
       val module = AndroidUtils.getAndroidModule(context) ?: return null
       val facet = module.androidFacet ?: return null
-      val testScopes = TestArtifactSearchScopes.getInstance(module) ?: return null
       val virtualFile = PsiUtilCore.getVirtualFile(location.psiElement) ?: return null
-      return AndroidTestConfigurator(module, facet, testScopes, location, virtualFile)
+      return AndroidTestConfigurator(facet, location, virtualFile)
     }
 
     /**
@@ -159,13 +161,26 @@ private class AndroidTestConfigurator(private val module: Module,
    */
   fun configure(configuration: AndroidTestRunConfiguration,
                 sourceElementRef: Ref<PsiElement>): Boolean {
-    if (!(testScopes.isAndroidTestSource(virtualFile) ||
-        virtualFile.isDirectory && testScopes.isAndroidTestAncestorFolder(virtualFile))) {
+    val sourceProviders = SourceProviderManager.getInstance(facet)
+    val (androidTestSources, generatedAndroidTestSources) =
+      if (facet.module.androidProjectType() == AndroidModuleSystem.Type.TYPE_TEST) {
+        sourceProviders.sources to sourceProviders.generatedSources
+      }
+      else {
+        sourceProviders.androidTestSources to sourceProviders.generatedAndroidTestSources
+    }
+    if (
+      !androidTestSources.containsFile(virtualFile) && !androidTestSources.isContainedBy(virtualFile) &&
+      !generatedAndroidTestSources.containsFile(virtualFile) && !generatedAndroidTestSources.isContainedBy(virtualFile)
+    ) {
       return false
     }
 
+    val androidTestModule =
+      (if (facet.module.androidProjectType() == (AndroidModuleSystem.Type.TYPE_TEST)) facet.mainModule else facet.androidTestModule)
+      ?: return false
     val targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
-      module, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
+      androidTestModule, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
     if (targetSelectionMode != null) {
       configuration.deployTargetContext.targetSelectionMode = targetSelectionMode
     }
@@ -187,9 +202,22 @@ private class AndroidTestConfigurator(private val module: Module,
     getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).forEach { elementMethod ->
       if (isTestMethod(elementMethod)) {
         sourceElementRef.set(elementMethod)
-        configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD
-        configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(elementMethod.containingClass!!)?: ""
-        configuration.METHOD_NAME = elementMethod.name
+
+        val className = JavaExecutionUtil.getRuntimeQualifiedName(elementMethod.containingClass!!) ?: ""
+        val methodName = elementMethod.name
+        val parameterizedLocation = PsiMemberParameterizedLocation.getParameterizedLocation(elementMethod.containingClass!!, null)
+
+        if (parameterizedLocation != null) {
+          configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_MODULE
+          configuration.CLASS_NAME = className
+          configuration.METHOD_NAME = methodName
+          configuration.TEST_NAME_REGEX = "${className}.${methodName}\\[.*\\]"
+        } else {
+          configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD
+          configuration.CLASS_NAME = className
+          configuration.METHOD_NAME = methodName
+        }
+
         configuration.setGeneratedName()
         return true
       }

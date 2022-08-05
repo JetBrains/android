@@ -32,10 +32,13 @@
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
     <lang.syntaxHighlighter language="AIDL"
                             implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighter"/>
-    <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
+    <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlAnnotator" order="first"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
     <lang.findUsagesProvider language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.findUsages.AidlFindUsageProvider"/>
     <findUsagesHandlerFactory implementation="com.android.tools.idea.lang.aidl.findUsages.AidlFindUsageHandlerFactory"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.aidl.psi.AidlQualifiedName"
+                             implementationClass="com.android.tools.idea.lang.aidl.psi.AidlQualifiedNameElementManipulator"/>
+    <lang.braceMatcher language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlPairedBraceMatcher"/>
 
     <!-- Proguard support -->
     <fileType name="Shrinker Config File"
@@ -147,6 +150,7 @@
                            implementationClass="com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="RoomSql"
                                    implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlSyntaxHighlighterFactory"/>
+    <annotator language="RoomSql" implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlAnnotator" order="first"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.androidSql.psi.impl.AndroidSqlDefinedTableNameImpl"
                              implementationClass="com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.androidSql.psi.impl.AndroidSqlSelectedTableNameImpl"
@@ -191,6 +195,16 @@
     <fileType name="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileType"
               fileNames="multidex-config.txt" language="MultiDexKeep" fieldName="INSTANCE"/>
     <lang.parserDefinition language="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepParserDefinition"/>
+
+    <!-- AGSL (Android Graphics Shading Language) support -->
+    <fileType name="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslFileType"
+              extensions="agsl" language="AGSL" fieldName="INSTANCE"/>
+    <lang.parserDefinition language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslParserDefinition"/>
+    <lang.syntaxHighlighter language="AGSL"
+                            implementationClass="com.android.tools.idea.lang.agsl.AgslSyntaxHighlighter"/>
+    <annotator language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslAnnotator" order="first"/>
+    <lang.braceMatcher language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslPairMatcher"/>
+    <lang.commenter language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslCommenter"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lang.androidSql">

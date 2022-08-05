@@ -38,6 +38,7 @@ public class AndroidSqlVacuumStatementImpl extends ASTWrapperPsiElement implemen
     visitor.visitVacuumStatement(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

@@ -44,9 +44,9 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   @Mock private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
   @Mock private RecommendedUpgradeReminder myUpgradeReminder;
   private ContentManager myContentManager;
-  @Mock private AssistantInvoker myAssistantInvoker;
+  @Mock private RefactoringProcessorInstantiator myRefactoringProcessorInstantiator;
   @Mock private AgpUpgradeRefactoringProcessor myProcessor;
-  @Mock private AgpClasspathDependencyRefactoringProcessor myAgpClasspathDependencyRefactoringProcessor;
+  @Mock private AgpVersionRefactoringProcessor myAgpVersionRefactoringProcessor;
 
   @Override
   protected void setUp() throws Exception {
@@ -54,12 +54,12 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     initMocks(this);
 
     Project project = getProject();
-    myContentManager = spy(new ContentManager(project));
+    myContentManager = spy(new ContentManagerImpl(project));
     ServiceContainerUtil.replaceService(project, ContentManager.class, myContentManager, project);
-    ServiceContainerUtil.replaceService(project, AssistantInvoker.class, myAssistantInvoker, project);
-    when(myAssistantInvoker.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
+    ServiceContainerUtil.replaceService(project, RefactoringProcessorInstantiator.class, myRefactoringProcessorInstantiator, project);
+    when(myRefactoringProcessorInstantiator.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
     // TODO(xof): this is a clear leak of implementation details.  Figure out how to remove it.
-    when(myProcessor.getClasspathRefactoringProcessor()).thenReturn(myAgpClasspathDependencyRefactoringProcessor);
+    when(myProcessor.getAgpVersionRefactoringProcessor()).thenReturn(myAgpVersionRefactoringProcessor);
     ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
     when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);
     when(myPluginInfo.getModule()).thenReturn(getModule());
@@ -117,7 +117,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
 
   private void verifyUpgradeAssistantWasNotInvoked() {
     verifyNoInteractions(myContentManager);
-    verifyNoInteractions(myAssistantInvoker);
+    verifyNoInteractions(myRefactoringProcessorInstantiator);
     verifyNoInteractions(myProcessor);
   }
 
@@ -129,7 +129,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
-    when(myAssistantInvoker.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(true);
+    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(true);
     try (MockedStatic<AndroidPluginInfo> androidPluginInfoMock = mockStatic(AndroidPluginInfo.class)) {
       androidPluginInfoMock.when(() -> AndroidPluginInfo.find(myProject)).thenReturn(myPluginInfo);
       assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
@@ -139,7 +139,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
 
   private void verifyUpgradeAssistantWasInvoked() {
     verify(myContentManager).showContent(any());
-    verify(myAssistantInvoker).createProcessor(same(myProject), any(), any());
+    verify(myRefactoringProcessorInstantiator).createProcessor(same(myProject), any(), any());
   }
 
   private void simulateUpgradeReminderIsDue() {

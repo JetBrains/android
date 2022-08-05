@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
-import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
+import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.intellij.openapi.application.ApplicationManager
@@ -149,19 +149,19 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
   }
 
   /**
-   * This test is similar to [liveEditSingleFileCompileTime] but it measures the time, including the startup time
-   * of the daemon. This is meant to simulate the very first "live edit" build from the user.
+   * This test is similar to [fastPreviewSingleFileCompileTime] but it measures the time, including the startup time
+   * of the daemon. This is meant to simulate the very first "fast preview" build from the user.
    */
   @Test
-  fun liveEditSingleFileFirstBuild() {
+  fun fastPreviewSingleFileFirstBuild() {
     val project = projectRule.fixture.project
     val mainFile =
       project.guessProjectDir()!!
         .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
-    val liveEditManager = PreviewLiveEditManager.getInstance(project)
+    val fastPreviewManager = FastPreviewManager.getInstance(project)
 
-    // Make one full build (required before we use LiveEditManager
+    // Make one full build (required before we use FastPreviewManager
     assertTrue(projectRule.invokeTasks("assemble").isBuildSuccessful)
 
     runWriteActionAndWait {
@@ -170,7 +170,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
     }
 
     composeTimeBenchmark.measureOperation(
-      measures = listOf(ElapsedTimeMeasurement(Metric("live_edit_single_file_first_build_time"))),
+      measures = listOf(ElapsedTimeMeasurement(Metric("fast_preview_single_file_first_build_time"))),
       printSamples = true,
       samplesCount = 10) {
       runWriteActionAndWait {
@@ -178,25 +178,25 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       }
       runBlocking {
-        val (result, _) = liveEditManager.compileRequest(psiMainFile, ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!)
+        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!)
         assertTrue("Compilation must pass", result == CompilationResult.Success)
-        liveEditManager.stopAllDaemons().join()
+        fastPreviewManager.stopAllDaemons().join()
       }
     }
   }
 
   @Test
-  fun liveEditSingleFileCompileTime() {
+  fun fastPreviewSingleFileCompileTime() {
     val project = projectRule.fixture.project
     val mainFile =
       project.guessProjectDir()!!
         .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
-    val liveEditManager = PreviewLiveEditManager.getInstance(project)
-    liveEditManager.preStartDaemon(module)
+    val fastPreviewManager = FastPreviewManager.getInstance(project)
+    fastPreviewManager.preStartDaemon(module)
 
-    // Make one full build (required before we use LiveEditManager
+    // Make one full build (required before we use FastPreviewManager
     assertTrue(projectRule.invokeTasks("assemble").isBuildSuccessful)
 
     runWriteActionAndWait {
@@ -205,7 +205,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
     }
 
     composeTimeBenchmark.measureOperation(
-      measures = listOf(ElapsedTimeMeasurement(Metric("live_edit_single_file_compile_time"))),
+      measures = listOf(ElapsedTimeMeasurement(Metric("fast_preview_single_file_compile_time"))),
       printSamples = true,
       samplesCount = 10) {
       runWriteActionAndWait {
@@ -213,7 +213,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       }
       runBlocking {
-        val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
+        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
         assertTrue("Compilation must pass", result == CompilationResult.Success)
       }
     }

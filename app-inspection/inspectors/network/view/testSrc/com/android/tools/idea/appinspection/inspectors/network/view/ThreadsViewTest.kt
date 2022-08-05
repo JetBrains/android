@@ -26,15 +26,20 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNav
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -71,17 +76,22 @@ class ThreadsViewTest {
   @get:Rule
   val edtRule = EdtRule()
 
+  @get:Rule
+  val projectRule = ProjectRule()
+
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
   private lateinit var threadsView: ThreadsView
   private lateinit var fakeUi: FakeUi
   private lateinit var table: JTable
+  private lateinit var scope: CoroutineScope
 
   @Before
   fun setUp() {
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), object : HttpDataModel {
+    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
       private val dataList = FAKE_DATA
       override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
         return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
@@ -89,7 +99,7 @@ class ThreadsViewTest {
     })
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, StubNetworkInspectorTracker())
+    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
 
     threadsView = ThreadsView(model, component)
@@ -106,6 +116,11 @@ class ThreadsViewTest {
     fakeUi = FakeUi(threadsView.component)
   }
 
+  @After
+  fun tearDown() {
+    scope.cancel()
+  }
+
   @Test
   fun showsCorrectThreadData() {
     val selection = model.timeline.selectionRange
@@ -119,11 +134,13 @@ class ThreadsViewTest {
 
   @Test
   fun shouldHandleEmptySelection() {
+    model.timeline.reset(0, TimeUnit.SECONDS.toNanos(150))
     val selection = model.timeline.selectionRange
+    assertThat(table.model.rowCount).isEqualTo(4)
     selection[0.0] = TimeUnit.SECONDS.toMicros(22).toDouble()
     assertThat(table.model.rowCount).isEqualTo(2)
     selection.clear()
-    assertThat(table.model.rowCount).isEqualTo(0)
+    assertThat(table.model.rowCount).isEqualTo(4)
   }
 
   @Test

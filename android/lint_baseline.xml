@@ -1,20 +1,252 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.2.0-dev">
-
-    <issue
-        id="SimpleDateFormat"
-        message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
-        <location
-            file="src/com/android/tools/idea/profiling/capture/CaptureService.java"
-            line="112"/>
-    </issue>
+<issues format="5" by="lint 7.4.0-dev">
 
     <issue
         id="SimpleDateFormat"
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
             file="src/com/android/tools/idea/run/LaunchTaskRunner.java"
-            line="310"/>
+            line="341"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/configurations/AdditionalDeviceService.kt"
+            line="42"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/gradle/run/AndroidDeviceSpecUtil.kt"
+            line="51"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/stats/AndroidStudioStatisticsEventLoggerProvider.kt"
+            line="25"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/dom/converters/AndroidUsesFeatureNameConverter.kt"
+            line="28"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="53"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="56"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="59"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="62"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="65"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="69"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="72"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
+            line="75"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/ImageCache.kt"
+            line="52"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/importer/ImportersProvider.kt"
+            line="21"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/dom/layout/LayoutElementDescriptors.kt"
+            line="64"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
+            line="59"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
+            line="60"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="213"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="213"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="213"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="213"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="216"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="216"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="216"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="216"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerListViewModelImpl.kt"
+            line="135"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/plugin/ResourceImporter.kt"
+            line="27"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/rendering/classloading/Util.kt"
+            line="66"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/testartifacts/instrumented/testsuite/adapter/UtpTestResultAdapter.kt"
+            line="62"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/org/jetbrains/android/dom/xml/XmlResourceDescriptors.kt"
+            line="55"/>
     </issue>
 
     <issue
@@ -22,7 +254,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/AssetListView.kt"
-            line="33"/>
+            line="31"/>
     </issue>
 
     <issue
@@ -38,7 +270,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="615"/>
+            line="616"/>
     </issue>
 
     <issue
@@ -46,15 +278,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="754"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="919"/>
+            line="755"/>
     </issue>
 
     <issue
@@ -70,7 +294,15 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="1384"/>
+            line="921"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
+            line="1385"/>
     </issue>
 
     <issue
@@ -86,7 +318,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="55"/>
+            line="61"/>
     </issue>
 
     <issue
@@ -94,7 +326,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="57"/>
+            line="63"/>
     </issue>
 
     <issue
@@ -102,7 +334,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="58"/>
+            line="64"/>
     </issue>
 
     <issue
@@ -110,7 +342,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="62"/>
+            line="68"/>
     </issue>
 
     <issue
@@ -318,7 +550,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/widget/SectionList.kt"
-            line="71"/>
+            line="69"/>
     </issue>
 
     <issue
@@ -346,30 +578,6 @@
     </issue>
 
     <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/editors/theme/ThemeEditorConstants.java"
-            line="36"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/editors/theme/ThemeEditorConstants.java"
-            line="38"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/wizard/WizardConstants.java"
-            line="46"/>
-    </issue>
-
-    <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
@@ -381,8 +589,224 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/gradle/project/build/output/BuildOutputParserWrapper.kt"
-            line="42"/>
+            file="src/com/android/tools/idea/testartifacts/instrumented/AndroidTestConfigurationProducer.kt"
+            line="173"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/testartifacts/instrumented/AndroidTestConfigurationProducer.kt"
+            line="174"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/configurations/DeviceMenuAction2.kt"
+            line="70"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/configurations/DeviceMenuAction2.kt"
+            line="70"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/configurations/DeviceMenuAction2.kt"
+            line="129"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/configurations/DeviceMenuAction2.kt"
+            line="166"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/configurations/DeviceMenuAction2.kt"
+            line="181"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/configurations/DeviceMenuAction2.kt"
+            line="226"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="136"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="150"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="308"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="562"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="565"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="568"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="571"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
+            line="54"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
+            line="60"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
+            line="84"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderManager.kt"
+            line="283"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/org/jetbrains/android/uipreview/ModuleClassLoaderUtil.kt"
+            line="373"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
+            line="72"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
+            line="115"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
+            line="64"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
+            line="64"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
+            line="73"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
+            line="73"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
+            line="73"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
+            line="73"/>
     </issue>
 
     <issue
@@ -390,7 +814,7 @@
         message="Use `Double.valueOf(COLUMN_COUNT)` instead">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="987"/>
+            line="988"/>
     </issue>
 
     <issue
@@ -405,56 +829,8 @@
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
-            file="src/com/android/tools/idea/gradle/model/java/JarLibraryDependency.java"
-            line="148"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/gradle/model/java/JarLibraryDependency.java"
-            line="149"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/gradle/model/java/JarLibraryDependency.java"
-            line="150"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/gradle/model/java/JavaModuleContentRoot.java"
-            line="183"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/gradle/project/sync/setup/module/dependency/LibraryDependency.java"
-            line="86"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="902"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="352"/>
+            line="364"/>
     </issue>
 
     <issue
@@ -470,7 +846,7 @@
         message="Use `runAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/diagnostics/hprof/action/AnalysisRunnable.kt"
-            line="93"/>
+            line="98"/>
     </issue>
 
     <issue
@@ -478,7 +854,7 @@
         message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/ddms/actions/CachedFeatures.java"
-            line="63"/>
+            line="62"/>
     </issue>
 
     <issue
@@ -502,7 +878,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="852"/>
+            line="835"/>
     </issue>
 
     <issue

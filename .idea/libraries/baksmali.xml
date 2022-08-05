@@ -1,12 +1,13 @@
 <component name="libraryTable">
-  <library name="baksmali" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.smali:baksmali:2.2.4" />
+  <library name="baksmali">
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/smali/baksmali/2.2.4/baksmali-2.2.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/smali/baksmali/2.5.2/baksmali-2.5.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/smali/util/2.5.2/util-2.5.2.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/smali/baksmali/2.2.4/baksmali-2.2.4-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/smali/baksmali/2.5.2/baksmali-2.5.2-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/smali/util/2.5.2/util-2.5.2-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.projectstructure;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -37,8 +36,6 @@ import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
 
 public class DependenciesTestUtil {
 
@@ -46,16 +43,6 @@ public class DependenciesTestUtil {
   protected static final int MIN_SDK_API = 18;
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
-
-  @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(false);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
 
   @NotNull
   protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,

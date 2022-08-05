@@ -23,6 +23,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeApiVersion
@@ -32,11 +33,14 @@ import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLintOptions
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.projectPath
+import com.android.tools.idea.gradle.model.sourceSet
 import com.android.tools.lint.model.DefaultLintModelAndroidArtifact
 import com.android.tools.lint.model.DefaultLintModelAndroidLibrary
 import com.android.tools.lint.model.DefaultLintModelBuildFeatures
@@ -112,7 +116,7 @@ class LintModelFactory : LintModelModuleLoader {
             val module = DefaultLintModelModule(
               loader = this,
               dir = dir,
-              modulePath = project.name,
+              modulePath = project.projectPath.projectPath,
               type = getModuleType(project.projectType),
               mavenName = getMavenName(project),
               gradleVersion = gradleVersion,
@@ -160,42 +164,44 @@ class LintModelFactory : LintModelModuleLoader {
       )
     )
 
-    private fun getLibrary(library: IdeAndroidLibrary): LintModelLibrary {
+    private fun getLibrary(dependency: IdeAndroidLibraryDependency, isProvided: Boolean): LintModelLibrary {
+        val library = dependency.target
         // TODO: Construct file objects lazily!
         return DefaultLintModelAndroidLibrary(
           identifier = library.getIdentifier(),
-          manifest = File(library.manifest),
+          manifest = library.manifest,
           // TODO - expose compile jar vs impl jar?
-          jarFiles = library.runtimeJarFiles.map { File(it) },
+          jarFiles = library.runtimeJarFiles,
           folder = library.folder!!, // Needed for workaround for b/66166521
-          resFolder = File(library.resFolder),
-          assetsFolder = File(library.assetsFolder),
-          lintJar = library.lintJar?.let(::File),
-          publicResources = File(library.publicResources),
-          symbolFile = File(library.symbolFile),
-          externalAnnotations = File(library.externalAnnotations),
-          provided = library.isProvided,
+          resFolder = library.resFolder,
+          assetsFolder = library.assetsFolder,
+          lintJar = library.lintJar,
+          publicResources = library.publicResources,
+          symbolFile = library.symbolFile,
+          externalAnnotations = library.externalAnnotations,
+          provided = isProvided,
           resolvedCoordinates = library.getMavenName(),
-          proguardRules = File(library.proguardRules)
+          proguardRules = library.proguardRules
         )
     }
 
-    private fun getLibrary(library: IdeJavaLibrary): LintModelLibrary {
+    private fun getLibrary(dependency: IdeJavaLibraryDependency, isProvided: Boolean): LintModelLibrary {
+        val library = dependency.target
         return DefaultLintModelJavaLibrary(
           identifier = library.getIdentifier(),
           // TODO - expose compile jar vs impl jar?
           jarFiles = listOf(library.artifact),
-          provided = library.isProvided,
+          provided = isProvided,
           resolvedCoordinates = library.getMavenName()
         )
     }
 
-    private fun getLibrary(library: IdeModuleLibrary): LintModelLibrary {
-        val projectPath = library.projectPath
+    private fun getLibrary(dependency: IdeModuleDependency): LintModelLibrary {
+        val projectPath = dependency.projectPath
         return DefaultLintModelModuleLibrary(
-          identifier = library.getIdentifier(),
+          identifier = dependency.getIdentifier(),
           projectPath = projectPath,
-          lintJar = library.lintJar?.let(::File),
+          lintJar = dependency.target.lintJar,
           provided = false
         )
     }
@@ -206,11 +212,11 @@ class LintModelFactory : LintModelModuleLoader {
     private fun IdeJavaLibrary.getArtifactName(): String =
         getMavenName().let { mavenName -> "${mavenName.groupId}:${mavenName.artifactId}" }
 
-    private fun IdeModuleLibrary.getArtifactName(): String = "artifacts:$projectPath"
+    private fun IdeModuleDependency.getArtifactName(): String = "artifacts:$projectPath"
 
     private fun IdeArtifactLibrary.getMavenName(): LintModelMavenName = getMavenName(artifactAddress)
 
-    private fun IdeModuleLibrary.getIdentifier(): String = "$projectPath@${sourceSet.sourceSetName}"
+    private fun IdeModuleDependency.getIdentifier(): String = "$projectPath@${sourceSet.sourceSetName}"
 
     private fun IdeArtifactLibrary.getIdentifier(): String = name
 
@@ -238,32 +244,38 @@ class LintModelFactory : LintModelModuleLoader {
     ): LintModelDependencies {
         val compileItems = mutableListOf<LintModelDependency>()
         val packagedItems = mutableListOf<LintModelDependency>()
-        val dependencies = artifact.level2Dependencies
+        val dependencies = artifact.compileClasspath
+        val runtimeAndroid = artifact.runtimeClasspath.androidLibraries.map { it.target.getIdentifier() }.toSet()
+        val runtimeJava = artifact.runtimeClasspath.javaLibraries.associateBy { it.target.getIdentifier() }
 
         for (dependency in dependencies.androidLibraries) {
-            if (dependency.isValid()) {
+            val androidLibrary = dependency.target
+            if (androidLibrary.isValid()) {
+                val isProvided = !runtimeAndroid.contains(androidLibrary.getIdentifier())
                 val lintModelDependency = getGraphItem(
-                    dependency.getIdentifier(),
-                    dependency.getArtifactName(),
+                  androidLibrary.getIdentifier(),
+                  androidLibrary.getArtifactName(),
                 ) {
-                    getLibrary(dependency)
+                    getLibrary(dependency, isProvided)
                 }
                 compileItems.add(lintModelDependency)
-                if (!dependency.isProvided) {
+                if (!isProvided) {
                     packagedItems.add(lintModelDependency)
                 }
             }
         }
         for (dependency in dependencies.javaLibraries) {
-            if (dependency.isValid()) {
+            val javaLibrary = dependency.target
+            if (javaLibrary.isValid()) {
+                val isProvided = !runtimeJava.containsKey(javaLibrary.getIdentifier())
                 val lintModelDependency = getGraphItem(
-                    dependency.getIdentifier(),
-                    dependency.getArtifactName(),
+                  javaLibrary.getIdentifier(),
+                  javaLibrary.getArtifactName(),
                 ) {
-                    getLibrary(dependency)
+                    getLibrary(dependency, isProvided)
                 }
                 compileItems.add(lintModelDependency)
-                if (!dependency.isProvided) {
+                if (!isProvided) {
                     packagedItems.add(lintModelDependency)
                 }
             }
@@ -298,14 +310,13 @@ class LintModelFactory : LintModelModuleLoader {
         artifact: IdeAndroidArtifact
     ): LintModelAndroidArtifact {
         return DefaultLintModelAndroidArtifact(
-          applicationId = artifact.applicationId,
+          applicationId = artifact.applicationId ?: "", // TODO(b/234146319): This should probably be optional
           dependencies = getDependencies(artifact),
           generatedSourceFolders = artifact.generatedSourceFolders,
           generatedResourceFolders = artifact.generatedResourceFolders,
           classOutputs = artifact.classesFolder.toList()
         )
     }
-
     private fun getArtifact(
         artifact: IdeJavaArtifact
     ): LintModelJavaArtifact {
@@ -351,7 +362,8 @@ class LintModelFactory : LintModelModuleLoader {
           shrinkable = buildType.isMinifyEnabled,
           buildFeatures = getBuildFeatures(project, module.gradleVersion),
           libraryResolver = libraryResolver,
-          partialResultsDir = null
+          partialResultsDir = null,
+          desugaredMethodsFiles = variant.desugaredMethodsFiles
         )
     }
 
@@ -590,7 +602,7 @@ class LintModelFactory : LintModelModuleLoader {
 
     private fun getMavenName(androidProject: IdeAndroidProject): LintModelMavenName? {
         val groupId = androidProject.groupId ?: return null
-        return DefaultLintModelMavenName(groupId, androidProject.name, "")
+        return DefaultLintModelMavenName(groupId, androidProject.projectPath.projectPath, "")
     }
 
     private fun getMavenName(artifactAddress: String): LintModelMavenName {
@@ -677,7 +689,7 @@ class LintModelFactory : LintModelModuleLoader {
       override val gradleVersion: GradleVersion?
     ) : LintModelModule {
         override val modulePath: String
-            get() = project.name
+            get() = project.projectPath.projectPath
         override val type: LintModelModuleType
             get() = getModuleType(project.projectType)
         override val mavenName: LintModelMavenName?
@@ -836,6 +848,9 @@ class LintModelFactory : LintModelModuleLoader {
 
         override val partialResultsDir: File?
             get() = null
+
+        override val desugaredMethodsFiles: Collection<File>
+            get() = variant.desugaredMethodsFiles
     }
 
     companion object {

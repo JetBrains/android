@@ -17,8 +17,10 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.wizard.template.Language;
 import java.io.File;
 import javax.swing.JComboBox;
@@ -26,6 +28,7 @@ import javax.swing.JRootPane;
 import javax.swing.text.JTextComponent;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureNewAndroidProjectStepFixture, W> {
@@ -55,8 +58,18 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
     return this;
   }
 
+  /**
+   * Set Source Language (Java vs Kotlin)
+   * @param language If <code>null<code/> checks that the Language drop-Down is not visible
+   */
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> setSourceLanguage(@NotNull Language language) {
+  public ConfigureNewAndroidProjectStepFixture<W> setSourceLanguage(@Nullable Language language) {
+    if (language == null) {
+      // Check that the Language combo-box is not shown
+      GuiTests.waitUntilGone(robot(), target(), Matchers.byName(JComboBox.class, "Language"));
+      return this;
+    }
+
     JComboBoxFixture comboBoxFixture =
       new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language", JComboBox.class, true));
 

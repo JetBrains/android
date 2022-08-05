@@ -31,19 +31,16 @@ class ProguardR8AnnotatorTest : ProguardR8TestCase() {
       """.trimIndent()
     )
     var element = myFixture.moveCaret("interf|ace")
-
-    val annotations = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)
-    assertThat(annotations).hasSize(0)
+    var annotations = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)
+    assertThat(annotations).isEmpty()
 
     element = myFixture.moveCaret("in|t foo")
-    val annotations2 = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)
-    assertThat(annotations2).hasSize(1)
-    val attr = annotations2[0]
-    assertThat(annotations2[0].enforcedTextAttributes).isEqualTo(ProguardR8TextAttributes.KEYWORD.key.defaultAttributes)
+    annotations = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)
+    assertThat(annotations).hasSize(1)
+    assertThat(annotations[0].enforcedTextAttributes).isEqualTo(ProguardR8TextAttributes.KEYWORD.key.defaultAttributes)
 
     element = myFixture.moveCaret("int vo|id")
-    val annotations3 = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)
-    assertThat(annotations3).hasSize(1)
-    assertThat(annotations3[0]).isEqualTo(attr)
+    annotations = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)
+    assertThat(annotations).isEmpty()
   }
 }

@@ -91,7 +91,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
     if (project == null) {
       return null;
     }
-    DesignSurface surface = getSurface(project);
+    DesignSurface<?> surface = getSurface(project);
     if (surface == null) {
       return null;
     }
@@ -99,11 +99,11 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
     if (screenView == null) {
       return null;
     }
-    return screenView.getModel();
+    return screenView.getSceneManager().getModel();
   }
 
   @Nullable
-  private static DesignSurface getSurface(@NotNull Project project) {
+  private static DesignSurface<?> getSurface(@NotNull Project project) {
     FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
     FileEditor[] editors = fileEditorManager.getSelectedEditors();
     for (FileEditor fileEditor : editors) {

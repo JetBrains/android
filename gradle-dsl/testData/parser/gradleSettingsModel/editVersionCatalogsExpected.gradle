@@ -1,0 +1,12 @@
+dependencyResolutionManagement {
+  versionCatalogs {
+    libs {
+      from files('gradle/new-libs.versions.toml')
+    }
+    foo {
+    }
+    bar {
+      from files('gradle/bar.versions.toml')
+    }
+  }
+}

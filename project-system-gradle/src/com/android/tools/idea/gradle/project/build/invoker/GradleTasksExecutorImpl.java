@@ -21,12 +21,12 @@ import static com.android.tools.idea.gradle.project.AndroidStudioGradleInstallat
 import static com.android.tools.idea.gradle.project.build.BuildStatus.CANCELED;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.FAILED;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.attemptToUseEmbeddedGradle;
 import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.GradleUtil.hasCause;
+import static com.android.tools.idea.ui.GuiTestingService.isInTestingMode;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
@@ -67,6 +67,7 @@ import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -96,6 +97,11 @@ import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -250,14 +256,20 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
       }
     }
 
-    private static void setUpBuildAttributionManager(LongRunningOperation operation,
-                                                     BuildAttributionManager buildAttributionManager,
-                                                     boolean skipIfNull) {
+    private void setUpBuildAttributionManager(LongRunningOperation operation,
+                                              BuildAttributionManager buildAttributionManager,
+                                              boolean skipIfNull) {
       if (skipIfNull && buildAttributionManager == null) {
         return;
       }
-      operation.addProgressListener(buildAttributionManager, OperationType.PROJECT_CONFIGURATION, OperationType.TASK, OperationType.TEST);
-      buildAttributionManager.onBuildStart();
+      operation.addProgressListener(
+        buildAttributionManager,
+        OperationType.PROJECT_CONFIGURATION,
+        OperationType.TASK,
+        OperationType.TEST,
+        OperationType.FILE_DOWNLOAD
+      );
+      buildAttributionManager.onBuildStart(myRequest);
     }
 
     @NotNull
@@ -355,6 +367,16 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
 
             @Override
             public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
+              // For test use only: save the logs to a file. Note that if there are multiple tasks at once
+              // the output will be interleaved.
+              if (StudioFlags.GRADLE_SAVE_LOG_TO_FILE.get()) {
+                try {
+                  Path path = Paths.get(PathManager.getLogPath(), "gradle.log");
+                  Files.writeString(path, text, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                } catch (IOException e) {
+                  // Ignore
+                }
+              }
               if (myBuildStopper.contains(id)) {
                 taskListener.onTaskOutput(id, text, stdOut);
               }
@@ -413,12 +435,7 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
           Application application = ApplicationManager.getApplication();
           if (buildError != null) {
             if (buildAttributionManager != null) {
-              final BuildAttributionManager finalBuildAttributionManager = buildAttributionManager;
-              application.invokeLater(() -> {
-                if (!project.isDisposed()) {
-                  finalBuildAttributionManager.onBuildFailure(myRequest);
-                }
-              });
+              buildAttributionManager.onBuildFailure(myRequest);
             }
 
             if (wasBuildCanceled(buildError)) {
@@ -448,30 +465,7 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
           application.invokeLater(() -> notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(MILLISECONDS)));
 
           if (!getProject().isDisposed()) {
-            GradleInvocationResult result =
-              new GradleInvocationResult(myRequest.getRootProjectPath(), myRequest.getGradleTasks(), buildError, model.get());
-            RuntimeException error = null;
-            for (GradleBuildInvoker.AfterGradleInvocationTask task : ((GradleBuildInvokerImpl)(GradleBuildInvoker
-                                                                                                 .getInstance(getProject())))
-              .getAfterInvocationTasks()) {
-              try {
-                task.execute(result);
-              }
-              catch (ProcessCanceledException e) {
-                // Ignore process cancellation exceptions.
-                // We must run all post invocation tasks in order to ensure all relevant locks are released.
-              }
-              catch (RuntimeException e) {
-                if (error == null) {
-                  // Stash the first non-PCE exception to re-throw after all post invocation tasks had a chance to execute.
-                  error = e;
-                }
-              }
-            }
-            if (error != null) {
-              throw error;
-            }
-            return result;
+            return new GradleInvocationResult(myRequest.getRootProjectPath(), myRequest.getGradleTasks(), buildError, model.get());
           }
         }
         return new GradleInvocationResult(myRequest.getRootProjectPath(), myRequest.getGradleTasks(), null);

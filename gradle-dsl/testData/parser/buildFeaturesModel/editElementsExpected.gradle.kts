@@ -4,5 +4,6 @@ android {
     dataBinding = true
     mlModelBinding = true
     viewBinding = true
+    prefab = true
   }
 }

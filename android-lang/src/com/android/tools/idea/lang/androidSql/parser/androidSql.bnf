@@ -28,6 +28,7 @@
 
 {
   parserClass="com.android.tools.idea.lang.androidSql.parser.AndroidSqlParser"
+  parserUtilClass="com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserUtil"
   extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
 
   psiClassPrefix="AndroidSql"
@@ -383,7 +384,8 @@ column_ref_expression ::=
   | selected_table_name '.' column_name
   | column_name
 
-function_name ::= name
+// Some tokens are allowed as function names and remapped to identifiers in code
+external function_name ::= parseFunctionName
 
 bind_parameter ::= NUMBERED_PARAMETER | NAMED_PARAMETER {
   methods=[

@@ -60,7 +60,7 @@ public class AndroidDrawableDomUtil {
   public static List<String> getPossibleRoots(@NotNull AndroidFacet facet, @NotNull ResourceFolderType folderType) {
     AndroidVersion sdkVersion = AndroidModuleInfo.getInstance(facet).getBuildSdkVersion();
     List<String> result = new ArrayList<>(DRAWABLE_ROOTS_V1.length + DRAWABLE_ROOTS_V16.length
-                                          + DRAWABLE_ROOTS_V21.length + AdaptiveIconDomFileDescription.TAGS.size());
+                                          + DRAWABLE_ROOTS_V21.length + 1); // Add 1 for adaptive icon tag
 
     // In MIPMAP folders, we only support adaptive-icon
     if (folderType != ResourceFolderType.MIPMAP) {
@@ -76,7 +76,7 @@ public class AndroidDrawableDomUtil {
     }
 
     if (sdkVersion == null || sdkVersion.getFeatureLevel() >= 26 || ApplicationManager.getApplication().isUnitTestMode()) {
-      result.addAll(AdaptiveIconDomFileDescription.TAGS);
+      result.add(AdaptiveIconDomFileDescription.TAG_NAME);
     }
 
     return result;

@@ -3,13 +3,10 @@ package com.android.tools.idea.util;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Code inside Android Studio (as opposed to code inside studio-sdk), should use the methods in this class
@@ -55,13 +52,26 @@ public class StudioPathManager {
   }
 
   /**
-   * @return returns the root of the Android repo when running from sources. This method
-   * should be called only when {@link #isRunningFromSources()} returns true.
-   * @deprecated Any attempt to access a file relative to WORKSPACE ROOT does not work in IDEA.
-   *             Use `resolveDevPath("relative/path")` instead, so IDEA can override path resolution logic
+   * This method should be called only when {@link #isRunningFromSources()} returns true.
+   *
+   * @return file path resolved relative to the root of the Android repo.
+   */
+  @NotNull
+  public static Path resolvePathFromSourcesRoot(@NotNull String relativePath) {
+    return Paths.get(getSourcesRootInternal()).resolve(relativePath).normalize();
+  }
+
+  /**
+   * @deprecated use {@link #resolvePathFromSourcesRoot(String)} instead.
    */
   @Deprecated
+  @NotNull
   public static String getSourcesRoot() {
+    return getSourcesRootInternal();
+  }
+
+  @NotNull
+  private static String getSourcesRootInternal() {
     assert isRunningFromSources();
 
     if (PluginManagerCore.isRunningFromSources()) {
@@ -89,12 +99,9 @@ public class StudioPathManager {
   /**
    * @return returns the root of the tree of bazel-built binaries. This method
    * should be called only when {@link #isRunningFromSources()} returns true.
-   * @deprecated Any attempt to access a file relative to WORKSPACE ROOT does not work in IDEA.
-   *             Use `resolveDevPath("relative/path")` instead, so IDEA can override path resolution logic
    */
-  @Deprecated
   public static String getBinariesRoot() {
-    return resolveDevPath(isRunningInBazelTest() ? "" : "/bazel-bin");
+    return isRunningInBazelTest() ? "" : getSourcesRootInternal() + "/bazel-bin";
   }
 
   /**
@@ -129,32 +136,5 @@ public class StudioPathManager {
       relative += "../";
     }
     return Paths.get(PathManager.getHomePath(), relative).normalize().toString();
-  }
-
-  public static String resolveDevPath(String relativePath) {
-    assert isRunningFromSources();
-
-    Path resolved = Paths.get(getSourcesRoot(), relativePath);
-    if (Files.exists(resolved)) return resolved.toString();
-
-    return resolveIjPath(relativePath, resolved.toString());
-  }
-
-  private static String resolveIjPath(String relativePath, String defaultPath) {
-    relativePath = FileUtil.normalize(relativePath);
-    Map<String, String> pathMappings = new HashMap<>();
-    pathMappings.put("tools/adt/idea", PathManager.getCommunityHomePath() + "/android");
-    pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", PathManager.getHomePath() + "/out/artifacts/KotlinPlugin");
-
-    for (Map.Entry<String, String> entry : pathMappings.entrySet()) {
-      String aospPathPrefix = entry.getKey();
-      String ijPathPrefix = entry.getValue();
-      if (relativePath.startsWith(aospPathPrefix)) {
-        String ijFile = ijPathPrefix + relativePath.substring(aospPathPrefix.length());
-        return Paths.get(ijFile).toString();
-      }
-    }
-
-    return defaultPath;
   }
 }

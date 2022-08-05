@@ -91,15 +91,16 @@ abstract class AbstractGradleSyncPerfTestCase {
 
     projectRule.fixture.testDataPath = getModulePath ("sync-perf-tests") + File.separator + "testData"
     disableExpensivePlatformAssertions(projectRule.fixture)
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(useModelV2)
   }
 
   @After
   open fun tearDown() {
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
     try {
       myScheduler!!.advanceBy(0)
       myUsageTracker!!.close()
       cleanAfterTesting()
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
     }
     catch (_: Throwable) {
     }
@@ -112,11 +113,8 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Throws(java.lang.Exception::class)
   @Test
   open fun testInitialization() {
-    if (!useModelV2) {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
-    }
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
-    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val log: Logger = getLogger()
     try { // Measure initial sync (already synced when loadProject was called)
       val initialStats: GradleSyncStats? = getLastSyncStats()
@@ -142,14 +140,11 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Throws(java.lang.Exception::class)
   @Test
   open fun testSyncTimes() {
-    if (!useModelV2) {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
-    }
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
     val scenarioName = getScenarioName()
     val memoryThread = MemoryMeasurementThread(scenarioName)
     memoryThread.start()
-    projectRule.loadProject(relativePath)
+    loadProject(relativePath)
     val measurements = ArrayList<Long>()
     val log = getLogger()
     try {
@@ -214,6 +209,16 @@ abstract class AbstractGradleSyncPerfTestCase {
       memoryThread.stopReadings()
       logSummary("Time", measurements, log)
       memoryThread.logSummary(log)
+    }
+  }
+
+  private fun loadProject(projectPath: String) {
+    // For V2 we test with the most recent AGP/Gradle combination.
+    // For V1 we pin to the last AGP/Gradle combination that supports V1 only.
+    if (useModelV2) {
+      projectRule.loadProject(projectPath)
+    } else {
+      projectRule.loadProject(projectPath, gradleVersion = "7.2", agpVersion = "7.1.0")
     }
   }
 

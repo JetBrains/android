@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApplicationIdProvider;
@@ -54,7 +53,7 @@ public interface LaunchTasksProvider {
     throws ExecutionException;
 
   @Nullable
-  ConnectDebuggerTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version);
+  ConnectDebuggerTask getConnectDebuggerTask();
 
   default void fillStats(RunStats stats) { }
 

@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -43,7 +44,9 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.AndroidSdks
@@ -52,6 +55,8 @@ import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
@@ -60,17 +65,14 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
-
 
 @com.google.common.annotations.VisibleForTesting
 const val API_29_BUG_MESSAGE = "Live Inspection not available on this system image revision."
@@ -92,14 +94,15 @@ class AppInspectionInspectorClient(
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
   private val metrics: LayoutInspectorMetrics,
+  private val treeSettings: TreeSettings,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
-  @TestOnly private val scope: CoroutineScope = model.project.coroutineScope.createChildScope(true),
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 ) : AbstractInspectorClient(process, isInstantlyAutoConnected, parentDisposable) {
 
   private var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
+  private val scope = AndroidCoroutineScope(this)
 
   /** Compose inspector, may be null if user's app isn't using the compose library. */
   @VisibleForTesting
@@ -165,9 +168,13 @@ class AppInspectionInspectorClient(
     scope.launch(exceptionHandler) {
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
-      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, launchMonitor)
+      // Create the app inspection connection now, so we can log that it happened.
+      apiServices.attachToProcess(process, model.project.name)
+      launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
+
+      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, treeSettings, capabilities, launchMonitor)
       val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent,
-                                                       launchMonitor)
+                                                     launchMonitor)
       propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
       viewInspector = viewIns
 
@@ -255,6 +262,12 @@ class AppInspectionInspectorClient(
     capabilities.addAll(dynamicCapabilities)
   }
 
+  fun updateRecompositionCountSettings() {
+    scope.launch(loggingExceptionHandler) {
+      composeInspector?.updateSettings()
+    }
+  }
+
   @Slow
   override fun saveSnapshot(path: Path) {
     val startTime = System.currentTimeMillis()
@@ -309,7 +322,7 @@ class AppInspectionInspectorClient(
     else {
       bannerService.setNotification(API_29_BUG_MESSAGE, listOf(bannerService.DISMISS_ACTION))
     }
-    throw ConnectionFailedException("Unsupported system image revision")
+    throw ConnectionFailedException("Unsupported system image revision", AttachErrorCode.LOW_API_LEVEL)
   }
 }
 

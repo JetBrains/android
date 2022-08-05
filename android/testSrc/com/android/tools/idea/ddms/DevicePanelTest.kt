@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.ddms.DevicePanel.DeviceComboBox
 import com.google.common.util.concurrent.FutureCallback
 import com.intellij.openapi.project.Project
@@ -30,6 +31,7 @@ import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
+
 import javax.swing.JComboBox
 
 internal class DevicePanelTest {
@@ -44,7 +46,7 @@ internal class DevicePanelTest {
     myProject = Mockito.mock(Project::class.java)
     myBridge = Mockito.mock(AndroidDebugBridge::class.java)
 
-    myPanel = DevicePanel(myProject, Mockito.mock(DeviceContext::class.java), TestDeviceComboBox(), ComboBox())
+    myPanel = DevicePanel(myProject, Mockito.mock(DeviceContext::class.java), TestDeviceComboBox(), ComboBox(), null)
     myDeviceComboBox = myPanel.deviceComboBox
   }
 
@@ -67,7 +69,7 @@ internal class DevicePanelTest {
   @Test
   fun updateDeviceCombo() {
     val device = mockDevice()
-    Mockito.`when`(myBridge.devices).thenReturn(arrayOf(device))
+    whenever(myBridge.devices).thenReturn(arrayOf(device))
 
     myPanel.setBridge(myBridge)
     myPanel.setIgnoringActionEvents(true)
@@ -82,13 +84,13 @@ internal class DevicePanelTest {
 
   @Test
   fun updateDeviceComboNullSelectedDeviceDoesntGetAdded() {
-    Mockito.`when`(myBridge.devices).thenReturn(emptyArray())
+    whenever(myBridge.devices).thenReturn(emptyArray())
 
     myPanel.setBridge(myBridge)
     myPanel.updateDeviceCombo()
 
     val device = mockDevice()
-    Mockito.`when`(myBridge.devices).thenReturn(arrayOf(device))
+    whenever(myBridge.devices).thenReturn(arrayOf(device))
 
     myPanel.putPreferredClient("emulator-5554", "com.google.myapplication")
     myPanel.updateDeviceCombo()
@@ -118,7 +120,7 @@ internal class DevicePanelTest {
   // TODO(b/191684793): Add UI tests for myPanel.clientComboBox integration with ComboboxSpeedSearch
   private fun mockClients(vararg clients: Client) {
     val device = mockDevice(clients)
-    Mockito.`when`(myBridge.devices).thenReturn(arrayOf(device))
+    whenever(myBridge.devices).thenReturn(arrayOf(device))
     myPanel.setBridge(myBridge)
     myPanel.putPreferredClient("emulator-5554", "com.google.myapplication")
     myPanel.updateDeviceCombo()
@@ -127,23 +129,23 @@ internal class DevicePanelTest {
   private fun mockDevice(clients: Array<out Client> = emptyArray()): IDevice {
     val device = Mockito.mock(IDevice::class.java)
 
-    Mockito.`when`(device.clients).thenReturn(clients)
+    whenever(device.clients).thenReturn(clients)
     for (client in clients) {
-      Mockito.`when`(client.device).thenReturn(device)
+      whenever(client.device).thenReturn(device)
     }
-    Mockito.`when`(device.isEmulator).thenReturn(true)
-    Mockito.`when`(device.name).thenReturn("emulator-5554")
+    whenever(device.isEmulator).thenReturn(true)
+    whenever(device.name).thenReturn("emulator-5554")
 
     return device
   }
 
   private fun mockClient(pid: Int, packageName: String?, clientDescription: String?): Client {
     val mockData = Mockito.mock(ClientData::class.java)
-    Mockito.`when`(mockData.pid).thenReturn(pid)
-    Mockito.`when`(mockData.packageName).thenReturn(packageName)
-    Mockito.`when`(mockData.clientDescription).thenReturn(clientDescription)
+    whenever(mockData.pid).thenReturn(pid)
+    whenever(mockData.packageName).thenReturn(packageName)
+    whenever(mockData.clientDescription).thenReturn(clientDescription)
     val mockClient = Mockito.mock(Client::class.java)
-    Mockito.`when`(mockClient.clientData).thenReturn(mockData)
+    whenever(mockClient.clientData).thenReturn(mockData)
     return mockClient
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.Mapper
@@ -24,7 +25,8 @@ import com.intellij.util.PathUtil
 /**
  * Lexer that parses a file path and matches tokens to a list of [ResourceQualifier].
  *
- * The token are defined using a set of [Mapper] that map a string to a [ResourceQualifier]
+ * The token are defined using a set of [Mapper] that map a string to a [ResourceQualifier].
+ * The path that did not match any token is then parsed using standard [FolderConfiguration] definition.
  */
 class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emptySet()) {
 
@@ -32,8 +34,9 @@ class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emp
 
   fun parsePath(path: String): Result {
     if (mappers.isEmpty()) {
-      return Result(getResourceName(path), emptySet())
+      return baseFolderConfigMatch(path)
     }
+
     val qualifiers = mutableSetOf<ResourceQualifier>()
 
     // We save a list of unused mapper in case they provide a default qualifier to add anyway.
@@ -71,17 +74,35 @@ class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emp
 
     // Append the rest of the path that has not been matched
     matcher.appendTail(finalFileName)
-    val resourceName = getResourceName(finalFileName.toString())
 
-    if(qualifiers.isNotEmpty()) {
+    if (qualifiers.isNotEmpty()) {
       ResourceManagerTracking.logDensityInferred()
     }
-    return Result(resourceName, qualifiers)
+
+    val result = baseFolderConfigMatch(finalFileName.toString())
+    qualifiers.addAll(result.qualifiers)
+
+    return Result(result.resourceName, qualifiers)
   }
 
-  private fun getResourceName(path: String) =
-    FileUtil.sanitizeFileName(FileUtil.getNameWithoutExtension(
-      PathUtil.getFileName(path)))
+  private fun baseFolderConfigMatch(path: String): Result {
+    val fileName = FileUtil.getNameWithoutExtension(PathUtil.getFileName(path))
+    val nameSplit = fileName.split("-").filter { it.isNotBlank() }
+    if (nameSplit.size > 1) {
+      val resourceName = FileUtil.sanitizeFileName(nameSplit[0])
+      val qualifiers = FolderConfiguration.getConfigFromQualifiers(nameSplit.drop(1))?.qualifiers?.toSet()
+      if (qualifiers != null) {
+        return Result(resourceName, qualifiers)
+      }
+    }
+    val resourceName = FileUtil.sanitizeFileName(fileName)
+    val parent = PathUtil.getFileName(PathUtil.getParentPath(path))
+    val parentSplit = parent.split("-").filter { it.isNotBlank() }
+    val folderConfiguration =
+      FolderConfiguration.getConfigFromQualifiers(parentSplit) ?: FolderConfiguration.getConfigFromQualifiers(parentSplit.drop(1))
+    val qualifiers = folderConfiguration?.qualifiers?.toSet() ?: emptySet()
+    return Result(resourceName, qualifiers)
+  }
 
   /**
    * Result of a parsing with the lexer.

@@ -95,7 +95,7 @@ public class Scene implements SelectionListener, Disposable {
   private static final String SHOW_TOOLTIP_KEY = PREFERENCE_KEY_PREFIX + "ShowToolTip";
   private static Boolean SHOW_TOOLTIP_VALUE = null;
 
-  private final DesignSurface myDesignSurface;
+  private final DesignSurface<?> myDesignSurface;
   private final SceneManager mySceneManager;
   private static final boolean DEBUG = false;
   private final HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
@@ -136,7 +136,7 @@ public class Scene implements SelectionListener, Disposable {
 
   @NotNull private FilterType myFilterType = FilterType.NONE;
 
-  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
+  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface<?> surface) {
     myDesignSurface = surface;
     mySceneManager = sceneManager;
 
@@ -264,7 +264,7 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   @NotNull
-  public DesignSurface getDesignSurface() {
+  public DesignSurface<?> getDesignSurface() {
     return myDesignSurface;
   }
 
@@ -1227,12 +1227,13 @@ public class Scene implements SelectionListener, Disposable {
   /**
    * Get the {@link Placeholder}s in the Scene without the ones belong to the {@param requester} and its children.
    *
-   * @param requester the component which request {@link Placeholder}s
+   * @param requester         the component which request {@link Placeholder}s. This is the component which mouse is dragging on.
+   * @param draggedComponents the components which are being dragged. The request is included.
    * @return list of the {@link Placeholder}s for requester
    */
-  public List<Placeholder> getPlaceholders(@Nullable SceneComponent requester) {
+  public List<Placeholder> getPlaceholders(@Nullable SceneComponent requester, @NotNull List<SceneComponent> draggedComponents) {
     ImmutableList.Builder<Placeholder> builder = new ImmutableList.Builder<>();
-    doGetPlaceholders(builder, myRoot, requester);
+    doGetPlaceholders(builder, myRoot, requester, draggedComponents);
     return builder.build();
   }
 
@@ -1246,17 +1247,18 @@ public class Scene implements SelectionListener, Disposable {
 
   private static void doGetPlaceholders(@NotNull ImmutableList.Builder<Placeholder> builder,
                                         @NotNull SceneComponent component,
-                                        @Nullable SceneComponent requester) {
+                                        @Nullable SceneComponent requester,
+                                        @NotNull List<SceneComponent> draggedComponents) {
     if (component == requester) {
       return;
     }
     NlComponent nlComponent = component.getNlComponent();
     ViewHandler handler = NlComponentHelperKt.getViewHandler(nlComponent);
     if (handler != null) {
-      builder.addAll(handler.getPlaceholders(component));
+      builder.addAll(handler.getPlaceholders(component, draggedComponents));
     }
     for (SceneComponent child : component.getChildren()) {
-      doGetPlaceholders(builder, child, requester);
+      doGetPlaceholders(builder, child, requester, draggedComponents);
     }
   }
 

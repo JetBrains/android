@@ -81,8 +81,7 @@ public class SketchStyle {
     return colorControls;
   }
 
-  @Nullable
-  public SketchFill[] getFills() {
+  public SketchFill @Nullable[] getFills() {
     return fills;
   }
 

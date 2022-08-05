@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.rendering.FlagManager;
-import com.android.tools.idea.rendering.Locale;
 import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -45,11 +45,7 @@ final class LocaleRenderer implements TableCellRenderer {
     if (component instanceof JLabel && model instanceof StringResourceTableModel) {
       Locale locale = ((StringResourceTableModel)model).getLocale(table.convertColumnIndexToModel(column));
       assert locale != null;
-      if (FlagManager.showFlagsForLanguages()) {
-        ((JLabel)component).setIcon(locale.getFlagImage());
-      } else {
-        ((JLabel)component).setIcon(null);
-      }
+      ((JLabel)component).setIcon(FlagManager.getFlagImage(locale));
     }
 
     return component;

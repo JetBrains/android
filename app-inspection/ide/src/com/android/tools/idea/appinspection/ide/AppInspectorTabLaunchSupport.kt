@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
@@ -87,11 +88,9 @@ class AppInspectorTabLaunchSupport(
       config.id to when (compatibilityResponse[i].status) {
         LibraryCompatbilityInfo.Status.COMPATIBLE -> {
           val coord = coords[i]
-          val path = artifactService.getOrResolveInspectorArtifact(coord, project)
-          if (path != null) {
-            InspectorJarTarget.Resolved(path.toAppInspectorJar())
-          }
-          else {
+          try {
+            InspectorJarTarget.Resolved(artifactService.getOrResolveInspectorArtifact(coord, project).toAppInspectorJar())
+          } catch (e: AppInspectionArtifactNotFoundException) {
             InspectorJarTarget.Unresolved(coord.toUnresolvedInspectorMessage())
           }
         }

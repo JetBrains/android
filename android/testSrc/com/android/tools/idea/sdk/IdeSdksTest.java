@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk;
 
 import static com.android.testutils.TestUtils.getEmbeddedJdk8Path;
 import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.sdk.IdeSdks.ANDROID_STUDIO_DEFAULT_JDK_NAME;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
@@ -44,7 +45,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.testing.IdeComponents;
@@ -329,7 +329,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     assertThat(homePath).isNotNull();
     assertThat(homePath).isNotEqualTo("");
 
-    Sdk jdk8 = IdeSdks.findOrCreateJdk(AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME,
+    Sdk jdk8 = IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME,
                                        Paths.get(getEmbeddedJdk8Path()));
     assertThat(jdk8).isNotNull();
     Sdk newJdk = myIdeSdks.getJdk();

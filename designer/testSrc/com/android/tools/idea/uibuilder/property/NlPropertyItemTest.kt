@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property
 
+import com.android.AndroidXConstants.CLASS_MOTION_LAYOUT
 import com.android.SdkConstants.ABSOLUTE_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
@@ -41,7 +42,6 @@ import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BUTTON
-import com.android.SdkConstants.CLASS_MOTION_LAYOUT
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
@@ -51,6 +51,7 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
@@ -90,7 +91,6 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.awt.Color
 
 private const val HELLO_WORLD = "Hello World"
@@ -646,14 +646,14 @@ class NlPropertyItemTest {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val fileManager = mock(FileEditorManager::class.java)
-    `when`(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    `when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    whenever(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    whenever(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     @Suppress("UnstableApiUsage")
-    `when`(fileManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
-    `when`(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    whenever(fileManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
+    whenever(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    `when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+    whenever(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(mock(FileEditor::class.java)))
 
     property.helpSupport.browse()
@@ -668,8 +668,8 @@ class NlPropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringUndo() {
     val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
-    `when`(undoManager.isUndoInProgress).thenReturn(true)
+    componentStack!!.registerServiceInstance(UndoManager::class.java, undoManager)
+    whenever(undoManager.isUndoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
@@ -680,8 +680,8 @@ class NlPropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringRedo() {
     val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
-    `when`(undoManager.isRedoInProgress).thenReturn(true)
+    componentStack!!.registerServiceInstance(UndoManager::class.java, undoManager)
+    whenever(undoManager.isRedoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)

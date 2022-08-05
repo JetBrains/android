@@ -22,6 +22,15 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
  */
 public interface MTagActionListener {
   int CONTROL_FLAG = 1;
+  int SAVE_GIF = 1;
   void select(MTag selected, int flags);
   void delete(MTag[] tags, int flags);
+
+  /**
+   * This function enable save GIF process to be initiated in OverviewPanel
+   *  (where the save GIF menu itme would be clicked)
+   * To make it more general, it could have different behaviors based the input type
+   * @param type type of action to be handled.
+   */
+  void performAction(int type);
 }

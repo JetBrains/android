@@ -88,7 +88,7 @@ class ComponentActionsInspectorBuilder(private val model: NlPropertiesModel) : I
     }
   }
 
-  private fun convertToAnAction(viewAction: ViewAction, surface: DesignSurface, selectedComponent: List<NlComponent>): AnAction {
+  private fun convertToAnAction(viewAction: ViewAction, surface: DesignSurface<*>, selectedComponent: List<NlComponent>): AnAction {
     return when (viewAction) {
       is ViewActionMenu -> NoArrowDropDownButton(viewAction, surface, selectedComponent)
       is DirectViewAction -> ViewActionWrapper(viewAction, surface, selectedComponent)
@@ -98,7 +98,7 @@ class ComponentActionsInspectorBuilder(private val model: NlPropertiesModel) : I
 }
 
 private class ViewActionWrapper(private val viewAction: ViewAction,
-                                private val surface: DesignSurface,
+                                private val surface: DesignSurface<*>,
                                 private val nlComponents: List<NlComponent>)
   : AnAction(viewAction.label, viewAction.label, viewAction.icon) {
 
@@ -113,7 +113,7 @@ private class ViewActionWrapper(private val viewAction: ViewAction,
   }
 }
 
-private class NoArrowDropDownButton(menu: ViewActionMenu, surface: DesignSurface, nlComponents: List<NlComponent>)
+private class NoArrowDropDownButton(menu: ViewActionMenu, surface: DesignSurface<*>, nlComponents: List<NlComponent>)
   : DropDownAction(menu.label, menu.label, menu.icon) {
 
   init {

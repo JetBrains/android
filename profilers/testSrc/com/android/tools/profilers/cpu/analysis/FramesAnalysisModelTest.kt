@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.CpuCapture
@@ -28,11 +29,11 @@ class FramesAnalysisModelTest {
   @Test
   fun `frames model has all-frames tab`() {
     val systemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      Mockito.`when`(androidFrameLayers).thenReturn(listOf(TraceProcessor.AndroidFrameEventsResult.Layer.getDefaultInstance()))
+      whenever(androidFrameLayers).thenReturn(listOf(TraceProcessor.AndroidFrameEventsResult.Layer.getDefaultInstance()))
     }
     val capture = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(this.range).thenReturn(Range())
-      Mockito.`when`(this.systemTraceData).thenReturn(systemTraceData)
+      whenever(this.range).thenReturn(Range())
+      whenever(this.systemTraceData).thenReturn(systemTraceData)
     }
     val model = FramesAnalysisModel.of(capture)!!
     val analysisModels = model.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()

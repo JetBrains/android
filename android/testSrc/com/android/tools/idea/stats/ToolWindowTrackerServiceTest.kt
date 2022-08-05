@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -27,7 +28,6 @@ import org.jetbrains.android.AndroidTestCase
 import org.junit.Ignore
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 @Ignore("TODO(b/189824635) testOpen is failing too frequently")
@@ -60,14 +60,14 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
 
     val mockToolWindow = Mockito.mock(ToolWindow::class.java)
 
-    `when`(mockToolWindow.type).thenReturn(ToolWindowType.DOCKED)
-    `when`(mockToolWindow.isActive).thenReturn(false)
+    whenever(mockToolWindow.type).thenReturn(ToolWindowType.DOCKED)
+    whenever(mockToolWindow.isActive).thenReturn(false)
 
-    `when`(myMockToolWindowManager.getToolWindow(testId)).thenReturn(mockToolWindow)
+    whenever(myMockToolWindowManager.getToolWindow(testId)).thenReturn(mockToolWindow)
     myService.stateChanged(toolWindowManager)
 
     // Open tool window
-    `when`(mockToolWindow.isActive).thenReturn(true)
+    whenever(mockToolWindow.isActive).thenReturn(true)
     myService.stateChanged(toolWindowManager)
 
     // check

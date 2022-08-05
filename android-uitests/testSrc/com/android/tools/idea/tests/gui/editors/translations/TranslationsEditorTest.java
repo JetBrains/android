@@ -40,7 +40,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import java.awt.event.KeyEvent;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -112,39 +111,6 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void dialogAddsKeyInDifferentFolder() throws IOException {
-    importSimpleApplication();
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-
-    translationsEditor.getAddKeyButton().click();
-
-    AddKeyDialogFixture dialog = translationsEditor.getAddKeyDialog();
-    dialog.getDefaultValueTextField().enterText("action_settings");
-    dialog.getKeyTextField().enterText("action_settings");
-    dialog.getResourceFolderComboBox().selectItem(toResourceName("app/src/debug/res"));
-    dialog.getOkButton().click();
-
-    Object expected = Arrays.asList("app_name", "action_settings", "app_name", "hello_world", "action_settings", "some_id", "cancel");
-    assertEquals(expected, translationsEditor.getTable().columnAt(KEY_COLUMN));
-  }
-
-  @Test
-  public void dialogDoesntAddKeyInSameFolder() throws IOException {
-    importSimpleApplication();
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-
-    translationsEditor.getAddKeyButton().click();
-
-    AddKeyDialogFixture dialog = translationsEditor.getAddKeyDialog();
-    dialog.getDefaultValueTextField().enterText("action_settings");
-    dialog.getKeyTextField().enterText("action_settings");
-    dialog.getOkButton().click();
-
-    dialog.waitUntilErrorLabelFound(".*" + toResourceName("action_settings already exists in app/src/main/res") + ".*");
-    dialog.getCancelButton().click();
-  }
-
-  @Test
   public void removeKeyWithDeleteHandler() throws Exception {
     importSimpleApplication();
 
@@ -195,6 +161,7 @@ public final class TranslationsEditorTest {
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
   }
 
+  // TODO(b/232444069): Test that filters work at the table level and remove these tests.
   @Test
   public void filterKeys() throws IOException {
     importSimpleApplication();
@@ -335,26 +302,6 @@ public final class TranslationsEditorTest {
       "app/src/main/res");
 
     assertEquals(expectedColumn, myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable().columnAt(RESOURCE_FOLDER_COLUMN));
-  }
-
-  @Test
-  public void keySorting() throws IOException {
-    importSimpleApplication();
-    FrozenColumnTableFixture table = myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable();
-
-    assertEquals(Arrays.asList("app_name", "app_name", "hello_world", "action_settings", "some_id", "cancel"), table.columnAt(KEY_COLUMN));
-
-    // ascending
-    table.clickHeaderColumn(0);
-    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world", "some_id"), table.columnAt(KEY_COLUMN));
-
-    // descending
-    table.clickHeaderColumn(0);
-    assertEquals(Arrays.asList("some_id", "hello_world", "cancel", "app_name", "app_name", "action_settings"), table.columnAt(KEY_COLUMN));
-
-    // back to natural order
-    table.clickHeaderColumn(0);
-    assertEquals(Arrays.asList("app_name", "app_name", "hello_world", "action_settings", "some_id", "cancel"), table.columnAt(KEY_COLUMN));
   }
 
   @Test
@@ -543,33 +490,5 @@ public final class TranslationsEditorTest {
 
     editor.open("app/src/main/res/values-en/strings.xml");
     assertFalse(editor.getCurrentFileContents().contains("hello_world"));
-  }
-
-  @Test
-  public void reloadButtonUpdatesEditorFromStringsXml() throws IOException {
-    importSimpleApplication();
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-
-    // Change value to "Reload!"
-    editor
-      .open("app/src/main/res/values-en/strings.xml")
-      .moveBetween("\n", "\n</resources>")
-      .enterText("<string name=\"test_reload\">Reload!</string>\n");
-
-    // Switch back to translations editor and click reload
-    openTranslationsEditor(myStringsXmlPath);
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-    translationsEditor.clickReloadButton();
-
-    // Check "Reload!"
-    TableCell cell = translationsEditor.cell("test_reload", "app/src/main/res", ENGLISH_COLUMN);
-    translationsEditor.getTable().selectCell(cell);
-    translationsEditor.waitUntilTableValueAtEquals(cell, "Reload!");
-  }
-
-  @NotNull
-  private static String toResourceName(@NotNull String resName) {
-    // Windows and Linux use a different file path separator
-    return resName.replace('/', File.separatorChar);
   }
 }

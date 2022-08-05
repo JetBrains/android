@@ -17,9 +17,13 @@ package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.MockUiData
+import com.android.build.attribution.ui.controllers.BuildAnalyzerPropertiesAction
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -47,9 +51,10 @@ class BuildAnalyzerComboBoxViewTest {
 
   @Before
   fun setUp() {
-    view = BuildAnalyzerComboBoxView(model, mockHandlers, disposableRule.disposable).apply {
+    view = BuildAnalyzerComboBoxView(model, mockHandlers).apply {
       wholePanel.size = Dimension(600, 200)
     }
+    disposableRule.register { view }
   }
 
   @Test
@@ -62,7 +67,9 @@ class BuildAnalyzerComboBoxViewTest {
       "tasks-view" to false,
       "tasks-view-additional-controls" to false,
       "warnings-view" to false,
-      "warnings-view-additional-controls" to false
+      "warnings-view-additional-controls" to false,
+      "downloads-info-view" to false,
+      "downloads-info-view-additional-controls" to false,
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)
@@ -82,7 +89,9 @@ class BuildAnalyzerComboBoxViewTest {
       "tasks-view" to true,
       "tasks-view-additional-controls" to true,
       "warnings-view" to false,
-      "warnings-view-additional-controls" to false
+      "warnings-view-additional-controls" to false,
+      "downloads-info-view" to false,
+      "downloads-info-view-additional-controls" to false,
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     Mockito.verifyZeroInteractions(mockHandlers)
@@ -102,11 +111,35 @@ class BuildAnalyzerComboBoxViewTest {
       "tasks-view" to false,
       "tasks-view-additional-controls" to false,
       "warnings-view" to true,
-      "warnings-view-additional-controls" to true
+      "warnings-view-additional-controls" to true,
+      "downloads-info-view" to false,
+      "downloads-info-view-additional-controls" to false,
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     Mockito.verifyZeroInteractions(mockHandlers)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testViewChangedToDownloads() {
+    // Act
+    model.selectedData = BuildAnalyzerViewModel.DataSet.DOWNLOADS
+
+    // Assert
+    val expectedElementsVisibility = mapOf(
+      "build-overview" to false,
+      "build-overview-additional-controls" to false,
+      "tasks-view" to false,
+      "tasks-view-additional-controls" to false,
+      "warnings-view" to false,
+      "warnings-view-additional-controls" to false,
+      "downloads-info-view" to true,
+      "downloads-info-view-additional-controls" to true,
+    )
+    assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
+    Mockito.verifyZeroInteractions(mockHandlers)
+    assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
   }
 
   @Test
@@ -128,6 +161,17 @@ class BuildAnalyzerComboBoxViewTest {
 
     view.dataSetCombo.selectedItem = BuildAnalyzerViewModel.DataSet.OVERVIEW
     Mockito.verifyZeroInteractions(mockHandlers)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testActionToolbarIsSetProperly() {
+    val toolbar = TreeWalker(view.wholePanel).descendants().filterIsInstance<ActionToolbar>().single()
+
+    assertThat(toolbar.targetComponent).isEqualTo(view.wholePanel)
+    assertThat(toolbar.actions).hasSize(2)
+    assertThat(toolbar.actions[0]).isInstanceOf(BuildAnalyzerPropertiesAction::class.java)
+    assertThat(toolbar.actions[1]).isInstanceOf(Separator::class.java)
   }
 
   private fun grabElementsVisibilityStatus(names: Set<String>): Map<String, Boolean> {

@@ -35,6 +35,7 @@ class MemoryCaptureStage(profilers: StudioProfilers,
     doSelectCaptureDuration(durationData, joiner)
   }
   override fun exit() {
+    super.exit()
     loader.stop()
   }
 

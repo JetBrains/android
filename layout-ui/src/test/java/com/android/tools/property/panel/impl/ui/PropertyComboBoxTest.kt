@@ -29,11 +29,12 @@ import com.android.tools.property.panel.impl.model.util.FakeAction
 import com.android.tools.property.panel.impl.model.util.FakeComboBoxUI
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
-import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import java.awt.event.KeyEvent
@@ -43,8 +44,11 @@ import kotlin.test.assertEquals
 
 class PropertyComboBoxTest {
 
-  @get:Rule
-  val appRule = PropertyAppRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @get:Rule
   val edtRule = EdtRule()

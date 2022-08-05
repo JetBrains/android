@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.LayoutTestUtilities
@@ -28,6 +29,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.TestInteractable
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -61,7 +63,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyZeroInteractions
-import org.mockito.Mockito.`when`
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -71,6 +72,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlin.test.assertNotEquals
 
 /**
@@ -209,7 +211,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     val surface = model.surface as NavDesignSurface
-    `when`(surface.layeredPane).thenReturn(mock(JComponent::class.java))
+    whenever(surface.layeredPane).thenReturn(mock(JComponent::class.java))
     val interactionManager = surface.interactionManager
     interactionManager.startListening()
 
@@ -236,16 +238,16 @@ class NavDesignSurfaceTest : NavTestCase() {
                                           }).build()
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
-    `when`(surface.scrollDurationMs).thenReturn(1)
+    whenever(surface.focusedSceneView).thenReturn(view)
+    whenever(surface.scrollDurationMs).thenReturn(1)
     val scheduleRef = AtomicReference<Future<*>>()
-    `when`(surface.scheduleRef).thenReturn(scheduleRef)
-    doCallRealMethod().`when`(surface).scrollToCenter(any())
+    whenever(surface.scheduleRef).thenReturn(scheduleRef)
+    doCallRealMethod().whenever(surface).scrollToCenter(any())
     val scrollPosition = Point()
     doAnswer { invocation ->
       scrollPosition.setLocation(invocation.getArgument(0), invocation.getArgument<Int>(1))
       null
-    }.`when`(surface).setScrollPosition(anyInt(), anyInt())
+    }.whenever(surface).setScrollPosition(anyInt(), anyInt())
 
     val f1 = model.find("fragment1")!!
     val f2 = model.find("fragment2")!!
@@ -292,11 +294,10 @@ class NavDesignSurfaceTest : NavTestCase() {
     val scene = surface.scene!!
     scene.layout(0, SceneContext.get())
     val sceneView = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
+    whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
-
-    val manager = InteractionManager(surface, NavInteractionHandler(surface))
+    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface))
     manager.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
@@ -474,12 +475,12 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surface = NavDesignSurface(project, editor, project)
     surface.model = model("nav.xml") { navigation() }
     @Suppress("UNCHECKED_CAST")
-    val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface>
-    `when`(editor.workBench).thenReturn(workbench)
+    val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface<*>>
+    whenever(editor.workBench).thenReturn(workbench)
     val lock = Semaphore(1)
     lock.acquire()
     // This should indicate that the relevant logic is complete
-    `when`(workbench.hideLoading()).then { lock.release() }
+    whenever(workbench.hideLoading()).then { lock.release() }
 
     val navigator = addClass("import androidx.navigation.*;\n" +
                              "@Navigator.Name(\"activity_sub\")\n" +
@@ -518,11 +519,11 @@ class NavDesignSurfaceTest : NavTestCase() {
     val scene = surface.scene!!
     scene.layout(0, SceneContext.get())
     val sceneView = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
+    whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 
-    val manager = InteractionManager(surface, NavInteractionHandler(surface))
+    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface))
     manager.startListening()
 
     try {
@@ -648,20 +649,20 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   fun testCanZoomToFit() {
     val sceneManager = mock(NavSceneManager::class.java)
-    `when`(sceneManager.isEmpty).thenReturn(true)
+    whenever(sceneManager.isEmpty).thenReturn(true)
 
     val surface = mock(NavDesignSurface::class.java)
-    `when`(surface.sceneManager).thenReturn(sceneManager)
-    doCallRealMethod().`when`(surface).canZoomToFit()
+    whenever(surface.sceneManager).thenReturn(sceneManager)
+    doCallRealMethod().whenever(surface).canZoomToFit()
 
-    `when`(surface.getFitScale(true)).thenReturn(1.5)
-    `when`(surface.scale).thenReturn(1.0)
+    whenever(surface.getFitScale(true)).thenReturn(1.5)
+    whenever(surface.scale).thenReturn(1.0)
     assertFalse(surface.canZoomToFit())
 
-    `when`(sceneManager.isEmpty).thenReturn(false)
+    whenever(sceneManager.isEmpty).thenReturn(false)
     assertTrue(surface.canZoomToFit())
 
-    `when`(surface.scale).thenReturn(1.5)
+    whenever(surface.scale).thenReturn(1.5)
     assertFalse(surface.canZoomToFit())
   }
 

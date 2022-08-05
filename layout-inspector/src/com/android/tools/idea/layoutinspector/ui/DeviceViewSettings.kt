@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.DataKey
 import kotlin.properties.Delegates
@@ -25,6 +26,7 @@ private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
 private const val SHOW_LAYOUT_BOUNDS_KEY = "live.layout.inspector.draw.layout"
 private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
 private const val DRAW_FOLD_KEY = "live.layout.inspector.draw.fold"
+private const val HIGHLIGHT_COLOR_KEY = "live.layout.inspector.highlight.color"
 
 interface DeviceViewSettings {
   val modificationListeners: MutableList<() -> Unit>
@@ -43,6 +45,8 @@ interface DeviceViewSettings {
   var drawLabel: Boolean
 
   var drawFold: Boolean
+
+  var highlightColor: Int
 }
 
 class EditorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
@@ -66,6 +70,10 @@ class EditorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
   override var drawFold by Delegates.observable(true) { _, _, _ ->
     modificationListeners.forEach { it() }
   }
+
+  override var highlightColor: Int
+    get() = 0xFF0000
+    set(_) {}
 }
 
 class InspectorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
@@ -102,5 +110,17 @@ class InspectorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
     set(value) {
       PropertiesComponent.getInstance().setValue(DRAW_FOLD_KEY, value, true)
       modificationListeners.forEach { it() }
+    }
+
+  override var highlightColor: Int
+    get() = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get())
+      PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, 0xFF0000) else 0xFF0000
+    set(value) {
+      val actual = value.and(0xFFFFFF)
+      val old = PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, 0xFF0000)
+      if (old != actual) {
+        PropertiesComponent.getInstance().setValue(HIGHLIGHT_COLOR_KEY, actual, 0xFF0000)
+        modificationListeners.forEach { it() }
+      }
     }
 }

@@ -41,9 +41,8 @@ class RenderATFComplexPerfgateTest {
   fun setUp() {
     RenderTestUtil.beforeRenderTestCase()
     // Enabling this will retrieve text character locations from TextView to improve the
-    // accuracy of TextContrastCheck in ATF. However, it can burden the render time quite alot
-    // specially if the view contains a long text.
-    LayoutValidator.setObtainCharacterLocations(false)
+    // accuracy of TextContrastCheck in ATF.
+    LayoutValidator.setObtainCharacterLocations(true)
 
     val baseTestPath = resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData")
     gradleRule.fixture.testDataPath = baseTestPath.toString()

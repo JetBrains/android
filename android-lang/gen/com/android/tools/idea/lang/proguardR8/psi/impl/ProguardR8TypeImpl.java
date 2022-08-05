@@ -39,6 +39,7 @@ public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements Proguard
     visitor.visitType(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ProguardR8Visitor) accept((ProguardR8Visitor)visitor);
     else super.accept(visitor);

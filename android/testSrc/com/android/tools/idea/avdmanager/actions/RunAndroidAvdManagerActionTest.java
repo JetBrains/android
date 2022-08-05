@@ -30,10 +30,13 @@ import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 
 public class RunAndroidAvdManagerActionTest extends LightPlatformTestCase {
+
+  public static final String ANDROID_DEVICE_MANAGER_ID = "Android.DeviceManager";
+
   public void testAvdManagerActionFoundByFindAction() {
     GotoActionModel model = new GotoActionModel(null, null, null);
     GotoActionItemProvider provider = new GotoActionItemProvider(model);
-    AnAction runAvdManagerAction = ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID);
+    AnAction runAvdManagerAction = ActionManager.getInstance().getAction(ANDROID_DEVICE_MANAGER_ID);
     assertNotNull(runAvdManagerAction);
 
     List<GotoActionModel.MatchedValue> actionsFoundByWordAVD = new ArrayList<>();
@@ -45,7 +48,7 @@ public class RunAndroidAvdManagerActionTest extends LightPlatformTestCase {
   }
 
   public void testAvdManagerActionNotShownInIdeaMainToolbar() {
-    AnAction runAvdManagerAction = ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID);
+    AnAction runAvdManagerAction = ActionManager.getInstance().getAction(ANDROID_DEVICE_MANAGER_ID);
 
     // Preconditions
     assertFalse("There should be no Android facets added permanently to a light project",
@@ -59,7 +62,7 @@ public class RunAndroidAvdManagerActionTest extends LightPlatformTestCase {
   }
 
   public void testAvdManagerActionShownInMainMenu() {
-    AnAction runAvdManagerAction = ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID);
+    AnAction runAvdManagerAction = ActionManager.getInstance().getAction(ANDROID_DEVICE_MANAGER_ID);
 
     // Preconditions
     assertFalse("There should be no Android facets added permanently to a light project",

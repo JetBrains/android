@@ -15,29 +15,35 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.intellij.psi.PsiFile
 
-class TestComposePreviewManager(var interactiveMode: ComposePreviewManager.InteractiveMode = ComposePreviewManager.InteractiveMode.DISABLED) : ComposePreviewManager {
+class TestComposePreviewManager(initialInteractiveMode: ComposePreviewManager.InteractiveMode = ComposePreviewManager.InteractiveMode.DISABLED) : ComposePreviewManager {
 
-  override fun status(): ComposePreviewManager.Status =
-    ComposePreviewManager.Status(hasRuntimeErrors = false,
-                                 hasSyntaxErrors = false,
-                                 isOutOfDate = false,
-                                 isRefreshing = false,
-                                 interactiveMode = interactiveMode)
+  var currentStatus = ComposePreviewManager.Status(hasRuntimeErrors = false,
+                                                   hasSyntaxErrors = false,
+                                                   isOutOfDate = false,
+                                                   isRefreshing = false,
+                                                   interactiveMode = initialInteractiveMode)
+  var interactiveMode: ComposePreviewManager.InteractiveMode = initialInteractiveMode
+    set(value) {
+      field = value
+      currentStatus = currentStatus.copy(interactiveMode = value)
+    }
+  override fun status(): ComposePreviewManager.Status = currentStatus
 
-  override var isBuildOnSaveEnabled: Boolean = false
+  override fun invalidateSavedBuildStatus() {
+    // do nothing
+  }
+
   override val availableGroups: Collection<PreviewGroup> = emptyList()
   override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
-  override var interactivePreviewElementInstance: PreviewElementInstance? = null
+  override var interactivePreviewElementInstance: ComposePreviewElementInstance? = null
     private set
-  override var animationInspectionPreviewElementInstance: PreviewElementInstance? = null
-  override val hasLiveLiterals: Boolean = false
-  override val isLiveLiteralsEnabled: Boolean = false
+  override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null
   override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
-  override suspend fun startInteractivePreview(instance: PreviewElementInstance) {
+  override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
     interactivePreviewElementInstance = instance
   }
 

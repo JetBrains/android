@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers.ui
 
-import com.android.SdkConstants.CLASS_APP_BAR_LAYOUT
-import com.android.SdkConstants.CLASS_COLLAPSING_TOOLBAR_LAYOUT
-import com.android.SdkConstants.CLASS_COORDINATOR_LAYOUT
-import com.android.SdkConstants.CLASS_FLOATING_ACTION_BUTTON
-import com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW
-import com.android.SdkConstants.CLASS_TAB_ITEM
-import com.android.SdkConstants.CLASS_TAB_LAYOUT
-import com.android.SdkConstants.CLASS_TOOLBAR_V7
+import com.android.AndroidXConstants.CLASS_APP_BAR_LAYOUT
+import com.android.AndroidXConstants.CLASS_COLLAPSING_TOOLBAR_LAYOUT
+import com.android.AndroidXConstants.CLASS_COORDINATOR_LAYOUT
+import com.android.AndroidXConstants.CLASS_FLOATING_ACTION_BUTTON
+import com.android.AndroidXConstants.CLASS_NESTED_SCROLL_VIEW
+import com.android.AndroidXConstants.CLASS_TAB_ITEM
+import com.android.AndroidXConstants.CLASS_TAB_LAYOUT
+import com.android.AndroidXConstants.CLASS_TOOLBAR_V7
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.refactoring.getNameInProject
 

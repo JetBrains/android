@@ -16,9 +16,11 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.defaultTotalBuildDurationMs
-import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.mockDownloadsData
+import com.android.build.attribution.ui.model.BuildOverviewPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth
@@ -35,7 +37,7 @@ import javax.swing.JLabel
 class BuildOverviewPageViewTest {
 
   private val warningSuppressions = BuildAttributionWarningsFilter()
-  private val model = BuildAnalyzerViewModel(MockUiData(), warningSuppressions)
+  private val model = BuildOverviewPageModel(MockUiData(), warningSuppressions)
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
 
   @Test
@@ -57,10 +59,10 @@ class BuildOverviewPageViewTest {
     val expectedBuildFinishedString = DateFormatUtil.formatDateTime(model.reportUiData.buildSummary.buildFinishedTimestamp)
     Truth.assertThat(text).isEqualTo("""
       <b>Build finished on $expectedBuildFinishedString</b>
-      Total build duration was 20.0s.
+      Total build duration was 20.0s
       
       Includes:
-      Build configuration: 4.0s - <a href="configuration-cache">Optimize this</a>.
+      Build configuration: 4.0s - <a href="configuration-cache">Optimize this</a>
       Critical path tasks execution: 15.0s
       
       """.trimIndent())
@@ -105,7 +107,7 @@ class BuildOverviewPageViewTest {
 
   @Test
   fun testMemoryUtilizationInfo() {
-    val model = BuildAnalyzerViewModel(MockUiData(gcTimeMs = (defaultTotalBuildDurationMs * 0.8).toLong()), warningSuppressions)
+    val model = BuildOverviewPageModel(MockUiData(gcTimeMs = (defaultTotalBuildDurationMs * 0.8).toLong()), warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
     val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
 
@@ -123,7 +125,7 @@ class BuildOverviewPageViewTest {
     val mockData = MockUiData().apply {
       buildSummary = mockBuildOverviewData(javaVersionUsed = 11, isGarbageCollectorSettingSet = false)
     }
-    val model = BuildAnalyzerViewModel(mockData, warningSuppressions)
+    val model = BuildOverviewPageModel(mockData, warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
     val memoryPanel = TreeWalker(view.component).descendants().single { it.name == "memory" }
 
@@ -136,6 +138,61 @@ class BuildOverviewPageViewTest {
     Truth.assertThat(visibleText(textPane)).contains("The default garbage collector was used in this build running with JDK 11.")
   }
 
+  @Test
+  fun testDownloadsOverviewInfo() {
+    val mockData = MockUiData().apply {
+      downloadsData = mockDownloadsData()
+    }
+    val model = BuildOverviewPageModel(mockData, warningSuppressions)
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val infoPanel = TreeWalker(view.component).descendants().single { it.name == "info" }
+    val html = TreeWalker(infoPanel).descendants()
+      .filterIsInstance<JEditorPane>()
+      .mapNotNull { it.text }
+      .joinToString(separator = "\n")
+    val extracted = html.substring(html.indexOf("Files download:")).substringBeforeLast("</body>").trimEnd()
+    Truth.assertThat(extracted).isEqualTo("""
+      Files download: 1.5s <icon alt="<html>
+      This build had 8 network requests,<br/>
+      downloaded in total 310 kB in 1.5s.
+      </html>" src="AllIcons.General.ContextHelp"><br>
+    """.trimIndent())
+  }
+
+  @Test
+  fun testInfoContentForDownloadsAnalyzerDisabled() {
+    val mockData = MockUiData().apply {
+      downloadsData = DownloadsAnalyzer.AnalyzerIsDisabled
+    }
+    verifyFileDownloadsInfoNotVisible(mockData)
+  }
+
+  @Test
+  fun testInfoContentForDownloadsAnalyzerWhenNoDataBecauseOfGradle() {
+    val mockData = MockUiData().apply {
+      downloadsData = DownloadsAnalyzer.GradleDoesNotProvideEvents
+    }
+    verifyFileDownloadsInfoNotVisible(mockData)
+  }
+
+  @Test
+  fun testInfoContentForEmptyDownloadsAnalyzer() {
+    val mockData = MockUiData().apply {
+      downloadsData = DownloadsAnalyzer.ActiveResult(emptyList())
+    }
+    verifyFileDownloadsInfoNotVisible(mockData)
+  }
+
+  private fun verifyFileDownloadsInfoNotVisible(mockData: MockUiData) {
+    val model = BuildOverviewPageModel(mockData, warningSuppressions)
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val infoPanel = TreeWalker(view.component).descendants().single { it.name == "info" }
+    val text = TreeWalker(infoPanel).descendants()
+      .mapNotNull { visibleText(it) }
+      .joinToString(separator = "\n")
+    Truth.assertThat(text).doesNotContain("Files download:")
+  }
+
   private fun visibleText(component: Component): String? = when (component) {
     is JLabel -> component.text
     is JEditorPane -> clearHtml(component.text)
@@ -143,7 +200,7 @@ class BuildOverviewPageViewTest {
     else -> null
   }
 
-  private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html)
+  private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html).also { println(it) }
     .trimIndent()
     .replace("\n","")
     .replace("<br>","\n")

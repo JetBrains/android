@@ -26,6 +26,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_TO_START;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_BOTTOM;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_TOP;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -391,7 +392,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     String targetId;
     NlComponent parent = component.getParent();
     assert parent != null;
-    if (NlComponentHelperKt.isOrHasSuperclass(parent, SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(parent, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
       parent = parent.getParent();
     }
     if (targetComponent == parent) {
@@ -862,7 +863,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   }
 
   private static void logConstraintConnected(SceneComponent component) {
-    DesignSurface surface = component.getScene().getDesignSurface();
+    DesignSurface<?> surface = component.getScene().getDesignSurface();
     if (!(surface instanceof NlDesignSurface)) {
       return;
     }
@@ -872,7 +873,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   }
 
   private static void logConstraintDisconnected(SceneComponent component) {
-    DesignSurface surface = component.getScene().getDesignSurface();
+    DesignSurface<?> surface = component.getScene().getDesignSurface();
     if (!(surface instanceof NlDesignSurface)) {
       return;
     }

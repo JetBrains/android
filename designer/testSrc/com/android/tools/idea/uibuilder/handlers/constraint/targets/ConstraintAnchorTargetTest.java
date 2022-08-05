@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
 import com.android.SdkConstants;

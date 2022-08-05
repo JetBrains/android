@@ -24,7 +24,7 @@ import com.android.tools.profiler.proto.EventProfiler.EventDataRequest;
 import com.android.tools.profiler.proto.EventProfiler.SystemData;
 import com.android.tools.profiler.proto.EventProfiler.SystemDataResponse;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 /**

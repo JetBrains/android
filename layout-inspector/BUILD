@@ -19,10 +19,12 @@ iml_module(
     iml_files = ["intellij.android.layout-inspector.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
+    test_srcs = ["testingSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
@@ -45,9 +47,15 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
         "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/adt/idea/android-layout-inspector[module]",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module]",
+        "//tools/adt/idea/.idea/libraries:transport-proto",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 
@@ -72,6 +80,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
@@ -124,6 +133,8 @@ cc_library(
         "//prebuilts/studio/jdk:jni_headers",
         "//tools/base/dynamic-layout-inspector/skia:skia-lib",
         "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_cc_proto",
+        "@freetype_repo//:libft2",
+        "@libpng_repo//:libpng",
     ],
     alwayslink = 1,
 )

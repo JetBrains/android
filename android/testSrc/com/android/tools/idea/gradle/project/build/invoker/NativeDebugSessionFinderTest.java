@@ -19,7 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.debug.AndroidNativeDebugProcess;
+import com.android.tools.idea.run.AndroidNativeDebugProcess;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;

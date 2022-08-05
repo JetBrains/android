@@ -15,29 +15,51 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 /**
  * Sets the compiler output paths on the module [DataNode].
  */
 // TODO(b/213887150) : once this bug is fixed and we have code coverage exclusively with Jacoco, then this can be deleted.
 @JvmOverloads
-fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null) {
+fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null, isDelegatedBuildUsed: Boolean) {
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
-  val selectedVariant = variant ?: androidModel.selectedVariant
+  val selectedVariant = variant ?: androidModel.selectedVariantCore
 
+  data.useExternalCompilerOutput(isDelegatedBuildUsed)
   data.isInheritProjectCompileOutputPath = false
 
+  // TODO(b/232780259): Look for the compilation output folder. We can have both java and kotlin compilation outputs in classesFolder(IDEA-235250).
   val sourceCompilerOutput = selectedVariant.mainArtifact.classesFolder.first().absolutePath
   val testCompilerOutput = selectedVariant.unitTestArtifact?.classesFolder?.first()?.absolutePath
+
+
+  // MPSS: Set compilation data for Gradle sourceSets too.
+  for (sourceSet in ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY)) {
+    val sourceSetData = sourceSet.data
+    if (IdeModuleWellKnownSourceSet.fromName(sourceSetData.moduleName) == null) {
+      // Ignore any non-Android source sets e.g in a KMP project
+      continue
+    }
+
+    sourceSetData.useExternalCompilerOutput(isDelegatedBuildUsed)
+    sourceSetData.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
+    sourceSetData.setCompileOutputPath(ExternalSystemSourceType.TEST, null)
+    sourceSetData.setExternalCompilerOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
+    sourceSetData.setExternalCompilerOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
+  }
 
   data.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
   data.setCompileOutputPath(ExternalSystemSourceType.TEST, null)
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
 }
+
+

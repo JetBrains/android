@@ -5,7 +5,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -64,7 +64,7 @@ public final class AndroidPlugin {
           @Override
           public void update(@NotNull AnActionEvent e) {
             Project project = e.getProject();
-            e.getPresentation().setEnabledAndVisible(project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel());
+            e.getPresentation().setEnabledAndVisible(project != null && ProjectSystemUtil.requiresAndroidModel(project));
           }
         };
         actionManager.registerAction(groupId, group);

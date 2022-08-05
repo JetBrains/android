@@ -103,7 +103,7 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
 
   @NotNull
   public S waitUntilStepErrorMessageIsGone() {
-    waitUntilGone(robot(), target(), new GenericTypeMatcher<>(JTextComponent.class) {
+    waitUntilGone(robot(), target(), new GenericTypeMatcher<JTextComponent>(JTextComponent.class) {
       @Override
       protected boolean isMatching(@NotNull JTextComponent component) {
         // Note: When there are no errors, the ValidationText component is kept visible (for layout reasons).

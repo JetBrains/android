@@ -24,7 +24,6 @@ import static com.android.SdkConstants.PreferenceAttributes.ATTR_KEY;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.base.Strings;
@@ -41,8 +40,7 @@ public abstract class PreferenceHandler extends ViewHandler {
   public abstract String getXml(@NotNull String tagName, @NotNull XmlType xmlType);
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
     if (type.equals(InsertType.CREATE)) {

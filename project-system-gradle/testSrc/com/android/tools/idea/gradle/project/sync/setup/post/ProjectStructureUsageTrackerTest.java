@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import static com.android.tools.idea.model.AndroidModel.UNINITIALIZED_APPLICATION_ID;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_WATCHFACE;
 
 import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
@@ -25,7 +25,6 @@ import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -82,10 +81,10 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                    .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
                    .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
                    .addLibraries(GradleLibrary.newBuilder()
-                                   .setJarDependencyCount(13)
+                                   .setJarDependencyCount(12)
                                    .setAarDependencyCount(49))
                    .addModules(GradleModule.newBuilder()
-                                 .setTotalModuleCount((ModuleUtil.isModulePerSourceSetEnabled(getProject())) ? 9 : 3)
+                                 .setTotalModuleCount(3)
                                  .setAppModuleCount(1)
                                  .setLibModuleCount(1))
                    .addAndroidModules(GradleAndroidModule.newBuilder()
@@ -102,8 +101,41 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                                         .setFlavorCount(0)
                                         .setFlavorDimension(0)
                                         .setSigningConfigCount(1))
-                   // TODO(b/184422212): .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
-                   .setAppId(AnonymizerUtil.anonymizeUtf8(UNINITIALIZED_APPLICATION_ID))
+                   .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
+                   .build(), usage.getStudioEvent().getGradleBuildDetails());
+  }
+
+  public void testProductStructureUsageWithWearHardware() throws Exception {
+    trackGradleProject(RUN_CONFIG_WATCHFACE);
+
+    List<LoggedUsage> usages = myUsageTracker.getUsages();
+
+    assertEquals(1,
+                 usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind()).count());
+    LoggedUsage usage =
+      usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind()).findFirst().get();
+    assertEquals(0, usage.getTimestamp());
+    assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
+    String appId = usage.getStudioEvent().getGradleBuildDetails().getAppId();
+    assertEquals(GradleBuildDetails.newBuilder()
+                   .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
+                   .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
+                   .addLibraries(GradleLibrary.newBuilder()
+                                   .setJarDependencyCount(0)
+                                   .setAarDependencyCount(0))
+                   .addModules(GradleModule.newBuilder()
+                                 .setTotalModuleCount(1)
+                                 .setAppModuleCount(1)
+                                 .setLibModuleCount(0))
+                   .addAndroidModules(GradleAndroidModule.newBuilder()
+                                        .setModuleName(AnonymizerUtil.anonymizeUtf8("testProductStructureUsageWithWearHardware"))
+                                        .setIsLibrary(false)
+                                        .setBuildTypeCount(2)
+                                        .setFlavorCount(0)
+                                        .setFlavorDimension(0)
+                                        .setSigningConfigCount(1)
+                                        .setRequiredHardware("android.hardware.type.watch"))
+                   .setAppId(appId)
                    .build(), usage.getStudioEvent().getGradleBuildDetails());
   }
 

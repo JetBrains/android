@@ -23,6 +23,8 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import java.awt.EventQueue
 import java.awt.datatransfer.DataFlavor
@@ -44,6 +46,11 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
   private val connected
     get() = emulator.connectionState == ConnectionState.CONNECTED
 
+  private var lastClipboardText = ""
+
+  private val logger
+    get() = thisLogger()
+
   init {
     Disposer.register(parentDisposable, this)
   }
@@ -54,10 +61,12 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
       active = true
     }
     val text = getClipboardText()
-    if (text.isEmpty()) {
+    if (text.isEmpty() || text == lastClipboardText) {
       requestClipboardFeed()
     }
     else {
+      lastClipboardText = text
+      logger.debug { "EmulatorClipboardSynchronizer.setDeviceClipboardAndKeepHostClipboardInSync: \"$text\"" }
       emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object : EmptyStreamObserver<Empty>() {
         override fun onCompleted() {
           requestClipboardFeed()
@@ -71,6 +80,7 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
     synchronized(lock) {
       active = false
       cancelClipboardFeed()
+      lastClipboardText = ""
     }
   }
 
@@ -105,21 +115,22 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
   }
 
   private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
-    var responseCount = 0
 
     override fun onNext(response: ClipData) {
+      logger.debug { "ClipboardReceiver.onNext: \"${response.text}\"" }
       if (clipboardReceiver != this) {
         return // This clipboard feed has already been cancelled.
       }
 
-      // Skip the first response that reflects the current clipboard state.
-      if (responseCount != 0 && response.text.isNotEmpty()) {
-        EventQueue.invokeLater {
-          val content = StringSelection(response.text)
-          ClipboardSynchronizer.getInstance().setContent(content, content)
+      if (response.text.isNotEmpty()) {
+        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+          if (response.text != lastClipboardText) {
+            lastClipboardText = response.text
+            val content = StringSelection(response.text)
+            ClipboardSynchronizer.getInstance().setContent(content, content)
+          }
         }
       }
-      responseCount++
     }
   }
 

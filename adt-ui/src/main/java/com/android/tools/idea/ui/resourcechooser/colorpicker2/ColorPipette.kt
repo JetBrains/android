@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.wm.WindowManager
 import java.awt.Color
 import javax.swing.Icon
 
@@ -71,5 +73,17 @@ interface ColorPipette {
      * Called when the picking is canceled.
      */
     fun cancel() = Unit
+  }
+
+  companion object {
+    /**
+     * Returns whether the pipette can be used in this system.
+     */
+    fun isAvailable(): Boolean {
+      // Wayland's stricter security policy prevents applications from grabbing screenshots of windows they do not owm.
+      // OpenJDK crashes if such a request is made to the robot: https://bugs.openjdk.java.net/browse/JDK-8171000
+      // Unfortunately the color pipette relies on this kind of functionality, so we disable it.
+      return !SystemInfo.isWayland && WindowManager.getInstance().isAlphaModeSupported
+    }
   }
 }

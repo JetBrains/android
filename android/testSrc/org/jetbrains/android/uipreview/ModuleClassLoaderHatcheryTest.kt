@@ -25,7 +25,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -129,27 +128,6 @@ class ModuleClassLoaderHatcheryTest {
     val parent2 = FirewalledResourcesClassLoader(null)
     assertNull(hatchery.requestClassLoader(
       parent2, donor.projectClassesTransform, donor.nonProjectClassesTransform))
-
-    ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
-  }
-
-  @Test
-  fun `out of date class loaders can not be used as donors`() {
-    val hatchery = ModuleClassLoaderHatchery(1, 2)
-    val parent = FirewalledResourcesClassLoader(null)
-    val donor = ModuleClassLoaderManager.get().getPrivate(
-      parent, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderHatcheryTest)
-    val cloner = ModuleClassLoaderManager.get()::createCopy
-
-    ModuleClassLoaderOverlays.getInstance(project.module).overlayPath = Files.createTempDirectory("overlay")
-    // Simulate a class being loaded from the overlay
-    donor.injectProjectOvelaryLoadedClass("com.overlay.Class")
-    ModuleClassLoaderOverlays.getInstance(project.module).overlayPath = Files.createTempDirectory("overlay")
-
-    // Create a request for a new class loader and incubate it
-    assertNull(hatchery.requestClassLoader(
-      parent, donor.projectClassesTransform, donor.nonProjectClassesTransform))
-    assertFalse(hatchery.incubateIfNeeded(donor, cloner))
 
     ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
   }

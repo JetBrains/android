@@ -188,6 +188,7 @@ data class AndroidFrameTimelineEvent(
   val expectedDurationUs get() = expectedEndUs - expectedStartUs
   val actualDurationUs get() = actualEndUs - expectedStartUs
   val isJank get() = appJankType != PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE
+  val isActionableJank get() = appJankType == PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED
 }
 
 /**

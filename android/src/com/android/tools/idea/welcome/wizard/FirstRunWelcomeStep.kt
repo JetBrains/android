@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBLabel
@@ -60,8 +60,7 @@ import an existing Android app into $ideName or start a new Android project.
     row {
       if (model.sdkExists) {
         existingSdkMessage()
-      }
-      else {
+      } else {
         newSdkMessage()
       }
     }
@@ -76,7 +75,7 @@ import an existing Android app into $ideName or start a new Android project.
     }
   }
 
-  private val root = wrapWithVScroll(panel)
+  private val root  = wrapWithVScroll(panel)
 
   override fun getComponent() = root
   override fun getPreferredFocusComponent(): JComponent? = null

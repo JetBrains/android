@@ -15,15 +15,15 @@
     <TextView android:text="@string/test.hello_world" />
 
     <!-- ERRORS -->
-    <TextView android:id="<error descr="''' is not a valid resource name character">?myAttr'</error>"/>
-    <TextView android:id="<error descr="'+' is not a valid resource name character">@+id/g+login</error>" />
-    <TextView android:id="<error descr="Resource name cannot be a Java keyword (new)">@+id/new</error>" />
-    <TextView android:id="<error descr="Resource name cannot be a Java keyword (null)">@string/null</error>" />
-    <TextView android:id="<error descr="Unknown resource type strings">@strings/name</error>" />
-    <TextView android:id="<error descr="Missing resource name">@string/</error>" />
-    <TextView android:id="<error descr="Missing resource type">@</error>" />
-    <TextView android:id="<error descr="Missing resource type">@android:</error>" />
-    <TextView android:id="<error descr="Missing resource name">@android:string/</error>" />
-    <TextView android:text="<error descr="';' is not a valid resource name character">@string/test.;hello_world</error>" />
+    <TextView android:id="<error descr="Invalid resource reference - ''' is not a valid resource name character">?myAttr'</error>"/>
+    <TextView android:id="<error descr="Invalid resource reference - '+' is not a valid resource name character">@+id/g+login</error>" />
+    <TextView android:id="<error descr="Invalid resource reference - resource name cannot be a Java keyword (new)">@+id/new</error>" />
+    <TextView android:id="<error descr="Invalid resource reference - resource name cannot be a Java keyword (null)">@string/null</error>" />
+    <TextView android:id="<error descr="Invalid resource reference - unknown resource type strings">@strings/name</error>" />
+    <TextView android:id="<error descr="Invalid resource reference - missing resource name">@string/</error>" />
+    <TextView android:id="<error descr="Invalid resource reference - missing resource type">@</error>" />
+    <TextView android:id="<error descr="Invalid resource reference - missing resource type">@android:</error>" />
+    <TextView android:id="<error descr="Invalid resource reference - missing resource name">@android:string/</error>" />
+    <TextView android:text="<error descr="Invalid resource reference - ';' is not a valid resource name character">@string/test.;hello_world</error>" />
 
 </GridLayout>

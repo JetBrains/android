@@ -29,23 +29,23 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 fun convertLibraryToExternalLibrary(source: IdeAndroidLibrary): ExternalAndroidLibrary = AndroidLibraryWrapper(source)
 
 private abstract class LibraryWrapper<T: IdeAndroidLibrary>(protected val lib: T) : ExternalAndroidLibrary {
-  private val file = lib.artifact
+  override fun libraryName(): String = lib.name
 
   @Suppress("FileComparisons")
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
-    return file == (other as? LibraryWrapper<*>)?.lib?.artifact
+    return lib.name == (other as? LibraryWrapper<*>)?.lib?.name
   }
 
   override fun hashCode(): Int {
-    return file.hashCode()
+    return lib.name.hashCode()
   }
 }
 
 private class AndroidLibraryWrapper(source: IdeAndroidLibrary) : LibraryWrapper<IdeAndroidLibrary>(source) {
   override val address: String get() = lib.artifactAddress
-  override val location: PathString get() = lib.artifact.toPathString()
+  override val location: PathString? get() = lib.artifact?.toPathString() // 2a9217963dbedce9a84acbeed1c9776834aa0830
   override val manifestFile: PathString get() = PathString(lib.manifest)
   override val packageName: String? get() = null
   override val resFolder: ResourceFolder get() = RecursiveResourceFolder(PathString(lib.resFolder))

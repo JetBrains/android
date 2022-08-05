@@ -55,10 +55,10 @@ class ActivityLaunchTaskTest {
       description = "test launching activity"
     ) { true }
     val result = launchTask.run(LaunchContext(project, executor, device, launchStatus, printer, handler, indicator))
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     assertThat(result.errorId).isEmpty()
-    assertThat(result.error).isEmpty()
-    assertThat(result.consoleError).isEmpty()
+    assertThat(result.message).isEmpty()
+    assertThat(result.consoleMessage).isEmpty()
   }
 
   @Test
@@ -69,10 +69,10 @@ class ActivityLaunchTaskTest {
       description = "test launching activity"
     ) { false }
     val result = launchTask.run(LaunchContext(project, executor, device, launchStatus, printer, handler, indicator))
-    assertThat(result.success).isFalse()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.ERROR)
     assertThat(result.errorId).isEqualTo(ActivityLaunchTask.UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY)
-    assertThat(result.error).isEqualTo("Error test launching activity")
-    assertThat(result.consoleError).isEqualTo("Error while test launching activity")
+    assertThat(result.message).isEqualTo("Error test launching activity")
+    assertThat(result.consoleMessage).isEqualTo("Error while test launching activity")
   }
 
   @Test
@@ -86,10 +86,10 @@ class ActivityLaunchTaskTest {
       false
     }
     val result = launchTask.run(LaunchContext(project, executor, device, launchStatus, printer, handler, indicator))
-    assertThat(result.success).isFalse()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.ERROR)
     assertThat(result.errorId).isEqualTo(ActivityLaunchTask.ACTIVITY_DOES_NOT_EXIST)
-    assertThat(result.error).isEqualTo("Error test launching activity")
-    assertThat(result.consoleError).isEqualTo("Error while test launching activity")
+    assertThat(result.message).isEqualTo("Error test launching activity")
+    assertThat(result.consoleMessage).isEqualTo("Error while test launching activity")
   }
 
   @Test
@@ -103,10 +103,10 @@ class ActivityLaunchTaskTest {
       false
     }
     val result = launchTask.run(LaunchContext(project, executor, device, launchStatus, printer, handler, indicator))
-    assertThat(result.success).isFalse()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.ERROR)
     assertThat(result.errorId).isEqualTo(UNKNOWN_ACTIVITY_LAUNCH_TASK_ERROR)
-    assertThat(result.error).isEqualTo("Error test launching activity")
-    assertThat(result.consoleError).isEqualTo("Error while test launching activity")
+    assertThat(result.message).isEqualTo("Error test launching activity")
+    assertThat(result.consoleMessage).isEqualTo("Error while test launching activity")
   }
 }
 

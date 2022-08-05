@@ -42,6 +42,7 @@ import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
@@ -181,6 +182,7 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
 
     val builder = ColumnTreeBuilder(tree)
       .setShowVerticalLines(true)
+      .setBorder(BorderFactory.createEmptyBorder())
       .setTreeSorter { comparator, _ ->
         if (comparator != null) {
           treeModel.sort(comparator)

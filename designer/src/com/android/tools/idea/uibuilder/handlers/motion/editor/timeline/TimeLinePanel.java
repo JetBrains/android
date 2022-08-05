@@ -257,7 +257,7 @@ public class TimeLinePanel extends JPanel {
       performCommand(e, mode);
     });
 
-    JLayer<JComponent> jlayer = new JLayer<>(myScrollPane, new LayerUI<>() {
+    JLayer<JComponent> jlayer = new JLayer<JComponent>(myScrollPane, new LayerUI<JComponent>() {
       @Override
       public void paint(Graphics g, JComponent c) {
         super.paint(g, c);
@@ -355,6 +355,7 @@ public class TimeLinePanel extends JPanel {
 
   public void stopAnimation() {
     performCommand(TimelineCommands.PAUSE, 0);
+    resetMotionProgress();
   }
 
   private static String buildKey(MTag keyFrame) {
@@ -955,6 +956,14 @@ public class TimeLinePanel extends JPanel {
     mMotionEditorSelector = listeners;
   }
 
+  public int getYoyoMode() {
+    return myYoyo;
+  }
+
+  public float getSpeedMultiplier() {
+    return ourSpeedsMultipliers[mCurrentSpeed];
+  }
+
   /**
    * This is a very simple vertical flow layout with special handling of the last Component
    */
@@ -1135,6 +1144,10 @@ public class TimeLinePanel extends JPanel {
     }
 
     public void setSelectedIndex(int index) {
+      if (index < 0) {
+        return;
+      }
+
       int prev = mSelectedIndex;
       mSelectedIndex = index;
       if (mSelectedKeyFrame == null) {

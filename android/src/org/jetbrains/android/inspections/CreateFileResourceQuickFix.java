@@ -106,7 +106,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
     PsiDirectory resSubdir = psiResDir.findSubdirectory(resDirName);
 
     if (resSubdir == null) {
-      resSubdir = ApplicationManager.getApplication().runWriteAction(new Computable<>() {
+      resSubdir = ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
         @Override
         public PsiDirectory compute() {
           return psiResDir.createSubdirectory(resDirName);

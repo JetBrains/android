@@ -17,6 +17,7 @@
 
 package com.android.tools.adtui.swing
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
@@ -29,8 +30,8 @@ import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Container
 import java.awt.GraphicsConfiguration
@@ -41,8 +42,8 @@ import java.awt.Window
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
-import java.util.ArrayDeque
 import java.util.function.Predicate
+import javax.swing.JLabel
 import javax.swing.JRootPane
 import javax.swing.SwingUtilities
 
@@ -141,12 +142,30 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   private fun dump(component: Component, prefix: String) {
     System.err.println("$prefix${component.javaClass.simpleName}@(${component.x}, ${component.y}) " +
                        "[${component.size.getWidth()}x${component.size.getHeight()}]" +
-                       if (isMouseTarget(component)) " {*}" else "")
+                       if (isMouseTarget(component)) " {*}" else "" +
+                       if (component is JLabel) " text: " + component.text else "")
     if (component is Container) {
       for (i in 0 until component.componentCount) {
         dump(component.getComponent(i), "$prefix  ")
       }
     }
+  }
+
+  /**
+   * Checks if the component and all its ancestors are visible.
+   */
+  fun isShowing(component: Component): Boolean {
+    var c = component
+    while (true) {
+      if (!c.isVisible) {
+        return false;
+      }
+      if (c == root) {
+        break
+      }
+      c = c.parent
+    }
+    return true
   }
 
   fun getPosition(component: Component): Point {
@@ -193,68 +212,25 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
    * search starting from the root component, or null if no components satisfy the predicate.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <T> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? {
-    if (type.isInstance(root) && predicate(root as T)) {
-      return root
-    }
-    if (root is Container) {
-      val queue = ArrayDeque<Container>()
-      queue.add(root)
-      while (queue.isNotEmpty()) {
-        val container = queue.remove()
-        for (child in container.components) {
-          if (type.isInstance(child) && predicate(child as T)) {
-            return child
-          }
-          if (child is Container) {
-            queue.add(child)
-          }
-        }
-      }
-    }
-    return null
-  }
+  fun <T: Any> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? = root.findDescendant(type, predicate)
 
-  inline fun <reified T> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? =
-    findComponent(T::class.java) { predicate(it) }
+  inline fun <reified T: Any> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? = root.findDescendant(predicate)
 
-  fun <T> findComponent(type: Class<T>, predicate: Predicate<T>): T? = findComponent(type, predicate::test)
+  fun <T: Any> findComponent(type: Class<T>, predicate: Predicate<T>): T? = root.findDescendant(type, predicate::test)
 
-  inline fun <reified T> getComponent(crossinline predicate: (T) -> Boolean = { true }): T =
-    findComponent(T::class.java) { predicate(it) } ?: throw AssertionError()
+  inline fun <reified T: Any> getComponent(crossinline predicate: (T) -> Boolean = { true }): T = root.getDescendant(predicate)
 
-  fun <T> getComponent(type: Class<T>, predicate: Predicate<T>): T = findComponent(type, predicate::test) ?: throw AssertionError()
+  fun <T: Any> getComponent(type: Class<T>, predicate: Predicate<T>): T = root.getDescendant(type, predicate::test)
 
   /**
    * Returns all components of the given type satisfying the given predicate in the breadth-first
    * order.
    */
-  @Suppress("UNCHECKED_CAST")
-  fun <T> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> {
-    val result = mutableListOf<T>()
-    if (type.isInstance(root) && predicate(root as T)) {
-      result.add(root)
-    }
-    if (root is Container) {
-      val queue = ArrayDeque<Container>()
-      queue.add(root)
-      while (queue.isNotEmpty()) {
-        val container = queue.remove()
-        for (child in container.components) {
-          if (type.isInstance(child) && predicate(child as T)) {
-            result.add(child)
-          }
-          if (child is Container) {
-            queue.add(child)
-          }
-        }
-      }
-    }
-    return result
-  }
+  fun <T: Any> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> =
+    root.findAllDescendants(type, predicate).toList()
 
-  inline fun <reified T> findAllComponents(crossinline predicate: (T) -> Boolean = { true }): List<T> =
-    findAllComponents(T::class.java) { predicate(it) }
+  inline fun <reified T: Any> findAllComponents(crossinline predicate: (T) -> Boolean = { true }): List<T> =
+    root.findAllDescendants(predicate).toList()
 
   fun targetMouseEvent(x: Int, y: Int): RelativePoint? = findTarget(root, x, y)
 
@@ -263,9 +239,11 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
       if (component is Container) {
         for (i in 0 until component.componentCount) {
           val child = component.getComponent(i)
-          val target = findTarget(child, x - child.x, y - child.y)
-          if (target != null) {
-            return target
+          if (child.isVisible) {
+            val target = findTarget(child, x - child.x, y - child.y)
+            if (target != null) {
+              return target
+            }
           }
         }
       }
@@ -340,18 +318,19 @@ private fun wrapInFakeWindow(rootPane: JRootPane) {
   // A mock is used here because in a headless environment it is not possible to instantiate
   // Window or any of its subclasses due to checks in the Window constructor.
   val mockWindow = mock(Window::class.java)
-  `when`(mockWindow.treeLock).thenCallRealMethod()
-  `when`(mockWindow.toolkit).thenReturn(fakeToolkit)
-  `when`(mockWindow.isShowing).thenReturn(true)
-  `when`(mockWindow.isVisible).thenReturn(true)
-  `when`(mockWindow.isEnabled).thenReturn(true)
-  `when`(mockWindow.isLightweight).thenReturn(true)
-  `when`(mockWindow.isFocusableWindow).thenReturn(true)
-  `when`(mockWindow.locationOnScreen).thenReturn(Point(0, 0))
-  `when`(mockWindow.size).thenReturn(rootPane.size)
-  `when`(mockWindow.bounds).thenReturn(Rectangle(0, 0, rootPane.width, rootPane.height))
-  `when`(mockWindow.ownedWindows).thenReturn(emptyArray())
-  `when`(mockWindow.isFocused).thenReturn(true)
+  whenever(mockWindow.treeLock).thenCallRealMethod()
+  whenever(mockWindow.toolkit).thenReturn(fakeToolkit)
+  whenever(mockWindow.isShowing).thenReturn(true)
+  whenever(mockWindow.isVisible).thenReturn(true)
+  whenever(mockWindow.isEnabled).thenReturn(true)
+  whenever(mockWindow.isLightweight).thenReturn(true)
+  whenever(mockWindow.isFocusableWindow).thenReturn(true)
+  whenever(mockWindow.locationOnScreen).thenReturn(Point(0, 0))
+  whenever(mockWindow.size).thenReturn(rootPane.size)
+  whenever(mockWindow.bounds).thenReturn(Rectangle(0, 0, rootPane.width, rootPane.height))
+  whenever(mockWindow.ownedWindows).thenReturn(emptyArray())
+  whenever(mockWindow.isFocused).thenReturn(true)
+  whenever(mockWindow.getFocusTraversalKeys(anyInt())).thenCallRealMethod()
   ComponentAccessor.setPeer(mockWindow, FakeWindowPeer())
   ComponentAccessor.setParent(rootPane, mockWindow)
   rootPane.addNotify()

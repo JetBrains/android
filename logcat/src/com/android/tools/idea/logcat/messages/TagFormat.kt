@@ -19,7 +19,7 @@ import com.intellij.openapi.util.text.StringUtil
 
 private const val DEFAULT_LENGTH = 23
 private const val MIN_LENGTH = 10
-private const val PREFIX_LEN = 6
+private const val ELLIPSIS_LEN = 3
 
 /**
  * Provides formatting for the log tag.
@@ -40,7 +40,7 @@ internal data class TagFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDupli
       return "<no-tag>".padEnd(maxLength + 1)
     }
     if (tag.length > maxLength) {
-      return StringUtil.shortenTextWithEllipsis(tag, maxLength, maxLength - PREFIX_LEN) + " "
+      return StringUtil.shortenTextWithEllipsis(tag, maxLength, (maxLength - ELLIPSIS_LEN) / 2) + " "
     }
     return tag.padEnd(maxLength + 1)
   }

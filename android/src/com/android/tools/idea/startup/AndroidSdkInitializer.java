@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
@@ -25,6 +24,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabl
 import com.android.SdkConstants;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -43,11 +43,9 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Callable;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -65,10 +63,11 @@ public class AndroidSdkInitializer implements Runnable {
     File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME
   };
   // Default install location from users home dir.
-  @NonNls private static final String ANDROID_SDK_DEFAULT_INSTALL_DIR =
-    SystemInfo.isWindows ? FileUtil.join(System.getenv("LOCALAPPDATA"), "Android", "Sdk")
-                         : SystemInfo.isMac ? FileUtil.join(SystemProperties.getUserHome(), "Library", "Android", "sdk")
-                                            : FileUtil.join(SystemProperties.getUserHome(), "Android", "Sdk");
+  @NonNls private static String getAndroidSdkDefaultInstallDir() {
+    return SystemInfo.isWindows ? FileUtil.join(System.getenv("LOCALAPPDATA"), "Android", "Sdk")
+                                : SystemInfo.isMac ? FileUtil.join(SystemProperties.getUserHome(), "Library", "Android", "sdk")
+                                                   : FileUtil.join(SystemProperties.getUserHome(), "Android", "Sdk");
+  }
 
   @Override
   public void run() {
@@ -173,7 +172,6 @@ public class AndroidSdkInitializer implements Runnable {
    * <p><ul>
    * <li>ANDROID_HOME_ENV</li>
    * <li>ANDROID_SDK_ROOT_ENV</li>
-   * <li>path saved in the very-obsolete ddms.cfg</li>
    * <li>the platform-specific default path</li>
    * </ul></p>
    *
@@ -198,21 +196,23 @@ public class AndroidSdkInitializer implements Runnable {
       }
     }
     LOG.info("Unable to locate SDK within the Android studio installation.");
-
     return getAndroidSdkOrDefault(System.getenv(), AndroidSdkType.getInstance());
+  }
+
+  @NotNull
+  private static File getAndroidSdkOrDefault(Map<String, String> env, AndroidSdkType instance) {
+    return getAndroidSdkOrDefault(env, instance, IdeInfo.getInstance());
   }
 
   @VisibleForTesting
   @NotNull
-  static File getAndroidSdkOrDefault(Map<String, String> env, AndroidSdkType instance) {
+  static File getAndroidSdkOrDefault(Map<String, String> env, AndroidSdkType instance, IdeInfo ideInfo) {
     // The order of insertion matters as it defines SDK locations precedence.
     Map<String, Callable<String>> sdkLocationCandidates = new LinkedHashMap<>();
     sdkLocationCandidates.put(SdkConstants.ANDROID_HOME_ENV + " environment variable",
                               () -> env.get(SdkConstants.ANDROID_HOME_ENV));
     sdkLocationCandidates.put(SdkConstants.ANDROID_SDK_ROOT_ENV + " environment variable",
                               () -> env.get(SdkConstants.ANDROID_SDK_ROOT_ENV));
-    sdkLocationCandidates.put("Last SDK used by Android tools",
-                              AndroidSdkInitializer::getLastSdkPathUsedByAndroidTools);
 
     String sdkPath;
     for (Map.Entry<String, Callable<String>> locationCandidate : sdkLocationCandidates.entrySet()) {
@@ -220,7 +220,10 @@ public class AndroidSdkInitializer implements Runnable {
         String pathDescription = locationCandidate.getKey();
         sdkPath = locationCandidate.getValue().call();
         String msg;
-        if (!isEmpty(sdkPath) && instance.isValidSdkHome(sdkPath)) {
+        if (!isEmpty(sdkPath) && (instance.isValidSdkHome(sdkPath) || ideInfo.isGameTools())) {
+          // Game Tools doesn't need the path to contain a valid SDK; it also accepts
+          // non-existing/empty directories so that the user can set up SDK from scratch at
+          // a directory of their choice.
           msg = String.format("%1$s: '%2$s'", pathDescription, sdkPath);
         }
         else {
@@ -236,33 +239,9 @@ public class AndroidSdkInitializer implements Runnable {
         LOG.info("Exception during SDK lookup", e);
       }
     }
-    LOG.info("Using default SDK path: " + ANDROID_SDK_DEFAULT_INSTALL_DIR);
-    return FilePaths.stringToFile(ANDROID_SDK_DEFAULT_INSTALL_DIR);
-  }
 
-  /**
-   * Returns the value for property 'lastSdkPath' as stored in the properties file at $HOME/.android/ddms.cfg, or {@code null} if the file
-   * or property doesn't exist.
-   * <p>
-   * This is only useful in a scenario where existing users of ADT/Eclipse get Studio, but without the bundle. This method duplicates some
-   * functionality of {@link com.android.prefs.AbstractAndroidLocations} since we don't want any file system writes to happen during this process.
-   */
-  @Nullable
-  private static String getLastSdkPathUsedByAndroidTools() {
-    String userHome = SystemProperties.getUserHome();
-    if (userHome == null) {
-      return null;
-    }
-    File file = new File(new File(userHome, ".android"), "ddms.cfg");
-    if (!file.exists()) {
-      return null;
-    }
-    try {
-      Properties properties = getProperties(file);
-      return properties.getProperty("lastSdkPath");
-    }
-    catch (IOException e) {
-      return null;
-    }
+    String defaultDir = getAndroidSdkDefaultInstallDir();
+    LOG.info("Using default SDK path: " + defaultDir);
+    return FilePaths.stringToFile(defaultDir);
   }
 }

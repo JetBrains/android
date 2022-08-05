@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
@@ -28,8 +29,10 @@ import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -49,9 +52,9 @@ class LegacyClientTest {
 
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = mock(LegacyTreeLoader::class.java)
-    doAnswer { windowIds }.`when`(loader).getAllWindowIds(ArgumentMatchers.any())
+    doAnswer { windowIds }.whenever(loader).getAllWindowIds(ArgumentMatchers.any())
     val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
-    client.launchMonitor = InspectorClientLaunchMonitor(scheduler)
+    client.launchMonitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor(), scheduler)
     client
   }
 
@@ -59,6 +62,10 @@ class LegacyClientTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
 
+  @Before
+  fun setUp() {
+    inspectorRule.attachDevice(LEGACY_DEVICE)
+  }
 
   @Test
   fun testReloadAllWindows() {

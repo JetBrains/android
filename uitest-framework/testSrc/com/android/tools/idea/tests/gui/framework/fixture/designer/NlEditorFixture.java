@@ -71,7 +71,7 @@ import org.jetbrains.annotations.NotNull;
  * TODO(b/119869057): Split logic of NlEditorFixture into NlEditorFixture and NavEditorFixture
  */
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerEditorPanel> {
-  private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
+  private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface<?>> myDesignSurfaceFixture;
   private PropertiesPanelFixture<NlPropertyItem> myPropertiesFixture;
   private NlPaletteFixture myPaletteFixture;
   private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
@@ -80,7 +80,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull DesignerEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
-    DesignSurface surface = editor.getComponent().getSurface();
+    DesignSurface<?> surface = editor.getComponent().getSurface();
     if (surface instanceof NlDesignSurface) {
       myDesignSurfaceFixture = new NlDesignSurfaceFixture(robot, (NlDesignSurface)surface);
     }
@@ -163,7 +163,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   @NotNull
-  public DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface>  getSurface() {
+  public DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface<?>>  getSurface() {
     return myDesignSurfaceFixture;
   }
 
@@ -232,7 +232,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item, int relativeX, int relativeY) {
     getPalette().dragComponent(group, item);
 
-    DesignSurface target = myDesignSurfaceFixture.target();
+    DesignSurface<?> target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getFocusedSceneView();
 
     myDragAndDrop
@@ -245,7 +245,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   @NotNull
   public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
-    DesignSurface target = myDesignSurfaceFixture.target();
+    DesignSurface<?> target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getFocusedSceneView();
 
     dragComponentToSurface(group, item, sceneView.getScaledContentSize().width / 2, sceneView.getScaledContentSize().height / 2);
@@ -261,7 +261,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
    */
   @NotNull
   public NlEditorFixture startResizeInteraction() {
-    DesignSurface surface = myDesignSurfaceFixture.target();
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getFocusedSceneView();
 
     Dimension size = screenView.getScaledContentSize();
@@ -277,7 +277,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
    */
   @NotNull
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
-    DesignSurface surface = myDesignSurfaceFixture.target();
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getFocusedSceneView();
 
     robot().moveMouse(surface, Coordinates.getSwingXDip(screenView, width), Coordinates.getSwingYDip(screenView, height));
@@ -333,7 +333,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   public void dragMouseFromCenterWithModifier(int dx, int dy, @NotNull MouseButton mouseButton, int modifiers) {
-    DesignSurface surface = myDesignSurfaceFixture.target();
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
     robot().moveMouse(surface);
     robot().pressModifiers(modifiers);
     robot().pressMouse(mouseButton);
@@ -343,7 +343,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   public void dragMouseFromCenterWithKeyCode(int dx, int dy, @NotNull MouseButton mouseButton, int keyCode) {
-    DesignSurface surface = myDesignSurfaceFixture.target();
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
     robot().moveMouse(surface);
     robot().pressKey(keyCode);
     robot().pressMouse(mouseButton);
@@ -354,7 +354,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   @NotNull
   public Point getAdaptiveIconTopLeftCorner() {
-    DesignSurface surface = myDesignSurfaceFixture.target();
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
 
     SceneView view = surface.getFocusedSceneView();
     Dimension contentDimension = view.getScaledContentSize();
@@ -366,7 +366,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   @NotNull
   public String getAdaptiveIconPathDescription() {
-    DesignSurface surface = myDesignSurfaceFixture.target();
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
     return surface.getConfiguration().getAdaptiveShape().getPathDescription();
   }
 
@@ -375,7 +375,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
    */
   @NotNull
   public String getPixelColor(@NotNull Point p) {
-    DesignSurface surface = myDesignSurfaceFixture.target();
+    DesignSurface<?> surface = myDesignSurfaceFixture.target();
     Point centerLeftPoint = translate(surface, p.x, p.y);
 
     if (myAwtRobot == null) {

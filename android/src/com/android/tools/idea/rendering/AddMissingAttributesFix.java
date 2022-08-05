@@ -20,7 +20,6 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.FQCN_GRID_LAYOUT_V7;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.GRID_LAYOUT;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
@@ -38,6 +37,7 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.SdkConstants.VIEW_MERGE;
 
+import com.android.AndroidXConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
@@ -202,7 +202,7 @@ public class AddMissingAttributesFix extends HtmlLinkManager.CommandLink {
     XmlTag parentTag = getParentTag(tag);
     if (parentTag != null) {
       String parentName = parentTag.getName();
-      if (GRID_LAYOUT.equals(parentName) || FQCN_GRID_LAYOUT_V7.isEquals(parentName)) {
+      if (GRID_LAYOUT.equals(parentName) || AndroidXConstants.FQCN_GRID_LAYOUT_V7.isEquals(parentName)) {
         return false;
       }
     }

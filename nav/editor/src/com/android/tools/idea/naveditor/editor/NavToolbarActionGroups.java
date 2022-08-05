@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * Toolbar actions for the navigation editor
  */
 public class NavToolbarActionGroups extends ToolbarActionGroups {
-  public NavToolbarActionGroups(@NotNull DesignSurface surface) {
+  public NavToolbarActionGroups(@NotNull DesignSurface<?> surface) {
     super(surface);
   }
 

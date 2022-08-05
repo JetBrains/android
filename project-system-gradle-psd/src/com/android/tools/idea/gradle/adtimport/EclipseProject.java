@@ -148,7 +148,7 @@ class EclipseProject implements Comparable<EclipseProject> {
       initInstrumentation();
     }
     else {
-      myDirectLibraries = new ArrayList<>(4);
+      myDirectLibraries = new ArrayList<EclipseProject>(4);
     }
 
     initClassPathEntries();
@@ -294,7 +294,7 @@ class EclipseProject implements Comparable<EclipseProject> {
   }
 
   private void initLibraries(@NonNull Properties properties) throws IOException {
-    myDirectLibraries = new ArrayList<>(4);
+    myDirectLibraries = new ArrayList<EclipseProject>(4);
 
     for (int i = 0; i < 1000; i++) {
       String key = String.format(Locale.US, ANDROID_LIBRARY_REFERENCE_FORMAT, i);
@@ -1166,7 +1166,7 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   @NonNull
   public List<String> getInferredLibraries() {
-    return myInferredLibraries == null ? Collections.emptyList() : myInferredLibraries;
+    return myInferredLibraries == null ? Collections.<String>emptyList() : myInferredLibraries;
   }
 
   @NonNull
@@ -1176,12 +1176,12 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   @NonNull
   public List<File> getTestJarPaths() {
-    return myInstrumentationJarPaths != null ? myInstrumentationJarPaths : Collections.emptyList();
+    return myInstrumentationJarPaths != null ? myInstrumentationJarPaths : Collections.<File>emptyList();
   }
 
   @NonNull
   public List<File> getNativeLibs() {
-    return myNativeLibs != null ? myNativeLibs : Collections.emptyList();
+    return myNativeLibs != null ? myNativeLibs : Collections.<File>emptyList();
   }
 
   @Nullable
@@ -1248,7 +1248,7 @@ class EclipseProject implements Comparable<EclipseProject> {
         return myDirectLibraries;
       }
 
-      List<EclipseProject> all = new ArrayList<>();
+      List<EclipseProject> all = new ArrayList<EclipseProject>();
       Set<EclipseProject> seen = new HashSet<>();
       Set<EclipseProject> path = new HashSet<>();
       seen.add(this);

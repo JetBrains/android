@@ -68,11 +68,11 @@ public class ErrorPanel extends JPanel {
     myErrorLabel.setForeground(MEUI.ourErrorColor);
   }
 
-  HashSet<String> validTop = new HashSet<>(Arrays.asList(MotionSceneAttrs.Tags.TRANSITION,
-                                                         MotionSceneAttrs.Tags.CONSTRAINTSET,
-                                                         MotionSceneAttrs.Tags.INCLUDE,
-                                                         upperCaseFirst(MotionSceneAttrs.Tags.INCLUDE),
-                                                         MotionSceneAttrs.Tags.VIEW_TRANSITION));
+  HashSet<String> validTop = new HashSet<String>(Arrays.asList(MotionSceneAttrs.Tags.TRANSITION,
+                                                               MotionSceneAttrs.Tags.CONSTRAINTSET,
+                                                               MotionSceneAttrs.Tags.INCLUDE,
+                                                               upperCaseFirst(MotionSceneAttrs.Tags.INCLUDE),
+                                                               MotionSceneAttrs.Tags.VIEW_TRANSITION));
   HashMap<String, HashSet<String>> containedIn = new HashMap<>();
 
   private static String upperCaseFirst(String str) {

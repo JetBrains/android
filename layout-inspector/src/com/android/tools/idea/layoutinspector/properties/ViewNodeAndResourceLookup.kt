@@ -19,7 +19,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterReference
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.property.ptable2.PTableGroupModification
+import com.android.tools.property.ptable.PTableGroupModification
 
 /**
  * Provides [ViewNode] and [ResourceLookup] for an [InspectorPropertyItem].

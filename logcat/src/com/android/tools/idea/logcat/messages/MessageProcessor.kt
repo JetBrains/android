@@ -15,68 +15,75 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPresenter
-import com.android.tools.idea.logcat.PackageNamesProvider
-import com.android.tools.idea.logcat.filters.AndLogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
-import com.android.tools.idea.logcat.filters.ProjectAppFilter
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Document
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
+import kotlin.system.measureTimeMillis
 
 const val CHANNEL_CAPACITY = 10
 const val MAX_TIME_PER_BATCH_MS = 100
-const val MAX_MESSAGES_PER_BATCH = 5000
-
-private val logger by lazy { Logger.getInstance(MessageProcessor::class.java) }
 
 /**
- * Prints formatted [LogCatMessage]s to a [Document] with coloring provided by a [LogcatColors].
+ * Prints formatted [LogcatMessage]s to a [Document] with coloring provided by a [LogcatColors].
  */
-internal class MessageProcessor(
+internal class MessageProcessor @TestOnly constructor(
   private val logcatPresenter: LogcatPresenter,
-  private val formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
-  packageNamesProvider: PackageNamesProvider,
+  private val formatMessagesInto: (TextAccumulator, List<LogcatMessage>) -> Unit,
   var logcatFilter: LogcatFilter?,
-  var showOnlyProjectApps: Boolean,
-  private val clock: Clock = Clock.systemDefaultZone(),
-  private val maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
-  private val maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
+  private val clock: Clock,
+  private val maxTimePerBatchMs: Int,
+  private val maxMessagesPerBatch: Int,
+  autoStart: Boolean,
 ) {
-  private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
-  private val projectAppFilter = ProjectAppFilter(packageNamesProvider)
+  constructor(
+    logcatPresenter: LogcatPresenter,
+    formatMessagesInto: (TextAccumulator, List<LogcatMessage>) -> Unit,
+    logcatFilter: LogcatFilter?,
+  ) : this(
+    logcatPresenter,
+    formatMessagesInto,
+    logcatFilter,
+    Clock.systemDefaultZone(),
+    MAX_TIME_PER_BATCH_MS,
+    StudioFlags.LOGCAT_MAX_MESSAGES_PER_BATCH.get(),
+    autoStart = true)
+
+  private val messageChannel = Channel<List<LogcatMessage>>(CHANNEL_CAPACITY)
 
   init {
-    processMessageChannel()
+    if (autoStart) {
+      start()
+    }
   }
 
-  internal suspend fun appendMessages(messages: List<LogCatMessage>) {
-    val filter = when {
-      showOnlyProjectApps && logcatFilter != null -> AndLogcatFilter(logcatFilter!!, projectAppFilter)
-      showOnlyProjectApps -> projectAppFilter
-      else -> logcatFilter
+  internal suspend fun appendMessages(messages: List<LogcatMessage>) {
+    val filteredMessages = LogcatMasterFilter(logcatFilter).filter(messages)
+    if (filteredMessages.isNotEmpty()) {
+      messageChannel.send(filteredMessages)
     }
-    messageChannel.send(LogcatMasterFilter(filter).filter(messages))
   }
 
   // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
-  @Suppress("EXPERIMENTAL_API_USAGE")
+  @Suppress("OPT_IN_USAGE")
   @TestOnly
   internal fun isChannelEmpty() = messageChannel.isEmpty
 
-  private fun processMessageChannel() {
+  @TestOnly
+  internal fun start() {
     val exceptionHandler = CoroutineExceptionHandler { _, e ->
-      thisLogger().error("Error processing logcat message", e)
+      LOGGER.error("Error processing logcat message", e)
     }
     AndroidCoroutineScope(logcatPresenter, workerThread).launch(exceptionHandler) {
       // TODO(b/200322275): Manage the life cycle of textAccumulator in a more GC friendly way.
@@ -97,14 +104,18 @@ internal class MessageProcessor(
         formatMessagesInto(textAccumulator, messages)
 
         // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
-        @Suppress("EXPERIMENTAL_API_USAGE")
-        if (messageChannel.isEmpty || clock.millis() - lastFlushTime > maxTimePerBatchMs || numMessages > maxMessagesPerBatch) {
-          logcatPresenter.appendMessages(textAccumulator)
-          val now = clock.millis()
-          logger.debug {
+        val now = clock.millis()
+        @Suppress("OPT_IN_USAGE")
+        if (messageChannel.isEmpty || now - lastFlushTime > maxTimePerBatchMs || numMessages > maxMessagesPerBatch) {
+          val timeInAppendMessages = measureTimeMillis { logcatPresenter.appendMessages(textAccumulator) }
+          LOGGER.debug {
             val timeSinceStart = now - startTime
             val timeSinceLastFlush = now - lastFlushTime
-            "timeSinceStart: $timeSinceStart timeSinceLastFlush (ms): $timeSinceLastFlush  numMessages: $numMessages totalMessages=$totalMessages"
+            "timeSinceStart: $timeSinceStart " +
+            "timeSinceLastFlush (ms): $timeSinceLastFlush " +
+            "numMessages: $numMessages " +
+            "totalMessages=$totalMessages " +
+            "timeInAppendMessages=$timeInAppendMessages"
           }
           textAccumulator = TextAccumulator()
           lastFlushTime = now

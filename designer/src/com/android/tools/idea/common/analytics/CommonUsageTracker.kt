@@ -79,11 +79,11 @@ interface CommonUsageTracker {
   companion object {
 
     val NOP_TRACKER = CommonNopTracker()
-    private val MANAGER = DesignerUsageTrackerManager<CommonUsageTracker, DesignSurface>(
+    private val MANAGER = DesignerUsageTrackerManager<CommonUsageTracker, DesignSurface<*>>(
       { executor, surface, eventLogger -> CommonUsageTrackerImpl(executor, surface, eventLogger) }, NOP_TRACKER
     )
 
-    fun getInstance(surface: DesignSurface?): CommonUsageTracker {
+    fun getInstance(surface: DesignSurface<*>?): CommonUsageTracker {
       return MANAGER.getInstance(surface)
     }
   }
@@ -92,9 +92,9 @@ interface CommonUsageTracker {
 /**
  * Adds the application id information to the event.
  */
-fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStudioEvent.Builder {
-  getApplicationId(facet)?.let {
-    setRawProjectId(it).setProjectId(AnonymizerUtil.anonymizeUtf8(it))
+fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet?): AndroidStudioEvent.Builder {
+  facet?.let {
+    getApplicationId(it)?.let { id -> setRawProjectId(id).setProjectId(AnonymizerUtil.anonymizeUtf8(id)) }
   }
   return this
 }
@@ -102,7 +102,7 @@ fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStu
 /**
  * Adds the application id information to the event.
  */
-fun AndroidStudioEvent.Builder.setApplicationId(surface: DesignSurface?): AndroidStudioEvent.Builder {
+fun AndroidStudioEvent.Builder.setApplicationId(surface: DesignSurface<*>?): AndroidStudioEvent.Builder {
   val facet = surface?.models?.map { it.facet }?.firstOrNull() ?: return this
   return setApplicationId(facet)
 }

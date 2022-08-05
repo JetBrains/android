@@ -84,6 +84,11 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
     }
   }
 
+  @Override
+  public boolean supportsMultipleScreenFormats() {
+    return myAvdInfo.getAndroidVersion().isGreaterOrEqualThan(AndroidVersion.MIN_RESIZABLE_DEVICE_API) && "resizable".equals(myAvdInfo.getName());
+  }
+
   @NotNull
   @Override
   public List<Abi> getAbis() {
@@ -101,7 +106,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public String getSerial() {
-    return myAvdInfo.getName();
+    return myAvdInfo.getId();
   }
 
   @Override

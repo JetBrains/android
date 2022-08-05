@@ -31,7 +31,6 @@ import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext
 import com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_ACCEPTED
 import com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_SUGGESTED
 import com.intellij.facet.FacetManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
@@ -75,7 +74,6 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
   @Test
   fun testDataBindingPollingMetadataTracking() {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
       try {
         UsageTracker.setWriterForTest(tracker)
         projectRule.project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(projectRule.project)
@@ -102,7 +100,6 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
         tracker.close()
         UsageTracker.cleanAfterTesting()
       }
-    }
   }
 
   @Test

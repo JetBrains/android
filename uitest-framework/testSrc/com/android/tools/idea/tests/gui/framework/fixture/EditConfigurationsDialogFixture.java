@@ -88,7 +88,7 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
 
   @NotNull
   public EditConfigurationsDialogFixture clickAddNewConfigurationButton() {
-    ActionButton addNewConfigurationButton = robot().finder().find(target(), new GenericTypeMatcher<>(ActionButton.class) {
+    ActionButton addNewConfigurationButton = robot().finder().find(target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         if (!button.isShowing()) return false;

@@ -40,6 +40,9 @@ class AndroidBuildScriptsGroupNodeTest {
     val gradle_wrapper_gradle_wrapper_properties = projectRule.fixture.addFileToProject("gradle/wrapper/gradle-wrapper.properties", "")
     val gradle_properties = projectRule.fixture.addFileToProject("gradle.properties", "")
     val local_properties = projectRule.fixture.addFileToProject("local.properties", "")
+    val libs_versions_toml = projectRule.fixture.addFileToProject("libs.versions.toml", "")
+    val gradle_libs_versions_toml = projectRule.fixture.addFileToProject("gradle/libs.versions.toml", "")
+    val gradle_other_versions_toml = projectRule.fixture.addFileToProject("gradle/other.versions.toml", "")
     val unrelated_txt = projectRule.fixture.addFileToProject("unrelated.txt", "")
     projectRule.setupProjectFrom(rootModuleBuilder)
 
@@ -50,6 +53,9 @@ class AndroidBuildScriptsGroupNodeTest {
     assertTrue(node.contains(gradle_wrapper_gradle_wrapper_properties.virtualFile))
     assertTrue(node.contains(gradle_properties.virtualFile))
     assertTrue(node.contains(local_properties.virtualFile))
+    assertTrue(node.contains(gradle_libs_versions_toml.virtualFile))
+    assertTrue(node.contains(gradle_other_versions_toml.virtualFile))
+    assertFalse(node.contains(libs_versions_toml.virtualFile))
     assertFalse(node.contains(app_build_gradle.virtualFile))  // We do not show build files from modules not recognised by sync.
     assertFalse(node.contains(unrelated_txt.virtualFile))
   }
@@ -61,8 +67,13 @@ class AndroidBuildScriptsGroupNodeTest {
     val app_build_gradle = projectRule.fixture.addFileToProject("app/build.gradle", "")
     val app_proguard_rules_pro = projectRule.fixture.addFileToProject("app/proguard-rules.pro", "")
     val app_consumer_proguard_rules_pro = projectRule.fixture.addFileToProject("app/consumer-proguard-rules.pro", "")
+    val libs_versions_toml = projectRule.fixture.addFileToProject("libs.versions.toml", "")
+    val gradle_libs_versions_toml = projectRule.fixture.addFileToProject("gradle/libs.versions.toml", "")
+    val gradle_other_versions_toml = projectRule.fixture.addFileToProject("gradle/other.versions.toml", "")
     val unrelated_txt = projectRule.fixture.addFileToProject("unrelated.txt", "")
     val app_unrelated_txt = projectRule.fixture.addFileToProject("app/unrelated.txt", "")
+    val app_libs_versions_toml = projectRule.fixture.addFileToProject("app/libs.versions.toml", "")
+    val app_gradle_libs_versions_toml = projectRule.fixture.addFileToProject("app/gradle/libs.versions.toml", "")
     projectRule.setupProjectFrom(rootModuleBuilder,  AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()))
 
     val node = AndroidBuildScriptsGroupNode(projectRule.project, ViewSettings.DEFAULT)
@@ -72,6 +83,11 @@ class AndroidBuildScriptsGroupNodeTest {
     assertTrue(node.contains(app_proguard_rules_pro.virtualFile))
     assertTrue(node.contains(app_consumer_proguard_rules_pro.virtualFile))
     assertTrue(node.contains(app_build_gradle.virtualFile))
+    assertTrue(node.contains(gradle_libs_versions_toml.virtualFile))
+    assertTrue(node.contains(gradle_other_versions_toml.virtualFile))
+    assertFalse(node.contains(libs_versions_toml.virtualFile))
+    assertFalse(node.contains(app_libs_versions_toml.virtualFile))
+    assertFalse(node.contains(app_gradle_libs_versions_toml.virtualFile)) // only include .versions.toml files from the root project
     assertFalse(node.contains(unrelated_txt.virtualFile))
     assertFalse(node.contains(app_unrelated_txt.virtualFile))
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.model
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import org.jetbrains.annotations.TestOnly
@@ -181,10 +182,10 @@ private fun getTypeFiltersMap(): Map<ResourceType, LinkedHashMap<TypeFilter, Boo
     Pair(ResourceType.COLOR, linkedMapOf(xmlFilterType(SdkConstants.TAG_SELECTOR))),
     Pair(ResourceType.LAYOUT, linkedMapOf(
       xmlFilterType(SdkConstants.TAG_LAYOUT, "Data Binding"),
-      xmlFilterType(SdkConstants.CONSTRAINT_LAYOUT.oldName(), CONSTRAINT_FILTER_NAME),
-      xmlFilterType(SdkConstants.CONSTRAINT_LAYOUT.newName(), CONSTRAINT_FILTER_NAME),
-      xmlFilterType(SdkConstants.MOTION_LAYOUT.oldName(), MOTION_FILTER_NAME),
-      xmlFilterType(SdkConstants.MOTION_LAYOUT.newName(), MOTION_FILTER_NAME))),
+      xmlFilterType(AndroidXConstants.CONSTRAINT_LAYOUT.oldName(), CONSTRAINT_FILTER_NAME),
+      xmlFilterType(AndroidXConstants.CONSTRAINT_LAYOUT.newName(), CONSTRAINT_FILTER_NAME),
+      xmlFilterType(AndroidXConstants.MOTION_LAYOUT.oldName(), MOTION_FILTER_NAME),
+      xmlFilterType(AndroidXConstants.MOTION_LAYOUT.newName(), MOTION_FILTER_NAME))),
     Pair(ResourceType.MIPMAP, linkedMapOf(
       xmlFilterType(SdkConstants.TAG_ADAPTIVE_ICON),
       fileFilterType(SdkConstants.DOT_WEBP, BITMAP_FILTER_NAME),

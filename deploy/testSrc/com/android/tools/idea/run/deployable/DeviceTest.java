@@ -28,12 +28,10 @@ import com.android.fakeadbserver.ClientState;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler;
-import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -95,7 +93,6 @@ public class DeviceTest {
     // Build the server and configure it to use the default ADB command handlers.
     FakeAdbServer.Builder builder = new FakeAdbServer.Builder();
     myAdbServer = builder.installDefaultCommandHandlers()
-      .addDeviceHandler(new JdwpCommandHandler())
       .addDeviceHandler(
         getShellHandler(
           Pattern.compile("^uid.*"), ImmutableMap.of(APP_ID, myPreOResult), () -> myPreOContinuationLatch, () -> myPreOFinishedLatch))
@@ -291,7 +288,7 @@ public class DeviceTest {
               .map(entry -> entry.getValue())
               .findFirst().orElse(Collections.emptyList());
 
-          try (PrintWriter pw = new PrintWriter(socket.getOutputStream(), false, StandardCharsets.UTF_8)) {
+          try (PrintWriter pw = new PrintWriter(socket.getOutputStream())) {
             for (String value : pids) {
               pw.write(value);
             }

@@ -16,12 +16,14 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationForm;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.intellij.openapi.project.Project;
+import icons.StudioIcons;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +36,7 @@ public class VisualizationFixture extends ToolWindowFixture {
   public VisualizationFixture(@NotNull Project project, @NotNull Robot robot) {
     super(VisualizationToolWindowFactory.TOOL_WINDOW_ID, project, robot);
     myDesignSurfaceFixture = new NlDesignSurfaceFixture(
-      robot, GuiTests.waitUntilShowing(robot, null, Matchers.byName(NlDesignSurface.class, VisualizationForm.VISUALIZATION_DESIGN_SURFACE), 20));
+      robot, GuiTests.waitUntilShowing(robot, null, Matchers.byName(NlDesignSurface.class, VisualizationForm.VISUALIZATION_DESIGN_SURFACE_NAME), 20));
   }
 
   public VisualizationFixture waitForRenderToFinish() {
@@ -45,5 +47,9 @@ public class VisualizationFixture extends ToolWindowFixture {
   @NotNull
   public String getCurrentFileName() {
     return myDesignSurfaceFixture.target().getModel().getVirtualFile().getName();
+  }
+
+  public void openProblemsPanel() {
+    ActionButtonFixture.findByIcon(StudioIcons.Common.WARNING_INLINE, myRobot, myToolWindow.getComponent()).click();
   }
 }

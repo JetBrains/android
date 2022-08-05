@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.run.MakeBeforeRunTask
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
@@ -27,6 +28,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.google.common.truth.Truth
+import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
@@ -36,7 +38,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
-import org.mockito.Mockito
+
 import javax.swing.Icon
 
 fun AndroidRunConfigurationBase.executeMakeBeforeRunStepInTest(device: IDevice) =
@@ -82,7 +84,7 @@ fun AndroidRunConfigurationBase.executeMakeBeforeRunStepInTest(deviceFutures: De
     deviceFutures?.let { executionEnvironment.putCopyableUserData(DeviceFutures.KEY, deviceFutures) }
     try {
       Truth.assertThat(
-        MakeBeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
+        BeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
           .executeTask(
             DataContext.EMPTY_CONTEXT,
             this,
@@ -105,9 +107,9 @@ fun AndroidRunConfigurationBase.executeMakeBeforeRunStepInTest(deviceFutures: De
 @JvmOverloads
 fun mockDeviceFor(androidVersion: Int, abis: List<Abi>, density: Int? = null): IDevice {
   val device = MockitoKt.mock<IDevice>()
-  Mockito.`when`(device.abis).thenReturn(abis.map { it.toString() })
-  Mockito.`when`(device.version).thenReturn(AndroidVersion(androidVersion))
-  density?.let { Mockito.`when`(device.density).thenReturn(density) }
+  whenever(device.abis).thenReturn(abis.map { it.toString() })
+  whenever(device.version).thenReturn(AndroidVersion(androidVersion))
+  density?.let { whenever(device.density).thenReturn(density) }
   return device
 }
 

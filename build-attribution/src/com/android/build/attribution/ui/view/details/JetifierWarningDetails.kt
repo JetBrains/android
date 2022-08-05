@@ -197,7 +197,7 @@ class JetifierWarningDetailsView(
           actionHandlers.turnJetifierOffInProperties { RelativePoint(this, pointBelowCenter) }
         }
       }
-      else -> {}
+      else -> { }
     }
     installResultsTableActions(this)
     ListSpeedSearch(this)

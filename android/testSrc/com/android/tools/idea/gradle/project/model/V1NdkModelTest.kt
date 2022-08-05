@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model
 
 import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeSettingsImpl
@@ -29,14 +30,12 @@ import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
 import com.intellij.serialization.SkipNullAndEmptySerializationFilter
 import com.intellij.serialization.WriteConfiguration
-import junit.framework.TestCase
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.io.File
 
 @RunWith(JUnit4::class)
@@ -44,22 +43,22 @@ class V1NdkModelTest {
 
   @Mock
   private val mockNativeSettings1 = mock(NativeSettings::class.java).apply {
-    `when`(name).thenReturn("nativeSettings1")
+    whenever(name).thenReturn("nativeSettings1")
   }
 
   @Mock
   private val mockNativeSettings2 = mock(NativeSettings::class.java).apply {
-    `when`(name).thenReturn("nativeSettings2")
+    whenever(name).thenReturn("nativeSettings2")
   }
 
   @Mock
   private val mockNativeToolchain1 = mock(NativeToolchain::class.java).apply {
-    `when`(name).thenReturn("toolchain1")
+    whenever(name).thenReturn("toolchain1")
   }
 
   @Mock
   private val mockNativeToolchain2 = mock(NativeToolchain::class.java).apply {
-    `when`(name).thenReturn("toolchain2")
+    whenever(name).thenReturn("toolchain2")
   }
 
   private val soFolder = FileUtil.createTempDirectory("V1NdkModelTest", null)
@@ -231,7 +230,7 @@ class V1NdkModelTest {
       val bytes = ObjectSerializer.instance.writeAsBytes(value, configuration)
       val deserialized = ObjectSerializer.instance.read(T::class.java, bytes, ReadConfiguration(allowAnySubTypes = true))
       val bytes2 = ObjectSerializer.instance.writeAsBytes(deserialized, configuration)
-      TestCase.assertEquals(String(bytes), String(bytes2))
+      Truth.assertThat(String(bytes2)).isEqualTo(String(bytes))
       EqualsBuilder.reflectionEquals(value, deserialized)
       return deserialized
     }

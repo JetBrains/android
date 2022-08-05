@@ -4,6 +4,7 @@ import com.android.SdkConstants;
 import com.intellij.ide.util.importProject.ModuleDescriptor;
 import com.intellij.ide.util.importProject.ProjectDescriptor;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
+import com.intellij.ide.util.projectWizard.importSources.DetectedSourceRoot;
 import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuilder;
 import com.intellij.ide.util.projectWizard.importSources.ProjectStructureDetector;
 import com.intellij.openapi.module.JavaModuleType;
@@ -37,7 +38,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
   public void setupProjectStructure(@NotNull Collection<DetectedProjectRoot> roots,
                                     @NotNull ProjectDescriptor projectDescriptor,
                                     @NotNull ProjectFromSourcesBuilder builder) {
-    final List<File> existingRoots = new ArrayList<>();
+    final List<File> existingRoots = new ArrayList<File>();
 
     for (ProjectStructureDetector detector : ProjectStructureDetector.EP_NAME.getExtensions()) {
       if (detector != this) {
@@ -46,7 +47,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
         }
       }
     }
-    final List<ModuleDescriptor> modules = new ArrayList<>();
+    final List<ModuleDescriptor> modules = new ArrayList<ModuleDescriptor>();
 
     for (DetectedProjectRoot root : roots) {
       final File dir = root.getDirectory();
@@ -59,7 +60,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
       }
 
       if (!javaSrcRootInside) {
-        modules.add(new ModuleDescriptor(root.getDirectory(), JavaModuleType.getModuleType(), Collections.emptyList()));
+        modules.add(new ModuleDescriptor(root.getDirectory(), JavaModuleType.getModuleType(), Collections.<DetectedSourceRoot>emptyList()));
       }
     }
     projectDescriptor.setModules(modules);

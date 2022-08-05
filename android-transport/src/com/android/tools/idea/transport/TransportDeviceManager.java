@@ -29,6 +29,9 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.idea.io.grpc.ManagedChannel;
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
+import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.profiler.proto.Agent;
@@ -45,9 +48,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.net.NetUtils;
-import io.grpc.ManagedChannel;
-import io.grpc.inprocess.InProcessChannelBuilder;
-import io.grpc.netty.NettyChannelBuilder;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -352,7 +352,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
          * Reconnect to the agents that were last known connected.
          */
         private void reconnectAgents() {
-          TransportClient client = new TransportClient(TransportService.CHANNEL_NAME);
+          TransportClient client = new TransportClient(TransportService.getChannelName());
           DeviceContext context = mySerialToDeviceContextMap.get(transportDevice.getSerial());
           assert context != null;
           for (Long pid : context.myConnectedAgents) {

@@ -78,7 +78,7 @@ public class DeclareStyleableNameConverter extends Converter<String> implements 
     @Override
     public ResolveResult[] multiResolve(boolean incompleteCode) {
       return ResolveCache.getInstance(myElement.getProject())
-        .resolveWithCaching(this, new ResolveCache.PolyVariantResolver<>() {
+        .resolveWithCaching(this, new ResolveCache.PolyVariantResolver<MyReference>() {
           @NotNull
           @Override
           public ResolveResult[] resolve(@NotNull MyReference reference, boolean incompleteCode) {
@@ -109,7 +109,7 @@ public class DeclareStyleableNameConverter extends Converter<String> implements 
       final Set<Object> shortNames = new HashSet<>();
 
       ClassInheritorsSearch.search(viewClass, myFacet.getModule().getModuleWithDependenciesScope(), true).
-        forEach(new Processor<>() {
+        forEach(new Processor<PsiClass>() {
           @Override
           public boolean process(PsiClass aClass) {
             final String name = aClass.getName();

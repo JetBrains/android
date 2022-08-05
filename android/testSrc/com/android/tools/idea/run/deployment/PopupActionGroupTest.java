@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertArrayEquals;
 
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
-import com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -26,6 +25,7 @@ import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Separator;
 import java.nio.file.FileSystem;
 import java.time.Instant;
@@ -46,6 +46,15 @@ public final class PopupActionGroupTest {
   public final TestRule myRule = AndroidProjectRule.inMemory();
 
   private DeviceAndSnapshotComboBoxAction myComboBoxAction;
+
+  private AnAction myRunningDevicesHeading;
+  private AnAction myAvailableDevicesHeading;
+  private AnAction mySelectMultipleDevicesAction;
+  private AnAction myPairDevicesUsingWiFiAction;
+  private AnAction myWearDevicePairingAction;
+  private AnAction myDeviceManagerAction;
+  private AnAction myOpenConnectionAssistantSidePanelAction;
+
   private ActionManager myActionManager;
 
   @Before
@@ -54,8 +63,24 @@ public final class PopupActionGroupTest {
   }
 
   @Before
-  public void initActionManager() {
-    myActionManager = ActionManager.getInstance();
+  public void mockActionManager() {
+    myRunningDevicesHeading = Mockito.mock(AnAction.class);
+    myAvailableDevicesHeading = Mockito.mock(AnAction.class);
+    mySelectMultipleDevicesAction = Mockito.mock(AnAction.class);
+    myPairDevicesUsingWiFiAction = Mockito.mock(AnAction.class);
+    myWearDevicePairingAction = Mockito.mock(AnAction.class);
+    myDeviceManagerAction = Mockito.mock(AnAction.class);
+    myOpenConnectionAssistantSidePanelAction = Mockito.mock(AnAction.class);
+
+    myActionManager = Mockito.mock(ActionManager.class);
+
+    Mockito.when(myActionManager.getAction(Heading.RUNNING_DEVICES_ID)).thenReturn(myRunningDevicesHeading);
+    Mockito.when(myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID)).thenReturn(myAvailableDevicesHeading);
+    Mockito.when(myActionManager.getAction(SelectMultipleDevicesAction.ID)).thenReturn(mySelectMultipleDevicesAction);
+    Mockito.when(myActionManager.getAction(PairDevicesUsingWiFiAction.ID)).thenReturn(myPairDevicesUsingWiFiAction);
+    Mockito.when(myActionManager.getAction("Android.WearDevicePairing")).thenReturn(myWearDevicePairingAction);
+    Mockito.when(myActionManager.getAction("Android.DeviceManager")).thenReturn(myDeviceManagerAction);
+    Mockito.when(myActionManager.getAction("DeveloperServices.ConnectionAssistant")).thenReturn(myOpenConnectionAssistantSidePanelAction);
   }
 
   @Test
@@ -64,14 +89,16 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.emptyList();
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(SelectMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+      mySelectMultipleDevicesAction,
+      myPairDevicesUsingWiFiAction,
+      myWearDevicePairingAction,
+      myDeviceManagerAction,
+      Separator.getInstance(),
+      myOpenConnectionAssistantSidePanelAction};
 
     assertArrayEquals(children, group.getChildren(null));
   }
@@ -91,17 +118,19 @@ public final class PopupActionGroupTest {
     Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
+      myRunningDevicesHeading,
       new SelectDeviceAction(device, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(SelectMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+      mySelectMultipleDevicesAction,
+      myPairDevicesUsingWiFiAction,
+      myWearDevicePairingAction,
+      myDeviceManagerAction,
+      Separator.getInstance(),
+      myOpenConnectionAssistantSidePanelAction};
 
     assertArrayEquals(children, group.getChildren(null));
   }
@@ -128,20 +157,22 @@ public final class PopupActionGroupTest {
     Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
+      myRunningDevicesHeading,
       new SelectDeviceAction(runningDevice, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      myAvailableDevicesHeading,
       new SelectDeviceAction(availableDevice, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(SelectMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+      mySelectMultipleDevicesAction,
+      myPairDevicesUsingWiFiAction,
+      myWearDevicePairingAction,
+      myDeviceManagerAction,
+      Separator.getInstance(),
+      myOpenConnectionAssistantSidePanelAction};
 
     assertArrayEquals(children, group.getChildren(null));
   }
@@ -163,17 +194,19 @@ public final class PopupActionGroupTest {
     Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      myAvailableDevicesHeading,
       new SnapshotActionGroup(device, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(SelectMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+      mySelectMultipleDevicesAction,
+      myPairDevicesUsingWiFiAction,
+      myWearDevicePairingAction,
+      myDeviceManagerAction,
+      Separator.getInstance(),
+      myOpenConnectionAssistantSidePanelAction};
 
     assertArrayEquals(children, group.getChildren(null));
   }
@@ -191,17 +224,19 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.singletonList(device);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      myAvailableDevicesHeading,
       new SelectDeviceAction(device, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(SelectMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+      mySelectMultipleDevicesAction,
+      myPairDevicesUsingWiFiAction,
+      myWearDevicePairingAction,
+      myDeviceManagerAction,
+      Separator.getInstance(),
+      myOpenConnectionAssistantSidePanelAction};
 
     assertArrayEquals(children, group.getChildren(null));
   }
@@ -220,17 +255,19 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.singletonList(device);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
+      myRunningDevicesHeading,
       new SelectDeviceAction(device, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(SelectMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+      mySelectMultipleDevicesAction,
+      myPairDevicesUsingWiFiAction,
+      myWearDevicePairingAction,
+      myDeviceManagerAction,
+      Separator.getInstance(),
+      myOpenConnectionAssistantSidePanelAction};
 
     assertArrayEquals(children, group.getChildren(null));
   }
@@ -256,20 +293,22 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Arrays.asList(runningDevice, availableDevice);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
+      myRunningDevicesHeading,
       new SelectDeviceAction(runningDevice, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      myAvailableDevicesHeading,
       new SelectDeviceAction(availableDevice, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(SelectMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+      mySelectMultipleDevicesAction,
+      myPairDevicesUsingWiFiAction,
+      myWearDevicePairingAction,
+      myDeviceManagerAction,
+      Separator.getInstance(),
+      myOpenConnectionAssistantSidePanelAction};
 
     assertArrayEquals(children, group.getChildren(null));
   }

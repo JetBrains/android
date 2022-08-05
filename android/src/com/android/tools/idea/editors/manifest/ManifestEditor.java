@@ -131,7 +131,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       // Otherwise, the best we can do is to throw up a loading spinner.
       myManifestPanel.startLoading();
     }
-    Futures.addCallback(mergedManifest, new FutureCallback<>() {
+    Futures.addCallback(mergedManifest, new FutureCallback<MergedManifestSnapshot>() {
       @Override
       public void onSuccess(MergedManifestSnapshot result) {
         showFreshManifest(result);
@@ -183,6 +183,12 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public JComponent getComponent() {
     return myLazyContainer;
+  }
+
+  @NotNull
+  @Override
+  public VirtualFile getFile() {
+    return mySelectedFile;
   }
 
   @Nullable
@@ -251,11 +257,6 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public StructureViewBuilder getStructureViewBuilder() {
     return null;
-  }
-
-  @Override
-  public @NotNull VirtualFile getFile() {
-    return mySelectedFile;
   }
 
   @Override

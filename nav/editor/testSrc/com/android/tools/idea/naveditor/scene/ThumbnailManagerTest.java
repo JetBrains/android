@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.scene;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.testutils.ImageDiffUtil;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -29,7 +28,6 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
@@ -38,10 +36,12 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -49,20 +49,17 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link ThumbnailManager}
  */
 public class ThumbnailManagerTest extends NavTestCase {
 
-  private NavDesignSurface mySurface;
-
   @Override
   public void setUp() {
     super.setUp();
-    TestableThumbnailManager.register(myFacet, myRootDisposable);
-    mySurface = new NavDesignSurface(myFacet.getModule().getProject(), getMyRootDisposable());
+    TestableThumbnailManager.register(myFacet);
+    new NavDesignSurface(myFacet.getModule().getProject(), getMyRootDisposable());
   }
 
   public void testCaching() throws Exception {
@@ -76,7 +73,7 @@ public class ThumbnailManagerTest extends NavTestCase {
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
-    BufferedImage image = imageFuture.getTerminalImage();
+    Image image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     assertSame(image, imageFuture.getTerminalImage());
 
@@ -103,7 +100,29 @@ public class ThumbnailManagerTest extends NavTestCase {
   }
 
   public void testOldVersion() throws Exception {
-    ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
+    Semaphore inProgressCheckDone = new Semaphore(1);
+    Semaphore taskStarted = new Semaphore(1);
+    ThumbnailManager manager = new ThumbnailManager(myFacet) {
+      @NotNull
+      @Override
+      protected CompletableFuture<RenderTask> createTask(@NotNull AndroidFacet facet,
+                                                         @NotNull XmlFile file,
+                                                         @NotNull Configuration configuration,
+                                                         @NotNull RenderService renderService) {
+        return CompletableFuture.completedFuture(RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration))
+          .whenComplete((task, ex) -> task.runAsyncRenderAction(() -> {
+            try {
+              taskStarted.release();
+              inProgressCheckDone.acquire();
+            }
+            catch (Exception e) {
+              fail(e.getMessage());
+            }
+            return null;
+          }));
+      }
+    };
+    Disposer.register(getProject(), manager);
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
@@ -114,28 +133,12 @@ public class ThumbnailManagerTest extends NavTestCase {
       .build();
     Configuration configuration = model.getConfiguration();
     RefinableImage thumbnail = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200));
-    BufferedImage orig = thumbnail.getTerminalImage();
+    Image orig = thumbnail.getTerminalImage();
     assertNull(thumbnail.getImage());
 
-    Semaphore inProgressCheckDone = new Semaphore(1);
+    inProgressCheckDone.release(); // This was acquired when doing the first thumbnail rendering
     inProgressCheckDone.acquire();
-    Semaphore taskStarted = new Semaphore(1);
     taskStarted.acquire();
-
-    RenderService.setForTesting(getProject(), new RenderService(getProject()) {
-      @NotNull
-      @Override
-      public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
-        try {
-          taskStarted.release();
-          inProgressCheckDone.acquire();
-        }
-        catch (Exception e) {
-          fail(e.getMessage());
-        }
-        return super.taskBuilder(facet, configuration);
-      }
-    });
 
     ((VirtualFileSystemEntry)file).setTimeStamp(file.getTimeStamp() + 100);
 
@@ -144,7 +147,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     assertFalse(image.getRefined().isDone());
     assertEquals(image.getImage(), orig);
     inProgressCheckDone.release();
-    BufferedImage newVersion = image.getTerminalImage();
+    Image newVersion = image.getTerminalImage();
     assertNotSame(orig, newVersion);
     assertNotNull(newVersion);
   }
@@ -155,16 +158,16 @@ public class ThumbnailManagerTest extends NavTestCase {
     Semaphore started = new Semaphore(0);
     AtomicInteger renderCount = new AtomicInteger();
     ThumbnailManager manager = new ThumbnailManager(myFacet) {
-      @Nullable
+      @NotNull
       @Override
-      protected RenderTask createTask(@NotNull AndroidFacet facet,
-                                      @NotNull XmlFile file,
-                                      @NotNull Configuration configuration,
-                                      @NotNull RenderService renderService) {
+      protected CompletableFuture<RenderTask> createTask(@NotNull AndroidFacet facet,
+                                                         @NotNull XmlFile file,
+                                                         @NotNull Configuration configuration,
+                                                         @NotNull RenderService renderService) {
         started.release();
         lock.tryLock();
         renderCount.incrementAndGet();
-        return ReadAction.compute(() -> RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration));
+        return CompletableFuture.completedFuture(RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration));
       }
     };
     Disposer.register(getProject(), manager);
@@ -200,11 +203,11 @@ public class ThumbnailManagerTest extends NavTestCase {
       .withParentDisposable(getMyRootDisposable())
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
-    BufferedImage image = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320)).getTerminalImage();
+    Image image = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320)).getTerminalImage();
 
     String fileName = "basic_activity_1.png";
 
-    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+    if (UIUtil.isRetina()) {
       image = ImageUtil.toBufferedImage(image);
       fileName = "basic_activity_1_retina.png";
     }

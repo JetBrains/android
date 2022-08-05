@@ -30,6 +30,9 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
     ],
 )
 
@@ -50,13 +53,13 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/project-system-gradle/testData",
-        "//tools/base:agp_artifacts",
-        "//tools/base:agp_dependencies",
         "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -84,7 +87,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
-        "@maven//:androidx.constraintlayout.constraintlayout_2.0.4",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
@@ -123,7 +126,7 @@ maven_repository(
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
-        "@maven//:org.jacoco.org.jacoco.ant_0.8.7",
+        "@maven//:org.jacoco.org.jacoco.ant_0.8.8",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",

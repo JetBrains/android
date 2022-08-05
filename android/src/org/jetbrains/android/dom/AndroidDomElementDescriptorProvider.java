@@ -1,4 +1,18 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.dom;
 
 import static com.android.SdkConstants.CLASS_DRAWABLE;
@@ -139,10 +153,6 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       if (iconRef == null) {
         // Find icons from StudioIcons.LayoutEditor.Palette first, then AndroidIcons.Views.
         Icon icon = IconLoader.getReflectiveIcon("StudioIcons.LayoutEditor.Palette." + convertToPaletteIconName(keyName), StudioIcons.class.getClassLoader());
-        // TODO: Eliminate AndroidIcons once all icons are provided by StudioIcons.LayoutEditor.Palette.
-        if (icon == null) {
-          icon = IconLoader.getReflectiveIcon("AndroidIcons.Views." + keyName, AndroidIcons.class.getClassLoader());
-        }
         iconRef = Ref.create(icon);
         ourViewTagName2Icon.put(keyName, iconRef);
       }

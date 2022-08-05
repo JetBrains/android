@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.tools.idea.rendering.RenderAsyncActionExecutor.RenderingPriority;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 import com.android.ide.common.rendering.api.MergeCookie;
@@ -30,8 +31,8 @@ import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
@@ -39,7 +40,6 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -225,7 +225,7 @@ public class RenderService implements Disposable {
          logger.getLinkManager().createRunnableLink(() -> {
            Project project = module.getProject();
            ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-           if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() && service instanceof AndroidProjectSettingsService) {
+           if (ProjectSystemUtil.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
              ((AndroidProjectSettingsService)service).openSdkSettings();
              return;
            }
@@ -349,6 +349,8 @@ public class RenderService implements Disposable {
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
 
+  private static final RenderingPriority DEFAULT_RENDERING_PRIORITY = RenderingPriority.HIGH;
+
   private static Logger getLogger() {
     return Logger.getInstance(RenderService.class);
   }
@@ -368,8 +370,6 @@ public class RenderService implements Disposable {
     private boolean showWithToolsVisibilityAndPosition = true;
     private int myMaxRenderWidth = -1;
     private int myMaxRenderHeight = -1;
-    private boolean isShadowEnabled = true;
-    private boolean useHighQualityShadows = true;
     private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
@@ -433,6 +433,7 @@ public class RenderService implements Disposable {
      * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
      */
     private boolean reportOutOfDateUserClasses = true;
+    @NotNull private RenderingPriority myPriority = DEFAULT_RENDERING_PRIORITY;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -544,18 +545,6 @@ public class RenderService implements Disposable {
     }
 
     @NotNull
-    public RenderTaskBuilder disableShadow() {
-      this.isShadowEnabled = false;
-      return this;
-    }
-
-    @NotNull
-    public RenderTaskBuilder disableHighQualityShadow() {
-      this.useHighQualityShadows = false;
-      return this;
-    }
-
-    @NotNull
     public RenderTaskBuilder disableToolsVisibilityAndPosition() {
       this.showWithToolsVisibilityAndPosition = false;
       return this;
@@ -625,6 +614,16 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * Sets a {@link RenderingPriority} for the RenderTask.
+     * By default, the priority used is {@link RenderingPriority#HIGH}
+     */
+    @NotNull
+    public RenderTaskBuilder withPriority(@NotNull RenderingPriority priority) {
+      myPriority = priority;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -685,15 +684,13 @@ public class RenderService implements Disposable {
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, reportOutOfDateUserClasses);
+                           classesToPreload, reportOutOfDateUserClasses, myPriority);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }
 
           task
             .setDecorations(showDecorations)
-            .setHighQualityShadows(useHighQualityShadows)
-            .setShadowEnabled(isShadowEnabled)
             .setShowWithToolsVisibilityAndPosition(showWithToolsVisibilityAndPosition)
             .setEnableLayoutScanner(enableLayoutScanner);
 
@@ -719,16 +716,6 @@ public class RenderService implements Disposable {
 
         return null;
       }, AppExecutorUtil.getAppExecutorService());
-    }
-
-    /**
-     * Builds a new {@link RenderTask}.
-     * @deprecated Use {@link RenderTaskBuilder#build}
-     */
-    @Deprecated
-    @Nullable
-    public RenderTask buildSynchronously() {
-      return Futures.getUnchecked(build());
     }
   }
 }

@@ -74,9 +74,15 @@ class ResourceExplorerToolbar private constructor(
   : JPanel(), DataProvider by toolbarViewModel {
 
   private val searchAction = createSearchField()
-  private val refreshActionToolbar = ActionManager.getInstance().createActionToolbar("ResourceExplorer",
-                                                                                     DefaultActionGroup(RefreshAction(toolbarViewModel)),
-                                                                                     true)
+  private val refreshActionToolbar =
+    ActionManager.getInstance().createActionToolbar(
+      "ResourceExplorer",
+      DefaultActionGroup(RefreshAction(toolbarViewModel)),
+      true
+    ).apply {
+      targetComponent = this@ResourceExplorerToolbar
+    }
+
   private val refreshActionComponent = refreshActionToolbar.component
 
   init {

@@ -31,6 +31,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -82,7 +83,7 @@ public class LayoutLibraryLoader {
     LayoutLibrary library = LayoutLibraryProvider.EP_NAME.computeSafeIfAny(LayoutLibraryProvider::getLibrary);
     if (library == null ||
         !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(), new File(fontFolder.getPath()),
-                      getNativeLibraryPath(dataPath), dataPath + "/icu/icudt68l.dat", enumMap, layoutLog)) {
+                      getNativeLibraryPath(dataPath), dataPath + "/icu/icudt70l.dat", enumMap, layoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
     return library;

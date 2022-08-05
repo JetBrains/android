@@ -17,7 +17,7 @@ import org.jetbrains.android.util.AndroidBundle;
 class ImportDependenciesDialog extends DialogWrapper {
   private final CheckBoxList<?> myCheckBoxList = new CheckBoxList<>();
   private final List<ImportDependenciesTask> myTasks;
-  private final Map<ImportDependenciesTask, JCheckBox> myTask2Checkbox = new HashMap<>();
+  private final Map<ImportDependenciesTask, JCheckBox> myTask2Checkbox = new HashMap<ImportDependenciesTask, JCheckBox>();
 
   protected ImportDependenciesDialog(Project project, List<ImportDependenciesTask> tasks) {
     super(project, false);
@@ -48,7 +48,7 @@ class ImportDependenciesDialog extends DialogWrapper {
   }
 
   public List<ImportDependenciesTask> getSelectedTasks() {
-    final List<ImportDependenciesTask> result = new ArrayList<>();
+    final List<ImportDependenciesTask> result = new ArrayList<ImportDependenciesTask>();
     for (ImportDependenciesTask task : myTasks) {
       if (myTask2Checkbox.get(task).isSelected()) {
         result.add(task);

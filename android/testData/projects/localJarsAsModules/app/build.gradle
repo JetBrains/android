@@ -8,7 +8,3 @@ android {
         minSdkVersion 9
     }
 }
-
-dependencies {
-  implementation project(":localJarAsModule")
-}

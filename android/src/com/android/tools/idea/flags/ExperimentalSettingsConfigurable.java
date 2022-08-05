@@ -20,14 +20,18 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
 
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
+import com.android.tools.idea.emulator.DeviceMirroringSettings;
+import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
+import com.android.tools.idea.logcat.LogcatExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
-import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -35,9 +39,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.ui.TitledSeparator;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import com.intellij.ui.components.BrowserLink;
 import java.io.File;
 import java.util.Hashtable;
 import javax.swing.JCheckBox;
@@ -59,17 +61,20 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   private JPanel myPanel;
   private JCheckBox myUseL2DependenciesCheckBox;
   private JSlider myLayoutEditorQualitySlider;
-  private JCheckBox myLayoutInspectorCheckbox;
-  private TitledSeparator myLayoutInspectorSeparator;
   private JCheckBox mySkipGradleTasksList;
   private JCheckBox myTraceGradleSyncCheckBox;
   private JComboBox<TraceProfileItem> myTraceProfileComboBox;
   private TextFieldWithBrowseButton myTraceProfilePathField;
-  private JCheckBox myAnimationPreviewCheckBox;
-  private JCheckBox myInteractiveAndAnimationsComboBox;
   private JCheckBox myPreviewPickerCheckBox;
-  private JCheckBox myBuildOnSaveCheckBox;
-  private JLabel myBuildOnSaveLabel;
+  private JLabel myPreviewPickerLabel;
+  private JCheckBox myEnableNewLogcatToolCheckBox;
+  private BrowserLink myLogcatLearnMoreBrowserLink;
+
+  private JCheckBox myEnableDeviceMirroringCheckBox;
+
+  private JCheckBox myEnableParallelSync;
+
+  private JCheckBox myEnableVersionCatalogParsing;
 
   private Runnable myRestartCallback;
 
@@ -87,18 +92,18 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
 
-    Hashtable qualityLabels = new Hashtable();
-    qualityLabels.put(Integer.valueOf(0), new JLabel("Fastest"));
-    qualityLabels.put(Integer.valueOf(100), new JLabel("Slowest"));
+    myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
+    myEnableVersionCatalogParsing.setVisible(StudioFlags.GRADLE_DSL_TOML_SUPPORT.get() || StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.get());
+
+    Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
+    qualityLabels.put(0, new JLabel("Fastest"));
+    qualityLabels.put(100, new JLabel("Slowest"));
     myLayoutEditorQualitySlider.setLabelTable(qualityLabels);
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
-    boolean showLayoutInspectorSettings = false; // b/207568525
-    myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
-    myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
-    myBuildOnSaveCheckBox.setVisible(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get());
-    myBuildOnSaveLabel.setVisible(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get());
+    myPreviewPickerCheckBox.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
+    myPreviewPickerLabel.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
     initTraceComponents();
     reset();
   }
@@ -134,11 +139,12 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
            mySettings.TRACE_GRADLE_SYNC != traceGradleSync() ||
            mySettings.TRACE_PROFILE_SELECTION != getTraceProfileSelection() ||
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
+           mySettings.ENABLE_PARALLEL_SYNC != enableParallelSync() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
-           myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
-           myAnimationPreviewCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
-           myBuildOnSaveCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isBuildOnSaveEnabled();
+           myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() ||
+           myEnableDeviceMirroringCheckBox.isSelected() != DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled() ||
+           myEnableVersionCatalogParsing.isSelected() != GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled();
   }
 
   private int getQualitySetting() {
@@ -149,14 +155,29 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   public void apply() throws ConfigurationException {
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
+    mySettings.ENABLE_PARALLEL_SYNC = enableParallelSync();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
-    LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
     applyTraceSettings();
-    ComposeExperimentalConfiguration.getInstance().setAnimationPreviewEnabled(myAnimationPreviewCheckBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
-    ComposeExperimentalConfiguration.getInstance().setBuildOnSaveEnabled(myBuildOnSaveCheckBox.isSelected());
+    DeviceMirroringSettings.getInstance().setDeviceMirroringEnabled(myEnableDeviceMirroringCheckBox.isSelected());
+    GradleDslModelExperimentalSettings.getInstance().setVersionCatalogEnabled(myEnableVersionCatalogParsing.isSelected());
+
+    LogcatExperimentalSettings logcatSettings = LogcatExperimentalSettings.getInstance();
+    if (myEnableNewLogcatToolCheckBox.isSelected() != logcatSettings.getLogcatV2Enabled()) {
+      logcatSettings.setLogcatV2Enabled(myEnableNewLogcatToolCheckBox.isSelected());
+
+      int result = Messages.showYesNoDialog(
+        AndroidBundle.message("android.logcat.enable.v2.restart.needed"),
+        IdeBundle.message("dialog.title.restart.ide"),
+        IdeBundle.message("dialog.action.restart.yes"),
+        AndroidBundle.message("android.logcat.enable.v2.restart.no"),
+        Messages.getWarningIcon());
+      if (result == Messages.YES) {
+        ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
+      }
+    }
   }
 
   @Override
@@ -215,21 +236,27 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     myTraceProfilePathField.setText(value);
   }
 
-  private void initTraceComponents() {
-    myTraceGradleSyncCheckBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        updateTraceComponents();
-      }
-    });
+  boolean enableParallelSync() {
+    return myEnableParallelSync.isSelected();
+  }
 
-    myTraceProfileComboBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myTraceProfilePathField.setEnabled(SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
-        if (isTraceProfileInvalid()) {
-          ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
-        }
+  @TestOnly
+  void setEnableParallelSync(boolean value) {
+    myEnableParallelSync.setSelected(value);
+  }
+
+  @TestOnly
+  void setEnableVersionCatalogParsing(boolean value) {
+    myEnableVersionCatalogParsing.setSelected(value);
+  }
+
+  private void initTraceComponents() {
+    myTraceGradleSyncCheckBox.addActionListener(e -> updateTraceComponents());
+
+    myTraceProfileComboBox.addActionListener(e -> {
+      myTraceProfilePathField.setEnabled(SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
+      if (isTraceProfileInvalid()) {
+        ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
       }
     });
 
@@ -307,21 +334,26 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     mySkipGradleTasksList.setSelected(mySettings.SKIP_GRADLE_TASKS_LIST);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
-    myLayoutInspectorCheckbox.setSelected(LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
+    myEnableParallelSync.setSelected(mySettings.ENABLE_PARALLEL_SYNC);
     updateTraceComponents();
-    myAnimationPreviewCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled());
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
-    myBuildOnSaveCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isBuildOnSaveEnabled());
+    myEnableNewLogcatToolCheckBox.setSelected(LogcatExperimentalSettings.getInstance().getLogcatV2Enabled());
+    myEnableDeviceMirroringCheckBox.setSelected(DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled());
+    myEnableVersionCatalogParsing.setSelected(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
+  }
+
+  private void createUIComponents() {
+    myLogcatLearnMoreBrowserLink = new BrowserLink("Learn more", "https://d.android.com/r/studio-ui/logcat/help");
   }
 
   public enum TraceProfileItem {
     DEFAULT("Default profile"),
     SPECIFIED_LOCATION("Specified location");
 
-    private String displayValue;
+    private final String displayValue;
 
     TraceProfileItem(@NotNull String value) {
       displayValue = value;

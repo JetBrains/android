@@ -17,9 +17,9 @@ package com.android.tools.idea.npw.ideahost
 
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.observable.ListenerManager
-import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
+import com.android.tools.idea.wizard.ui.StudioWizardLayout
 import com.intellij.ide.util.newProjectWizard.WizardDelegate
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.wizard.AbstractWizard

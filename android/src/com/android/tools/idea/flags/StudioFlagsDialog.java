@@ -385,7 +385,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
     @SuppressWarnings("unchecked")
     Class<T> enumClass = (Class<T>)flag.get().getClass();
 
-    return new FlagEditor<>() {
+    return new FlagEditor<T>() {
       FlagProperty<T> myFlagProperty = new FlagProperty<>(flag);
 
       @NotNull

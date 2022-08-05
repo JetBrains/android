@@ -59,7 +59,7 @@ abstract class SwitchDeviceAction: AnAction() {
     switchDevice(surface, config)
   }
 
-  abstract fun switchDevice(surface: DesignSurface, config: Configuration)
+  abstract fun switchDevice(surface: DesignSurface<*>, config: Configuration)
 }
 
 
@@ -68,7 +68,7 @@ abstract class SwitchDeviceAction: AnAction() {
  */
 class NextDeviceAction private constructor(): SwitchDeviceAction() {
 
-  override fun switchDevice(surface: DesignSurface, config: Configuration) {
+  override fun switchDevice(surface: DesignSurface<*>, config: Configuration) {
     val devices = getSortedDevices(config)
     if (devices.isEmpty()) {
       return
@@ -95,7 +95,7 @@ class NextDeviceAction private constructor(): SwitchDeviceAction() {
 
 class PreviousDeviceAction private constructor(): SwitchDeviceAction() {
 
-  override fun switchDevice(surface: DesignSurface, config: Configuration) {
+  override fun switchDevice(surface: DesignSurface<*>, config: Configuration) {
     val devices = getSortedDevices(config)
     if (devices.isEmpty()) {
       return

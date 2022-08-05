@@ -29,8 +29,11 @@ class SelectedComponentPanelFixture(
   panel: SelectedComponentPanel
 ) : ComponentFixture<SelectedComponentPanelFixture, SelectedComponentPanel>(SelectedComponentPanelFixture::class.java, robot, panel) {
 
-  val id: String
+  val tag: String
     get() = (target().components[0] as JLabel).text
+
+  val id: String
+    get() = (target().components[1] as JLabel).text
 
   val icon: Icon?
     get() = (target().components[0] as JLabel).icon

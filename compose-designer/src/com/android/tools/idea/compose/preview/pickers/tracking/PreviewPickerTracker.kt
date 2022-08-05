@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,65 +15,107 @@
  */
 package com.android.tools.idea.compose.preview.pickers.tracking
 
-import com.android.annotations.concurrency.Slow
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
+import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
+import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
+import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
+import com.android.tools.idea.compose.preview.PARAMETER_GROUP
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
+import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT
+import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT_DP
+import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
+import com.android.tools.idea.compose.preview.PARAMETER_NAME
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
+import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
+import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
+import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
+import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.DeviceGroup
+import com.android.tools.idea.configurations.groupDevices
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.EditorPickerEvent
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.DeviceType
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerParameter
 
 /**
- * Interface used to log usage data of the @Preview picker.
+ * Tracker implementation for the Preview picker.
  */
-internal interface PreviewPickerTracker {
-  fun pickerShown()
-  fun pickerClosed()
+internal open class PreviewPickerTracker: BaseComposePickerTracker() {
+  override fun doLogUsageData(actions: List<EditorPickerAction>) {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.EDITOR_PICKER)
+        .setEditorPickerEvent(EditorPickerEvent.newBuilder().addAllAction(actions))
+    )
+  }
 
-  /**
-   * Register a modification to the [name] parameter of the Preview annotation.
-   *
-   * [value] is one of the tracking relevant options that best represents the value assigned to the parameter.
-   */
-  fun registerModification(name: String, value: PickerTrackableValue)
+  override fun convertModificationsToTrackerActions(modifications: List<PickerModification>): List<EditorPickerAction> {
+    return modifications.map { pickerModification ->
+      val trackerParameter = when (pickerModification.propertyName) {
+        PARAMETER_NAME -> PreviewPickerParameter.NAME
+        PARAMETER_GROUP -> PreviewPickerParameter.GROUP
+        PARAMETER_WIDTH_DP,
+        PARAMETER_WIDTH -> PreviewPickerParameter.WIDTH
+        PARAMETER_HEIGHT_DP,
+        PARAMETER_HEIGHT -> PreviewPickerParameter.HEIGHT
+        PARAMETER_API_LEVEL -> PreviewPickerParameter.API_LEVEL
+        PARAMETER_FONT_SCALE -> PreviewPickerParameter.FONT_SCALE
+        PARAMETER_SHOW_DECORATION,
+        PARAMETER_SHOW_SYSTEM_UI -> PreviewPickerParameter.SHOW_SYSTEM_UI
+        PARAMETER_SHOW_BACKGROUND -> PreviewPickerParameter.SHOW_BACKGROUND
+        PARAMETER_BACKGROUND_COLOR -> PreviewPickerParameter.BACKGROUND_COLOR
+        PARAMETER_UI_MODE -> PreviewPickerParameter.UI_MODE
+        PARAMETER_LOCALE -> PreviewPickerParameter.LOCALE
+        PARAMETER_DEVICE,
+        PARAMETER_HARDWARE_DEVICE -> PreviewPickerParameter.DEVICE
+        PARAMETER_HARDWARE_WIDTH -> PreviewPickerParameter.DEVICE_WIDTH
+        PARAMETER_HARDWARE_HEIGHT -> PreviewPickerParameter.DEVICE_HEIGHT
+        PARAMETER_HARDWARE_DIM_UNIT -> PreviewPickerParameter.DEVICE_DIM_UNIT
+        PARAMETER_HARDWARE_DENSITY -> PreviewPickerParameter.DEVICE_DPI
+        PARAMETER_HARDWARE_ORIENTATION -> PreviewPickerParameter.DEVICE_ORIENTATION
+        else -> PreviewPickerParameter.UNKNOWN_PREVIEW_PICKER_PARAMETER
+      }
+      val deviceType = run {
+        val device = pickerModification.deviceBeforeModification
+        if (device?.id == Configuration.CUSTOM_DEVICE_ID) {
+          return@run DeviceType.CUSTOM
+        }
+        // 'groupDevices' will assign our one device to a non-empty group, so we filter out any group with empty device list
+        val resultingGroup = groupDevices(listOfNotNull(device)).entries.firstNotNullOfOrNull { (group, devices) ->
+          if (devices.isEmpty()) null else group
+        }
+        return@run when (resultingGroup) {
+          DeviceGroup.NEXUS,
+          DeviceGroup.NEXUS_XL -> DeviceType.PHONE
+          DeviceGroup.NEXUS_TABLET -> DeviceType.TABLET
+          DeviceGroup.WEAR -> DeviceType.WEAR
+          DeviceGroup.DESKTOP -> DeviceType.DESKTOP
+          DeviceGroup.TV -> DeviceType.TV
+          DeviceGroup.AUTOMOTIVE -> DeviceType.UNKNOWN_DEVICE_TYPE // TODO(b/205184728): Add tracker value for Auto
+          DeviceGroup.GENERIC -> DeviceType.GENERIC
+          DeviceGroup.OTHER, // unused in picker
+          null -> DeviceType.UNKNOWN_DEVICE_TYPE
+        }
+      }
 
-  /**
-   * Potentially slow, since some modification data will have to be converted to Studio Event objects (eg: the name of the modified field)
-   */
-  @Slow
-  fun logUsageData()
-}
-
-/**
- * Placeholder implementation until all relevant changes are ready
- */
-internal object NoOpTracker : PreviewPickerTracker { // TODO(b/205184728): Update as necessary changes get ready (refactoring, studio event classes, etc.)
-  override fun pickerShown() {} // Do nothing
-
-  override fun pickerClosed() {} // Do nothing
-
-  override fun registerModification(name: String, value: PickerTrackableValue) {} // Do nothing
-
-  override fun logUsageData() {} // Do nothing
-}
-
-
-// TODO(b/205184728): Replace once the studio_stats object has been updated with our tracking classes, those will have their own detailed
-//  javadoc
-internal enum class PickerTrackableValue {
-  /**  Based on proto enums requirement, for unexpected/erroneous input */
-  UNKNOWN,
-  DELETED,
-  UNSUPPORTED_OR_OPEN_ENDED,
-  DEVICE_REF_NONE, // TODO(b/205184728): Support values selected from Device dropdown
-  DEVICE_REF_PHONE,
-  DEVICE_REF_FOLDABLE,
-  DEVICE_REF_TABLET,
-  DEVICE_REF_DESKTOP,
-  UNIT_PIXELS,
-  UNIT_DP,
-  ORIENTATION_PORTRAIT,
-  ORIENTATION_LANDSCAPE,
-  DENSITY_LOW,
-  DENSITY_MEDIUM,
-  DENSITY_HIGH,
-  DENSITY_X_HIGH,
-  DENSITY_XX_HIGH,
-  DENSITY_XXX_HIGH,
-  UI_MODE_NOT_NIGHT, // TODO(b/205184728): Support values selected from UiMode dropdown
-  UI_MODE_NIGHT,
+      EditorPickerAction.newBuilder().setPreviewModification(
+        with(PreviewPickerModification.newBuilder()) {
+          parameter = trackerParameter
+          closestDeviceType = deviceType
+          assignedValue = pickerModification.assignedValue
+          build()
+        }
+      ).build()
+    }
+  }
 }

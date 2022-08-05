@@ -17,22 +17,28 @@ package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
-import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.EventQueue
-import kotlin.math.roundToInt
 
 /**
  * Rotates the emulator left or right.
  */
-sealed class EmulatorRotateAction(val rotationAngleDegrees: Float) : AbstractEmulatorAction() {
+sealed class EmulatorRotateAction(
+  private val rotationQuadrants: Int,
+) : AbstractEmulatorAction(configFilter = { it.hasOrientationSensors && !it.isWearOs }) {
+
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
     val emulatorView = getEmulatorView(event) ?: return
-    val rotation = emulatorView.displayRotation
-    val angle = canonicalizeRotationAngle(rotation.ordinal * 90F + rotationAngleDegrees)
+    val rotationQuadrants = (emulatorView.displayOrientationQuadrants + rotationQuadrants) and 0x03
+    val angle = when (rotationQuadrants) {
+      1 -> 90F
+      2 -> -180F
+      3 -> -90F
+      else -> 0F
+    }
     val parameters = ParameterValue.newBuilder()
       .addData(0F)
       .addData(0F)
@@ -41,10 +47,10 @@ sealed class EmulatorRotateAction(val rotationAngleDegrees: Float) : AbstractEmu
       .setTarget(PhysicalModelValue.PhysicalType.ROTATION)
       .setValue(parameters)
       .build()
-    emulatorController.setPhysicalModel(rotationModel, object: EmptyStreamObserver<Empty>() {
+    emulatorController.setPhysicalModel(rotationModel, object : EmptyStreamObserver<Empty>() {
       override fun onCompleted() {
-        EventQueue.invokeLater {
-          emulatorView.displayRotation = SkinRotation.forNumber(((angle / 90).toInt() + 4) % 4)
+        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+          emulatorView.displayOrientationQuadrants = rotationQuadrants
         }
       }
     })
@@ -52,26 +58,13 @@ sealed class EmulatorRotateAction(val rotationAngleDegrees: Float) : AbstractEmu
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    val emulatorController = getEmulatorController(event)
-    if (emulatorController != null) {
-      // Rotation is disabled if the device has no rotation sensors or more than one display.
-      event.presentation.isVisible = isEmulatorConnected(event) && emulatorController.emulatorConfig.hasOrientationSensors &&
-                                     getNumberOfDisplays(event) <= 1
+    // Rotation is disabled if the device has more than one display.
+    val presentation = event.presentation
+    if (presentation.isVisible && getNumberOfDisplays(event) > 1) {
+      presentation.isVisible = false
     }
   }
 
-  /**
-   * Rounds the given angle to a multiple of 90 degrees and puts it in the [-180, 180) interval.
-   */
-  private fun canonicalizeRotationAngle(angleDegrees: Float): Float {
-    val angle = (angleDegrees / 90).roundToInt() * 90F
-    return when {
-      angle < -180F -> angle + 360
-      angle >= 180F -> angle - 360
-      else -> angle
-    }
-  }
-
-  class Left : EmulatorRotateAction(90F)
-  class Right : EmulatorRotateAction(-90F)
+  class Left : EmulatorRotateAction(1)
+  class Right : EmulatorRotateAction(3)
 }

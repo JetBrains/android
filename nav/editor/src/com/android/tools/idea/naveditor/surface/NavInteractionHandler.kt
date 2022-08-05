@@ -23,10 +23,11 @@ import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandlerBase
+import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.uibuilder.surface.MarqueeInteraction
 import org.intellij.lang.annotations.JdkConstants
 
-class NavInteractionHandler(private val surface: DesignSurface): InteractionHandlerBase(surface) {
+class NavInteractionHandler(private val surface: DesignSurface<NavSceneManager>): InteractionHandlerBase(surface) {
 
   override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,
@@ -45,7 +46,7 @@ class NavInteractionHandler(private val surface: DesignSurface): InteractionHand
     val xDp = getAndroidXDip(sceneView, mouseX)
     val yDp = getAndroidYDip(sceneView, mouseY)
 
-    val model = sceneView.model
+    val model = sceneView.sceneManager.model
 
     // Make sure we start from root if we don't have anything selected
     if (selectionModel.isEmpty && !model.components.isEmpty()) {

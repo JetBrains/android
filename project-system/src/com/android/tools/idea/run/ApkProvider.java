@@ -17,7 +17,6 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import java.util.Collection;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,7 +29,4 @@ public interface ApkProvider {
    */
   @NotNull
   Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException;
-
-  @NotNull
-  List<ValidationError> validate();
 }

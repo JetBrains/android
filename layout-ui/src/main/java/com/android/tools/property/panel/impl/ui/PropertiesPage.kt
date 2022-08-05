@@ -27,7 +27,7 @@ import com.android.tools.property.panel.impl.model.InspectorPanelModel
 import com.android.tools.property.panel.impl.model.SeparatorLineModel
 import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.TitleLineModel
-import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable.PTableModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction

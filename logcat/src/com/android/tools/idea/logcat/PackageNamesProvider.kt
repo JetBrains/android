@@ -16,7 +16,7 @@
 package com.android.tools.idea.logcat
 
 /**
- * Provides a list of package names that can be used to filter messages.
+ * Provides a list of package names.
  */
 internal interface PackageNamesProvider {
   fun getPackageNames(): Set<String>

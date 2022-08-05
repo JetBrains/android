@@ -14,7 +14,7 @@ alias(
 
 alias(
     name = "kotlin-gradle-plugin-for-ide-plugin",
-    actual = "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KOTLIN_IDE_VERSION,
+    actual = "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_" + KOTLIN_IDE_VERSION,
     visibility = ["//visibility:public"],
 )
 
@@ -52,8 +52,9 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/kotlin-integration/testData",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_shard_count = 2,

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters.parser
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.KVALUE_STATE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.REGEX_KVALUE_STATE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.STRING_KVALUE_STATE
@@ -35,17 +36,19 @@ private val STRING_KEYS_REGEX = listOf(
   "line",
   "message",
   "msg",
+  "name",
   "package",
+  "process",
   "tag",
 ).joinToString("|")
-val KEYS = listOf(
-  "age",
-  "fromLevel",
-  "level",
-  "toLevel",
-)
-private val KEYS_REGEX = KEYS.joinToString("|")
-private val KEY_VALUE_REGEX = "((-?($STRING_KEYS_REGEX)~?)|($KEYS_REGEX)):.*".toRegex()
+
+// The following are getters so they can be tested. If they are consts, the value is fixed before we can override the flag
+val KEYS: List<String>
+  get() = if (StudioFlags.LOGCAT_IS_FILTER.get()) listOf("age", "level", "is") else listOf("age", "level")
+private val KEYS_REGEX
+  get() = KEYS.joinToString("|")
+private val KEY_VALUE_REGEX
+  get() = "((-?($STRING_KEYS_REGEX)([~=])?)|($KEYS_REGEX)):.*".toRegex()
 
 /**
  * A wrapper around [LogcatFilterLexer] that allows to tweak its behavior.
@@ -93,6 +96,18 @@ internal class LogcatFilterLexerWrapper : FlexLexer {
       KEYS.contains(text.substring(0, colon)) -> TokenValues(KEY, KVALUE, KVALUE_STATE)
       text[colon - 1] == '~' -> TokenValues(REGEX_KEY, REGEX_KVALUE, REGEX_KVALUE_STATE)
       else -> TokenValues(STRING_KEY, STRING_KVALUE, STRING_KVALUE_STATE)
+    }
+
+    // If the value starts with a quotation mark (single or double), advance the delegate until we find the closing quote.
+    buf?.let {
+      val quote = it[pos]
+      if (quote == '\'' || quote == '"') {
+        while (it[tokenEnd - 1] != quote) {
+          if (delegate.advance() == null) {
+            break
+          }
+        }
+      }
     }
     tokenStack.push(Token(valueType, pos, tokenEnd, YYINITIAL))
     tokenStack.push(Token(keyType, start, pos, state))

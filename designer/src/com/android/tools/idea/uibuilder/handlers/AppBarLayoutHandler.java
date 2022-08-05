@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.APP_BAR_LAYOUT;
 import static com.android.SdkConstants.ATTR_EXPANDED;
 import static com.android.SdkConstants.ATTR_FITS_SYSTEM_WINDOWS;
 import static com.android.SdkConstants.ATTR_LAYOUT_SCROLL_FLAGS;
 import static com.android.SdkConstants.ATTR_THEME;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
 import com.google.common.collect.ImmutableList;
@@ -50,13 +50,13 @@ public class AppBarLayoutHandler extends LinearLayoutHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) {
+      NlModel model = newChild.getModel();
       // The AppBarConfigurationDialog replaces the root XML node in the current file.
-      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(editor, APP_BAR_LAYOUT.newName().equals(newChild.getTagName()));
+      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(model, AndroidXConstants.APP_BAR_LAYOUT.newName().equals(newChild.getTagName()));
       ApplicationManager.getApplication().invokeLater(() -> dialog.open());
       return false;
     }

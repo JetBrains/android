@@ -29,6 +29,7 @@ import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.UIUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -181,7 +182,10 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     BufferedImage shapeImageBack = null;
     BufferedImage shapeImageFore = null;
     BufferedImage shapeImageMask = null;
-    if (launcherOptions.shape != Shape.NONE && launcherOptions.shape != null && launcherOptions.renderShape) {
+    if (launcherOptions.shape != Shape.NONE  &&
+        launcherOptions.shape != Shape.SOLID &&
+        launcherOptions.shape != null &&
+        launcherOptions.renderShape) {
       shapeImageBack = loadBackImage(context, launcherOptions.shape, launcherOptions.density);
       shapeImageFore = loadStyleImage(context, launcherOptions.shape, launcherOptions.density, launcherOptions.style);
       shapeImageMask = loadMaskImage(context, launcherOptions.shape, launcherOptions.density);
@@ -192,7 +196,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     // Create an intermediate image filled with the background color.
     BufferedImage tempImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
     Graphics2D gTemp = (Graphics2D) tempImage.getGraphics();
-    gTemp.setPaint(new Color(launcherOptions.backgroundColor));
+    gTemp.setPaint(launcherOptions.shape == Shape.NONE ? UIUtil.TRANSPARENT_COLOR : new Color(launcherOptions.backgroundColor));
     gTemp.fillRect(0, 0, imageRect.width, imageRect.height);
 
     AnnotatedImage sourceImage = generateRasterImage(targetRect.getSize(), options);
@@ -282,6 +286,11 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     targetRects.put(Pair.of(Shape.NONE, Density.HIGH), new Rectangle(4, 4, 64, 64));
     // None, MDPI
     targetRects.put(Pair.of(Shape.NONE, Density.MEDIUM), new Rectangle(3, 3, 42, 42));
+
+    // Solid, HDPI
+    targetRects.put(Pair.of(Shape.SOLID, Density.HIGH), new Rectangle(4, 4, 64, 64));
+    // Solid, MDPI
+    targetRects.put(Pair.of(Shape.SOLID, Density.MEDIUM), new Rectangle(3, 3, 42, 42));
 
     // Circle, HDPI
     targetRects.put(Pair.of(Shape.CIRCLE, Density.HIGH), new Rectangle(3, 3, 66, 66));

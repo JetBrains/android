@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -29,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -40,6 +40,7 @@ import javax.swing.JButton;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
+import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -157,21 +158,17 @@ public class AddKotlinTest {
     Wait.seconds(15)
       .expecting("Gradle Kotlin plugin version to be set")
       .until(() ->
-        ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("ext.kotlin_version")
+        ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("kotlin_version")
       );
 
     String buildGradleContents = ideFrameFixture.getEditor()
       .open("build.gradle")
       .getCurrentFileContents();
 
-    String kotlinVersion = bundledRuntimeVersion();
-    int dash = kotlinVersion.indexOf('-');
-    if (dash != -1) {
-      kotlinVersion = kotlinVersion.substring(0, dash);
-    }
+    String kotlinVersion = StringUtil.substringBefore(KotlinPluginLayout.getInstance().getStandaloneCompilerVersion(), "-release");
     String newBuildGradleContents = buildGradleContents.replaceAll(
-      "ext\\.kotlin_version.*=.*",
-      "ext.kotlin_version = '" + kotlinVersion + '\'')
+      "kotlin_version.*=.*",
+      "kotlin_version = '" + kotlinVersion + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""

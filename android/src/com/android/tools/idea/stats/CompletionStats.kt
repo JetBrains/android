@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.toProto
 import com.android.tools.idea.stats.CompletionStats.reportCompletionStats
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.EditorCompletionStats
 import com.google.wireless.android.sdk.stats.EditorFileType
 import com.intellij.application.subscribe
 import com.intellij.codeInsight.completion.CompletionPhaseListener
@@ -61,7 +64,43 @@ object CompletionStats {
    * May be called from any thread.
    */
   fun reportCompletionStats() {
-    // method body removed: /platform/util/src/com/intellij/util/analytics/HistogramUtil.kt does not exist in IC
+    val allStats = EditorCompletionStats.newBuilder()
+
+    val allFileTypes = mutableSetOf<EditorFileType>()
+    allFileTypes.addAll(popupLatencyHistograms.keys)
+    allFileTypes.addAll(completionLatencyHistograms.keys)
+    allFileTypes.addAll(insertionLatencyHistograms.keys)
+
+    // Note: calling getIntervalHistogram() on a recorder also resets its statistics.
+    for (fileType in allFileTypes) {
+      val popupLatencies = popupLatencyHistograms[fileType]?.intervalHistogram?.takeIf { it.totalCount > 0L }
+      val completionLatencies = completionLatencyHistograms[fileType]?.intervalHistogram?.takeIf { it.totalCount > 0L }
+      val insertionLatencies = insertionLatencyHistograms[fileType]?.intervalHistogram?.takeIf { it.totalCount > 0L }
+
+      if (popupLatencies == null && completionLatencies == null && insertionLatencies == null) {
+        continue
+      }
+
+      val stats = EditorCompletionStats.Stats.newBuilder()
+      stats.fileType = fileType
+
+      if (popupLatencies != null) stats.popupLatency = popupLatencies.toProto()
+      if (completionLatencies != null) stats.fullCompletionLatency = completionLatencies.toProto()
+      if (insertionLatencies != null) stats.insertionLatency = insertionLatencies.toProto()
+
+      allStats.addByFileType(stats.build())
+    }
+
+    if (allStats.byFileTypeCount == 0) {
+      return
+    }
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.EDITOR_COMPLETION_STATS
+        editorCompletionStats = allStats.build()
+      }
+    )
   }
 
   /** Registers lookup listeners. */

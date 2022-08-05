@@ -84,7 +84,7 @@ class QrScanningCujTest {
       projectView
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout Resource File"))
+        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, "New", "Layout Resource File")
         .setFilename("activity_main_qr_scan")
         .setRootElement("android.support.constraint.ConstraintLayout")
         .clickOk()
@@ -114,11 +114,12 @@ class QrScanningCujTest {
       .run {
         ResourceExplorerFixture.find(robot())
           .clickAddButton()
-        openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
+        openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, "Vector Asset")
           .useLocalFile(GuiTests.getTestDataDir()!!.toString() + "/VotingApp/ic_qr_code.svg")
           .setName("ic_qr_code")
           .setWidth(100)
           .clickNext()
+          .selectResFolder("main")
           .clickFinish()
       }
       .closeResourceManager()
@@ -168,7 +169,7 @@ class QrScanningCujTest {
       .closeBuildPanel()
 
     // Create a new layout file from the File > New > Android Resource File menu
-    ide.openFromMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("File", "New", "Android Resource File"))
+    ide.openFromMenu({ CreateResourceFileDialogFixture.find(it) }, "File", "New", "Android Resource File")
       .setType("layout")
       .setRootElement("LinearLayout")
       .setFilename("actions_main")
@@ -179,7 +180,7 @@ class QrScanningCujTest {
       .run {
         ResourceExplorerFixture.find(robot())
           .clickAddButton()
-        openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
+        openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, "Vector Asset")
           .switchToClipArt()
           .chooseIcon()
           .filterByNameAndSelect("flash on")
@@ -187,6 +188,7 @@ class QrScanningCujTest {
           .setName("ic_baseline_flash_on_24")
           .setColor("FFFFFF")
           .clickNext()
+          .selectResFolder("main")
           .clickFinish()
       }.closeResourceManager()
 
@@ -207,7 +209,7 @@ class QrScanningCujTest {
         clickPath(MouseButton.RIGHT_BUTTON, "VotingApp", "qrcodelib")
           .invokeMenuPath("Cut")
         clickPath(MouseButton.RIGHT_BUTTON, "VotingApp", "app", "src", "main", "java")
-          .openFromContextualMenu({ MoveFilesOrDirectoriesDialogFixture.find(it.robot()) }, arrayOf("Paste"))
+          .openFromContextualMenu({ MoveFilesOrDirectoriesDialogFixture.find(it.robot()) }, "Paste")
           .clickOk()
       }
 
@@ -215,7 +217,7 @@ class QrScanningCujTest {
     ide.projectView
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout Resource File"))
+      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, "New", "Layout Resource File")
       .setFilename("barcode_capture")
       .setRootElement("FrameLayout")
       .clickOk()

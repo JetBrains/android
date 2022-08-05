@@ -17,25 +17,28 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.StringResourceUnescaper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.tools.idea.rendering.Locale;
+import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
+import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.res.DynamicValueResourceItem;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.PsiResourceItem;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,24 +51,24 @@ public final class StringResource {
   private final StringResourceKey myKey;
 
   @NotNull
-  private final String myResourceFolder;
+  private final StringResourceData myData;
 
   private boolean myTranslatable;
 
-  @NotNull
+  @Nullable
   private ResourceItemEntry myDefaultValue;
 
   @NotNull
   private final Map<Locale, ResourceItemEntry> myLocaleToTranslationMap;
 
-  @NotNull
-  private final StringResourceData myData;
+  private final StringResourceWriter myStringResourceWriter = StringResourceWriter.INSTANCE;
 
   public StringResource(@NotNull StringResourceKey key, @NotNull StringResourceData data) {
-    Project project = data.getProject();
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    myKey = key;
+    myData = data;
     boolean translatable = true;
-    ResourceItemEntry defaultValue = new ResourceItemEntry();
-    StringResourceUnescaper unescaper = data.getUnescaper();
+    @Nullable ResourceItemEntry defaultValue = null;
     Map<Locale, ResourceItemEntry> localeToTranslationMap = new HashMap<>();
 
     for (ResourceItem item : data.getRepository().getItems(key)) {
@@ -73,7 +76,7 @@ public final class StringResource {
         Logger.getInstance(StringResource.class).warn(item + " has an unexpected class " + item.getClass().getName());
       }
 
-      XmlTag tag = IdeResourcesUtil.getItemTag(project, item);
+      XmlTag tag = IdeResourcesUtil.getItemTag(data.getProject(), item);
 
       if (tag != null && "false".equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
         translatable = false;
@@ -81,54 +84,48 @@ public final class StringResource {
 
       LocaleQualifier qualifier = item.getConfiguration().getLocaleQualifier();
 
+      String tagText = getTextOfTag(tag);
       if (qualifier == null) {
-        defaultValue = new ResourceItemEntry(item, unescaper);
+        defaultValue = new ResourceItemEntry(item, tagText);
       }
       else {
-        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, unescaper));
+        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, tagText));
       }
     }
-
-    myKey = key;
-
-    VirtualFile folder = key.getDirectory();
-    myResourceFolder = folder == null ? "" : VirtualFiles.toString(folder, project);
 
     myTranslatable = translatable;
     myDefaultValue = defaultValue;
     myLocaleToTranslationMap = localeToTranslationMap;
-    myData = data;
   }
 
   @NotNull
-  StringResourceKey getKey() {
-    return myKey;
-  }
-
-  @NotNull
-  public String getResourceFolder() {
-    return myResourceFolder;
+  String getTagText(@Nullable Locale locale) {
+    @Nullable ResourceItemEntry resourceItemEntry = myDefaultValue;
+    if (locale != null) {
+      resourceItemEntry = myLocaleToTranslationMap.get(locale);
+    }
+    return resourceItemEntry == null ? "" : resourceItemEntry.myTagText;
   }
 
   @Nullable
   ResourceItem getDefaultValueAsResourceItem() {
-    return myDefaultValue.myResourceItem;
+    return myDefaultValue == null ? null : myDefaultValue.myResourceItem;
   }
 
   @NotNull
   public String getDefaultValueAsString() {
-    return myDefaultValue.myString;
+    return myDefaultValue == null ? "" : myDefaultValue.myString;
   }
 
   public @NotNull ListenableFuture<@NotNull Boolean> setDefaultValue(@NotNull String defaultValue) {
-    if (myDefaultValue.myResourceItem == null) {
+    if (myDefaultValue == null) {
       ListenableFuture<ResourceItem> futureItem = createDefaultValue(defaultValue);
       return Futures.transform(futureItem, item -> {
         if (item == null) {
           return false;
         }
 
-        myDefaultValue = new ResourceItemEntry(item, myData.getUnescaper());
+        myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myData.getProject(), item)));
         return true;
       }, SameThreadExecutor.INSTANCE);
     }
@@ -137,21 +134,21 @@ public final class StringResource {
       return Futures.immediateFuture(false);
     }
 
-    boolean changed = StringsWriteUtils.setItemText(myData.getProject(), myDefaultValue.myResourceItem, defaultValue);
+    boolean changed = myStringResourceWriter.setItemText(myData.getProject(), myDefaultValue.myResourceItem, defaultValue);
 
     if (!changed) {
       return Futures.immediateFuture(false);
     }
 
     if (defaultValue.isEmpty()) {
-      myDefaultValue = new ResourceItemEntry();
+      myDefaultValue = null;
       return Futures.immediateFuture(true);
     }
 
     ResourceItem item = myData.getRepository().getDefaultValue(myKey);
     assert item != null;
 
-    myDefaultValue = new ResourceItemEntry(item, myData.getUnescaper());
+    myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myData.getProject(), item)));
     return Futures.immediateFuture(true);
   }
 
@@ -161,13 +158,8 @@ public final class StringResource {
     }
 
     Project project = myData.getProject();
-    XmlFile file = StringPsiUtils.getDefaultStringResourceFile(project, myKey);
 
-    if (file == null) {
-      return Futures.immediateFuture(null);
-    }
-
-    WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(file, myKey, myTranslatable, value));
+    StringResourceWriter.INSTANCE.add(project, myKey, value, myTranslatable);
 
     SettableFuture<ResourceItem> futureItem = SettableFuture.create();
     StringResourceRepository stringRepository = myData.getRepository();
@@ -177,7 +169,7 @@ public final class StringResource {
 
   @Nullable
   public String validateDefaultValue() {
-    if (myDefaultValue.myResourceItem == null) {
+    if (myDefaultValue == null) {
       return "Key \"" + myKey.getName() + "\" is missing its default value";
     }
 
@@ -210,12 +202,28 @@ public final class StringResource {
 
   public @NotNull ListenableFuture<@NotNull Boolean> putTranslation(@NotNull final Locale locale, @NotNull String translation) {
     if (getTranslationAsResourceItem(locale) == null) {
-      return Futures.transform(createTranslation(locale, translation), item -> {
+      List<StringResourceKey> keys = myData.getKeys();
+      int index = keys.indexOf(myKey);
+      StringResourceKey anchor = null;
+      if (index != -1) {
+        // This translation exists in default translation. Find the anchor
+        while (++index < keys.size()) {
+          StringResourceKey next = keys.get(index);
+          // Check if this resource exist in the given Locale file.
+          if (myData.getStringResource(next).getTranslationAsResourceItem(locale) != null) {
+            anchor = next;
+            break;
+          }
+        }
+      }
+
+      return Futures.transform(createTranslationBefore(locale, translation, anchor), item -> {
         if (item == null) {
           return false;
         }
 
-        myLocaleToTranslationMap.put(locale, new ResourceItemEntry(item, myData.getUnescaper()));
+        myLocaleToTranslationMap
+          .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myData.getProject(), item))));
         return true;
       }, SameThreadExecutor.INSTANCE);
     }
@@ -227,7 +235,7 @@ public final class StringResource {
     ResourceItem item = getTranslationAsResourceItem(locale);
     assert item != null;
 
-    boolean changed = StringsWriteUtils.setItemText(myData.getProject(), item, translation);
+    boolean changed = myStringResourceWriter.setItemText(myData.getProject(), item, translation);
 
     if (!changed) {
       return Futures.immediateFuture(false);
@@ -241,27 +249,39 @@ public final class StringResource {
     item = myData.getRepository().getTranslation(myKey, locale);
     assert item != null;
 
-    myLocaleToTranslationMap.put(locale, new ResourceItemEntry(item, myData.getUnescaper()));
+    myLocaleToTranslationMap
+      .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myData.getProject(), item))));
     return Futures.immediateFuture(true);
   }
 
-  private @NotNull ListenableFuture<@Nullable ResourceItem> createTranslation(@NotNull Locale locale, @NotNull String value) {
+  private @NotNull ListenableFuture<@Nullable ResourceItem> createTranslationBefore(@NotNull Locale locale, @NotNull String value,
+                                                                                    @Nullable StringResourceKey anchor) {
     if (value.isEmpty()) {
       return Futures.immediateFuture(null);
     }
 
     Project project = myData.getProject();
-    XmlFile file = myData.getDefaultLocaleXml(locale);
+    // If there is only one file that all translations of string resources are in, get that file.
+    @Nullable XmlFile file = myData.getDefaultLocaleXml(locale);
 
     if (file == null) {
-      file = StringPsiUtils.getStringResourceFile(project, myKey, locale);
-      if (file == null) {
-        return Futures.immediateFuture(null);
+      // Put in the standard place, i.e. values-XX/strings.xml, creating if necessary.
+      if (anchor == null) {
+        StringResourceWriter.INSTANCE.add(project, myKey, value, locale);
+      }
+      else {
+        StringResourceWriter.INSTANCE.add(project, myKey, value, locale, anchor);
       }
     }
-
-    XmlFile finalFile = file;
-    WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(finalFile, myKey, myTranslatable, value));
+    else {
+      // Put in the one-file-to-rule-them-all found above.
+      if (anchor == null) {
+        StringResourceWriter.INSTANCE.add(project, myKey, value, file);
+      }
+      else {
+        StringResourceWriter.INSTANCE.add(project, myKey, value, file, anchor);
+      }
+    }
 
     SettableFuture<ResourceItem> futureItem = SettableFuture.create();
     StringResourceRepository stringRepository = myData.getRepository();
@@ -311,23 +331,25 @@ public final class StringResource {
     return item == null || item.myString.isEmpty();
   }
 
+  private static @NotNull String getTextOfTag(@Nullable XmlTag tag) {
+    return tag == null ? "" : tag.getText();
+  }
+
   private static final class ResourceItemEntry {
-    @Nullable
+    @NotNull
     private final ResourceItem myResourceItem;
+
+    @NotNull
+    private final String myTagText;
 
     @NotNull
     private final String myString;
 
     private final boolean myStringValid;
 
-    private ResourceItemEntry() {
-      myResourceItem = null;
-      myString = "";
-      myStringValid = true;
-    }
-
-    private ResourceItemEntry(@NotNull ResourceItem resourceItem, @NotNull StringResourceUnescaper unescaper) {
+    private ResourceItemEntry(@NotNull ResourceItem resourceItem, @NotNull String tagText) {
       myResourceItem = resourceItem;
+      myTagText = tagText;
       ResourceValue value = resourceItem.getResourceValue();
 
       if (value == null) {
@@ -340,11 +362,10 @@ public final class StringResource {
       String string = value.getRawXmlValue();
       assert string != null;
 
-      boolean stringValid;
+      boolean stringValid = true;
 
       try {
-        string = unescaper.unescapeCharacterData(string);
-        stringValid = true;
+        string = CharacterDataEscaper.unescape(string);
       }
       catch (IllegalArgumentException exception) {
         stringValid = false;

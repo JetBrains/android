@@ -106,7 +106,7 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
 
   public void waitTabExist(@NotNull String displayName) {
     ComponentMatcher matcher = Matchers.byText(BaseLabel.class, displayName);
-    GuiTests.waitUntilShowing(myRobot, getToolWindowInternalDecorator(), new GenericTypeMatcher<>(BaseLabel.class) {
+    GuiTests.waitUntilShowing(myRobot, getToolWindowInternalDecorator(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
       @Override
       protected boolean isMatching(@NotNull BaseLabel component) {
         return matcher.matches(component);
@@ -116,7 +116,7 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
 
   public void waitTabNotExist(@NotNull String displayName) {
     ComponentMatcher matcher = Matchers.byText(BaseLabel.class, displayName);
-    GuiTests.waitUntilGone(myRobot, getToolWindowInternalDecorator(), new GenericTypeMatcher<>(BaseLabel.class) {
+    GuiTests.waitUntilGone(myRobot, getToolWindowInternalDecorator(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
       @Override
       protected boolean isMatching(@NotNull BaseLabel component) {
         return matcher.matches(component);

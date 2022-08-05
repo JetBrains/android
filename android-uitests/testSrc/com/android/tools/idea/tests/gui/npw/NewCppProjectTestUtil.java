@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.npw;
 
 import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -24,11 +25,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
+import org.jetbrains.annotations.Nullable;
 
 public class NewCppProjectTestUtil {
 
@@ -41,16 +45,11 @@ public class NewCppProjectTestUtil {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    String gradleCppFlags = ideFrame.getEditor()
-                                    .open("app/build.gradle")
-                                    .moveBetween("cppFlags '", "")
-                                    .getCurrentLine();
-
-    String cppFlags = toolChain == CppStandardType.DEFAULT ? "" : toolChain.getCompilerFlag();
-    Assert.assertEquals(String.format("cppFlags '%s'", cppFlags), gradleCppFlags.trim());
+    assertEquals(toolChain.getCompilerFlag(), getCppFlags(ideFrame));
 
     guiTest.waitForBackgroundTasks();
     runAppOnEmulator(ideFrame);
+    ideFrame.stopApp();
   }
 
   protected static void createCppProject(CppStandardType toolChain, GuiTestRule guiTest) {
@@ -80,6 +79,22 @@ public class NewCppProjectTestUtil {
     String mainActivityText = guiTest.getProjectFileText("app/src/main/java/com/example/myapplication/MainActivity.java");
     assertThat(mainActivityText).contains("System.loadLibrary(\"myapplication\")");
     assertThat(mainActivityText).contains("public native String stringFromJNI()");
+  }
+
+  private static @Nullable String getCppFlags(@NotNull IdeFrameFixture frame) {
+    String contents = frame.getEditor()
+      .open("app/build.gradle")
+      .getCurrentFileContents();
+
+    Pattern cppFlags = Pattern.compile(" *cppFlags '(.*)'");
+
+    Optional<String> flags = Arrays.stream(contents.split("\\R"))
+      .map(cppFlags::matcher)
+      .filter(Matcher::matches)
+      .map(matcher -> matcher.group(1))
+      .findFirst();
+
+    return flags.orElse(null);
   }
 
   protected static void runAppOnEmulator(@NotNull IdeFrameFixture ideFrame) {

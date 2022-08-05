@@ -16,5 +16,5 @@
 package com.android.tools.idea.gradle.model
 
 enum class CodeShrinker {
-    PROGUARD, R8
+  PROGUARD, R8
 }

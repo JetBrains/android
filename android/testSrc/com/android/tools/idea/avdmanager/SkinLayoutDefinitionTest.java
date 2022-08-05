@@ -53,6 +53,10 @@ public class SkinLayoutDefinitionTest {
         "        }\n" +
         "\n" +
         "        part3 {\n" +
+        "            # the framework _always_ assume that the DPad\n" +
+        "            # has been physically rotated in landscape mode.\n" +
+        "            # however, with this skin, this is not the case\n" +
+        "            #\n" +
         "            name     controls\n" +
         "            x        0\n" +
         "            y        0\n" +

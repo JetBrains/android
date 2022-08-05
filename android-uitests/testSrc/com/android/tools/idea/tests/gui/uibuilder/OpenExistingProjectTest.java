@@ -66,7 +66,7 @@ public class OpenExistingProjectTest {
 
     //ideFrame.getEditor().open("app/src/main/java/com/android/test/app/MainActivity.java");
     ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
-      .clickOk();
+      .clickButton("Analyze");
     List<String> errors = ideFrame.getEditor().getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(0);
 

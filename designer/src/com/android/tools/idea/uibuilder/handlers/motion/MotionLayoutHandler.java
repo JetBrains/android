@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
 import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_TRANSITION_SHOW_PATHS;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
 import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
 import static com.android.SdkConstants.SHERPA_URI;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.InsertType;
@@ -35,19 +34,14 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
-import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory;
-import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
@@ -93,16 +87,6 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   public List<String> getInspectorProperties() {
     return ImmutableList.of(ATTR_TRANSITION_SHOW_PATHS);
   }
-
-  @Nullable
-  private static ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    if (!StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.get() || !SdkConstants.MOTION_LAYOUT.isEquals(component.getTagName())) {
-      return null;
-    }
-
-    return (context) -> new MotionLayoutAssistantPanel(surface, context.getComponent());
-  }
-
 
   @NotNull
   @Override
@@ -180,16 +164,13 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     return ImmutableList.of(new MotionLayoutPlaceholder(component));
   }
 
   @Override
   public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
     CommonActions.getPopupMenuActions(component, actions);
-
-    actions
-      .add(new ComponentAssistantViewAction((nlComponent) -> getComponentAssistant(component.getScene().getDesignSurface(), nlComponent)));
 
     return false;
   }
@@ -206,7 +187,7 @@ public class MotionLayoutHandler extends ViewGroupHandler {
 
   @Override
   @NotNull
-  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface surface,
+  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface<?> surface,
                                                       @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility panelVisibility) {
@@ -260,12 +241,11 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent layout,
+  public void onChildInserted(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
     newChild.ensureId();
-    super.onChildInserted(editor, layout, newChild, insertType);
+    super.onChildInserted(layout, newChild, insertType);
   }
 
   @Override

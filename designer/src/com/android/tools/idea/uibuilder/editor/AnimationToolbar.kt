@@ -75,7 +75,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   private val myPauseButton: JButton
   private val myStopButton: JButton
 
-  // TODO: Add speed selector button.
+  private var playStatus: PlayStatus
   private val myTickStepMs: Long
   private val myMinTimeMs: Long
   protected val controlBar: JPanel
@@ -154,9 +154,10 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   }
 
   /**
-   * Set the visibilities of all the toolbar controls
+   * Set the visibility of play and pause buttons. Note that this doesn't affect the enabled states of them.
+   * @see setEnabledState
    */
-  protected fun setPlayButtonStatus(playing: Boolean) {
+  protected fun setVisibilityOfPlayAndPauseButtons(playing: Boolean) {
     myPlayButton.isVisible = !playing
     myPauseButton.isVisible = playing
   }
@@ -235,6 +236,8 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   private fun onTick(elapsed: Long) {
     setFrameMs(myFramePositionMs + elapsed)
   }
+
+  final override fun getPlayStatus(): PlayStatus = playStatus
 
   final override fun getFrameMs(): Long = myFramePositionMs
 
@@ -351,6 +354,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         val newPositionMs = ((myMaxTimeMs - myMinTimeMs) * (sliderValue / 100f)).toLong()
         myStopButton.isEnabled = sliderValue != 0
         seek(newPositionMs)
+        myTimeSlider!!.repaint()
       }
       myTimeSlider = object : JSlider(0, 100, 0) {
         override fun updateUI() {
@@ -395,27 +399,29 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
       }
     })
     stop()
+    playStatus = PlayStatus.STOP
     registerAnimationControllerListener(MyControllerListener())
   }
 
   private inner class MyControllerListener: AnimationControllerListener {
     override fun onPlayStatusChanged(newStatus: PlayStatus) {
+      playStatus = newStatus
       when (newStatus) {
         PlayStatus.PLAY -> {
           setEnabledState(play = false, pause = true, stop = true, frame = false, speed = true)
-          setPlayButtonStatus(true)
+          setVisibilityOfPlayAndPauseButtons(playing = true)
         }
         PlayStatus.PAUSE -> {
           setEnabledState(play = true, pause = false, stop = true, frame = true, speed = true)
-          setPlayButtonStatus(false)
+          setVisibilityOfPlayAndPauseButtons(playing = false)
         }
         PlayStatus.STOP -> {
           setEnabledState(play = true, pause = false, stop = false, frame = false, speed = true)
-          setPlayButtonStatus(false)
+          setVisibilityOfPlayAndPauseButtons(playing = false)
         }
         PlayStatus.COMPLETE -> {
           setEnabledState(play = false, pause = false, stop = true, frame = true, speed = true)
-          setPlayButtonStatus(true)
+          setVisibilityOfPlayAndPauseButtons(playing = true)
         }
       }
     }

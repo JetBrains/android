@@ -19,6 +19,6 @@ import com.android.tools.idea.gradle.model.IdeFilterData
 import java.io.Serializable
 
 data class IdeFilterDataImpl(
-    override val identifier: String,
-    override val filterType: String
+  override val identifier: String,
+  override val filterType: String
 ) : IdeFilterData, Serializable

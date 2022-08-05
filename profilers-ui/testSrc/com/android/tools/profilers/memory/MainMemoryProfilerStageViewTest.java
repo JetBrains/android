@@ -71,6 +71,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.ApplicationRule;
 import icons.StudioIcons;
 import java.awt.Component;
 import java.awt.geom.Rectangle2D;
@@ -78,7 +79,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -104,6 +104,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, myService, new FakeProfilerService(myTimer),
                         new FakeCpuService(), new FakeEventService(), new FakeNetworkService.Builder().build());
+  @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
+
   private StudioProfilersView myProfilersView;
 
   @Override
@@ -325,7 +327,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
 
   @Test
-  public void testCaptureElapsedTime() {
+  public void testLegacyCaptureElapsedTime() {
     final int startTime = 1;
     final int endTime = 5;
     long deltaUs = TimeUnit.SECONDS.toMicros(endTime - startTime);
@@ -446,7 +448,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     // The '.' in the file name from the following line is useful to test we can handle file names with
     // multiple dots correctly.
     File file = FileUtil.createTempFile("fake.heap.dump", ".hprof", false);
-    PrintWriter printWriter = new PrintWriter(file, StandardCharsets.UTF_8);
+    PrintWriter printWriter = new PrintWriter(file);
     printWriter.write(data);
     printWriter.close();
 
@@ -479,7 +481,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
           // Create a temp file
           String data = "random_string_~!@#$%^&*()_+";
           File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
-          PrintWriter printWriter = new PrintWriter(file, StandardCharsets.UTF_8);
+          PrintWriter printWriter = new PrintWriter(file);
           printWriter.write(data);
           printWriter.close();
           // Import heap dump from file
@@ -522,7 +524,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
           // Create a temp file
           String data = "random_string_~!@#$%^&*()_+";
           File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
-          PrintWriter printWriter = new PrintWriter(file, StandardCharsets.UTF_8);
+          PrintWriter printWriter = new PrintWriter(file);
           printWriter.write(data);
           printWriter.close();
           // Import heap dump from file
@@ -763,15 +765,27 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
       device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 10, Memory.MemoryGcData.newBuilder()
         .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
 
+    // Start live allocation tracking
+    Memory.AllocationsInfo.Builder info = Memory.AllocationsInfo.newBuilder().setStartTime(1).setSuccess(true).setLegacy(false);
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData
+        .generateMemoryAllocationInfoData(1, process.getPid(), info.setEndTime(Long.MAX_VALUE).build()).setIsEnded(false).build());
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
         .generateMemoryAllocSamplingData(process.getPid(), 1, MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());
+    // Change allocation tracking sampling mode
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
         .generateMemoryAllocSamplingData(process.getPid(), 5, MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build());
+    // Generate stop live allocation tracking
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
-        .generateMemoryAllocSamplingData(process.getPid(), 8, MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build());
+        .generateMemoryAllocationInfoData(1, process.getPid(), info.setEndTime(8).build()).setIsEnded(true).build());
+    // Restart  live allocation tracking
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData
+        .generateMemoryAllocationInfoData(10, process.getPid(),
+                                          info.setStartTime(10).setEndTime(Long.MAX_VALUE).build()).setIsEnded(false).build());
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
         .generateMemoryAllocSamplingData(process.getPid(), 10, MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());

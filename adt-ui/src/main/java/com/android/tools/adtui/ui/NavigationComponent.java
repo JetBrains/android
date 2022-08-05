@@ -53,8 +53,8 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
     void itemSelected(@NotNull T item);
   }
 
-  private final ArrayList<ItemListener<T>> myItemListeners = new ArrayList<>();
-  private final LinkedList<T> myItemStack = new LinkedList<>();
+  private final ArrayList<ItemListener<T>> myItemListeners = new ArrayList<ItemListener<T>>();
+  private final LinkedList<T> myItemStack = new LinkedList<T>();
   private boolean hasRootItem = false;
 
   public NavigationComponent() {

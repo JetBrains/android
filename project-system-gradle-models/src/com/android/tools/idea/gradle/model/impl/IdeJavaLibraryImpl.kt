@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.google.common.annotations.VisibleForTesting
 import java.io.File
 import java.io.Serializable
 
@@ -24,35 +23,17 @@ import java.io.Serializable
  * The implementation of IdeLibrary for Java libraries.
  **/
 data class IdeJavaLibraryImpl(
-  val core: IdeJavaLibraryCore,
-  override val name: String,
-  override val isProvided: Boolean
-) : IdeJavaLibrary by core, Serializable {
-  @VisibleForTesting
-  constructor(
-    artifactAddress: String,
-    name: String,
-    artifact: File,
-    isProvided: Boolean
-  ) : this(IdeJavaLibraryCore(artifactAddress, artifact), name, isProvided)
-}
-
-data class IdeJavaLibraryCore(
   override val artifactAddress: String,
+  override val name: String,
   override val artifact: File
 ) : IdeJavaLibrary, Serializable {
   // Used for serialization by the IDE.
   internal constructor() : this(
     artifactAddress = "",
+    name = "",
     artifact = File("")
   )
 
-  override val lintJar: String?
+  override val lintJar: File?
     get() = null
-
-  override val name: String
-    get() = ""
-
-  override val isProvided: Nothing
-    get() = error("abstract")
 }

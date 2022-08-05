@@ -25,27 +25,34 @@ COMMON_DATA = [
 
 COMMON_MAVEN_DEPS = [
     ":test_deps",
-    "//tools/base/build-system:studio_repo",
     "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     "//tools/base/third_party/kotlin:kotlin-m2repository",
-    "//tools/data-binding:data_binding_runtime.zip",
 ]
 
+AGP_3_1_4 = "3.1.4"
 AGP_3_3_2 = "3.3.2"
 AGP_3_5 = "3.5.0"
 AGP_4_0 = "4.0.0"
 AGP_4_1 = "4.1.0"
 AGP_4_2 = "4.2.0"
+AGP_7_0 = "7.0.0"
+AGP_7_1 = "7.1.0"
+AGP_7_2 = "7.2.0"
 
 AGP_MAVEN_REPOS = {
+    AGP_3_1_4: ["//tools/base/build-system/previous-versions:3.1.4"],
     AGP_3_3_2: ["//tools/base/build-system/previous-versions:3.3.2"],
     AGP_3_5: ["//tools/base/build-system/previous-versions:3.5.0"],
     AGP_4_0: ["//tools/base/build-system/previous-versions:4.0.0"],
     AGP_4_1: ["//tools/base/build-system/previous-versions:4.1.0"],
     AGP_4_2: ["//tools/base/build-system/previous-versions:4.2.0"],
+    AGP_7_0: ["//tools/base/build-system/previous-versions:7.0.0"],
+    AGP_7_1: ["//tools/base/build-system/previous-versions:7.1.0"],
+    AGP_7_2: ["//tools/base/build-system/previous-versions:7.2.0"],
 }
 
 AGP_DATA = {
+    AGP_3_1_4: ["//prebuilts/studio/sdk:build-tools/28.0.3"],
     AGP_3_3_2: ["//prebuilts/studio/sdk:build-tools/28.0.3"],
     AGP_3_5: [
         "//prebuilts/studio/sdk:build-tools/28.0.3",
@@ -54,15 +61,26 @@ AGP_DATA = {
     AGP_4_0: ["//prebuilts/studio/sdk:build-tools/29.0.2"],
     AGP_4_1: ["//prebuilts/studio/sdk:build-tools/29.0.2"],
     AGP_4_2: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
+    AGP_7_0: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
+    AGP_7_1: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
+    AGP_7_2: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
 }
 
 GRADLE_LATEST = "LATEST"
+GRADLE_7_3_3 = "7.3.3"
+GRADLE_7_2 = "7.2"
+GRADLE_7_0_2 = "7.0.2"
+GRADLE_6_7_1 = "6.7.1"
 GRADLE_6_5 = "6.5"
 GRADLE_5_5 = "5.5"
 GRADLE_5_3_1 = "5.3.1"
 
 GRADLE_DISTRIBUTIONS = {
     GRADLE_LATEST: ["//tools/base/build-system:gradle-distrib"],
+    GRADLE_7_3_3: ["//tools/base/build-system:gradle-distrib-7.3.3"],
+    GRADLE_7_2: ["//tools/base/build-system:gradle-distrib-7.2"],
+    GRADLE_7_0_2: ["//tools/base/build-system:gradle-distrib-7.0.2"],
+    GRADLE_6_7_1: ["//tools/base/build-system:gradle-distrib-6.7.1"],
     GRADLE_6_5: ["//tools/base/build-system:gradle-distrib-6.5"],
     GRADLE_5_5: ["//tools/base/build-system:gradle-distrib-5.5"],
     GRADLE_5_3_1: ["//tools/base/build-system:gradle-distrib-5.3.1"],
@@ -81,5 +99,6 @@ def local_old_agp_test(
         maven_deps = COMMON_MAVEN_DEPS + AGP_MAVEN_REPOS[agp_version],
         test_class = "com.android.tools.idea.OldAgpTests",
         timeout = "long",
+        ignore_other_tests = False,
         **kwargs
     )

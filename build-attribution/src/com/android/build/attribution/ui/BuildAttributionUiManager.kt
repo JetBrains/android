@@ -16,10 +16,12 @@
 package com.android.build.attribution.ui
 
 import com.android.annotations.concurrency.UiThread
+import com.android.build.attribution.BuildAnalyzerNotificationManager
 import com.android.build.attribution.BuildAttributionStateReporter
 import com.android.build.attribution.BuildAttributionStateReporterImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
@@ -37,6 +39,7 @@ import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
+import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -109,6 +112,8 @@ class BuildAttributionUiManagerImpl(
     uiSizeProvider = { buildAttributionView?.component?.size }
   )
 
+  private val notificationManager = BuildAnalyzerNotificationManager(project, uiAnalytics)
+
   private lateinit var reportUiData: BuildAttributionReportUiData
 
   init {
@@ -123,6 +128,8 @@ class BuildAttributionUiManagerImpl(
           }
         }
       })
+    ApplicationManager.getApplication().messageBus.connect(this)
+      .subscribe(LafManagerListener.TOPIC, LafManagerListener { reInitReportUI() })
   }
 
   override fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
@@ -131,6 +138,12 @@ class BuildAttributionUiManagerImpl(
       uiAnalytics.newReportSessionId(buildSessionId)
       updateReportUI()
       stateReporter.setStateDataExist()
+      notificationManager.showToolWindowBalloonIfNeeded(this.reportUiData) {
+        openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BALLOON_LINK)
+        (buildAttributionView as? NewViewComponentContainer)?.let {
+          it.model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+        }
+      }
     }
   }
 
@@ -164,6 +177,9 @@ class BuildAttributionUiManagerImpl(
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val jetifierData: JetifierUsageAnalyzerResult
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val downloadsData: DownloadsAnalyzer.Result
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+
     }
   }
 
@@ -182,6 +198,18 @@ class BuildAttributionUiManagerImpl(
     }
     if (reportUiData.shouldAutoOpenTab()) {
       openTab(BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
+    }
+  }
+
+  @UiThread
+  private fun reInitReportUI() {
+    val content = buildContent
+    if (content != null && content.isValid) {
+      buildAttributionView?.let { view ->
+        (view as? NewViewComponentContainer)?.reInitUi()
+        content.component.removeAll()
+        content.component.add(view.component, BorderLayout.CENTER)
+      }
     }
   }
 
@@ -260,11 +288,12 @@ class BuildAttributionUiManagerImpl(
 
   override fun dispose() = cleanUp()
 
-  private fun invokeLaterIfNotDisposed(runnable: () -> Unit) = ApplicationManager.getApplication().invokeLater(
-    runnable,
-    { project.isDisposed }
-  )
+  private fun invokeLaterIfNotDisposed(runnable: () -> Unit) = project.invokeLaterIfNotDisposed(runnable)
 }
+
+fun Project.invokeLaterIfNotDisposed(runnable: () -> Unit) = ApplicationManager.getApplication().invokeLater(
+  runnable
+) { this.isDisposed }
 
 private class NewViewComponentContainer(
   uiData: BuildAttributionReportUiData,
@@ -272,13 +301,16 @@ private class NewViewComponentContainer(
   issueReporter: TaskIssueReporter,
   uiAnalytics: BuildAttributionUiAnalytics
 ) : ComponentContainer {
-  val view: BuildAnalyzerComboBoxView
+  val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
+  private val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
+  private var view = createView()
 
-  init {
-    val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
-    val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
-    view = BuildAnalyzerComboBoxView(model, controller, this)
+  fun reInitUi() {
+    Disposer.dispose(view)
+    view = createView()
   }
+
+  private fun createView() = BuildAnalyzerComboBoxView(model, controller).also { view -> Disposer.register(this, view) }
 
   override fun getPreferredFocusableComponent(): JComponent = component
 

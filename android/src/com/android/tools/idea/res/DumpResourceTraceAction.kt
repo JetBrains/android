@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ex.ApplicationInfoEx
@@ -31,7 +30,7 @@ class DumpResourceTraceAction : AnAction("Dump Resource Trace"), DumbAware {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = StudioFlags.RESOURCE_REPOSITORY_TRACE_UPDATES.get() || ApplicationInfoEx.getInstanceEx().isEAP
+    event.presentation.isVisible = ApplicationInfoEx.getInstanceEx().isEAP
     event.presentation.isEnabled = ResourceUpdateTracer.isTracingActive()
   }
 }

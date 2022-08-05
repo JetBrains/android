@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model
 
-import com.android.SdkConstants.CLASS_APP_COMPAT_ACTIVITY
+import com.android.AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY
 import com.android.resources.Density
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
@@ -24,10 +24,10 @@ import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
-import org.jetbrains.android.dom.manifest.getPackageName
 
 /*
  * Layout editor-specific helper methods and data for NlModel
@@ -101,7 +101,7 @@ fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
       // Assume we are since this is how the default activities are created.
       return true
   if (activityClassName!!.startsWith(".")) {
-    val pkg = StringUtil.notNullize(getPackageName(facet))
+    val pkg = StringUtil.notNullize(facet.getModuleSystem().getPackageName())
     activityClassName = pkg + activityClassName
   }
   val facade = JavaPsiFacade.getInstance(project)

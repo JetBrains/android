@@ -29,6 +29,7 @@ import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.tools.idea.nav.safeargs.safeArgsMode
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.androidFacet
@@ -41,7 +42,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.PlatformIcons
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
@@ -86,8 +86,8 @@ class KtDescriptorCacheModuleService(val module: Module) {
       return emptyMap()
     }
 
-    val packageFqName = getPackageName(facet)?.let { packageName -> FqName(packageName) }
-                        ?: return emptyMap()
+    val packageFqName = facet.getModuleSystem().getPackageName()?.let { packageName -> FqName(packageName) }
+      ?: return emptyMap()
 
     val currVersion = facet.findNavigationVersion()
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
@@ -47,9 +48,9 @@ class CpuCaptureMinimapModelTest {
   @Test
   fun selectionRangeIsBoundByCaptureRange() {
     val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
-    Mockito.`when`(mockCapture.range).thenReturn(Range(1.0, 10.0))
-    Mockito.`when`(mockCapture.type).thenReturn(Cpu.CpuTraceType.ATRACE)
-    Mockito.`when`(mockCapture.timeline).thenReturn(DefaultTimeline())
+    whenever(mockCapture.range).thenReturn(Range(1.0, 10.0))
+    whenever(mockCapture.type).thenReturn(Cpu.CpuTraceType.ATRACE)
+    whenever(mockCapture.timeline).thenReturn(DefaultTimeline())
 
     val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())
     minimapModel.rangeSelectionModel.set(0.0, 15.0)
@@ -62,9 +63,9 @@ class CpuCaptureMinimapModelTest {
     val timeline = DefaultTimeline()
     timeline.viewRange.set(1.0,5.0)
     val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
-    Mockito.`when`(mockCapture.range).thenReturn(Range(1.0, 10.0))
-    Mockito.`when`(mockCapture.type).thenReturn(Cpu.CpuTraceType.PERFETTO)
-    Mockito.`when`(mockCapture.timeline).thenReturn(timeline)
+    whenever(mockCapture.range).thenReturn(Range(1.0, 10.0))
+    whenever(mockCapture.type).thenReturn(Cpu.CpuTraceType.PERFETTO)
+    whenever(mockCapture.timeline).thenReturn(timeline)
 
     val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())
     assertThat(minimapModel.rangeSelectionModel.selectionRange.min).isEqualTo(timeline.viewRange.min)

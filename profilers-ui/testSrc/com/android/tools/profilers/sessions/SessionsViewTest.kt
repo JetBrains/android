@@ -37,6 +37,7 @@ import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.cpu.CpuCaptureArtifactView
+import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.ProfilingTechnology
@@ -176,86 +177,7 @@ class SessionsViewTest {
   }
 
   @Test
-  fun testProcessDropdownUpToDate() {
-    myIdeProfilerServices.enableProfileable(false) // TODO remove test when flag stable
-    val device1 = Common.Device.newBuilder()
-      .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
-    val device2 = Common.Device.newBuilder()
-      .setDeviceId(2).setManufacturer("Manufacturer2").setModel("Model2").setState(Common.Device.State.ONLINE).build()
-    val process1 = debuggableProcess { pid = 10; deviceId = 1; name = "Process1" }
-    val otherProcess1 = debuggableProcess { pid = 20; deviceId = 1; name = "Other1" }
-    val otherProcess2 = debuggableProcess { pid = 30; deviceId = 2; name = "Other2" }
-    // Process* is preferred, Other* should be in the other processes flyout.
-    myProfilers.setPreferredProcess("Manufacturer1 Model1", "Process", null)
-
-    var selectionAction = mySessionsView.processSelectionAction
-    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
-    var loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
-    assertThat(loadAction.isEnabled).isTrue()
-    assertThat(loadAction.childrenActionCount).isEqualTo(0)
-    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
-    assertThat(selectionAction.childrenActions[2].text).isEqualTo(SessionsView.NO_SUPPORTED_DEVICES)
-    assertThat(selectionAction.childrenActions[2].isEnabled).isFalse()
-
-    myTransportService.addDevice(device1)
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
-    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
-    loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
-    assertThat(loadAction.isEnabled).isTrue()
-    assertThat(loadAction.childrenActionCount).isEqualTo(0)
-    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
-    assertThat(deviceAction1.isEnabled).isTrue()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
-    assertThat(deviceAction1.childrenActions[0].text).isEqualTo(SessionsView.NO_DEBUGGABLE_PROCESSES)
-    assertThat(deviceAction1.childrenActions[0].isEnabled).isFalse()
-
-    myTransportService.addProcess(device1, process1)
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    myProfilers.setProcess(device1, process1)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
-    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
-    assertThat(deviceAction1.isEnabled).isTrue()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
-    var processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
-    assertThat(processAction1.childrenActionCount).isEqualTo(0)
-
-    myTransportService.addProcess(device1, otherProcess1)
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
-    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
-    assertThat(deviceAction1.isEnabled).isTrue()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(3)  // process1 + separator + "other processes"
-    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
-    assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
-    var processAction2 = deviceAction1.childrenActions
-      .first { c -> c.text == "Other processes" }.childrenActions
-      .first { c -> c.text == "Other1 (20)" }
-
-    // Test the reverse case of having only "other" processes
-    myTransportService.addDevice(device2)
-    myTransportService.addProcess(device2, otherProcess2)
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(4)
-    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
-    assertThat(deviceAction1.isEnabled).isTrue()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(3)  // process1 + separator + "other processes"
-    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
-    assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
-    processAction2 = deviceAction1.childrenActions
-      .first { c -> c.text == "Other processes" }.childrenActions
-      .first { c -> c.text == "Other1 (20)" }
-    var deviceAction2 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
-    assertThat(deviceAction2.isEnabled).isTrue()
-    assertThat(deviceAction2.childrenActionCount).isEqualTo(1) // There should be no separator in this case.
-    var processAction3 = deviceAction2.childrenActions
-      .first { c -> c.text == "Other processes" }.childrenActions
-      .first { c -> c.text == "Other2 (30)" }
-  }
-
-  @Test
   fun testProcessDropdownUpToDateForProfileables() {
-    myIdeProfilerServices.enableProfileable(true)
     val device1 = Common.Device.newBuilder()
       .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
     val device2 = Common.Device.newBuilder()
@@ -671,11 +593,7 @@ class SessionsViewTest {
     ui.mouse.click(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
     // Move away again so we're not hovering
     ui.mouse.moveTo(-10, -10)
-    assertThat(myProfilers.stage).isInstanceOf(CpuProfilerStage::class.java) // Makes sure CPU profiler stage is now open
-    val selectedCapture = (myProfilers.stage as CpuProfilerStage).capture
-    // Makes sure that there is a capture selected and it's the one we clicked.
-    assertThat(selectedCapture).isNotNull()
-    assertThat(selectedCapture!!.traceId).isEqualTo(traceInfoId)
+    assertThat(myProfilers.stage).isInstanceOf(CpuCaptureStage::class.java) // Makes sure CPU capture stage is now open
     assertThat(myProfilers.timeline.isStreaming).isFalse()
 
     // Make sure clicking the export label does not select the session.
@@ -740,9 +658,6 @@ class SessionsViewTest {
     ui.layout()
     ui.mouse.click(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
     assertThat(myProfilers.stage).isInstanceOf(CpuProfilerStage::class.java) // Makes sure CPU profiler stage is now open
-    val selectedCapture = (myProfilers.stage as CpuProfilerStage).capture
-    // Makes sure that there is no capture selected, because the ongoing capture was not generated by a trace just yet.
-    assertThat(selectedCapture).isNull()
     assertThat(myProfilers.timeline.isStreaming).isTrue()
   }
 

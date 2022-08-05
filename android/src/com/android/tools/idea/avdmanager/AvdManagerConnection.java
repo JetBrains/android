@@ -16,6 +16,9 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
+import static com.android.SdkConstants.FD_EMULATOR;
+import static com.android.SdkConstants.FD_LIB;
+import static com.android.SdkConstants.FN_HARDWARE_INI;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FOLD_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE;
@@ -55,6 +58,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
@@ -65,7 +69,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
-import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.emulatorcommand.BootWithSnapshotEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorCommandBuilder;
@@ -144,6 +147,9 @@ public class AvdManagerConnection {
   private static final int MNC_API_LEVEL_23 = 23;
   private static final int LMP_MR1_API_LEVEL_22 = 22;
 
+  private static final String INTERNAL_STORAGE_KEY = AvdManager.AVD_INI_DATA_PARTITION_SIZE;
+  private static final String SD_CARD_STORAGE_KEY = AvdManager.AVD_INI_SDCARD_SIZE;
+
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
@@ -169,6 +175,9 @@ public class AvdManagerConnection {
 
   private static @NotNull BiFunction<@Nullable AndroidSdkHandler, @Nullable Path, @NotNull AvdManagerConnection> ourConnectionFactory =
     AvdManagerConnection::new;
+
+  // A map from hardware config name to its belonging hardware property.
+  private static @Nullable Map<String, HardwareProperties.HardwareProperty> ourHardwareProperties;
 
   @Nullable
   private final AndroidSdkHandler mySdkHandler;
@@ -289,13 +298,35 @@ public class AvdManagerConnection {
   @Nullable
   public String getSdCardSizeFromHardwareProperties() {
     assert mySdkHandler != null;
-    return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.SD_CARD_STORAGE_KEY, mySdkHandler);
+    return getHardwarePropertyDefaultValue(SD_CARD_STORAGE_KEY, mySdkHandler);
   }
 
   @Nullable
   public String getInternalStorageSizeFromHardwareProperties() {
     assert mySdkHandler != null;
-    return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.INTERNAL_STORAGE_KEY, mySdkHandler);
+    return getHardwarePropertyDefaultValue(INTERNAL_STORAGE_KEY, mySdkHandler);
+  }
+
+  /**
+   * Get the default value of hardware property from hardware-properties.ini.
+   *
+   * @param name the name of the requested hardware property
+   * @return the default value
+   */
+  @Nullable
+  private String getHardwarePropertyDefaultValue(@NotNull String name, @Nullable AndroidSdkHandler sdkHandler) {
+    if (ourHardwareProperties == null && sdkHandler != null) {
+      // get the list of possible hardware properties
+      // The file is in the emulator component
+      LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdManagerConnection.class));
+      if (emulatorPackage != null) {
+        Path hardwareDefs = emulatorPackage.getLocation().resolve(FD_LIB + File.separator + FN_HARDWARE_INI);
+        ourHardwareProperties = HardwareProperties.parseHardwareDefinitions(
+          new PathFileWrapper(hardwareDefs), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+      }
+    }
+    HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);
+    return (hwProp == null) ? null : hwProp.getDefault();
   }
 
   @Nullable
@@ -401,7 +432,7 @@ public class AvdManagerConnection {
     if (forceRefresh) {
       try {
         assert myAvdManager != null;
-        myAvdManager.reloadAvds(SDK_LOG);
+        myAvdManager.reloadAvds();
       }
       catch (AndroidLocationsException e) {
         IJ_LOG.error("Could not find Android SDK!", e);
@@ -433,23 +464,38 @@ public class AvdManagerConnection {
       return false;
     }
     assert myAvdManager != null;
-    return myAvdManager.deleteAvd(info, SDK_LOG);
+    return myAvdManager.deleteAvd(info);
   }
 
   @Slow
-  public boolean isAvdRunning(@NotNull AvdInfo info) {
+  public boolean isAvdRunning(@NotNull AvdInfo avd) {
+    if (!initIfNecessary()) {
+      return false;
+    }
+
     assert myAvdManager != null;
-    return myAvdManager.isAvdRunning(info, SDK_LOG);
+
+    Optional<Boolean> online = myAvdManager.getPid(avd).stream()
+      .mapToObj(ProcessHandle::of)
+      .flatMap(Optional::stream)
+      .map(ProcessHandle::isAlive)
+      .findFirst();
+
+    return online.orElseGet(() -> {
+      SDK_LOG.warning("Unable to determine if " + avd.getName() + " is online, assuming it's not");
+      return false;
+    });
   }
 
-  @NotNull ListenableFuture<@NotNull Boolean> isAvdRunning(@NotNull AvdInfoProvider provider) {
+  public @NotNull ListenableFuture<@NotNull Boolean> isAvdRunningAsync(@NotNull AvdInfo info) {
     ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
 
-    return service.submit(() -> {
-      AvdInfo device = provider.getAvdInfo();
-      assert device != null;
-      return isAvdRunning(device);
-    });
+    return service.submit(() -> isAvdRunning(info));
+  }
+
+  public final @NotNull ListenableFuture<@Nullable Void> stopAvdAsync(@NotNull AvdInfo avd) {
+    // noinspection UnstableApiUsage
+    return Futures.submit(() -> stopAvd(avd), AppExecutorUtil.getAppExecutorService());
   }
 
   @Slow
@@ -541,28 +587,20 @@ public class AvdManagerConnection {
     }
 
     avd = reloadAvd(avd); // Reload the AVD in case it was modified externally.
-    String avdName = avd.getName();
+    String avdName = avd.getDisplayName();
 
-    // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
-    // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
-    // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
-    // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
+    // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux
+    //       and userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so,
+    //       delete them without showing this error. Either the emulator provides a command to do that, or we learn
+    //       about its internals (qemu/android/utils/filelock.c) and perform the same action here. If it is not stale,
+    //       then we should show this error and if possible, bring that window to the front.
     assert myAvdManager != null;
-    if (myAvdManager.isAvdRunning(avd, SDK_LOG)) {
-      myAvdManager.logRunningAvdInfo(avd, SDK_LOG);
-      String baseFolder;
-      try {
-        baseFolder = myAvdManager.getBaseAvdFolder().toAbsolutePath().toString();
-      }
-      catch (Throwable e) {
-        baseFolder = "$HOME";
-      }
-
-      String message = String.format("AVD %1$s is already running.\n" +
-                                     "If that is not the case, delete the files at\n" +
-                                     "   %2$s/%1$s.avd/*.lock\n" +
-                                     "and try again.", avdName, baseFolder);
-
+    if (myAvdManager.isAvdRunning(avd)) {
+      myAvdManager.logRunningAvdInfo(avd);
+      String message = String.format("AVD \"%1$s\" is already running.\n" +
+                                     "If that is not the case, delete\n" +
+                                     "%2$s and try again.",
+                                     avdName, avd.getDataFolderPath().resolve("*.lock"));
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
@@ -575,10 +613,10 @@ public class AvdManagerConnection {
     }
     catch (ExecutionException e) {
       IJ_LOG.error("Error launching emulator", e);
-      return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s ", avdName), e));
+      return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s", avdName), e));
     }
 
-    // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
+    // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise, show it.
     ProgressWindow p = hasQEMU2Installed()
                        ? new BackgroundableProcessIndicator(project, "Launching emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
                                                             "", "", false)
@@ -587,7 +625,7 @@ public class AvdManagerConnection {
     p.setDelayInMillis(0);
 
     // It takes >= 8 seconds to start the Emulator. Display a small progress indicator otherwise it seems like
-    // the action wasn't invoked and users tend to click multiple times on it, ending up with several instances of the emulator
+    // the action wasn't invoked and users tend to click multiple times on it, ending up with several instances of the emulator.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       try {
         p.start();
@@ -652,7 +690,7 @@ public class AvdManagerConnection {
    */
   public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
     if (mySdkHandler == null) return false; // Don't know, so guess
-    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
+    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
     LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, log);
     if (sdkPackage == null) {
       return false;
@@ -770,7 +808,7 @@ public class AvdManagerConnection {
                                                             @NotNull AvdInfo info,
                                                             @NotNull AccelerationErrorCode code) {
     if (code.getSolution().equals(SolutionCode.NONE)) {
-      return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
+      return Futures.immediateFailedFuture(new RuntimeException(code.getProblem() + "\n\n" + code.getSolutionMessage() + '\n'));
     }
 
     // noinspection ConstantConditions, UnstableApiUsage
@@ -915,7 +953,7 @@ public class AvdManagerConnection {
       File skin = getRoundSkin(systemImageDescription);
       skinFolder = skin == null ? null : mySdkHandler.toCompatiblePath(skin);
     }
-    if (skinFolder != null && FileUtil.filesEqual(FileOpUtils.toFile(skinFolder), AvdWizardUtils.NO_SKIN)) {
+    if (skinFolder != null && skinFolder.toString().equals(SkinUtils.NO_SKIN)) {
       skinFolder = null;
     }
     if (skinFolder == null) {
@@ -980,7 +1018,7 @@ public class AvdManagerConnection {
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       assert myAvdManager != null;
-      boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
+      boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath());
       if (!success) {
         return null;
       }
@@ -997,8 +1035,7 @@ public class AvdManagerConnection {
                                   device.getBootProps(),
                                   device.hasPlayStore(),
                                   false,
-                                  removePrevious,
-                                  SDK_LOG);
+                                  removePrevious);
   }
 
   @Nullable
@@ -1041,7 +1078,7 @@ public class AvdManagerConnection {
     return findAvd(candidate) != null;
   }
 
-  static boolean isAvdRepairable(@NotNull AvdInfo.AvdStatus avdStatus) {
+  public static boolean isAvdRepairable(@NotNull AvdInfo.AvdStatus avdStatus) {
     return avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_DIR
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING
@@ -1070,7 +1107,7 @@ public class AvdManagerConnection {
   @NotNull
   private AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) {
     assert myAvdManager != null;
-    return myAvdManager.reloadAvd(avdInfo, SDK_LOG);
+    return myAvdManager.reloadAvd(avdInfo);
   }
 
   @Nullable
@@ -1086,7 +1123,7 @@ public class AvdManagerConnection {
     if (initIfNecessary()) {
       try {
         assert myAvdManager != null;
-        myAvdManager.updateDeviceChanged(avdInfo, SDK_LOG);
+        myAvdManager.updateDeviceChanged(avdInfo);
       }
       catch (IOException e) {
         IJ_LOG.warn("Could not update AVD Device " + avdInfo.getName(), e);

@@ -34,7 +34,7 @@ import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
-import io.grpc.stub.StreamObserver;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;

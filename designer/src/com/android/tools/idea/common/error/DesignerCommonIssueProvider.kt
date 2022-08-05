@@ -15,55 +15,135 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.intellij.notebook.editor.BackedVirtualFile
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 
-interface DesignerCommonIssueProvider {
-  fun getIssues(file: IssuedFileData): List<Issue>
-  fun getIssuedFileDataList(): List<IssuedFileData>
+interface DesignerCommonIssueProvider<T> : Disposable {
+  var filter: (Issue) -> Boolean
+  fun getFilteredIssues(): List<Issue>
+  fun registerUpdateListener(listener: Runnable)
 }
 
-data class IssuedFileData(val file: VirtualFile, val source: Any?)
+class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<Any> {
 
-object EmptyIssueProvider : DesignerCommonIssueProvider {
-  override fun getIssues(file: IssuedFileData): List<Issue> = emptyList()
-  override fun getIssuedFileDataList(): List<IssuedFileData> = emptyList()
-}
+  private val fileEditorManager: FileEditorManager
 
-/**
- * An adapter of [DesignerCommonIssueProvider] to wrap the data from [IssueModel].
- */
-class IssueModelProvider(private val issueModel: IssueModel, private val file: VirtualFile): DesignerCommonIssueProvider {
-  override fun getIssues(file: IssuedFileData): List<Issue> {
-    return if (file.source == issueModel) issueModel.issues else emptyList()
+  private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
+
+  private val listeners = mutableListOf<Runnable>()
+  private val messageBusConnection = project.messageBus.connect()
+
+  private var _filter: (Issue) -> Boolean = { true }
+  override var filter: (Issue) -> Boolean
+    get() = _filter
+    set(value) { _filter = value }
+
+  init {
+    Disposer.register(project, this)
+    fileEditorManager = FileEditorManager.getInstance(project)
+    messageBusConnection.subscribe(IssueProviderListener.TOPIC, object : IssueProviderListener {
+      override fun issueUpdated(source: Any, issues: List<Issue>) {
+        val selectedFiles = fileEditorManager.selectedFiles.toList()
+        var changed = false
+        if (issues != sourceToIssueMap[source]) {
+          changed = true
+          sourceToIssueMap[source] = issues
+        }
+        if (cleanUpFileIssues(selectedFiles) || changed) {
+          listeners.forEach { it.run() }
+        }
+      }
+    })
+
+    // This is a workaround to remove the issues if [IssueModel.deactivate()] is not called when the selected editor is changed.
+    // This may happen in compose preview, which calls [DesignSurface.deactivate()] delayed when editor is changed.
+    // TODO(b/222110455): Make [DesignSurface] deactivate the IssueModel when it is no longer visible.
+    messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+        if (!source.hasOpenFiles() && sourceToIssueMap.isNotEmpty()) {
+          sourceToIssueMap.clear()
+          listeners.forEach { it.run() }
+        }
+      }
+
+      override fun selectionChanged(event: FileEditorManagerEvent) {
+        if (cleanUpFileIssues(listOfNotNull(event.newFile))) {
+          listeners.forEach { it.run() }
+        }
+      }
+    })
   }
 
-  override fun getIssuedFileDataList(): List<IssuedFileData> = listOf(IssuedFileData(file, issueModel))
-}
+  /**
+   * Remove the file issues or visual lint issue if the associated file is not visible(selected).
+   * Return true if [sourceToIssueMap] is changed, false otherwise.
+   */
+  private fun cleanUpFileIssues(selectedFiles: List<VirtualFile>): Boolean {
+    var changed = false
+    for ((source, issues) in sourceToIssueMap.toMap()) {
+      val filteredIssues = filterSelectedOrNoFileIssues(issues).filterVisualLintIssues(selectedFiles)
+      if (filteredIssues.isEmpty()) {
+        sourceToIssueMap.remove(source)
+        changed = true
+      }
+      else {
+        if (filteredIssues != issues) {
+          sourceToIssueMap[source] = filteredIssues
+          changed = true
+        }
+      }
+    }
+    return changed
 
-class LayoutIssueProviderGroup : DesignerCommonIssueProvider {
-  val providers = mutableMapOf<IssueModel, DesignerCommonIssueProvider>()
+  }
 
-  fun addProvider(issueModel: IssueModel, file: VirtualFile) {
-    if (providers[issueModel] == null) {
-      providers[issueModel] = IssueModelProvider(issueModel, file)
+  /**
+   * Remove the file issues if their editors are not selected.
+   * If an issue is not from the file (which its [Issue.source.file] is null), it will NOT be removed.
+   */
+  @Suppress("UnstableApiUsage")
+  private fun filterSelectedOrNoFileIssues(issues: List<Issue>): List<Issue> {
+    val files = fileEditorManager.selectedEditors.mapNotNull { it.file }
+    val ret = mutableListOf<Issue>()
+    for (issue in issues) {
+      val issueFile = issue.source.file?.let { BackedVirtualFile.getOriginFileIfBacked(it) }
+      if (issueFile == null || files.contains(issueFile)) {
+        ret.add(issue)
+      }
+    }
+    return ret
+  }
+
+  /**
+   * Remove the [VisualLintRenderIssue]s which are not related to the given [files]
+   */
+  private fun List<Issue>.filterVisualLintIssues(files: List<VirtualFile>): List<Issue> {
+    return this.filter {
+      if (it is VisualLintRenderIssue) {
+        it.source.models.map { model -> model.virtualFile }.any { file -> files.contains(file) }
+      }
+      else true
     }
   }
 
-  fun removeProvider(issueModel: IssueModel) {
-    if (providers[issueModel] != null) {
-      providers.remove(issueModel)
-    }
+  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.values.flatten()
+    .filterNot { (it as? VisualLintRenderIssue)?.isSuppressed() ?: false }
+    .filter(filter)
+    .toList()
+
+  override fun registerUpdateListener(listener: Runnable) {
+    listeners.add(listener)
   }
 
-  fun containsIssueModel(issueModel: IssueModel): Boolean {
-    return providers[issueModel] != null
-  }
-
-  override fun getIssues(file: IssuedFileData): List<Issue> {
-    return providers.values.flatMap { it.getIssues(file) }.toList()
-  }
-
-  override fun getIssuedFileDataList(): List<IssuedFileData> {
-    return providers.values.flatMap { it.getIssuedFileDataList() }.toList()
+  override fun dispose() {
+    messageBusConnection.disconnect()
+    listeners.clear()
   }
 }

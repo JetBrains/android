@@ -29,16 +29,13 @@ import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.codenavigation.CodeNavigator;
-import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -52,9 +49,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTree;
@@ -63,8 +59,6 @@ import javax.swing.SwingConstants;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeWillExpandListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,30 +67,27 @@ import org.jetbrains.annotations.Nullable;
  * A base view for {@link TopDownDetailsView} and {@link BottomUpDetailsView}.
  * They are almost similar except a few key differences, e.g bottom-up hides its root or lazy loads its children on expand.
  */
-public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsView {
+public abstract class TreeDetailsView extends CaptureDetailsView {
   @NotNull protected final JPanel myPanel;
 
   @SuppressWarnings("FieldCanBeLocal")
   @NotNull private final AspectObserver myObserver;
-  @NotNull private ClockType myClockType;
   @Nullable protected final JTree myTree;
   @Nullable private final CpuTraceTreeSorter mySorter;
   private final Set<TreePath> myExpandedPaths = new HashSet<>();
 
   protected TreeDetailsView(@NotNull StudioProfilersView profilersView,
                             @NotNull CpuCapture cpuCapture,
-                            @Nullable CpuTreeModel<T> model) {
+                            @Nullable CpuTreeModel<?> model) {
     super(profilersView);
     myObserver = new AspectObserver();
     if (model == null) {
-      myClockType = ClockType.GLOBAL;
       myPanel = getNoDataForThread();
       myTree = null;
       mySorter = null;
       return;
     }
 
-    myClockType = model.getClockType();
     myPanel = new JPanel(new CardLayout());
     // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
     //noinspection UndesirableClassUsage
@@ -106,9 +97,8 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     myTree.setBorder(TABLE_ROW_BORDER);
     myTree.setModel(model);
     myTree.setRootVisible(model.isRootNodeIdValid());
-    mySorter = new CpuTraceTreeSorter(myTree);
-    mySorter.setModel(model, Collections.reverseOrder(
-      new DoubleValueNodeComparator(CpuTreeNode::getTotal, myClockType)));
+    mySorter = new CpuTraceTreeSorter(myTree, model,
+                                      Collections.reverseOrder(doubleValueNodeComparator(CpuTreeNode::getTotal)));
 
     myPanel.add(createTableTree(), CARD_CONTENT);
     myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
@@ -162,67 +152,61 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
                    .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setRenderer(new MethodNameRenderer())
-                   .setComparator(new NameValueNodeComparator()))
+                   .setComparator(NAME_VALUE_NODE_COMPARATOR))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Total (μs)")
                    .setPreferredWidth(100)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRendererWithSparkline(CpuTreeNode::getTotal, myClockType,false,
-                                                                         SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRendererWithSparkline(CpuTreeNode::getTotal,false, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal, myClockType)))
+                   .setComparator(doubleValueNodeComparator(CpuTreeNode::getTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, myClockType,true,
-                                                            SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal,true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getTotal, myClockType)))
+                   .setComparator(doubleValueNodeComparator(CpuTreeNode::getTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Self (μs)")
                    .setPreferredWidth(100)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, myClockType,false,
-                                                            SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf,false, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf, myClockType)))
+                   .setComparator(doubleValueNodeComparator(CpuTreeNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, myClockType, true,
-                                                            SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf, myClockType)))
+                   .setComparator(doubleValueNodeComparator(CpuTreeNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Children (μs)")
                    .setPreferredWidth(100)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setMinWidth(80)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, myClockType, false,
-                                                            SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal, myClockType)))
+                   .setComparator(doubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
                    .setPreferredWidth(60)
                    .setMinWidth(60)
                    .setHeaderBorder(TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, myClockType,true,
-                                                            SwingConstants.RIGHT))
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.RIGHT))
                    .setSortOrderPreference(SortOrder.DESCENDING)
-                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal, myClockType)))
+                   .setComparator(doubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
       .setTreeSorter(mySorter)
       .setBorder(DEFAULT_TOP_BORDER)
       .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
@@ -236,13 +220,8 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     if (tree.getSelectionPath() == null) {
       return null;
     }
-    DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
-    return modelToCodeLocation(((CpuTreeNode<?>)node.getUserObject()).getMethodModel());
-  }
-
-  private static CpuTreeNode getNode(Object value) {
-    DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-    return (CpuTreeNode)node.getUserObject();
+    CpuTreeNode<?> node = (CpuTreeNode<?>)tree.getSelectionPath().getLastPathComponent();
+    return modelToCodeLocation(node.getBase().getMethodModel());
   }
 
   /**
@@ -273,57 +252,30 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     return null;
   }
 
-  private static class NameValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
-    @Override
-    public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-      CpuTreeNode o1 = ((CpuTreeNode)a.getUserObject());
-      CpuTreeNode o2 = ((CpuTreeNode)b.getUserObject());
-      return o1.getMethodModel().getName().compareTo(o2.getMethodModel().getName());
+  private static final Comparator<CpuTreeNode<?>> NAME_VALUE_NODE_COMPARATOR =
+    Comparator.comparing(o -> o.getBase().getMethodModel().getName());
+
+
+  private static Comparator<CpuTreeNode<?>> doubleValueNodeComparator(Function<CpuTreeNode, Double> getter) {
+    return Comparator.comparingDouble(getter::apply);
+  }
+
+  private static SimpleTextAttributes getTextAttributes(@NotNull CpuTreeNode node) {
+    switch (node.getBase().getFilterType()) {
+      case MATCH: return SimpleTextAttributes.REGULAR_ATTRIBUTES;
+      case EXACT_MATCH: return SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
+      case UNMATCH: return SimpleTextAttributes.GRAY_ATTRIBUTES;
+      default: throw new IllegalStateException();
     }
   }
 
-  private static class DoubleValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
-    private final BiFunction<CpuTreeNode, ClockType, Double> myGetter;
-    private final ClockType myClockType;
-
-    DoubleValueNodeComparator(BiFunction<CpuTreeNode, ClockType, Double> getter, ClockType clockType) {
-      myGetter = getter;
-      myClockType = clockType;
-    }
-
-    @Override
-    public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-      CpuTreeNode o1 = ((CpuTreeNode)a.getUserObject());
-      CpuTreeNode o2 = ((CpuTreeNode)b.getUserObject());
-      return Double.compare(myGetter.apply(o1, myClockType), myGetter.apply(o2, myClockType));
-    }
-  }
-
-  private static abstract class CpuCaptureCellRenderer extends ColoredTreeCellRenderer {
-
-    private static final Map<CaptureNode.FilterType, SimpleTextAttributes> TEXT_ATTRIBUTES =
-      ImmutableMap.<CaptureNode.FilterType, SimpleTextAttributes>builder()
-        .put(CaptureNode.FilterType.MATCH, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-        .put(CaptureNode.FilterType.EXACT_MATCH, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
-        .put(CaptureNode.FilterType.UNMATCH, SimpleTextAttributes.GRAY_ATTRIBUTES)
-        .build();
-
-    @NotNull
-    protected SimpleTextAttributes getTextAttributes(@NotNull CpuTreeNode node) {
-      return TEXT_ATTRIBUTES.get(node.getFilterType());
-    }
-  }
-
-  private static class DoubleValueCellRenderer extends CpuCaptureCellRenderer {
-    private final BiFunction<CpuTreeNode, ClockType, Double> myGetter;
-    protected final ClockType myClockType;
+  private static class DoubleValueCellRenderer extends ColoredTreeCellRenderer {
+    private final Function<CpuTreeNode, Double> myGetter;
     private final boolean myShowPercentage;
     private final int myAlignment;
 
-    DoubleValueCellRenderer(BiFunction<CpuTreeNode, ClockType, Double> getter, ClockType clockType,
-                            boolean showPercentage, int alignment) {
+    DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       myGetter = getter;
-      myClockType = clockType;
       myShowPercentage = showPercentage;
       myAlignment = alignment;
       setTextAlign(alignment);
@@ -337,13 +289,13 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      CpuTreeNode node = getNode(value);
+      CpuTreeNode node = (CpuTreeNode)value;
       if (node != null) {
         SimpleTextAttributes attributes = getTextAttributes(node);
-        double v = myGetter.apply(node, myClockType);
+        double v = myGetter.apply(node);
         if (myShowPercentage) {
-          CpuTreeNode root = getNode(tree.getModel().getRoot());
-          append(String.format(Locale.getDefault(), "%.2f", v / root.getTotal(myClockType) * 100), attributes);
+          CpuTreeNode root = (CpuTreeNode)tree.getModel().getRoot();
+          append(String.format(Locale.getDefault(), "%.2f", v / root.getTotal() * 100), attributes);
         }
         else {
           append(String.format(Locale.getDefault(), "%,.0f", v), attributes);
@@ -361,7 +313,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
       }
     }
 
-    protected BiFunction<CpuTreeNode, ClockType, Double> getGetter() {
+    protected Function<CpuTreeNode, Double> getGetter() {
       return myGetter;
     }
   }
@@ -374,9 +326,8 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
      */
     private double myPercentage;
 
-    DoubleValueCellRendererWithSparkline(BiFunction<CpuTreeNode, ClockType, Double> getter, ClockType clockType,
-                                         boolean showPercentage, int alignment) {
-      super(getter, clockType, showPercentage, alignment);
+    DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
+      super(getter, showPercentage, alignment);
       mySparkLineColor = ProfilerColors.CAPTURE_SPARKLINE;
       myPercentage = Double.NEGATIVE_INFINITY;
     }
@@ -390,12 +341,11 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
                                       int row,
                                       boolean hasFocus) {
       super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
-      CpuTreeNode node = getNode(value);
+      CpuTreeNode node = (CpuTreeNode)value;
       if (node != null) {
         // We grab the global children total in the case of multi-select this value ends up being the sum of our
         // childrens time and what we want to display is what percentage of all our childrens time do we consume.
-        myPercentage = getGetter().apply(node, myClockType) / getNode(tree.getModel().getRoot())
-          .getChildrenTotal(myClockType);
+        myPercentage = getGetter().apply(node) / ((CpuTreeNode)tree.getModel().getRoot()).getChildrenTotal();
       }
       mySparkLineColor = selected ? ProfilerColors.CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CAPTURE_SPARKLINE;
     }
@@ -415,7 +365,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     }
   }
 
-  private static class MethodNameRenderer extends CpuCaptureCellRenderer {
+  private static class MethodNameRenderer extends ColoredTreeCellRenderer {
     @Override
     public void customizeCellRenderer(@NotNull JTree tree,
                                       Object value,
@@ -424,11 +374,10 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      if (value instanceof DefaultMutableTreeNode &&
-          ((DefaultMutableTreeNode)value).getUserObject() instanceof CpuTreeNode) {
-        CpuTreeNode node = (CpuTreeNode)((DefaultMutableTreeNode)value).getUserObject();
+      if (value instanceof CpuTreeNode<?>) {
+        CpuTreeNode<?> node = (CpuTreeNode<?>)value;
         SimpleTextAttributes attributes = getTextAttributes(node);
-        CaptureNodeModel model = node.getMethodModel();
+        CaptureNodeModel model = node.getBase().getMethodModel();
         String classOrNamespace = "";
         if (model instanceof CppFunctionModel) {
           classOrNamespace = ((CppFunctionModel)model).getClassOrNamespace();
@@ -459,10 +408,12 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     }
   }
 
-  public static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
+  public static class TopDownDetailsView extends TreeDetailsView {
+    private final CaptureDetails.TopDown myTopDown;
     public TopDownDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.TopDown topDown) {
       super(profilersView, topDown.getCapture(), topDown.getModel());
-      TopDownTreeModel model = topDown.getModel();
+      myTopDown = topDown;
+      CpuTreeModel<?> model = topDown.getModel();
       if (model == null) {
         return;
       }
@@ -478,6 +429,16 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
       });
     }
 
+    @Override
+    public void onRemoved() {
+      myTopDown.onRemoved();
+    }
+
+    @Override
+    public void onReattached() {
+      myTopDown.onReattached();
+    }
+
     /**
      * Expands a few nodes in order to improve the visual feedback of the list.
      */
@@ -490,27 +451,18 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     }
   }
 
-  public static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
+  public static class BottomUpDetailsView extends TreeDetailsView {
+    private final CaptureDetails.BottomUp myBottomUp;
     public BottomUpDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.BottomUp bottomUp) {
       super(profilersView, bottomUp.getCapture(), bottomUp.getModel());
-      BottomUpTreeModel model = bottomUp.getModel();
+      myBottomUp = bottomUp;
+      CpuTreeModel<?> model = bottomUp.getModel();
       if (model == null) {
         return;
       }
       assert myTree != null;
 
       myTree.setRootVisible(false);
-      myTree.addTreeWillExpandListener(new TreeWillExpandListener() {
-        @Override
-        public void treeWillExpand(TreeExpansionEvent event) {
-          DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
-          ((BottomUpTreeModel)myTree.getModel()).expand(node);
-        }
-
-        @Override
-        public void treeWillCollapse(TreeExpansionEvent event) {
-        }
-      });
 
       model.addTreeModelListener(new TreeModelAdapter() {
         @Override
@@ -518,7 +470,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
           // When the root loses all of its children it can't be expanded and when they're added it is still collapsed.
           // As a result, nothing will be visible as the root itself isn't visible. So, expand it if it's the case.
           if (type == EventType.NodesInserted && event.getTreePath().getPathCount() == 1) {
-            DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
+            CpuTreeNode<?> root = model.getRoot();
             Object[] inserted = event.getChildren();
             if (inserted != null && inserted.length == root.getChildCount()) {
               myTree.expandPath(new TreePath(root));
@@ -527,6 +479,16 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
           switchCardLayout(myPanel, model.isEmpty());
         }
       });
+    }
+
+    @Override
+    public void onRemoved() {
+      myBottomUp.onRemoved();
+    }
+
+    @Override
+    public void onReattached() {
+      myBottomUp.onReattached();
     }
   }
 

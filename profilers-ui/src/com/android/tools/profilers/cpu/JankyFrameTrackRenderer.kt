@@ -64,7 +64,11 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
         val textPadding = borderX + 1
         val active = hovered || multiSelectionModel.activeSelectionKey === event
         val duration = event.actualDurationUs
-        val blankRectWidth = rect.width * min(event.expectedDurationUs / duration.toFloat(), 1f)
+        val blankRectWidth = when {
+          // Only fill the after-deadline portion for "deadline missed" jank type
+          event.isActionableJank -> rect.width * min(event.expectedDurationUs / duration.toFloat(), 1f)
+          else -> rect.width
+        }
 
         // draw entire frame
         g.color = if (active) event.getActiveColor() else event.getPassiveColor()

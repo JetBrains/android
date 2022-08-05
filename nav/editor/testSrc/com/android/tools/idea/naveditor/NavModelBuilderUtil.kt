@@ -31,15 +31,13 @@ import com.android.SdkConstants.TAG_ACTIVITY
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.SdkConstants.TAG_INCLUDE
 import com.android.SdkConstants.TOOLS_URI
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.model.NavComponentRegistrar
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
@@ -54,11 +52,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.createIfNecessary
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.awt.Dimension
 import java.awt.Point
-import java.util.function.BiConsumer
-import java.util.function.Function
 
 @DslMarker
 annotation class NavTestDsl
@@ -76,9 +71,8 @@ object NavModelBuilderUtil {
             f: () -> ComponentDescriptor,
             path: String = "navigation",
             extentSize: Dimension = Dimension(500, 500)): ModelBuilder {
-    val managerFactory = Function<SyncNlModel, SceneManager> { model ->
-      val surface = model.surface as NavDesignSurface
-
+    val managerFactory: (DesignSurface<*>, SyncNlModel) -> SceneManager = { designSurface, model ->
+      val surface = designSurface as NavDesignSurface
       try {
         createIfNecessary(facet.module)
       }
@@ -86,26 +80,25 @@ object NavModelBuilderUtil {
         throw RuntimeException(e)
       }
 
-      `when`<NlComponent>(surface.currentNavigation).then { model.components[0] }
-      `when`(surface.extentSize).thenReturn(extentSize)
-      `when`(surface.scrollPosition).thenAnswer { Point(0, 0) }
+      whenever(surface.currentNavigation).then { model.components[0] }
+      whenever(surface.extentSize).thenReturn(extentSize)
+      whenever(surface.scrollPosition).thenAnswer { Point(0, 0) }
 
       val sceneView = mock(SceneView::class.java)
-      `when`<NlModel>(sceneView.model).thenReturn(model)
-      `when`<Configuration>(sceneView.configuration).thenReturn(model.configuration)
+      whenever(sceneView.configuration).thenReturn(model.configuration)
       val selectionModel = surface.selectionModel
-      `when`(sceneView.selectionModel).thenReturn(selectionModel)
-      `when`<DesignSurface>(sceneView.surface).thenReturn(surface)
+      whenever(sceneView.selectionModel).thenReturn(selectionModel)
+      whenever(sceneView.surface).thenReturn(surface)
 
-      `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
+      whenever(surface.focusedSceneView).thenReturn(sceneView)
 
-      NavSceneManager(model, surface)
+      val manager = NavSceneManager(model, surface)
+      whenever(sceneView.sceneManager).thenReturn(manager)
+      manager
     }
 
-    return ModelBuilder(facet, fixture, name, f(), managerFactory,
-                        BiConsumer<NlModel, NlModel> { model, newModel -> updateHierarchy(model, newModel) }, path,
-                        NavDesignSurface::class.java, Function { NavInteractionHandler(it) },
-                        NavComponentRegistrar )
+    return ModelBuilder(facet, fixture, name, f(), managerFactory, { model -> updateHierarchy(model, model) }, path,
+                        NavDesignSurface::class.java, { NavInteractionHandler(it as NavDesignSurface) }, NavComponentRegistrar )
   }
 
   fun navigation(id: String? = null, label: String? = null, startDestination: String? = null,

@@ -21,23 +21,25 @@ import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.actions.SetScreenViewProviderAction
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.editor.ToolbarActionGroups
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.actions.ComposeIssueNotificationAction
+import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
-import com.android.tools.idea.compose.preview.actions.SingleFileCompileAction
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
+import com.android.tools.idea.compose.preview.scene.COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER
+import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.isKotlinFileType
+import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
@@ -45,9 +47,8 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresen
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.CommonRepresentationEditorFileType
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
-import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -60,8 +61,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiFile
@@ -72,7 +71,7 @@ import org.jetbrains.android.uipreview.AndroidEditorSettings
 /**
  * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
  */
-private class ComposePreviewToolbar(private val surface: DesignSurface) :
+private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
   ToolbarActionGroups(surface) {
 
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(
@@ -80,8 +79,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       StopInteractivePreviewAction(),
       StopAnimationInspectorAction(),
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
-      ForceCompileAndRefreshAction(surface),
-      SingleFileCompileAction(),
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
         layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
@@ -91,9 +88,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     )
   )
 
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
-    ComposeIssueNotificationAction.getInstance()
-  ))
+  override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(surface)
 
   /**
    * [DropDownAction] to toggle through the available viewing modes for the Compose preview.
@@ -113,10 +108,10 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       val blueprintEnabled = StudioFlags.COMPOSE_BLUEPRINT_MODE.get()
       val colorBlindEnabled = StudioFlags.COMPOSE_COLORBLIND_MODE.get()
       if (blueprintEnabled || colorBlindEnabled) {
-        addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
+        addAction(SetScreenViewProviderAction(COMPOSE_SCREEN_VIEW_PROVIDER, surface))
       }
       if (blueprintEnabled) {
-        addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
+        addAction(SetScreenViewProviderAction(COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER, surface))
       }
       if (colorBlindEnabled) {
         addAction(DefaultActionGroup.createPopupGroup { message("action.scene.mode.colorblind.dropdown.title") }.apply {
@@ -153,18 +148,11 @@ class ComposePreviewRepresentationProvider(
 ) : PreviewRepresentationProvider {
   private val LOG = Logger.getInstance(ComposePreviewRepresentationProvider::class.java)
 
-  private object ComposeEditorFileType : LayoutEditorFileType() {
-    override fun getLayoutEditorStateType() = LayoutEditorState.Type.COMPOSE
-
-    override fun isResourceTypeOf(file: PsiFile): Boolean =
-      file.virtualFile is ComposeAdapterLightVirtualFile
-
-    override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups =
-      ComposePreviewToolbar(surface)
-
-    override fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
-      DefaultActionGroup()
-  }
+  private object ComposeEditorFileType : CommonRepresentationEditorFileType(
+    ComposeAdapterLightVirtualFile::class.java,
+    LayoutEditorState.Type.COMPOSE,
+    ::ComposePreviewToolbar
+  )
 
   init {
     DesignerTypeRegistrar.register(ComposeEditorFileType)
@@ -173,23 +161,16 @@ class ComposePreviewRepresentationProvider(
   /**
    * Checks if the input [psiFile] contains compose previews and therefore can be provided with the [PreviewRepresentation] of them.
    */
-  override fun accept(project: Project, psiFile: PsiFile): Boolean =
+  override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
     psiFile.virtualFile.isKotlinFileType() && (psiFile.getModuleSystem()?.usesCompose ?: false)
 
   /**
    * Creates a [ComposePreviewRepresentation] for the input [psiFile].
    */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
-    val previewProvider = object : PreviewElementProvider<PreviewElement> {
-      override suspend fun previewElements(): Sequence<PreviewElement> = if (DumbService.isDumb(psiFile.project))
-        emptySequence()
-      else
-        try {
-          filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
-        }
-        catch (_: IndexNotReadyException) {
-          emptySequence()
-        }
+    val previewProvider = object : PreviewElementProvider<ComposePreviewElement> {
+      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+        filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
     }
     val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
     if (LOG.isDebugEnabled) {
@@ -213,7 +194,7 @@ class ComposePreviewRepresentationProvider(
 private const val PREFIX = "ComposePreview"
 internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>(
   "$PREFIX.Manager")
-internal val COMPOSE_PREVIEW_ELEMENT = DataKey.create<PreviewElement>(
+internal val COMPOSE_PREVIEW_ELEMENT_INSTANCE = DataKey.create<ComposePreviewElementInstance>(
   "$PREFIX.PreviewElement")
 
 /**

@@ -62,7 +62,7 @@ public class DeepLinkLaunch extends ActivityLaunchOption<DeepLinkLaunch.State> {
     @Override
     public void launch(@NotNull IDevice device,
                        @NotNull App app,
-                       @NotNull AndroidRunConfiguration config, boolean isDebug, @NotNull String extraFlags,
+                       @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
                        @NotNull ConsoleView console) throws ExecutionException {
       IShellOutputReceiver receiver = new AndroidBackgroundTaskReceiver(console);
       String quotedLink = "'" + DEEP_LINK.replace("'", "'\\''") + "'";

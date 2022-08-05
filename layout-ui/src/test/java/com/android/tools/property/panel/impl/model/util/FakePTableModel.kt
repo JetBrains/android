@@ -15,10 +15,10 @@
  */
 package com.android.tools.property.panel.impl.model.util
 
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.PTableModel
 import java.util.Objects
 
 class FakePTableModel(expanded: Boolean,

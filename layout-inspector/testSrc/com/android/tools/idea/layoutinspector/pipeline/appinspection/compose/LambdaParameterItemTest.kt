@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection
@@ -44,7 +45,6 @@ import org.mockito.Mockito.anyString
 import org.mockito.Mockito.isNull
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.`when`
 import java.util.concurrent.Future
 
 @RunsInEdt
@@ -120,12 +120,12 @@ class LambdaParameterItemTest {
     val factory = JBPopupFactory.getInstance()
     val builder: BalloonBuilder = mock()
     val balloon: Balloon = mock()
-    `when`(factory.createHtmlTextBalloonBuilder(anyString(), any(), any(), isNull())).thenReturn(builder)
-    `when`(factory.guessBestPopupLocation(any(DataContext::class.java))).thenReturn(mock())
-    `when`(builder.setBorderColor(any())).thenReturn(builder)
-    `when`(builder.setBorderInsets(any())).thenReturn(builder)
-    `when`(builder.setFadeoutTime(any())).thenReturn(builder)
-    `when`(builder.createBalloon()).thenReturn(balloon)
+    whenever(factory.createHtmlTextBalloonBuilder(anyString(), any(), any(), isNull())).thenReturn(builder)
+    whenever(factory.guessBestPopupLocation(any(DataContext::class.java))).thenReturn(mock())
+    whenever(builder.setBorderColor(any())).thenReturn(builder)
+    whenever(builder.setBorderInsets(any())).thenReturn(builder)
+    whenever(builder.setFadeoutTime(any())).thenReturn(builder)
+    whenever(builder.createBalloon()).thenReturn(balloon)
     return balloon
   }
 
@@ -139,7 +139,7 @@ class LambdaParameterItemTest {
   private fun mockEvent(): AnActionEvent {
     val event: AnActionEvent = mock()
     val context: DataContext = mock()
-    `when`(event.dataContext).thenReturn(context)
+    whenever(event.dataContext).thenReturn(context)
     return event
   }
 }

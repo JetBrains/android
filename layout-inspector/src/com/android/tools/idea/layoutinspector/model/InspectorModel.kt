@@ -16,25 +16,36 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import com.android.tools.idea.util.ListenerCollection
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.project.Project
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newSingleThreadExecutor
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+import kotlin.math.pow
 import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
+
+const val DECREASE_HALF_TIME = 2000
+const val DECREASE_DELAY = 500L
+val DECREASE_TIMEUNIT = TimeUnit.MILLISECONDS
+val DECREASE_FACTOR = 2.0.pow(DECREASE_DELAY.toDouble() / DECREASE_HALF_TIME.toDouble()).toFloat()
+const val DECREASE_BREAK_OFF = 0.75f
 
 enum class SelectionOrigin { INTERNAL, COMPONENT_TREE }
 
 /** Callback taking (oldWindow, newWindow, isStructuralChange */
 typealias InspectorModelModificationListener = (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
 
-class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
+class InspectorModel(val project: Project, val scheduler: ScheduledExecutorService? = null) : ViewNodeAndResourceLookup {
   override val resourceLookup = ResourceLookup(project)
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
 
@@ -43,6 +54,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
   var lastGeneration = 0
   var updating = false
+
+  /** After an [update] this will hold the max value for counts, skips, and highlightCount */
+  val maxRecomposition = RecompositionData(0, 0)
+
+  /** Holds the highest highlightCount seen since last time all highlight counts were zero */
+  var maxHighlight = 0f
 
   private val idLookup = ConcurrentHashMap<Long, ViewNode>()
 
@@ -56,9 +73,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     }
   }
 
+  // TODO: update all listeners to use ListenerCollection
+  val attachStageListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
+
   val windows = mutableMapOf<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
-  val root = ViewNode("root - hide")
+  val root = ViewNode("android.root - hide")
 
   enum class Posture { HALF_OPEN, FLAT }
   enum class FoldOrientation { VERTICAL, HORIZONTAL }
@@ -122,6 +142,10 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
    */
   operator fun get(id: String) = ViewNode.readAccess { root.flatten().find { it.viewId?.name == id } }
 
+  fun fireAttachStateEvent(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {
+    attachStageListeners.forEach { it.invoke(state) }
+  }
+
   /**
    * Get the root of the view tree that the [view] parameter lives in.
    *
@@ -137,6 +161,13 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
    */
   fun rootFor(viewId: Long): ViewNode? {
     return this[viewId]?.let { rootFor(it) }
+  }
+
+  /**
+   * In-place update of all nodes (no structural changes should be made).
+   */
+  fun updateAll(operation: (ViewNode) -> Unit) {
+    ViewNode.readAccess { root.flatten().forEach { operation(it) } }
   }
 
   /**
@@ -170,6 +201,21 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     selectionListeners.forEach { it(old, new, origin) }
   }
 
+  fun resetRecompositionCounts() {
+    resetRecompositionCounters()
+    updatePropertiesPanel()
+  }
+
+  private fun resetRecompositionCounters() {
+    maxRecomposition.reset()
+    maxHighlight = 0f
+    updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
+  }
+
+  fun updatePropertiesPanel() {
+    setSelection(selection, SelectionOrigin.INTERNAL)
+  }
+
   fun updateConnection(client: InspectorClient) {
     connectionListeners.forEach { it(client) }
   }
@@ -179,7 +225,11 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
    * This removes drawChildren from all existing [ViewNode]s. [AndroidWindow.refreshImages] must be called on newWindow after to regenerate
    * them.
    */
-  fun update(newWindow: AndroidWindow?, allIds: List<*>, generation: Int) {
+  fun update(newWindow: AndroidWindow?, allIds: List<*>, generation: Int, notifyUpdateCompleted: () -> Unit = {}) {
+    if (windows.isEmpty()) {
+      // Reset the recomposition counters if this is a new connection:
+      resetRecompositionCounters()
+    }
     var structuralChange: Boolean = windows.keys.retainAll(allIds)
     val oldWindow = windows[newWindow?.id]
     updating = true
@@ -219,11 +269,37 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         idLookup.clear()
         val allNodes = root.flatten().toSet()
         hiddenNodes.removeIf { !allNodes.contains(it) }
+        maxRecomposition.reset()
+        root.flatten().forEach { maxRecomposition.maxOf(it) }
+        if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
+            scheduler != null && maxHighlight < maxRecomposition.highlightCount) {
+          if (maxHighlight == 0f) {
+            scheduler.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
+          }
+          maxHighlight = maxRecomposition.highlightCount
+        }
       }
+      root.calculateTransitiveBounds()
+
+      notifyUpdateCompleted()
       modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
     }
     finally {
       updating = false
+    }
+  }
+
+  private fun decreaseHighlights() {
+    ViewNode.writeAccess {
+      val max = root.flatten().filterIsInstance<ComposeViewNode>().maxOfOrNull { it.recompositions.decreaseHighlights() } ?: 0f
+      if (max != 0f) {
+        scheduler?.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
+      } else {
+        maxHighlight = 0f
+      }
+    }
+    windows.values.forEach { window ->
+      modificationListeners.forEach { it(window, window, false) }
     }
   }
 
@@ -323,6 +399,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         oldNode.composeOffset = newNode.composeOffset
         oldNode.composeLineNumber = newNode.composeLineNumber
         oldNode.composeFlags = newNode.composeFlags
+        oldNode.recompositions.update(newNode.recompositions)
       }
 
       oldNode.children.clear()

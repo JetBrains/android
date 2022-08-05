@@ -36,7 +36,7 @@ public class RenameModuleDialogFixture extends IdeaDialogFixture<DialogWrapper> 
   public static RenameModuleDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
     final Ref<DialogWrapper> wrapperRef = new Ref<>();
     JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Rename Module").and(
-      new GenericTypeMatcher<>(JDialog.class) {
+      new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);

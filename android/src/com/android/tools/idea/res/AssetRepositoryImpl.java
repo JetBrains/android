@@ -28,7 +28,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -47,6 +46,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
+import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,7 +103,7 @@ public class AssetRepositoryImpl extends AssetRepository {
       return false;
     }
 
-    VirtualFile fontCachePath = VirtualFileManager.getInstance().findFileByUrl("file://" + fontCachePathFile.getAbsolutePath());
+    VirtualFile fontCachePath = VirtualFileManager.getInstance().findFileByNioPath(fontCachePathFile.toPath());
     if (fontCachePath == null) {
       return false;
     }
@@ -205,7 +205,7 @@ public class AssetRepositoryImpl extends AssetRepository {
 
     Stream<VirtualFile> libraryDepAars = Stream.empty();
     if (StudioFlags.NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM.get()) {
-      libraryDepAars = getModuleSystem(facet.getModule()).getAndroidLibraryDependencies().stream()
+      libraryDepAars = getModuleSystem(facet.getModule()).getAndroidLibraryDependencies(DependencyScopeType.MAIN).stream()
         .map(ExternalAndroidLibrary::getLocation)
         .filter((location) -> location != null && location.getFileName().endsWith(".aar"))
         .map(path -> manager.findFileByUrl("file://" + path.getPortablePath()))
@@ -225,7 +225,7 @@ public class AssetRepositoryImpl extends AssetRepository {
     )
       .filter(Objects::nonNull)
       .distinct()
-      .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
+      .map(dir -> manager.findFileByUrl("file://" + dir.toAbsolutePath()))
       .filter(Objects::nonNull);
 
     return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs, libraryDepAars)

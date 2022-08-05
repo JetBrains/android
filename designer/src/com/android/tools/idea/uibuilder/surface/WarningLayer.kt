@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
+import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.Layer
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
@@ -25,7 +27,6 @@ import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import icons.StudioIcons
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.RenderingHints
@@ -34,15 +35,14 @@ import java.awt.Shape
 class WarningLayer(private val screenView: ScreenView) : Layer() {
 
   override fun paint(gc: Graphics2D) {
-    val bounds = screenView.surface.layeredPane.bounds
     val screenShape: Shape? = screenView.screenShape
     gc.color = Color.ORANGE
     gc.stroke = NlConstants.DASHED_STROKE
-    val selectedIssueSource = screenView.surface.issuePanel.selectedIssue?.source
-    val relevantComponents = (selectedIssueSource as? VisualLintIssueProvider.VisualLintIssueSource)?.components?.filter {
-      it.model == screenView.sceneManager.model
-    }
-    relevantComponents?.forEach {
+    val selectedIssueSources = getSelectedIssues().map { it.source }
+    val relevantComponents = selectedIssueSources.filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
+      .flatMap { it.components }
+      .filter { it.model == screenView.sceneManager.model }
+    relevantComponents.forEach {
       gc.drawRect(
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
@@ -60,14 +60,8 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
     else {
       val sceneSize = screenView.scaledContentSize
       gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
-      val icon = generateWhiteIcon(StudioIcons.Common.WARNING)
-      gc.clip = bounds
-      gc.clipRect(screenView.x, screenView.y, sceneSize.width + icon.iconWidth + 1, sceneSize.height)
-      gc.fillRect(screenView.x + sceneSize.width + 1, screenView.y, icon.iconWidth, icon.iconHeight)
-      icon.paintIcon(screenView.surface, gc, screenView.x + sceneSize.width + 1, screenView.y)
-      gc.clipRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
     }
-    relevantComponents?.forEach {
+    relevantComponents.forEach {
       gc.drawRect(
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
@@ -79,10 +73,16 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
 
   override val isVisible: Boolean
     get() {
-      val selectedIssue = screenView.surface.issuePanel.selectedIssue
-      if (selectedIssue is VisualLintHighlightingIssue) {
-        return selectedIssue.shouldHighlight(screenView.sceneManager.model)
-      }
-      return false
+      val selectedIssues = getSelectedIssues()
+      return selectedIssues.filterIsInstance<VisualLintHighlightingIssue>().any { it.shouldHighlight(screenView.sceneManager.model) }
     }
+
+  private fun getSelectedIssues(): List<Issue> {
+    return if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
+      IssuePanelService.getInstance(screenView.surface.project).getSelectedIssues()
+    }
+    else {
+      listOfNotNull(screenView.surface.issuePanel.selectedIssue)
+    }
+  }
 }

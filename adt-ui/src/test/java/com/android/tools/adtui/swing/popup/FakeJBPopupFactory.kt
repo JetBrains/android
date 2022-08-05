@@ -16,8 +16,11 @@
 package com.android.tools.adtui.swing.popup
 
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -58,7 +61,7 @@ import javax.swing.event.HyperlinkListener
  * As methods are implemented, please move them towards the top of the file.
  */
 class FakeJBPopupFactory : JBPopupFactory() {
-  private val popups = mutableListOf<Any>()
+  private val popups = mutableListOf<JBPopup>()
 
   /**
    * Returns a popup that has been created using this factory.
@@ -74,6 +77,55 @@ class FakeJBPopupFactory : JBPopupFactory() {
 
   override fun <T> createPopupChooserBuilder(list: MutableList<out T>): IPopupChooserBuilder<T> =
     FakePopupChooserBuilder(this, list)
+
+  override fun createActionGroupPopup(
+    title: String?,
+    actionGroup: ActionGroup,
+    dataContext: DataContext,
+    aid: ActionSelectionAid?,
+    showDisabledActions: Boolean,
+    disposeCallback: Runnable?,
+    maxRowCount: Int,
+    preselectActionCondition: Condition<in AnAction>?,
+    actionPlace: String?)
+    : ListPopup {
+    @Suppress("UnstableApiUsage")
+    val actions = Utils.expandActionGroup(actionGroup, PresentationFactory(), dataContext, ActionPlaces.UNKNOWN)
+    val popup = FakeListPopup(actions)
+    popups.add(popup)
+    return popup
+  }
+
+  override fun createActionGroupPopup(title: String?,
+                                      actionGroup: ActionGroup,
+                                      dataContext: DataContext,
+                                      showNumbers: Boolean,
+                                      showDisabledActions: Boolean,
+                                      honorActionMnemonics: Boolean,
+                                      disposeCallback: Runnable?,
+                                      maxRowCount: Int,
+                                      preselectActionCondition: Condition<in AnAction>?): ListPopup =
+    createActionGroupPopup(
+      title,
+      actionGroup,
+      dataContext,
+      /* aid= */ null,
+      showDisabledActions,
+      disposeCallback,
+      maxRowCount,
+      preselectActionCondition,
+      /* actionPlace= */ null)
+
+  override fun createComponentPopupBuilder(content: JComponent, preferableFocusComponent: JComponent?): ComponentPopupBuilder =
+    FakeComponentPopupBuilder(this, content, preferableFocusComponent)
+
+  override fun getChildPopups(parent: Component): MutableList<JBPopup> = popups
+
+  override fun <T> createPopupComponentAdapter(
+    builder: PopupChooserBuilder<T>,
+    list: JList<T>
+  ): PopupChooserBuilder.PopupComponentAdapter<T> = FakePopupListAdapter(builder,
+                                                                                                                                    list)
 
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELLOW THIS COMMENT
 
@@ -119,30 +171,6 @@ class FakeJBPopupFactory : JBPopupFactory() {
     TODO("Not yet implemented")
   }
 
-  override fun createActionGroupPopup(title: String?,
-                                      actionGroup: ActionGroup,
-                                      dataContext: DataContext,
-                                      showNumbers: Boolean,
-                                      showDisabledActions: Boolean,
-                                      honorActionMnemonics: Boolean,
-                                      disposeCallback: Runnable?,
-                                      maxRowCount: Int,
-                                      preselectActionCondition: Condition<in AnAction>?): ListPopup {
-    TODO("Not yet implemented")
-  }
-
-  override fun createActionGroupPopup(title: String?,
-                                      actionGroup: ActionGroup,
-                                      dataContext: DataContext,
-                                      aid: ActionSelectionAid?,
-                                      showDisabledActions: Boolean,
-                                      disposeCallback: Runnable?,
-                                      maxRowCount: Int,
-                                      preselectActionCondition: Condition<in AnAction>?,
-                                      actionPlace: String?): ListPopup {
-    TODO("Not yet implemented")
-  }
-
   override fun createListPopup(step: ListPopupStep<*>): ListPopup {
     TODO("Not yet implemented")
   }
@@ -165,19 +193,11 @@ class FakeJBPopupFactory : JBPopupFactory() {
     TODO("Not yet implemented")
   }
 
-  override fun createComponentPopupBuilder(content: JComponent, preferableFocusComponent: JComponent?): ComponentPopupBuilder {
-    TODO("Not yet implemented")
-  }
-
   override fun isBestPopupLocationVisible(editor: Editor): Boolean {
     TODO("Not yet implemented")
   }
 
   override fun getCenterOf(container: JComponent?, content: JComponent?): Point {
-    TODO("Not yet implemented")
-  }
-
-  override fun getChildPopups(parent: Component): MutableList<JBPopup> {
     TODO("Not yet implemented")
   }
 
@@ -210,11 +230,6 @@ class FakeJBPopupFactory : JBPopupFactory() {
   }
 
   override fun getParentBalloonFor(c: Component?): Balloon? {
-    TODO("Not yet implemented")
-  }
-
-  override fun <T : Any?> createPopupComponentAdapter(builder: PopupChooserBuilder<T>,
-                                                      list: JList<T>): PopupChooserBuilder.PopupComponentAdapter<T> {
     TODO("Not yet implemented")
   }
 

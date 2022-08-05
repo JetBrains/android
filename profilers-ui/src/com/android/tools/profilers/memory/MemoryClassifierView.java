@@ -517,7 +517,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     if (!mySelection.getFilterHandler().getFilter().isEmpty()) {
       MemoryClassifierTreeNode treeNode = myTreeRoot;
       while (treeNode != null) {
-        if (treeNode.getAdapter().getIsMatched()) {
+        if (treeNode.getAdapter().isMatched()) {
           TreePath treePath = new TreePath(treeNode.getPathToRoot().toArray());
           myTree.expandPath(treePath.getParentPath());
           break;
@@ -527,7 +527,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         myTreeModel.nodeStructureChanged(treeNode);
         MemoryClassifierTreeNode nextNode = null;
         for (MemoryObjectTreeNode<ClassifierSet> child : treeNode.getChildren()) {
-          assert !child.getAdapter().getIsFiltered();
+          assert !child.getAdapter().isFiltered();
           assert child instanceof MemoryClassifierTreeNode;
           nextNode = (MemoryClassifierTreeNode)child;
           break;

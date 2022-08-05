@@ -10,7 +10,7 @@ class AssistantGetBundleTask(
   project: Project,
   private val bundleCreator: AssistantBundleCreator,
   private val uiCallback: FutureCallback<TutorialBundleData>
-): Task.Backgroundable(project, "Loading assistant content...") {
+) : Task.Backgroundable(project, "Loading assistant content...") {
   private lateinit var bundleData: TutorialBundleData
 
   override fun run(indicator: ProgressIndicator) {

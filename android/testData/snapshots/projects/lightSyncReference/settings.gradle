@@ -1,0 +1,4 @@
+rootProject.name = "reference"
+include ':app'
+include ':androidlibrary'
+include ':javalib'

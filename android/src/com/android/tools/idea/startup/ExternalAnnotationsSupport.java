@@ -56,7 +56,9 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiUtilCore;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -154,10 +156,10 @@ public class ExternalAnnotationsSupport {
       if (platformHash != null) {
         String sdkRootPath = modificator.getHomePath();
         if (sdkRootPath != null) {
-          File sdkRoot = new File(sdkRootPath);
-          if (sdkRoot.isDirectory()) {
+          Path sdkRoot = Paths.get(sdkRootPath);
+          if (Files.isDirectory(sdkRoot)) {
             ProgressIndicator progress = new StudioLoggerProgressIndicator(ExternalAnnotationsSupport.class);
-            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkRoot.toPath());
+            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkRoot);
             LocalPackage info = sdkHandler.getLocalPackage(FD_PLATFORMS + ";" + platformHash, progress);
             if (info != null) {
               Revision revision = info.getVersion();
@@ -185,9 +187,9 @@ public class ExternalAnnotationsSupport {
       if (root == null) {
         // Otherwise, in development tree. Look both in Studio and IJ source tree locations.
         final String[] paths = {
-          StudioPathManager.isRunningFromSources()
-          ? FileUtil.join(StudioPathManager.resolveDevPath("tools/adt/idea/android/annotations"))
-          : null,
+          StudioPathManager.isRunningFromSources() ?
+          StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android/annotations").toString() :
+          null,
           FileUtil.join(homePath, "android/android/annotations"),
           FileUtil.join(homePath, "community/android/android/annotations")
         };

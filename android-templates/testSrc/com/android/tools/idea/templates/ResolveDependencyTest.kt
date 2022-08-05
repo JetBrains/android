@@ -17,13 +17,13 @@ package com.android.tools.idea.templates
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.nullable
-import org.mockito.Mockito.`when`
 import java.security.InvalidParameterException
 import kotlin.test.assertFailsWith
 
@@ -58,7 +58,7 @@ class ResolveDependencyTest {
 
   private fun doTest(dependency: String, minRevision: String?, resolved: String, expectResultString: String) {
     val mockRepo = Mockito.mock(RepositoryUrlManager::class.java)
-    `when`(mockRepo.resolveDynamicCoordinate(any(GradleCoordinate::class.java), nullable(Project::class.java), nullable(AndroidSdkHandler::class.java)))
+    whenever(mockRepo.resolveDynamicCoordinate(any(GradleCoordinate::class.java), nullable(Project::class.java), nullable(AndroidSdkHandler::class.java)))
       .thenReturn(GradleCoordinate.parseCoordinateString(resolved))
 
     val expectResult = GradleCoordinate.parseCoordinateString(expectResultString)

@@ -24,7 +24,6 @@ import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
-import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.annotations.VisibleForTesting;
@@ -47,19 +46,15 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
 
   // The first entry in the list contains the main package name, and an optional second entry contains test package name.
   @NotNull protected final List<String> myApplicationIds;
-  @NotNull protected final AndroidDebugger myDebugger;
   @NotNull protected final Project myProject;
   protected final boolean myAttachToRunningProcess;
 
   protected ConnectDebuggerTaskBase(@NotNull ApplicationIdProvider applicationIdProvider,
-                                    @NotNull AndroidDebugger debugger,
                                     @NotNull Project project,
                                     boolean attachToRunningProcess) {
-    myDebugger = debugger;
     myProject = project;
     myAttachToRunningProcess = attachToRunningProcess;
 
-    Logger logger = Logger.getInstance(ConnectDebuggerTaskBase.class);
     myApplicationIds = new LinkedList<>();
 
     try {
@@ -67,7 +62,7 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
       myApplicationIds.add(packageName);
     }
     catch (ApkProvisionException e) {
-      logger.error(e);
+      logger().error(e);
     }
 
     try {
@@ -78,7 +73,7 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
     }
     catch (ApkProvisionException e) {
       // not as severe as failing to obtain package id for main application
-      logger.warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application");
+      logger().warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application");
     }
   }
 
@@ -110,6 +105,7 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
                                 @NotNull final ProcessHandlerConsolePrinter printer) {
     final Client client = waitForClient(device, state, printer);
     if (client == null) {
+      logger().warn("No client found, can not launch debugger.");
       return null;
     }
 
@@ -128,7 +124,9 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
       }
 
       if (!device.isOnline()) {
-        printer.stderr("Device is offline");
+        String offline = "Device went offline while trying to connect debugger";
+        printer.stderr(offline);
+        logger().warn(offline);
         return null;
       }
 
@@ -144,7 +142,7 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
           // TODO b/122613825: improve support for connecting to multiple processes with the same application ID.
           // This requires this task to wait for potentially multiple Clients before returning.
           if (clients.size() > 1) {
-            Logger.getInstance(ConnectDebuggerTaskBase.class).info("Multiple clients with same application ID: " + name);
+            logger().info("Multiple clients with same application ID: " + name);
           }
           Client client = clients.get(0);
           ClientData.DebuggerStatus status = client.getClientData().getDebuggerConnectionStatus();
@@ -154,9 +152,12 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
                 .format(Locale.US, "Debug port (%1$d) is busy, make sure there is no other active debug connection to the same application",
                         client.getDebuggerListenPort());
               printer.stderr(message);
+              logger().warn(message);
               return null;
             case ATTACHED:
-              printer.stderr("A debugger is already attached");
+              String attached = "A debugger is already attached";
+              printer.stderr(attached);
+              logger().warn(attached);
               return null;
             case WAITING:
               if (isReadyForDebugging(client, printer)) {
@@ -174,8 +175,14 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
       }
       sleep(1, POLL_TIMEUNIT);
     }
-    printer.stderr("Could not connect to remote process. Aborting debug session.");
+    String timeout = "Could not connect to remote process. Aborting debug session.";
+    printer.stderr(timeout);
+    logger().warn(timeout);
     return null;
+  }
+
+  private static @NotNull Logger logger() {
+    return Logger.getInstance(ConnectDebuggerTaskBase.class);
   }
 
   @VisibleForTesting // Allow unit tests to avoid actually sleeping.

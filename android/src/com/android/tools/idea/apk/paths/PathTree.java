@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.apk.paths;
 
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 
 import com.google.common.base.Splitter;
 import java.util.List;

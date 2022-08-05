@@ -36,7 +36,7 @@ class SampleCustomPanel private constructor() : CustomPanel {
     throw NotImplementedError()
   }
 
-  override fun useComponent(component: NlComponent?, surface: DesignSurface?) {
+  override fun useComponent(component: NlComponent?, surface: DesignSurface<*>?) {
     throw NotImplementedError()
   }
 

@@ -58,14 +58,6 @@ public class AndroidProjectInfo {
       .collect(Collectors.toList());
   }
 
-  /**
-   * Indicates whether the given project has at least one module backed by build models.
-   */
-  public boolean requiresAndroidModel() {
-    List<AndroidFacet> androidFacets = ProjectSystemUtil.getAndroidFacets(myProject);
-    return ContainerUtil.exists(androidFacets, f -> AndroidModel.isRequired(f));
-  }
-
   public boolean isApkProject() {
     if (isMarkedAsApkDebuggingProject(myProject)) {
       // When re-opening an 'APK Debugging' project, this method is checked before modules are loaded, making 'isApkProject' return false.

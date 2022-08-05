@@ -16,7 +16,6 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.HashMultimap;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -37,9 +36,8 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
                        @NotNull AndroidFacet androidFacet,
                        @NotNull AndroidSourceType sourceType,
                        @NotNull ViewSettings settings,
-                       @NotNull Set<VirtualFile> sourceRoots,
-                       @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, androidFacet, settings, sourceType, sourceRoots, projectViewPane);
+                       @NotNull Set<VirtualFile> sourceRoots) {
+    super(project, androidFacet, settings, sourceType, sourceRoots);
   }
 
   /**

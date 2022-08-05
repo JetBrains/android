@@ -28,6 +28,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class SourceSetItemTest {
 
@@ -62,8 +64,15 @@ class SourceSetItemTest {
     val resDirUrl2 = resDirectoryUrls[1]
     val resDirUrl3 = resDirectoryUrls[2]
 
-    assertEquals("src/main/res", SourceSetItem.create(sourceProvider, module, resDirUrl1).displayableResDir)
-    assertEquals("myResDir", SourceSetItem.create(sourceProvider, module, resDirUrl2).displayableResDir)
-    assertEquals("...bar/deep/resources/android/res", SourceSetItem.create(sourceProvider, module, resDirUrl3).displayableResDir)
+    assertEquals("src/main/res", SourceSetItem.create(sourceProvider, module, resDirUrl1)?.displayableResDir)
+    assertEquals("myResDir", SourceSetItem.create(sourceProvider, module, resDirUrl2)?.displayableResDir)
+    assertEquals("...bar/deep/resources/android/res", SourceSetItem.create(sourceProvider, module, resDirUrl3)?.displayableResDir)
+  }
+
+  @Test
+  fun ignoreGeneratedResourceFolders() {
+    assertNotNull(SourceSetItem.create(sourceProvider, module, "src/main/res"))
+    assertNull(SourceSetItem.create(sourceProvider, module, "src/main/generated/res"))
+    assertNull(SourceSetItem.create(sourceProvider, module, "src/flavor2/generated/res"))
   }
 }

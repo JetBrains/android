@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
 import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL;
@@ -24,12 +30,6 @@ import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_VALUE;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN;
 import static com.android.SdkConstants.SHERPA_URI;
@@ -816,7 +816,7 @@ public class CommonActions {
         switch (myType) {
           case HORIZONTAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
+              .createChild(parent, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
                            null, InsertType.CREATE);
             assert guideline != null;
             guideline.ensureId();
@@ -827,7 +827,7 @@ public class CommonActions {
           break;
           case VERTICAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
+              .createChild(parent, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
                            null, InsertType.CREATE);
             assert guideline != null;
             guideline.ensureId();
@@ -838,7 +838,7 @@ public class CommonActions {
           break;
           case GROUP: {
             NlComponent group = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_GROUP.newName() : CLASS_CONSTRAINT_LAYOUT_GROUP.oldName(),
+              .createChild(parent, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_GROUP.newName() : CLASS_CONSTRAINT_LAYOUT_GROUP.oldName(),
                            null, InsertType.CREATE);
             assert group != null;
             group.ensureId();
@@ -846,9 +846,9 @@ public class CommonActions {
           break;
           case CONSTRAINT_SET: {
             NlComponent constraints =
-              NlComponentHelperKt.createChild(parent, editor, useAndroidx
-                                                              ? CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.newName()
-                                                              : CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.oldName(), null, InsertType.CREATE);
+              NlComponentHelperKt.createChild(parent, useAndroidx
+                                                      ? CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.newName()
+                                                      : CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.oldName(), null, InsertType.CREATE);
             assert constraints != null;
             constraints.ensureId();
           //  ConstraintReferenceManagement.populateConstraints(constraints);
@@ -856,7 +856,7 @@ public class CommonActions {
           break;
           case LAYER: {
             NlComponent layer = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
+              .createChild(parent, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
             layer.ensureId();
@@ -887,7 +887,7 @@ public class CommonActions {
                     if (ConstraintComponentUtilities.isLine(child)) {
                       continue;
                     }
-                    NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                    NlComponent tag = NlComponentHelperKt.createChild(barrier, TAG, null, InsertType.CREATE);
                     if (tag != null) {
                       tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                       tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
@@ -901,7 +901,7 @@ public class CommonActions {
             }
 
             NlComponent barrier = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
+              .createChild(parent, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
                            InsertType.CREATE);
             assert barrier != null;
             barrier.ensureId();
@@ -910,7 +910,7 @@ public class CommonActions {
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
               if (!selectedChildren.isEmpty()) {
-                NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                NlComponent tag = NlComponentHelperKt.createChild(barrier, TAG, null, InsertType.CREATE);
                 if (tag != null) {
                   tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                   tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
@@ -951,7 +951,7 @@ public class CommonActions {
                     if (ConstraintComponentUtilities.isLine(child)) {
                       continue;
                     }
-                    NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                    NlComponent tag = NlComponentHelperKt.createChild(barrier, TAG, null, InsertType.CREATE);
                     if (tag != null) {
                       tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                       tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
@@ -964,7 +964,7 @@ public class CommonActions {
               return;
             }
             NlComponent barrier = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
+              .createChild(parent, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
                            InsertType.CREATE);
             assert barrier != null;
             barrier.ensureId();
@@ -979,7 +979,7 @@ public class CommonActions {
                   if (ConstraintComponentUtilities.isLine(child)) {
                     continue;
                   }
-                  NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                  NlComponent tag = NlComponentHelperKt.createChild(barrier, TAG, null, InsertType.CREATE);
                   if (tag != null) {
                     tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                     tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
@@ -1206,7 +1206,7 @@ public class CommonActions {
                         @InputEventMask int modifiers) {
       myComponent = component;
       myMarginPopup = createIfNeeded();
-      DesignSurface surface = editor.getScene().getDesignSurface();
+      DesignSurface<?> surface = editor.getScene().getDesignSurface();
       getAnalyticsManager(editor).trackDefaultMargins();
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())

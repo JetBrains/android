@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_PARAMS;
+import static com.android.AndroidXConstants.CLASS_COORDINATOR_LAYOUT;
 import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_PARAMS;
-import static com.android.SdkConstants.CLASS_COORDINATOR_LAYOUT;
 import static com.android.resources.ResourceType.ID;
 import static java.util.Arrays.stream;
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.ide.common.resources.Locale
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType

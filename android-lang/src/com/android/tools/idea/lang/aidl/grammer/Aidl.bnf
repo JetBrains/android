@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@
 // To generate the parser, right click on file and click "Generate Parser Code".
 // To generate the lexer, first click "Generate JFlex Lexer", put the generated file in aidl/lexer folder,
 // then right click the flex file and click "Run JFlex Generator".
+// Also search the "gen" folder for the string "Warning:" to make sure that the
+// code generator has not failed to bind a method (it inserts Warning-comments
+// in the generated code.)
 {
   parserClass="com.android.tools.idea.lang.aidl.parser.AidlParser"
   parserUtilClass="com.intellij.lang.parser.GeneratedParserUtilBase"
@@ -38,37 +41,66 @@
   tokens = [
     Space='regexp:\s+' // this need to be commented out when generating the flex file
     COMMENT='regexp://[^\r\n]*'
-    BLOCK_COMMENT='regexp:[/][*][^*]*[*]+([^/*][^*]*[*]+)*[/]'
+    BLOCK_COMMENT='regexp:/[*][^*]*[*]+([^/*][^*]*[*]+)*/'
 
-    IDVALUE='regexp:(0|[1-9][0-9]*)'
-    //ARRAY='regexp:(\[([ \t\n\r]+)?\])+'
+    INTVALUE='regexp:\d+[lL]?(u8)?'
+    HEXVALUE='regexp:0[xX][\da-fA-F]+[lL]?(u8)?'
+    FLOATVALUE='regexp:\d*\.?\d+([eE][-+]?\d+)?f?'
 
+    // character literals: the .ll file doesn't seem to allow escapes:
+    CHARVALUE = "regexp:'.'"
+
+    C_STR = 'regexp:"([^"]|\\.)*"'
+
+    PARCELABLE_KEYWORD='parcelable'
     IMPORT_KEYWORD='import'
     PACKAGE_KEYWORD='package'
-    PARCELABLE_KEYWORD='parcelable'
-    INTERFACE_KEYWORD='interface'
-    FLATTENABLE_KEYWORD='flattenable'
-    RPC_KEYWORD="rpc"
     IN_KEYWORD='in'
     OUT_KEYWORD='out'
     INOUT_KEYWORD='inout'
+    CPP_HEADER_KEYWORD="cpp_header"
+    CONST_KEYWORD='const'
+    TRUE_KEYWORD='true'
+    FALSE_KEYWORD='false'
+    INTERFACE_KEYWORD='interface'
     ONEWAY_KEYWORD='oneway'
+    ENUM_KEYWORD='enum'
+    UNION_KEYWORD='union'
 
-    VOID_KEYWORD="void"
-
-    LCURLY='{'
-    RCURLY='}'
-    LPARENTH='('
-    RPARENTH=')'
-    LBRACKET='['
-    RBRACKET=']'
-    COMMA=','
-    Equals='='
-    SEMICOlON=';'
+    LPAREN='('
+    RPAREN=')'
     LT='<'
     GT='>'
+    LBRACE='{'
+    RBRACE='}'
+    LBRACKET='['
+    RBRACKET=']'
+    COLON=':'
+    SEMICOLON=';'
+    COMMA=','
+    DOT='.'
+    ASSIGN='='
+    PLUS='+'
+    MINUS='-'
+    MULTIPLY='*'
+    DIVIDE='/'
+    MODULO='%'
+    BITWISE_AND='&'
+    BITWISE_OR='|'
+    BITWISE_XOR='^'
+    LSHIFT='<<'
+    RSHIFT='>>'
+    LOGICAL_AND='&&'
+    LOGICAL_OR='||'
+    NOT='!'
+    BITWISE_COMPLEMENT='~'
+    LEQ='<='
+    GEQ='>='
+    EQUALITY='=='
+    NEQ='!='
 
     // primitive types
+    VOID_KEYWORD="void"
     BOOLEAN_KEYWORD='boolean'
     BYTE_KEYWORD='byte'
     CHAR_KEYWORD='char'
@@ -77,92 +109,161 @@
     LONG_KEYWORD='long'
     FLOAT_KEYWORD='float'
     DOUBLE_KEYWORD='double'
-
-    IDENTIFIER='regexp:[_a-zA-Z][_a-zA-Z0-9]*'
+    IDENTIFIER='regexp:[_a-zA-Z]\w*'
+    AT='@'
   ]
 
-  implements(".*Declaration")="com.android.tools.idea.lang.aidl.psi.AidlDeclaration"
-  mixin(".*Declaration")="com.android.tools.idea.lang.aidl.psi.impl.AbstractAidlDeclarationImpl"
+  implements(".*declaration")="com.android.tools.idea.lang.aidl.psi.AidlDeclaration"
+  mixin(".*declaration")="com.android.tools.idea.lang.aidl.psi.impl.AbstractAidlDeclarationImpl"
 
-  extends(".*Type")=type
+  extends(".*_type")=type_element
 
   classHeader='generatedFilesHeader.txt'
+  name("dotted_name") = 'name'
+  name("name_component") = 'name'
 }
 
-document ::= headers body  { pin=1 }
-
-qualifiedName ::= nameComponent ("." nameComponent)*
-
-nameComponent ::= IDENTIFIER
-{
-  mixin="com.android.tools.idea.lang.aidl.psi.impl.AidlNamedElementImpl"
-  implements="com.android.tools.idea.lang.aidl.psi.AidlNamedElement"
-
-  methods=[
-    getReference
-  ]
-}
-
-headers ::= packageStatement* importStatement*
-
-body ::= declaration*
-
-private declaration ::= parcelableDeclaration | interfaceDeclaration {recoverWhile="declarationRecover"}
-
-private declarationRecover ::= !(INTERFACE_KEYWORD | PARCELABLE_KEYWORD)
-
-packageStatement ::= PACKAGE_KEYWORD qualifiedName ';' {pin=1}
-
-importStatement ::= IMPORT_KEYWORD qualifiedName ';' {pin=1}
-
-parcelableDeclaration ::= PARCELABLE_KEYWORD declarationName ';' |  PARCELABLE_KEYWORD ';' |
-                    FLATTENABLE_KEYWORD declarationName ';'  |   FLATTENABLE_KEYWORD ';'
-
-private interfaceHeader ::= INTERFACE_KEYWORD | ONEWAY INTERFACE_KEYWORD | RPC_KEYWORD
-
-interfaceDeclaration ::= interfaceHeader declarationName '{' methodDeclarations '}' { pin=1 }
-
-private methodDeclarations ::= methodDeclaration* { recoverWhile="interfaceDeclarationRecover" }
-
-private interfaceDeclarationRecover ::= !('}')
-
-methodDeclaration ::= ONEWAY_KEYWORD? type declarationName parameters ('=' IDVALUE)? ';'
+document ::= optional_package imports body
+private imports ::= import*
+import ::= IMPORT_KEYWORD qualified_name SEMICOLON
 {
   pin=2
-  recoverWhile = methodDeclarationRecover
+  methods=[resolve]
 }
 
-private methodDeclarationRecover ::= !(ONEWAY_KEYWORD | IDENTIFIER | primitiveType | VOID_KEYWORD | INTERFACE_KEYWORD | '}' )
+private optional_package ::= package?
+package ::= PACKAGE_KEYWORD qualified_name SEMICOLON
+{
+  pin=2
+}
 
-declarationName ::= IDENTIFIER
+body ::= declaration* {pin=1}
+
+// name mapping between .yy grammar and this BNF file; this
+// is necessary because we don't get to name individually generated
+// PSI classes and we want these to follow general PSI naming conventions.
+//
+// arg_list => parameter_list
+// arg      => parameter
+// import   => import_statement
+// *decl    => declaration
+// type     => type_element
+
+dotted_name ::= name_component (DOT name_component)*
 {
   mixin="com.android.tools.idea.lang.aidl.psi.impl.AidlNamedElementImpl"
-  implements=["com.android.tools.idea.lang.aidl.psi.AidlNamedElement" "com.intellij.psi.PsiNameIdentifierOwner"]
+  implements=["com.android.tools.idea.lang.aidl.psi.AidlNamedElement"]
+  methods=[getNameIdentifier getQualifiedName]
+}
+
+name_component ::= IDENTIFIER
+{
+  mixin="com.android.tools.idea.lang.aidl.psi.impl.AidlNamedElementImpl"
+  implements=["com.android.tools.idea.lang.aidl.psi.AidlNamedElement"]
+}
+
+qualified_name ::= name_component (DOT name_component)*
+{
+  mixin="com.android.tools.idea.lang.aidl.psi.impl.AidlNamedElementImpl"
+  implements=["com.android.tools.idea.lang.aidl.psi.AidlNamedElement"]
   methods=[
-    getNameIdentifier
+    getNameIdentifier getQualifiedName resolve getReference
   ]
 }
 
-private parameters ::= '(' parameterList? ')' { pin=1 }
+private declaration ::= !<<eof>> annotation_list unannotated_declaration { name="interface, parcelable, enum or union"}
+private unannotated_declaration ::= parcelable_declaration | interface_declaration | enum_declaration | union_declaration
 
-private parameterList ::= parameter (',' parameter)*
+parcelable_declaration
+    ::= PARCELABLE_KEYWORD dotted_name optional_type_params LBRACE parcelable_member* RBRACE
+    |   PARCELABLE_KEYWORD dotted_name optional_type_params SEMICOLON
+    |   PARCELABLE_KEYWORD dotted_name CPP_HEADER_KEYWORD C_STR SEMICOLON
+private parcelable_member ::= variable_declaration | constant_declaration | declaration
+constant_declaration ::= CONST_KEYWORD type_element name_component ASSIGN const_expr SEMICOLON
+
+interface_declaration
+     ::= [ONEWAY_KEYWORD] INTERFACE_KEYWORD dotted_name SEMICOLON
+     |   [ONEWAY_KEYWORD] INTERFACE_KEYWORD dotted_name LBRACE interface_member* RBRACE
 {
-  recoverWhile='parameterListRecover'
+  pin=2
+}
+private interface_member ::= method_declaration | constant_declaration | declaration
+method_declaration
+    ::= type_element name_component LPAREN parameter_list RPAREN SEMICOLON
+    | annotation_list ONEWAY_KEYWORD type_element name_component LPAREN parameter_list RPAREN SEMICOLON
+    | type_element name_component LPAREN parameter_list RPAREN ASSIGN INTVALUE SEMICOLON
+    | annotation_list ONEWAY_KEYWORD type_element name_component LPAREN parameter_list RPAREN ASSIGN INTVALUE SEMICOLON
+private parameter_list ::= (parameter (COMMA parameter)*)*
+parameter ::= direction? type_element name_component { pin=2 }
+
+enum_declaration ::= ENUM_KEYWORD dotted_name enum_decl_body { pin=2 }
+private enum_decl_body ::= LBRACE enumerators RBRACE | LBRACE enumerators COMMA RBRACE
+private enumerators ::= enumerator_declaration (COMMA enumerator_declaration)*
+enumerator_declaration ::= name_component ASSIGN const_expr | name_component
+
+union_declaration ::= UNION_KEYWORD dotted_name optional_type_params LBRACE parcelable_member* RBRACE { pin=2}
+
+private annotation_list ::= annotation_element*
+annotation_element
+  ::= AT qualified_name LPAREN const_expr RPAREN
+  |   AT qualified_name LPAREN [annotation_parameter_list] RPAREN
+  |   AT qualified_name
+{
+  pin=2
+}
+private annotation_parameter ::= name_component ASSIGN const_expr
+private annotation_parameter_list ::= annotation_parameter (COMMA annotation_parameter)*
+private const_number ::= [PLUS] [MINUS] (INTVALUE | FLOATVALUE | HEXVALUE)
+private const_boolean ::= TRUE_KEYWORD | FALSE_KEYWORD
+private const_expr ::= expression
+
+// Working around the fact that we don't have proper support for left-recursive
+expression
+ ::= const_number (PLUS|MINUS|MULTIPLY|DIVIDE|MODULO|EQUALITY|NEQ|LSHIFT|RSHIFT|LEQ|LT|GEQ|GT) expression
+  |  paren_expr (PLUS|MINUS|MULTIPLY|DIVIDE|MODULO|EQUALITY|NEQ|LSHIFT|RSHIFT|LEQ|LT|GEQ|GT) expression
+  |  const_number (BITWISE_XOR|BITWISE_OR|BITWISE_AND|LOGICAL_OR|LOGICAL_AND) expression
+  |  paren_expr (BITWISE_XOR|BITWISE_OR|BITWISE_AND|LOGICAL_OR|LOGICAL_AND) expression
+  |  LPAREN expression RPAREN
+  |  (BITWISE_COMPLEMENT|NOT) expression
+  |  LBRACE constant_value_list [COMMA] RBRACE // allow trailing commas
+  | C_STR PLUS (C_STR | CHARVALUE)
+  |  brace_expr
+  |  const_number
+  |  const_boolean
+  |  CHARVALUE
+  |  C_STR
+  |  qualified_name
+  |  LBRACE RBRACE // empty array literal
+{
+  consumeTokenMethod = 'consumeTokenFast'
+}
+private paren_expr ::= LPAREN expression RPAREN
+private brace_expr ::= LBRACE expression RBRACE
+private constant_value_list ::= const_expr (COMMA const_expr)*
+
+variable_declaration
+  ::= type_element name_component SEMICOLON
+  |   type_element name_component ASSIGN const_expr SEMICOLON
+{
+  pin=2
 }
 
-private parameterListRecover ::= !(')')
+private optional_type_params ::= (LT type_params GT)*
+private type_params ::= name_component (COMMA name_component)*
 
-parameter ::= direction? type IDENTIFIER { pin=2 }
+// TODO: Make this match the AIDL grammar (allow annotations inside type bounds etc)
 
-type ::= VOID_KEYWORD | ((primitiveType | classOrInterfaceType) ('[' ']')*) { recoverWhile="type_recover" }
+type_element ::= annotation_list VOID_KEYWORD | annotation_list ((primitiveType | class_or_interface_type) (LBRACKET RBRACKET)*)
+{
+  recoverWhile="type_recover"
+}
 
-private type_recover ::= !(qualifiedName | '(' | ',' | '>' | '{')
+private type_recover ::= !(qualified_name | LPAREN | COMMA | GT | LBRACE)
+private class_or_interface_type ::= qualified_name typeArguments? { pin=1 }
 
-classOrInterfaceType ::= qualifiedName typeArguments? { pin=1 }
+private typeArguments ::= LT type_element (COMMA type_element)* GT { pin=1 }
 
-typeArguments ::= '<' type (',' type)* '>' { pin=1 }
-
-primitiveType
+private primitiveType
   ::= BOOLEAN_KEYWORD
   |   BYTE_KEYWORD
   |   CHAR_KEYWORD
@@ -172,4 +273,4 @@ primitiveType
   |   FLOAT_KEYWORD
   |   DOUBLE_KEYWORD
 
-direction ::= IN_KEYWORD | OUT_KEYWORD | INOUT_KEYWORD
+private direction ::= IN_KEYWORD | OUT_KEYWORD | INOUT_KEYWORD

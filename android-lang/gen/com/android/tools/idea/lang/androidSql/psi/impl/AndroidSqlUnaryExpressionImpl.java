@@ -33,10 +33,12 @@ public class AndroidSqlUnaryExpressionImpl extends AndroidSqlExpressionImpl impl
     super(node);
   }
 
+  @Override
   public void accept(@NotNull AndroidSqlVisitor visitor) {
     visitor.visitUnaryExpression(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

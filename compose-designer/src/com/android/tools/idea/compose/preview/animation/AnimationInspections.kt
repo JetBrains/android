@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
@@ -50,7 +49,7 @@ private const val ANIMATE_PREFIX = "animate" // e.g. animateColor, animateFloat,
 
 class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor =
-    if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_LABEL_INSPECTION.get() && session.file.androidFacet != null) {
+    if (session.file.androidFacet != null) {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
@@ -83,7 +82,7 @@ class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
  */
 class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor =
-    if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_LABEL_INSPECTION.get() && session.file.androidFacet != null) {
+    if (session.file.androidFacet != null) {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)

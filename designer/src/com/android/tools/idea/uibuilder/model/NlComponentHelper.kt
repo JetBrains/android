@@ -23,7 +23,6 @@ import com.android.SdkConstants.ANDROID_WEBKIT_PKG
 import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
-import com.android.SdkConstants.ATTR_MOCKUP
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.PreferenceTags
 import com.android.SdkConstants.REQUEST_FOCUS
@@ -49,13 +48,10 @@ import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
-import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.ViewHandler
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
@@ -365,13 +361,13 @@ val NlComponent.viewGroupHandler: ViewGroupHandler?
  * @param before     The sibling to insert immediately before, or null to append
  * @param insertType The type of insertion
  */
-fun NlComponent.createChild(editor: ViewEditor,
-                            fqcn: String,
+// FIXME: Remove editor.
+fun NlComponent.createChild(fqcn: String,
                             before: NlComponent?,
                             insertType: InsertType
 ): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
-  return createChild(tagName, false, null, null, editor.scene.designSurface, before, insertType)
+  return createChild(tagName, false, null, null, before, insertType)
 }
 
 /**
@@ -389,7 +385,6 @@ fun NlComponent.createChild(tagName: String,
                             enforceNamespacesDeep: Boolean = false,
                             namespace: String? = null,
                             bodyText: String? = null,
-                            surface: DesignSurface? = null,
                             before: NlComponent? = null,
                             insertType: InsertType = InsertType.CREATE
 ): NlComponent? {
@@ -401,17 +396,11 @@ fun NlComponent.createChild(tagName: String,
 
   val tag = backend.tag ?: return null
   val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
-  return model.createComponent(surface, childTag, this, before, insertType)
+  return model.createComponent(childTag, this, before, insertType)
 }
 
 val NlComponent.hasNlComponentInfo: Boolean
   get() = NlComponentHelper.hasNlComponentInfo(this)
-
-/**
- * @return true if the receiver can be safely morphed into a view group
- */
-val NlComponent.isMorphableToViewGroup: Boolean
-  get() = VIEW == tagName && getAttribute(TOOLS_URI, ATTR_MOCKUP) != null
 
 val NlComponent.componentClassName: String?
   get() = viewInfo?.className
@@ -514,19 +503,15 @@ class NlComponentMixin(component: NlComponent)
     }
   }
 
-  override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent, surface: DesignSurface?) {
-    val editor by lazy { ViewEditorImpl(component.model, surface?.scene) }
+  override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent) {
     if (previousParent != receiver) {
-      previousParent?.viewGroupHandler?.onChildRemoved(editor, previousParent, component, insertType)
+      previousParent?.viewGroupHandler?.onChildRemoved(previousParent, component, insertType)
     }
 
-    receiver.viewGroupHandler?.onChildInserted(editor, receiver, component, insertType)
+    receiver.viewGroupHandler?.onChildInserted(receiver, component, insertType)
   }
 
-  override fun postCreate(surface: DesignSurface?, insertType: InsertType): Boolean {
-    if (surface == null) {
-      return false
-    }
+  override fun postCreate(insertType: InsertType): Boolean {
     val realTag = component.tagDeprecated
     if (component.parent != null) {
       // Required attribute for all views; drop handlers can adjust as necessary
@@ -551,9 +536,8 @@ class NlComponentMixin(component: NlComponent)
     val viewHandlerManager = ViewHandlerManager.get(component.model.project)
     val childHandler = viewHandlerManager.getHandler(component)
 
-    val editor = ViewEditorImpl.getOrCreate(surface.scene ?: return false)
     if (childHandler != null) {
-      var ok = childHandler.onCreate(editor, component.parent, component, insertType)
+      var ok = childHandler.onCreate(component.parent, component, insertType)
       if (component.parent != null) {
         ok = ok and NlDependencyManager.getInstance().addDependencies((listOf(component)), component.model.facet, true)
       }
@@ -565,7 +549,7 @@ class NlComponentMixin(component: NlComponent)
     }
     component.parent?.let {
       val parentHandler = viewHandlerManager.getHandler(it)
-      (parentHandler as? ViewGroupHandler)?.onChildInserted(editor, it, component, insertType)
+      (parentHandler as? ViewGroupHandler)?.onChildInserted(it, component, insertType)
     }
     return true
   }

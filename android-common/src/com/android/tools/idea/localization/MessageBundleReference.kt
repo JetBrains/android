@@ -17,7 +17,8 @@ package com.android.tools.idea.localization
 
 import com.intellij.AbstractBundle
 import com.intellij.reference.SoftReference
-import java.lang.ref.Reference
+import com.intellij.util.ReflectionUtil
+import java.util.Locale
 import java.util.ResourceBundle
 import java.util.function.Supplier
 
@@ -40,19 +41,29 @@ import java.util.function.Supplier
  * private const val BUNDLE_NAME = "messages.CustomBundle"
  * object CustomBundle {
  *   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
- *   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.message(key, *params)
+ *   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
  * }
  * ```
  *
  * That's it! Now you can call `CustomBundle.message("sample.text.key")` to fetch the text value.
+ *
+ * @param name the fully qualified path to the bundle messages text file
  */
 class MessageBundleReference(private val name: String) {
-  private var bundleRef: Reference<ResourceBundle>? = null
+  /**
+   * [ReflectionUtil.getCallerClass] has 4 as a parameter because:
+   * 1. ReflectionUtil.getCallerClass
+   * 2. MessageBundleReference.<init>
+   * 3. CustomBundle.<clinit>
+   */
+  private val bundleClassLoader = ReflectionUtil.getCallerClass(3).classLoader
+  private var bundleRef: SoftReference<ResourceBundle>? = null
 
-  fun getBundle(): ResourceBundle =
-    SoftReference.dereference(bundleRef) ?: ResourceBundle.getBundle(name).also { bundleRef = SoftReference(it) }
+  private fun getBundle(): ResourceBundle =
+    SoftReference.dereference(bundleRef) ?:
+    ResourceBundle.getBundle(name, Locale.getDefault(), bundleClassLoader).also { bundleRef = SoftReference(it) }
 
-  fun message(key: String, vararg params: String) = AbstractBundle.message(getBundle(), key, *params)
+  fun message(key: String, vararg params: Any) = AbstractBundle.message(getBundle(), key, *params)
 
-  fun lazyMessage(key: String, vararg params: String) = Supplier { message(key, *params) }
+  fun lazyMessage(key: String, vararg params: Any) = Supplier { message(key, *params) }
 }

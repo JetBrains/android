@@ -26,6 +26,7 @@ import com.android.tools.idea.naveditor.scene.flatten
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -253,7 +254,10 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
       }
     }
     val editor = object : NavEditor(model.virtualFile, project), DocumentsEditor {
-      override fun getDocuments() = arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile)!!)
+      override fun getDocuments(): Array<Document> = run {
+        val doc = FileDocumentManager.getInstance().getDocument(model.virtualFile)
+        return if (doc != null) arrayOf(doc) else emptyArray()
+      }
     }
     val surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model

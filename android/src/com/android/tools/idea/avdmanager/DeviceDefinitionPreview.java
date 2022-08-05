@@ -19,7 +19,6 @@ import static com.android.tools.idea.avdmanager.AvdWizardUtils.FIGURE_FONT;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.STANDARD_FONT;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.TITLE_FONT;
 
-import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenSize;
@@ -241,7 +240,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         }
         if ((myDeviceData.screenFoldedWidth3().get() != 0)
             &&(myDeviceData.screenFoldedXOffset3().get() + myDeviceData.screenFoldedWidth3().get())
-            != myDeviceData.screenResolutionWidth().get()) {
+              != myDeviceData.screenResolutionWidth().get()) {
           // Show the right boundary
           g2d.drawLine(foldedX3 + foldedWidth3, foldedY3, foldedX3 + foldedWidth3, foldedY3 + foldedHeight3);
         }
@@ -361,15 +360,9 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       g2d.drawString("Ratio:    " + ratio.getResourceValue(), infoSegmentX, infoSegmentY);
       infoSegmentY += stringHeight;
 
-      Density pixelDensity = myDeviceData.density().get();
-      if (pixelDensity == Density.NODPI) {
-        // We need to calculate the density
-        pixelDensity = AvdScreenData.getScreenDensity(myDeviceData.deviceId().get(),
-                                                      myDeviceData.isTv().get(),
-                                                      myDeviceData.screenDpi().get(),
-                                                      myDeviceData.screenResolutionHeight().get());
-      }
-      g2d.drawString("Density: " + pixelDensity.getResourceValue(), infoSegmentX, infoSegmentY);
+      g2d.drawString("Density: " + myDeviceData.density().get().getResourceValue(), infoSegmentX, infoSegmentY);
+
+      // Foldable / Rollable
       if (myDeviceData.isFoldable().get()) {
         infoSegmentY += stringHeight;
         if (myDeviceData.screenFoldedWidth2().get() == 0 &&
@@ -393,6 +386,20 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
           g2d.drawString("Rolled out: " + pixelScreenSize.width +
                          "x" + pixelScreenSize.height, infoSegmentX, infoSegmentY);
         }
+      }
+
+      // Resizable
+      if (myDeviceData.deviceId().get().equals("resizable")) {
+        infoSegmentY += stringHeight * 2;
+        g2d.drawString("This device resizes to:", infoSegmentX, infoSegmentY);
+        infoSegmentY += stringHeight;
+        g2d.drawString("Phone (1080 x 2340 @ 420dpi)", infoSegmentX, infoSegmentY);
+        infoSegmentY += stringHeight;
+        g2d.drawString("Foldable (1768 x 2208 @ 420dpi)", infoSegmentX, infoSegmentY);
+        infoSegmentY += stringHeight;
+        g2d.drawString("Tablet (1920 x 1200 @ 240dpi)", infoSegmentX, infoSegmentY);
+        infoSegmentY += stringHeight;
+        g2d.drawString("Desktop (1920 x 1080 @ 160dpi)", infoSegmentX, infoSegmentY);
       }
     }
   }

@@ -16,14 +16,21 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.KeyboardEvent
+import com.android.tools.idea.emulator.EmulatorConfiguration
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.createHardwareKeyEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
+import java.util.function.Predicate
 
 /**
  * Simulates pressing and releasing a button on an Android virtual device.
+ *
+ * @param configFilter determines the types of devices the action is applicable to
  */
-open class EmulatorPushButtonAction(private val keyName: String) : AbstractEmulatorAction(), PushButtonAction {
+open class EmulatorPushButtonAction(
+  private val keyName: String,
+  configFilter: Predicate<EmulatorConfiguration>? = null,
+) : AbstractEmulatorAction(configFilter = configFilter), PushButtonAction {
 
   override fun buttonPressed(event: AnActionEvent) {
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return

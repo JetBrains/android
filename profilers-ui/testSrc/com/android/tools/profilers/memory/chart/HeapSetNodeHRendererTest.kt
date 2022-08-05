@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.chart
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -111,7 +112,7 @@ class HeapSetNodeHRendererTest {
   @Test
   fun filteredState() {
     val heapSet = Mockito.spy(MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage))
-    Mockito.`when`(heapSet.isFiltered).thenReturn(true)
+    whenever(heapSet.isFiltered).thenReturn(true)
     val model = MemoryVisualizationModel()
     model.axisFilter = MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
     val simpleNode = ClassifierSetHNode(model, heapSet, 0)
@@ -130,8 +131,8 @@ class HeapSetNodeHRendererTest {
   @Test
   fun matchedState() {
     val heapSet = Mockito.spy(MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage))
-    Mockito.`when`(heapSet.isFiltered).thenReturn(true)
-    Mockito.`when`(heapSet.isMatched).thenReturn(true)
+    whenever(heapSet.isFiltered).thenReturn(true)
+    whenever(heapSet.isMatched).thenReturn(true)
     val model = MemoryVisualizationModel()
     model.axisFilter = MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
     val simpleNode = ClassifierSetHNode(model, heapSet, 0)

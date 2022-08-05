@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.visual.ColorBlindModeScreenViewLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
+import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
@@ -37,6 +38,11 @@ import java.awt.Dimension
  * Interface to generate [ScreenView]s for the DesignSurface.
  */
 interface ScreenViewProvider {
+  /**
+   * User visible name when switching through different [ScreenViewProvider]s.
+   */
+  val displayName: String
+
   /**
    * May return another [ScreenViewProvider]. Used to quickly toggle through different types of [ScreenViewProvider] in the DesignSurface.
    */
@@ -53,22 +59,26 @@ interface ScreenViewProvider {
   fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
 
   /** Called if the current provider was this, and is being replaced by another in DesignSurface. */
-  fun onViewProviderReplaced() { }
+  fun onViewProviderReplaced() {}
+
+  /**
+   * The [LayoutEditorState.Surfaces] to be reported by this scene view for metrics purposes.
+   */
+  val surfaceType: LayoutEditorState.Surfaces
 }
 
 /**
  * Common [ScreenViewProvider]s for the Layout Editor.
  */
-enum class NlScreenViewProvider(val displayName: String,
+enum class NlScreenViewProvider(override val displayName: String,
                                 val primary: (NlDesignSurface, LayoutlibSceneManager, Boolean) -> ScreenView,
                                 val secondary: ((NlDesignSurface, LayoutlibSceneManager, Boolean) -> ScreenView)? = null,
-                                private val visibleToUser: Boolean = true): ScreenViewProvider {
+                                private val visibleToUser: Boolean = true,
+                                override val surfaceType: LayoutEditorState.Surfaces) : ScreenViewProvider {
 
-  RENDER("Design", ::defaultProvider),
-  BLUEPRINT("Blueprint", ::blueprintProvider),
-  RENDER_AND_BLUEPRINT("Design and Blueprint", ::defaultProvider, ::blueprintProvider),
-  COMPOSE("Compose", ::composeProvider, visibleToUser = false),
-  COMPOSE_BLUEPRINT("Compose Blueprint", ::composeBlueprintProvider, visibleToUser = false),
+  RENDER("Design", ::defaultProvider, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
+  BLUEPRINT("Blueprint", ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE),
+  RENDER_AND_BLUEPRINT("Design and Blueprint", ::defaultProvider, ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BOTH),
   RESIZABLE_PREVIEW("Preview",
                     { surface, manager, _ ->
                       ScreenView.newBuilder(surface, manager)
@@ -76,9 +86,10 @@ enum class NlScreenViewProvider(val displayName: String,
                         .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
                         .build()
                     },
-                    visibleToUser = false),
-  VISUALIZATION("Visualization", ::visualizationProvider, visibleToUser = false),
-  COLOR_BLIND("Color Blind Mode", ::colorBlindProvider, visibleToUser = false);
+                    visibleToUser = false,
+                    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
+  VISUALIZATION("Visualization", ::visualizationProvider, visibleToUser = false, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
+  COLOR_BLIND("Color Blind Mode", ::colorBlindProvider, visibleToUser = false, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE);
 
   override operator fun next(): NlScreenViewProvider {
     val values = values().filter { it.visibleToUser }
@@ -120,21 +131,13 @@ enum class NlScreenViewProvider(val displayName: String,
         DEFAULT_SCREEN_MODE
       }
 
-      // Don't allow SCREEN_COMPOSE_ONLY as default mode.
-      // SCREEN_COMPOSE_ONLY should not be saved as default mode but it was for a while. This is just a
-      // workaround to avoid setting that mode for users that had it saved at one point.
-      // b/144829328
-      if (cachedScreenViewProvider == COMPOSE) {
-        cachedScreenViewProvider = DEFAULT_SCREEN_MODE
-      }
-
       return cachedScreenViewProvider!!
     }
 
     @Synchronized
     fun savePreferredMode(mode: NlScreenViewProvider) {
       // See comment about SCREEN_COMPOSE_ONLY on loadPreferredMode
-      if (cachedScreenViewProvider == mode || mode == COMPOSE || mode == COMPOSE_BLUEPRINT) {
+      if (cachedScreenViewProvider == mode) {
         return
       }
 
@@ -161,7 +164,6 @@ internal fun blueprintProvider(surface: NlDesignSurface, manager: LayoutlibScene
         if (it.hasBorderLayer()) {
           add(BorderLayer(it))
         }
-        add(MockupLayer(it))
         if (!isSecondary) {
           add(CanvasResizeLayer(it.surface, it))
         }
@@ -182,8 +184,8 @@ internal fun visualizationProvider(surface: NlDesignSurface,
         // Always has border in visualization tool.
         add(BorderLayer(it))
         add(ScreenViewLayer(it))
-        add(WarningLayer(it))
         add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
+        add(WarningLayer(it))
       }.build()
     }
     .withContentSizePolicy(DEVICE_CONTENT_SIZE_POLICY)
@@ -288,7 +290,6 @@ internal fun composeBlueprintProvider(surface: NlDesignSurface,
         if (it.hasBorderLayer()) {
           add(BorderLayer(it))
         }
-        add(MockupLayer(it))
         add(SceneLayer(it.surface, it, true))
       }.build()
     }

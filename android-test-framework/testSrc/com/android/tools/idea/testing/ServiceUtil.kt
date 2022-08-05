@@ -18,22 +18,25 @@ package com.android.tools.idea.testing
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ComponentManager
+import com.intellij.openapi.util.Disposer
+import com.intellij.serviceContainer.ComponentManagerImpl
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 
 /**
  * Registers a service implementation, possibly replacing an existent one. The lifetime of
  * the service implementation is controlled by [parentDisposable].
+ *
+ * Note that for this method to work in all situations the service class has to be final and
+ * to have a `@Service` annotation.
  */
+@Suppress("UnstableApiUsage")
 fun <T : Any> ComponentManager.registerServiceInstance(serviceInterface: Class<T>, instance: T, parentDisposable: Disposable) {
   if (getService(serviceInterface) == null) {
     registerServiceInstance(serviceInterface, instance)
-    // TODO: Replace the line above by the line below when https://youtrack.jetbrains.com/issue/IDEA-279127 is fixed.
-    //Disposer.register(parentDisposable) { (picoContainer as MutablePicoContainer).unregisterComponent(serviceInterface.name) }
+    Disposer.register(parentDisposable) { (this as ComponentManagerImpl).unregisterComponent(serviceInterface) }
     return
   }
 
   replaceService(serviceInterface, instance, parentDisposable)
 }
-
-

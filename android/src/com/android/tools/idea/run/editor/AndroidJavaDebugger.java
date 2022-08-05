@@ -19,10 +19,12 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
-import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApplicationIdProvider;
+import com.android.tools.idea.run.debug.StartJavaDebuggerKt;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
@@ -47,13 +49,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.Ref;
 import com.intellij.util.NotNullFunction;
 import com.intellij.xdebugger.XDebugSession;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,14 +89,15 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @NotNull
   @Override
   public ConnectDebuggerTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
-                                                    @Nullable AndroidVersion version,
                                                     @NotNull ApplicationIdProvider applicationIdProvider,
                                                     @NotNull AndroidFacet facet,
-                                                    @NotNull AndroidDebuggerState state,
-                                                    @NotNull String runConfigTypeId) {
+                                                    @NotNull AndroidDebuggerState state) {
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
-      applicationIdProvider, this, env.getProject(),
+      applicationIdProvider, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
+    if (env.getRunProfile() instanceof AndroidRunConfiguration) {
+      return baseConnector;
+    }
     TestExecutionOption executionType = Optional.ofNullable(AndroidModel.get(facet))
       .map(AndroidModel::getTestExecutionOption)
       .orElse(TestExecutionOption.HOST);
@@ -116,83 +117,16 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
 
   @Slow
   @Override
-  public void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable RunConfiguration config) {
+  public void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable AndroidDebuggerState debugState) {
     String debugPort = getClientDebugPort(client);
     String runConfigName = getRunConfigurationName(debugPort);
 
     // Try to find existing debug session
-    Ref<Boolean> existingSession = new Ref<>();
-    ApplicationManager.getApplication()
-      .invokeAndWait(() -> existingSession.set(hasExistingDebugSession(project, debugPort, runConfigName)));
-    if (existingSession.get()) {
+    if (hasExistingDebugSession(project, debugPort, runConfigName)) {
       return;
     }
 
-    // Create run configuration
-    RunnerAndConfigurationSettings runSettings =
-      RunManager.getInstance(project).createConfiguration(runConfigName, RemoteConfigurationType.class);
-
-    RemoteConfiguration configuration = (RemoteConfiguration)runSettings.getConfiguration();
-    configuration.HOST = "localhost";
-    configuration.PORT = debugPort;
-    configuration.USE_SOCKET_TRANSPORT = true;
-    configuration.SERVER_MODE = false;
-
-    ProgramRunner.Callback callback = new ProgramRunner.Callback() {
-      @Override
-      public void processStarted(RunContentDescriptor descriptor) {
-        // Callback to add a termination listener after the process handler gets created.
-        ProcessHandler handler = descriptor.getProcessHandler();
-        if (handler == null) {
-          return;
-        }
-        VMExitedNotifier notifier = new VMExitedNotifier(client);
-        ProcessAdapter processAdapter = new ProcessAdapter() {
-          @Override
-          public void processTerminated(@NotNull ProcessEvent event) {
-            handler.removeProcessListener(this);
-            notifier.notifyClient();
-          }
-        };
-        // Add the handler first, then check, as to avoid race condition where process terminates between checking then adding.
-        handler.addProcessListener(processAdapter);
-        if (handler.isProcessTerminated()) {
-          handler.removeProcessListener(processAdapter);
-          notifier.notifyClient();
-        }
-      }
-    };
-
-    ExecutionEnvironment executionEnvironment;
-    try {
-      // Code lifted out of ProgramRunnerUtil. We do this because we need to access the callback field.
-      executionEnvironment =
-        ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), runSettings)
-          .contentToReuse(null)
-          .dataContext(null)
-          .build();
-    }
-    catch (ExecutionException e) {
-      Logger.getInstance(AndroidJavaDebugger.class).error(e);
-      return;
-    }
-
-    // Need to execute on the EDT since the associated tool window may be created internally by IJ
-    // (we may be not be on the EDT at this point in the code).
-    ApplicationManager.getApplication().invokeLater(
-      () -> ProgramRunnerUtil.executeConfigurationAsync(executionEnvironment, /*showSettings=*/true, /*assignNewId=*/true, callback));
-  }
-
-  public DebuggerSession getDebuggerSession(@NotNull Client client) {
-    String debugPort = getClientDebugPort(client);
-
-    for (Project openProject : ProjectManager.getInstance().getOpenProjects()) {
-      DebuggerSession debuggerSession = findJdwpDebuggerSession(openProject, debugPort);
-      if (debuggerSession != null) {
-        return debuggerSession;
-      }
-    }
-    return null;
+    StartJavaDebuggerKt.attachJavaDebuggerToClientAndShowTab(project, client);
   }
 
   @NotNull
@@ -212,7 +146,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       targetProject = openProject;
 
       // First check the titles of the run configurations.
-      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<>() {
+      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<String, Boolean>() {
         @NotNull
         @Override
         public Boolean fun(String title) {
@@ -244,21 +178,5 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       return activateDebugSessionWindow(project, descriptors.iterator().next());
     }
     return false;
-  }
-
-  private static class VMExitedNotifier {
-    @NotNull private final Client myClient;
-    @NotNull private final AtomicBoolean myNeedsToNotify = new AtomicBoolean(true);
-
-    private VMExitedNotifier(@NotNull Client client) {
-      myClient = client;
-    }
-
-    private void notifyClient() {
-      // The atomic boolean guarantees that we only ever notify the Client once.
-      if (myNeedsToNotify.getAndSet(false)) {
-        myClient.notifyVmMirrorExited();
-      }
-    }
   }
 }

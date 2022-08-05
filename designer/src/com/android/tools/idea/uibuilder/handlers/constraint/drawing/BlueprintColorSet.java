@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.ColorTheme;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecoratorConstants;
 import java.awt.Color;
 
 /**
@@ -29,7 +28,7 @@ public class BlueprintColorSet extends ColorSet {
 
     public BlueprintColorSet() {
 
-        mStyle = WidgetDecoratorConstants.BLUEPRINT_STYLE;
+        mStyle = ColorSet.BLUEPRINT_STYLE;
 
         mDrawBackground = true;
         mDrawWidgetInfos = false;

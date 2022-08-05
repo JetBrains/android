@@ -15,27 +15,34 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
-import com.android.sdklib.devices.DeviceManager
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingValidation
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_CHIN_SIZE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_IS_ROUND
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
-import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_DPI
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_DP
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_SHAPE
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_UNIT
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_WIDTH_DP
+import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.BooleanValidator
+import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.DeviceSpecDimValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findByIdOrName
+import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.preview.pickers.properties.utils.toDeviceConfig
-import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackerHelper
-import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.kotlin.enumValueOfOrNull
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -60,20 +67,13 @@ internal class DeviceParameterPropertyItem(
   defaultValue) {
   private val log = Logger.getInstance(this.javaClass)
 
-  //TODO: Do this elsewhere, this is not the only place where it's done
-  private val availableDevices = run {
-    AndroidFacet.getInstance(model.module)?.let { facet ->
-      AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
-    } ?: emptyList()
-  }
-
   private val defaultDeviceValues: DeviceConfig =
-    ConfigurationManager.findExistingInstance(model.module)?.defaultDevice?.toDeviceConfig() ?: DeviceConfig(
+    ConfigurationManager.findExistingInstance(model.module)?.getDefaultPreviewDevice()?.toDeviceConfig() ?: DeviceConfig(
       shape = DEFAULT_SHAPE,
-      width = DEFAULT_WIDTH,
-      height = DEFAULT_HEIGHT,
+      width = DEFAULT_WIDTH_DP.toFloat(),
+      height = DEFAULT_HEIGHT_DP.toFloat(),
       dimUnit = DEFAULT_UNIT,
-      dpi = DEFAULT_DENSITY.dpiValue
+      dpi = DEFAULT_DPI
     )
 
   override var name: String = PARAMETER_HARDWARE_DEVICE
@@ -81,23 +81,23 @@ internal class DeviceParameterPropertyItem(
   val innerProperties = listOf<MemoryParameterPropertyItem>(
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_WIDTH,
-      defaultValue = defaultDeviceValues.width.toString(),
-      inputValidation = IntegerNormalValidator,
-      getter = { it.width.toString() }) { config, newValue ->
-      newValue.toIntOrNull()?.let {
+      defaultValue = defaultDeviceValues.widthString,
+      inputValidation = DeviceSpecDimValidator(strictPositive = true),
+      getter = { it.widthString }) { config, newValue ->
+      newValue.toFloatOrNull()?.let {
         config.width = it
       }
-      PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED
+      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_HEIGHT,
-      defaultValue = defaultDeviceValues.height.toString(),
-      inputValidation = IntegerNormalValidator,
-      getter = { it.height.toString() }) { config, newValue ->
-      newValue.toIntOrNull()?.let {
+      defaultValue = defaultDeviceValues.heightString,
+      inputValidation = DeviceSpecDimValidator(strictPositive = true),
+      getter = { it.heightString }) { config, newValue ->
+      newValue.toFloatOrNull()?.let {
         config.height = it
       }
-      PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED
+      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_DIM_UNIT,
@@ -107,7 +107,7 @@ internal class DeviceParameterPropertyItem(
       newUnit?.let {
         config.dimUnit = newUnit
         newUnit.trackableValue
-      } ?: PickerTrackableValue.UNKNOWN
+      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_DENSITY,
@@ -118,7 +118,7 @@ internal class DeviceParameterPropertyItem(
       newDpi?.let {
         config.dpi = newDpi
         PickerTrackerHelper.densityBucketOfDeviceConfig(config)
-      } ?: PickerTrackableValue.UNKNOWN
+      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_ORIENTATION,
@@ -128,14 +128,55 @@ internal class DeviceParameterPropertyItem(
       newOrientation?.let {
         config.orientation = newOrientation
         newOrientation.trackableValue
-      } ?: PickerTrackableValue.UNKNOWN
+      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
     },
+    DevicePropertyItem(
+      name = PARAMETER_HARDWARE_IS_ROUND,
+      defaultValue = defaultDeviceValues.isRound.toString(),
+      inputValidation = BooleanValidator,
+      getter = { it.isRound.toString() }) { config, newValue ->
+      val newIsRound = newValue.toBooleanStrictOrNull()
+      newIsRound?.let {
+        config.shape = if (it) Shape.Round else Shape.Normal
+        PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE // TODO(b/205184728): Update tracking values
+      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+    },
+    DevicePropertyItem(
+      name = PARAMETER_HARDWARE_CHIN_SIZE,
+      defaultValue = defaultDeviceValues.chinSizeString,
+      inputValidation = DeviceSpecDimValidator(strictPositive = false),
+      getter = { it.chinSizeString }) { config, newValue ->
+      val newChinSize = newValue.toFloatOrNull()
+      newChinSize?.let {
+        if (it > 0) {
+          config.shape = Shape.Round
+        }
+        config.chinSize = newChinSize
+        PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
+      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+    }
   )
 
+  private var lastValueToDevice: Pair<String, DeviceConfig>? = null
+
   private fun getCurrentDeviceConfig(): MutableDeviceConfig {
-    return value?.let { currentValue ->
-      DeviceConfig.toDeviceConfigOrNull(currentValue) ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
-    }?.toMutableConfig() ?: defaultDeviceValues.toMutableConfig()
+    ApplicationManager.getApplication().assertIsDispatchThread()
+    val currentValue = value ?: return defaultDeviceValues.toMutableConfig()
+    val availableDevices = AvailableDevicesKey.getData(model) ?: emptyList()
+
+    val lastValue = lastValueToDevice
+    if (lastValue != null && currentValue == lastValue.first) {
+      // No need to parse or find Device for repeated calls.
+      return lastValue.second.toMutableConfig()
+    }
+
+    // Translate the current value, the value could either be a DeviceConfig string or a Device ID
+    val resolvedDeviceConfig = DeviceConfig.toDeviceConfigOrNull(currentValue, availableDevices)
+                               ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
+                               ?: defaultDeviceValues
+
+    lastValueToDevice = Pair(currentValue, resolvedDeviceConfig)
+    return resolvedDeviceConfig.toMutableConfig()
   }
 
   /**
@@ -146,7 +187,7 @@ internal class DeviceParameterPropertyItem(
     defaultValue: String?,
     inputValidation: EditingValidation = { EDITOR_NO_ERROR },
     private val getter: (MutableDeviceConfig) -> String,
-    private val setter: (MutableDeviceConfig, String) -> PickerTrackableValue
+    private val setter: (MutableDeviceConfig, String) -> PreviewPickerValue
   ) : MemoryParameterPropertyItem(
     name, defaultValue, inputValidation
   ) {

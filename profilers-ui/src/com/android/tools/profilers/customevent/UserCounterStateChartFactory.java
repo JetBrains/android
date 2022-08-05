@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class UserCounterStateChartFactory {
 
-  private static final StateChartColorProvider<Long> DURATION_STATE_COLOR_PROVIDER = new StateChartColorProvider<>() {
+  private static final StateChartColorProvider<Long> DURATION_STATE_COLOR_PROVIDER = new StateChartColorProvider<Long>() {
     @NotNull
     @Override
     public Color getColor(boolean isMouseOver, @NotNull Long value) {

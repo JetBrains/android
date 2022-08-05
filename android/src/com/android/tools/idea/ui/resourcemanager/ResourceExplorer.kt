@@ -27,6 +27,7 @@ import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarg
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
@@ -34,6 +35,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import kotlin.properties.Delegates
+
+internal const val RES_MANAGER_PREF_KEY = "ResourceManagerPrefKey"
 
 internal val MANAGER_SUPPORTED_RESOURCES
   get() =
@@ -44,6 +47,8 @@ internal val MANAGER_SUPPORTED_RESOURCES
             ResourceType.FRACTION, ResourceType.INTEGER, ResourceType.PLURALS, ResourceType.XML)
 
 internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "false")?.toBoolean() ?: false
+
+private val LOG = Logger.getInstance(ResourceExplorer::class.java)
 
 /**
  * The resource explorer lets the user browse resources from the provided [AndroidFacet]
@@ -60,10 +65,10 @@ class ResourceExplorer private constructor(
   var facet by Delegates.observable(facet) { _, _, newValue -> updateFacet(newValue) }
 
   init {
-    toolbarViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
+    toolbarViewModel.facetUpdaterCallback = { newValue -> this.facet = newValue }
     toolbarViewModel.resourceUpdaterCallback = { name, type -> selectAsset(name, type) }
     toolbarViewModel.refreshResourcesPreviewsCallback = { resourceExplorerViewModel.refreshPreviews() }
-    resourceExplorerViewModel.facetUpdaterCallback = { newValue -> this.facet = newValue}
+    resourceExplorerViewModel.facetUpdaterCallback = { newValue -> this.facet = newValue }
     resourceExplorerViewModel.resourceTypeUpdaterCallback = this::updateResourceType
 
     val centerContainer = JPanel(BorderLayout())
@@ -105,6 +110,7 @@ class ResourceExplorer private constructor(
 
     /**
      * Create a new instance of [ResourceExplorer] to be used as resource picker.
+     * See [ResourceExplorerViewModel.createResPickerViewModel].
      */
     fun createResourcePicker(
       facet: AndroidFacet,
@@ -179,6 +185,16 @@ class ResourceExplorer private constructor(
   fun selectAsset(facet: AndroidFacet, path: VirtualFile) {
     updateFacet(facet)
     resourceExplorerView.selectAsset(path)
+  }
+
+  /**
+   * Refresh the resources lists if they are outdated from the Resources repository.
+   *
+   * There's typically no need to call this unless there's certainty that the lists are outdated.
+   */
+  fun refreshIfOutdated() {
+    LOG.debug("Requested to refresh resources")
+    resourceExplorerViewModel.refreshOnResourcesChange()
   }
 
   /**

@@ -130,7 +130,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myCategoryTree.addTreeSelectionListener(this);
     setInitialSelection(currentTheme);
     myThemeList.addListSelectionListener(this);
-    myThemeList.setCellRenderer(new ColoredListCellRenderer<>() {
+    myThemeList.setCellRenderer(new ColoredListCellRenderer<String>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList list, String style, int index, boolean selected, boolean hasFocus) {
         setIcon(StudioIcons.Shell.Menu.THEME_EDITOR);

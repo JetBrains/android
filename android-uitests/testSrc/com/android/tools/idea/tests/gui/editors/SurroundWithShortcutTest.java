@@ -28,7 +28,6 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.AbstractPopup;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import javax.swing.JPanel;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
@@ -48,7 +47,7 @@ public class SurroundWithShortcutTest {
     "try {\n" +
     "            String hello = \"hello\";\n" +
     "        } catch (Exception e) {\n" +
-    "            e.printStackTrace();\n" +
+    "            throw new RuntimeException(e);\n" +
     "        }";
   private static String DO_WHILE_BLOCK =
     "do {\n" +
@@ -87,9 +86,8 @@ public class SurroundWithShortcutTest {
       .enterText("\n" + HELLO_STR)
       .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    JListFixture listFixture = clickCodeSurroundWith(ideFrame);
-    listFixture.replaceCellReader((jList, index) -> jList.getModel().getElementAt(index).toString());
-    listFixture.clickItem(Pattern.compile(".*try / catch.*", Pattern.DOTALL));
+    clickCodeSurroundWith(ideFrame);
+    guiTest.robot().enterText("6"); // Shortcut: "4" for try / catch
     Wait.seconds(5).expecting("Try/Catch block to be added.")
       .until(() -> editorFixture.getCurrentFileContents().contains(TRY_CATCH_BLOCK));
 
@@ -132,7 +130,7 @@ public class SurroundWithShortcutTest {
     ideFrame.invokeMenuPath("Code", "Unwrap/Remove...");
 
     Ref<JPanel> unwrapRemoveJPanel = new Ref<>();
-    Wait.seconds(5).expecting("Unwrap/Remove popup list to show.").until(() -> {
+    Wait.seconds(7).expecting("Unwrap/Remove popup list to show.").until(() -> {
       Collection<JPanel> allFound =
         ideFrame.robot().finder().findAll(ideFrame.target(), Matchers.byType(JPanel.class));
 

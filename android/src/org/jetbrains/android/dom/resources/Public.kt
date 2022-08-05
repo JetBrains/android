@@ -65,7 +65,7 @@ class PublicResourceNameConverter: StringConverter() {
     val xmlAttribute: XmlAttribute = tag.getAttribute("type") ?: return null
     val attributeValue = xmlAttribute.value ?: return null
     val resourceType = ResourceType.fromXmlValue(attributeValue) ?: return null
-    return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, resourceName), context.psiManager, false)
+    return ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, resourceType, resourceName))
   }
 
   override fun getVariants(context: ConvertContext?): Collection<String> {

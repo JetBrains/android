@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import java.awt.Shape
@@ -49,7 +50,50 @@ const val FLAG_HAS_UNMERGED_SEMANTICS = LayoutInspectorComposeProtocol.Composabl
 
 // Must match packageNameHash in androidx.ui.tooling.inspector.LayoutInspectorTree
 fun packageNameHash(packageName: String): Int =
-  packageName.fold(0) { hash, char -> hash * 31 + char.toInt() }.absoluteValue
+  packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
+
+/**
+ * The recomposition counts for a [ComposeViewNode] or a combination of nodes.
+ * @param count the number of recompositions
+ * @param skips the number of times that recomposition was skipped
+ * @param highlightCount a number that expresses relative recent counts for image highlighting
+ */
+class RecompositionData(var count: Int, var skips: Int, var highlightCount: Float = 0f) {
+  val isEmpty: Boolean
+    get() = count == 0 && skips == 0 && highlightCount == 0f
+
+  val hasHighlight: Boolean
+    get() = highlightCount > 0f
+
+  fun reset() {
+    count = 0
+    skips = 0
+    highlightCount = 0f
+  }
+
+  fun maxOf(node: ViewNode) {
+    (node as? ComposeViewNode)?.let { maxOf(it.recompositions) }
+  }
+
+  fun maxOf(other: RecompositionData) {
+    count = maxOf(count, other.count)
+    skips = maxOf(skips, other.skips)
+    highlightCount = maxOf(highlightCount, other.highlightCount)
+  }
+
+  fun update(newNumbers: RecompositionData) {
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get()) {
+      highlightCount += maxOf(0, newNumbers.count - count)
+    }
+    count = newNumbers.count
+    skips = newNumbers.skips
+  }
+
+  fun decreaseHighlights(): Float {
+    highlightCount = if (highlightCount > DECREASE_BREAK_OFF) highlightCount / DECREASE_FACTOR else 0f
+    return highlightCount
+  }
+}
 
 /**
  * A view node represents a composable in the view hierarchy as seen on the device.
@@ -66,12 +110,33 @@ class ComposeViewNode(
   viewId: ResourceReference?,
   textValue: String,
   layoutFlags: Int,
+
+  /** The number of times this node was recomposed (i.e. the composable method called) since last reset. */
+  recomposeCount: Int,
+
+  /** The number of times this node was skipped (i.e. the composable method was not called when it might have been) since last reset. */
+  recomposeSkips: Int,
+
+  /** The filename of where the code for this composable resides. This name not contain a path. */
   var composeFilename: String,
+
+  /** The hash of the package name where the composable resides. */
   var composePackageHash: Int,
+
+  /** The offset to the method start in the file where the composable resides. */
   var composeOffset: Int,
+
+  /** The line number of the method start in the file where the composable resides. */
   var composeLineNumber: Int,
-  var composeFlags: Int
+
+  /** Flags as defined byh the FLAG_* constants above. */
+  var composeFlags: Int,
+
+  /** The hash of an anchor which can identify the composable after a recomposition. */
+  var anchorHash: Int
 ): ViewNode(drawId, qualifiedName, layout, x, y, width, height, transformedBounds, viewId, textValue, layoutFlags) {
+
+  val recompositions = RecompositionData(recomposeCount, recomposeSkips)
 
   override val isSystemNode: Boolean
     get() = composeFlags.hasFlag(FLAG_SYSTEM_DEFINED) ||
@@ -88,6 +153,10 @@ class ComposeViewNode(
 
   override fun isSingleCall(treeSettings: TreeSettings): Boolean =
     treeSettings.composeAsCallstack && readAccess { (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 }
+
+  fun resetRecomposeCounts() {
+    recompositions.reset()
+  }
 
   @Suppress("NOTHING_TO_INLINE")
   inline fun Int.hasFlag(flag: Int) = flag and this == flag

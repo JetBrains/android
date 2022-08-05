@@ -107,6 +107,6 @@ public class ThemeEditorStyle {
       return false;
     }
 
-    return androidTargetData.isResourcePublic(ResourceType.STYLE.getName(), getName());
+    return androidTargetData.isResourcePublic(ResourceType.STYLE, getName());
   }
 }

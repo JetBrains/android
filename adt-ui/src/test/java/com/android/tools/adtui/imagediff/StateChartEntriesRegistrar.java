@@ -257,7 +257,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       }
     }
 
-    private static final StateChartColorProvider<TestState> TEST_STATE_COLORS = new StateChartColorProvider<>() {
+    private static final StateChartColorProvider<TestState> TEST_STATE_COLORS = new StateChartColorProvider<TestState>() {
       @NotNull
       @Override
       public Color getColor(boolean isMouseOver, @NotNull TestState value) {

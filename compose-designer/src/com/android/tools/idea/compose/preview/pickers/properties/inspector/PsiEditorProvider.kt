@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.pickers.properties.inspector
 
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
-import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItemControlTypeProvider
+import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.PropertyEditorModel
@@ -29,8 +29,9 @@ import javax.swing.JComponent
  * Custom EditorProvider for PsiProperties, makes sure that we use the correct component and renderer to instantiate Dropdowns.
  */
 internal class PsiEditorProvider(
-  enumSupportProvider: EnumSupportProvider<PsiPropertyItem>
-) : EditorProviderImpl<PsiPropertyItem>(enumSupportProvider, PsiPropertyItemControlTypeProvider) {
+  enumSupportProvider: EnumSupportProvider<PsiPropertyItem>,
+  psiControlTypeProvider: PsiPropertyItemControlTypeProvider
+) : EditorProviderImpl<PsiPropertyItem>(enumSupportProvider, psiControlTypeProvider) {
 
   override fun createComboBoxEditor(
     property: PsiPropertyItem,
@@ -53,3 +54,8 @@ internal class PsiEditorProvider(
     }
   }
 }
+
+/**
+ * [ControlTypeProvider] for [PsiPropertyItem]s that provides a text editor for every property.
+ */
+internal typealias PsiPropertyItemControlTypeProvider = ControlTypeProvider<PsiPropertyItem>

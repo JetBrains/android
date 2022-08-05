@@ -46,7 +46,7 @@ class LayoutHandler : FrameLayoutHandler() {
     return "<layout>"
   }
 
-  override fun getPlaceholders(component: SceneComponent): List<Placeholder> = listOf(LayoutPlaceholder(component))
+  override fun getPlaceholders(component: SceneComponent, draggedComponents: List<SceneComponent>) = listOf(LayoutPlaceholder(component))
 }
 
 class LayoutPlaceholder(host: SceneComponent) : Placeholder(host) {

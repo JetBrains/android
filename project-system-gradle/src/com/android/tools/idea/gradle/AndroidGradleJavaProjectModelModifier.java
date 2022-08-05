@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle;
 
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ADD_LIBRARY_DEPENDENCY;
@@ -41,15 +41,16 @@ import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -110,7 +111,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   private static final Set<String> JAVA_PLUGIN_IDENTIFIERS = ImmutableSet.of("java", "java-library");
 
   private static boolean isAndroidGradleProject(@NotNull Project project) {
-    return AndroidProjectInfo.getInstance(project).requiresAndroidModel();
+    return ProjectSystemUtil.requiresAndroidModel(project);
   }
 
   @Nullable
@@ -143,13 +144,13 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
     Project project = from.getProject();
     VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(from.getProject()).getCurrentFile();
-    String gradlePath = getGradlePath(to);
+    GradleProjectPath gradlePath = getGradleProjectPath(to);
     GradleBuildModel buildModel = GradleBuildModel.get(from);
 
     if (buildModel != null && gradlePath != null) {
       DependenciesModel dependencies = buildModel.dependencies();
       String configurationName = getConfigurationName(from, scope, openedFile);
-      dependencies.addModule(configurationName, gradlePath, null);
+      dependencies.addModule(configurationName, gradlePath.getPath(), null);
 
       WriteCommandAction.writeCommandAction(project).withName("Add Gradle Module Dependency").run(() -> {
         buildModel.applyChanges();
@@ -267,21 +268,16 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @NotNull
-  private static String getConfigurationName(@NotNull Module module, @NotNull DependencyScope scope, @Nullable VirtualFile openedFile) {
-    return GradleUtil.mapConfigurationName(
-      getLegacyConfigurationName(module, scope, openedFile), GradleUtil.getAndroidGradleModelVersionInUse(module), false);
-  }
-
-  @NotNull
-  private static String getLegacyConfigurationName(@NotNull Module module,
+  private static String getConfigurationName(@NotNull Module module,
                                                    @NotNull DependencyScope scope,
                                                    @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 
-      return testScopes != null && openedFile != null && testScopes.isAndroidTestSource(openedFile) ? ANDROID_TEST_COMPILE : TEST_COMPILE;
+      boolean isAndroid = testScopes != null && openedFile != null && testScopes.isAndroidTestSource(openedFile);
+      return isAndroid ? ANDROID_TEST_IMPLEMENTATION : TEST_IMPLEMENTATION;
     }
-    return COMPILE;
+    return IMPLEMENTATION;
   }
 
   @Nullable
@@ -397,7 +393,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     }
     ArtifactDependencySpec result = null;
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      GradleAndroidModel androidModel = GradleAndroidModel.get(module);
       if (androidModel != null && findLibrary(module, library.getName()) != null) {
         result = findNewExternalDependency(library, androidModel.getSelectedVariant());
         break;
@@ -441,11 +437,12 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   private static ArtifactDependencySpec findMatchedLibrary(@NotNull Library library, @NotNull IdeBaseArtifact artifact) {
-    IdeDependencies dependencies = artifact.getLevel2Dependencies();
-    for (IdeJavaLibrary gradleLibrary : dependencies.getJavaLibraries()) {
-      String libraryName = getNameWithoutExtension(gradleLibrary.getArtifact());
+    IdeDependencies dependencies = artifact.getCompileClasspath();
+    for (IdeJavaLibraryDependency gradleLibrary : dependencies.getJavaLibraries()) {
+      IdeJavaLibrary libraryTarget = gradleLibrary.getTarget();
+      String libraryName = getNameWithoutExtension(libraryTarget.getArtifact());
       if (libraryName.equals(library.getName())) {
-        return ArtifactDependencySpec.create(gradleLibrary.getArtifactAddress());
+        return ArtifactDependencySpec.create(libraryTarget.getArtifactAddress());
       }
     }
     return null;

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf
 
+import com.android.tools.idea.flags.StudioFlags
+import org.junit.After
+import org.junit.Before
+
 class ExtraLargePerfTestV1 : AbstractGradleSyncPerfTestCase() {
   override val relativePath: String = TestProjectPaths.EXTRA_LARGE
   override val projectName: String = "ExtraLarge_V1"
@@ -28,4 +32,16 @@ class ExtraLargePerfTestV2 : AbstractGradleSyncPerfTestCase() {
   override val initialDrops: Int = 0
   override val numSamples: Int = 1
   override val useModelV2: Boolean  = true
+
+  @Before
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.override(true)
+  }
+
+  @After
+  override fun tearDown() {
+    super.tearDown()
+    StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.clearOverride()
+  }
 }

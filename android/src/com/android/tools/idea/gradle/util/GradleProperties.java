@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
@@ -23,7 +24,6 @@ import com.android.tools.idea.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class GradleProperties {
   private final Properties myProperties;
 
   public GradleProperties(@NotNull Project project) throws IOException {
-    this(getGradlePropertiesFile(project));
+    this(new File(Projects.getBaseDirPath(project), FN_GRADLE_PROPERTIES));
   }
 
   public GradleProperties(@NotNull File path) throws IOException {
@@ -126,16 +126,5 @@ public class GradleProperties {
   @NotNull
   public File getPath() {
     return myPath;
-  }
-
-  @NotNull
-  public static File getGradlePropertiesFile(@NotNull Project project) {
-    return new File(Projects.getBaseDirPath(project), "gradle.properties");
-  }
-
-  @NotNull
-  public static File getUserGradlePropertiesFile() {
-    String home = System.getProperty("user.home");
-    return new File(new File(home), FileUtilRt.toSystemDependentName(".gradle/gradle.properties"));
   }
 }

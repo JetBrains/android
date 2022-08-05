@@ -63,7 +63,7 @@ public class FormScalingUtil {
   /**
    * The stack of component/property names as we traverse the tree. Used for logging if <code>DEBUG</code> is <code>true</code>
    */
-  private final Stack<String> myStack = new Stack<>();
+  private final Stack<String> myStack = new Stack<String>();
   /**
    * The class associated to the .form file, used for logging only.
    */

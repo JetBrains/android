@@ -27,7 +27,7 @@ import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
-import io.grpc.StatusRuntimeException
+import com.android.tools.idea.io.grpc.StatusRuntimeException
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.TimeUnit
 
@@ -74,7 +74,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     when (command.type) {
       Commands.Command.CommandType.START_CPU_TRACE -> startTrace(command)
       Commands.Command.CommandType.STOP_CPU_TRACE -> stopTrace(command)
-      else -> {}
+      else -> { }
     }
 
     return Transport.ExecuteResponse.getDefaultInstance()

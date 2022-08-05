@@ -55,7 +55,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
 
   @NotNull
   public static AvdManagerDialogFixture find(@NotNull Robot robot, @NotNull IdeFrameFixture ideFrame) {
-    JFrame frame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<>(JFrame.class) {
+    JFrame frame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame dialog) {
         // Waiting for the dialog to be active allows the "dialog grow animation" to end

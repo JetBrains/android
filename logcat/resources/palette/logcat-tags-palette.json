@@ -1,753 +1,753 @@
 [
   {
     "name": "Gray",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "414d41"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "485648"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "4f5f4f"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "566756"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "5d6f5d"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "97b1c0"
+        "foreground": "929292"
       },
       {
         "background": "000000",
-        "foreground": "a6bcc9"
+        "foreground": "a3a3a3"
       },
       {
         "background": "000000",
-        "foreground": "b6c8d3"
+        "foreground": "b5b5b5"
       },
       {
         "background": "000000",
-        "foreground": "c6d4dd"
+        "foreground": "c7c7c7"
       },
       {
         "background": "000000",
-        "foreground": "d6e0e6"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "97b1c0"
-      },
-      {
-        "background": "000000",
-        "foreground": "86a5b6"
-      },
-      {
-        "background": "000000",
-        "foreground": "7699ad"
-      },
-      {
-        "background": "000000",
-        "foreground": "668da3"
-      },
-      {
-        "background": "000000",
-        "foreground": "5a8096"
+        "foreground": "d9d9d9"
       }
     ]
   },
   {
-    "name": "dark Blue",
+    "name": "Light Blue",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "1750EB"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "1349dd"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "1243ca"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "103cb7"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "0e36a4"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "a2dffe"
+        "foreground": "A9B7C6"
       },
       {
         "background": "000000",
-        "foreground": "aee4fe"
+        "foreground": "b9c4d0"
       },
       {
         "background": "000000",
-        "foreground": "b8e7fe"
+        "foreground": "c8d1da"
       },
       {
         "background": "000000",
-        "foreground": "c2eafe"
+        "foreground": "d7dee4"
       },
       {
         "background": "000000",
-        "foreground": "cdeefe"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "74a1b8"
-      },
-      {
-        "background": "000000",
-        "foreground": "6496af"
-      },
-      {
-        "background": "000000",
-        "foreground": "558aa5"
-      },
-      {
-        "background": "000000",
-        "foreground": "4c7c94"
-      },
-      {
-        "background": "000000",
-        "foreground": "446e83"
+        "foreground": "e7eaef"
       }
     ]
   },
   {
     "name": "Orange",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "A46028"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "985925"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "8c5122"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "7f4a1f"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "73431c"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "f79c6e"
+        "foreground": "D28546"
       },
       {
         "background": "000000",
-        "foreground": "f8a981"
+        "foreground": "d7935b"
       },
       {
         "background": "000000",
-        "foreground": "f9b694"
+        "foreground": "dca06f"
       },
       {
         "background": "000000",
-        "foreground": "fac3a8"
+        "foreground": "e1ae84"
       },
       {
         "background": "000000",
-        "foreground": "fbd1bb"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "ab6d4d"
-      },
-      {
-        "background": "000000",
-        "foreground": "9b6246"
-      },
-      {
-        "background": "000000",
-        "foreground": "89573e"
-      },
-      {
-        "background": "000000",
-        "foreground": "784c36"
-      },
-      {
-        "background": "000000",
-        "foreground": "66412e"
+        "foreground": "e6bb98"
       }
     ]
   },
   {
     "name": "Green",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "008000"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "007000"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "006100"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "005200"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "004200"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "74e288"
+        "foreground": "A8C023"
       },
       {
         "background": "000000",
-        "foreground": "88e79a"
+        "foreground": "c0d930"
       },
       {
         "background": "000000",
-        "foreground": "9eebac"
+        "foreground": "c9df4e"
       },
       {
         "background": "000000",
-        "foreground": "b3efbe"
+        "foreground": "d2e46c"
       },
       {
         "background": "000000",
-        "foreground": "c8f4d0"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "529d5f"
-      },
-      {
-        "background": "000000",
-        "foreground": "4a8c55"
-      },
-      {
-        "background": "000000",
-        "foreground": "417c4b"
-      },
-      {
-        "background": "000000",
-        "foreground": "386b41"
-      },
-      {
-        "background": "000000",
-        "foreground": "305a37"
+        "foreground": "dbea8b"
       }
     ]
   },
   {
-    "name": "dark Purple",
+    "name": "Light Purple",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "7411BC"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "660fa3"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "570d8c"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "490b75"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "3a095d"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "a78bd9"
+        "foreground": "AE8ABE"
       },
       {
         "background": "000000",
-        "foreground": "b49bdf"
+        "foreground": "b999c7"
       },
       {
         "background": "000000",
-        "foreground": "bfaae4"
+        "foreground": "c4a9d0"
       },
       {
         "background": "000000",
-        "foreground": "cbbae9"
+        "foreground": "d0bad9"
       },
       {
         "background": "000000",
-        "foreground": "d6c9ee"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "746196"
-      },
-      {
-        "background": "000000",
-        "foreground": "675686"
-      },
-      {
-        "background": "000000",
-        "foreground": "5b4c76"
-      },
-      {
-        "background": "000000",
-        "foreground": "4f4267"
-      },
-      {
-        "background": "000000",
-        "foreground": "433857"
+        "foreground": "dbcae2"
       }
     ]
   },
   {
     "name": "Pink",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "990099"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "8a008a"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "7a007a"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "6b006b"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "5c005c"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "e66f9a"
+        "foreground": "D27981"
       },
       {
         "background": "000000",
-        "foreground": "ea86aa"
+        "foreground": "d6858b"
       },
       {
         "background": "000000",
-        "foreground": "ed9bb9"
+        "foreground": "da9096"
       },
       {
         "background": "000000",
-        "foreground": "f1b1c9"
+        "foreground": "de9ca1"
       },
       {
         "background": "000000",
-        "foreground": "f5c7d8"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "a04e6c"
-      },
-      {
-        "background": "000000",
-        "foreground": "944763"
-      },
-      {
-        "background": "000000",
-        "foreground": "86415a"
-      },
-      {
-        "background": "000000",
-        "foreground": "783a51"
-      },
-      {
-        "background": "000000",
-        "foreground": "6b3348"
+        "foreground": "e2a7ac"
       }
     ]
   },
   {
     "name": "Turquoise",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "008080"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "007575"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "006b6b"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "006161"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "005757"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "52e5cf"
+        "foreground": "3AA192"
       },
       {
         "background": "000000",
-        "foreground": "6de9d6"
+        "foreground": "41b4a3"
       },
       {
         "background": "000000",
-        "foreground": "87edde"
+        "foreground": "4fbfaf"
       },
       {
         "background": "000000",
-        "foreground": "a2f1e5"
+        "foreground": "62c6b7"
       },
       {
         "background": "000000",
-        "foreground": "bcf5ed"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "3a9f90"
-      },
-      {
-        "background": "000000",
-        "foreground": "328b7d"
-      },
-      {
-        "background": "000000",
-        "foreground": "2a7469"
-      },
-      {
-        "background": "000000",
-        "foreground": "225e55"
-      },
-      {
-        "background": "000000",
-        "foreground": "1a4740"
+        "foreground": "74cdc0"
       }
     ]
   },
   {
     "name": "Tan",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "806E0A"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "6d5e08"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "5a4e07"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "473d05"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "342d04"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "dfcc9f"
+        "foreground": "FFC66D"
       },
       {
         "background": "000000",
-        "foreground": "e3d2ab"
+        "foreground": "ffbb4d"
       },
       {
         "background": "000000",
-        "foreground": "e7d8b6"
+        "foreground": "ffaf2e"
       },
       {
         "background": "000000",
-        "foreground": "ebdec2"
+        "foreground": "ffa30f"
       },
       {
         "background": "000000",
-        "foreground": "eee4cd"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "9b8e6f"
-      },
-      {
-        "background": "000000",
-        "foreground": "8d8062"
-      },
-      {
-        "background": "000000",
-        "foreground": "7e7358"
-      },
-      {
-        "background": "000000",
-        "foreground": "6f654d"
-      },
-      {
-        "background": "000000",
-        "foreground": "605743"
+        "foreground": "f09400"
       }
     ]
   },
   {
     "name": "Pacific Blue",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "325A9C"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "2d538f"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "2a4c84"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "264578"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "223f6d"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "0093d4"
+        "foreground": "029CDE"
       },
       {
         "background": "000000",
-        "foreground": "0ab6ff"
+        "foreground": "02aef7"
       },
       {
         "background": "000000",
-        "foreground": "3dc5ff"
+        "foreground": "17b8fd"
       },
       {
         "background": "000000",
-        "foreground": "70d4ff"
+        "foreground": "30bffd"
       },
       {
         "background": "000000",
-        "foreground": "a3e3ff"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "026793"
-      },
-      {
-        "background": "000000",
-        "foreground": "025c83"
-      },
-      {
-        "background": "000000",
-        "foreground": "025174"
-      },
-      {
-        "background": "000000",
-        "foreground": "024764"
-      },
-      {
-        "background": "000000",
-        "foreground": "013c55"
+        "foreground": "49c7fd"
       }
     ]
   },
   {
     "name": "Teal",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "00627A"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "00566b"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "00495c"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "003d4d"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "00313d"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "158F7F"
+        "foreground": "19A492"
       },
       {
         "background": "000000",
-        "foreground": "1dc3ad"
+        "foreground": "1bb19d"
       },
       {
         "background": "000000",
-        "foreground": "3ce2cc"
+        "foreground": "1dbfa9"
       },
       {
         "background": "000000",
-        "foreground": "71eada"
+        "foreground": "1eccb5"
       },
       {
         "background": "000000",
-        "foreground": "a6f2e8"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "158F7F"
-      },
-      {
-        "background": "000000",
-        "foreground": "137c6e"
-      },
-      {
-        "background": "000000",
-        "foreground": "106a5e"
-      },
-      {
-        "background": "000000",
-        "foreground": "0d594f"
-      },
-      {
-        "background": "000000",
-        "foreground": "0b473f"
+        "foreground": "20d9c1"
       }
     ]
   },
   {
     "name": "Purple",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "871094"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "760e81"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "650c6f"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "540a5c"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "43084a"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "824bdf"
+        "foreground": "A388B4"
       },
       {
         "background": "000000",
-        "foreground": "9263e3"
+        "foreground": "ab91ba"
       },
       {
         "background": "000000",
-        "foreground": "a47de8"
+        "foreground": "b29bc0"
       },
       {
         "background": "000000",
-        "foreground": "b697ed"
+        "foreground": "b9a4c6"
       },
       {
         "background": "000000",
-        "foreground": "c9b1f1"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "824bdf"
-      },
-      {
-        "background": "000000",
-        "foreground": "6e2fda"
-      },
-      {
-        "background": "000000",
-        "foreground": "5f23c7"
-      },
-      {
-        "background": "000000",
-        "foreground": "531fad"
-      },
-      {
-        "background": "000000",
-        "foreground": "471a93"
+        "foreground": "c0adcc"
       }
     ]
   },
   {
-    "name": "light Orange",
+    "name": "Dark Orange",
+    "light": [
+      {
+        "background": "ffffff",
+        "foreground": "996600"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "8a5c00"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "7a5200"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "6b4700"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "5c3d00"
+      }
+    ],
     "dark": [
       {
         "background": "000000",
-        "foreground": "c1571a"
+        "foreground": "B78A57"
       },
       {
         "background": "000000",
-        "foreground": "e26c28"
+        "foreground": "bd9465"
       },
       {
         "background": "000000",
-        "foreground": "e78750"
+        "foreground": "c39e74"
       },
       {
         "background": "000000",
-        "foreground": "eda378"
+        "foreground": "c9a882"
       },
       {
         "background": "000000",
-        "foreground": "f2bfa1"
-      }
-    ],
-    "light": [
-      {
-        "background": "000000",
-        "foreground": "c1571a"
-      },
-      {
-        "background": "000000",
-        "foreground": "af4f18"
-      },
-      {
-        "background": "000000",
-        "foreground": "9d4715"
-      },
-      {
-        "background": "000000",
-        "foreground": "8b3f13"
-      },
-      {
-        "background": "000000",
-        "foreground": "793711"
+        "foreground": "d0b290"
       }
     ]
   },
   {
     "name": "Indigo",
-    "dark": [
-      {
-        "background": "000000",
-        "foreground": "3F67A6"
-      },
-      {
-        "background": "000000",
-        "foreground": "5980c0"
-      },
-      {
-        "background": "000000",
-        "foreground": "7e9cce"
-      },
-      {
-        "background": "000000",
-        "foreground": "a3b9dc"
-      },
-      {
-        "background": "000000",
-        "foreground": "c8d5ea"
-      }
-    ],
     "light": [
       {
-        "background": "000000",
+        "background": "ffffff",
         "foreground": "3F67A6"
       },
       {
-        "background": "000000",
+        "background": "ffffff",
         "foreground": "385b94"
       },
       {
-        "background": "000000",
+        "background": "ffffff",
         "foreground": "315081"
       },
       {
-        "background": "000000",
+        "background": "ffffff",
         "foreground": "2a446f"
       },
       {
-        "background": "000000",
+        "background": "ffffff",
         "foreground": "23395c"
+      }
+    ],
+    "dark": [
+      {
+        "background": "000000",
+        "foreground": "7292CA"
+      },
+      {
+        "background": "000000",
+        "foreground": "819ecf"
+      },
+      {
+        "background": "000000",
+        "foreground": "90a9d5"
+      },
+      {
+        "background": "000000",
+        "foreground": "9fb5db"
+      },
+      {
+        "background": "000000",
+        "foreground": "aec0e0"
       }
     ]
   },
   {
     "name": "Lime",
-    "dark": [
-      {
-        "background": "000000",
-        "foreground": "adac38"
-      },
-      {
-        "background": "000000",
-        "foreground": "c6c44e"
-      },
-      {
-        "background": "000000",
-        "foreground": "d1cf71"
-      },
-      {
-        "background": "000000",
-        "foreground": "dcdb93"
-      },
-      {
-        "background": "000000",
-        "foreground": "e7e6b6"
-      }
-    ],
     "light": [
       {
         "background": "000000",
-        "foreground": "adac38"
+        "foreground": "5E7F24"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "557321"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "4c671d"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "435b1a"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "3b5016"
+      }
+    ],
+    "dark": [
+      {
+        "background": "000000",
+        "foreground": "BBB529"
       },
       {
         "background": "000000",
-        "foreground": "a2a034"
+        "foreground": "b4af27"
       },
       {
         "background": "000000",
-        "foreground": "969431"
+        "foreground": "aba726"
       },
       {
         "background": "000000",
-        "foreground": "8b892d"
+        "foreground": "a39f24"
       },
       {
         "background": "000000",
-        "foreground": "7f7e29"
+        "foreground": "9b9722"
       }
     ]
   },
   {
     "name": "Magenta",
-    "dark": [
-      {
-        "background": "000000",
-        "foreground": "b8388e"
-      },
-      {
-        "background": "000000",
-        "foreground": "ca53a3"
-      },
-      {
-        "background": "000000",
-        "foreground": "d576b6"
-      },
-      {
-        "background": "000000",
-        "foreground": "e09ac8"
-      },
-      {
-        "background": "000000",
-        "foreground": "ebbddb"
-      }
-    ],
     "light": [
       {
         "background": "000000",
-        "foreground": "b8388e"
+        "foreground": "B24DB2"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "a446a4"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "964096"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "883a88"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "793479"
+      }
+    ],
+    "dark": [
+      {
+        "background": "000000",
+        "foreground": "D36FB1"
       },
       {
         "background": "000000",
-        "foreground": "a4327e"
+        "foreground": "d77eba"
       },
       {
         "background": "000000",
-        "foreground": "902c6f"
+        "foreground": "dc8ec2"
       },
       {
         "background": "000000",
-        "foreground": "7d2660"
+        "foreground": "e19dcb"
       },
       {
         "background": "000000",
-        "foreground": "692051"
+        "foreground": "e6add3"
       }
     ]
   },
   {
     "name": "Vivid Blue",
-    "dark": [
-      {
-        "background": "000000",
-        "foreground": "1a7aff"
-      },
-      {
-        "background": "000000",
-        "foreground": "3d8eff"
-      },
-      {
-        "background": "000000",
-        "foreground": "61a3ff"
-      },
-      {
-        "background": "000000",
-        "foreground": "85b8ff"
-      },
-      {
-        "background": "000000",
-        "foreground": "a8ccff"
-      }
-    ],
     "light": [
       {
         "background": "000000",
-        "foreground": "1a7aff"
+        "foreground": "1E7BB8"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "1b6fa7"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "186395"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "155884"
+      },
+      {
+        "background": "ffffff",
+        "foreground": "134c72"
+      }
+    ],
+    "dark": [
+      {
+        "background": "000000",
+        "foreground": "4291FF"
       },
       {
         "background": "000000",
-        "foreground": "0068fa"
+        "foreground": "579dff"
       },
       {
         "background": "000000",
-        "foreground": "005bdb"
+        "foreground": "6ba9ff"
       },
       {
         "background": "000000",
-        "foreground": "004fbd"
+        "foreground": "80b5ff"
       },
       {
         "background": "000000",
-        "foreground": "00429e"
+        "foreground": "94c1ff"
       }
     ]
   }

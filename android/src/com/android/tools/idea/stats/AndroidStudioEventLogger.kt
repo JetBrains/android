@@ -76,6 +76,14 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         (data["file_path"] as? String)?.let { filePath = it }
         (data["file_type"] as? String)?.let { fileType = it }
         (data["plugin_type"] as? String)?.let { pluginType = it }
+        (data["plugin_version"] as? String)?.let { pluginVersion = it }
+        eventType = when (eventId) {
+          "select" -> FileUsage.EventType.SELECT
+          "edit" -> FileUsage.EventType.EDIT
+          "open" -> FileUsage.EventType.OPEN
+          "close" -> FileUsage.EventType.CLOSE
+          else -> FileUsage.EventType.UNKNOWN_TYPE
+        }
       }.build()
     }.withProjectId(data))
   }
@@ -95,6 +103,10 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         (data["plugin_type"] as? String?)?.let { pluginType = it }
         (data["platform"] as? String?)?.let { platform = it }
         (data["isMPP"] as? String?)?.toBoolean()?.let { isMultiplatform = it }
+        eventType = when (eventId) {
+          "Build" -> KotlinProjectConfiguration.EventType.BUILD
+          else -> KotlinProjectConfiguration.EventType.TYPE_UNKNOWN
+        }
       }.build()
     }.withProjectId(data))
   }
@@ -104,9 +116,9 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
       "started" -> AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.RUN_START_DATA
         runStartData = RunStartData.newBuilder().apply {
-          (data["ide_activity_id"] as? String?)?.toIntOrNull()?.let { ideActivityId = it }
+          (data["ide_activity_id"] as? Int?)?.let { ideActivityId = it }
           (data["executor"] as? String?)?.let { executor = it }
-          (data["run_configuration"] as? String?)?.let { runConfiguration = it }
+          (data["id"] as? String?)?.let { runConfiguration = it }
         }.build()
       }
       "finished" -> AndroidStudioEvent.newBuilder().apply {

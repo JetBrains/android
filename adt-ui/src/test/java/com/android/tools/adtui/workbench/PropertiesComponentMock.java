@@ -93,6 +93,7 @@ public class PropertiesComponentMock extends PropertiesComponent {
     }
   }
 
+  @Nullable
   @Override
   public String[] getValues(@NotNull String name) {
     String value = myProperties.getProperty(name);
@@ -103,7 +104,7 @@ public class PropertiesComponentMock extends PropertiesComponent {
   }
 
   @Override
-  public void setValues(@NotNull String name, String[] values) {
+  public void setValues(@NotNull String name, @Nullable String[] values) {
     if (values == null || values.length == 0) {
       myProperties.setProperty(name, null);
     }
@@ -117,13 +118,15 @@ public class PropertiesComponentMock extends PropertiesComponent {
     myProperties.setProperty(name, builder.toString());
   }
 
+  @Nullable
   @Override
-  public @Nullable List<String> getList(@NotNull String name) {
-    return List.of(getValues(name));
+  public List<String> getList(@NotNull String name) {
+    String[] values = getValues(name);
+    return values != null ? List.of(values) : null;
   }
 
   @Override
   public void setList(@NotNull String name, @Nullable Collection<String> values) {
-    setValues(name, values.toArray(ArrayUtilRt.EMPTY_STRING_ARRAY));
+    setValues(name, values != null ? values.toArray(ArrayUtilRt.EMPTY_STRING_ARRAY) : null);
   }
 }

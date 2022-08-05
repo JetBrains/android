@@ -34,6 +34,11 @@ public interface IssueDomElement extends DomElement {
   @Convert(SeverityConverter.class)
   GenericAttributeValue<Severity> getSeverity();
 
+  GenericAttributeValue<String> getIn();
+
   @SubTagList("ignore")
   List<IgnoreDomElement> getIgnores();
+
+  @SubTagList("option")
+  List<OptionDomElement> getOptions();
 }

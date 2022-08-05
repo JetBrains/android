@@ -19,6 +19,12 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
 import java.util.concurrent.TimeUnit
 
@@ -87,5 +93,47 @@ class ConvertToWebpActionTest : AndroidTestCase() {
     assertThat(mdpiFolder.findChild("ic_action_name.webp")).isNotNull()
     assertThat(mdpiFolder.findChild("ic_arrow_back.png")).isNull()
     assertThat(mdpiFolder.findChild("ic_arrow_back.webp")).isNotNull()
+  }
+
+  fun testVisibility() {
+    val action = ConvertToWebpAction()
+    val resFolder = myFixture.findFileInTempDir("res")
+    val pngFile = myFixture.addFileToProject("folder/image.png", "").virtualFile
+    val assetFolder = myFixture.copyDirectoryToProject("webp", "assets")
+    val nonResFolder = myFixture.copyDirectoryToProject("webp", "folder")
+    val dataContext = object : DataContext {
+      var files: Array<VirtualFile> = arrayOf()
+
+      override fun getData(dataId: String): Any? {
+        return null
+      }
+
+      override fun <T> getData(key: DataKey<T>): T? {
+        @Suppress("UNCHECKED_CAST")
+        return when (key) {
+          CommonDataKeys.VIRTUAL_FILE_ARRAY -> files as T
+          CommonDataKeys.PROJECT -> myFixture.project as T
+          else -> null
+        }
+      }
+    }
+    val presentation = Presentation()
+    val event = AnActionEvent.createFromDataContext("", presentation, dataContext)
+
+    dataContext.files = arrayOf(resFolder)
+    action.update(event)
+    assertTrue(presentation.isVisible)
+
+    dataContext.files = arrayOf(pngFile)
+    action.update(event)
+    assertTrue(presentation.isVisible)
+
+    dataContext.files = arrayOf(assetFolder)
+    action.update(event)
+    assertTrue(presentation.isVisible)
+
+    dataContext.files = arrayOf(nonResFolder)
+    action.update(event)
+    assertFalse(presentation.isVisible)
   }
 }

@@ -21,6 +21,6 @@ import java.io.File
 import java.io.Serializable
 
 data class IdeNativeVariantInfoImpl(
-    override val abiNames : List<String>,
-    override val buildRootFolderMap : Map<String, File>
+  override val abiNames: List<String>,
+  override val buildRootFolderMap: Map<String, File>
 ) : IdeNativeVariantInfo, Serializable

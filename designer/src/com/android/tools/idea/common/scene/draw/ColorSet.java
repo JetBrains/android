@@ -27,6 +27,9 @@ import java.awt.Stroke;
  */
 public class ColorSet {
 
+    public static final int BLUEPRINT_STYLE = 0;
+    public static final int ANDROID_STYLE = 1;
+
     public static Stroke
             sNormalStroke = new BasicStroke(1);
 

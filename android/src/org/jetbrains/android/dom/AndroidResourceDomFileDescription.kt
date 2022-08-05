@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("ReplaceJavaStaticMethodWithKotlinAnalog")
-
 package org.jetbrains.android.dom
 
 import com.android.SdkConstants
@@ -80,8 +78,14 @@ sealed class AndroidResourceDomFileDescription<T : DomElement>(
 abstract class SingleRootResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
   tagName: String,
-  resourceFolderType: ResourceFolderType
-) : AndroidResourceDomFileDescription<T>(rootElementClass, tagName, resourceFolderType) {
+  resourceFolderTypes: EnumSet<ResourceFolderType>
+) : AndroidResourceDomFileDescription<T>(rootElementClass, tagName, resourceFolderTypes) {
+
+  constructor(
+    rootElementClass: Class<T>,
+    rootTagName: String,
+    resourceFolderType: ResourceFolderType
+  ) : this(rootElementClass, rootTagName, EnumSet.of<ResourceFolderType>(resourceFolderType))
 
   final override fun acceptsOtherRootTagNames() = false
   final override fun isMyFile(file: XmlFile, module: Module?) = super.isMyFile(file, module) && myRootTagName == file.rootTag?.name
@@ -96,6 +100,7 @@ abstract class MultipleKnownRootsResourceDomFileDescription<T : DomElement>(
   resourceFolderTypes: EnumSet<ResourceFolderType>,
   private val tagNames: Set<String>
 ) : AndroidResourceDomFileDescription<T>(rootElementClass, tagNames.first(), resourceFolderTypes) {
+
   constructor(
     rootElementClass: Class<T>,
     resourceFolderType: ResourceFolderType,

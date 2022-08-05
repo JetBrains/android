@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui;
 
 import com.android.tools.idea.stats.Distribution;
+import com.android.tools.idea.stats.DistributionService;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,6 +44,8 @@ import org.jetbrains.annotations.Nullable;
  * An explanation dialog that helps the user select an API level.
  */
 public class ChooseApiLevelDialog extends DialogWrapper implements DistributionChartComponent.SelectionChangedListener {
+  private static final String LAST_UPDATED_DATE_PREFIX = "Last updated:";
+
   private JPanel myPanel;
   private DistributionChartComponent myDistributionChart;
   private JPanel myChartPanel; // Same as myDistributionChart. The form complains if the binding is not a JPanel (can't be a subclass)
@@ -51,6 +54,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   private JBLabel myDescriptionRight;
   private JBLabel myIntroducedLabel;
   private JBLabel myLearnMoreLinkLabel;
+  private JBLabel myLastUpdatedLabel;
   private int mySelectedApiLevel = -1;
 
   public ChooseApiLevelDialog(@Nullable Project project, int selectedApiLevel) {
@@ -63,12 +67,36 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
       window.setMinimumSize(JBUI.size(400, 680));
       window.setPreferredSize(JBUI.size(1100, 750));
       window.setMaximumSize(JBUI.size(1100, 800));
-    } else {
+    }
+    else {
       assert ApplicationManager.getApplication().isUnitTestMode();
     }
     setTitle("Android Platform/API Version Distribution");
 
+    String lastUpdated = getLastUpdatedDate();
+    if (lastUpdated != null) {
+      myLastUpdatedLabel.setText(getLastUpdatedDate());
+    }
+
     init();
+  }
+
+  @Nullable
+  private static String getLastUpdatedDate() {
+    List<Distribution> distributions = DistributionService.getInstance().getDistributions();
+
+    if (distributions == null) {
+      return null;
+    }
+
+    return distributions.stream().flatMap(distribution -> distribution.getDescriptionBlocks().stream())
+      .map(block -> block.body)
+      .filter(ChooseApiLevelDialog::isLastUpdatedBlock)
+      .findFirst().orElse(null);
+  }
+
+  private static Boolean isLastUpdatedBlock(String body) {
+    return body != null && body.startsWith(LAST_UPDATED_DATE_PREFIX);
   }
 
   @Nullable
@@ -83,6 +111,8 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     myDescriptionLeft.setBackground(JBColor.background());
     myDescriptionRight.setForeground(JBColor.foreground());
     myDescriptionRight.setBackground(JBColor.background());
+    myLastUpdatedLabel.setForeground(JBColor.foreground());
+    myLastUpdatedLabel.setBackground(JBColor.background());
     myLearnMoreLinkLabel.setForeground(JBColor.blue);
     myLearnMoreLinkLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     Map<TextAttribute, ?> attributes = ImmutableMap.of(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
@@ -106,9 +136,12 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
 
   @Override
   public void onDistributionSelected(@NotNull Distribution d) {
-    int halfwayIndex = d.getDescriptionBlocks().size() / 2;
-    myDescriptionLeft.setText(getHtmlFromBlocks(d.getDescriptionBlocks().subList(0, halfwayIndex + 1)));
-    myDescriptionRight.setText(getHtmlFromBlocks(d.getDescriptionBlocks().subList(halfwayIndex + 1, d.getDescriptionBlocks().size())));
+    // Hide the block containing the last updated date since we display it elsewhere
+    List<Distribution.TextBlock> blocks = d.getDescriptionBlocks();
+    blocks.removeIf(block -> isLastUpdatedBlock(block.body));
+    int halfwayIndex = blocks.size() / 2;
+    myDescriptionLeft.setText(getHtmlFromBlocks(blocks.subList(0, halfwayIndex + 1)));
+    myDescriptionRight.setText(getHtmlFromBlocks(blocks.subList(halfwayIndex + 1, blocks.size())));
     mySelectedApiLevel = d.getApiLevel();
     myIntroducedLabel.setText(d.getName());
     myLearnMoreLinkLabel.setText(d.getUrl());
@@ -127,6 +160,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
 
   /**
    * Get the user's choice of API level
+   *
    * @return -1 if no selection was made.
    */
   public int getSelectedApiLevel() {

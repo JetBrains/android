@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.2.0-dev">
+<issues format="5" by="lint 7.4.0-dev">
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="98"/>
+            line="108"/>
     </issue>
 
     <issue
@@ -14,7 +14,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="248"/>
+            line="266"/>
     </issue>
 
     <issue
@@ -22,7 +22,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="249"/>
+            line="267"/>
     </issue>
 
     <issue
@@ -30,7 +30,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="253"/>
+            line="271"/>
     </issue>
 
     <issue
@@ -38,7 +38,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="268"/>
+            line="291"/>
     </issue>
 
     <issue
@@ -46,7 +46,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="305"/>
+            line="333"/>
     </issue>
 
     <issue
@@ -54,7 +54,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="307"/>
+            line="335"/>
     </issue>
 
     <issue

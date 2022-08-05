@@ -35,7 +35,7 @@ class ImportModuleTask extends ModuleProvidingTask {
   @Override
   public Exception perform() {
     final Module[] moduleWrapper = {null};
-    final Exception exception = ApplicationManager.getApplication().runWriteAction(new Computable<>() {
+    final Exception exception = ApplicationManager.getApplication().runWriteAction(new Computable<Exception>() {
       @Override
       public Exception compute() {
         try {

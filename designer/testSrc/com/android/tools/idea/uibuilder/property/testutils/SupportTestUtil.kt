@@ -20,6 +20,7 @@ import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.FD_RES_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.XMLNS_PREFIX
 import com.android.ide.common.rendering.api.AttributeFormat
@@ -51,14 +52,17 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
   private val frameworkResourceManager = ModuleResourceManagers.getInstance(facet).frameworkResourceManager
 
   constructor(facet: AndroidFacet, fixture: CodeInsightTestFixture,
-              vararg tags: String, parentTag: String = "", fileName: String = DEFAULT_FILENAME, activityName: String = ""):
-    this(facet, fixture, createComponents(facet, fixture, activityName, parentTag, fileName, *tags).toMutableList())
+              vararg tags: String, parentTag: String = "", resourceFolder: String = FD_RES_LAYOUT,
+              fileName: String = DEFAULT_FILENAME, activityName: String = ""):
+    this(facet, fixture, createComponents(facet, fixture, activityName, parentTag, resourceFolder, fileName, *tags).toMutableList())
 
   constructor(facet: AndroidFacet, fixture: CodeInsightTestFixture, component: ComponentDescriptor):
-    this(facet, fixture, createComponent(facet, fixture, DEFAULT_FILENAME, component).toMutableList())
+    this(facet, fixture, createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component).toMutableList())
 
-  constructor(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "", fileName: String = DEFAULT_FILENAME):
-    this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, *tags, parentTag = parentTag, fileName = fileName)
+  constructor(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "",
+              resourceFolder: String = FD_RES_LAYOUT, fileName: String = DEFAULT_FILENAME):
+    this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, *tags, parentTag = parentTag, resourceFolder = resourceFolder,
+         fileName = fileName)
 
   constructor(projectRule: AndroidProjectRule, component: ComponentDescriptor):
     this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, component)
@@ -166,25 +170,31 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
       return component.children.find { it.id == id }
     }
 
-    private fun createComponent(facet: AndroidFacet,
-                                fixture: CodeInsightTestFixture,
-                                fileName: String,
-                                descriptor: ComponentDescriptor): List<NlComponent> {
-      val model = NlModelBuilderUtil.model(facet, fixture, "layout", fileName, descriptor).build()
+    private fun createComponent(
+      facet: AndroidFacet,
+      fixture: CodeInsightTestFixture,
+      resourceFolder: String,
+      fileName: String,
+      descriptor: ComponentDescriptor
+    ): List<NlComponent> {
+      val model = NlModelBuilderUtil.model(facet, fixture, resourceFolder, fileName, descriptor).build()
       val root = model.getRoot()
       return if (root.childCount > 0) root.children else model.components
     }
 
-    private fun createComponents(facet: AndroidFacet,
-                                 fixture: CodeInsightTestFixture,
-                                 activityName: String,
-                                 parentTag: String,
-                                 fileName: String,
-                                 vararg tags: String): List<NlComponent> {
+    private fun createComponents(
+      facet: AndroidFacet,
+      fixture: CodeInsightTestFixture,
+      activityName: String,
+      parentTag: String,
+      resourceFolder: String,
+      fileName: String,
+      vararg tags: String
+    ): List<NlComponent> {
       val descriptor = if (tags.size == 1 && parentTag.isEmpty()) fromSingleTag(activityName, tags[0])
-      else fromMultipleTags(activityName, parentTag, *tags)
+      else fromMultipleTags(activityName, parentTag, resourceFolder, *tags)
 
-      return createComponent(facet, fixture, fileName, descriptor)
+      return createComponent(facet, fixture, resourceFolder, fileName, descriptor)
     }
 
     private fun fromSingleTag(activityName: String, tag: String): ComponentDescriptor {
@@ -205,28 +215,37 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
         .wrapContentHeight()
     }
 
-    private fun fromMultipleTags(activityName: String, parentTag: String, vararg tags: String): ComponentDescriptor {
+    private fun fromMultipleTags(
+      activityName: String,
+      parentTag: String,
+      resourceFolder: String,
+      vararg tags: String
+    ): ComponentDescriptor {
       if (parentTag.isEmpty()) throw IllegalArgumentException("parentTag must be supplied")
       val descriptor = ComponentDescriptor(parentTag)
         .withBounds(0, 0, 1000, 1000)
-        .id(toId(parentTag))
 
+      if (resourceFolder == FD_RES_LAYOUT) {
+        descriptor.id(toId(parentTag))
+          .matchParentWidth()
+          .matchParentHeight()
+      }
       if (activityName.isNotEmpty()) {
         descriptor.withAttribute(TOOLS_URI, ATTR_CONTEXT, activityName)
       }
       if (parentTag.contains('.') || Arrays.stream(tags).anyMatch { tag -> tag.contains('.') }) {
         descriptor.withAttribute(XMLNS_PREFIX + APP_PREFIX, AUTO_URI)
       }
-      descriptor
-        .matchParentWidth()
-        .matchParentHeight()
 
       for ((index, tag) in tags.withIndex()) {
-        descriptor.addChild(ComponentDescriptor(tag)
-                              .withBounds(0, index * 100, 100, 100)
-                              .id(toId(tag, index + 1))
-                              .wrapContentWidth()
-                              .wrapContentHeight(), null)
+        val child = ComponentDescriptor(tag).withBounds(0, index * 100, 100, 100)
+        if (resourceFolder == FD_RES_LAYOUT) {
+          child
+            .id(toId(tag, index + 1))
+            .wrapContentWidth()
+            .wrapContentHeight()
+        }
+        descriptor.addChild(child, null)
       }
       return descriptor
     }

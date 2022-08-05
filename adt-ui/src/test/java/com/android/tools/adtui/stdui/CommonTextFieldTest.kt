@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.stdui
 
+import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI
@@ -24,7 +25,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import java.awt.BorderLayout
 import java.awt.KeyboardFocusManager
 import javax.swing.JPanel
@@ -109,6 +109,6 @@ class CommonTextFieldTest {
   private fun acquireFocus() {
     val manager = mock(KeyboardFocusManager::class.java)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(manager)
-    `when`(manager.focusOwner).thenReturn(field)
+    whenever(manager.focusOwner).thenReturn(field)
   }
 }

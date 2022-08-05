@@ -339,12 +339,6 @@ public class ImageUtilsTest extends TestCase {
     assertThat(ImageUtils.isNonOpaque(image)).isTrue();
   }
 
-  public void testCalcFullyDisplayZoomFactor() {
-    assertThat(ImageUtils.calcFullyDisplayZoomFactor(100, 100, 160, 160)).isLessThan(100 / 160.0);
-    assertThat(ImageUtils.calcFullyDisplayZoomFactor(100, 100, 100, 160)).isLessThan(100 / 160.0);
-    assertThat(ImageUtils.calcFullyDisplayZoomFactor(160, 160, 100, 100)).isLessThan(160 / 100.0);
-  }
-
   public void testReadImageAtScale() throws IOException {
     File imageFile = TestResources.getFile(ImageUtilsTest.class, "/imageutils/star.png");
     BufferedImage golden = readImage("/imageutils/star_golden.png");

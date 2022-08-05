@@ -21,6 +21,7 @@ import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getVi
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TargetProvider;
@@ -66,7 +67,6 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
    * insertion. For example, the <code>DialerFilterHandler</code> can insert EditText children
    * when a DialerFilter is first created, but not during a copy/paste or a move.
    *
-   * @param editor     the associated editor
    * @param parent     the parent of the node, if any (which may not yet contain the newly created
    *                   node in its child list)
    * @param newChild   the newly created node (which will always be a View that applies to
@@ -75,13 +75,12 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
    * @return true, or false if the view handler wants to cancel this component
    * creation. This typically happens if for example the view handler tries
    * to customize the component by for example asking the user for a specific
-   * resource (via {@link ViewEditor#displayResourceInput(String, EnumSet)}),
+   * resource (via {@link ViewEditor#displayResourceInput(NlModel, String, EnumSet)}),
    * and then the user cancels that dialog. At that point we don't want an
    * unconfigured component lingering around, so the component create handler
    * cancels the drop instead by returning false.
    */
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     return true;
@@ -142,20 +141,17 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
   /**
    * Handles a double click on the component in the component tree
    */
-  public void onActivateInComponentTree(@NotNull NlComponent component, ViewEditor editor) {
+  public void onActivateInComponentTree(@NotNull NlComponent component) {
     // Do nothing
   }
 
   /**
    * Handles a double click on the component in the design surface
    *
-   * @param editor
    * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
    * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
    */
-  public void onActivateInDesignSurface(@NotNull NlComponent component,
-                                        ViewEditor editor, @AndroidCoordinate int x,
-                                        @AndroidCoordinate int y) {
+  public void onActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
   }
 
   /**
@@ -173,9 +169,10 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
   /**
    * Get the associated {@link Placeholder}s of the given {@link SceneComponent}.
    *
-   * @param component The {@link SceneComponent} which associates to this ViewGroupHandler
+   * @param component        The {@link SceneComponent} which associates to this ViewGroupHandler
+   * @param draggedComponents The {@link SceneComponent}s which are dragging.
    */
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     return ImmutableList.of();
   }
 

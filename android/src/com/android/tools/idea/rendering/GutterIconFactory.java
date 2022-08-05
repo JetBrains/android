@@ -20,7 +20,6 @@ import static com.android.SdkConstants.DOT_XML;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.ResourceUrl;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -32,22 +31,21 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
+import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
-import com.intellij.util.ui.UIUtil;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,7 +89,7 @@ public class GutterIconFactory {
     com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getCachedDocument(file);
 
     if  (document == null) {
-      return new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
+      return new String(file.contentsToByteArray());
     }
 
     return document.getText();
@@ -102,12 +100,12 @@ public class GutterIconFactory {
                                     @NotNull AndroidFacet facet) {
     try {
       String xml = getXmlContent(file);
-      BufferedImage image;
+      Image image;
       // If drawable is a vector drawable, use the renderer inside Studio.
       // Otherwise, delegate to layoutlib.
       if (xml.contains("<vector")) {
         VdPreview.TargetSize imageTargetSize =
-            VdPreview.TargetSize.createFromMaxDimension(isRetinaEnabled() ? ImageUtils.RETINA_SCALE * maxWidth : maxWidth);
+          VdPreview.TargetSize.createFromMaxDimension((int)JBUI.pixScale(maxWidth));
         Document document = XmlUtils.parseDocumentSilently(xml, true);
         if (document == null) {
           return null;
@@ -121,6 +119,7 @@ public class GutterIconFactory {
         }
         StringBuilder builder = new StringBuilder(100);
         image = VdPreview.getPreviewFromVectorDocument(imageTargetSize, document, builder);
+        image = ImageUtil.ensureHiDPI(image, ScaleContext.create());
         if (builder.length() > 0) {
           LOG.warn("Problems rendering " + file.getPresentableUrl() + ": " + builder);
         }
@@ -151,26 +150,17 @@ public class GutterIconFactory {
         if (image == null) {
           return null;
         }
-        image = ImageUtils.scale(image, maxWidth / (double)image.getWidth(), maxHeight / (double)image.getHeight());
-      }
-      if (isRetinaEnabled()) {
-        RetinaImageIcon retinaIcon = getRetinaIcon(image);
-        if (retinaIcon != null) {
-          return retinaIcon;
-        }
+        image = ImageUtil.ensureHiDPI(image, ScaleContext.create());
+        image = ImageUtil.scaleImage(image, maxWidth, maxHeight);
       }
 
-      return new ImageIcon(image);
+      return IconUtil.createImageIcon(image);
     }
     catch (Throwable e) {
       LOG.warn(String.format("Could not read/render icon image %1$s", file.getPresentableUrl()), e);
     }
 
     return null;
-  }
-
-  private static boolean isRetinaEnabled() {
-    return UIUtil.isRetina();
   }
 
   /**
@@ -228,23 +218,16 @@ public class GutterIconFactory {
   }
 
   @Nullable
-  private static Icon createBitmapIcon(BufferedImage image, int maxWidth, int maxHeight) {
-    if (image != null) {
-      int imageWidth = image.getWidth();
-      int imageHeight = image.getHeight();
-      if (isRetinaEnabled() && (imageWidth > ImageUtils.RETINA_SCALE * maxWidth || imageHeight > ImageUtils.RETINA_SCALE * maxHeight)) {
-        double scale = ImageUtils.RETINA_SCALE * Math.min(maxWidth / (double)imageWidth, maxHeight / (double)imageHeight);
-        BufferedImage scaled = ImageUtils.scale(image, scale, scale);
-        RetinaImageIcon retinaIcon = getRetinaIcon(scaled);
-        if (retinaIcon != null) {
-          return retinaIcon;
-        }
-      }
+  private static Icon createBitmapIcon(BufferedImage bufferedImage, int maxWidth, int maxHeight) {
+    if (bufferedImage != null) {
+      Image image = ImageUtil.ensureHiDPI(bufferedImage, ScaleContext.create());
+      int imageWidth = image.getWidth(null);
+      int imageHeight = image.getHeight(null);
 
       if (imageWidth > maxWidth || imageHeight > maxHeight) {
         double scale = Math.min(maxWidth / (double)imageWidth, maxHeight / (double)imageHeight);
 
-        if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        if (bufferedImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
           // Indexed images look terrible if they are scaled directly; instead, paint into an ARGB blank image
           BufferedImage bg = ImageUtil.createImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
           Graphics g = bg.getGraphics();
@@ -255,36 +238,14 @@ public class GutterIconFactory {
           image = bg;
         }
 
-        image = ImageUtils.scale(image, scale, scale);
+        image = ImageUtil.scaleImage(image, scale);
+      } else {
+        // If the image is smaller than the max size, simply use it as is instead of scaling down and then up.
+        image = bufferedImage;
       }
 
-      return new ImageIcon(image);
+      return IconUtil.createImageIcon(image);
     }
     return null;
-  }
-
-  /**
-   * Returns a {@link RetinaImageIcon} for the given {@link BufferedImage}, if possible. Returns null otherwise.
-   */
-  @Nullable
-  private static RetinaImageIcon getRetinaIcon(@NotNull BufferedImage image) {
-    if (isRetinaEnabled()) {
-      Image hdpiImage = ImageUtils.convertToRetina(image);
-      if (hdpiImage != null) {
-        return new RetinaImageIcon(hdpiImage);
-      }
-    }
-    return null;
-  }
-
-  private static class RetinaImageIcon extends ImageIcon {
-    private RetinaImageIcon(Image image) {
-      super(image, "");
-    }
-
-    @Override
-    public synchronized void paintIcon(Component c, Graphics g, int x, int y) {
-      StartupUiUtil.drawImage(g, getImage(), x, y, null);
-    }
   }
 }

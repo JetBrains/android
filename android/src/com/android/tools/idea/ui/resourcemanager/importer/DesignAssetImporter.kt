@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
-import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
@@ -115,13 +114,8 @@ fun getOrCreateDefaultResDirectory(androidFacet: AndroidFacet): File {
   val resDirectories =
     SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider.resDirectoryUrls.map { File(VfsUtil.urlToPath(it)) }
   if (resDirectories.isEmpty()) {
-    val projectPath = androidFacet.module.project.basePath
-    if (projectPath != null) {
-      return GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, androidFacet.module.name).paths.resDirectories.first()
-    }
-    else {
-      return File(SdkConstants.RES_FOLDER)
-    }
+    val project = androidFacet.module.project
+    return GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, androidFacet.module.name).paths.resDirectories.first()
   }
   return resDirectories.firstOrNull { it.exists() }
          ?: resDirectories.first().also { it.createNewFile() }

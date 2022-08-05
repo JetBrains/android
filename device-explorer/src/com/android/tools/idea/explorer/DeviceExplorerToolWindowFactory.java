@@ -27,12 +27,12 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
-import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.ide.PooledThreadExecutor;
 
+/**
+ * [ToolWindowFactory] for the Device File Explorer ToolWindow
+ */
 public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
   private static final String DEVICE_EXPLORER_ENABLED = "android.device.explorer.enabled";
   public static final String TOOL_WINDOW_ID = "Device File Explorer";
@@ -49,9 +49,6 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.setTitle(TOOL_WINDOW_ID);
 
-    Executor edtExecutor = EdtExecutorService.getInstance();
-    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-
     AdbDeviceFileSystemService adbService = project.getService(AdbDeviceFileSystemService.class);
     DeviceExplorerFileManager fileManager = project.getService(DeviceExplorerFileManager.class);
 
@@ -61,7 +58,7 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
 
     DeviceExplorerViewImpl view = new DeviceExplorerViewImpl(project, deviceFileSystemRendererFactory, model);
     DeviceExplorerController controller =
-      new DeviceExplorerController(project, model, view, adbService, fileManager, fileManager::openFile, edtExecutor, taskExecutor);
+      new DeviceExplorerController(project, model, view, adbService, fileManager, fileManager::openFile);
 
     controller.setup();
 

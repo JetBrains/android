@@ -55,7 +55,7 @@ public class LinearDragHandlerTest extends LayoutTestCase {
                                               component("TextView")
                                                 .withBounds(20, 0, 10, 10)))).build();
     NlComponent button = model.find("button");
-    DesignSurface surface = LayoutTestUtilities.createScreen(model).getSurface();
+    DesignSurface<?> surface = LayoutTestUtilities.createScreen(model).getSurface();
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     surface.getSelectionModel().setSelection(ImmutableList.of(button));
     surface.setModel(model);

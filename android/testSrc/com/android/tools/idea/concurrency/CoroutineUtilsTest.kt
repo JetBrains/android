@@ -20,31 +20,40 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LoggedErrorProcessor
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
-import junit.framework.Assert.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,6 +62,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
@@ -63,7 +74,7 @@ const val IO_THREAD = "IO thread"
 class CoroutineUtilsTest {
 
   @get:Rule
-  val projectRule = ProjectRule()
+  val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var uiExecutor: ExecutorService
   private lateinit var workerExecutor: ExecutorService
@@ -86,14 +97,15 @@ class CoroutineUtilsTest {
     workerExecutor = createExecutor(WORKER_THREAD)
     ioExecutor = createExecutor(IO_THREAD)
     testExecutors = AndroidExecutors({ _, code -> uiExecutor.execute(code) }, workerExecutor, ioExecutor)
-    ApplicationManager.getApplication().replaceService(AndroidExecutors::class.java, testExecutors, projectRule.project)
+    ApplicationManager.getApplication().replaceService(AndroidExecutors::class.java, testExecutors, projectRule.testRootDisposable)
   }
 
   @After
   fun tearDown() {
-    uiExecutor.shutdown()
-    workerExecutor.shutdown()
-    ioExecutor.shutdown()
+    listOf(uiExecutor, workerExecutor, ioExecutor).forEach {
+      it.shutdown()
+      it.awaitTermination(5, TimeUnit.SECONDS)
+    }
   }
 
   @Test
@@ -336,7 +348,7 @@ class CoroutineUtilsTest {
   }
 
   @Test
-  fun `write action with coroutines times out`()  {
+  fun `write action with coroutines times out`() {
     val readActionIsReady = CountDownLatch(1)
     val readLatch = CountDownLatch(1)
 
@@ -483,6 +495,289 @@ class CoroutineUtilsTest {
       catch (_: TimeoutCancellationException) {
       }
       smartActionJob.cancel()
+    }
+  }
+
+  @Test
+  fun `run psi file safely`() = runBlocking {
+    val project = projectRule.project
+    val virtualFile = projectRule.fixture.addFileToProject("src/Test.kt", """
+      fun Test() {
+      }
+    """.trimIndent()).virtualFile
+    runWriteActionAndWait { PsiManager.getInstance(project).dropPsiCaches() }
+    assertTrue(getPsiFileSafely(project, virtualFile)!!.isValid)
+  }
+
+  @Test
+  fun `launch with progress cancels if the indicator is stopped`() = runBlocking {
+    val progressIndicator = ProgressIndicatorBase()
+    progressIndicator.start()
+    val coroutineCompleted = CompletableDeferred<Unit>()
+    launchWithProgress(progressIndicator) {
+      try {
+        while (true) {
+          delay(1000)
+        }
+      }
+      catch (_: CancellationException) {
+      }
+      catch (t: Throwable) {
+        fail("Unexpected exception $t")
+      }
+    }.invokeOnCompletion {
+      coroutineCompleted.complete(Unit)
+    }
+
+    try {
+      withTimeout(500) {
+        coroutineCompleted.await()
+      }
+      fail("Expected timeout")
+    }
+    catch (_: TimeoutCancellationException) {
+    }
+    // This will cancel the indicator which should stop the launched coroutine
+    progressIndicator.cancel()
+    coroutineCompleted.await()
+  }
+
+  @Test
+  fun `launch with progress stops the indicator if the coroutine ends`() = runBlocking {
+    val progressIndicator = ProgressIndicatorBase()
+    progressIndicator.start()
+
+    // The coroutine will start and wait for the CompletableDeferred to be completed.
+    val waitPoint = CompletableDeferred<Unit>()
+    val coroutineCompleted = CompletableDeferred<Unit>()
+
+    launchWithProgress(progressIndicator) {
+      waitPoint.await()
+    }.invokeOnCompletion {
+      coroutineCompleted.complete(Unit)
+    }
+
+    assertTrue(progressIndicator.isRunning)
+    waitPoint.complete(Unit)
+
+    coroutineCompleted.await()
+    assertFalse(progressIndicator.isRunning)
+  }
+
+  private interface TestCallback {
+    fun send()
+  }
+
+  @Test
+  fun `disposable callback flow`() {
+    val parentDisposable = Disposer.newDisposable(projectRule.testRootDisposable, "parent")
+    val callbackDeferred = CompletableDeferred<TestCallback>()
+    val disposableFlow = disposableCallbackFlow<Unit>("Test", null, parentDisposable) {
+      callbackDeferred.complete(object : TestCallback {
+        override fun send() {
+          this@disposableCallbackFlow.trySend(Unit)
+        }
+      })
+    }
+
+    val flowReceiverCount = AtomicInteger(0)
+    val countDownLatch = CountDownLatch(10)
+    runBlocking {
+      val collectJob = launch(workerThread) {
+        disposableFlow.collect {
+          flowReceiverCount.incrementAndGet()
+          countDownLatch.countDown()
+        }
+      }
+
+      val callback = callbackDeferred.await()
+      repeat(10) { callback.send() }
+      countDownLatch.await()
+      Disposer.dispose(parentDisposable) // This will stop the flow collect call
+      collectJob.join()
+      // These callbacks will be ignored since they happened after the collect cancellation.
+      repeat(10) { callback.send() }
+
+      assertEquals(10, flowReceiverCount.get())
+    }
+  }
+
+  @Suppress("UnstableApiUsage")
+  @DelicateCoroutinesApi
+  @Test
+  fun `smart mode flow reports changes in status`() {
+    val project = projectRule.project
+    val disposable = Disposer.newDisposable(projectRule.testRootDisposable, "TestDisposable")
+    val connected = CompletableDeferred<Unit>()
+    val smartModeFlow = smartModeFlow(project, disposable, null) { connected.complete(Unit) }
+
+    val expectedModeChanges = 2
+    val flowReceiverCount = AtomicInteger(0)
+    val countDownLatch = CountDownLatch(expectedModeChanges)
+    val job = GlobalScope.launch(workerThread) {
+      smartModeFlow.collect {
+        flowReceiverCount.incrementAndGet()
+        countDownLatch.countDown()
+      }
+    }
+
+    runBlocking { connected.await() }
+
+    val isDumb = arrayOf(true, true, false, true, false, true)
+    val dumbService = DumbServiceImpl.getInstance(project)
+    isDumb.forEach {
+      runInEdtAndWait { dumbService.isDumb = it }
+    }
+
+    // Wait for the changes to be processed.
+    countDownLatch.await()
+
+    // We should see two switches to smart mode.
+    runBlocking {
+      job.cancel() // Stop the channel
+      job.join()
+      assertEquals(expectedModeChanges, flowReceiverCount.get()) // ensure that no more of expectedModeChanges have been received
+    }
+  }
+
+  @Test(timeout = 500)
+  fun `read action with write priority yields to write actions`() {
+    val readActionIsRunning = CompletableDeferred<Unit>()
+    var keepReadActionRunning = true
+    runBlocking {
+      val job = launch {
+        runReadActionWithWritePriority(
+          maxRetries = Int.MAX_VALUE,
+          maxWaitTime = Long.MAX_VALUE,
+          maxWaitTimeUnit = TimeUnit.DAYS, // No timeout
+          callable = {
+            ApplicationManager.getApplication().assertReadAccessAllowed()
+            readActionIsRunning.complete(Unit)
+            while (keepReadActionRunning) {
+              it()
+              Thread.sleep(50)
+            }
+          }
+        )
+      }
+
+      launch {
+        readActionIsRunning.await()
+
+        var executedWriteActions = 0
+        repeat(5) {
+          runWriteActionAndWait { executedWriteActions++ }
+        }
+        keepReadActionRunning = false
+        job.join()
+
+        assertEquals(5, executedWriteActions)
+      }
+    }
+  }
+
+  @Test(timeout = 500)
+  fun `read action with write priority stops after x retries`() {
+    val readActionIsRunning = CompletableDeferred<Unit>()
+    runBlocking {
+      var retries = 0
+      val job = launch {
+        try {
+          runReadActionWithWritePriority(
+            maxRetries = 3,
+            maxWaitTime = Long.MAX_VALUE,
+            maxWaitTimeUnit = TimeUnit.DAYS, // No timeout
+            callable = { checkCancelled ->
+              readActionIsRunning.complete(Unit)
+              retries++
+              thread {
+                com.intellij.openapi.application.runWriteActionAndWait { }
+              }
+              while (true) {
+                checkCancelled()
+                Thread.sleep(50)
+              }
+            }
+          )
+          fail("runReadActionWithWritePriority should never return")
+        }
+        catch (ignore: RetriesExceededException) {
+        }
+        catch (t: Throwable) {
+          fail("Unexpected exception $t")
+        }
+      }
+      readActionIsRunning.await()
+      job.join()
+      assertEquals(3, retries)
+    }
+  }
+
+  @Test(timeout = 2500)
+  fun `read action with write priority stops after timeout`() {
+    val readActionIsRunning = CompletableDeferred<Unit>()
+    runBlocking {
+      var retries = 0
+      val job = launch {
+        try {
+          runReadActionWithWritePriority(
+            maxWaitTime = 1,
+            maxWaitTimeUnit = TimeUnit.SECONDS,
+            callable = { checkCancelled ->
+              readActionIsRunning.complete(Unit)
+              retries++
+              while (true) {
+                checkCancelled()
+                Thread.sleep(50)
+              }
+            }
+          )
+          fail("runReadActionWithWritePriority should never return")
+        }
+        catch (ignore: TimeoutException) {
+        }
+        catch (t: Throwable) {
+          fail("Unexpected exception $t")
+        }
+      }
+      readActionIsRunning.await()
+
+      delay(TimeUnit.SECONDS.toMillis(2))
+
+      job.join()
+      assertEquals(1, retries)
+    }
+  }
+
+  @Test(timeout = 500)
+  fun `read action with write priority stops if cancelled`() {
+    val readActionIsRunning = CompletableDeferred<Unit>()
+    runBlocking {
+      val job = launch {
+        try {
+          runReadActionWithWritePriority(
+            maxRetries = Int.MAX_VALUE,
+            maxWaitTime = Long.MAX_VALUE,
+            maxWaitTimeUnit = TimeUnit.DAYS, // No timeout
+            callable = { checkCancelled ->
+              readActionIsRunning.complete(Unit)
+              while (true) {
+                checkCancelled()
+                Thread.sleep(50)
+              }
+            }
+          )
+          fail("runReadActionWithWritePriority should never return")
+        }
+        catch (ignore: ProcessCanceledException) {
+        }
+        catch (t: Throwable) {
+          fail("Unexpected exception $t")
+        }
+      }
+      readActionIsRunning.await()
+      job.cancel()
+      job.join()
     }
   }
 }

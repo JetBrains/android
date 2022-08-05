@@ -16,6 +16,7 @@
 package com.android.tools.idea.imports
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -25,7 +26,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
-import org.mockito.Mockito.`when`
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 
@@ -69,7 +69,7 @@ internal fun assertBuildGradle(project: Project, check: (String) -> Boolean) {
 internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
   get() {
     val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
       """
           {
             "Index": [
@@ -157,6 +157,6 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
     return mock<MavenClassRegistryManager>().apply {
-      `when`(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
+      whenever(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
     }
   }

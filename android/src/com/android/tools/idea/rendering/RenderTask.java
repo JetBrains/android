@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQNS;
+import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQN;
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID;
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_TABLET_ID;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.DrawableParams;
@@ -36,6 +37,7 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.ide.common.util.PathString;
@@ -46,7 +48,6 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
-import com.android.tools.compose.ComposeLibraryNamespace;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
@@ -58,7 +59,6 @@ import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
@@ -76,10 +76,12 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.serviceContainer.AlreadyDisposedException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.image.BufferedImage;
 import java.lang.ref.WeakReference;
@@ -104,6 +106,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
@@ -172,7 +175,6 @@ public class RenderTask {
   private boolean mySetTransparentBackground = false;
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
-  private boolean myHighQualityShadow = true;
   private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
   private AssetRepositoryImpl myAssetRepository;
@@ -195,6 +197,7 @@ public class RenderTask {
    * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
    */
   private final boolean reportOutOfDateUserClasses;
+  @NotNull private final RenderAsyncActionExecutor.RenderingPriority myPriority;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -222,7 +225,8 @@ public class RenderTask {
              @NotNull ClassTransform additionalNonProjectTransform,
              @NotNull Runnable onNewModuleClassLoader,
              @NotNull Collection<String> classesToPreload,
-             boolean reportOutOfDateUserClasses) {
+             boolean reportOutOfDateUserClasses,
+             @NotNull RenderAsyncActionExecutor.RenderingPriority priority) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
     this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
 
@@ -230,6 +234,7 @@ public class RenderTask {
       LOG.debug("Security manager was disabled");
     }
 
+    myPriority = priority;
     myLogger = logger;
     myCredential = credential;
     myCrashReporter = crashReporter;
@@ -265,12 +270,12 @@ public class RenderTask {
                                               additionalNonProjectTransform,
                                               onNewModuleClassLoader);
     }
-    ClassLoaderPreloaderKt.preload(myModuleClassLoader, classesToPreload);
+    ClassLoaderPreloaderKt.preload(myModuleClassLoader, () -> Disposer.isDisposed(myModuleClassLoader), classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
           this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, myModuleClassLoader);
-      if (ResourceIdManager.get(module).finalIdsUsed()) {
+      if (ResourceIdManager.get(module).getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
       AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
@@ -364,8 +369,8 @@ public class RenderTask {
   }
 
   private void clearGapWorkerCache() {
-    if (!myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.newName()) &&
-        !myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.oldName())) {
+    if (!myLayoutlibCallback.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.newName()) &&
+        !myLayoutlibCallback.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.oldName())) {
       // If RecyclerView has not been loaded, we do not need to care about the GapWorker cache
       return;
     }
@@ -376,7 +381,7 @@ public class RenderTask {
       gapWorkerField.setAccessible(true);
 
       // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
-      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> {
         try {
           ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal<?>)gapWorkerField.get(null);
           gapWorkerFieldValue.set(null);
@@ -396,6 +401,9 @@ public class RenderTask {
   private void clearClassLoader() {
     try {
       ModuleClassLoaderManager.get().release(myModuleClassLoader, this);
+    }
+    catch (AlreadyDisposedException e) {
+      // The project has already been disposed.
     }
     catch (Throwable t) {
       LOG.warn(t); // Failure detected here will most probably cause a memory leak
@@ -534,28 +542,6 @@ public class RenderTask {
   }
 
   /**
-   * Sets the value of the {@link com.android.layoutlib.bridge.android.RenderParamsFlags#FLAG_ENABLE_SHADOW}
-   * which dictates if shadows will be rendered or not by layout lib.
-   * <p>
-   * Default is {@code true}.
-   */
-  public RenderTask setShadowEnabled(boolean shadowEnabled) {
-    myShadowEnabled = shadowEnabled;
-    return this;
-  }
-
-  /**
-   * Sets the value of the {@link com.android.layoutlib.bridge.android.RenderParamsFlags#FLAG_RENDER_HIGH_QUALITY_SHADOW}
-   * which dictates if shadows will be rendered using the high quality algorithm by layout lib.
-   * <p>
-   * Default is {@code true}.
-   */
-  public RenderTask setHighQualityShadows(boolean highQualityShadows) {
-    myHighQualityShadow = highQualityShadows;
-    return this;
-  }
-
-  /**
    * Sets the value of the  {@link com.android.layoutlib.bridge.android.RenderParamsFlags#FLAG_KEY_ENABLE_LAYOUT_VALIDATOR}
    * which enables layout validation during the render process. The validation includes accessibility checks (whether the layout properly
    * support accessibilty cases), and various other layout sanity checks.
@@ -643,16 +629,12 @@ public class RenderTask {
     params.setAssetRepository(myAssetRepository);
 
     params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidUtils.getRootTagName(psiFile));
-    params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, true);
     params.setFlag(RenderParamsFlags.FLAG_DO_NOT_RENDER_ON_CREATE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW, myShadowEnabled);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_SCANNER, myEnableLayoutScanner);
     params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK, myEnableLayoutScanner);
-    // TODO: Remove after ag/15997527
-    params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_OPTIMIZATION, myEnableLayoutScanner);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -847,8 +829,9 @@ public class RenderTask {
 
     synchronized (myRunningFutures) {
       CompletableFuture<V> newFuture = timeout < 1 ?
-                                       RenderService.getRenderAsyncActionExecutor().runAsyncAction(callable) :
-                                       RenderService.getRenderAsyncActionExecutor().runAsyncActionWithTimeout(timeout, unit, callable);
+                                       RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, callable) :
+                                       RenderService.getRenderAsyncActionExecutor().runAsyncActionWithTimeout(timeout, unit, myPriority,
+                                                                                                              callable);
       myRunningFutures.add(newFuture);
       newFuture
         .whenCompleteAsync((result, ex) -> {
@@ -868,7 +851,7 @@ public class RenderTask {
    * See {@link RenderService#getRenderAsyncActionExecutor()}.
    */
   @VisibleForTesting
-  @NotNull <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
+  public @NotNull <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
     return runAsyncRenderAction(callable, 0, TimeUnit.SECONDS);
   }
 
@@ -1157,6 +1140,7 @@ public class RenderTask {
                          myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, context.getConfiguration().getAdaptiveShape().getPathDescription());
 
     return runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params))
       .thenCompose(result -> {
@@ -1209,6 +1193,7 @@ public class RenderTask {
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, context.getConfiguration().getAdaptiveShape().getPathDescription());
 
     try {
       Result result = RenderService.runRenderAction(() -> myLayoutLib.renderDrawable(params));
@@ -1268,7 +1253,7 @@ public class RenderTask {
   public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
     Map<XmlTag, ViewInfo> map = new HashMap<>();
-    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> measure(modelParser))
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> measure(modelParser))
       .thenComposeAsync(session -> {
         if (session != null) {
           try {
@@ -1342,13 +1327,11 @@ public class RenderTask {
                                              context.getMinSdkVersion().getApiLevel(),
                                              context.getTargetSdkVersion().getApiLevel(),
                                              myLogger);
-    //noinspection deprecation We want to measure while creating the session. RenderSession.measure would require a second call.
-    params.setLayoutOnly();
     params.setForceNoDecor();
     params.setExtendedViewInfoMode(true);
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, context.getConfiguration().getAdaptiveShape().getPathDescription());
     @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
     params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
 
@@ -1429,18 +1412,14 @@ public class RenderTask {
   @NotNull
   private CompletableFuture<Void> disposeRenderSession(@NotNull RenderSession renderSession) {
     Optional<Method> disposeMethod = Optional.empty();
-    if (myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE.getComposableAdapterName()) ||
-        myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.getComposableAdapterName())) {
-      for (String composeViewAdapterName: COMPOSE_VIEW_ADAPTER_FQNS) {
-        try {
-          Class<?> composeViewAdapter = myLayoutlibCallback.findClass(composeViewAdapterName);
-          // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
-          disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
-          break;
-        }
-        catch (ClassNotFoundException ex) {
-          LOG.debug(composeViewAdapterName + " class not found", ex);
-        }
+    if (myLayoutlibCallback.hasLoadedClass(COMPOSE_VIEW_ADAPTER_FQN)) {
+      try {
+        Class<?> composeViewAdapter = myLayoutlibCallback.findClass(COMPOSE_VIEW_ADAPTER_FQN);
+        // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
+        disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
+      }
+      catch (ClassNotFoundException ex) {
+        LOG.debug(COMPOSE_VIEW_ADAPTER_FQN + " class not found", ex);
       }
 
       if (!disposeMethod.isPresent()) {
@@ -1449,7 +1428,7 @@ public class RenderTask {
     }
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
-    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> {
 
       finalDisposeMethod.ifPresent(
         m -> renderSession.execute(
@@ -1468,8 +1447,7 @@ public class RenderTask {
    */
   private static void disposeIfCompose(@NotNull ViewInfo viewInfo, @NotNull Method disposeMethod) {
     Object viewObject = viewInfo.getViewObject();
-    if (viewObject == null ||
-        !COMPOSE_VIEW_ADAPTER_FQNS.contains(viewObject.getClass().getName())) {
+    if (viewObject == null || !COMPOSE_VIEW_ADAPTER_FQN.equals(viewObject.getClass().getName())) {
       return;
     }
     try {

@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -52,7 +53,6 @@ import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import java.io.File
 import java.util.function.Supplier
 
@@ -208,7 +208,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
 
     val connection = mock(DatabaseConnection::class.java)
-    `when`(connection.close()).thenReturn(Futures.immediateFuture(Unit))
+    whenever(connection.close()).thenReturn(Futures.immediateFuture(Unit))
 
     // Act
     databaseInspectorProjectService.handleDatabaseClosed(databaseId1)
@@ -274,8 +274,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val mockAdbService = mock(AdbService::class.java)
     ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService)
     val mockAndroidDebugBridge = mock(AndroidDebugBridge::class.java)
-    `when`(mockAndroidDebugBridge.devices).thenReturn(emptyArray())
-    `when`(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(Futures.immediateFuture(mockAndroidDebugBridge))
+    whenever(mockAndroidDebugBridge.devices).thenReturn(emptyArray())
+    whenever(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(Futures.immediateFuture(mockAndroidDebugBridge))
     AdbFileProvider(Supplier { createTempFile() }).storeInProject(project)
   }
 }

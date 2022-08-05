@@ -20,6 +20,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NI
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_THEME;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI_MODE;
 
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
@@ -34,7 +35,6 @@ import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;

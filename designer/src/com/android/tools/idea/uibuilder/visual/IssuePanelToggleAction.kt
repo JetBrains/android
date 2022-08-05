@@ -16,52 +16,29 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.diagnostic.Logger
 import icons.StudioIcons
 
 private const val BUTTON_TEXT = "Toggle visibility of issue panel"
 
-class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING) {
+class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING_INLINE) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      val service = IssuePanelService.getInstance(surface.project)
-      if (service == null) {
-        Logger.getInstance(IssuePanelToggleAction::class.java).warn("Cannot find Issue Panel Service")
-        return false
-      }
-      if (service.isLayoutAndQualifierPanelVisible()) {
-        return service.isIssueModelAttached(surface.issueModel)
-      }
-      return false
-    }
-    else {
-      return !surface.issuePanel.isMinimized
-    }
+    return IssuePanelService.getInstance(surface.project).isShowingIssuePanel(surface)
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      val service = IssuePanelService.getInstance(surface.project)
-      if (service == null) {
-        Logger.getInstance(IssuePanelToggleAction::class.java).warn("Cannot find Issue Panel Service")
-        return
+    surface.setIssuePanelVisibilityNoTracking(state, true) {
+      if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
+        e.getData(PlatformDataKeys.PROJECT)?.let { project ->
+          IssuePanelService.getInstance(project).focusIssuePanelIfVisible()
+        }
       }
-      if (state) {
-        service.showCurrentFileAndQualifierTab()
-        service.attachIssueModel(surface.issueModel, surface.model!!.virtualFile)
-      }
-      else {
-        service.detachIssueModel(surface.issueModel)
-        service.hideIssuePanel()
-      }
-    }
-    else {
-      surface.setShowIssuePanel(state, false)
     }
   }
 

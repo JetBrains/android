@@ -70,7 +70,7 @@ public class DebugToolWindowFixture extends ExecutionToolWindowFixture {
   }
 
   private ActionButton findDebugResumeButton() {
-    return GuiTests.waitUntilShowing(myRobot, new GenericTypeMatcher<>(ActionButton.class) {
+    return GuiTests.waitUntilShowing(myRobot, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         return "com.intellij.xdebugger.impl.actions.ResumeAction".equals(button.getAction().getClass().getCanonicalName())

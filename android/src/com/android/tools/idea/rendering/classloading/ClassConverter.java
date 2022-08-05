@@ -19,7 +19,6 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.lang.JavaVersion;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.ClassReader;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
@@ -91,30 +90,6 @@ public class ClassConverter {
       return Integer.toString(version - 53 + 9);
     }
     return "1." + Integer.toString(version - 44); // 47 => 1.3, 50 => 1.6, ...
-  }
-
-  /** Given a set of exceptions, return the highest known classfile version format */
-  public static int findHighestMajorVersion(Collection<Throwable> list) {
-    int result = 0;
-    for (Throwable t : list) {
-      if (t instanceof InconvertibleClassError) {
-        InconvertibleClassError error = (InconvertibleClassError)t;
-        result = Math.max(result, error.getMajor());
-      }
-    }
-
-    return result;
-  }
-
-  /** Return the current JDK version number */
-  public static String getCurrentJdkVersion() {
-    String version = SystemInfo.JAVA_VERSION;
-    int suffix = version.indexOf('_');
-    if (suffix != -1) {
-      version = version.substring(0, suffix);
-    }
-
-    return version;
   }
 
   /** Return the classfile version of the current JDK */

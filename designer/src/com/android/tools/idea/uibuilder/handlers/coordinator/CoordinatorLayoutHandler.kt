@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
+import com.android.AndroidXConstants.COORDINATOR_LAYOUT
+import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.ATTR_FITS_SYSTEM_WINDOWS
@@ -25,8 +27,6 @@ import com.android.SdkConstants.ATTR_LAYOUT_GRAVITY
 import com.android.SdkConstants.ATTR_LAYOUT_MARGIN
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BOTTOM_APP_BAR
-import com.android.SdkConstants.COORDINATOR_LAYOUT
-import com.android.SdkConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.ID_PREFIX
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.api.InsertType
@@ -62,14 +62,20 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     return listOf(ATTR_LAYOUT_BEHAVIOR, ATTR_LAYOUT_ANCHOR, ATTR_LAYOUT_ANCHOR_GRAVITY)
   }
 
-  override fun onChildInserted(editor: ViewEditor, parent: NlComponent, child: NlComponent, insertType: InsertType) {
+  override fun onChildInserted(
+    parent: NlComponent,
+    child: NlComponent,
+    insertType: InsertType
+  ) {
     // b/67452405 Do not call super()
     if (COORDINATOR_LAYOUT.newName() == parent.tagName && BOTTOM_APP_BAR == child.tagName) {
       configureNewBottomAppBar(parent, child)
     }
   }
 
-  override fun onChildRemoved(editor: ViewEditor, layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
+  override fun onChildRemoved(layout: NlComponent,
+                              newChild: NlComponent,
+                              insertType: InsertType) {
     newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY)
     newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR)
 
@@ -151,7 +157,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
   override fun acceptsChild(layout: NlComponent, newChild: NlComponent) = true
 
-  override fun getPlaceholders(component: SceneComponent) =
+  override fun getPlaceholders(component: SceneComponent, draggedComponents: List<SceneComponent>) =
     component.children
       .filterNot { component.scene.selection.contains(it.nlComponent) }
       .flatMap { child -> CoordinatorPlaceholder.Type.values().map { type -> CoordinatorPlaceholder(component, child, type) } }

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.ide.common.resources.Locale
 import com.android.resources.NightMode
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.rendering.Locale
 import com.android.utils.HtmlBuilder
 
 fun Configuration.toTooltips() = StringBuilder()

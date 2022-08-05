@@ -171,6 +171,13 @@ class DomPsiParser extends XmlParser {
   @Override
   public Location getLocation(@NonNull File file, @NonNull Node node) {
     TextRange textRange = DomPsiConverter.getTextRange(node);
+
+    if (node.getNodeType() == Node.TEXT_NODE) {
+      // Match the PositionXmlParser which skips whitespace prefixes and suffixes such
+      // that the IDE and the build system offer consistent positioning.
+      textRange = DomPsiConverter.trim(node, textRange);
+    }
+
     Position start = new LintXmlPosition(node, textRange.getStartOffset());
     Position end = new LintXmlPosition(node, textRange.getEndOffset());
     return Location.create(file, start, end).withSource(node);

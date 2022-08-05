@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.concurrency.getDoneOrNull
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorCoreFactory
+import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
+import com.android.tools.idea.gradle.structure.configurables.ui.whenCompletedInvokeOnEdt
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelCollectionPropertyCore
@@ -24,8 +28,11 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.android.tools.idea.gradle.structure.model.meta.emptyKnownValues
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.valueFormatter
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.ToolbarDecorator
@@ -63,10 +70,17 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
   val statusComponent: JComponent? = null
 
   private var beingLoaded = false
-  protected var tableModel: DefaultTableModel? = null ; private set
+  protected var tableModel: DefaultTableModel? = null; private set
   private val formatter = propertyContext.valueFormatter()
-  private val knownValueRenderers: Map<ParsedValue<ValueT>, ValueRenderer> =
-    buildKnownValueRenderers(propertyContext.getKnownValues().get(), formatter, null)
+  private val knownValueRenderers: ListenableFuture<Map<ParsedValue<ValueT>, ValueRenderer>> =
+    propertyContext.getKnownValues()
+      .transform(MoreExecutors.directExecutor()) { buildKnownValueRenderers(it, formatter, null) }
+      .also {
+        it.whenCompletedInvokeOnEdt {
+          UiUtil.revalidateAndRepaint(component)
+        }
+      }
+
 
   protected val table: JBTable = JBTable()
     .apply {
@@ -144,7 +158,12 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
       @Suppress("UNCHECKED_CAST")
       val parsedValue = (value as CollectionPropertyEditor<*, ValueT>.Value?)?.value ?: ParsedValue.NotSet.annotated()
       return SimpleColoredComponent().also {
-        parsedValue.renderTo(it.toRenderer().toSelectedTextRenderer(isSelected && hasFocus), formatter, knownValueRenderers)
+        parsedValue
+          .renderTo(
+            it.toRenderer().toSelectedTextRenderer(isSelected && hasFocus),
+            formatter,
+            knownValueRenderers.getDoneOrNull() ?: emptyMap()
+          )
         if (isSelected) it.background = getListSelectionBackground(hasFocus)
       }
     }

@@ -27,7 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import com.intellij.openapi.util.io.FileUtil
-import io.grpc.stub.StreamObserver
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test

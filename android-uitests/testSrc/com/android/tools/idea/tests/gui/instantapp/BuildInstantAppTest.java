@@ -32,7 +32,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class BuildInstantAppTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
   /**
    * Verify imported instant apps can be built without error.
@@ -53,14 +53,16 @@ public class BuildInstantAppTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   public void buildInstantApp() throws Exception {
     IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120));
+      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(180));
 
     ideFrame.getProjectView()
       .selectAndroidPane()
       .clickPath("app")
-      .openFromMenu(EnableInstantAppSupportDialogFixture::find, "Refactor", "Enable Instant Apps Support...")
-      .clickOk();
-    guiTest.robot().waitForIdle();
+      .invokeMenuPath("Refactor", "Enable Instant Apps Support...");
+
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(
+      it -> EnableInstantAppSupportDialogFixture.find(ideFrame).clickOk());
+
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
 
     ideFrame.invokeMenuPath("Run", "Edit Configurations...");

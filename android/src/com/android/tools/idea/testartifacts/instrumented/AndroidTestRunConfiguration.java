@@ -16,17 +16,18 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
+import com.android.tools.idea.model.TestOptions;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
@@ -37,20 +38,18 @@ import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
-import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
-import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.TestLibraries;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.JUnitBundle;
 import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
@@ -109,6 +108,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull public String PACKAGE_NAME = "";
 
   /**
+   * A regular expression to filter test cases to be executed.
+   * This param is passed to a test runner along with an instrumentation flag "-e tests_regex".
+   * This param is only used when the testing type is TEST_ALL_IN_MODULE, otherwise ignored.
+   */
+  @NotNull public String TEST_NAME_REGEX = "";
+
+  /**
    * A fully qualified name of an instrumentation runner class to use. If this is an empty string, the value is inferred from the project:
    * 1) If this is gradle project, values in gradle.build file will be used.
    * 2) If this is non-gradle project, the first instrumentation in AndroidManifest of the instrumentation APK (not the application APK)
@@ -122,12 +128,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    * 2) If this is non-gradle project, no extra options will be set.
    */
   @NotNull public String EXTRA_OPTIONS = "";
-
-  /**
-   * If this is set to true, extra options defined in gradle build file will be merged into {@link #EXTRA_OPTIONS} and passed to
-   * instrumentation.
-   */
-  public boolean INCLUDE_GRADLE_EXTRA_OPTIONS = true;
 
   /*
    * Configurations for Emulator Snapshot for Test Failures (a.k.a Android Test Retention, Icebox).
@@ -146,7 +146,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory, true);
-    putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true);
   }
 
   @Override
@@ -180,10 +179,16 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return ExecutionBundle.message("test.in.scope.presentable.text", PACKAGE_NAME);
     }
     else if (TESTING_TYPE == TEST_CLASS) {
-      return ProgramRunnerUtil.shortenName(JavaExecutionUtil.getShortClassName(CLASS_NAME), 0);
+      return JavaExecutionUtil.getShortClassName(CLASS_NAME);
     }
     else if (TESTING_TYPE == TEST_METHOD) {
-      return ProgramRunnerUtil.shortenName(METHOD_NAME, 2) + "()";
+      return METHOD_NAME + "()";
+    }
+    else if (TESTING_TYPE == TEST_ALL_IN_MODULE && isNotEmpty(TEST_NAME_REGEX)) {
+      if (isNotEmpty(METHOD_NAME)) {
+        return METHOD_NAME + "()";
+      }
+      return TEST_NAME_REGEX;
     }
     return TestRunnerBundle.message("all.tests.scope.presentable.text");
   }
@@ -307,6 +312,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       facet -> facet != null && supportsRunningLibraryProjects(facet).getFirst(),
       this,
       false,
+      true,
       moduleSelector -> new TestRunParameters(getProject(), moduleSelector));
   }
 
@@ -339,8 +345,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       launchStatus.terminateLaunch("Unable to determine instrumentation runner", true);
       return null;
     }
-
-    String instrumentationOptions = Joiner.on(" ").join(getExtraInstrumentationOptions(facet), getInstrumentationOptions(facet));
+    @Nullable AndroidModel androidModel = AndroidModel.get(facet);
+    @Nullable TestOptions testOptions = androidModel != null ? androidModel.getTestOptions() : null;
+    String instrumentationOptions = Joiner.on(" ").join(getExtraInstrumentationOptions(facet), getInstrumentationOptions(testOptions));
 
     String testAppId;
     try {
@@ -355,19 +362,17 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return null;
     }
 
-    AndroidModuleModel moduleModel = AndroidModuleModel.get(facet);
-    IdeAndroidArtifact testArtifact = null;
-    if (moduleModel != null) {
-      testArtifact = moduleModel.getArtifactForAndroidTest();
-    }
-
+    AndroidModuleSystem moduleSystem = getModuleSystem(facet);
+    TestLibraries testLibrariesInUse = moduleSystem.getTestLibrariesInUse();
+    TestExecutionOption testExecutionOption = testOptions != null ? testOptions.getExecutionOption() : null;
     switch (TESTING_TYPE) {
       case TEST_ALL_IN_MODULE:
         return AndroidTestApplicationLaunchTask.allInModuleTest(runner,
                                                                 testAppId,
                                                                 waitForDebugger,
                                                                 instrumentationOptions,
-                                                                testArtifact,
+                                                                testLibrariesInUse,
+                                                                testExecutionOption,
                                                                 launchStatus.getProcessHandler(),
                                                                 consolePrinter,
                                                                 device);
@@ -377,7 +382,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                                  testAppId,
                                                                  waitForDebugger,
                                                                  instrumentationOptions,
-                                                                 testArtifact,
+                                                                 testLibrariesInUse,
+                                                                 testExecutionOption,
                                                                  launchStatus.getProcessHandler(),
                                                                  consolePrinter,
                                                                  device,
@@ -388,7 +394,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                           testAppId,
                                                           waitForDebugger,
                                                           instrumentationOptions,
-                                                          testArtifact,
+                                                          testLibrariesInUse,
+                                                          testExecutionOption,
                                                           launchStatus.getProcessHandler(),
                                                           consolePrinter,
                                                           device,
@@ -399,7 +406,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                            testAppId,
                                                            waitForDebugger,
                                                            instrumentationOptions,
-                                                           testArtifact,
+                                                           testLibrariesInUse,
+                                                           testExecutionOption,
                                                            launchStatus.getProcessHandler(),
                                                            consolePrinter,
                                                            device,
@@ -420,12 +428,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     if (facet == null) {
       return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
     }
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       // When a project is a gradle based project, instrumentation runner is always specified
       // by AGP DSL (even if you have androidTest/AndroidManifest.xml with instrumentation tag,
       // these values are always overwritten by AGP).
-      String runner = androidModel.getSelectedVariant().getTestInstrumentationRunner();
+      String runner = androidModel.getTestOptions().getInstrumentationRunner();
       if (isEmptyOrSpaces(runner)) {
         return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
       }
@@ -462,13 +470,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public String getExtraInstrumentationOptions(@Nullable AndroidFacet facet) {
     Collection<AndroidTestExtraParam> extraParams;
 
-    if (INCLUDE_GRADLE_EXTRA_OPTIONS) {
-      extraParams = AndroidTestExtraParamKt.merge(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS),
-                                                  AndroidTestExtraParamKt.getAndroidTestExtraParams(facet));
-    }
-    else {
-      extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
-    }
+    extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
 
     return extraParams.stream()
       .map(param -> "-e " + param.getNAME() + " " + param.getVALUE())
@@ -478,18 +480,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   /**
    * Retrieves instrumentation options from the given facet. Extra instrumentation options are not included.
    *
-   * @param facet a facet to retrieve instrumentation options
    * @return instrumentation options string. All instrumentation options specified by the facet are concatenated by a single space.
    */
   @NotNull
-  public String getInstrumentationOptions(@Nullable AndroidFacet facet) {
+  public String getInstrumentationOptions(@Nullable TestOptions testOptions) {
     ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
-    boolean isAnimationDisabled = Optional.ofNullable(facet)
-      .map(AndroidModuleModel::get)
-      .map(AndroidModuleModel::getArtifactForAndroidTest)
-      .map(IdeAndroidArtifact::getTestOptions)
-      .map(IdeTestOptions::getAnimationsDisabled)
-      .orElse(false);
+    boolean isAnimationDisabled = testOptions != null ? testOptions.getAnimationsDisabled() : false;
     if (isAnimationDisabled) {
       builder.add("--no-window-animation");
     }
@@ -621,7 +617,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public TestExecutionOption getTestExecutionOption(@Nullable AndroidFacet facet) {
     return Optional.ofNullable(facet)
       .map(AndroidModel::get)
-      .map(AndroidModel::getTestExecutionOption)
+      .map(AndroidModel::getTestOptions)
+      .map(TestOptions::getExecutionOption)
       .orElse(TestExecutionOption.HOST);
   }
 }

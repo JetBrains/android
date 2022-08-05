@@ -26,12 +26,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.openapi.wm.impl.content.ContentTabLabelFixture;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.swing.tree.TreeNode;
@@ -154,7 +154,7 @@ public class DebuggerTestBase {
   @NotNull
   private static List<String> getUnmatchedTerminalVariableValues(String[] expectedPatterns, XDebuggerTreeNode treeRoot) {
     String[] childrenTexts = debuggerTreeRootToChildrenTexts(treeRoot);
-    List<String> unmatchedPatterns = new ArrayList<>();
+    List<String> unmatchedPatterns = Lists.newArrayList();
     for (String expectedPattern : expectedPatterns) {
       boolean matched = false;
       for (String childText : childrenTexts) {

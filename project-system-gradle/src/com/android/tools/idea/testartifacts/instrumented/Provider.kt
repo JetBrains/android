@@ -16,7 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvider
@@ -53,6 +53,7 @@ class CreateLaunchTasksProvider : LaunchTasksProvider.Provider {
         runConfiguration.PACKAGE_NAME,
         runConfiguration.CLASS_NAME,
         runConfiguration.METHOD_NAME,
+        runConfiguration.TEST_NAME_REGEX,
         RetentionConfiguration(
           runConfiguration.RETENTION_ENABLED,
           runConfiguration.RETENTION_MAX_SNAPSHOTS,
@@ -67,7 +68,7 @@ class CreateLaunchTasksProvider : LaunchTasksProvider.Provider {
     if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE) {
       return false
     }
-    val model = AndroidModuleModel.get(facet) ?: return false
+    val model = GradleAndroidModel.get(facet) ?: return false
     return model.androidProject.agpFlags.unifiedTestPlatformEnabled
   }
 }

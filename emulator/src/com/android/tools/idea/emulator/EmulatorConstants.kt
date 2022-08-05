@@ -25,8 +25,14 @@ import com.intellij.openapi.actionSystem.DataKey
 
 const val EMULATOR_TOOL_WINDOW_ID = "Android Emulator"
 
-val EMULATOR_TOOL_WINDOW_TITLE
-  get() = if (IdeInfo.getInstance().isAndroidStudio) "Emulator" else "Android Emulator"
+val EMULATOR_TOOL_WINDOW_TITLE: String
+  get() {
+    return when {
+      DeviceMirroringSettings.getInstance().deviceMirroringEnabled -> "Running Devices"
+      IdeInfo.getInstance().isAndroidStudio -> "Emulator"
+      else -> "Android Emulator"
+    }
+  }
 
 @JvmField val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
 

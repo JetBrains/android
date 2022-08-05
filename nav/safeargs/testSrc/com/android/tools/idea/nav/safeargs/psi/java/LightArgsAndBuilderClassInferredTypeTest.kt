@@ -265,4 +265,4 @@ class LightArgsAndBuilderClassInferredTypeTest(
   }
 }
 
-class DefaultValueTypeMapping(val defaultValue: String, val inferredTypeStr: String)
+data class DefaultValueTypeMapping(val defaultValue: String, val inferredTypeStr: String)

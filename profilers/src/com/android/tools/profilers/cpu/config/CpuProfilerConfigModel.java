@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -136,15 +135,15 @@ public class CpuProfilerConfigModel {
       if (selectedConfig != null) {
         myProfilingConfiguration = selectedConfig;
       }
-      else if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimpleperfEnabled) {
-        // If there is a preference for a native configuration, we select simpleperf.
+      else if (isSimpleperfEnabled) {
+        // If simpleperf is supported, we select it.
         myProfilingConfiguration =
-          Iterables.find(defaultConfigs, pref -> pref instanceof SimpleperfConfiguration);
+          defaultConfigs.stream().filter(pref -> pref instanceof SimpleperfConfiguration).findFirst().orElse(null);
       }
       else {
-        // Otherwise we select ART sampled.
+        // Otherwise, we select ART sampled.
         myProfilingConfiguration =
-          Iterables.find(defaultConfigs, pref -> pref instanceof ArtSampledConfiguration);
+          defaultConfigs.stream().filter(pref -> pref instanceof ArtSampledConfiguration).findFirst().orElse(null);
       }
     }
   }

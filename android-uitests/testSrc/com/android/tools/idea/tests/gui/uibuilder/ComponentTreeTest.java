@@ -138,7 +138,7 @@ public final class ComponentTreeTest {
     layoutEditor.waitForRenderToFinish();
 
     JTreeFixture tree = layoutEditor.getComponentTree();
-    DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> surface = layoutEditor.getSurface();
+    DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface<?>> surface = layoutEditor.getSurface();
     assertEquals("Initial components count unexpected", 2, surface.getAllSceneViews().get(0).countSceneComponents());
 
     Point childLocation = surface.getAllSceneViews().get(0).findSceneComponentByTagName("TextView").getMidPoint();

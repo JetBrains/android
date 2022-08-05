@@ -86,13 +86,13 @@ object NlDiagnosticsManager {
   private val cache = CacheBuilder.newBuilder()
     .weakKeys()
     .expireAfterAccess(5, TimeUnit.MINUTES)
-    .build<DesignSurface, NlDiagnosticsImpl>()
+    .build<DesignSurface<*>, NlDiagnosticsImpl>()
 
   /**
    * Returns the [NlDiagnosticsRead] instance associated to the given surface
    */
   @JvmStatic
-  fun getReadInstance(surface: DesignSurface?): NlDiagnosticsRead = if (surface == null ||!NELE_RENDER_DIAGNOSTICS.get()) {
+  fun getReadInstance(surface: DesignSurface<*>?): NlDiagnosticsRead = if (surface == null || !NELE_RENDER_DIAGNOSTICS.get()) {
     NopNlDiagnosticsImpl
   }
   else cache.get(surface) {
@@ -103,7 +103,7 @@ object NlDiagnosticsManager {
    * Returns the [NlDiagnosticsWrite] instance associated to the given surface
    */
   @JvmStatic
-  fun getWriteInstance(surface: DesignSurface?): NlDiagnosticsWrite = if (surface == null || !NELE_RENDER_DIAGNOSTICS.get()) {
+  fun getWriteInstance(surface: DesignSurface<*>?): NlDiagnosticsWrite = if (surface == null || !NELE_RENDER_DIAGNOSTICS.get()) {
     NopNlDiagnosticsImpl
   }
   else cache.get(surface) {

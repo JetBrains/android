@@ -185,7 +185,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
     NlWriteCommandActionUtil.run(myParent, name, () -> {
       NlComponent realComponent = myExistingComponent;
       if (realComponent == null) {
-        realComponent = NlComponentHelperKt.createChild(myParent, TAG_DEEP_LINK, false, null, null, null, null, InsertType.CREATE);
+        realComponent = NlComponentHelperKt.createChild(myParent, TAG_DEEP_LINK, false, null, null, null, InsertType.CREATE);
         if (realComponent == null) {
           ApplicationManager.getApplication().invokeLater(() ->
                                                             Messages.showErrorDialog(myParent.getModel().getProject(),

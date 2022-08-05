@@ -29,7 +29,6 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
-import com.android.tools.idea.uibuilder.api.AttributeBrowser;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
@@ -108,11 +107,10 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent layout,
+  public void onChildInserted(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
-    myHandler.onChildInserted(editor, layout, newChild, insertType);
+    myHandler.onChildInserted(layout, newChild, insertType);
   }
 
   @Override
@@ -147,11 +145,10 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    return myHandler.onCreate(editor, parent, newChild, insertType);
+    return myHandler.onCreate(parent, newChild, insertType);
   }
 
   @Override
@@ -266,8 +263,8 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
-    return myHandler.getPlaceholders(component);
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
+    return myHandler.getPlaceholders(component, draggedComponents);
   }
 
   @NotNull
@@ -277,7 +274,7 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
 
   @Nullable
   @Override
-  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface surface,
+  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface<?> surface,
                                                       @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility callback) {
@@ -289,18 +286,11 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
     return myHandler.needsAccessoryPanel(type);
   }
 
-  @Nullable
   @Override
-  public AttributeBrowser getBrowser(@NotNull String attributeName) {
-    return myHandler.getBrowser(attributeName);
-  }
-
-  @Override
-  public void onChildRemoved(@NotNull ViewEditor editor,
-                             @NotNull NlComponent layout,
+  public void onChildRemoved(@NotNull NlComponent layout,
                              @NotNull NlComponent newChild,
                              @NotNull InsertType insertType) {
-    myHandler.onChildRemoved(editor, layout, newChild, insertType);
+    myHandler.onChildRemoved(layout, newChild, insertType);
   }
 
   @Override
@@ -324,13 +314,13 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onActivateInComponentTree(@NotNull NlComponent component, ViewEditor editor) {
-    myHandler.onActivateInComponentTree(component, editor);
+  public void onActivateInComponentTree(@NotNull NlComponent component) {
+    myHandler.onActivateInComponentTree(component);
   }
 
   @Override
-  public void onActivateInDesignSurface(@NotNull NlComponent component, ViewEditor editor, int x, int y) {
-    myHandler.onActivateInDesignSurface(component, editor, x, y);
+  public void onActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    myHandler.onActivateInDesignSurface(component, x, y);
   }
 
   @Override

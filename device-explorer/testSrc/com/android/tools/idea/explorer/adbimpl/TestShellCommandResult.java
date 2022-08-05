@@ -39,4 +39,8 @@ class TestShellCommandResult {
   public Exception getError() {
     return myError;
   }
+
+  public String toString() {
+    return myError == null ? "Success(" + myOutput + ")" : "Error(" + myError.toString() + ")";
+  }
 }

@@ -21,7 +21,6 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.Dependencies
-import com.android.tools.idea.testing.IdeComponents
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.DependencyScope
@@ -46,9 +45,7 @@ fun addDynamicFeatureModule(moduleName: String, module: Module, fixture: JavaCod
     override fun getModuleSystem(module: Module): AndroidModuleSystem = newModuleSystem
   }
 
-  IdeComponents(project).replaceProjectService(ProjectSystemService::class.java, object : ProjectSystemService(project) {
-    override val projectSystem = newProjectSystem
-  })
+  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(newProjectSystem)
 
   Dependencies.add(fixture, "navigation/navigation-runtime",
                    "navigation/navigation-common",

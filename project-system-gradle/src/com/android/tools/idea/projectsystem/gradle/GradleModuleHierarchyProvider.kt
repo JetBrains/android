@@ -68,11 +68,14 @@ class GradleModuleHierarchyProvider(private val project: Project) {
 
   private fun buildMap(): Map<ComponentManager, List<Module>> {
     val moduleManager = ModuleManager.getInstance(project)
-    val grouper = moduleManager.getModuleGrouper(null)
 
     fun moduleHierarchyId(module: Module): List<String>? {
       if (!isExternalSystemAwareModule(GRADLE_SYSTEM_ID, module)) return null
-      return grouper.getModuleAsGroupPath(module) ?: grouper.getGroupPath(module)
+      return module.getGradleProjectPath()?.let { gradleProjectPath ->
+        listOf(gradleProjectPath.buildRoot, ":") +
+          gradleProjectPath.path.split(":").filter { it.isNotEmpty() } +
+          listOfNotNull((gradleProjectPath as? GradleSourceSetProjectPath)?.sourceSet?.sourceSetName)
+      }
     }
 
     val modules = moduleManager.modules

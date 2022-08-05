@@ -27,5 +27,7 @@ sealed class ProjectResolutionMode {
     val requestedAbis: Set<String>
   ) : ProjectResolutionMode()
 
-  object SyncProjectMode : ProjectResolutionMode()
+  object FetchAllVariantsMode : ProjectResolutionMode()
+
+  object SingleVariantSyncProjectMode : ProjectResolutionMode()
 }

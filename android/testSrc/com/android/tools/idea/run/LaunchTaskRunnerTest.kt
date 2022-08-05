@@ -16,9 +16,12 @@
 package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
@@ -37,14 +40,15 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.never
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 import java.util.function.BiConsumer
 
 /**
  * Unit test for [LaunchTaskRunner].
  */
+@org.junit.Ignore("b/233935324")
 class LaunchTaskRunnerTest {
   @get:Rule
   var mockitoJunit = MockitoJUnit.rule()
@@ -78,15 +82,16 @@ class LaunchTaskRunnerTest {
 
   @Before
   fun setUp() {
-    `when`(mockExecutor.toolWindowId).thenReturn("toolWindowId")
+    whenever(mockExecutor.toolWindowId).thenReturn("toolWindowId")
   }
 
   private fun createDeviceFutures(numDevices: Int = 1): DeviceFutures {
     val devices = (1..numDevices).map {
       val device = mock<AndroidDevice>()
       val iDevice = mock<IDevice>()
-      `when`(iDevice.isOnline).thenReturn(true)
-      `when`(device.launchedDevice).thenReturn(Futures.immediateFuture(iDevice))
+      whenever(iDevice.isOnline).thenReturn(true)
+      whenever(iDevice.version).thenReturn(AndroidVersion(MIN_RECOMMENDED_API, null))
+      whenever(device.launchedDevice).thenReturn(Futures.immediateFuture(iDevice))
       device
     }.toList()
     return DeviceFutures(devices)
@@ -94,16 +99,26 @@ class LaunchTaskRunnerTest {
 
   private fun setFailingLaunchTask(targetDevice: IDevice? = null) {
     val failingTask = mock<LaunchTask>()
-    `when`(failingTask.shouldRun(any())).thenReturn(true)
-    `when`(failingTask.run(any())).thenReturn(LaunchResult.error("", ""))
-    `when`(mockLaunchTasksProvider.getTasks(
+    whenever(failingTask.shouldRun(any())).thenReturn(true)
+    whenever(failingTask.run(any())).thenReturn(LaunchResult.error("", ""))
+    whenever(mockLaunchTasksProvider.getTasks(
       targetDevice?.let { eq(targetDevice) } ?: any(),
       any(),
       any())).thenReturn(listOf(failingTask))
   }
 
+  private fun setWarningLaunchTask(targetDevice: IDevice? = null) {
+    val warningTask = mock<LaunchTask>()
+    whenever(warningTask.shouldRun(any())).thenReturn(true)
+    whenever(warningTask.run(any())).thenReturn(LaunchResult.warning(""))
+    whenever(mockLaunchTasksProvider.getTasks(
+      targetDevice?.let { eq(targetDevice) } ?: any(),
+      any(),
+      any())).thenReturn(listOf(warningTask))
+  }
+
   private fun setSwapInfo() {
-    `when`(mockExecutionEnvironment.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(SwapInfo(SwapInfo.SwapType.APPLY_CHANGES, null))
+    whenever(mockExecutionEnvironment.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(SwapInfo(SwapInfo.SwapType.APPLY_CHANGES, null))
   }
 
   private fun createLaunchTaskRunner(deviceFutures: DeviceFutures): LaunchTaskRunner {
@@ -129,6 +144,28 @@ class LaunchTaskRunnerTest {
     runner.run(progressIndicator)
 
     verify(mockProcessHandler).addTargetDevice(eq(deviceFutures.get()[0].get()))
+    // we should have two force-stop calls for APIs <= 25, which the mock IDevice is
+    verify(deviceFutures.get()[0].get(), times(2)).forceStop(any())
+    verify(mockProcessHandler, never()).detachDevice(any())
+    verify(mockProcessHandler, never()).detachProcess()
+    verify(mockProcessHandler, never()).destroyProcess()
+
+    verify(mockRunStats).endLaunchTasks()
+  }
+
+  @Test
+  fun runWithWarnings() {
+    // Ideally, we would like to assert that the warning text is emitted to the console and the notifications expose it, but the current
+    // test infra doesn't have mechanism to do that so all we can do is assert that the warnings do not fail the launch.
+    val deviceFutures = createDeviceFutures()
+    setWarningLaunchTask()
+    val runner = createLaunchTaskRunner(deviceFutures)
+
+    runner.run(progressIndicator)
+
+    verify(mockProcessHandler).addTargetDevice(eq(deviceFutures.get()[0].get()))
+    // we should have two force-stop calls for APIs <= 25, which the mock IDevice is
+    verify(deviceFutures.get()[0].get(), times(2)).forceStop(any())
     verify(mockProcessHandler, never()).detachDevice(any())
     verify(mockProcessHandler, never()).detachProcess()
     verify(mockProcessHandler, never()).destroyProcess()

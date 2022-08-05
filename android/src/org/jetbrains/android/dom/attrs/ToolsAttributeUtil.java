@@ -28,9 +28,6 @@ import static com.android.SdkConstants.ATTR_LISTHEADER;
 import static com.android.SdkConstants.ATTR_LISTITEM;
 import static com.android.SdkConstants.ATTR_LOCALE;
 import static com.android.SdkConstants.ATTR_MENU;
-import static com.android.SdkConstants.ATTR_MOCKUP;
-import static com.android.SdkConstants.ATTR_MOCKUP_CROP;
-import static com.android.SdkConstants.ATTR_MOCKUP_OPACITY;
 import static com.android.SdkConstants.ATTR_OPEN_DRAWER;
 import static com.android.SdkConstants.ATTR_PARENT_TAG;
 import static com.android.SdkConstants.ATTR_SHOW_IN;
@@ -117,9 +114,6 @@ public class ToolsAttributeUtil {
     .put(ATTR_LAYOUT, singletonList(AttributeFormat.REFERENCE))
     .put(ATTR_LOCALE, NO_FORMATS)
     .put(ATTR_MENU, NO_FORMATS)
-    .put(ATTR_MOCKUP, singletonList(AttributeFormat.STRING))
-    .put(ATTR_MOCKUP_OPACITY, singletonList(AttributeFormat.FLOAT))
-    .put(ATTR_MOCKUP_CROP, singletonList(AttributeFormat.STRING))
     .put(ATTR_OPEN_DRAWER, singletonList(AttributeFormat.ENUM))
     .put(ATTR_PARENT_TAG, singletonList(AttributeFormat.STRING))
     .put(ATTR_SHOW_IN, singletonList(AttributeFormat.REFERENCE))

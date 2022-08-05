@@ -49,9 +49,13 @@
   </extensions>
 
   <actions>
+    <action class="com.android.tools.idea.ui.resourcemanager.actions.CopyResourceValueAction"
+            id="ResourceExplorer.CopyValue" />
+
     <group id="ResourceExplorer">
       <reference ref="Move"/>
       <reference ref="$Copy"/>
+      <reference ref="ResourceExplorer.CopyValue" />
       <reference ref="RenameElement"/>
       <reference ref="SafeDelete"/>
       <separator/>

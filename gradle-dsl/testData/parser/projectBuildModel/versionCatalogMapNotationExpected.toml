@@ -1,0 +1,2 @@
+[libraries]
+adep = { group = 'com.example', name = 'example', version = "2.3.4" }

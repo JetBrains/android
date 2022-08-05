@@ -2,7 +2,11 @@
 <resources>
 <string name="some_string">'ERROR'</string>
 <string name="some_string2">"'OK'"</string>
-<string name="some_string3">What\'s New</string>
+<string name="some_string3">What's New</string>
 <string name="some_string10">Unicode\u12.</string>
 <string name="news">  "  What's New "    </string>
+<string-array name="array_of_string">
+  <item>It\'s correct</item>
+  <item>It\'s incorrect</item>
+</string-array>
 </resources>

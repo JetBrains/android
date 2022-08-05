@@ -259,7 +259,7 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
           ActionType.SELF -> selfActions++
           ActionType.REGULAR -> regularActions++
           ActionType.EXIT -> exitActions++
-          else -> {}
+          else -> { }
         }
       }
     }

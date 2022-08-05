@@ -18,4 +18,5 @@ package com.android.tools.idea.gradle.structure.model;
 public interface PsIssueType {
   PsIssueType PROJECT_ANALYSIS = new PsIssueType() {};
   PsIssueType LIBRARY_UPDATES_AVAILABLE = new PsIssueType() {};
+  PsIssueType PLAY_SDK_INDEX_ISSUE = new PsIssueType() {};
 }

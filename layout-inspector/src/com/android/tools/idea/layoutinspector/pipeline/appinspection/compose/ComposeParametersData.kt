@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
@@ -72,17 +71,13 @@ class ComposeParametersDataGenerator(
       it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.PARAMETERS)
     }
 
-    val mergedSemantics = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get()) {
-      parameterGroup.mergedSemanticsList.map {
+    val mergedSemantics = parameterGroup.mergedSemanticsList.map {
         it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.MERGED)
       }
-    } else emptyList()
 
-    val unmergedSemantics = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get()) {
-      parameterGroup.unmergedSemanticsList.map {
+    val unmergedSemantics = parameterGroup.unmergedSemanticsList.map {
         it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.UNMERGED)
       }
-    } else emptyList()
 
     val all = parameterList.asSequence() + mergedSemantics.asSequence() + unmergedSemantics.asSequence()
     return ComposeParametersData(parameterList, mergedSemantics, unmergedSemantics, toPropertiesTable(all))

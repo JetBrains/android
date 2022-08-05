@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.util
 
 import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -87,6 +88,7 @@ fun createResourcePickerDialog(
  * @param initialColorResource The initial resource reference for the ResourcePicker, when not null, the popup dialog will open in the
  * ResourcePicker tab
  * @param configuration The [Configuration] of the current file, required to have a ResourcePicker in the popup dialog
+ * @param resourcePickerSources List of the different places the color resources will be pulled from, empty list will default to all sources
  * @param restoreFocusComponent When closing the popup dialog, this component will regain focus
  * @param locationToShow Preferred location in the screen to show the popup dialog, if null, the current location of the mouse will be used
  * @param colorPickedCallback The callback for whenever a new [Color] is picked in the ColorPicker
@@ -97,6 +99,44 @@ fun createAndShowColorPickerPopup(
   initialColor: Color?,
   initialColorResource: ResourceValue?,
   configuration: Configuration?,
+  resourcePickerSources: List<ResourcePickerSources>,
+  restoreFocusComponent: Component?,
+  locationToShow: Point?,
+  colorPickedCallback: ((Color) -> Unit)?,
+  colorResourcePickedCallback: ((String) -> Unit)?
+) {
+
+  val facet = configuration?.let { AndroidFacet.getInstance(configuration.module) }
+  val file = configuration?.file
+  val resourceResolver = configuration?.resourceResolver
+
+  createAndShowColorPickerPopup(initialColor, initialColorResource, facet, file, resourceResolver, resourcePickerSources,
+                                restoreFocusComponent, locationToShow, colorPickedCallback, colorResourcePickedCallback)
+}
+
+/**
+ * Creates and shows a popup dialog with the ColorPicker and if possible, the popup will have an additional tab with a ResourcePicker for
+ * colors.
+ *
+ * @param initialColor The initial color for the ColorPicker panel
+ * @param initialColorResource The initial resource reference for the ResourcePicker, when not null, the popup dialog will open in the
+ * ResourcePicker tab
+ * @param facet The [AndroidFacet] of current module
+ * @param contextFile The [VirtualFile] to provide the context.
+ * @param resourceResolver The [ResourceResolver] to read and parse the resource color
+ * @param resourcePickerSources List of the different places the color resources will be pulled from, empty list will default to all sources
+ * @param restoreFocusComponent When closing the popup dialog, this component will regain focus
+ * @param locationToShow Preferred location in the screen to show the popup dialog, if null, the current location of the mouse will be used
+ * @param colorPickedCallback The callback for whenever a new [Color] is picked in the ColorPicker
+ * @param colorResourcePickedCallback The callback for whenever a new Color resource is picked in the ResourcePicker, returns the string
+ * representation of the resource Eg: @color/colorPrimary
+ */
+fun createAndShowColorPickerPopup(
+  initialColor: Color?,
+  initialColorResource: ResourceValue?,
+  facet: AndroidFacet?,
+  contextFile: VirtualFile?,
+  resourceResolver: ResourceResolver?,
   resourcePickerSources: List<ResourcePickerSources>,
   restoreFocusComponent: Component?,
   locationToShow: Point?,
@@ -129,12 +169,12 @@ fun createAndShowColorPickerPopup(
     .build()
   }
 
-  val facet = configuration?.let { AndroidFacet.getInstance(configuration.module) }
-  val resourcePicker = if (colorResourcePickedCallback == null || facet == null) null else {
+  val resourcePicker = if (facet != null && colorPickedCallback != null && contextFile != null &&
+                           resourceResolver != null && colorResourcePickedCallback != null) {
     CompactResourcePicker(
       facet,
-      configuration,
-      configuration.resourceResolver,
+      contextFile,
+      resourceResolver,
       ResourceType.COLOR,
       resourcePickerSources,
       colorResourcePickedCallback,
@@ -142,6 +182,7 @@ fun createAndShowColorPickerPopup(
       disposable
     )
   }
+  else null
 
   if (colorPicker == null && resourcePicker == null) {
     return
@@ -193,7 +234,7 @@ fun createAndShowResourcePickerPopup(
   val popupDialog = LightCalloutPopup(onPopupClosed, onPopupClosed, null)
   val resourcePicker = CompactResourcePicker(
     facet,
-    configuration,
+    configuration.file,
     configuration.resourceResolver,
     resourceType,
     resourcePickerSources,

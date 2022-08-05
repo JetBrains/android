@@ -37,10 +37,10 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.AbstractTableCellEditor;
@@ -50,20 +50,18 @@ import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EventObject;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -289,7 +287,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     }
 
     private class SystemImageDescriptionRenderer extends AbstractTableCellEditor implements TableCellRenderer {
-      private SystemImageDescription image;
+      private final SystemImageDescription image;
 
       SystemImageDescriptionRenderer(SystemImageDescription o) {
         image = o;
@@ -297,7 +295,8 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
 
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT);
+        JPanel panel = new JPanel(flowLayout);
         JBLabel label = new JBLabel((String)value);
         if (isSelected) {
           if (image.isRemote()) {
@@ -341,24 +340,33 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
           });
         }
         panel.add(label);
+
+        // Add a download button if applicable
         if (image.isRemote() && column == 0) {
-          final JBLabel link = new JBLabel("Download");
+          final JBLabel link = new JBLabel(AllIcons.Actions.Download);
           link.setBackground(table.getBackground());
           link.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-          link.setForeground(JBColor.BLUE);
-          Font font = link.getFont();
-          if (isSelected) {
-            Map<TextAttribute, Integer> attrs = new HashMap<>();
-            attrs.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-            font = font.deriveFont(attrs);
-          }
-          link.setFont(font);
           link.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
               downloadImage(image);
+              // Clicking the download link should also select the table
+              // row that the download link is located in.
+              table.changeSelection(row, column, false, false);
             }
           });
+
+          // We want the download button to always show and not be cut off
+          int columnWidth = table.getColumnModel().getColumn(0).getWidth();
+          double extraWidth = link.getPreferredSize().getWidth() + flowLayout.getHgap() * 3;
+          if (label.getPreferredSize().getWidth() + extraWidth > columnWidth) {
+            Dimension labelSize = new Dimension((int)(columnWidth - extraWidth), (int)label.getPreferredSize().getHeight());
+            label.setMinimumSize(labelSize);
+            label.setMaximumSize(labelSize);
+            label.setPreferredSize(labelSize);
+            label.setSize(labelSize);
+          }
+
           panel.add(link);
         }
         return panel;
@@ -393,9 +401,8 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     @Nullable
     @Override
     public Comparator<SystemImageDescription> getComparator() {
-      return new Comparator<>() {
+      return new Comparator<SystemImageDescription>() {
         ApiLevelComparator myComparator = new ApiLevelComparator();
-
         @Override
         public int compare(SystemImageDescription o1, SystemImageDescription o2) {
           int res = myComparator.compare(valueOf(o1), valueOf(o2));
@@ -403,6 +410,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
             return o1.getTag().compareTo(o2.getTag());
           }
           return res;
+
         }
       };
     }

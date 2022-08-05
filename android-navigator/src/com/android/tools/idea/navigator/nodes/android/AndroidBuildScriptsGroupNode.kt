@@ -15,95 +15,35 @@
  */
 package com.android.tools.idea.navigator.nodes.android
 
-import com.android.SdkConstants
-import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Queryable.PrintInfo
-import com.intellij.openapi.util.io.FileUtilRt
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import icons.GradleIcons
-import org.jetbrains.android.facet.AndroidRootUtil
 
 class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
   : ProjectViewNode<List<PsiDirectory?>?>(project, emptyList(), settings) {
 
-  override fun contains(file: VirtualFile): Boolean = getBuildScriptsWithQualifiers().containsKey(file)
+  override fun contains(file: VirtualFile): Boolean = buildConfigurationSourceProvider().contains(file)
 
   override fun getChildren(): Collection<AbstractTreeNode<*>?> {
-    val scripts = getBuildScriptsWithQualifiers()
+    val scripts = buildConfigurationSourceProvider().getBuildConfigurationFiles()
     val children = ArrayList<PsiFileNode>(scripts.size)
-    for ((key, value) in scripts) {
-      addPsiFile(children, key, value)
+    scripts.forEach{ configFile ->
+      val psiFile = PsiManager.getInstance(myProject).findFile(configFile.file)
+      if (psiFile != null) {
+        children.add(AndroidBuildScriptNode(myProject, psiFile, settings, configFile.displayName, configFile.groupOrder))
+      }
     }
     return children
-  }
-
-  private fun getBuildScriptsWithQualifiers(): Map<VirtualFile, String> {
-    val buildScripts = mutableMapOf<VirtualFile, String>()
-    for (module in ModuleManager.getInstance(myProject).modules) {
-      val moduleName = getPrefixForModule(module) + module.getHolderModule().name
-      val gradleBuildFile = GradleUtil.getGradleBuildFile(module)
-      if (gradleBuildFile != null) {
-        buildScripts[gradleBuildFile] = moduleName
-      }
-
-      // include all .gradle and ProGuard files from each module
-      for (file in findAllGradleScriptsInModule(module)) {
-        buildScripts[file] =
-          if (file.fileType === getProguardFileType()) {
-            String.format("ProGuard Rules for %1\$s", module.getHolderModule().name)
-          }
-          else {
-            moduleName
-          }
-      }
-    }
-    val projectRootFolder = myProject.baseDir
-    if (projectRootFolder != null) {
-      // Should not happen, but we have reports that there is a NPE in this area.
-      findChildAndAddToMapIfFound(
-        SdkConstants.FN_SETTINGS_GRADLE, projectRootFolder, "Project Settings", buildScripts)
-      findChildAndAddToMapIfFound(
-        SdkConstants.FN_SETTINGS_GRADLE_KTS, projectRootFolder, "Project Settings", buildScripts)
-      findChildAndAddToMapIfFound(
-        SdkConstants.FN_GRADLE_PROPERTIES, projectRootFolder, "Project Properties", buildScripts)
-      val child = projectRootFolder.findFileByRelativePath(FileUtilRt.toSystemIndependentName(GradleUtil.GRADLEW_PROPERTIES_PATH))
-      if (child != null) {
-        buildScripts[child] = "Gradle Version"
-      }
-      findChildAndAddToMapIfFound(SdkConstants.FN_LOCAL_PROPERTIES, projectRootFolder, "SDK Location", buildScripts)
-    }
-    if (!ApplicationManager.getApplication().isUnitTestMode) {
-      val userSettingsFile = GradleUtil.getGradleUserSettingsFile()
-      if (userSettingsFile != null) {
-        val file = VfsUtil.findFileByIoFile(userSettingsFile, false)
-        if (file != null) {
-          buildScripts[file] = "Global Properties"
-        }
-      }
-    }
-    return buildScripts
-  }
-
-  private fun addPsiFile(psiFileNodes: MutableList<PsiFileNode>, file: VirtualFile, qualifier: String) {
-    val psiFile = PsiManager.getInstance(myProject).findFile(file)
-    if (psiFile != null) {
-      psiFileNodes.add(AndroidBuildScriptNode(myProject, psiFile, settings, qualifier))
-    }
   }
 
   override fun getWeight(): Int = 100 // Gradle scripts node should be at the end after all the modules
@@ -114,50 +54,8 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
   }
 
   override fun toTestString(printInfo: PrintInfo?): String = "Gradle Scripts"
-}
 
-private fun getProguardFileType(): FileType = ProguardR8FileType.INSTANCE
-
-private fun findChildAndAddToMapIfFound(
-  childName: String,
-  parent: VirtualFile,
-  value: String,
-  map: MutableMap<VirtualFile, String>
-) {
-  val child = parent.findChild(childName)
-  if (child != null) {
-    map[child] = value
+  private fun buildConfigurationSourceProvider(): BuildConfigurationSourceProvider {
+    return project.getProjectSystem().getBuildConfigurationSourceProvider() ?: BuildConfigurationSourceProvider.EMPTY
   }
-}
-
-private fun getPrefixForModule(module: Module): String {
-  return if (GradleUtil.isRootModuleWithNoSources(module)) AndroidBuildScriptNode.PROJECT_PREFIX
-  else AndroidBuildScriptNode.MODULE_PREFIX
-}
-
-private fun findAllGradleScriptsInModule(module: Module): List<VirtualFile> {
-  val moduleRootFolderPath = AndroidRootUtil.findModuleRootFolderPath(module) ?: return emptyList()
-  val moduleRootFolder = VfsUtil.findFileByIoFile(moduleRootFolderPath, false)?.takeUnless { it.children == null } ?: return emptyList()
-
-  val files = mutableListOf<VirtualFile>()
-  for (child in moduleRootFolder.children) {
-    if (!child.isValid ||
-        child.isDirectory ||
-        (
-          !child.name.endsWith(SdkConstants.EXT_GRADLE) &&
-          !child.name.endsWith(SdkConstants.EXT_GRADLE_KTS) &&
-          child.fileType !== getProguardFileType()
-        )
-    ) {
-      continue
-    }
-
-    // TODO: When a project is imported via unit tests, there is a ijinitXXXX.gradle file created somehow, exclude that.
-    if (ApplicationManager.getApplication().isUnitTestMode &&
-        (child.name.startsWith("ijinit") || child.name.startsWith("asLocalRepo"))) {
-      continue
-    }
-    files.add(child)
-  }
-  return files
 }

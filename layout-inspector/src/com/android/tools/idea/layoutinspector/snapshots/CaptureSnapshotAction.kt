@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
-import com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileType
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -43,8 +42,7 @@ object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export), Toolti
     val outputDir = VfsUtil.getUserHomeDir()
 
     // Configure title, description and extension
-    val descriptor = FileSaverDescriptor("Save Layout Snapshot", "Save layout inspector snapshot",
-                                         LayoutInspectorFileType.EXT_LAYOUT_INSPECTOR)
+    val descriptor = FileSaverDescriptor("Save Layout Snapshot", "Save layout inspector snapshot", EXT_LAYOUT_INSPECTOR)
 
     // Open the Dialog which returns a VirtualFileWrapper when closed
     val saveFileDialog: FileSaverDialog =
@@ -54,7 +52,7 @@ object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export), Toolti
                            SimpleDateFormat("yyyy.MM.dd_HH.mm", Locale.US).format(Date())
     fileName = fileName.replace(Regex("[^._A-Za-z0-9]"), "")
     // Append extension manually to file name on MacOS because FileSaverDialog does not do it automatically.
-    fileName += if (SystemInfo.isMac) LayoutInspectorFileType.DOT_EXT_LAYOUT_INSPECTOR else ""
+    fileName += if (SystemInfo.isMac) DOT_EXT_LAYOUT_INSPECTOR else ""
     val result = saveFileDialog.save(outputDir, fileName) ?: return
 
     val path = result.getVirtualFile(true)?.toNioPath() ?: return

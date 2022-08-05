@@ -258,6 +258,13 @@ public class MotionEditor extends JPanel {
       }
 
       @Override
+      public void performAction(int type) {
+       if (type == SAVE_GIF) {
+         mTransitionPanel.mTimeLinePanel.notifyTimeLineListeners(MotionEditorSelector.TimeLineCmd.MOTION_CAPTURE, 0f);
+       }
+      }
+
+      @Override
       public void delete(MTag[] tags, int flags) {
         fireCommand(Command.Action.DELETE, tags);
       }
@@ -829,5 +836,13 @@ public class MotionEditor extends JPanel {
     }
 
     void perform(Action action, MTag[] tag);
+  }
+
+  public int getPlayMode() {
+    return mTransitionPanel.mTimeLinePanel.getYoyoMode();
+  }
+
+  public float getTimeLineSpeed() {
+    return mTransitionPanel.mTimeLinePanel.getSpeedMultiplier();
   }
 }

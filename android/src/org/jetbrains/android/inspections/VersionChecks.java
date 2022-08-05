@@ -1,6 +1,6 @@
 package org.jetbrains.android.inspections;
 
-import static com.android.tools.lint.checks.VersionChecks.SDK_INT;
+import static com.android.tools.lint.detector.api.VersionChecks.SDK_INT;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;

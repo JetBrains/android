@@ -18,22 +18,40 @@ package com.android.tools.idea.instantapp;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import static java.util.Objects.requireNonNull;
+import static org.junit.Assert.assertEquals;
 
 import com.android.testutils.junit4.OldAgpTest;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
+import com.intellij.testFramework.EdtRule;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 @OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
-public class InstantAppsTest extends AndroidGradleTestCase {
+public class InstantAppsTest {
 
+  private final AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+
+  @Rule
+  public final RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
+
+  @Test
   public void testFindBaseFeatureWithInstantApp() throws Exception {
-    loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
-    assertEquals(TestModuleUtil.findModule(getProject(), "feature"), findBaseFeature(myAndroidFacet));
+    projectRule.loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
+    AndroidFacet facet = requireNonNull(AndroidFacet.getInstance(projectRule.getModule("instant-app")));
+    assertEquals(TestModuleUtil.findModule(projectRule.getProject(), "feature"), findBaseFeature(facet));
   }
 
+  @Test
+  @Ignore("b/203803107")
   public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     // Use a plugin version that supports instant app
-    loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
-    assertEquals("http://example.com/example", getDefaultInstantAppUrl(myAndroidFacet));
+    projectRule.loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
+    AndroidFacet facet = requireNonNull(AndroidFacet.getInstance(projectRule.getModule("instant-app")));
+    assertEquals("http://example.com/example", getDefaultInstantAppUrl(facet));
   }
 }

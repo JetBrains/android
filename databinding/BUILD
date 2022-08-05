@@ -47,7 +47,8 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/databinding/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/data-binding:integration-test-projects",
     ],
@@ -57,6 +58,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -74,6 +76,8 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
+        "//tools/adt/idea/.idea/libraries:asm-tools[test]",
     ],
 )
 
@@ -85,8 +89,8 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.fragment.fragment_1.0.0",
-        "@maven//:androidx.lifecycle.lifecycle-livedata_2.2.0",
-        "@maven//:androidx.lifecycle.lifecycle-runtime_2.2.0",
+        "@maven//:androidx.lifecycle.lifecycle-livedata_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.4.0",
         "@maven//:com.android.support.support-v4_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.1",
         "@maven//:com.google.auto.value.auto-value_1.6.2",

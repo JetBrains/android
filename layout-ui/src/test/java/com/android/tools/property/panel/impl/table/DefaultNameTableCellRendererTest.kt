@@ -21,17 +21,21 @@ import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.ui.PropertyTooltip
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.item.PTableTestModel
-import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.item.PTableTestModel
 import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.IdeTooltipManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.IconLoader
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.replaceService
 import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
@@ -45,15 +49,21 @@ import javax.swing.SwingUtilities
 
 class DefaultNameTableCellRendererTest {
 
-  @JvmField @Rule
-  val appRule = ApplicationRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   var manager: IdeTooltipManager? = null
 
   @Before
   fun setUp() {
     manager = mock(IdeTooltipManager::class.java)
-    appRule.testApplication.registerService(IdeTooltipManager::class.java, manager!!)
+    ApplicationManager.getApplication().replaceService(IdeTooltipManager::class.java, manager!!, disposableRule.disposable)
   }
 
   @After

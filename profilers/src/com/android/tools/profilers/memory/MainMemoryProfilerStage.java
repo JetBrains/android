@@ -42,7 +42,7 @@ import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.google.common.annotations.VisibleForTesting;
-import io.grpc.StatusRuntimeException;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -91,13 +91,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
 
     // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     myHeapDumpDurations = makeModel(CaptureDataSeries::ofHeapDumpSamples);
-    myAllocationDurations =
-      isLiveAllocationTrackingSupported()
-      ? AllocationDurationData.makeModel(getTimeline().getViewRange(),
-                                         getTimeline().getDataRange(),
-                                         applyDataSeriesConstructor(CaptureDataSeries::ofAllocationInfos),
-                                         getAllocationSamplingRateDataSeries())
-      : makeModel(CaptureDataSeries::ofAllocationInfos);
+    myAllocationDurations = makeModel(CaptureDataSeries::ofAllocationInfos);
     myNativeAllocationDurations = makeModel(CaptureDataSeries::ofNativeAllocationSamples);
 
     myHeapDumpDurations.setRenderSeriesPredicate((data, series) ->

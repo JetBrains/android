@@ -27,6 +27,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_TO_START;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_BOTTOM;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_TOP;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -411,7 +412,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
     String targetId;
     NlComponent parent = component.getParent();
     assert parent != null;
-    if (NlComponentHelperKt.isOrHasSuperclass(parent, SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(parent, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
       parent = parent.getParent();
     }
     if (targetComponent == parent) {

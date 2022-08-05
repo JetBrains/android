@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
@@ -222,9 +222,9 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        app:layout_constraintVertical_bias=\"0.5\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -271,7 +271,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        app:layout_constraintVertical_bias=\"0.5\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -316,7 +317,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        app:layout_constraintVertical_bias=\"0.5\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +

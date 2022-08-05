@@ -18,6 +18,7 @@ package com.android.tools.idea.project
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -29,6 +30,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
@@ -41,6 +43,7 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.FileSystemApkProvider
 import com.android.tools.idea.run.NonGradleApkProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
+import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -49,12 +52,13 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
 import org.jetbrains.annotations.TestOnly
 import java.io.File
@@ -125,6 +129,10 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     }
   }
 
+  override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+    return emptyList()
+  }
+
   override fun getPsiElementFinders(): List<PsiElementFinder> {
     return listOf(
       AndroidInnerClassFinder.INSTANCE,
@@ -138,6 +146,18 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override val submodules: Collection<Module>
     get() = getSubmodules(project, null)
 
+  override fun getClassJarProvider(): ClassJarProvider {
+    return object: ClassJarProvider {
+      override fun getModuleExternalLibraries(module: Module): List<File> {
+        return AndroidRootUtil.getExternalLibraries(module).map { file: VirtualFile? -> VfsUtilCore.virtualToIoFile(file!!) }
+      }
+
+      override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
+        return false
+      }
+    }
+  }
+
   override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
     override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders {
       return createSourceProvidersForLegacyModule(facet)
@@ -150,7 +170,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     return ProjectFacetManager.getInstance(project)
       .getFacets(AndroidFacet.ID)
       .asSequence()
-      .filter { getPackageName(it) == packageName }
+      .filter { it.getModuleSystem().getPackageName() == packageName }
       .filter { facet -> facet.sourceProviders.mainManifestFile?.let(projectScope::contains) == true }
       .toList()
   }

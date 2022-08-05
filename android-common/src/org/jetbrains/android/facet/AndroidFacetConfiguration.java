@@ -50,18 +50,6 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     return new FacetEditorTab[]{new NotEditableAndroidFacetEditorTab()};
   }
 
-  public boolean isImportedProperty(@NotNull AndroidImportableProperty property) {
-    return !myProperties.myNotImportedProperties.contains(property);
-  }
-
-  public boolean isIncludeAssetsFromLibraries() {
-    return myProperties.myIncludeAssetsFromLibraries;
-  }
-
-  public void setIncludeAssetsFromLibraries(boolean includeAssetsFromLibraries) {
-    myProperties.myIncludeAssetsFromLibraries = includeAssetsFromLibraries;
-  }
-
   public boolean isAppProject() {
     int projectType = getState().PROJECT_TYPE;
     return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;

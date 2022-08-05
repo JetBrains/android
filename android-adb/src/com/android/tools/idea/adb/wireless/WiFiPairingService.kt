@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.AnyThread
 import com.google.common.util.concurrent.ListenableFuture
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -25,7 +25,7 @@ import java.net.InetAddress
  * Service to expose and pair wireless devices. All entry points run asynchronously and
  * return [ListenableFuture] for completion.
  */
-@UiThread
+@AnyThread
 interface WiFiPairingService {
   /**
    * Returns a [MdnsSupportState] for the current platform and current ADB version.

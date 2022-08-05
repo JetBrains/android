@@ -31,7 +31,7 @@ public class MemoryClassGrouping extends AspectObserver {
 
     mySelection.getAspect().addDependency(this).onChange(CaptureSelectionAspect.CLASS_GROUPING, this::groupingChanged);
     myComboBox = new ProfilerCombobox<>(mySelection.getClassGroupingModel());
-    myComboBox.setRenderer(new ProfilerComboboxCellRenderer<>() {
+    myComboBox.setRenderer(new ProfilerComboboxCellRenderer<ClassGrouping>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList<? extends ClassGrouping> list,
                                            ClassGrouping value,

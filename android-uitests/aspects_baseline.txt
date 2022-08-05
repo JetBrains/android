@@ -3,7 +3,6 @@ com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.Configuration.getResourceResolver
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.Configuration.syncFolderConfig
 com.android.tools.idea.configurations.ConfigurationManager.create|com.android.tools.idea.configurations.ConfigurationManager.getConfiguration
-com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.editors.theme.ThemeEditorUtils.getConfigurationForModule
 com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.rendering.GutterIconFactory.createXmlIcon
 com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.android.tools.idea.configurations.ConfigurationManager.getDefaultDevice
 com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.android.tools.idea.configurations.ConfigurationManager.getDeviceById

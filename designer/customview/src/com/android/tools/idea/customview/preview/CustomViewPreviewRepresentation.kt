@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
@@ -49,6 +50,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -112,7 +114,7 @@ class CustomViewPreviewRepresentation(
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
   }
   private val project = psiFile.project
-  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+  private val psiFilePointer = com.intellij.openapi.application.runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
 
@@ -188,8 +190,9 @@ class CustomViewPreviewRepresentation(
         setShrinkRendering(true)
       }
     }.setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
+    .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
     .build().apply {
-      setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
+      name = "Custom View"
     }
 
   private val actionsToolbar = ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
@@ -215,11 +218,13 @@ class CustomViewPreviewRepresentation(
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  private val workbench = WorkBench<DesignSurface>(project, "Main Preview", null, this).apply {
-    val issuePanelSplitter = IssuePanelSplitter(surface, editorPanel)
-
-    init(issuePanelSplitter, surface, listOf(), false)
-  }
+  private val workbench: WorkBench<DesignSurface<*>> =
+    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, this), DataProvider {
+      override fun getData(dataId: String): Any? = if (DESIGN_SURFACE.`is`(dataId)) surface else null
+    }.apply {
+      val issuePanelSplitter = IssuePanelSplitter(psiFile.virtualFile, surface, editorPanel)
+      init(issuePanelSplitter, surface, listOf(), false)
+    }
 
   @Volatile
   private var lastBuildStartedNanos = 0L
@@ -357,7 +362,7 @@ class CustomViewPreviewRepresentation(
     val className = fqcn2name(selectedClass)
 
     val model = if (surface.models.isEmpty()) {
-      val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent)
+      val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent) { psiFile.virtualFile }
       val config = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
       NlModel.builder(facet, customPreviewXml, config)
         .withParentDisposable(this@CustomViewPreviewRepresentation)
@@ -381,6 +386,7 @@ class CustomViewPreviewRepresentation(
         updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
       }
 
+      surface.models.forEach { surface.removeModel(it) }
       surface.addAndRenderModel(model).await()
       surface.activate()
 
@@ -396,7 +402,8 @@ class CustomViewPreviewRepresentation(
       val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView } ?: return
       val className = fqcn2name(selectedClass)
       val screen = configuration.device!!.defaultHardware.screen
-      persistenceManager.setList(dimensionsPropertyNameForClass(className), listOf("${screen.xDimension}", "${screen.yDimension}"))
+      persistenceManager.setList(
+        dimensionsPropertyNameForClass(className), listOf("${screen.xDimension}", "${screen.yDimension}"))
     }
   }
 

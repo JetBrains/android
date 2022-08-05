@@ -25,9 +25,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -57,7 +54,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
@@ -108,9 +104,6 @@ public class RenderLogger implements IRenderLogger {
 
     @Override
     public void addMissingClass(@NotNull String className) {}
-
-    @Override
-    public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {}
 
     @Override
     public void addBrokenClass(@NotNull String className, @NotNull Throwable exception) {}
@@ -169,7 +162,6 @@ public class RenderLogger implements IRenderLogger {
   private List<RenderProblem> myFidelityWarnings;
   private Set<String> myMissingClasses;
   private Map<String, Throwable> myBrokenClasses;
-  private Map<String, Throwable> myClassesWithIncorrectFormat;
   private String myResourceClass;
   private boolean myMissingResourceClass;
   private boolean myHasLoadedClasses;
@@ -333,12 +325,12 @@ public class RenderLogger implements IRenderLogger {
    * @return true if there were errors during the render
    */
   public boolean hasErrors() {
-    boolean hasMessage;
+    boolean hasErrorMessage;
     synchronized (myMessages) {
-      hasMessage = !myMessages.isEmpty();
+      hasErrorMessage = myMessages.stream().anyMatch(message -> message.getSeverity().compareTo(ERROR) >= 0);
     }
-    return myHaveExceptions || hasMessage ||
-           myClassesWithIncorrectFormat != null || myBrokenClasses != null || myMissingClasses != null ||
+    return myHaveExceptions || hasErrorMessage ||
+           myBrokenClasses != null || myMissingClasses != null ||
            myMissingSize || myMissingFragments != null;
   }
 
@@ -360,18 +352,6 @@ public class RenderLogger implements IRenderLogger {
       tag = ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
     addTag(tag);
-
-    if (ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
-        && BuildSettings.getInstance(myModule.getProject()).getBuildMode() == BuildMode.SOURCE_GEN) {
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet != null && AndroidModel.isRequired(facet)) {
-        description = "Still building project; theme resources from libraries may be missing. Layout should refresh when the " +
-                      "build is complete.\n\n" + description;
-        tag = TAG_STILL_BUILDING;
-        addTag(tag);
-      }
-    }
-
     addMessage(RenderProblem.createPlain(ERROR, description).tag(tag));
   }
 
@@ -739,16 +719,6 @@ public class RenderLogger implements IRenderLogger {
   }
 
   /**
-   * Returns all the logged classes with incorrect format during rendering. If any of the {@link Throwable}s stack traces is
-   * longer than 100 elements, it will be summarized by only keeping the first 50 and last 50 elements and one element in the
-   * middle to indicate the exception stack trace has been summarized.
-   */
-  @NotNull
-  public Map<String, Throwable> getClassesWithIncorrectFormat() {
-    return myClassesWithIncorrectFormat != null ? myClassesWithIncorrectFormat : Collections.emptyMap();
-  }
-
-  /**
    * Returns all the logged broken classes during rendering. If any of the {@link Throwable}s stack traces is
    * longer than 100 elements, it will be summarized by only keeping the first 50 and last 50 elements and one element in the
    * middle to indicate the exception stack trace has been summarized.
@@ -773,17 +743,6 @@ public class RenderLogger implements IRenderLogger {
 
       logMessageToIdeaLog("Class not found " + className);
     }
-  }
-
-  @Override
-  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {
-    if (myClassesWithIncorrectFormat == null) {
-      myClassesWithIncorrectFormat = new HashMap<>();
-    }
-    myClassesWithIncorrectFormat.put(className, exception);
-
-    logMessageToIdeaLog("Class with incorrect format " + className, exception);
   }
 
   @Override

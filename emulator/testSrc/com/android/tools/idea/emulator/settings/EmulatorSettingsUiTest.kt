@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator.settings
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.emulator.EmulatorSettings
+import com.android.tools.idea.emulator.EmulatorSettings.CameraVelocityControls
 import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -31,7 +32,7 @@ import org.junit.rules.RuleChain
 import javax.swing.JCheckBox
 
 /**
- * Tests for [EmulatorSettingsUi].
+ * Tests for [EmulatorSettingsUi] and [EmulatorSettings].
  */
 @RunsInEdt
 class EmulatorSettingsUiTest {
@@ -59,25 +60,37 @@ class EmulatorSettingsUiTest {
     val settingsUi = provider.createConfigurable()
     val component = settingsUi.createComponent()!!
     val ui = FakeUi(component)
-    val launchInToolWindowCheckBox = ui.getComponent<JCheckBox>()
-    val snapshotAutoDeletionPolicyComboBox = ui.getComponent<ComboBox<SnapshotAutoDeletionPolicy>>()
+    val launchInToolWindowCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Launch in a tool window" }
+    val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Enable clipboard sharing" }
+    val snapshotAutoDeletionPolicyComboBox = ui.getComponent<ComboBox<*>> { it.selectedItem is SnapshotAutoDeletionPolicy }
+    val cameraVelocityControlComboBox = ui.getComponent<ComboBox<*>> { it.selectedItem is CameraVelocityControls }
 
     settingsUi.reset()
 
     assertThat(launchInToolWindowCheckBox.isSelected).isTrue()
+    assertThat(synchronizeClipboardCheckBox.isSelected).isTrue()
     assertThat(snapshotAutoDeletionPolicyComboBox.selectedItem).isEqualTo(SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING)
     assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isTrue()
+    assertThat(cameraVelocityControlComboBox.selectedItem).isEqualTo(CameraVelocityControls.WASDQE)
+    assertThat(cameraVelocityControlComboBox.isEnabled).isTrue()
     assertThat(settingsUi.isModified).isFalse()
 
-    launchInToolWindowCheckBox.isSelected = false
-
+    synchronizeClipboardCheckBox.isSelected = false
     assertThat(settingsUi.isModified).isTrue()
-    assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isFalse()
 
     snapshotAutoDeletionPolicyComboBox.selectedItem = SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY
+    cameraVelocityControlComboBox.selectedItem = CameraVelocityControls.ZQSDAE
+
+    launchInToolWindowCheckBox.isSelected = false
+    assertThat(synchronizeClipboardCheckBox.isEnabled).isFalse()
+    assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isFalse()
+    assertThat(cameraVelocityControlComboBox.isEnabled).isFalse()
+
     settingsUi.apply()
 
     assertThat(settings.launchInToolWindow).isFalse()
+    assertThat(settings.synchronizeClipboard).isFalse()
     assertThat(settings.snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY)
+    assertThat(settings.cameraVelocityControls).isEqualTo(CameraVelocityControls.ZQSDAE)
   }
 }

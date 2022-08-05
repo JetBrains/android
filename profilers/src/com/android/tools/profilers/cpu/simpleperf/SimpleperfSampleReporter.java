@@ -15,10 +15,16 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.CpuCaptureMetadata;
+import com.google.wireless.android.sdk.stats.CpuProfilingConfig;
+import com.google.wireless.android.sdk.stats.DeviceInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
@@ -29,7 +35,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -37,8 +42,11 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public final class SimpleperfSampleReporter implements TracePreProcessor {
+  @NotNull private final DeviceInfo myDeviceInfo;
 
-  public SimpleperfSampleReporter() { }
+  public SimpleperfSampleReporter(@NotNull DeviceInfo deviceInfo) {
+    myDeviceInfo = deviceInfo;
+  }
 
   private static Logger getLogger() {
     return Logger.getInstance(SimpleperfSampleReporter.class);
@@ -49,10 +57,10 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
    * the output if conversion is made successfully. If there is a failure while converting the raw trace to the format supported by
    * {@link SimpleperfTraceParser}, return {@link #FAILURE}.
    *
-   * @param trace       The raw trace data.
+   * @param trace      The raw trace data.
    * @param symbolDirs A list of paths used to find symbols for the given trace.
-   *                    Note: They're passed to simpleperf report-sample command using the --symdir flag.
-   *                    One --symdir flag should be passed for each directory provided. If null the --symdir flag is not passed.
+   *                   Note: They're passed to simpleperf report-sample command using the --symdir flag.
+   *                   One --symdir flag should be passed for each directory provided. If null the --symdir flag is not passed.
    * @return
    */
   @Override
@@ -61,6 +69,7 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
     try {
       if (trace.isEmpty()) {
         getLogger().error("Simpleperf preprocessing exited unsuccessfully. Input trace is empty.");
+        logPreprocessError(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILED_SIMPLEPERF_EMPTY_FILE);
         return FAILURE;
       }
 
@@ -74,8 +83,9 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
 
       boolean reportSampleSuccess = reportSample.exitValue() == 0;
       if (!reportSampleSuccess) {
-        String error = new BufferedReader(new InputStreamReader(reportSample.getErrorStream(), StandardCharsets.UTF_8)).readLine();
+        String error = new BufferedReader(new InputStreamReader(reportSample.getErrorStream())).readLine();
         getLogger().warn("simpleperf report-sample exited unsuccessfully. " + error);
+        logPreprocessError(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILED_SIMPLEPERF_ERRORS_AT_EXIT);
         return FAILURE;
       }
 
@@ -85,16 +95,19 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
     }
     catch (IOException e) {
       getLogger().warn(String.format("I/O error when trying to execute simpleperf report-sample:\n%s", e.getMessage()));
+      logPreprocessError(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILED_SIMPLEPERF_IO_ERROR);
       return FAILURE;
     }
     catch (InterruptedException e) {
       getLogger().warn(String.format("Failed to wait for simpleperf report-sample command to run:\n%s", e.getMessage()));
+      logPreprocessError(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILED_SIMPLEPERF_FAILED_TO_WAIT);
       return FAILURE;
     }
   }
 
   @VisibleForTesting
-  List<String> getReportSampleCommand(@NotNull ByteString trace, @NotNull File processedTrace, @NotNull List<String> symbolDirs) throws IOException {
+  List<String> getReportSampleCommand(@NotNull ByteString trace, @NotNull File processedTrace, @NotNull List<String> symbolDirs)
+    throws IOException {
     List<String> command = new ArrayList<>();
     command.add(getSimpleperfBinaryPath());
     command.add("report-sample");
@@ -115,11 +128,12 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
   String getSimpleperfBinaryPath() {
     String subDir = getSimpleperfBinarySubdirectory();
     String binaryName = getSimpleperfBinaryName();
-    if (StudioPathManager.isRunningFromSources())  {
+    if (StudioPathManager.isRunningFromSources()) {
       // Running from sources, so use the prebuilts path. For example:
       // $REPO/prebuilts/tools/windows/simpleperf/simpleperf.exe.
-      return Paths.get(StudioPathManager.resolveDevPath("prebuilts/tools/${subDir}/simpleperf/${binaryName}")).toString();
-    } else {
+      return StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/" + subDir + "/simpleperf/" + binaryName).toString();
+    }
+    else {
       // Release build. For instance:
       // $IDEA_HOME/plugins/android/resources/simpleperf/darwin-x86_64/simpleperf
       return Paths.get(PathManager.getHomePath(), "plugins", "android", "resources", "simpleperf", subDir, binaryName).toString();
@@ -132,6 +146,23 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
       out.write(bytes.toByteArray());
     }
     return file;
+  }
+
+  private void logPreprocessError(com.google.wireless.android.sdk.stats.CpuCaptureMetadata.CaptureStatus captureStatus) {
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+      .setDeviceInfo(myDeviceInfo)
+      .setAndroidProfilerEvent(
+        AndroidProfilerEvent.newBuilder()
+          .setType(AndroidProfilerEvent.Type.CAPTURE_TRACE)
+          .setCpuCaptureMetadata(
+            CpuCaptureMetadata.newBuilder()
+              .setProfilingConfig(
+                CpuProfilingConfig.newBuilder()
+                  .setType(CpuProfilingConfig.Type.SIMPLE_PERF)
+                  .setMode(CpuProfilingConfig.Mode.SAMPLED))
+              .setCaptureStatus(captureStatus)));
+    UsageTracker.log(event);
   }
 
   private static String getSimpleperfBinarySubdirectory() {

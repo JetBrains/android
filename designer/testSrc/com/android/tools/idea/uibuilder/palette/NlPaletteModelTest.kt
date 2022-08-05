@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.palette
 
 import com.android.SdkConstants
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.onDisk
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
@@ -44,7 +45,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
@@ -61,7 +61,7 @@ class NlPaletteModelTest {
 
   @Before
   fun setUp() {
-    fixture = projectRule.getFixture(JavaCodeInsightTestFixture::class.java)
+    fixture = projectRule.getTypedFixture()
     facet = AndroidFacet.getInstance(projectRule.module)
     model = NlPaletteModel.get(facet!!)
     projectSystem = TestProjectSystem(projectRule.project)
@@ -195,8 +195,8 @@ class NlPaletteModelTest {
     model!!.addUpdateListener { _, _ -> latch.countDown() }
     model!!.loadAdditionalComponents(LayoutFileType) {
       val customView: PsiClass = mock()
-      `when`(customView.name).thenReturn(CUSTOM_VIEW)
-      `when`(customView.qualifiedName).thenReturn(CUSTOM_VIEW_CLASS)
+      whenever(customView.name).thenReturn(CUSTOM_VIEW)
+      whenever(customView.qualifiedName).thenReturn(CUSTOM_VIEW_CLASS)
       CollectionQuery(ImmutableList.of(customView))
     }
     latch.await()

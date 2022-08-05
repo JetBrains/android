@@ -22,14 +22,14 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FlagValue
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertyGroup
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
 import com.android.tools.idea.res.colorToString
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.FlagValue
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertyGroup
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
 import java.awt.Color
 
 private const val SOME_UNKNOWN_ANIM_VALUE = "@anim/?"

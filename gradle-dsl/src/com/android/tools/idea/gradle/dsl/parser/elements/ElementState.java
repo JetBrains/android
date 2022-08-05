@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import java.util.Arrays;
+
 /**
  * Represents the state of an element.
  */
@@ -25,4 +27,19 @@ public enum ElementState {
   APPLIED, // These properties come from another file. These elements are not updated with calls to apply/create/delete.
   DEFAULT, // These properties do not exist on file at all, but represent their default value.
   MOVED, // These properties should be moved.
+  HIDDEN, // These properties exist on file but are invisible to the model (for example due to postprocessing of toml files).
+
+  ;
+
+  public boolean isPhysicalInFile() {
+    return Arrays.asList(EXISTING, TO_BE_ADDED, MOVED).contains(this);
+  }
+
+  public boolean isStructuralChange() {
+    return Arrays.asList(TO_BE_ADDED, TO_BE_REMOVED, MOVED).contains(this);
+  }
+
+  public boolean isSemanticallyRelevant() {
+    return !Arrays.asList(TO_BE_REMOVED, HIDDEN).contains(this);
+  }
 }

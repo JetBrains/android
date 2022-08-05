@@ -4,6 +4,7 @@ package com.android.tools.idea.compose.preview.pickers.properties
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.ColorValidation
 import com.android.tools.idea.res.colorToStringWithAlpha
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
@@ -13,11 +14,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.constants.LongValue
 import java.awt.Color
 import javax.swing.Icon
 
@@ -39,7 +37,9 @@ internal class ColorPsiCallParameter(
   resolvedCall,
   descriptor,
   argumentExpression,
-  initialValue) {
+  initialValue,
+  ColorValidation
+) {
 
   override val colorButton = object : ActionIconButton {
     override val actionButtonFocusable: Boolean = true
@@ -50,16 +50,16 @@ internal class ColorPsiCallParameter(
     override val action = object : AnAction(message("picker.preview.color.action.title")) {
       override fun actionPerformed(e: AnActionEvent) {
         createAndShowColorPickerPopup(
-          value?.substringAfter("0x")?.let { parseColor("#$it") },
-          null,
-          null,
-          listOf(),
-          e.componentToRestoreFocusTo(),
-          e.locationFromEvent(),
-          {
+          initialColor = value?.substringAfter("0x")?.let { parseColor("#$it") },
+          initialColorResource = null,
+          configuration = null,
+          resourcePickerSources = listOf(),
+          restoreFocusComponent = e.componentToRestoreFocusTo(),
+          locationToShow = e.locationFromEvent(),
+          colorPickedCallback = {
             value = colorToStringWithAlpha(it)
           },
-          {
+          colorResourcePickedCallback = {
             // Do nothing.
           }
         )
@@ -69,15 +69,14 @@ internal class ColorPsiCallParameter(
 
   override var value: String?
     get() {
-      argumentExpression?.constantValueOrNull(argumentExpression?.analyze())?.let { constant ->
-        require(constant is LongValue)
-        return colorToStringWithAlpha(
-          Color((constant.value shr 16 and 0xFF).toInt(),
-                (constant.value shr 8 and 0xFF).toInt(),
-                (constant.value and 0xFF).toInt(),
-                (constant.value shr 24 and 0xFF).toInt()))
-      }
-      return super.value
+      val valueString = super.value
+      val colorValue = valueString?.toLongOrNull() ?: return valueString
+      return colorToStringWithAlpha(
+        Color((colorValue shr 16 and 0xFF).toInt(),
+              (colorValue shr 8 and 0xFF).toInt(),
+              (colorValue and 0xFF).toInt(),
+              (colorValue shr 24 and 0xFF).toInt())
+      )
     }
     set(newValue) {
       super.value = newValue

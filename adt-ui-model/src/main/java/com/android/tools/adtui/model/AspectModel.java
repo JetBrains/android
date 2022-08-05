@@ -27,7 +27,7 @@ import org.jetbrains.annotations.TestOnly;
 
 public class AspectModel<T extends Enum<T>> extends AspectObserver {
 
-  private Collection<Dependency<T>> myDependencies = Collections.newSetFromMap(new WeakHashMap<>());
+  private Collection<Dependency<T>> myDependencies = Collections.newSetFromMap(new WeakHashMap<Dependency<T>, Boolean>());
 
   public void changed(T aspect) {
     // Copy elements over before iterating over them to avoid ConcurrentModificationException

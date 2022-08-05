@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.build.BuildViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.FinishBuildEvent
@@ -89,24 +90,20 @@ class BuildInvokerTest : AndroidGradleTestCase() {
     })
 
     val invoker = GradleBuildInvoker.getInstance(project) as GradleBuildInvokerImpl
-    // Add a post build task.
-    invoker.add(object : GradleBuildInvoker.AfterGradleInvocationTask {
-      override fun execute(result: GradleInvocationResult) {
-        gradleBuildInvokedExecutedPostBuildTasks = true
-      }
-    })
 
     // Run a slow build task which will run for 30 seconds unless cancelled.
-    invoker.executeTasks(
-      GradleBuildInvoker.Request.Builder(
-        project = project,
-        rootProjectPath = File(project.basePath!!),
-        gradleTasks = listOf("assembleDebug")
+    invoker
+      .executeTasks(
+        GradleBuildInvoker.Request.Builder(
+          project = project,
+          rootProjectPath = File(project.basePath!!),
+          gradleTasks = listOf("assembleDebug")
+        )
+          .setMode(BuildMode.ASSEMBLE)
+          .build(),
+        SlowTestBuildAction()
       )
-        .setMode(BuildMode.ASSEMBLE)
-        .build(),
-      SlowTestBuildAction()
-    )
+      .addListener({ gradleBuildInvokedExecutedPostBuildTasks = true }, directExecutor())
     lock.withLock {
       buildFinishedEventReceived.await(1, TimeUnit.SECONDS)
     }

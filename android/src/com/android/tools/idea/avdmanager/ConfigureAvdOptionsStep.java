@@ -53,9 +53,9 @@ import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -103,7 +103,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -496,6 +495,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   static
   boolean isGoogleApiTag(IdDisplay tag) {
     return SystemImage.WEAR_TAG.equals(tag) ||
+           SystemImage.DESKTOP_TAG.equals(tag) ||
            SystemImage.ANDROID_TV_TAG.equals(tag) ||
            SystemImage.GOOGLE_TV_TAG.equals(tag) ||
            SystemImage.GOOGLE_APIS_TAG.equals(tag);
@@ -725,7 +725,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
       if (icon == null) {
         try {
-          icon = AndroidIcons.Versions.Default32;
+          icon = IconLoader.findResolvedIcon("icons/versions/Default_32.png", AndroidIcons.class.getClassLoader());
         }
         catch (RuntimeException ignored) {
         }
@@ -903,7 +903,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
      */
     private void readEmulatorSnapshotSelection(@NotNull File fileToRead) {
       try (final FileInputStream inputStream = new FileInputStream(fileToRead);
-           final InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+           final InputStreamReader streamReader = new InputStreamReader(inputStream);
            final BufferedReader reader = new BufferedReader(streamReader)
       ) {
         final String keyString = "selectedSnapshotFile=";
@@ -1014,7 +1014,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)
   private void addValidators() {
-    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().ramStorage(), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().ramStorage(), new Validator<Storage>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage ram) {
@@ -1024,7 +1024,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().vmHeapStorage(), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().vmHeapStorage(), new Validator<Storage>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage heap) {
@@ -1034,7 +1034,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().internalStorage(), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().internalStorage(), new Validator<Storage>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage internalMem) {
@@ -1049,7 +1049,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     });
 
     // If we're using an external SD card, make sure it exists
-    myValidatorPanel.registerValidator(getModel().externalSdCardLocation(), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().externalSdCardLocation(), new Validator<String>() {
       @NotNull
       @Override
       public Result validate(@NotNull String path) {
@@ -1060,7 +1060,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }, getModel().useExternalSdCard());
 
     // If we are using an internal SD card, make sure it has enough memory.
-    myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<Optional<Storage>>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<Storage> value) {
@@ -1085,7 +1085,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().customSkinFile(), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().customSkinFile(), new Validator<Optional<File>>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<File> value) {
@@ -1102,7 +1102,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myOriginalName = getModel().avdDisplayName().get();
 
-    myValidatorPanel.registerValidator(getModel().avdDisplayName(), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().avdDisplayName(), new Validator<String>() {
       @NotNull
       @Override
       public Result validate(@NotNull String value) {
@@ -1117,8 +1117,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           severity = Severity.ERROR;
           errorMessage = "The AVD name can contain only the characters " + AvdNameVerifier.humanReadableAllowedCharacters();
         }
-        else if (!value.equals(myOriginalName) &&
-                 AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithDisplayName(value)) {
+        else if ( !value.equals(myOriginalName) &&
+            AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithDisplayName(value)) {
           // Another device with this name already exists
           severity = Severity.ERROR;
           errorMessage = String.format("An AVD with the name \"%1$s\" already exists.", getModel().avdDisplayName());
@@ -1127,7 +1127,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().device().isPresent().and(getModel().systemImage().isPresent()), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().device().isPresent().and(getModel().systemImage().isPresent()), new Validator<Boolean>() {
       @NotNull
       @Override
       public Result validate(@NotNull Boolean deviceAndImageArePresent) {
@@ -1251,6 +1251,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
   }
 
+  private void toggleOrientationPanel() {
+    AvdDeviceData deviceData = getModel().getAvdDeviceData();
+    boolean showOrientation = deviceData.supportsPortrait().get() && deviceData.supportsLandscape().get();
+    myOrientationPanel.setVisible(showOrientation);
+  }
+
   private void toggleSystemOptionals(boolean useQemu2Changed) {
     boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportQemu2();
     myQemu2Panel.setVisible(showMultiCoreOption);
@@ -1285,10 +1291,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     Dimension dimension = getModel().getAvdDeviceData().getDeviceScreenDimension();
     String dimensionString = String.format(Locale.getDefault(), "%dx%d", dimension.width, dimension.height);
     AvdDeviceData deviceData = getModel().getAvdDeviceData();
-    String densityString = AvdScreenData.getScreenDensity(deviceData.deviceId().get(),
-                                                          deviceData.isTv().get(),
-                                                          deviceData.screenDpi().get(),
-                                                          dimension.height).getResourceValue();
+    String densityString = deviceData.density().get().getResourceValue();
     String result = Joiner.on(' ')
       .join(getModel().device().getValue().getDefaultHardware().getScreen().getDiagonalLength(), dimensionString, densityString);
     myDeviceDetails.setText(result);
@@ -1302,8 +1305,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private void registerAdvancedOptionsVisibility() {
     myAdvancedOptionsComponents =
-      Lists.newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
-                         myAvdIdRow);
+      Lists.<JComponent>newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
+                                     myAvdIdRow);
   }
 
   @Override
@@ -1315,13 +1318,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void createUIComponents() {
-    Function<ScreenOrientation, Icon> orientationIconFunction = new Function<>() {
+    Function<ScreenOrientation, Icon> orientationIconFunction = new Function<ScreenOrientation, Icon>() {
       @Override
       public Icon apply(ScreenOrientation input) {
         return ORIENTATIONS.get(input).myIcon;
       }
     };
-    Function<ScreenOrientation, String> orientationNameFunction = new Function<>() {
+    Function<ScreenOrientation, String> orientationNameFunction = new Function<ScreenOrientation, String>() {
       @Override
       public String apply(ScreenOrientation input) {
         return ORIENTATIONS.get(input).myName;
@@ -1372,6 +1375,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       myOrientationToggle.setSelectedElement(orientation);
     }
 
+    toggleOrientationPanel();
     File customSkin = getModel().getAvdDeviceData().customSkinFile().getValueOrNull();
     File backupSkin = getModel().backupSkinFile().getValueOrNull();
     // If there is a backup skin but no normal skin, the "use device frame" checkbox should be unchecked.
@@ -1416,7 +1420,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         {
           setTitle("Select a System Image");
           init();
-          chooseImagePanel.addSystemImageListener(new Consumer<>() {
+          chooseImagePanel.addSystemImageListener(new Consumer<SystemImageDescription>() {
             @Override
             public void consume(SystemImageDescription systemImage) {
               setOKActionEnabled(systemImage != null);
@@ -1452,7 +1456,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         {
           setTitle("Select a Device");
           init();
-          chooseDevicePanel.addDeviceListener(new Consumer<>() {
+          chooseDevicePanel.addDeviceListener(new Consumer<Device>() {
             @Override
             public void consume(Device device) {
               setOKActionEnabled(device != null);

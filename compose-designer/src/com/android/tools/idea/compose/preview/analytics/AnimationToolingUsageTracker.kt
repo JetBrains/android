@@ -32,9 +32,9 @@ interface AnimationToolingUsageTracker {
   companion object {
     private val NOP_TRACKER = AnimationToolingNopTracker()
     private val MANAGER =
-      DesignerUsageTrackerManager<AnimationToolingUsageTracker, DesignSurface>(::InternalAnimationToolingUsageTracker, NOP_TRACKER)
+      DesignerUsageTrackerManager<AnimationToolingUsageTracker, DesignSurface<*>>(::InternalAnimationToolingUsageTracker, NOP_TRACKER)
 
-    fun getInstance(surface: DesignSurface?) = MANAGER.getInstance(surface)
+    fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
   }
 }
 
@@ -50,7 +50,7 @@ private class AnimationToolingNopTracker : AnimationToolingUsageTracker {
  */
 private class InternalAnimationToolingUsageTracker(
   private val executor: Executor,
-  private val surface: DesignSurface?,
+  private val surface: DesignSurface<*>?,
   private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>
   ) : AnimationToolingUsageTracker {
   override fun logEvent(event: AnimationToolingEvent): AndroidStudioEvent.Builder {

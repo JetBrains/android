@@ -21,6 +21,7 @@ import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.NetworkInspectorEvent
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.NetworkInspectorEvent.RuleUpdatedEvent
 import com.intellij.openapi.project.Project
 
 class IdeNetworkInspectorTracker(private val project: Project) : NetworkInspectorTracker {
@@ -60,6 +61,45 @@ class IdeNetworkInspectorTracker(private val project: Project) : NetworkInspecto
     track(
       NetworkInspectorEvent.newBuilder().apply {
         type = NetworkInspectorEvent.Type.CALLSTACK_TAB_SELECTED
+      }
+    )
+  }
+
+  override fun trackRuleCreated() {
+    track(
+      NetworkInspectorEvent.newBuilder().apply {
+        type = NetworkInspectorEvent.Type.RULE_CREATED
+      }
+    )
+  }
+
+  override fun trackRuleUpdated(component: NetworkInspectorTracker.InterceptionCriteria) {
+    track(
+      NetworkInspectorEvent.newBuilder().apply {
+        type = NetworkInspectorEvent.Type.RULE_UPDATED
+        ruleDetailUpdatedBuilder.apply {
+          this.component = RuleUpdatedEvent.Component.values().firstOrNull { it.name == component.name }
+        }
+      }
+    )
+  }
+
+  override fun trackResponseIntercepted(
+    statusCode: Boolean,
+    headerAdded: Boolean,
+    headerReplaced: Boolean,
+    bodyReplaced: Boolean,
+    bodyModified: Boolean
+  ) {
+    track(
+      NetworkInspectorEvent.newBuilder().apply {
+        type = NetworkInspectorEvent.Type.RESPONSE_INTERCEPTED
+        responseInterceptedBuilder.apply {
+          this.statusCode = statusCode
+          this.headerAdded = headerAdded
+          this.bodyReplaced = bodyReplaced
+          this.bodyModified = bodyModified
+        }
       }
     )
   }

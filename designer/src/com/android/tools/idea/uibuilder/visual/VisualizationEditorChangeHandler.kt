@@ -37,6 +37,8 @@ private const val DEFAULT_WINDOW_WIDTH = 500
  * Handle the editor change event and response it to the content.
  */
 interface VisualizationEditorChangeHandler {
+
+  val visualizationContent: VisualizationContent?
   fun onFileEditorChange(newEditor: FileEditor?, project: Project, toolWindow: ToolWindow)
   fun onFileClose(source: FileEditorManager, toolWindow: ToolWindow, file: VirtualFile)
 }
@@ -47,6 +49,8 @@ interface VisualizationEditorChangeHandler {
 class SyncVisualizationEditorChangeHandler(private val contentProvider: VisualizationContentProvider) : VisualizationEditorChangeHandler {
 
   private var toolWindowContent: VisualizationContent? = null
+  override val visualizationContent: VisualizationContent?
+    get() = toolWindowContent
 
   override fun onFileEditorChange(newEditor: FileEditor?, project: Project, toolWindow: ToolWindow) {
     if (toolWindow.isDisposed) {
@@ -65,16 +69,18 @@ class SyncVisualizationEditorChangeHandler(private val contentProvider: Visualiz
             toolWindow.stretchWidth(DEFAULT_WINDOW_WIDTH - width)
           }
           VisualizationToolSettings.getInstance().globalState.isFirstTimeOpen = false
+          val visible = toolWindow.isVisible
           if (toolWindow.isAvailable) {
-            val visible = toolWindow.isVisible
+            // The tool window may become unavailable by tool window manager, for example, switching from a layout editor to a text editor.
+            // Here we want to trace the user-changed visibility, which only happens when tool window is available.
             VisualizationToolSettings.getInstance().globalState.isVisible = visible
-            if (!Disposer.isDisposed(form)) {
-              if (visible) {
-                form.activate()
-              }
-              else {
-                form.deactivate()
-              }
+          }
+          if (!Disposer.isDisposed(form)) {
+            if (visible) {
+              form.activate()
+            }
+            else {
+              form.deactivate()
             }
           }
         }

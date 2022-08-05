@@ -77,4 +77,21 @@ class VisualizationTestToolWindow(project: Project) : ToolWindowHeadlessManagerI
   override fun isDisposed(): Boolean {
     return contentManager.isDisposed
   }
+
+  override fun show(runnable: Runnable?) {
+    super.show(runnable)
+    runnable?.run()
+  }
+
+  override fun hide(runnable: Runnable?) {
+    super.hide()
+    runnable?.run()
+  }
+}
+
+object TestVisualizationFormInitializer : VisualizationForm.ContentInitializer {
+  override fun initContent(project: Project, form: VisualizationForm, onComplete: () -> Unit) {
+    form.createContentPanel()
+    onComplete()
+  }
 }

@@ -20,7 +20,7 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES;
 
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.fileTypes.AndroidIconProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -38,7 +38,7 @@ public abstract class VariantCheckboxTreeCellRenderer extends CheckboxTree.Check
   protected void appendModule(@NotNull Module module, @Nullable String variant) {
     ColoredTreeCellRenderer textRenderer = getTextRenderer();
     textRenderer.append(module.getName());
-    textRenderer.setIcon(GradleUtil.getModuleIcon(module));
+    textRenderer.setIcon(AndroidIconProvider.getModuleIcon(module));
     if (isNotEmpty(variant)) {
       textRenderer.append(" ", REGULAR_ATTRIBUTES);
       textRenderer.append("(" + variant + ")", GRAY_ATTRIBUTES);

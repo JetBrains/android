@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.handlers;
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.ATTR_FITS_SYSTEM_WINDOWS;
 import static com.android.SdkConstants.ATTR_OPEN_DRAWER;
-import static com.android.SdkConstants.NAVIGATION_VIEW;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
@@ -45,7 +45,7 @@ public class DrawerLayoutHandler extends ViewGroupHandler {
   @NotNull
   @Override
   public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
-    if (NAVIGATION_VIEW.isEquals(childComponent.getNlComponent().getTagName())) {
+    if (AndroidXConstants.NAVIGATION_VIEW.isEquals(childComponent.getNlComponent().getTagName())) {
       NavigationViewSelectionTarget target = new NavigationViewSelectionTarget();
       target.setComponent(childComponent);
       return ImmutableList.of(target);

@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -55,6 +56,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
@@ -65,7 +67,6 @@ import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
-import com.android.tools.idea.sqlite.utils.initProjectSystemService
 import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
@@ -90,8 +91,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.anyString
@@ -101,7 +100,6 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyZeroInteractions
-import org.mockito.Mockito.`when`
 import java.util.concurrent.Executor
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -172,11 +170,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)
 
     sqliteResultSet = mock(SqliteResultSet::class.java)
-    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(emptyList()))
+    whenever(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(emptyList()))
 
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
-    `when`(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    whenever(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
     databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1",  1)
     databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
@@ -190,7 +188,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     databaseIdFile = SqliteDatabaseId.fromFileDatabase(databaseFileData) as SqliteDatabaseId.FileSqliteDatabaseId
 
     fileDatabaseManager = spy(FakeFileDatabaseManager(sqliteFile))
-    offlineModeManager = spy(OpenOfflineModeManager(project, fileDatabaseManager))
+    offlineModeManager = spy(OpenOfflineModeManager(project, fileDatabaseManager, edtDispatcher))
 
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId1, mockDatabaseConnection)
@@ -218,6 +216,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       edtExecutor
     )
     databaseInspectorController.setUp()
+
+    DatabaseInspectorSettings.getInstance().isOfflineModeEnabled = true
   }
 
   override fun tearDown() {
@@ -238,7 +238,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // open query tab
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -270,7 +270,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAddSqliteDatabase() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
     // Act
     runDispatching {
@@ -284,7 +284,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testAddSqliteDatabaseFailureReadSchema() {
     // Prepare
     val exception = IllegalStateException("expected")
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(immediateFailedFuture(exception))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(immediateFailedFuture(exception))
 
     // Act
     val result = runCatching {
@@ -306,7 +306,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testDisplayResultSetIsCalledForTable() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -326,7 +326,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testDisplayResultSetIsCalledForEvaluatorView() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -346,8 +346,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testCloseTabIsCalledForTable() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -364,7 +364,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testCloseTabIsCalledForEvaluatorView() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -383,8 +383,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testCloseTabInvokedFromTableViewClosesTab() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -401,8 +401,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testCloseTabInvokedFromEvaluatorViewClosesTab() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    `when`(mockDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab")))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab")))
       .thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
@@ -421,8 +421,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testFocusTabIsCalled() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -446,17 +446,17 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAddNewDatabaseAlphabeticOrder() {
     // Act
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema2))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema2))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId2)
     }
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema3))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema3))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId3)
     }
@@ -482,17 +482,17 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema2))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema2))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId2)
     }
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema3))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema3))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId3)
     }
@@ -514,13 +514,13 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     val newSchema = SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false)))
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
 
     // Act
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
     databaseInspectorView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -530,7 +530,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testRemoveDatabase() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
       databaseInspectorController.addSqliteDatabase(databaseId2)
@@ -555,7 +555,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testRemoveFileDatabase() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseIdFile)
     }
@@ -573,8 +573,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testTabsAssociatedWithDatabaseAreRemovedWhenDatabasedIsRemoved() {
     // Prepare
     val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), null, false), testSqliteTable))
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
       databaseInspectorController.addSqliteDatabase(databaseId2)
@@ -598,7 +598,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testAllTabsAreRemovedWhenLastDatabasedIsRemoved() {
     // Prepare
     val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), null, false), testSqliteTable))
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
       databaseInspectorController.addSqliteDatabase(databaseId2)
@@ -634,8 +634,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val newSchema = SqliteSchema(listOf(SqliteTable("table", emptyList(), null,false)))
     val evaluatorView = viewsFactory.sqliteEvaluatorView
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockDatabaseConnection.execute(SqliteStatement(SqliteStatementType.INSERT, "INSERT INTO t VALUES (42)")))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    whenever(mockDatabaseConnection.execute(SqliteStatement(SqliteStatementType.INSERT, "INSERT INTO t VALUES (42)")))
       .thenReturn(Futures.immediateFuture(Unit))
 
     runDispatching {
@@ -646,7 +646,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
 
     evaluatorView.listeners.forEach {
       it.onDatabaseSelected(databaseId1)
@@ -928,7 +928,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     val sqliteSchemaUpdated = SqliteSchema(listOf(SqliteTable("tab-updated", emptyList(), null, false)))
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
 
     // Act
     runDispatching {
@@ -936,7 +936,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(databaseId2)
     }
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchemaUpdated))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchemaUpdated))
 
     databaseInspectorView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -968,12 +968,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testRefreshAllOpenDatabasesSchemaActionInvokedWithClosedDbs() {
     // Prepare
     val sqliteSchema = SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false)))
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
 
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
-    `when`(mockDatabaseConnection.readSchema()).thenThrow(LiveInspectorException::class.java)
+    whenever(mockDatabaseConnection.readSchema()).thenThrow(LiveInspectorException::class.java)
 
     // Act
     databaseInspectorView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
@@ -1005,7 +1005,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testWhenSchemaDiffFailsViewIsRecreated() {
     // Prepare
     val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, mockDatabaseConnection)
@@ -1015,13 +1015,13 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(databaseId)
     }
 
-    `when`(databaseInspectorView.updateDatabaseSchema(
+    whenever(databaseInspectorView.updateDatabaseSchema(
       ViewDatabase(databaseId, true),
       listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
     ).thenThrow(IllegalStateException::class.java)
 
     // Act
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(listOf(testSqliteTable))))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(listOf(testSqliteTable))))
 
     runDispatching {
       databaseInspectorView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
@@ -1036,12 +1036,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testDisposeCancelsExecutionFuture() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
     val executionFuture = SettableFuture.create<SqliteResultSet>()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(executionFuture)
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(executionFuture)
 
     // Act
     databaseInspectorView.viewListeners.single().tableNodeActionInvoked(databaseId1, testSqliteTable)
@@ -1059,7 +1059,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testOpenTableAnalytics() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -1087,14 +1087,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testDatabasePossiblyChangedUpdatesAllSchemasAndTabs() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(emptyList())))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(emptyList())))
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
       databaseInspectorController.addSqliteDatabase(databaseId2)
     }
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(listOf(testSqliteTable))))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(listOf(testSqliteTable))))
 
     // open tabel tab
     databaseInspectorView.viewListeners.single().tableNodeActionInvoked(databaseId1, testSqliteTable)
@@ -1139,8 +1139,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val table1 = SqliteTable("table1", emptyList(), null, false)
     val table2 = SqliteTable("table2", emptyList(), null, false)
     val schema = SqliteSchema(listOf(table1, table2, testSqliteTable))
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -1200,8 +1200,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val table1 = SqliteTable("table1", emptyList(), null, false)
     val table2 = SqliteTable("table2", emptyList(), null, false)
     val schema = SqliteSchema(listOf(table1, table2, testSqliteTable))
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
     val inMemoryDbId = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 0)
     runDispatching {
       databaseRepository.addDatabaseConnection(inMemoryDbId, mockDatabaseConnection)
@@ -1290,13 +1290,13 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     val newSchema = SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false)))
 
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
 
     // Act
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
     databaseInspectorView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
     databaseInspectorView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1403,7 +1403,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testViewTabsHaveViewIcons() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
@@ -1423,8 +1423,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testDatabaseTablesAreClosedWhenDatabaseIsClosed() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
     runDispatching {
       databaseInspectorController.addSqliteDatabase(databaseId1)
       databaseInspectorController.addSqliteDatabase(databaseId2)
@@ -1460,7 +1460,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testGetSchemaErrorsFromLiveInspectorAreNotReported() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(immediateFailedFuture(LiveInspectorException("message", "stack")))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(immediateFailedFuture(LiveInspectorException("message", "stack")))
 
     // Act
     runDispatching {
@@ -1473,7 +1473,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testGetSchemaConnectionErrorsAreNotReported() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(immediateFailedFuture(AppInspectionConnectionException("Connection closed")))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(immediateFailedFuture(AppInspectionConnectionException("Connection closed")))
 
     // Act
     runDispatching {
@@ -1491,7 +1491,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       SqliteTable("android_metadata", emptyList(), null, false),
       SqliteTable("sqlite_sequence", emptyList(), null, false))
     )
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    whenever(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     runDispatching { databaseRepository.addDatabaseConnection(fileDatabaseId, mockDatabaseConnection) }
 
     // Act
@@ -1517,34 +1517,15 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     orderVerifier.verify(databaseInspectorView).setRefreshButtonState(true)
   }
 
-  fun testOfflineDatabasesNotOpenedIfFlagDisabled() {
-    // Prepare
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(false)
-
-    // Act
-    runDispatching(edtExecutor.asCoroutineDispatcher()) {
-      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
-    }
-
-    // Assert
-    verifyZeroInteractions(offlineModeManager)
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
-  }
-
   fun testEnterOfflineModeSuccess() {
     // Prepare
-    initProjectSystemService(project, testRootDisposable, listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
-
     val projectService = mock(DatabaseInspectorProjectService::class.java)
-    `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
+    whenever(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val inOrderVerifier = inOrder(projectService, fileDatabaseManager)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 2)
@@ -1593,19 +1574,16 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     assertNotNull(offlineModeMetadata)
     assertEquals(sqliteFile.length*3, offlineModeMetadata!!.totalDownloadSizeBytes)
     assertTrue(offlineModeMetadata.totalDownloadTimeMs >= 300)
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testEnterOfflineModeJobCanceled() {
     // Prepare
     val projectService = mock(DatabaseInspectorProjectService::class.java)
     // return future that never completes
-    `when`(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
+    whenever(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1624,19 +1602,16 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testEnterOfflineModeUserCanceled() {
     // Prepare
     val projectService = mock(DatabaseInspectorProjectService::class.java)
     // return future that never completes
-    `when`(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
+    whenever(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1655,18 +1630,15 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testShowOfflineModeUnavailablePanelIfNoDbsAreDownloaded() {
     // Prepare
     val projectService = mock(DatabaseInspectorProjectService::class.java)
-    `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
+    whenever(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1674,7 +1646,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
       databaseInspectorController.addSqliteDatabase(databaseId1)
 
-      `when`(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, databaseId1))
+      whenever(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, databaseId1))
         .thenThrow(FileDatabaseException::class.java)
     }
 
@@ -1686,18 +1658,15 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testShowOfflineModeUnavailablePanelIfNoLiveDbsAreOpen() {
     // Prepare
     val projectService = mock(DatabaseInspectorProjectService::class.java)
-    `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
+    whenever(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
@@ -1707,8 +1676,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testDatabaseNotAddedIfNotFoundInRepository() {
@@ -1722,5 +1689,24 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // `updateDatabases` is invoked once with empty list when the controller adds the listener to the view.
     // here we are testing that it is not invoked more then once.
     verify(databaseInspectorView, times(1)).updateDatabases(any())
+  }
+
+  fun testOfflineDatabasesNotOpenedIfFlagDisabled() = runWithState(offlineModeEnabled = false) {
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
+    }
+
+    // Assert
+    verifyZeroInteractions(offlineModeManager)
+  }
+
+  private fun runWithState(offlineModeEnabled: Boolean, block: () -> Unit) {
+    val originalState = DatabaseInspectorSettings.getInstance().isOfflineModeEnabled
+    DatabaseInspectorSettings.getInstance().isOfflineModeEnabled = offlineModeEnabled
+
+    block()
+
+    DatabaseInspectorSettings.getInstance().isOfflineModeEnabled = originalState
   }
 }

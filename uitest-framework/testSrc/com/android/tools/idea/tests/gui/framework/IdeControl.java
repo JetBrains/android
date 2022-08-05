@@ -48,7 +48,7 @@ public class IdeControl extends TestWatcher {
     Robot robot = robotSupplier.get();
     GuiActionRunner.executeInEDT(false);
     try {
-      WindowFinder.findFrame(new GenericTypeMatcher<>(Frame.class) {
+      WindowFinder.findFrame(new GenericTypeMatcher<Frame>(Frame.class) {
         @Override
         protected boolean isMatching(@NotNull Frame frame) {
           return (frame instanceof IdeFrame && frame.isShowing());

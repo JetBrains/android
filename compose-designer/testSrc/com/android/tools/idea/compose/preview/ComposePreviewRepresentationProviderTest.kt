@@ -16,16 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.fileEditor.TextEditor
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
-import com.intellij.openapi.util.Disposer
-import com.intellij.psi.PsiFile
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -39,29 +31,6 @@ class ComposePreviewRepresentationProviderTest {
   private val project get() = projectRule.project
   private val fixture get() = projectRule.fixture
   private val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
-
-  /**
-   * Simulates the initialization of an editor and returns the corresponding [PreviewRepresentation].
-   */
-  private fun getRepresentationForFile(file: PsiFile): PreviewRepresentation {
-    ApplicationManager.getApplication().invokeAndWait {
-      runWriteAction {
-        fixture.configureFromExistingVirtualFile(file.virtualFile)
-      }
-      val textEditor = TextEditorProvider.getInstance().createEditor(project, file.virtualFile) as TextEditor
-      Disposer.register(fixture.testRootDisposable, textEditor)
-    }
-
-    val multiRepresentationPreview = MultiRepresentationPreview(file, fixture.editor,
-                                                                listOf(previewProvider),
-                                                                AndroidCoroutineScope(fixture.testRootDisposable))
-    Disposer.register(fixture.testRootDisposable, multiRepresentationPreview)
-
-    runBlocking {
-      multiRepresentationPreview.onInit()
-    }
-    return multiRepresentationPreview.currentRepresentation!!
-  }
 
   @Test
   fun testDefaultLayout() {
@@ -117,13 +86,19 @@ class ComposePreviewRepresentationProviderTest {
         fun aKotlinMethod() {
         }
       """.trimIndent())
-    assertTrue(previewProvider.accept(project, previewFile))
-    assertTrue(previewProvider.accept(project, composableFile))
-    assertTrue(previewProvider.accept(project, kotlinFile))
-    assertTrue(previewProvider.accept(project, kotlinWithNoComposable))
-    assertEquals(PreferredVisibility.SPLIT, getRepresentationForFile(previewFile).preferredInitialVisibility)
-    assertEquals(PreferredVisibility.SPLIT, getRepresentationForFile(composableFile).preferredInitialVisibility)
-    assertEquals(PreferredVisibility.HIDDEN, getRepresentationForFile(kotlinFile).preferredInitialVisibility)
-    assertEquals(PreferredVisibility.HIDDEN, getRepresentationForFile(kotlinWithNoComposable).preferredInitialVisibility)
+    runBlocking {
+      assertTrue(previewProvider.accept(project, previewFile))
+      assertTrue(previewProvider.accept(project, composableFile))
+      assertTrue(previewProvider.accept(project, kotlinFile))
+      assertTrue(previewProvider.accept(project, kotlinWithNoComposable))
+    }
+    assertEquals(PreferredVisibility.SPLIT,
+                 getRepresentationForFile(previewFile, project, fixture, previewProvider).preferredInitialVisibility)
+    assertEquals(PreferredVisibility.SPLIT,
+                 getRepresentationForFile(composableFile, project, fixture, previewProvider).preferredInitialVisibility)
+    assertEquals(PreferredVisibility.HIDDEN,
+                 getRepresentationForFile(kotlinFile, project, fixture, previewProvider).preferredInitialVisibility)
+    assertEquals(PreferredVisibility.HIDDEN,
+                 getRepresentationForFile(kotlinWithNoComposable, project, fixture, previewProvider).preferredInitialVisibility)
   }
 }

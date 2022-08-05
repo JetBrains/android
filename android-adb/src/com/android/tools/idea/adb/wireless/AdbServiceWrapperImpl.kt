@@ -20,10 +20,10 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.intellij.execution.process.ProcessOutput
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.withContext
@@ -48,7 +48,7 @@ class AdbServiceWrapperImpl(
     val stdoutStream = ByteArrayOutputStream()
     val stderrStream = ByteArrayOutputStream()
 
-    val exitValue = withContext(ioThread) {
+    val exitValue = withContext(Dispatchers.IO) {
       ExternalCommand(adbFile.absolutePath).execute(args, stdinStream, stdoutStream, stderrStream, ADB_TIMEOUT_MILLIS,
                                                     TimeUnit.MILLISECONDS)
     }
@@ -59,7 +59,7 @@ class AdbServiceWrapperImpl(
   }
 
   override suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice =
-    withContext(ioThread) {
+    withContext(Dispatchers.IO) {
       val adbFile = getAdbLocation()
       val adb = AdbService.getInstance().getDebugBridge(adbFile).await()
       waitForDevice(adb, pairingResult)
@@ -68,7 +68,7 @@ class AdbServiceWrapperImpl(
 
   private suspend fun getAdbLocation(): File =
     // Use the I/O thread just in case we do I/O in the future (although currently there is none)
-    withContext(ioThread) {
+    withContext(Dispatchers.IO) {
       val adbProvider = AdbFileProvider.fromProject(project)
       if (adbProvider == null) {
         LOG.warn("AdbFileProvider is not correctly set up (see AdbFileProviderInitializer)")
@@ -87,7 +87,7 @@ class AdbServiceWrapperImpl(
         return createAdbOnlineDevice(device, rem)
       }
 
-      if (rem.remainingUnits <= 0) {
+      if (rem.remainingNanos<= 0) {
         throw AdbCommandException("Device did not connect within specified timeout", -1, emptyList())
       }
 

@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.util.messages.MessageBus
+import org.jetbrains.annotations.TestOnly
 
 /**
  * An application-level service for establishing a connection to a device, which can then be used to retrieve Android system and app data.
@@ -42,6 +43,14 @@ interface TransportService : Disposable {
     @JvmStatic
     fun getInstance() = service<TransportService>()
 
-    const val CHANNEL_NAME = "DataStoreService"
+    var channelName: String = "DataStoreService"
+      @JvmStatic get
+      private set
+
+    @JvmStatic
+    @TestOnly
+    fun setTestChannelName(name: String) {
+      channelName = name
+    }
   }
 }

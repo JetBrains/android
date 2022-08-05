@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,45 +15,27 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
-import com.intellij.ui.JBColor
-import com.intellij.util.ui.JBEmptyBorder
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.BorderLayout
 import java.util.function.Consumer
-import javax.swing.JPanel
 
-/**
- * View to display a single network request and its detailed information.
- */
 class ConnectionDetailsView(
   private val inspectorView: NetworkInspectorView,
   private val usageTracker: NetworkInspectorTracker
-) : JPanel(BorderLayout()) {
-  private val tabsPanel: CommonTabbedPane
+) : CommonTabbedPane() {
 
   @VisibleForTesting
   val tabs = mutableListOf<TabContent>()
 
   init {
-    // Create 2x2 pane
-    //     * Fit
-    // Fit _ _
-    // *   _ _
-    //
-    // where main contents span the whole area and a close button fits into the top right
-    val rootPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
-    tabsPanel = CommonTabbedPane()
-    tabsPanel.font = STANDARD_FONT
+    font = STANDARD_FONT
     populateTabs()
-    tabsPanel.addChangeListener {
-      when (tabsPanel.selectedIndex) {
+    addChangeListener {
+      when (selectedIndex) {
         1 -> usageTracker.trackResponseTabSelected()
         2 -> usageTracker.trackRequestTabSelected()
         3 -> usageTracker.trackCallstackTabSelected()
@@ -61,14 +43,6 @@ class ConnectionDetailsView(
       // Repaint required on tab change or else close button sometimes disappears (seen on Mac)
       repaint()
     }
-    val closeButton = CloseButton { inspectorView.model.setSelectedConnection(null) }
-    // Add a wrapper to move the close button center vertically.
-    val closeButtonWrapper = JPanel(BorderLayout())
-    closeButtonWrapper.add(closeButton, BorderLayout.CENTER)
-    closeButtonWrapper.border = JBEmptyBorder(3, 0, 0, 0)
-    rootPanel.add(closeButtonWrapper, TabularLayout.Constraint(0, 1))
-    rootPanel.add(tabsPanel, TabularLayout.Constraint(0, 0, 2, 2))
-    add(rootPanel)
   }
 
   private fun populateTabs() {
@@ -80,18 +54,13 @@ class ConnectionDetailsView(
         inspectorView.componentsProvider.createStackView(inspectorView.model.stackTraceModel)
       )
     )
-    tabs.forEach { tab -> tabsPanel.addTab(tab.title, null, tab.component) }
+    tabs.forEach { tab -> addTab(tab.title, null, tab.component) }
   }
 
   /**
-   * Updates the view to show given data. If `httpData` is `null`, this clears the view
-   * and closes it.
+   * Updates the view to show given data.
    */
-  fun setHttpData(httpData: HttpData?) {
-    background = JBColor.background()
+  fun setHttpData(httpData: HttpData) {
     tabs.forEach(Consumer { tab: TabContent -> tab.populateFor(httpData) })
-    isVisible = httpData != null
-    revalidate()
-    repaint()
   }
 }

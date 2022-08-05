@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
+import com.intellij.util.concurrency.EdtExecutorService;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,8 +53,14 @@ final class ResourceLoadingTask extends Task.Backgroundable {
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setIndeterminate(true);
+    LocalResourceRepository localResourceRepository = myGetModuleResources.get();
+    myRepository = StringResourceRepository.create(localResourceRepository);
+    // Creating the StringResourceRepository initiates changes to localResourceRepository that may still
+    // be in-flight. Wait (as long as it takes) for them to finish before proceeding.
+    CountDownLatch latch = new CountDownLatch(1);
+    localResourceRepository.invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(), latch::countDown);
     try {
-      myRepository = StringResourceRepository.create(myGetModuleResources.get()).get();
+      latch.await();
     }
     catch (Throwable e) {
       onThrowable(e);

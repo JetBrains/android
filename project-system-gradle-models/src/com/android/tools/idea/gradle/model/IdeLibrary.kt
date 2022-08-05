@@ -20,16 +20,16 @@ import java.io.File
 /**
  * Represent a variant/module/artifact dependency.
  */
-interface IdeLibrary {
+sealed interface IdeLibrary {
   /**
    * Returns the location of the lint jar. The file may not point to an existing file.
    *
    * Only valid for Android Library
    */
-  val lintJar: String?
+  val lintJar: File?
 }
 
-interface IdeArtifactLibrary: IdeLibrary {
+sealed interface IdeArtifactLibrary : IdeLibrary {
   /**
    * Returns the artifact address in a unique way.
    *
@@ -43,17 +43,11 @@ interface IdeArtifactLibrary: IdeLibrary {
    * The name to be used to represent the library in the IDE.
    */
   val name: String
-
-  /**
-   * Returns whether the dependency is on the compile class path but is not on the runtime class
-   * path.
-   */
-  val isProvided: Boolean
 }
 
-interface IdeAndroidLibrary: IdeArtifactLibrary {
+interface IdeAndroidLibrary : IdeArtifactLibrary {
   /** Returns the artifact location.  */
-  val artifact: File
+  val artifact: File?
 
   /**
    * Returns the location of the unzipped bundle folder.
@@ -63,23 +57,23 @@ interface IdeAndroidLibrary: IdeArtifactLibrary {
   /**
    * Returns the location of the manifest relative to the folder.
    */
-  val manifest: String
+  val manifest: File
 
   /**
    * The list of jar files for compilation.
    */
-  val compileJarFiles: List<String>
+  val compileJarFiles: List<File>
 
   /**
    * The list of jar files for runtime/packaging.
    * This corresponds the the AAR main jar file and the localJars.
    */
-  val runtimeJarFiles: List<String>
+  val runtimeJarFiles: List<File>
 
   /**
    * Returns the location of the res folder. The file may not point to an existing folder.
    */
-  val resFolder: String
+  val resFolder: File
 
   /**
    * Returns the location of the namespaced resources static library (res.apk). Null if the library is not namespaced.
@@ -92,61 +86,88 @@ interface IdeAndroidLibrary: IdeArtifactLibrary {
   /**
    * Returns the location of the assets folder. The file may not point to an existing folder.
    */
-  val assetsFolder: String
+  val assetsFolder: File
 
   /**
    * Returns the location of the jni libraries folder. The file may not point to an existing folder.
    */
-  val jniFolder: String
+  val jniFolder: File
 
-    /**
+  /**
    * Returns the location of the aidl import folder. The file may not point to an existing folder.
    */
-  val aidlFolder: String
+  val aidlFolder: File
 
   /**
    * Returns the location of the renderscript import folder. The file may not point to an existing folder.
    */
-  val renderscriptFolder: String
+  val renderscriptFolder: File
 
   /**
    * Returns the location of the proguard files. The file may not point to an existing file.
    */
-  val proguardRules: String
+  val proguardRules: File
 
   /**
    * Returns the location of the external annotations zip file (which may not exist).
    */
-  val externalAnnotations: String
+  val externalAnnotations: File
 
   /**
    * Returns the location of an optional file that lists the only resources that should be
    * considered public. The file may not point to an existing file.
    */
-  val publicResources: String
+  val publicResources: File
 
   /**
    * Returns the location of the text symbol file
    */
-  val symbolFile: String
+  val symbolFile: File
 }
 
-interface IdeJavaLibrary: IdeArtifactLibrary {
+interface IdeJavaLibrary : IdeArtifactLibrary {
   /** Returns the artifact location.  */
   val artifact: File
 }
 
 /**
- * A source set in an Android module.
+ * A source set in an IDE module group.
  */
-enum class IdeModuleSourceSet(val sourceSetName: String, val canBeConsumed: Boolean) {
-  MAIN("main", true),
-  TEST_FIXTURES("testFixtures", true),
-  UNIT_TEST("unitTest", false),
-  ANDROID_TEST("androidTest", false),
+interface IdeModuleSourceSet {
+  val sourceSetName: String
+  val canBeConsumed: Boolean
 }
 
-interface IdeModuleLibrary: IdeLibrary {
+/**
+ * An Android or Java well-known source set in an IDE module group.
+ *
+ * Android source sets names are pre-defined and cannot be changed in Gradle configuration by users. In Java and KMP worlds source set
+ * naming is more flexible. Note tha in case of source set name collision the original intent is assumed.
+ */
+enum class IdeModuleWellKnownSourceSet(
+  override val sourceSetName: String,
+  override val canBeConsumed: Boolean
+) : IdeModuleSourceSet {
+  /**
+   * An Android source set or a special source set in Java/KMP, which is built by default Gradle tasks and on which other
+   * project would depend on unless intentionally changed in the Gradle configuration.
+   */
+  MAIN("main", true),
+
+  /**
+   * A source set with text fixtures supported by the Android Gradle plugin and 'java-test-fixtures' plugin.
+   */
+  TEST_FIXTURES("testFixtures", true),
+
+  UNIT_TEST("unitTest", false),
+  ANDROID_TEST("androidTest", false);
+
+  companion object {
+    fun fromName(name: String): IdeModuleWellKnownSourceSet? = values().firstOrNull { it.sourceSetName == name }
+  }
+}
+
+interface IdePreResolvedModuleLibrary : IdeLibrary {
   /**
    * Returns the gradle path.
    */
@@ -167,9 +188,51 @@ interface IdeModuleLibrary: IdeLibrary {
    * Returns the sourceSet associated with the library.
    */
   val sourceSet: IdeModuleSourceSet
+}
+
+interface IdeUnresolvedModuleLibrary : IdeLibrary {
+  /**
+   * Returns the gradle path.
+   */
+  val projectPath: String
+
+  /**
+   * Returns an optional variant name if the consumed artifact of the library is associated to
+   * one.
+   */
+  val variant: String?
+
+  /**
+   * Returns the build id.
+   */
+  val buildId: String
 
   /**
    * The artifact that this module dependency is targeting, this is only populated when V2 models are used
    */
-  val artifact: File?
+  val artifact: File
 }
+
+interface IdeModuleLibrary : IdeLibrary {
+  /**
+   * Returns the gradle path.
+   */
+  val projectPath: String
+
+  /**
+   * Returns an optional variant name if the consumed artifact of the library is associated to
+   * one.
+   */
+  val variant: String?
+
+  /**
+   * Returns the build id.
+   */
+  val buildId: String
+
+  /**
+   * Returns the sourceSet associated with the library.
+   */
+  val sourceSet: IdeModuleSourceSet
+}
+

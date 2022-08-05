@@ -40,7 +40,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     myUseCustomSettings = new JBCheckBox(AndroidBundle.message("checkbox.use.custom.formatting.settings.for.android.xml.files"));
     myPanel.add(myUseCustomSettings, BorderLayout.NORTH);
 
-    myCodeStylePanels = new ArrayList<>();
+    myCodeStylePanels = new ArrayList<MyFileSpecificPanel>();
 
     myCodeStylePanels.add(new ManifestCodeStylePanel());
     myCodeStylePanels.add(new LayoutCodeStylePanel());

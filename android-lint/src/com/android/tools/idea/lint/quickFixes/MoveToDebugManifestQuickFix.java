@@ -23,7 +23,7 @@ import static com.android.tools.lint.checks.ManifestDetector.MOCK_LOCATION_PERMI
 
 import com.android.tools.idea.gradle.model.IdeBuildType;
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.utils.Pair;
@@ -75,7 +75,7 @@ public class MoveToDebugManifestQuickFix extends DefaultLintQuickFix {
           if (facet != null) {
             VirtualFile mainManifest = SourceProviderManager.getInstance(facet).getMainManifestFile();
             // TODO: b/22928250
-            AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+            GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
             if (androidModel != null && mainManifest != null
                 && mainManifest.getParent() != null && mainManifest.getParent().getParent() != null) {
               final VirtualFile src = mainManifest.getParent().getParent();
@@ -98,7 +98,7 @@ public class MoveToDebugManifestQuickFix extends DefaultLintQuickFix {
     final Project project = module.getProject();
     final VirtualFile manifest = src.findFileByRelativePath(buildTypeName + '/' + ANDROID_MANIFEST_XML);
     Pair<String, VirtualFile> result =
-      ApplicationManager.getApplication().runWriteAction(new Computable<>() {
+      ApplicationManager.getApplication().runWriteAction(new Computable<Pair<String, VirtualFile>>() {
         @Override
         public Pair<String, VirtualFile> compute() {
           if (manifest == null) {

@@ -37,7 +37,7 @@ public class DialogBuilderFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
   public static DialogBuilderFixture find(@NotNull Robot robot) {
     Ref<DialogWrapper> wrapperRef = new Ref<>();
-    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);

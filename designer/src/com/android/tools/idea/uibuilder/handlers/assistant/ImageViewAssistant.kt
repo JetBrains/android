@@ -37,6 +37,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.scale
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.EnumSet
 import java.util.concurrent.CompletableFuture
@@ -67,6 +68,12 @@ class ImageViewAssistant(
   private val originalValue = imageHandler.getToolsSrc(nlComponent)
 
   private val itemNameLabel = assistantLabel(getSampleItemDisplayName(originalValue))
+
+  /**
+   * [CompletableFuture] used to verify that the load of the sample data resources is complete.
+   */
+  @TestOnly
+  val sampleDataLoaded: CompletableFuture<List<SampleDataResourceItem>>
 
   private var itemDisplayName: String?
     get() = itemNameLabel.text
@@ -113,9 +120,9 @@ class ImageViewAssistant(
     updateUIState()
 
     // Get SampleData drawables in background thread, then, update the widget on the EDT
-    CompletableFuture.supplyAsync(Supplier {
+    sampleDataLoaded = CompletableFuture.supplyAsync({
       ResourceRepositoryManager.getAppResources(nlComponent.model.facet).getSampleDataOfType(IMAGE).toList()
-    }, AppExecutorUtil.getAppExecutorService()).whenCompleteAsync(BiConsumer { sampleDataItems, _ ->
+    }, AppExecutorUtil.getAppExecutorService()).whenCompleteAsync({ sampleDataItems, _ ->
       populateWidget(sampleDataItems)
     }, EdtExecutorService.getScheduledExecutorInstance())
   }

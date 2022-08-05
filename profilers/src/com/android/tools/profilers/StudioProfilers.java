@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.transport.manager.StreamQueryUtils;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
 import com.android.tools.profiler.proto.Commands;
@@ -54,8 +55,6 @@ import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfiler;
-import com.android.tools.profilers.network.NetworkProfiler;
-import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -65,7 +64,6 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import io.grpc.StatusRuntimeException;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -74,6 +72,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -222,7 +221,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     profilersBuilder.add(new CpuProfiler(this));
     profilersBuilder.add(new MemoryProfiler(this));
-    profilersBuilder.add(new NetworkProfiler(this));
     if (myIdeServices.getFeatureConfig().isEnergyProfilerEnabled()) {
       profilersBuilder.add(new EnergyProfiler(this));
     }
@@ -425,9 +423,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private void startProfileableDiscoveryIfApplicable(Collection<Common.Device> previousDevices,
                                                      Collection<Common.Device> currentDevices) {
-    if (!myIdeServices.getFeatureConfig().isProfileableInQrEnabled()) {
-      return;
-    }
     Set<Common.Device> newDevices = Sets.difference(filterOnlineDevices(currentDevices),
                                                     filterOnlineDevices(previousDevices));
     for (Common.Device device : newDevices) {
@@ -476,8 +471,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
               int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
               return (isProcessAlive || process.getPid() == lastProcessId) &&
                      (process.getExposureLevel().equals(Common.Process.ExposureLevel.DEBUGGABLE) ||
-                      (getIdeServices().getFeatureConfig().isProfileableEnabled() &&
-                       process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE)));
+                      process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE));
             }
           );
           newProcesses.put(device, processList);
@@ -724,10 +718,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * Checks whether startup CPU Profiling started for the selected session by making RPC call to perfd.
    */
   private boolean startupCpuProfilingStarted() {
-    if (!getIdeServices().getFeatureConfig().isStartupCpuProfilingEnabled()) {
-      return false;
-    }
-
     List<Cpu.CpuTraceInfo> traceInfoList =
       CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession, myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled());
     if (!traceInfoList.isEmpty()) {
@@ -946,9 +936,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     ImmutableList.Builder<Class<? extends Stage>> listBuilder = ImmutableList.builder();
     listBuilder.add(CpuProfilerStage.class);
     listBuilder.add(MainMemoryProfilerStage.class);
-    if (!getIdeServices().getAppInspectionMigrationServices().isMigrationEnabled()) {
-      listBuilder.add(NetworkProfilerStage.class);
-    }
     // Show the energy stage in the list only when the session has JVMTI enabled or the device is above O.
     boolean hasSession = mySelectedSession.getSessionId() != 0;
     boolean isEnergyStageEnabled = hasSession ? mySessionsManager.getSelectedSessionMetaData().getJvmtiEnabled()
@@ -999,7 +986,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (model.endsWith(suffix)) {
       model = model.substring(0, model.length() - suffix.length());
     }
-    if (!StringUtil.isEmpty(manufacturer)) {
+    if (!StringUtil.isEmpty(manufacturer) && !model.toUpperCase(Locale.US).startsWith(manufacturer.toUpperCase(Locale.US))) {
       deviceNameBuilder.append(manufacturer);
       deviceNameBuilder.append(" ");
     }

@@ -27,6 +27,7 @@ package com.android.tools.idea
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -54,7 +55,7 @@ fun findAllLibrariesWithResources(project: Project): Map<String, ExternalAndroid
  */
 fun findDependenciesWithResources(module: Module): Map<String, ExternalAndroidLibrary> {
   return module.getModuleSystem()
-    .getAndroidLibraryDependencies()
+    .getAndroidLibraryDependencies(DependencyScopeType.MAIN)
     .filter { it.hasResources }
     .associateBy { library -> library.address }
 }

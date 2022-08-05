@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.editor
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
@@ -51,7 +52,7 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.resourceManagers.LocalResourceManager
-import org.mockito.Mockito.`when`
+
 
 /**
  * Tests for [NavActionManager]
@@ -110,7 +111,7 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     val surface = model.surface as NavDesignSurface
-    `when`(surface.currentNavigation).thenReturn(model.find("subflow"))
+    whenever(surface.currentNavigation).thenReturn(model.find("subflow"))
 
     val psiClass = JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))
     WriteCommandAction.runWriteCommandAction(project) {

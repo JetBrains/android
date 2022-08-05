@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,19 @@ import com.intellij.psi.PsiElement;
 
 public interface AidlMethodDeclaration extends AidlDeclaration {
 
-  @Nullable
-  AidlDeclarationName getDeclarationName();
+  @NotNull
+  List<AidlAnnotationElement> getAnnotationElementList();
+
+  @NotNull
+  AidlNameComponent getNameComponent();
 
   @NotNull
   List<AidlParameter> getParameterList();
 
   @NotNull
-  AidlType getType();
+  AidlTypeElement getTypeElement();
 
   @Nullable
-  PsiElement getIdvalue();
+  PsiElement getIntvalue();
 
 }

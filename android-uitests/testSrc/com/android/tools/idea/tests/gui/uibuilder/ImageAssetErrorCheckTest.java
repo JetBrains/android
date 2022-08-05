@@ -33,6 +33,9 @@ public class ImageAssetErrorCheckTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
+  private final static String IMAGE_FOLDER = "tools/adt/idea/android-uitests/testData/TestImages";
+  private final static String CORRECT_IMAGE = (GuiTests.getTestDataDir() + IMAGE_FOLDER + "/call.svg").replaceAll("null","");
+  private final static String INCORRECT_IMAGE = (GuiTests.getTestDataDir() + IMAGE_FOLDER + "/android_wrong.svg").replaceAll("null","");
   /**
    * Verifies that SVG images can be loaded in Asset Studio
    * <p>
@@ -60,9 +63,9 @@ public class ImageAssetErrorCheckTest {
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromContextualMenu(AssetStudioWizardFixture::find, "New", "Vector Asset")
-      .useLocalFile(GuiTests.getTestDataDir() + "/TestImages/call.svg")
+      .useLocalFile(CORRECT_IMAGE)
       .waitUntilStepErrorMessageIsGone()
-      .useLocalFile(GuiTests.getTestDataDir() + "/TestImages/android_wrong.svg")
+      .useLocalFile(INCORRECT_IMAGE)
       .assertStepErrorMessage(errorMsg -> errorMsg.contains("Error while parsing android_wrong.svg"))
       .clickCancel();
   }

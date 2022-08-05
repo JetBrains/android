@@ -31,6 +31,7 @@
 package com.android.tools.idea.ddms.screenshot
 
 import com.android.annotations.concurrency.Slow
+import java.awt.Color
 import java.awt.image.BufferedImage
 
 /**
@@ -43,8 +44,9 @@ interface ScreenshotPostprocessor {
    * @param screenshotImage the screenshot image to process
    * @param framingOption determines the type of the frame to add to the image, or null to possibly
    *     adjust the screenshot without adding a frame
+   * @param backgroundColor the back color to use when clipping the screenshot
    * @return the framed image
    */
   @Slow
-  fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?): BufferedImage
+  fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage
 }

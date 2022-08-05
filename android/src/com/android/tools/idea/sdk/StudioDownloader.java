@@ -26,6 +26,7 @@ import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.HttpRequests;
@@ -38,6 +39,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -126,11 +128,17 @@ public class StudioDownloader implements Downloader {
   @Nullable
   public InputStream downloadAndStream(@NotNull URL url, @NotNull ProgressIndicator indicator)
     throws IOException {
+    return downloadAndStreamWithOptions(url, indicator, StandardOpenOption.DELETE_ON_CLOSE);
+  }
+
+  @Nullable
+  public InputStream downloadAndStreamWithOptions(@NotNull URL url, @NotNull ProgressIndicator indicator, OpenOption... streamOpenOptions)
+    throws IOException {
     Path file = downloadFully(url, indicator);
     if (file == null) {
       return null;
     }
-    return CancellableFileIo.newInputStream(file, StandardOpenOption.DELETE_ON_CLOSE);
+    return CancellableFileIo.newInputStream(file, streamOpenOptions);
   }
 
   @Override
@@ -148,7 +156,16 @@ public class StudioDownloader implements Downloader {
 
   @Override
   public void setDownloadIntermediatesLocation(@Nullable Path downloadIntermediatesLocation) {
-    mDownloadIntermediatesLocation = downloadIntermediatesLocation;
+    try {
+      if (downloadIntermediatesLocation != null) {
+        PathUtils.createDirectories(downloadIntermediatesLocation);
+      }
+      mDownloadIntermediatesLocation = downloadIntermediatesLocation;
+    }
+    catch (IOException exception) {
+      Logger.getInstance(StudioDownloader.class).warn("Unable resolve intermediates location", exception);
+      // Use the default temp dir.
+    }
   }
 
   private void doDownloadFully(@NotNull URL url, @NotNull Path target, @Nullable Checksum checksum,
@@ -206,7 +223,7 @@ public class StudioDownloader implements Downloader {
       long contentLength = startOffset + request.getConnection().getContentLengthLong();
       DownloadProgressIndicator downloadProgressIndicator = new DownloadProgressIndicator(indicator, target.getFileName().toString(),
                                                                                           contentLength, startOffset);
-      Files.createDirectories(interimDownload.getParent());
+      PathUtils.createDirectories(interimDownload.getParent());
 
       try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(interimDownload, StandardOpenOption.APPEND, StandardOpenOption.CREATE))) {
         NetUtils.copyStreamContent(downloadProgressIndicator, request.getInputStream(), out,
@@ -214,7 +231,7 @@ public class StudioDownloader implements Downloader {
       }
 
       try {
-        Files.createDirectories(target.getParent());
+        PathUtils.createDirectories(target.getParent());
         Files.move(interimDownload, target, StandardCopyOption.REPLACE_EXISTING);
         if (CancellableFileIo.exists(target) && checksum != null) {
           if (!checksum.getValue().equals(Downloader.hash(new BufferedInputStream(CancellableFileIo.newInputStream(target)),

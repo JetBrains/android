@@ -17,6 +17,7 @@ package com.android.tools.idea.imports
 
 import com.android.io.CancellableFileIo
 import com.android.testutils.MockitoKt.mockStatic
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.truth.PathSubject.assertThat
@@ -60,7 +61,7 @@ class GMavenIndexRepositoryTest {
     // Mock AppExecutorUtil.
     virtualExecutor = VirtualTimeScheduler()
     appExecutorUtilMock = mockStatic()
-    appExecutorUtilMock.`when`<Any> {
+    appExecutorUtilMock.whenever<Any> {
       AppExecutorUtil.createBoundedScheduledExecutorService("MavenClassRegistry Refresher", 1)
     }.thenReturn(virtualExecutor)
     // Create cache directory.

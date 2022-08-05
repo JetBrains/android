@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.actions.BrowserHelpAction;
+import com.android.tools.idea.editors.strings.action.AddKeyAction;
+import com.android.tools.idea.editors.strings.action.AddLocaleAction;
+import com.android.tools.idea.editors.strings.action.FilterKeysAction;
+import com.android.tools.idea.editors.strings.action.FilterLocalesAction;
+import com.android.tools.idea.editors.strings.action.ReloadStringResourcesAction;
+import com.android.tools.idea.editors.strings.action.RemoveKeysAction;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableListener;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.rendering.Locale;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -34,6 +41,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBTextField;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -52,12 +60,14 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class StringResourceViewPanel implements Disposable {
+public class StringResourceViewPanel implements Disposable {
   private final AndroidFacet myFacet;
 
   private StringResourceTable myTable;
   private @Nullable Component myToolbar;
   private @Nullable Component myScrollPane;
+  private final @NotNull JComponent myXmlLabel;
+  @VisibleForTesting final JTextComponent myXmlTextField;
   private final @NotNull Component myKeyLabel;
   private JTextComponent myKeyTextField;
   private final @NotNull Component myDefaultValueLabel;
@@ -70,8 +80,6 @@ public final class StringResourceViewPanel implements Disposable {
   private @Nullable Container myPanel;
   private final @NotNull JBLoadingPanel myLoadingPanel;
 
-  private RemoveKeysAction myRemoveKeysAction;
-  private AddLocaleAction myAddLocaleAction;
   private GoToDeclarationAction myGoToAction;
   private DeleteStringAction myDeleteAction;
 
@@ -81,6 +89,12 @@ public final class StringResourceViewPanel implements Disposable {
 
     initTable();
     initToolbar();
+
+    myXmlLabel = new JBLabel("XML:", SwingConstants.RIGHT);
+    myXmlTextField = new JBTextField();
+    myXmlTextField.setEnabled(false);
+    myXmlTextField.setName("xmlTextField");
+
     myKeyLabel = new JBLabel("Key:", SwingConstants.RIGHT);
     initKeyTextField();
     myDefaultValueLabel = new JBLabel("Default value:", SwingConstants.RIGHT);
@@ -105,7 +119,6 @@ public final class StringResourceViewPanel implements Disposable {
   }
 
   private void initTable() {
-    myRemoveKeysAction = new RemoveKeysAction(this);
     myDeleteAction = new DeleteStringAction(this);
     myGoToAction = new GoToDeclarationAction(this);
 
@@ -136,15 +149,13 @@ public final class StringResourceViewPanel implements Disposable {
   }
 
   private void initToolbar() {
-    myAddLocaleAction = new AddLocaleAction(this);
-
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new AddKeyAction(this));
-    group.add(myRemoveKeysAction);
-    group.add(myAddLocaleAction);
-    group.add(new FilterKeysAction(myTable));
-    group.add(new FilterLocalesAction(myTable));
-    group.add(new ReloadStringResourcesAction(this));
+    group.add(new AddKeyAction());
+    group.add(new RemoveKeysAction());
+    group.add(new AddLocaleAction());
+    group.add(new FilterKeysAction());
+    group.add(new FilterLocalesAction());
+    group.add(new ReloadStringResourcesAction());
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TranslationsEditorToolbar", group, true);
@@ -185,7 +196,8 @@ public final class StringResourceViewPanel implements Disposable {
     myPanel = new JBPanel<>();
     GroupLayout layout = new GroupLayout(myPanel);
 
-    layout.linkSize(SwingConstants.HORIZONTAL, myKeyLabel, myDefaultValueLabel, myTranslationLabel);
+    layout.linkSize(SwingConstants.HORIZONTAL, myXmlLabel, myKeyLabel, myDefaultValueLabel, myTranslationLabel);
+    layout.linkSize(SwingConstants.VERTICAL, myXmlLabel, myXmlTextField);
     layout.linkSize(SwingConstants.VERTICAL, myKeyLabel, myKeyTextField);
     layout.linkSize(SwingConstants.VERTICAL, myDefaultValueLabel, myDefaultValueTextField);
     layout.linkSize(SwingConstants.VERTICAL, myTranslationLabel, myTranslationTextField);
@@ -193,6 +205,9 @@ public final class StringResourceViewPanel implements Disposable {
     Group horizontalGroup = layout.createParallelGroup()
       .addComponent(myToolbar)
       .addComponent(myScrollPane)
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(myXmlLabel)
+                  .addComponent(myXmlTextField))
       .addGroup(layout.createSequentialGroup()
                   .addComponent(myKeyLabel)
                   .addComponent(myKeyTextField))
@@ -206,6 +221,9 @@ public final class StringResourceViewPanel implements Disposable {
     Group verticalGroup = layout.createSequentialGroup()
       .addComponent(myToolbar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
       .addComponent(myScrollPane)
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(myXmlLabel)
+                  .addComponent(myXmlTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
       .addGroup(layout.createParallelGroup()
                   .addComponent(myKeyLabel)
                   .addComponent(myKeyTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
@@ -222,21 +240,15 @@ public final class StringResourceViewPanel implements Disposable {
     myPanel.setLayout(layout);
   }
 
-  public void removeSelectedKeys() {
-    myRemoveKeysAction.perform();
-  }
-
-  void reloadData() {
+  public void reloadData() {
     myLoadingPanel.setLoadingText("Updating string resource data");
     myLoadingPanel.startLoading();
 
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      new ResourceLoadingTask(this).queue();
-    }
+    new ResourceLoadingTask(this).queue();
   }
 
   @NotNull
-  AndroidFacet getFacet() {
+  public AndroidFacet getFacet() {
     return myFacet;
   }
 
@@ -255,16 +267,11 @@ public final class StringResourceViewPanel implements Disposable {
     return myTable.getScrollableTable();
   }
 
-  @VisibleForTesting
-  @NotNull
-  AddLocaleAction getAddLocaleAction() {
-    return myAddLocaleAction;
-  }
-
   private final class CellSelectionListener implements FrozenColumnTableListener {
     @Override
     public void selectedCellChanged() {
       if (myTable.getSelectedColumnCount() != 1 || myTable.getSelectedRowCount() != 1) {
+        setTextAndEditable(myXmlTextField, "", false);
         setTextAndEditable(myKeyTextField, "", false);
         setTextAndEditable(myDefaultValueTextField.getTextField(), "", false);
         setTextAndEditable(myTranslationTextField.getTextField(), "", false);
@@ -273,6 +280,7 @@ public final class StringResourceViewPanel implements Disposable {
         return;
       }
 
+      myXmlTextField.setEnabled(true);
       myKeyTextField.setEnabled(true);
       myDefaultValueTextField.setEnabled(true);
       myTranslationTextField.setEnabled(true);
@@ -280,10 +288,18 @@ public final class StringResourceViewPanel implements Disposable {
 
       int row = myTable.getSelectedModelRowIndex();
       int column = myTable.getSelectedModelColumnIndex();
-      Object locale = model.getLocale(column);
+      Locale locale = model.getLocale(column);
 
+      StringResourceKey key = model.getKey(row);
+      StringResourceData data = model.getData();
+      if (data == null) {
+        setTextAndEditable(myXmlTextField, "", false);
+      }
+      else {
+        setTextAndEditable(myXmlTextField, data.getStringResource(key).getTagText(locale), false);
+      }
       // TODO: Keys are not editable; we want them to be refactor operations
-      setTextAndEditable(myKeyTextField, model.getKey(row).getName(), false);
+      setTextAndEditable(myKeyTextField, key.getName(), false);
 
       String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
       boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field

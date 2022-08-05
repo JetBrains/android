@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.literals.internal
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
@@ -132,7 +132,7 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
    * Problems for that device.
    */
   override fun liveLiteralsMonitorStarted(deviceId: String, deviceType: LiveLiteralsMonitorHandler.DeviceType) {
-    if (!StudioFlags.COMPOSE_LIVE_LITERALS.get()) return
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveLiterals) return
 
     var started: Boolean
     serviceLock.write {
@@ -157,7 +157,7 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
    * Call this method when the monitoring for [deviceId] has stopped. For example, if the application has stopped.
    */
   override fun liveLiteralsMonitorStopped(deviceId: String) {
-    if (!StudioFlags.COMPOSE_LIVE_LITERALS.get()) return
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveLiterals) return
 
     var stopped: Boolean
     modificationTracker.incModificationCount()
@@ -179,7 +179,7 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
   }
 
   override fun liveLiteralPushStarted(deviceId: String, pushId: String) {
-    if (!StudioFlags.COMPOSE_LIVE_LITERALS.get()) return
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveLiterals) return
     log.debug("Device '$deviceId' pushed started.")
     LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralPushStarted(deviceId, pushId)
   }
@@ -189,7 +189,7 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
    * of the problems found while deploying literals.
    */
   override fun liveLiteralPushed(deviceId: String, pushId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) {
-    if (!StudioFlags.COMPOSE_LIVE_LITERALS.get()) return
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveLiterals) return
 
     var isActive: Boolean
     serviceLock.write {

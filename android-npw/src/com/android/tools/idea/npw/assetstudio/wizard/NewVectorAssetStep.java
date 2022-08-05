@@ -30,6 +30,7 @@ import com.android.tools.idea.npw.assetstudio.VectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
+import com.android.tools.idea.npw.assetstudio.ui.VectorImageComponent;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
@@ -56,7 +57,6 @@ import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -94,8 +94,7 @@ import org.jetbrains.annotations.SystemIndependent;
  * A wizard step for generating Android vector drawable icons.
  */
 public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel> implements PersistentStateComponent<PersistentState> {
-  private static final String ICON_PREFIX = "ic_";
-  private static final String DEFAULT_OUTPUT_NAME = "ic_vector_name";
+  private static final String DEFAULT_OUTPUT_NAME = "vector_name";
   // Start with the Clip Art radio button selected, because the clip art icons are easy to browse
   // and play around with right away.
   private static final AssetSourceType DEFAULT_ASSET_SOURCE_TYPE = AssetSourceType.CLIP_ART;
@@ -199,6 +198,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     ActionListener assetListener = actionEvent -> renderPreviews();
     myClipartAssetButton.addAssetListener(assetListener);
+    myClipartAssetButton.setToolTipText("Select Clip Art");
     myFileBrowser.addAssetListener(assetListener);
 
     myListeners.listenAndFire(myAssetSourceType, sourceType -> {
@@ -273,9 +273,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         }
 
         String name = FileUtil.getNameWithoutExtension(file).toLowerCase(Locale.getDefault());
-        if (!name.startsWith(ICON_PREFIX)) {
-          name = ICON_PREFIX + FileResourceNameValidator.getValidResourceFileName(name);
-        }
         return FileResourceNameValidator.getValidResourceFileName(name);
       }, fileProperty));
 

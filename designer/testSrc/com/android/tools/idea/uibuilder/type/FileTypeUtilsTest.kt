@@ -42,9 +42,8 @@ import kotlin.test.assertTrue
  * Note:
  * We don't provide the test case for a file with [AdaptiveIconFileType] type here.
  *
- * [AdaptiveIconFileType] use [org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription.isAdaptiveIcon] to check
- * the type, which checks if the parent folder is a resource folder in the project system. But the resource folder is not defined in a
- * legacy project system so it always return false.
+ * [AdaptiveIconFileType] checks the type by checking if the parent folder is a resource folder in the project system.
+ * But the resource folder is not defined in a legacy project system, so it always returns false.
  * See [com.android.tools.idea.projectsystem.LegacyDelegate.resourcesDirectoryUrls] and
  * [com.android.tools.idea.projectsystem.LegacyDelegate.resourcesDirectories]
 */
@@ -143,5 +142,5 @@ private const val TEST_ROOT_TAG = "<test>"
 object TestDrawableFileType : DrawableFileType(setOf(TEST_ROOT_TAG)) {
   override fun isResourceTypeOf(file: PsiFile): Boolean = true
 
-  override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups = ToolbarActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups = ToolbarActionGroups(surface)
 }

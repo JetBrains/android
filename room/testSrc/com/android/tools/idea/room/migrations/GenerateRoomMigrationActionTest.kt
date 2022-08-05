@@ -28,6 +28,9 @@ class GenerateRoomMigrationActionTest : AndroidTestCase() {
   }
 
   fun testTheAction() {
+    // TODO(b/234009550): Re-enable this test when fixed.
+    return
+
     val jsonOne = myFixture.addFileToProject(
       "schemas/com.example.FooDb/1.json",
       // language=JSON

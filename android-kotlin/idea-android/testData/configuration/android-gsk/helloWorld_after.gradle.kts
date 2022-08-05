@@ -1,10 +1,9 @@
-val kotlin_version: String by extra
+
 buildscript {
-    var kotlin_version: String by extra
-    kotlin_version = "$VERSION$"
+    val kotlin_version by extra("$VERSION$")
     dependencies {
         classpath("com.android.tools.build:gradle:2.3.1")
-        classpath(kotlinModule("gradle-plugin", kotlin_version))
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
     }
     repositories {
         jcenter()
@@ -13,8 +12,8 @@ buildscript {
 
 apply {
     plugin("com.android.application")
-    plugin("kotlin-android")
 }
+apply(plugin = "org.jetbrains.kotlin.android")
 
 android {
     buildToolsVersion("25.0.0")
@@ -38,9 +37,9 @@ android {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${extra["kotlin_version"]}")
     compile("com.android.support:appcompat-v7:23.4.0")
     compile("com.android.support.constraint:constraint-layout:1.0.0-alpha8")
-    implementation(kotlinModule("stdlib-jdk7", kotlin_version))
 }
 
 repositories {

@@ -32,5 +32,5 @@ abstract class DrawableFileType(private val allowedRootTags: Set<String>) : Desi
   override fun isResourceTypeOf(file: PsiFile) =
     file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.DRAWABLE, allowedRootTags)
 
-  override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups = DrawableActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups = DrawableActionGroups(surface)
 }

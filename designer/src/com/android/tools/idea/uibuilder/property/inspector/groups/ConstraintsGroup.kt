@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTableItem
 
 const val CONSTRAINT_GROUP_NAME = "layout_constraints"
 

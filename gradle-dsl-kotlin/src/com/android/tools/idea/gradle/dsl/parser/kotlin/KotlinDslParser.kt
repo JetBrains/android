@@ -135,7 +135,11 @@ class KotlinDslParser(
           if (gradleDslElement is GradleDslSimpleExpression) {
             synchronized(extractValueSet) {
               val key = context to literal
-              if (extractValueSet.contains(key)) return unquoteString(literal.text)
+              if (extractValueSet.contains(key)) {
+                // in the course of attempting to resolve literal in context, we are now trying again to perform that exact same
+                // resolution: break the circularity by returning DslRawText to indicate that there was a problem.
+                return KotlinDslRawText(literal.text)
+              }
               extractValueSet.add(key)
               try {
                 return gradleDslElement.value
@@ -347,7 +351,8 @@ class KotlinDslParser(
     expression: KtDotQualifiedExpression
   ) : GradleDslExpression {
     val receiver = expression.receiverExpression
-    when (val selector = expression.selectorExpression) {
+    val selector = expression.selectorExpression
+    when (selector) {
       is KtCallExpression -> {
         // Check if this is about a localMethod used for blocks referencing, or not.
         val referenceName = selector.name()

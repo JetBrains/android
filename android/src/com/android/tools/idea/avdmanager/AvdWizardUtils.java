@@ -16,26 +16,20 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.FD_EMULATOR;
-import static com.android.SdkConstants.FD_LIB;
-import static com.android.SdkConstants.FN_HARDWARE_INI;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DESKTOP_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -43,13 +37,11 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
@@ -62,7 +54,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,20 +119,16 @@ public class AvdWizardUtils {
   public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
-  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
+  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, DESKTOP_TAG,
+                                                                         ANDROID_TV_TAG, GOOGLE_TV_TAG,
                                                                          CHROMEOS_TAG, AUTOMOTIVE_TAG);
-  public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
-                                                                              PLAY_STORE_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
-                                                                              WEAR_TAG, CHROMEOS_TAG,
-                                                                              AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
-
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
   /**
-   * @deprecated Use fileSystem.getPath({@link AvdManagerUtils#NO_SKIN})
+   * @deprecated Use fileSystem.getPath({@link SkinUtils#NO_SKIN})
    */
   @Deprecated
-  static final File NO_SKIN = new File(AvdManagerUtils.NO_SKIN);
+  static final File NO_SKIN = new File(SkinUtils.NO_SKIN);
 
   // The AVD wizard needs a bit of extra width as its options panel is pretty dense
   private static final Dimension AVD_WIZARD_MIN_SIZE = JBUI.size(600, 400);
@@ -154,8 +141,6 @@ public class AvdWizardUtils {
 
   private static final Revision MIN_SNAPSHOT_MANAGEMENT_VERSION = new Revision(27, 2, 5);
   private static final Revision MIN_WEBP_VERSION = new Revision(25, 2, 3);
-
-  private static Map<String, HardwareProperties.HardwareProperty> ourHardwareProperties; // Hardware Properties
 
   /**
    * Get the default amount of ram to use for the given hardware in an AVD. This is typically
@@ -202,27 +187,6 @@ public class AvdWizardUtils {
    */
   public static int getMaxCpuCores() {
     return Runtime.getRuntime().availableProcessors() / 2;
-  }
-  /**
-   * Get the default value of hardware property from hardware-properties.ini.
-   *
-   * @param name the name of the requested hardware property
-   * @return the default value
-   */
-  @Nullable
-  public static String getHardwarePropertyDefaultValue(String name, @Nullable AndroidSdkHandler sdkHandler) {
-    if (ourHardwareProperties == null && sdkHandler != null) {
-      // get the list of possible hardware properties
-      // The file is in the emulator component
-      LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
-      if (emulatorPackage != null) {
-        Path hardwareDefs = emulatorPackage.getLocation().resolve(FD_LIB + File.separator + FN_HARDWARE_INI);
-        ourHardwareProperties = HardwareProperties.parseHardwareDefinitions(
-          new PathFileWrapper(hardwareDefs), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
-      }
-    }
-    HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);
-    return (hwProp == null) ? null : hwProp.getDefault();
   }
 
   /**
@@ -335,9 +299,7 @@ public class AvdWizardUtils {
    */
   public static ModelWizardDialog createAvdWizardForDuplication(@Nullable Component parent,
                                                                 @Nullable Project project,
-                                                                @NotNull  AvdInfo avdInfo) {
-    AvdOptionsModel avdOptions = new AvdOptionsModel(avdInfo);
-
+                                                                @NotNull AvdOptionsModel avdOptions) {
     // Set this AVD as a copy
     avdOptions.setAsCopy();
 

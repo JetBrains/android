@@ -16,14 +16,12 @@
 package com.android.tools.idea.run.editor;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
 import com.intellij.openapi.util.WriteExternalException;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,12 +104,6 @@ public class AndroidDebuggerContext implements JDOMExternalizable {
   @Nullable
   public <T extends AndroidDebuggerState> T getAndroidDebuggerState() {
     return getAndroidDebuggerState(DEBUGGER_TYPE);
-  }
-
-  public void setDebuggeeModuleProvider(@NotNull Supplier<@Nullable Module> moduleProvider) {
-    for (AndroidDebuggerState state : myAndroidDebuggerStates.values()) {
-      state.setDebuggeeModuleProvider(moduleProvider);
-    }
   }
 
   @NotNull

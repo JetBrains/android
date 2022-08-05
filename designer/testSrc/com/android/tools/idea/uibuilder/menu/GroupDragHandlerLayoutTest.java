@@ -37,6 +37,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -150,7 +151,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
   private static DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
     SyncNlModel model = (SyncNlModel)menu.getModel();
 
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
+    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
     Scene scene = builder.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 

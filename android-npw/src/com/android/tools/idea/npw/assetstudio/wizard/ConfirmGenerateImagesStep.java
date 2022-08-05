@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.orderTemplates;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleDimension;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
 
 import com.android.resources.Density;
+import com.android.tools.adtui.common.ProposedFileTreeCellRenderer;
+import com.android.tools.adtui.common.ProposedFileTreeModel;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
@@ -39,18 +41,15 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.rendering.VectorDrawableTransformer;
-import com.android.tools.idea.ui.wizard.CheckeredBackgroundPanel;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeModel;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.ui.CheckeredBackgroundPanel;
+import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedSet;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
@@ -58,7 +57,6 @@ import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.GuiUtils;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
@@ -68,6 +66,7 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -88,6 +87,8 @@ import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
+import org.jetbrains.android.actions.widgets.SourceSetItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,18 +96,14 @@ import org.jetbrains.annotations.Nullable;
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
-public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel>
-    implements PersistentStateComponent<PersistentState> {
-  private static final String CONFIRMATION_STEP_PROPERTY = "confirmationStep";
-  private static final String RESOURCE_DIRECTORY_PROPERTY = "resourceDirectory";
-
+public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel> {
   private final List<NamedModuleTemplate> myTemplates;
   private final ValidatorPanel myValidatorPanel;
   private final ListenerManager myListeners = new ListenerManager();
   private final JBLabel myPreviewIcon;
 
   private JPanel myRootPanel;
-  private JComboBox<NamedModuleTemplate> myPathsComboBox;
+  private JComboBox<SourceSetItem> myPathsComboBox;
   private Tree myOutputPreviewTree;
   private CheckeredBackgroundPanel myPreviewPanel;
   private JTextField mySizeDpTextField;
@@ -143,7 +140,8 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private EditorFactory myEditorFactory;
   private Document myXmlPreviewDocument;
 
-  private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
+  private ObjectProperty<SourceSetItem> mySelectedSourceSetItem;
+  private final SourceSetItem myInitialSelectedItem;
   private final BoolProperty myFilesAlreadyExist = new BoolValueProperty();
   private ProposedFileTreeModel myProposedFileTreeModel;
 
@@ -152,13 +150,19 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     Preconditions.checkArgument(!templates.isEmpty());
     myTemplates = templates;
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    SourceSetItem[] resDirs = orderTemplates(templates).stream()
+      .flatMap(template -> template.getPaths().getResDirectories().stream()
+        .map(folder -> SourceSetItem.create(template, folder)))
+      .filter(Objects::nonNull)
+      .toArray(SourceSetItem[]::new);
+    myInitialSelectedItem = Arrays.stream(resDirs)
+      .filter(item -> item.getSourceSetName().equals(model.getTemplate().getName()) &&
+                      item.getResDirUrl().equals(model.getResFolder().getAbsolutePath()))
+      .findFirst().orElse(null);
 
-    DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
-    for (NamedModuleTemplate template : templates) {
-      moduleTemplatesModel.addElement(template);
-    }
-    myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
+    DefaultComboBoxModel<SourceSetItem> moduleTemplatesModel = new DefaultComboBoxModel<>(resDirs);
     myPathsComboBox.setModel(moduleTemplatesModel);
+    myPathsComboBox.setRenderer(new SourceSetCellRenderer());
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
     myOutputPreviewTree.setModel(emptyModel);
@@ -362,35 +366,9 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedTemplate = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
-
-    PersistentStateUtil.load(this, getModel().getPersistentState().getChild(CONFIRMATION_STEP_PROPERTY));
-  }
-
-  @Override
-  public void onWizardFinished() {
-    getModel().getPersistentState().setChild(CONFIRMATION_STEP_PROPERTY, getState());
-  }
-
-  @Override
-  @NotNull
-  public PersistentState getState() {
-    PersistentState state = new PersistentState();
-    NamedModuleTemplate moduleTemplate = mySelectedTemplate.get();
-    state.set(RESOURCE_DIRECTORY_PROPERTY, moduleTemplate.getName(), myTemplates.get(0).getName());
-    return state;
-  }
-
-  @Override
-  public void loadState(@NotNull PersistentState state) {
-    String templateName = state.get(RESOURCE_DIRECTORY_PROPERTY);
-    if (templateName != null) {
-      for (NamedModuleTemplate template : myTemplates) {
-        if (template.getName().equals(templateName)) {
-          mySelectedTemplate.set(template);
-          break;
-        }
-      }
+    mySelectedSourceSetItem = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
+    if (myInitialSelectedItem != null) {
+      mySelectedSourceSetItem.set(myInitialSelectedItem);
     }
   }
 
@@ -402,23 +380,31 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
   @Override
   protected void onProceeding() {
-    getModel().setPaths(mySelectedTemplate.get().getPaths());
-    getModel().setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
+    SourceSetItem item = mySelectedSourceSetItem.get();
+    NamedModuleTemplate template = findTemplateByName(item.getSourceSetName());
+    if (template == null) {
+      return;
+    }
+    GenerateIconsModel model = getModel();
+    model.setTemplate(template);
+    model.setResFolder(new File(item.getResDirUrl()));
+    model.setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
   }
 
   @Override
   protected void onEntering() {
-    myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
-    myListeners.listenAndFire(mySelectedTemplate, (NamedModuleTemplate namedTemplate) -> {
+    myListeners.release(mySelectedSourceSetItem); // Just in case we're entering this step a second time.
+    myListeners.listenAndFire(mySelectedSourceSetItem, sourceSetItem -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      AndroidModulePaths paths = namedTemplate.getPaths();
-      File resDirectory = getResDirectory(paths);
-      if (iconGenerator == null || resDirectory == null || resDirectory.getParentFile() == null) {
+      NamedModuleTemplate template = findTemplateByName(sourceSetItem.getSourceSetName());
+      File resDirectory = new File(sourceSetItem.getResDirUrl());
+      if (iconGenerator == null || resDirectory.getParentFile() == null || template == null) {
         return;
       }
+      AndroidModulePaths paths = template.getPaths();
 
       myFilesAlreadyExist.set(false);
-      myPathToPreviewImage = iconGenerator.generateIntoIconMap(paths);
+      myPathToPreviewImage = iconGenerator.generateIntoIconMap(paths, new File(sourceSetItem.getResDirUrl()));
 
       // Collect all directory names from all generated file names for sorting purposes.
       // We use this map instead of looking at the file system when sorting, since
@@ -474,5 +460,10 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       myEditorFactory.releaseEditor(myFilePreviewEditor);
     }
     myListeners.releaseAll();
+  }
+
+  @Nullable
+  private NamedModuleTemplate findTemplateByName(@NotNull String name) {
+    return myTemplates.stream().filter(template -> name.equals(template.getName())).findFirst().orElse(null);
   }
 }

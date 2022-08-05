@@ -18,7 +18,6 @@ package com.android.tools.idea.navigator;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.PSI_ELEMENT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE_ARRAY;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.PlatformDataKeys.DELETE_ELEMENT_PROVIDER;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
@@ -53,6 +52,7 @@ import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -87,7 +87,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   public AndroidProjectViewPane(Project project) {
     super(project);
-    ProjectWideFacetListenersRegistry.getInstance(project).registerListener(new ProjectWideFacetAdapter<>() {
+    ProjectWideFacetListenersRegistry.getInstance(project).registerListener(new ProjectWideFacetAdapter<Facet>() {
       @Override
       public void facetAdded(@NotNull Facet facet) {
         somethingChanged();
@@ -189,7 +189,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
       @Override
       protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
-        return new AndroidViewProjectNode(project, settings, AndroidProjectViewPane.this);
+        return new AndroidViewProjectNode(project, settings);
       }
     };
   }
@@ -281,7 +281,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
     }
 
-    if (MODULE.is(dataId)) {
+    if (PlatformCoreDataKeys.MODULE.is(dataId)) {
       Object o = selectedUserObjects.length != 1 ? null : getValueFromNode(selectedUserObjects[0]);
       if (o instanceof PackageElement) {
         PackageElement packageElement = (PackageElement)o;

@@ -2,7 +2,7 @@
 
 package org.jetbrains.android.actions;
 
-import com.android.SdkConstants;
+import com.android.AndroidXConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectView;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -90,9 +90,9 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
         myResourceFolderType == ResourceFolderType.LAYOUT) {
 
       if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
-        return SdkConstants.CONSTRAINT_LAYOUT.oldName();
+        return AndroidXConstants.CONSTRAINT_LAYOUT.oldName();
       } else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)) {
-        return SdkConstants.CONSTRAINT_LAYOUT.newName();
+        return AndroidXConstants.CONSTRAINT_LAYOUT.newName();
       }
     }
 
@@ -125,7 +125,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
       myValidator = validator;
       setTitle(AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName));
       final List<String> tagNames = getSortedAllowedTagNames(facet);
-      myRootElementField = new TextFieldWithAutoCompletion<>(
+      myRootElementField = new TextFieldWithAutoCompletion<String>(
         facet.getModule().getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(tagNames, null), true, null);
       myRootElementField.setText(getDefaultRootTag(facet.getModule()));
       myRootElementFieldWrapper.add(myRootElementField, BorderLayout.CENTER);

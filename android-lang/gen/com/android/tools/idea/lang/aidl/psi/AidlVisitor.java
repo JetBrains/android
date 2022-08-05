@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,31 +20,38 @@ package com.android.tools.idea.lang.aidl.psi;
 
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
-import  com.intellij.psi.PsiNameIdentifierOwner;
 
 public class AidlVisitor extends PsiElementVisitor {
+
+  public void visitAnnotationElement(@NotNull AidlAnnotationElement o) {
+    visitPsiCompositeElement(o);
+  }
 
   public void visitBody(@NotNull AidlBody o) {
     visitPsiCompositeElement(o);
   }
 
-  public void visitClassOrInterfaceType(@NotNull AidlClassOrInterfaceType o) {
-    visitType(o);
+  public void visitConstantDeclaration(@NotNull AidlConstantDeclaration o) {
+    visitDeclaration(o);
   }
 
-  public void visitDeclarationName(@NotNull AidlDeclarationName o) {
+  public void visitDottedName(@NotNull AidlDottedName o) {
     visitNamedElement(o);
   }
 
-  public void visitDirection(@NotNull AidlDirection o) {
+  public void visitEnumDeclaration(@NotNull AidlEnumDeclaration o) {
+    visitDeclaration(o);
+  }
+
+  public void visitEnumeratorDeclaration(@NotNull AidlEnumeratorDeclaration o) {
+    visitDeclaration(o);
+  }
+
+  public void visitExpression(@NotNull AidlExpression o) {
     visitPsiCompositeElement(o);
   }
 
-  public void visitHeaders(@NotNull AidlHeaders o) {
-    visitPsiCompositeElement(o);
-  }
-
-  public void visitImportStatement(@NotNull AidlImportStatement o) {
+  public void visitImport(@NotNull AidlImport o) {
     visitPsiCompositeElement(o);
   }
 
@@ -60,7 +67,7 @@ public class AidlVisitor extends PsiElementVisitor {
     visitNamedElement(o);
   }
 
-  public void visitPackageStatement(@NotNull AidlPackageStatement o) {
+  public void visitPackage(@NotNull AidlPackage o) {
     visitPsiCompositeElement(o);
   }
 
@@ -72,20 +79,20 @@ public class AidlVisitor extends PsiElementVisitor {
     visitDeclaration(o);
   }
 
-  public void visitPrimitiveType(@NotNull AidlPrimitiveType o) {
-    visitType(o);
-  }
-
   public void visitQualifiedName(@NotNull AidlQualifiedName o) {
+    visitNamedElement(o);
+  }
+
+  public void visitTypeElement(@NotNull AidlTypeElement o) {
     visitPsiCompositeElement(o);
   }
 
-  public void visitType(@NotNull AidlType o) {
-    visitPsiCompositeElement(o);
+  public void visitUnionDeclaration(@NotNull AidlUnionDeclaration o) {
+    visitDeclaration(o);
   }
 
-  public void visitTypeArguments(@NotNull AidlTypeArguments o) {
-    visitPsiCompositeElement(o);
+  public void visitVariableDeclaration(@NotNull AidlVariableDeclaration o) {
+    visitDeclaration(o);
   }
 
   public void visitDeclaration(@NotNull AidlDeclaration o) {

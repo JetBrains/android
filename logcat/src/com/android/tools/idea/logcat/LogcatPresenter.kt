@@ -16,15 +16,21 @@
 package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.LogcatFilter
+import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataKey
 
 /**
  * Encapsulates the presentation of Logcat messages.
  */
-internal interface LogcatPresenter : Disposable {
+internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, ProcessNamesProvider, Disposable {
+  var formattingOptions: FormattingOptions
+
   /**
    * Reloads messages from the backlog into the view
    */
@@ -38,29 +44,53 @@ internal interface LogcatPresenter : Disposable {
   fun applyFilter(logcatFilter: LogcatFilter?)
 
   /**
-   * Enabled/disables the `My Apps` filter
-   */
-  @UiThread
-  fun setShowOnlyProjectApps(enabled: Boolean)
-
-  /**
    * Clears the message view
    */
   @UiThread
   fun clearMessageView()
 
+  @UiThread
+  fun restartLogcat()
+
   /**
-   * Returns true if the message view is empty
+   * Returns true if the attached logcat is empty
    */
-  fun isMessageViewEmpty(): Boolean
+  fun isLogcatEmpty(): Boolean
 
   /**
    * Processes incoming messages from logcat
    */
-  suspend fun processMessages(messages: List<LogCatMessage>)
+  suspend fun processMessages(messages: List<LogcatMessage>)
 
   /**
    * Emits formatted text to the message view
    */
   suspend fun appendMessages(textAccumulator: TextAccumulator)
+
+  /**
+   * Returns the connected device or null if not connected
+   */
+  fun getConnectedDevice(): Device?
+
+  fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings)
+
+  fun selectDevice(serialNumber: String)
+
+  fun countFilterMatches(filter: String): Int
+
+  fun foldImmediately()
+
+  fun isLogcatPaused(): Boolean
+
+  fun pauseLogcat()
+
+  fun resumeLogcat()
+
+  fun getFilter(): String
+
+  fun setFilter(filter: String)
+
+  companion object {
+    val LOGCAT_PRESENTER_ACTION = DataKey.create<LogcatPresenter>("LogcatPresenter")
+  }
 }

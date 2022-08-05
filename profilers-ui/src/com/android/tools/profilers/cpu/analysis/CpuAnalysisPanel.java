@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.ViewBinder;
+import com.android.tools.profilers.SoftHashMap;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,6 +28,7 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -65,7 +67,7 @@ public class CpuAnalysisPanel extends AspectObserver {
                                                                 this::onSelectedTabChanged);
     // TODO (b/139295622): Add action items and actions to analysis panel.
     // Need proper icons for configure and minimize.
-    // myTabs.addAction(StudioIcons.Logcat.SETTINGS, (e) -> { });
+    // myTabs.addAction(StudioIcons.Logcat.Toolbar.SETTINGS, (e) -> { });
     myTabs.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 1, 0));
     myPanel.add(myTabs, BorderLayout.NORTH);
     myPanel.add(myTabView, BorderLayout.CENTER);
@@ -89,7 +91,7 @@ public class CpuAnalysisPanel extends AspectObserver {
 
   @NotNull
   @VisibleForTesting
-  JBTabbedPane getTabView() {
+  public JBTabbedPane getTabView() {
     return myTabView;
   }
 
@@ -185,6 +187,7 @@ public class CpuAnalysisPanel extends AspectObserver {
    */
   private class TabChangeListener implements ChangeListener {
     private int myLastSelectedIndex = -1;
+    private Map<CpuAnalysisTabModel<?>, CpuAnalysisTab<?>> myCachedTabs = new SoftHashMap<>();
 
     @Override
     public void stateChanged(ChangeEvent e) {
@@ -194,11 +197,25 @@ public class CpuAnalysisPanel extends AspectObserver {
       }
 
       // We reset the last tab to an empty panel so when range / data changes hidden panels are not updating UI.
+      // In addition to resetting the tab, we also call `onRemoved` to give it a chance to clean up;
+      // otherwise the tab would still continue to listen to changes until being GC'ed, and its handling can be
+      // expensive.
       if (myLastSelectedIndex >= 0 && myLastSelectedIndex < myTabView.getTabCount()) {
+        CpuAnalysisTab<?> tab = (CpuAnalysisTab<?>)myTabView.getComponentAt(myLastSelectedIndex);
+        if (tab != null) {
+          myCachedTabs.put(tab.getModel(), tab);
+          tab.onRemoved();
+        }
         myTabView.setComponentAt(myLastSelectedIndex, new JPanel());
       }
       if (newIndex >= 0 && newIndex < myTabView.getTabCount()) {
-        myTabView.setComponentAt(newIndex, myTabViewsBinder.build(myProfilersView, mySelectedModel.getTabModelAt(newIndex)));
+        CpuAnalysisTab<?> cachedTab = myCachedTabs.get(mySelectedModel.getTabModelAt(newIndex));
+        if (cachedTab != null) {
+          cachedTab.onReattached();
+          myTabView.setComponentAt(newIndex, cachedTab);
+        } else {
+          myTabView.setComponentAt(newIndex, myTabViewsBinder.build(myProfilersView, mySelectedModel.getTabModelAt(newIndex)));
+        }
       }
       myLastSelectedIndex = newIndex;
     }

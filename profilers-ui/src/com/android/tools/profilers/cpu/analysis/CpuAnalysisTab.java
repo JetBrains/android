@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * The view component for {@link CpuAnalysisTabModel}. Each model can have its own unique data type as such its is the responsibility
  * of the child view type to do proper type checking. An example of a child tab is the {@link CpuAnalysisSummaryTab}.
  */
-public class CpuAnalysisTab<T extends CpuAnalysisTabModel> extends JComponent {
+public abstract class CpuAnalysisTab<T extends CpuAnalysisTabModel> extends JComponent {
   @NotNull private final StudioProfilersView myProfilersView;
   @NotNull private final T myModel;
 
@@ -43,4 +43,14 @@ public class CpuAnalysisTab<T extends CpuAnalysisTabModel> extends JComponent {
   public T getModel() {
     return myModel;
   }
+
+  /**
+   * Clean up (e.g. releasing expensive listeners) when this tab is inactive
+   */
+  abstract public void onRemoved();
+
+  /**
+   * Restore everything cleaned up in `onRemoved` to prepare for re-attachment
+   */
+  abstract public void onReattached();
 }

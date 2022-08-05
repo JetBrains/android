@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory
 import org.junit.Assert.*
 import org.junit.Test
 import org.mockito.Mockito.*
+import com.android.testutils.MockitoKt.whenever
 import java.io.File
 import java.nio.charset.StandardCharsets
 
@@ -56,7 +57,7 @@ class AppKotlinUnitTest {
     fun mockFinalMethod() {
         val activity = mock(Activity::class.java)
         val app = mock(Application::class.java)
-        `when`(activity.application).thenReturn(app)
+        whenever(activity.application).thenReturn(app)
 
         assertSame(app, activity.application)
 
@@ -68,7 +69,7 @@ class AppKotlinUnitTest {
     @SuppressLint("MissingPermission")
     fun mockFinalClass() {
         val adapter = mock(BluetoothAdapter::class.java)
-        `when`(adapter.isEnabled).thenReturn(true)
+        whenever(adapter.isEnabled).thenReturn(true)
 
         assertTrue(adapter.isEnabled)
 
@@ -80,7 +81,7 @@ class AppKotlinUnitTest {
     @Throws(Exception::class)
     fun mockInnerClass() {
         val wakeLock = mock(PowerManager.WakeLock::class.java)
-        `when`(wakeLock.isHeld).thenReturn(true)
+        whenever(wakeLock.isHeld).thenReturn(true)
         assertTrue(wakeLock.isHeld)
     }
 

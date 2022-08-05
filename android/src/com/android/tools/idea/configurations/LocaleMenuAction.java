@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.rendering.FlagManager;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -31,6 +30,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
@@ -46,8 +46,6 @@ public class LocaleMenuAction extends DropDownAction {
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
     super("Locale for Preview", "Locale for Preview", null);
     myRenderContext = renderContext;
-    Presentation presentation = getTemplatePresentation();
-    updatePresentation(presentation);
   }
 
   @Override
@@ -167,14 +165,13 @@ public class LocaleMenuAction extends DropDownAction {
     boolean visible = configuration != null;
     if (visible) {
       // TEMPORARY WORKAROUND:
-      // We don't properly sync the project locale to layouts yet, so in the mean time
+      // We don't properly sync the project locale to layouts yet, so in the meantime
       // show the actual locale being used rather than the intended locale, so as not
       // to be totally confusing:
-      //Locale locale = configuration.isLocaleSpecificLayout()
+      // Locale locale = configuration.isLocaleSpecificLayout()
       //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       Locale locale = configuration.getLocale();
-      presentation.setIcon(
-        locale != Locale.ANY && FlagManager.showFlagsForLanguages() ? locale.getFlagImage() : StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
       String brief = Locale.getLocaleLabel(locale, true);
       presentation.setText(brief);
     }
@@ -188,29 +185,26 @@ public class LocaleMenuAction extends DropDownAction {
 
   private class SetLocaleAction extends ConfigurationAction {
     private final Locale myLocale;
+    private final boolean myIsCurrentLocale;
 
     public SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale, boolean isCurrentLocale) {
       // TODO: Rather than passing in the title, update the code to implement update() instead; that
       // way we can lazily compute the label as part of the list rendering
-      super(renderContext, title);
+      super(renderContext, title, null);
       myLocale = locale;
-
-      // There are two different displaying cases depends on the flag appearance setting.
-      // 1. No flag for locale:      Set checked icon for the current locale.
-      // 2. Display flag for locale: Set checked icon for the current locale and set flags for all other locales except default locale.
-      // The displaying setting can be get by FlagManager.showFlagsForLanguages().
-      if (isCurrentLocale) {
-        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
-      }
-      else if (FlagManager.showFlagsForLanguages() && locale != Locale.ANY) {
-        getTemplatePresentation().setIcon(locale.getFlagImage());
-      }
+      myIsCurrentLocale = isCurrentLocale;
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-      super.actionPerformed(e);
-      updateActions(e.getDataContext());
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      Toggleable.setSelected(presentation, myIsCurrentLocale);
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      super.actionPerformed(event);
+      updateActions(event.getDataContext());
     }
 
     @Override

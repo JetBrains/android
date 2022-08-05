@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -26,9 +27,8 @@ import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.Namespacing;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
 import com.google.common.base.Throwables;
@@ -61,7 +61,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -476,18 +475,8 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   private LocalResourceRepository computeTestAppResources() {
-    // For disposal, the newly created test module repository ends up owned by the repository manager
-    // if returned from this method or the TestAppResourceRepository if passed to it. This is slightly
-    // different to the main module repository, which is always owned by the manager and stored in
-    // myModuleResources.
     LocalResourceRepository moduleTestResources = getTestModuleResources();
-
-    AndroidModuleModel model = AndroidModuleModel.get(myFacet);
-    if (model == null) {
-      return moduleTestResources;
-    }
-
-    return TestAppResourceRepository.create(myFacet, moduleTestResources, model);
+    return TestAppResourceRepository.create(myFacet, moduleTestResources);
   }
 
   /**
@@ -647,8 +636,11 @@ public final class ResourceRepositoryManager implements Disposable {
         appResources.updateRoots(getLibraryResources());
       }
 
-      if (oldLibraryResourceMap != null) {
-        oldLibraryResourceMap.size(); // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
+      // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
+      // This condition should never be true, but exists to prevent the compiler from optimizing
+      // away oldLibraryResourceMap.
+      if (oldLibraryResourceMap != null && oldLibraryResourceMap.size() == Integer.MAX_VALUE) {
+        throw new AssertionError();
       }
     }
     catch (IllegalStateException e) {
@@ -675,7 +667,7 @@ public final class ResourceRepositoryManager implements Disposable {
       return ResourceNamespace.RES_AUTO;
     }
 
-    String packageName = AndroidManifestUtils.getPackageName(myFacet);
+    String packageName = ProjectSystemUtil.getModuleSystem(myFacet).getPackageName();
     if (packageName == null) {
       return ResourceNamespace.RES_AUTO;
     }
@@ -698,7 +690,7 @@ public final class ResourceRepositoryManager implements Disposable {
       return ResourceNamespace.RES_AUTO;
     }
 
-    String testPackageName = AndroidManifestUtils.getTestPackageName(myFacet);
+    String testPackageName = ProjectSystemUtil.getModuleSystem(myFacet).getTestPackageName();
     if (testPackageName == null) {
       return ResourceNamespace.RES_AUTO;
     }

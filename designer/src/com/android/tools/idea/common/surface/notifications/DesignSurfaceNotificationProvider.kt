@@ -33,7 +33,7 @@ class DesignSurfaceNotificationProvider : EditorNotifications.Provider<EditorNot
   override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
-    val surface: DesignSurface = (fileEditor as? NlEditor)?.component?.surface ?: return null
+    val surface: DesignSurface<*> = (fileEditor as? NlEditor)?.component?.surface ?: return null
     return if (!surface.isRefreshing && surface.sceneManagers.any { it.isOutOfDate }) {
       EditorNotificationPanel(fileEditor).apply {
         text = "The preview is out of date"

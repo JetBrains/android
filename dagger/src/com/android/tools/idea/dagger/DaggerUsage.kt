@@ -43,6 +43,8 @@ private val SUBCOMPONENTS_USAGE_TYPE = UsageType { message("subcomponents") }
 private val INCLUDED_IN_COMPONENTS_USAGE_TYPE = UsageType { message("included.in.components") }
 private val INCLUDED_IN_MODULES_USAGE_TYPE = UsageType { message("included.in.modules") }
 private val MODULES_USAGE_TYPE = UsageType { message("modules.included") }
+private val ASSISTED_INJECT_CONSTRUCTOR_USAGE_TYPE = UsageType { message("assisted.inject") }
+private val ASSISTED_FACTORY_METHOD_USAGE_TYPE = UsageType { message("assisted.factory") }
 
 /**
  * [UsageTypeProvider] that labels Dagger related PsiElements with the right description.
@@ -67,6 +69,8 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       target.isDaggerSubcomponent && element.isDaggerSubcomponent -> {
         if (target.toPsiClass()!!.isParentOf(element.toPsiClass()!!)) SUBCOMPONENTS_USAGE_TYPE else PARENT_COMPONENTS_USAGE_TYPE
       }
+      target.isAssistedFactoryMethod && element.isAssistedInjectedConstructor -> ASSISTED_INJECT_CONSTRUCTOR_USAGE_TYPE
+      target.isAssistedInjectedConstructor && element.isAssistedFactoryMethod -> ASSISTED_FACTORY_METHOD_USAGE_TYPE
       (target.isDaggerComponentInstantiationMethod ||
        target.isDaggerEntryPointInstantiationMethod) && element.isDaggerProvider -> PROVIDERS_USAGE_TYPE
       else -> null
@@ -112,6 +116,8 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
         element.isDaggerSubcomponent -> getCustomUsagesForSubcomponent(element)
         element.isDaggerComponentInstantiationMethod ||
         element.isDaggerEntryPointInstantiationMethod -> getCustomUsagesForComponentMethod(element)
+        element.isAssistedInjectedConstructor -> getCustomUsagesForAssistedInjectedConstructor(element)
+        element.isAssistedFactoryMethod -> getCustomUsagesForAssistedFactoryMethod(element)
         else -> return@runReadAction
       }
       if (usages.isNotEmpty()) {
@@ -120,6 +126,14 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
         element.project.service<DaggerAnalyticsTracker>().trackFindUsagesNodeWasDisplayed(getTypeForMetrics(element), calculationTime)
       }
     }
+  }
+
+  private fun getCustomUsagesForAssistedFactoryMethod(factoryMethod: PsiElement): Collection<PsiElement> {
+    return getDaggerAssistedInjectConstructorForAssistedFactoryMethod(factoryMethod)
+  }
+
+  private fun getCustomUsagesForAssistedInjectedConstructor(assistedInjectConstructor: PsiElement): Collection<PsiElement> {
+    return getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(assistedInjectConstructor)
   }
 
   private fun getCustomUsagesForSubcomponent(subcomponent: PsiElement): Collection<PsiElement> {

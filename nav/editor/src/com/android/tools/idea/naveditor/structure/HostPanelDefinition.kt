@@ -26,12 +26,12 @@ import com.intellij.icons.AllIcons
 import java.awt.BorderLayout
 import javax.swing.JComponent
 
-class HostPanelDefinition : ToolWindowDefinition<DesignSurface>(
+class HostPanelDefinition : ToolWindowDefinition<DesignSurface<*>>(
   "Hosts", AllIcons.Toolwindows.ToolWindowStructure, "HOSTS", Side.LEFT, Split.TOP, AutoHide.DOCKED,
   { HostPanelContainer() }
 )
 
-private class HostPanelContainer : ToolContent<DesignSurface> {
+private class HostPanelContainer : ToolContent<DesignSurface<*>> {
   val panel = AdtSecondaryPanel(BorderLayout())
   var hostPanel: JComponent? = null
 
@@ -39,7 +39,7 @@ private class HostPanelContainer : ToolContent<DesignSurface> {
     return hostPanel ?: panel
   }
 
-  override fun setToolContext(toolContext: DesignSurface?) {
+  override fun setToolContext(toolContext: DesignSurface<*>?) {
     hostPanel = toolContext?.let { HostPanel(it) }
   }
 

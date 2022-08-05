@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property.ui
 
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
-import com.android.tools.property.ptable2.PFormTable
+import com.android.tools.property.ptable.PFormTable
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout

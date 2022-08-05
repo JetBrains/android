@@ -16,13 +16,12 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.module.Module;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -40,7 +39,7 @@ public class FileSystemApkProvider implements ApkProvider {
   @NotNull
   @Override
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    String id = AndroidManifestUtils.getPackageName(myModule);
+    String id = ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
     if (id == null) {
       throw new ApkProvisionException("Invalid manifest, no package name specified");
     }
@@ -48,11 +47,5 @@ public class FileSystemApkProvider implements ApkProvider {
     List<ApkInfo> apkList = new ArrayList<>();
     apkList.add(new ApkInfo(myApkPath, id));
     return apkList;
-  }
-
-  @NotNull
-  @Override
-  public List<ValidationError> validate() {
-    return ImmutableList.of();
   }
 }

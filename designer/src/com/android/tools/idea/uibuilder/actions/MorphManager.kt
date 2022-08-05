@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
@@ -31,11 +32,11 @@ class MorphManager {
       if (component.isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
         val module = component.model.module
         suggestions = mutableListOf(
-            module.mapAndroidxName(SdkConstants.CONSTRAINT_LAYOUT),
-            SdkConstants.LINEAR_LAYOUT,
-            module.mapAndroidxName(SdkConstants.COORDINATOR_LAYOUT),
-            SdkConstants.RELATIVE_LAYOUT,
-            SdkConstants.FRAME_LAYOUT)
+          module.mapAndroidxName(AndroidXConstants.CONSTRAINT_LAYOUT),
+          SdkConstants.LINEAR_LAYOUT,
+          module.mapAndroidxName(AndroidXConstants.COORDINATOR_LAYOUT),
+          SdkConstants.RELATIVE_LAYOUT,
+          SdkConstants.FRAME_LAYOUT)
       }
       else {
         suggestions = mutableListOf(

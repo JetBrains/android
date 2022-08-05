@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -45,7 +46,6 @@ import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.tree.TreeModel;
@@ -237,6 +237,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
         myTree.robot().pressAndReleaseKey(KeyEvent.VK_ADD);
         totalPath.append('/').append(path[i]);
       }
+      Wait.seconds(10);
       myTree.clickPath(totalPath.toString(), button);
       return myIdeFrameFixture;
     }
@@ -259,7 +260,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     @NotNull
     public List<NodeFixture> getChildren() {
-      final List<NodeFixture> children = new ArrayList<>();
+      final List<NodeFixture> children = Lists.newArrayList();
       GuiTask.execute(
         () -> {
           for (Object child : myTreeStructure.getChildElements(myNode)) {

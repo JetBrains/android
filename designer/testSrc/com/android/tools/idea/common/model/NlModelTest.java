@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
@@ -22,10 +23,8 @@ import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.EDIT_TEXT;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
-import static com.android.tools.idea.common.LayoutTestUtilities.createSurface;
 import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
 import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
@@ -434,7 +433,7 @@ public class NlModelTest extends LayoutTestCase {
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
-      () -> model.createComponent(model.getSurface(), recyclerViewTag, frameLayout, null, InsertType.CREATE
+      () -> model.createComponent(recyclerViewTag, frameLayout, null, InsertType.CREATE
       ),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
@@ -475,8 +474,9 @@ public class NlModelTest extends LayoutTestCase {
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" +
                                                                     ANDROID_URI + "\"/>");
     NlComponent recyclerView =
-      model.createComponent(model.getSurface(), recyclerViewTag, null, null, InsertType.CREATE);
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, model.getSurface());
+      model.createComponent(recyclerViewTag, null, null, InsertType.CREATE);
+    List<NlComponent> toAdd = Collections.singletonList(recyclerView);
+    UtilsKt.createAndSelectComponents(model, toAdd, frameLayout, null, model.getSurface().getSelectionModel());
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
     // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.
@@ -528,7 +528,7 @@ public class NlModelTest extends LayoutTestCase {
     NlComponent recyclerView = linearLayout.getChild(1);
     assertThat(frameLayout).isNotNull();
 
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE, model.getSurface());
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE, null);
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
     // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.
@@ -642,7 +642,7 @@ public class NlModelTest extends LayoutTestCase {
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
     when(sceneView.getSelectionModel()).thenReturn(selectionModel);
     NlDesignSurface nlSurface = (NlDesignSurface)model.getSurface();
-    when(sceneView.getSurface()).thenReturn(nlSurface);
+    when(sceneView.getSurface()).thenReturn((DesignSurface)nlSurface);
     NlAnalyticsManager analyticsManager = new NlAnalyticsManager(nlSurface);
     when(nlSurface.getAnalyticsManager()).thenReturn(analyticsManager);
     Configuration configuration = model.getConfiguration();
@@ -892,12 +892,8 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   @NotNull
-  private SyncNlModel createModel(XmlFile modelXml) {
-    DesignSurface surface = createSurface(NlDesignSurface.class);
-    SyncNlModel model = SyncNlModel.create(myFixture.getProject(), NlComponentRegistrar.INSTANCE,
-                                           null, null, myFacet, modelXml.getVirtualFile());
-    model.setDesignSurface(surface);
-    return model;
+  private SyncNlModel createModel(@NotNull XmlFile modelXml) {
+    return SyncNlModel.create(myFixture.getProject(), NlComponentRegistrar.INSTANCE, null, null, myFacet, modelXml.getVirtualFile());
   }
 
   private ModelBuilder createDefaultModelBuilder(boolean includeIds) {

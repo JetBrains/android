@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.model
 
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.PROJECT_MODIFIED
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
 

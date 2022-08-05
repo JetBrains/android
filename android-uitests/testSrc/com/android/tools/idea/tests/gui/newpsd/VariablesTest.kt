@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.newpsd
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.clickNo
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectVariablesConfigurable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,16 +30,6 @@ class VariablesTest {
   @Rule
   @JvmField
   val guiTest = PsdGuiTestRule()
-
-  @Before
-  fun setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride()
-  }
 
   @Test
   fun addAndEditMultipleVariables() {

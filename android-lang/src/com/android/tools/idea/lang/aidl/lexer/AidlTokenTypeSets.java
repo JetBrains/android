@@ -27,11 +27,58 @@ public interface AidlTokenTypeSets {
 
   TokenSet IDENTIFIERS = TokenSet.create(AidlTokenTypes.IDENTIFIER);
 
-  TokenSet KEY_WORDS = TokenSet
-    .create(AidlTokenTypes.BOOLEAN_KEYWORD, AidlTokenTypes.BYTE_KEYWORD, AidlTokenTypes.CHAR_KEYWORD, AidlTokenTypes.DOUBLE_KEYWORD,
-            AidlTokenTypes.FLATTENABLE_KEYWORD, AidlTokenTypes.FLOAT_KEYWORD, AidlTokenTypes.IMPORT_KEYWORD, AidlTokenTypes.IN_KEYWORD,
-            AidlTokenTypes.INOUT_KEYWORD, AidlTokenTypes.INT_KEYWORD, AidlTokenTypes.INTERFACE_KEYWORD, AidlTokenTypes.LONG_KEYWORD,
-            AidlTokenTypes.ONEWAY_KEYWORD, AidlTokenTypes.OUT_KEYWORD, AidlTokenTypes.PACKAGE_KEYWORD, AidlTokenTypes.PARCELABLE_KEYWORD,
-            AidlTokenTypes.RPC_KEYWORD, AidlTokenTypes.SHORT_KEYWORD, AidlTokenTypes.VOID_KEYWORD);
+  TokenSet NUMBERS = TokenSet.create(AidlTokenTypes.INTVALUE, AidlTokenTypes.FLOATVALUE, AidlTokenTypes.HEXVALUE);
 
+  TokenSet LITERALS = TokenSet.create(AidlTokenTypes.C_STR, AidlTokenTypes.CHARVALUE);
+
+  TokenSet KEY_WORDS = TokenSet
+    .create(
+      AidlTokenTypes.BOOLEAN_KEYWORD,
+      AidlTokenTypes.BYTE_KEYWORD,
+      AidlTokenTypes.CHAR_KEYWORD,
+      AidlTokenTypes.CONST_KEYWORD,
+      AidlTokenTypes.DOUBLE_KEYWORD,
+      AidlTokenTypes.ENUM_KEYWORD,
+      AidlTokenTypes.FALSE_KEYWORD,
+      AidlTokenTypes.FLOAT_KEYWORD,
+      AidlTokenTypes.IMPORT_KEYWORD,
+      AidlTokenTypes.INOUT_KEYWORD,
+      AidlTokenTypes.INTERFACE_KEYWORD,
+      AidlTokenTypes.INT_KEYWORD,
+      AidlTokenTypes.IN_KEYWORD,
+      AidlTokenTypes.LONG_KEYWORD,
+      AidlTokenTypes.ONEWAY_KEYWORD,
+      AidlTokenTypes.OUT_KEYWORD,
+      AidlTokenTypes.PACKAGE_KEYWORD,
+      AidlTokenTypes.PARCELABLE_KEYWORD,
+      AidlTokenTypes.SHORT_KEYWORD,
+      AidlTokenTypes.TRUE_KEYWORD,
+      AidlTokenTypes.UNION_KEYWORD,
+      AidlTokenTypes.VOID_KEYWORD
+    );
+
+  TokenSet OPERATORS = TokenSet
+    .create(
+      AidlTokenTypes.PLUS,
+      AidlTokenTypes.MINUS,
+      AidlTokenTypes.MULTIPLY,
+      AidlTokenTypes.DIVIDE,
+      AidlTokenTypes.BITWISE_AND,
+      AidlTokenTypes.LOGICAL_AND,
+      AidlTokenTypes.BITWISE_OR,
+      AidlTokenTypes.LOGICAL_OR,
+      AidlTokenTypes.BITWISE_XOR,
+      AidlTokenTypes.MODULO,
+      AidlTokenTypes.ASSIGN,
+      AidlTokenTypes.EQUALITY,
+      AidlTokenTypes.NEQ,
+      AidlTokenTypes.GT,
+      AidlTokenTypes.GEQ,
+      AidlTokenTypes.LT,
+      AidlTokenTypes.LEQ,
+      AidlTokenTypes.BITWISE_COMPLEMENT,
+      AidlTokenTypes.NOT,
+      AidlTokenTypes.LSHIFT,
+      AidlTokenTypes.RSHIFT
+    );
 }

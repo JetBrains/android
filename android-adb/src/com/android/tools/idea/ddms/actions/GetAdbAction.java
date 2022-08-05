@@ -54,7 +54,7 @@ public class GetAdbAction extends AnAction {
     }
 
     ListenableFuture<AndroidDebugBridge> bridge = AdbService.getInstance().getDebugBridge(adb);
-    Futures.addCallback(bridge, new FutureCallback<>() {
+    Futures.addCallback(bridge, new FutureCallback<AndroidDebugBridge>() {
       @Override
       public void onSuccess(AndroidDebugBridge result) {
         Notifications.Bus.notify(new Notification("Android", "ADB", "ADB obtained", NotificationType.INFORMATION));

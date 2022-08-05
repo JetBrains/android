@@ -44,12 +44,15 @@ class Platform(
 ) : InstallableComponent(name, description, installUpdates) {
   override val requiredSdkPackages: Collection<String>
     get() {
-      val requests = mutableListOf(DetailsTypes.getPlatformPath(myVersion), DetailsTypes.getSourcesPath(myVersion))
+      val requests = mutableListOf(DetailsTypes.getPlatformPath(myVersion))
       findLatestCompatibleBuildTool()?.let {
         requests.add(it)
       }
       return requests
     }
+
+  override val optionalSdkPackages: Collection<String>
+    get() = listOf(DetailsTypes.getSourcesPath(myVersion))
 
   private fun findLatestCompatibleBuildTool(): String? {
     var revision: Revision? = null

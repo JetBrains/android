@@ -1,7 +1,11 @@
 package com.android.tools.idea.editors
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.intellij.AppTopics
+import com.intellij.codeInsight.lookup.LookupEvent
+import com.intellij.codeInsight.lookup.LookupListener
+import com.intellij.codeInsight.lookup.LookupManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -23,6 +27,7 @@ import kotlin.concurrent.withLock
 
 private class DocumentChangeListener(private val onDocumentsUpdated: (Collection<Document>, Long) -> Unit,
                                      private val documentManager: PsiDocumentManager,
+                                     private val lookupManager: LookupManager,
                                      private val mergeQueue: MergingUpdateQueue,
                                      private val timeNanosProvider: () -> Long) : DocumentListener {
   val aggregatedEventsLock = ReentrantLock()
@@ -33,12 +38,61 @@ private class DocumentChangeListener(private val onDocumentsUpdated: (Collection
   @GuardedBy("aggregatedEventsLock")
   var lastUpdatedNanos = 0L
 
+  /**
+   * [LookupListener] that is added to the active lookup to detect when the completion is closed.
+   */
+  private val lookupListener = object: LookupListener {
+    override fun lookupCanceled(event: LookupEvent) {
+      event.lookup.removeLookupListener(this)
+      queueDocumentUpdates()
+    }
+
+    override fun itemSelected(event: LookupEvent) {
+      event.lookup.removeLookupListener(this)
+      queueDocumentUpdates()
+    }
+  }
+
   private fun onDocumentChanged(events: Set<DocumentEvent>) {
     val documents = events
       .map { it.document }
       .distinct()
 
     onDocumentsUpdated(documents, aggregatedEventsLock.withLock { lastUpdatedNanos })
+  }
+
+  private fun queueDocumentUpdates() {
+    if (aggregatedEventsLock.withLock { aggregatedEvents.isEmpty() }) return
+
+    // We use the merge queue to avoid triggering unnecessary updates. All the changes are aggregated. We wait for the documents to be
+    // committed and then we evaluate the change.
+    mergeQueue.queue(object : Update("document change") {
+      override fun run() {
+        documentManager.performLaterWhenAllCommitted {
+          mergeQueue.queue(object : Update("handle changes") {
+            override fun run() {
+              val activeLookup = lookupManager.activeLookup
+              activeLookup?.let {
+                // Delay the triggering of the update until the completion has finished.
+                it.removeLookupListener(lookupListener)
+                it.addLookupListener(lookupListener)
+              }
+
+              // If there is no lookup or if it has been disposed while we were setting up the listeners,
+              // trigger an update.
+              if (activeLookup == null || activeLookup != lookupManager.activeLookup) {
+                onDocumentChanged(aggregatedEventsLock.withLock {
+                  val aggregatedEventsCopy = aggregatedEvents.toSet()
+                  aggregatedEvents.clear()
+
+                  aggregatedEventsCopy
+                })
+              }
+            }
+          })
+        }
+      }
+    })
   }
 
   override fun documentChanged(event: DocumentEvent) {
@@ -48,24 +102,7 @@ private class DocumentChangeListener(private val onDocumentsUpdated: (Collection
       lastUpdatedNanos = timeNanosProvider()
     }
 
-    // We use the merge queue to avoid triggering unnecessary updates. All the changes are aggregated. We wait for the documents to be
-    // committed and then we evaluate the change.
-    mergeQueue.queue(object : Update("document change") {
-      override fun run() {
-        documentManager.performLaterWhenAllCommitted {
-          mergeQueue.queue(object : Update("handle changes") {
-            override fun run() {
-              onDocumentChanged(aggregatedEventsLock.withLock {
-                val aggregatedEventsCopy = aggregatedEvents.toSet()
-                aggregatedEvents.clear()
-
-                aggregatedEventsCopy
-              })
-            }
-          })
-        }
-      }
-    })
+    queueDocumentUpdates()
   }
 }
 
@@ -88,8 +125,9 @@ fun setupChangeListener(
                                                       false).setRestartTimerOnAdd(true),
   timeNanosProvider: () -> Long = { System.nanoTime() }) {
   val documentManager = PsiDocumentManager.getInstance(project)
+  val lookupManager = LookupManager.getInstance(project)
   EditorFactory.getInstance().eventMulticaster.addDocumentListener(
-    DocumentChangeListener(onDocumentsUpdated, documentManager, mergeQueue, timeNanosProvider),
+    DocumentChangeListener(onDocumentsUpdated, documentManager, lookupManager, mergeQueue, timeNanosProvider),
     parentDisposable)
 }
 
@@ -114,9 +152,10 @@ fun setupChangeListener(
                                                       false).setRestartTimerOnAdd(true),
   timeNanosProvider: () -> Long = { System.nanoTime() }) {
   val documentManager = PsiDocumentManager.getInstance(project)
+  val lookupManager = LookupManager.getInstance(project)
   val document = ReadAction.compute<Document, Throwable> { documentManager.getDocument(psiFile)!! }
   document.addDocumentListener(
-    DocumentChangeListener({ _, lastUpdatedNanos -> onDocumentUpdated(lastUpdatedNanos) }, documentManager, mergeQueue, timeNanosProvider),
+    DocumentChangeListener({ _, lastUpdatedNanos -> onDocumentUpdated(lastUpdatedNanos) }, documentManager, lookupManager, mergeQueue, timeNanosProvider),
     parentDisposable)
 }
 
@@ -160,3 +199,21 @@ fun setupOnSaveListener(
     }
   })
 }
+
+/**
+ * Returns a new flow that gets all the document changes for the given [psiFile]. The flow is cancelled if the [parentDisposable] is disposed.
+ * [onReady] will be called when the flow is ready to start processing events from the document.
+ */
+fun documentChangeFlow(psiFile: PsiFile, parentDisposable: Disposable, log: Logger? = null, onReady: () -> Unit = {}) =
+  disposableCallbackFlow<Long>("ChangeListenerFlow", log, parentDisposable) {
+    val documentManager = PsiDocumentManager.getInstance(psiFile.project)
+    val document = ReadAction.compute<Document, Throwable> { documentManager.getDocument(psiFile)!! }
+    document.addDocumentListener(
+      object : DocumentListener {
+        override fun documentChanged(event: DocumentEvent) {
+          trySend(event.document.modificationStamp)
+        }
+      },
+      disposable)
+    onReady()
+  }

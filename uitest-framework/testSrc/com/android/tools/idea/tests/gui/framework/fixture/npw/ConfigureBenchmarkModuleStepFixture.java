@@ -77,7 +77,7 @@ public class ConfigureBenchmarkModuleStepFixture<W extends AbstractWizardFixture
 
   @NotNull
   private JRadioButtonFixture findRadioButtonWithText(@NotNull String label) {
-    JRadioButton radioButton = robot().finder().find(new GenericTypeMatcher<>(JRadioButton.class, true) {
+    JRadioButton radioButton = robot().finder().find(new GenericTypeMatcher<JRadioButton>(JRadioButton.class, true) {
       @Override
       protected boolean isMatching(@NotNull JRadioButton component) {
         return component.getText().equals(label);

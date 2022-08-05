@@ -17,10 +17,16 @@ package com.android.tools.idea.rendering
 
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.concurrency.OnDemandExecutorService
+import com.android.tools.idea.concurrency.androidCoroutineExceptionHandler
+import com.android.tools.idea.rendering.RenderAsyncActionExecutor.RenderingPriority
+import com.google.common.truth.Truth
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -41,13 +47,45 @@ private fun RenderExecutor.runAsyncActionWithTestDefault(queueingTimeout: Long =
                                                          queueingTimeoutUnit: TimeUnit = TimeUnit.SECONDS,
                                                          actionTimeout: Long = 1,
                                                          actionTimeoutUnit: TimeUnit = TimeUnit.SECONDS,
+                                                         priority: RenderingPriority = RenderingPriority.HIGH,
                                                          runnable: () -> Unit): CompletableFuture<Void> =
-  runAsyncActionWithTimeout(queueingTimeout, queueingTimeoutUnit, actionTimeout, actionTimeoutUnit, Callable<Void> {
+  runAsyncActionWithTimeout(queueingTimeout, queueingTimeoutUnit, actionTimeout, actionTimeoutUnit, priority, Callable<Void> {
     runnable()
     null
   })
 
 class RenderExecutorTest {
+  @Test
+  fun testPriority() {
+    // Use the production RenderExecutor to test its priority queue
+    val executor = RenderExecutor.create()
+    val actionIsRunningLatch = CountDownLatch(4)
+    val order = mutableListOf<Int>()
+    try {
+      executor.runAsyncActionWithTestDefault {
+        actionIsRunningLatch.countDown()
+        Thread.sleep(500)
+        order.add(1)
+      }
+      executor.runAsyncActionWithTestDefault(priority = RenderingPriority.LOW) {
+        order.add(3)
+        actionIsRunningLatch.countDown()
+      }
+      executor.runAsyncActionWithTestDefault(priority = RenderingPriority.LOW) {
+        order.add(4)
+        actionIsRunningLatch.countDown()
+      }
+      executor.runAsyncActionWithTestDefault() {
+        order.add(2)
+        actionIsRunningLatch.countDown()
+      }
+      actionIsRunningLatch.await(5, TimeUnit.SECONDS)
+      Truth.assertThat(order).containsExactly(1, 2, 3, 4).inOrder()
+    } finally {
+      executor.shutdown()
+    }
+  }
+
   @Test
   fun testTimeout() {
     val actionExecutor = OnDemandExecutorService()
@@ -105,18 +143,24 @@ class RenderExecutorTest {
     val timeoutExecutorProvider = VirtualTimeScheduler()
     val executor = RenderExecutor.createForTests(executorProvider = { actionExecutor },
                                                  timeoutExecutorProvider = { timeoutExecutorProvider })
-    val counter = AtomicInteger(0)
+    val counterHighPriority = AtomicInteger(0)
+    val counterLowPriority = AtomicInteger(0)
     val lastToExecute = AtomicInteger(0)
 
-    repeat(100) {
+    repeat(50) {
       executor.runAsyncActionWithTestDefault {
-        counter.incrementAndGet()
-        lastToExecute.set(it)
+        counterHighPriority.incrementAndGet()
+        lastToExecute.set(2 * it + 1)
+      }
+      executor.runAsyncActionWithTestDefault(priority = RenderingPriority.LOW) {
+        counterLowPriority.incrementAndGet()
+        lastToExecute.set(2 * it + 2)
       }
     }
     actionExecutor.runAll()
     // Only a maximum of 50 tasks will be queued
-    assertEquals(50, counter.get())
+    assertEquals(50, counterHighPriority.get())
+    assertEquals(0, counterLowPriority.get())
     // But we have evicted the ones that were waiting, so the last one should have executed (99)
     assertEquals(99, lastToExecute.get())
   }
@@ -182,7 +226,8 @@ class RenderExecutorTest {
     try {
       val future = executor.runAsyncActionWithTimeout(
         queueingTimeout = 0, queueingTimeoutUnit = TimeUnit.SECONDS,
-        actionTimeout = 10, actionTimeoutUnit = TimeUnit.SECONDS) {
+        actionTimeout = 10, actionTimeoutUnit = TimeUnit.SECONDS,
+        priority = RenderingPriority.HIGH) {
         actionIsRunningLatch.countDown()
         completeActionLatch.await()
       }
@@ -271,5 +316,48 @@ class RenderExecutorTest {
       forceShutdown = true
       executor.shutdown()
     }
+  }
+
+  @Test
+  fun testActionTimeout2() {
+    val executor = RenderExecutor.create()
+
+    val future = executor.runAsyncActionWithTimeout(
+      queueingTimeout = 10, queueingTimeoutUnit = TimeUnit.SECONDS,
+      actionTimeout = 10, actionTimeoutUnit = TimeUnit.SECONDS, priority = RenderingPriority.HIGH) {
+      runBlocking {
+        CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default + androidCoroutineExceptionHandler).launch {
+          throw IllegalArgumentException()
+        }
+      }
+      println("Done")
+    }
+
+    future.join()
+  }
+
+  @Test
+  fun testCancelLowPriority() {
+    val actionExecutor = OnDemandExecutorService()
+    val timeoutExecutorProvider = VirtualTimeScheduler()
+    val executor = RenderExecutor.createForTests(executorProvider = { actionExecutor },
+                                                 timeoutExecutorProvider = { timeoutExecutorProvider })
+    val counterHighPriority = AtomicInteger(0)
+    val counterLowPriority = AtomicInteger(0)
+
+    repeat(10) {
+      executor.runAsyncActionWithTestDefault {
+        counterHighPriority.incrementAndGet()
+      }
+      executor.runAsyncActionWithTestDefault(priority = RenderingPriority.LOW) {
+        counterLowPriority.incrementAndGet()
+      }
+    }
+    executor.cancelLowerPriorityActions(RenderingPriority.LOW)
+    val numActions = actionExecutor.runAll()
+    assertEquals(20, numActions)
+    // Only high priority tasks will run, as the low priority ones have been cancelled
+    assertEquals(10, counterHighPriority.get())
+    assertEquals(0, counterLowPriority.get())
   }
 }

@@ -15,26 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
-import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseConfig
+import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
+import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
@@ -45,35 +43,73 @@ import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.findCompositeBuildMapModel
+import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.idea.gradle.configuration.CachedArgumentsRestoring.restoreExtractedArgs
+import org.jetbrains.kotlin.idea.gradle.configuration.EntityArgsInfo
+import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
+import org.jetbrains.kotlin.idea.projectModel.CompilerArgumentsCacheAware
+import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
+import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
 
 fun ProjectDumper.dumpAndroidIdeModel(
   project: Project,
-  kotlinModels: (com.intellij.openapi.module.Module) -> KotlinGradleModel?,
-  kaptModels: (com.intellij.openapi.module.Module) -> KaptGradleModel?
+  kotlinModels: (Module) -> KotlinGradleModel?,
+  kaptModels: (Module) -> KaptGradleModel?,
+  mppModels: (Module) -> KotlinMPPGradleModel?,
+  externalProjects: (Module) -> ExternalProject?
 ) {
-  nest(File(project.basePath!!), "PROJECT") {
+  val projectRoot = File(project.basePath!!)
+  nest(projectRoot, "PROJECT") {
     with(ideModelDumper(this)) {
+      // Android Studio projects always have just one Gradle root, and thus we dump the composite build structure of the root project of a
+      // build located at the root of the IDE project.
+      GradleHolderProjectPath(projectRoot.canonicalPath, ":")
+        .resolveIn(project)
+        ?.findCompositeBuildMapModel()
+        ?.let { dump(it) }
+
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
         head("MODULE") { module.name }
         nest {
+          GradleFacet.getInstance(module)?.gradleModuleModel?.let {
+            // Skip all but holders to prevent needless spam in the snapshots. All modules
+            // point to the same facet.
+            if (!module.isHolderModule()) return@let
+            dump(it)
+          }
           GradleAndroidModel.get(module)?.let { it ->
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
             if (!module.isHolderModule()) return@let
+            head("CurrentVariantReportedVersions")
+            nest {
+              AndroidModuleInfo.getInstance(module)?.minSdkVersion?.dump("minSdk")
+              AndroidModuleInfo.getInstance(module)?.runtimeMinSdkVersion?.get()?.dump("runtimeMinSdk")
+              AndroidModuleInfo.getInstance(module)?.targetSdkVersion?.dump("targetSdk")
+            }
             dump(it.androidProject)
             // Dump all the fetched Ide variants.
             head("IdeVariants")
@@ -93,6 +129,14 @@ fun ProjectDumper.dumpAndroidIdeModel(
           }
 
           kaptModels(module)?.let {
+            dump(it)
+          }
+
+          mppModels(module)?.let {
+            dump(it)
+          }
+
+          externalProjects(module)?.let {
             dump(it)
           }
         }
@@ -118,10 +162,53 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: Grad
   }
 }
 
+private val jbModelDumpers = listOf(
+  SpecializedDumper<CompilerArgumentsCacheAware> { Unit },
+  SpecializedDumper<EntityArgsInfo> {
+    head(propertyName)
+    nest {
+      prop("compilerArguments", it.currentCompilerArguments, it.defaultCompilerArguments)
+      prop("dependencyClasspath", it.dependencyClasspath)
+    }
+  },
+  SpecializedDumper<CachedExtractedArgsInfo> {
+    prop(
+      propertyName,
+      restoreExtractedArgs(it, CompilerArgumentsCacheMergeManager.compilerArgumentsCacheHolder)
+    )
+  },
+  SpecializedDumper(property = CommonCompilerArguments::pluginOptions) {
+  },
+  SpecializedDumper(property = IdeDependencies::androidLibraries) {
+    prop(propertyName, it.asUnordered())
+  },
+  SpecializedDumper(property = IdeDependencies::javaLibraries) {
+    prop(propertyName, it.asUnordered())
+  },
+  SpecializedDumper(property = IdeDependencies::moduleDependencies) {
+    prop(propertyName, it.asUnordered())
+  },
+  SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome) {
+    // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
+    // in tests.
+  },
+  SpecializedDumper(property = KotlinMPPGradleModel::dependencyMap) { dependencyMap ->
+    prop(propertyName, dependencyMap.entries.sortedBy { it.key }.associate { it.key to it.value })
+  },
+  SpecializedDumper(property = KotlinTaskProperties::pluginVersion) {
+    // We do not have access to `TestUtils.KOTLIN_VERSION_FOR_TESTS` here. Remove the property.
+    prop(propertyName, "<CUT>")
+  }
+)
 
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
+  val modelDumper = ModelDumper(jbModelDumpers)
   object {
     fun dump(ideAndroidModel: IdeAndroidProject) {
+      prop("RootBuildId") { ideAndroidModel.projectPath.rootBuildId.path.toPrintablePath() }
+      prop("BuildId") { ideAndroidModel.projectPath.buildId.path.toPrintablePath() }
+      prop("BuildName") { ideAndroidModel.projectPath.buildName }
+      prop("ProjectPath") { ideAndroidModel.projectPath.projectPath }
       prop("ModelVersion") { ideAndroidModel.agpVersion.replaceKnownPatterns() }
       prop("ProjectType") { ideAndroidModel.projectType.toString() }
       prop("CompileTarget") { ideAndroidModel.compileTarget.replaceCurrentSdkVersion() }
@@ -136,10 +223,11 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       dump(ideAndroidModel.lintOptions)
       dump(ideAndroidModel.javaCompileOptions)
       dump(ideAndroidModel.agpFlags)
-      ideAndroidModel.variantNames?.forEach { prop("VariantNames") { it } }
+      ideAndroidModel.basicVariants.forEach { dump(it) }
       ideAndroidModel.flavorDimensions.forEach { prop("FlavorDimensions") { it } }
       ideAndroidModel.bootClasspath.forEach { prop("BootClassPath") { it.toPrintablePath().replaceCurrentSdkVersion() } }
       ideAndroidModel.dynamicFeatures.forEach { prop("DynamicFeatures") { it } }
+      prop("BaseFeature") { ideAndroidModel.baseFeature }
       ideAndroidModel.viewBindingOptions?.let { dump(it) }
       ideAndroidModel.dependenciesInfo?.let { dump(it) }
       ideAndroidModel.lintChecksJars?.forEach { prop("lintChecksJars") { it.path.toPrintablePath() } }
@@ -175,6 +263,14 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
+    fun dump(ideBasicVariant: IdeBasicVariant) {
+      head("- basicVariant:") { ideBasicVariant.name }
+      nest {
+        prop("applicationId") { ideBasicVariant.applicationId }
+        prop("testApplicationId") { ideBasicVariant.testApplicationId }
+      }
+    }
+
     fun dump(ideVariant: IdeVariant) {
       head("IdeVariant")
       nest {
@@ -188,7 +284,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("VersionCode") { ideVariant.versionCode?.toString() }
         prop("VersionNameSuffix") { ideVariant.versionNameSuffix }
         prop("VersionNameWithSuffix") { ideVariant.versionNameWithSuffix }
-        prop("TestApplicationId") { ideVariant.testApplicationId }
+        prop("DeprecatedPreMergedTestApplicationId") { ideVariant.deprecatedPreMergedTestApplicationId }
         prop("DeprecatedPreMergedApplicationId") { ideVariant.deprecatedPreMergedApplicationId }
         ideVariant.proguardFiles.forEach { prop("ProguardFiles") { it.path.toPrintablePath() } }
         ideVariant.consumerProguardFiles.forEach { prop("ConsumerProguardFiles") { it.path.toPrintablePath() } }
@@ -250,8 +346,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
+    fun dump(compositeBuildMap: IdeCompositeBuildMap) {
+      modelDumper.dumpModel(projectDumper, "CompositeBuildMap", compositeBuildMap)
+    }
+
     private fun dump(ideAndroidArtifact: IdeAndroidArtifact) {
       dump(ideAndroidArtifact as IdeBaseArtifact) // dump the IdeBaseArtifact part first.
+      prop("ApplicationId") { ideAndroidArtifact.applicationId }
       prop("SigningConfigName") { ideAndroidArtifact.signingConfigName }
       prop("IsSigned") { ideAndroidArtifact.isSigned.toString() }
       prop("CodeShrinker") { ideAndroidArtifact.codeShrinker.toString() }
@@ -261,55 +362,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidArtifact.testOptions?.let { dump(it) }
       ideAndroidArtifact.abiFilters.forEach { prop("AbiFilters") { it } }
       ideAndroidArtifact.modelSyncFiles.forEach { dump(it) }
-    }
-
-    private fun dump(androidLibrary: IdeAndroidLibrary) {
-      dump(androidLibrary as IdeLibrary)
-      prop("Folder") { androidLibrary.folder?.path?.toPrintablePath() }
-      prop("Manifest") { androidLibrary.manifest.toPrintablePath() }
-      androidLibrary.compileJarFiles.forEach { prop("CompileJarFiles") { it.toPrintablePath() } }
-      androidLibrary.runtimeJarFiles.forEach { prop("RuntimeJarFiles") { it.toPrintablePath() } }
-      prop("ResFolder") { androidLibrary.resFolder.toPrintablePath() }
-      prop("ResStaticLibrary") { androidLibrary.resStaticLibrary?.path?.toPrintablePath() }
-      prop("AssetFolder") { androidLibrary.assetsFolder.toPrintablePath() }
-      prop("JniFolder") { androidLibrary.jniFolder.toPrintablePath() }
-      prop("AidlFolder") { androidLibrary.aidlFolder.toPrintablePath() }
-      prop("RenderscriptFolder") { androidLibrary.renderscriptFolder.toPrintablePath() }
-      prop("ProguardRules") { androidLibrary.proguardRules.toPrintablePath() }
-      prop("ExternalAnnotations") { androidLibrary.externalAnnotations.toPrintablePath() }
-      prop("PublicResources") { androidLibrary.publicResources.toPrintablePath() }
-      prop("SymbolFile") { androidLibrary.symbolFile.toPrintablePath() }
-    }
-
-    private fun dump(ideLibrary: IdeLibrary) {
-      if (ideLibrary is IdeArtifactLibrary) {
-        prop("ArtifactAddress") {
-          ideLibrary.artifactAddress
-            .toPrintablePath()
-            .let { if (it.endsWith(" [-]")) it.substring(0, it.indexOf(" [-]")) else it }
-            .replaceKnownPatterns()
-        }
-      }
-      prop("LintJars") { ideLibrary.lintJar?.toPrintablePath() }
-      when (ideLibrary) {
-        is IdeAndroidLibrary -> prop("IsProvided") { ideLibrary.isProvided.toString() }
-        is IdeJavaLibrary -> prop("IsProvided") { ideLibrary.isProvided.toString() }
-      }
-      when (ideLibrary) {
-        is IdeAndroidLibrary -> prop("Artifact") { ideLibrary.artifact.path.toPrintablePath() }
-        is IdeJavaLibrary -> prop("Artifact") { ideLibrary.artifact.path.toPrintablePath() }
-      }
-    }
-
-    private fun dump(javaLibrary: IdeJavaLibrary) {
-      dump(javaLibrary as IdeLibrary)
-    }
-
-    private fun dump(moduleLibrary: IdeModuleLibrary) {
-      dump(moduleLibrary as IdeLibrary)
-      prop("ProjectPath") { moduleLibrary.projectPath }
-      prop("Variant") { moduleLibrary.variant }
-      prop("BuildId") { moduleLibrary.buildId?.toPrintablePath() }
     }
 
     private fun dump(ideBaseArtifact: IdeBaseArtifact) {
@@ -332,9 +384,49 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         head("MultiFlavorSourceProvider")
         nest { dump(it) }
       }
-      head("Level2Dependencies")
+      head("Dependencies")
       nest {
-        dump(ideBaseArtifact.level2Dependencies)
+        modelDumper.dumpModel(this@with, "compileClasspath", ideBaseArtifact.compileClasspath)
+        modelDumper.dumpModel(this@with, "runtimeClasspath", ideBaseArtifact.runtimeClasspath)
+      }
+      val runtimeNames =
+        (ideBaseArtifact.runtimeClasspath.androidLibraries + ideBaseArtifact.runtimeClasspath.javaLibraries).map { it.target.name }.toSet()
+      val compileTimeNames =
+        (ideBaseArtifact.compileClasspath.androidLibraries + ideBaseArtifact.compileClasspath.javaLibraries).map { it.target.name }.toSet()
+      val providedDependencies =
+        (ideBaseArtifact.compileClasspath.androidLibraries + ideBaseArtifact.compileClasspath.javaLibraries)
+          .filter { it.target.name !in runtimeNames }
+      if (providedDependencies.isNotEmpty()) {
+        head("ProvidedDependencies")
+        nest {
+          providedDependencies
+            .sortedBy { it.target.name }
+            .forEach {
+              prop("- provided") { it.target.name.replaceKnownPatterns().replaceKnownPaths() }
+            }
+        }
+      }
+      val runtimeOnlyClasses =
+        (
+          ideBaseArtifact.runtimeClasspath.androidLibraries
+            .filter { it.target.name !in compileTimeNames }
+            .flatMap { it.target.runtimeJarFiles } +
+
+            ideBaseArtifact.runtimeClasspath.javaLibraries
+              .filter { it.target.name !in compileTimeNames }
+              .map { it.target.artifact }
+          ).distinct()
+
+      if (runtimeOnlyClasses.isNotEmpty()) {
+        head("RuntimeOnlyClasses")
+        nest {
+          runtimeOnlyClasses
+            .map { it.toPrintablePath() }
+            .sorted()
+            .forEach {
+              prop("- class") { it }
+            }
+        }
       }
     }
 
@@ -346,44 +438,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     private fun dump(ideTestedTargetVariant: IdeTestedTargetVariant) {
       prop("TargetProjectPath") { ideTestedTargetVariant.targetProjectPath }
       prop("TargetVariant") { ideTestedTargetVariant.targetVariant }
-    }
-
-    private fun dump(ideDependencies: IdeDependencies) {
-      if (ideDependencies.androidLibraries.isNotEmpty()) {
-        head("AndroidLibraries")
-        nest {
-          ideDependencies.androidLibraries.sortedBy { it.name }.forEach {
-            head("AndroidLibrary") { it.name }
-            nest {
-              dump(it)
-            }
-          }
-        }
-      }
-      if (ideDependencies.javaLibraries.isNotEmpty()) {
-        head("JavaLibraries")
-        nest {
-          ideDependencies.javaLibraries.sortedBy { it.name }.forEach {
-            head("JavaLibrary") { it.name.replaceKnownPatterns() }
-            nest {
-              dump(it)
-            }
-          }
-        }
-      }
-      if (ideDependencies.moduleDependencies.isNotEmpty()) {
-        head("ModuleDependencies")
-        nest {
-          ideDependencies.moduleDependencies.sortedWith(compareBy<IdeModuleLibrary> { it.projectPath }.thenBy { it.buildId }).forEach {
-            head("ModuleDependency")
-            nest {
-              dump(it)
-            }
-          }
-        }
-      }
-      ideDependencies.runtimeOnlyClasses.forEach { prop("RuntimeOnlyClasses") { it.path.toPrintablePath() } }
-
     }
 
     private fun dump(ideProductFlavorContainer: IdeProductFlavorContainer) {
@@ -641,6 +695,15 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
+    fun AndroidVersion.dump(name: String) {
+      head(name)
+      nest {
+        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion() }
+        prop("CodeName") { codename }
+        prop("ApiString") { apiString.replaceCurrentSdkVersion() }
+      }
+    }
+
     private fun dump(testOptions: IdeTestOptions) {
       head("TestOptions")
       nest {
@@ -658,76 +721,44 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
-    fun dump(kotlinGradleModel: KotlinGradleModel) {
-      head("KotlinGradleModel")
+    fun dump(model: GradleModuleModel) {
+      head("GradleModuleModel")
       nest {
-        prop("hasKotlinPlugin") { kotlinGradleModel.hasKotlinPlugin.takeIf { it }?.toString() }
-        prop("coroutines") { kotlinGradleModel.coroutines }
-        prop("platformPluginId") { kotlinGradleModel.platformPluginId }
-        prop("implements") { kotlinGradleModel.implements.joinToString() }
-        prop("kotlinTarget") { kotlinGradleModel.kotlinTarget }
-        prop("gradleUserHome") { kotlinGradleModel.gradleUserHome.toPrintablePath() }
-        kotlinGradleModel.kotlinTaskProperties.forEach { key, value ->
-          head("kotlinTaskProperties") { key }
-          nest {
-            prop("incremental") { value.incremental?.toString() }
-            prop("packagePrefix") { value.packagePrefix }
-            value.pureKotlinSourceFolders?.forEach { prop("pureKotlinSourceFolders") { it.path.toPrintablePath() } }
-            prop("pluginVersion") { value.pluginVersion?.replaceKnownPatterns() }
-          }
-        }
-        kotlinGradleModel.cachedCompilerArgumentsBySourceSet.forEach { key, value ->
-          head("compilerArgumentsBySourceSet") { key }
-          nest {
-            fun dumpArg(title: String, arg: String) {
-              val (name, values) = when {
-                !arg.contains('=') && !arg.contains(':') -> arg to sequenceOf<String>()
-                arg.contains('=') -> arg.substringBefore('=', "") to arg.substringAfter('=', arg).splitToSequence(',')
-                else -> "" to arg.splitToSequence(':')
-              }
-              if (name == "plugin:org.jetbrains.kotlin.android:configuration") return // Base64 encoded serialized format.
-              head(title) { name.replaceKnownPaths() }
-              nest {
-                values.forEach {
-                  prop("-") { it.toPrintablePath() }
-                }
-              }
-            }
-
-            // TODO
-            //value.currentCompilerArguments.forEach { dumpArg("currentArguments", it) }
-            //value.defaultCompilerArguments.forEach { dumpArg("defaultArguments", it) }
-            //value.dependencyClasspath.forEach { prop("dependencyClasspath") { it.toPrintablePath() } }
-          }
-        }
+        prop("agpVersion") { model.agpVersion?.replaceAgpVersion() }
+        prop("gradlePath") { model.gradlePath }
+        prop("gradleVersion") { model.gradleVersion?.replaceGradleVersion() }
+        prop("buildFile") { model.buildFile?.path?.toPrintablePath() }
+        prop("buildFilePath") { model.buildFilePath?.path?.toPrintablePath() }
+        prop("rootFolderPath") { model.rootFolderPath.path.toPrintablePath() }
+        model.gradlePlugins.forEach { prop("- gradlePlugins") { it } }
+        model.taskNames.forEach { prop("- taskNames") { it } }
       }
+    }
+
+    fun dump(kotlinGradleModel: KotlinGradleModel) {
+      modelDumper.dumpModel(this@with, "kotlinGradleModel", kotlinGradleModel)
     }
 
     fun dump(kaptGradleModel: KaptGradleModel) {
       if (!kaptGradleModel.isEnabled) return // Usually models are present for all modules with Kotlin but disabled.
-      head("kaptGradleModel")
-      nest {
-        prop("buildDirectory") { kaptGradleModel.buildDirectory.path.toPrintablePath() }
-        kaptGradleModel.sourceSets.forEach { sourceSet ->
-          head("sourceSets") { sourceSet.sourceSetName }
-          nest {
-            prop("isTest") { sourceSet.isTest.takeIf { it }?.toString() }
-            prop("generatedSourcesDir") { sourceSet.generatedSourcesDir.toPrintablePath() }
-            prop("generatedClassesDir") { sourceSet.generatedClassesDir.toPrintablePath() }
-            prop("generatedKotlinSourcesDir") { sourceSet.generatedKotlinSourcesDir.toPrintablePath() }
-          }
-        }
-      }
+      modelDumper.dumpModel(this@with, "kaptGradleModel", kaptGradleModel)
+    }
+
+    fun dump(mppGradleModel: KotlinMPPGradleModel) {
+      modelDumper.dumpModel(this@with, "kotlinMppGradleModel", mppGradleModel)
+    }
+
+    fun dump(externalProject: ExternalProject) {
+      modelDumper.dumpModel(this@with, "externalProject", externalProject)
     }
   }
 }
-
 
 class DumpProjectIdeModelAction : DumbAwareAction("Dump Project IDE Models") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val dumper = ProjectDumper()
-    dumper.dumpAndroidIdeModel(project, { null }, { null })
+    dumper.dumpAndroidIdeModel(project, { null }, { null }, { null }, { null })
     val dump = dumper.toString().trimIndent()
     val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_ide_models_dump")
     outputFile.writeText(dump)

@@ -627,7 +627,7 @@ public class ScoutChains {
     for (int i = 0; i < shortList.length; i++) {
       shortList[i].mCheckedForChain = true;
     }
-    Arrays.sort(shortList, new Comparator<>() {
+    Arrays.sort(shortList, new Comparator<ScoutWidget>() {
       @Override
       public int compare(ScoutWidget o1, ScoutWidget o2) {
         return Float.compare(o1.getDpX(), o2.getDpX());
@@ -665,7 +665,7 @@ public class ScoutChains {
     for (int i = 0; i < shortList.length; i++) {
       shortList[i].mCheckedForChain = true;
     }
-    Arrays.sort(shortList, new Comparator<>() {
+    Arrays.sort(shortList, new Comparator<ScoutWidget>() {
       @Override
       public int compare(ScoutWidget o1, ScoutWidget o2) {
         return Float.compare(o1.getDpY(), o2.getDpY());

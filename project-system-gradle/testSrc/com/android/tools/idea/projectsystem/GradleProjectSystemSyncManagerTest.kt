@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
@@ -28,26 +28,19 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemSyncManage
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.startup.impl.StartupManagerImpl
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.testFramework.PlatformTestCase
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.messages.MessageBusConnection
-import org.mockito.Mockito.any
-import org.mockito.Mockito.doAnswer
+import org.junit.Assert
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.same
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
+
 
 class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var gradleProjectInfo: GradleProjectInfo
   private lateinit var syncManager: ProjectSystemSyncManager
   private lateinit var gradleBuildState: GradleBuildState
-  private lateinit var syncInvoker: GradleSyncInvoker
-
   private lateinit var syncTopicConnection: MessageBusConnection
   private lateinit var syncTopicListener: SyncResultListener
 
@@ -55,11 +48,9 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     super.setUp()
     ideComponents = IdeComponents(myProject)
 
-    syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
-
     ideComponents.mockProjectService(GradleDependencyManager::class.java)
     gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo::class.java)
-    `when`<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
+    whenever<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
 
     syncManager = GradleProjectSystemSyncManager(myProject)
     gradleBuildState = GradleBuildState.getInstance(myProject)
@@ -70,6 +61,12 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   }
 
   fun testSyncProject_uninitializedProject() {
+    ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, object: GradleSyncInvoker.FakeInvoker() {
+      override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
+        Assert.fail()
+      }
+    })
+
     val startupManager = object : StartupManagerImpl(project) {
       override fun startupActivityPassed(): Boolean {
         return false // this will make Project.isInitialized return false;
@@ -81,25 +78,14 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     }
     ideComponents.replaceProjectService(StartupManager::class.java, startupManager)
     // http://b/62543184
-    `when`(gradleProjectInfo.isImportedProject).thenReturn(true)
+    whenever(gradleProjectInfo.isImportedProject).thenReturn(true)
 
     project.getProjectSystem().getSyncManager().syncProject(SyncReason.PROJECT_LOADED)
-    verify(syncInvoker, never()).requestProjectSync(same(project), any<GradleSyncInvoker.Request>())
   }
 
   fun testGetLastSyncResult_unknownIfNeverSynced() {
-    assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.UNKNOWN)
-  }
+    ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
 
-  fun testGetLastSyncResult_sameAsSyncResult() {
-    doAnswer { invocation ->
-      ApplicationManager.getApplication().invokeAndWait {
-        project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(project)
-      }
-    }.`when`(syncInvoker).requestProjectSync(any(), any<GradleSyncInvoker.Request>())
-    syncManager.syncProject(SyncReason.PROJECT_MODIFIED)
-    ApplicationManager.getApplication().invokeAndWait { gradleBuildState.buildFinished(BuildStatus.SUCCESS) }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS)
+    assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.UNKNOWN)
   }
 }

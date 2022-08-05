@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTable
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dumpAllVariantsSyncAndroidModuleModel
@@ -76,14 +78,18 @@ class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(
 
     // Run AllVariantsSync using the GradleSyncExecutor.
     val gradleModules = mySyncExecutor!!.fetchGradleModels()
-    val allVariantsSyncAndroidModel = gradleModules[0].findModel(GradleAndroidModel::class.java)
+    val allVariantsSyncAndroidModel = gradleModules.modules[0].findModel(GradleAndroidModelData::class.java)
     Truth.assertThat(allVariantsSyncAndroidModel).isNotNull()
     // Assert that we fetched all the variants of the module in this case.
     Truth.assertThat(allVariantsSyncAndroidModel!!.variants.size).isEqualTo(12)
 
     // Dump the GradleAndroidModel.
     val dumper = ProjectDumper(additionalRoots = mapOf("ROOT" to File(project.basePath!!)))
-    dumper.dumpAllVariantsSyncAndroidModuleModel(allVariantsSyncAndroidModel, project.basePath!!)
+    val modelFactory = GradleAndroidModel.createFactory(project, fromLibraryTable(gradleModules.libraries!!))
+    dumper.dumpAllVariantsSyncAndroidModuleModel(
+      modelFactory(allVariantsSyncAndroidModel),
+      project.basePath!!
+    )
     // Verify dump content matches expected snapshot files.
     val dump = dumper.toString().trimIndent()
 

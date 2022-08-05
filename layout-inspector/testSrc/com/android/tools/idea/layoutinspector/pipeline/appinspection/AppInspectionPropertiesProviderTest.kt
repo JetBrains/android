@@ -17,8 +17,13 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.URI_PREFIX
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -33,22 +38,27 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Par
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ShowMoreElementsItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.parameterNamespaceOf
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
+import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableGroupModification
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.PTableGroupModification
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.psi.PsiClass
 import com.intellij.testFramework.DisposableRule
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -59,7 +69,7 @@ import org.mockito.Mockito.spy
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
-/** Timeout used in this test. While debugging, you may want extend the timeout */
+/** Timeout used in this test. While debugging, you may want to extend the timeout */
 private const val TIMEOUT = 3L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -85,13 +95,23 @@ class AppInspectionPropertiesProviderTest {
     projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
 
+    // Check that generated getComposablesCommands has the `extractAllParameters` set in snapshot mode.
+    inspectionRule.composeInspector.listenWhen({it.hasGetComposablesCommand()}) { command ->
+      assertThat(command.getComposablesCommand.extractAllParameters).isEqualTo(!InspectorClientSettings.isCapturingModeOn)
+    }
+
     inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.createAllResponses()
     inspectorRule.attachDevice(MODERN_DEVICE)
+
+    val fixture = projectRule.fixture
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
+    fixture.copyFileToProject("res/layout/activity_main.xml")
+    fixture.copyFileToProject("res/values/styles.xml")
   }
 
   @Test
-  fun canQueryPropertiesForViews() {
+  fun canQueryPropertiesForViewsWithResourceResolver() {
     InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -137,9 +157,12 @@ class AppInspectionPropertiesProviderTest {
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("imeOptions", PropertyType.INT_FLAG, "normal|actionUnspecified")
-        assertProperty("id", PropertyType.RESOURCE, "@com.example:id/fab")
-        assertProperty("src", PropertyType.DRAWABLE, "@drawable/?")
-        assertProperty("stateListAnimator", PropertyType.ANIMATOR, "@animator/?")
+        assertProperty("id", PropertyType.RESOURCE, "@com.example:id/fab", source = layout("activity_main"))
+        assertProperty("src", PropertyType.DRAWABLE, "@drawable/?", source = layout("activity_main"),
+                       classLocation = "android.graphics.drawable.VectorDrawable")
+        assertProperty("stateListAnimator", PropertyType.ANIMATOR, "@animator/?", source = layout("activity_main"),
+                       resolutionStack = listOf(ResStackItem(style("Widget.Material.Button"), null)),
+                       classLocation = "android.animation.StateListAnimator")
       }
     }
 
@@ -152,6 +175,41 @@ class AppInspectionPropertiesProviderTest {
       }
       // Assert that "android:backgroundTint" is omitted
       assertThat(result.table.getByNamespace(ANDROID_URI)).isEmpty()
+    }
+  }
+
+  @Test
+  fun canQueryPropertiesForViewsWithoutResourceResolver() {
+    val facet = AndroidFacet.getInstance(inspectorRule.projectRule.module)!!
+    AndroidModel.set(facet, TestAndroidModel(applicationId = "com.nonmatching.app"))
+
+    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    val provider = inspectorRule.inspectorClient.provider
+    val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
+    provider.resultListeners.add { _, view, table ->
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
+    }
+
+    // The properties should be simple non-expanding properties
+    inspectorRule.inspectorModel[5]!!.let { targetNode ->
+      provider.requestProperties(targetNode).get()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
+      assertThat(result.view).isSameAs(targetNode)
+      result.table.run {
+        assertProperty("imeOptions", PropertyType.INT_FLAG, "normal|actionUnspecified")
+        assertProperty("id", PropertyType.RESOURCE, "@com.example:id/fab", source = layout("activity_main"))
+        assertProperty("src", PropertyType.DRAWABLE, "@drawable/?", source = layout("activity_main"))
+        assertProperty("stateListAnimator", PropertyType.ANIMATOR, "@animator/?", source = layout("activity_main"))
+      }
     }
   }
 
@@ -180,11 +238,11 @@ class AppInspectionPropertiesProviderTest {
       // Technically the view with ID #1 has no properties, but synthetic properties are always added
       result.table.run {
         assertProperty("name", PropertyType.STRING, "androidx.constraintlayout.widget.ConstraintLayout",
-                       PropertySection.VIEW, NAMESPACE_INTERNAL)
-        assertProperty("x", PropertyType.DIMENSION, "0px", PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
-        assertProperty("y", PropertyType.DIMENSION, "0px", PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
-        assertProperty("width", PropertyType.DIMENSION, "0px", PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
-        assertProperty("height", PropertyType.DIMENSION, "0px", PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
+                       group = PropertySection.VIEW, namespace = NAMESPACE_INTERNAL)
+        assertProperty("x", PropertyType.DIMENSION, "0px", group = PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
+        assertProperty("y", PropertyType.DIMENSION, "0px", group = PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
+        assertProperty("width", PropertyType.DIMENSION, "0px", group = PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
+        assertProperty("height", PropertyType.DIMENSION, "0px", group = PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
       }
     }
   }
@@ -302,6 +360,8 @@ class AppInspectionPropertiesProviderTest {
       result.table.run {
         assertParameter("text", PropertyType.STRING, "placeholder")
         assertParameter("clickable", PropertyType.BOOLEAN, "true")
+        assertParameter("count", PropertyType.INT32, "7", PropertySection.RECOMPOSITIONS)
+        assertParameter("skips", PropertyType.INT32, "14", PropertySection.RECOMPOSITIONS)
       }
     }
 
@@ -401,10 +461,10 @@ class AppInspectionPropertiesProviderTest {
       assertThat(modification.added).hasSize(2)
       assertThat(modification.removed).isEmpty()
       moreListElements1.countDown()
-    }.`when`(table1).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+    }.whenever(table1).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
     doAnswer {
       table1.component
-    }.`when`(event1).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
+    }.whenever(event1).getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))
     val list = last.children.last() as ParameterGroupItem
     moreListElements1.runInEdt {
       val showMoreItem = list.children[2] as ShowMoreElementsItem
@@ -431,10 +491,10 @@ class AppInspectionPropertiesProviderTest {
       assertThat(modification.added).hasSize(3)
       assertThat(modification.removed).hasSize(1)
       moreListElements2.countDown()
-    }.`when`(table2).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+    }.whenever(table2).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
     doAnswer {
       table2.component
-    }.`when`(event2).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
+    }.whenever(event2).getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))
     moreListElements2.runInEdt {
       val showMoreItem = list.children[4] as ShowMoreElementsItem
       // Click the "Show more" link:
@@ -532,21 +592,30 @@ class AppInspectionPropertiesProviderTest {
     }
   }
 
+  private fun layout(name: String, namespace: String = APP_NAMESPACE): ResourceReference =
+    ResourceReference(ResourceNamespace.fromNamespaceUri(namespace)!!, ResourceType.LAYOUT, name)
+
+  private fun style(name: String, namespace: String = ANDROID_URI): ResourceReference =
+    ResourceReference.style(ResourceNamespace.fromNamespaceUri(namespace)!!, name)
+
   private fun PropertiesTable<InspectorPropertyItem>.assertParameter(
     name: String,
     type: PropertyType,
     value: String,
     group: PropertySection = PropertySection.PARAMETERS,
     namespace: String = parameterNamespaceOf(group),
-  ) = assertProperty(this[namespace, name], name, type, value, group, namespace)
+  ) = assertProperty(this[namespace, name], name, type, value, null, group, namespace)
 
   private fun PropertiesTable<InspectorPropertyItem>.assertProperty(
     name: String,
     type: PropertyType,
     value: String,
+    source: ResourceReference? = null,
     group: PropertySection = PropertySection.DEFAULT,
     namespace: String = ANDROID_URI,
-  ) = assertProperty(this[namespace, name], name, type, value, group, namespace)
+    classLocation: String? = null,
+    resolutionStack: List<ResStackItem> = emptyList(),
+  ) = assertProperty(this[namespace, name], name, type, value, source, group, namespace, classLocation, resolutionStack)
 
   private fun assertParameter(
     property: InspectorPropertyItem,
@@ -555,23 +624,49 @@ class AppInspectionPropertiesProviderTest {
     value: String,
     group: PropertySection = PropertySection.PARAMETERS,
     namespace: String = parameterNamespaceOf(group),
-  ) = assertProperty(property, name, type, value, group, namespace)
+  ) = assertProperty(property, name, type, value, null, group, namespace)
 
   private fun assertProperty(
     property: InspectorPropertyItem,
     name: String,
     type: PropertyType,
     value: String,
+    source: ResourceReference? = null,
     group: PropertySection = PropertySection.DEFAULT,
     namespace: String = ANDROID_URI,
+    classLocation: String? = null,
+    resolutionStack: List<ResStackItem> = emptyList(),
   ) {
     assertThat(property.name).isEqualTo(name)
     assertThat(property.attrName).isEqualTo(name)
     assertThat(property.namespace).isEqualTo(namespace)
     assertThat(property.type).isEqualTo(type)
     assertThat(property.value).isEqualTo(value)
+    assertThat(property.source).isEqualTo(source)
     assertThat(property.section).isEqualTo(group)
+    if (property !is InspectorGroupPropertyItem) {
+      assertThat(resolutionStack).isEmpty()
+      assertThat(classLocation).isNull()
+    }
+    else {
+      assertThat(property.classLocation?.source).isEqualTo(classLocation?.substringAfterLast('.'))
+      assertThat((property.classLocation?.navigatable as? PsiClass)?.qualifiedName).isEqualTo(classLocation)
+      property.children.zip(resolutionStack).forEach { (actual, expected) ->
+        assertThat(actual.source).isEqualTo(expected.source)
+        expected.value?.let { assertThat(actual.value).isEqualTo(it) }
+      }
+      assertThat(property.children.size).isEqualTo(resolutionStack.size)
+      assertThat(property.lookup.resourceLookup.hasResolver).isTrue()
+    }
   }
+
+  /**
+   * A ResolutionStackItem holder without a reference to the base property.
+   */
+  private class ResStackItem(
+    val source: ResourceReference,
+    val value: String?
+  )
 
   /**
    * Helper class to receive a properties provider result.

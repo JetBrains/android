@@ -23,7 +23,9 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
@@ -34,10 +36,12 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
+import com.android.tools.idea.executeDeviceAction
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.registerServiceInstance
+import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.configurationStore.deserialize
@@ -51,8 +55,10 @@ import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
@@ -61,11 +67,10 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
 import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
@@ -106,7 +111,7 @@ class EmulatorToolWindowPanelTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain(projectRule, emulatorRule, EdtRule())
 
   @get:Rule
   val portableUiFontRule = SetPortableUiFontRule()
@@ -124,6 +129,9 @@ class EmulatorToolWindowPanelTest {
   fun setUp() {
     // Necessary to properly update toolbar button states.
     HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable)
+    val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
+    whenever(mockScreenRecordingCache.isScreenRecordingSupported(any(), Mockito.anyInt())).thenReturn(true)
+    projectRule.project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
   }
 
   @Test
@@ -146,7 +154,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
-    assertAppearance(ui, "AppearanceAndToolbarActions1", 0.08)
+    assertAppearance(ui, "AppearanceAndToolbarActions1", maxPercentDifferentWindows = 0.03, maxPercentDifferentMac = 0.03)
 
     // Check EmulatorPowerButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Power" }
@@ -206,6 +214,143 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
+  fun testWearToolbarActionsApi30() {
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 30)
+    val panel = createWindowPanel(avdFolder)
+    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0)
+    panel.size = Dimension(430, 450)
+    ui.updateToolbars()
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 320 height: 320")
+    assertAppearance(ui, "WearToolbarActions1", maxPercentDifferentWindows = 0.04, maxPercentDifferentMac = 0.04)
+
+    // Check Wear1ButtonAction.
+    var button = ui.getComponent<ActionButton> { it.action.templateText == "Button 1" }
+    ui.mouseClickOn(button)
+    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Home"""")
+
+    // Check Wear2ButtonAction.
+    button = ui.getComponent { it.action.templateText == "Button 2" }
+    ui.mousePressOn(button)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""key: "Power"""")
+    ui.mouseRelease()
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
+
+    // Check PalmAction.
+    button = ui.getComponent { it.action.templateText == "Palm" }
+    ui.mouseClickOn(button)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Standby"""")
+
+    // Check TiltAction.
+    button = ui.getComponent { it.action.templateText == "Tilt" }
+    ui.mouseClickOn(button)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
+    assertThat(shortDebugString(call.request)).isEqualTo("target: WRIST_TILT value { data: 1.0 }")
+
+    // Check that the buttons not applicable to Wear OS 3 are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
+
+    panel.destroyContent()
+    assertThat(panel.primaryEmulatorView).isNull()
+    streamScreenshotCall.waitForCancellation(2, TimeUnit.SECONDS)
+  }
+
+  @Test
+  fun testWearToolbarActionsApi28() {
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 28)
+    val panel = createWindowPanel(avdFolder)
+    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    panel.size = Dimension(430, 450)
+    ui.updateToolbars()
+    ui.layoutAndDispatchEvents()
+
+    // Check toolbar buttons.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 1" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 2" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNotNull()
+
+    // Check that the buttons not applicable to Wear OS are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
+
+    val streamScreenshotCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    panel.destroyContent()
+    assertThat(panel.primaryEmulatorView).isNull()
+    streamScreenshotCall.waitForCancellation(2, TimeUnit.SECONDS)
+  }
+
+  @Test
+  fun testWearToolbarActionsApi26() {
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 26)
+    val panel = createWindowPanel(avdFolder)
+    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    panel.size = Dimension(430, 450)
+    ui.updateToolbars()
+    ui.layoutAndDispatchEvents()
+
+    // Check that the buttons specific to API 30 and API 28 are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 1" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 2" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNull()
+
+    // Check that the generic Android buttons are visible on API 26.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNotNull()
+
+    // Check that the buttons not applicable to Wear OS are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+
+    val streamScreenshotCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    panel.destroyContent()
+    assertThat(panel.primaryEmulatorView).isNull()
+    streamScreenshotCall.waitForCancellation(2, TimeUnit.SECONDS)
+  }
+
+  @Test
   fun testChangeDisplayMode() {
     val avdFolder = FakeEmulator.createResizableAvd(emulatorRule.root)
     val panel = createWindowPanel(avdFolder)
@@ -220,25 +365,22 @@ class EmulatorToolWindowPanelTest {
 
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0)
-    panel.size = Dimension(400, 600)
+    panel.size = Dimension(1200, 1200)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     var streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 400 height: 571")
-    assertAppearance(ui, "ChangeDisplayMode1", 0.08)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1080 height: 1171")
+    assertAppearance(ui, "ChangeDisplayMode1", maxPercentDifferentWindows = 0.002, maxPercentDifferentMac = 0.002)
 
-    // Set the tablet display mode.
-    executeEmulatorAction("android.emulator.display.mode.tablet", emulatorView, project)
+    // Set the desktop display mode.
+    executeDeviceAction("android.emulator.display.mode.desktop", emulatorView, project)
     val setDisplayModeCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(setDisplayModeCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setDisplayMode")
-    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: TABLET")
-    panel.waitForFrame(++frameNumber, 2, TimeUnit.SECONDS)
-    assertAppearance(ui, "ChangeDisplayMode2", 0.08)
+    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: DESKTOP")
 
-    panel.size = Dimension(500, 600)
-    ui.layoutAndDispatchEvents()
     streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 500 height: 571")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1200 height: 1080")
+    assertAppearance(ui, "ChangeDisplayMode2", maxPercentDifferentWindows = 0.002, maxPercentDifferentMac = 0.002)
   }
 
   @Test
@@ -309,7 +451,7 @@ class EmulatorToolWindowPanelTest {
     waitForCondition(2, TimeUnit.SECONDS) { ui.findAllComponents<EmulatorView>().size == 3 }
     ui.layoutAndDispatchEvents()
     waitForNextFrameInAllDisplays(ui, frameNumbers)
-    assertAppearance(ui, "MultipleDisplays1", 0.25)
+    assertAppearance(ui, "MultipleDisplays1", maxPercentDifferentWindows = 0.09, maxPercentDifferentMac = 0.09)
 
     // Resize emulator display panels.
     ui.findAllComponents<EmulatorSplitPanel>().forEach { it.proportion /= 2 }
@@ -349,9 +491,9 @@ class EmulatorToolWindowPanelTest {
 
     val initialMousePosition = Point(glassPane.x + glassPane.width / 2, glassPane.y + glassPane.height / 2)
     val pointerInfo = mock<PointerInfo>()
-    `when`(pointerInfo.location).thenReturn(initialMousePosition)
+    whenever(pointerInfo.location).thenReturn(initialMousePosition)
     val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
-    mouseInfoMock.`when`<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
+    mouseInfoMock.whenever<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
 
     val focusManager = FakeKeyboardFocusManager(testRootDisposable)
     focusManager.focusOwner = emulatorView
@@ -388,12 +530,12 @@ class EmulatorToolWindowPanelTest {
     val callFilter = FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamClipboard",
                                                        "android.emulation.control.EmulatorController/streamScreenshot")
     for ((key, expected) in velocityExpectations) {
-      ui.keyboard.press(key.toInt())
+      ui.keyboard.press(key.code)
 
       var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo(expected)
-      ui.keyboard.release(key.toInt())
+      ui.keyboard.release(key.code)
       call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo("")
@@ -447,7 +589,7 @@ class EmulatorToolWindowPanelTest {
     val installPackagesCalled = CountDownLatch(1)
     val installOptions = listOf("-t", "--user", "current", "--full")
     val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
-    `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
+    whenever(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
       installPackagesCalled.countDown()
     }
 
@@ -475,7 +617,7 @@ class EmulatorToolWindowPanelTest {
     val pushCalled = CountDownLatch(1)
     val firstArgCaptor = ArgumentCaptor.forClass(Array<String>::class.java)
     val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
-    `when`(device.push(firstArgCaptor.capture(), secondArgCaptor.capture())).then { pushCalled.countDown() }
+    whenever(device.push(firstArgCaptor.capture(), secondArgCaptor.capture())).then { pushCalled.countDown() }
 
     // Simulate drop.
     target.drop(event)
@@ -486,7 +628,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   private fun createDropTarget(): DnDTarget {
-    val adb = TestUtils.resolveWorkspacePath("$TEST_DATA_PATH/fake-adb")
+    val adb = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/fake-adb")
     val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
     if (savedAdbPath != null) {
       Disposer.register(testRootDisposable) { System.setProperty(ADB_PATH_PROPERTY, savedAdbPath) }
@@ -495,7 +637,7 @@ class EmulatorToolWindowPanelTest {
 
     var nullableTarget: DnDTarget? = null
     val mockDndManager = mock<DnDManager>()
-    `when`(mockDndManager.registerTarget(any(), any())).then {
+    whenever(mockDndManager.registerTarget(any(), any())).then {
       it.apply { nullableTarget = getArgument<DnDTarget>(0) }
     }
     ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDndManager, testRootDisposable)
@@ -509,23 +651,23 @@ class EmulatorToolWindowPanelTest {
 
   private fun createMockDevice(): IDevice {
     val device = mock<IDevice>()
-    `when`(device.isEmulator).thenReturn(true)
-    `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
+    whenever(device.isEmulator).thenReturn(true)
+    whenever(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
     val mockAdb = mock<AndroidDebugBridge>()
-    `when`(mockAdb.devices).thenReturn(arrayOf(device))
+    whenever(mockAdb.devices).thenReturn(arrayOf(device))
     val mockAdbService = mock<AdbService>()
-    `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mockAdb))
+    whenever(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFuture(mockAdb))
     ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService, testRootDisposable)
     return device
   }
 
   private fun createDragEvent(files: List<File>): DnDEvent {
     val transferableWrapper = mock<TransferableWrapper>()
-    `when`(transferableWrapper.asFileList()).thenReturn(files)
+    whenever(transferableWrapper.asFileList()).thenReturn(files)
     val event = mock<DnDEvent>()
-    `when`(event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
-    `when`(event.attachedObject).thenReturn(transferableWrapper)
+    whenever(event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
+    whenever(event.attachedObject).thenReturn(transferableWrapper)
     return event
   }
 
@@ -538,6 +680,13 @@ class EmulatorToolWindowPanelTest {
 
   private fun FakeUi.mouseRelease() {
     mouse.release()
+    // Allow events to propagate.
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  }
+
+  private fun FakeUi.mouseClickOn(component: Component) {
+    val location: Point = getPosition(component)
+    mouse.click(location.x, location.y)
     // Allow events to propagate.
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
@@ -598,16 +747,25 @@ class EmulatorToolWindowPanelTest {
   private val EmulatorToolWindowPanel.primaryEmulatorView
     get() = getData(EMULATOR_VIEW_KEY.name) as EmulatorView?
 
-  private fun assertAppearance(ui: FakeUi, @Suppress("SameParameterValue") goldenImageName: String,
-                               maxPercentDifferent: Double = 0.0) {
+  private fun assertAppearance(ui: FakeUi,
+                               goldenImageName: String,
+                               maxPercentDifferentLinux: Double = 0.0,
+                               maxPercentDifferentMac: Double = 0.0,
+                               maxPercentDifferentWindows: Double = 0.0) {
     ui.layoutAndDispatchEvents()
     ui.updateToolbars()
     val image = ui.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent)
+    val scaledImage = ImageUtils.scale(image, 0.5)
+    val maxPercentDifferent = when {
+      SystemInfo.isMac -> maxPercentDifferentMac
+      SystemInfo.isWindows -> maxPercentDifferentWindows
+      else -> maxPercentDifferentLinux
+    }
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), scaledImage, maxPercentDifferent)
   }
 
   private fun getGoldenFile(name: String): Path {
-    return TestUtils.resolveWorkspacePath("$TEST_DATA_PATH/golden/${name}.png")
+    return TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/golden/${name}.png")
   }
 }
 

@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.compose
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.util.WizardUtils
-import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -56,19 +56,34 @@ class NewComposeProjectTest {
    */
   @Test
   fun newComposeProject() {
-    WizardUtils.createNewProject(guiTest, "Empty Compose Activity", Language.Kotlin)
+    WizardUtils.createNewProject(guiTest, "Empty Compose Activity", null)
 
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
-      assertThat(this).contains("implementation \"androidx.compose.material:material:")
+      assertThat(this).contains("implementation 'androidx.compose.material:material:")
       assertThat(this).contains("implementation \"androidx.compose.ui:ui-tooling-preview:")
       assertThat(this).contains("debugImplementation \"androidx.compose.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {
       assertThat(this).contains("@Composable")
       assertThat(this).contains("@Preview")
+      assertThat(this).contains("fun DefaultPreview(")
+      assertThat(this).contains("fun Greeting(")
     }
 
-    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish()
+    guiTest.ideFrame().focus().projectView
+      .selectAndroidPane()
+      .clickPath("app")
+
+    // Check if we can add another Compose Activity (will need to de-duplicate compose function names)
+    NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Compose Activity"))
+      .getConfigureActivityStep("Empty Compose Activity")
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish()
+
+    guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity2.kt").run {
+      assertThat(this).contains("fun DefaultPreview2(")
+      assertThat(this).contains("fun Greeting2(")
+    }
   }
 }

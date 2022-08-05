@@ -24,9 +24,9 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 public class ToolbarActionGroups implements Disposable {
-  protected final DesignSurface mySurface;
+  protected final DesignSurface<?> mySurface;
 
-  public ToolbarActionGroups(@NotNull DesignSurface surface) {
+  public ToolbarActionGroups(@NotNull DesignSurface<?> surface) {
     mySurface = surface;
   }
 

@@ -36,9 +36,6 @@ internal data class AppNameFormat(val maxLength: Int = DEFAULT_LENGTH, val hideD
     if (hideDuplicates && pid == previousPid) {
       return "".padEnd(maxLength + 1)
     }
-    if (appName == "?" || appName == "") {
-      return "pid-$pid".padEnd(maxLength + 1)
-    }
     if (appName.length > maxLength) {
       return StringUtil.shortenTextWithEllipsis(appName, maxLength, maxLength - PREFIX_LEN) + " "
     }

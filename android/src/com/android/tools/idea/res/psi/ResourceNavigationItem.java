@@ -46,6 +46,16 @@ public final class ResourceNavigationItem implements NavigationItem {
     myProject = project;
   }
 
+  @NotNull
+  public ResourceItem getResource() {
+    return myResource;
+  }
+
+  @NotNull
+  public Project getProject() {
+    return myProject;
+  }
+
   @Override
   @NotNull
   public String getName() {

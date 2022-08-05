@@ -37,7 +37,7 @@ interface DesignerEditorFileType {
    *
    * TODO(b/120429365): this function should be moved to another abstraction layer.
    */
-  fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups
+  fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups
 
   /**
    * Whether this type of file can be edited using a designer editor.
@@ -47,7 +47,7 @@ interface DesignerEditorFileType {
   /**
    * Returns the toolbar actions that should be present for the given selection.
    */
-  fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
+  fun getSelectionContextToolbar(surface: DesignSurface<*>, selection: List<NlComponent>): DefaultActionGroup =
     surface.actionManager.getToolbarActions(selection)
 }
 
@@ -57,7 +57,7 @@ interface DesignerEditorFileType {
 object DefaultDesignerFileType : DesignerEditorFileType {
   override fun isResourceTypeOf(file: PsiFile) = false
 
-  override fun getToolbarActionGroups(surface: DesignSurface) = ToolbarActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>) = ToolbarActionGroups(surface)
 }
 
 fun PsiFile.typeOf(): DesignerEditorFileType =

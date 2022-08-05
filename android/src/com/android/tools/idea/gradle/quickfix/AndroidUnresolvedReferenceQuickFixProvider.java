@@ -45,7 +45,7 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
     // Since this is a gradle android project, we need to unregister:
     //  "add jar from web quick fix",
     // since those quick fixes would make the iml file and the gradle file out of sync.
-    registrar.unregister(new Condition<>() {
+    registrar.unregister(new Condition<IntentionAction>() {
       @Override
       public boolean value(IntentionAction intentionAction) {
         return intentionAction instanceof FindJarFix;

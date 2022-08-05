@@ -52,6 +52,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
     DeviceMenuAction menuAction = new DeviceMenuAction(holder, (oldDevice, newDevice) -> {});
     menuAction.updateActions(DataContext.EMPTY_CONTEXT);
     PresentationFactory presentationFactory = new PresentationFactory();
+    //noinspection UnstableApiUsage
     Utils.expandActionGroup(menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR);
     String actual = ActionTestUtils.prettyPrintActions(menuAction, action -> !isAvdAction(action), presentationFactory);
     String expected =
@@ -72,6 +73,8 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    6.0, 1080 \u00d7 2340, 440dpi (Pixel 5)\n" +
       "    6.3, 1440 \u00d7 2960, 560dpi (Pixel 3 XL)\n" +
       "    6.3, 1440 \u00d7 3040, 560dpi (Pixel 4 XL)\n" +
+      "    6.4, 1080 \u00d7 2400, 420dpi (Pixel 6)\n" +
+      "    6.7, 1440 \u00d7 3120, 560dpi (Pixel 6 Pro)\n" +
       "    ------------------------------------------------------\n" +
       "    Tablet\n" +
       "    7.0, 800 \u00d7 1280, tvdpi (Nexus 7 2012)\n" +
@@ -79,6 +82,11 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    8.9, 2048 \u00d7 1536, xhdpi (Nexus 9)\n" +
       "    9.9, 2560 \u00d7 1800, xhdpi (Pixel C)\n" +
       "    10.1, 2560 \u00d7 1600, xhdpi (Nexus 10)\n" +
+      "    ------------------------------------------------------\n" +
+      "    Desktop\n" +
+      "    14.0, 1366 × 768, mdpi (Small Desktop)\n" +
+      "    15.0, 3840 × 2160, xhdpi (Medium Desktop)\n" +
+      "    17.0, 1920 × 1080, mdpi (Large Desktop)\n" +
       "    ------------------------------------------------------\n" +
       "    Wear\n" +
       "    384 \u00d7 384, xhdpi (Small Round)\n" +
@@ -110,7 +118,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "         4.7\" WXGA (1280 \u00d7 720, xhdpi)\n" +
       "         5.1\" WVGA (480 \u00d7 800, mdpi)\n" +
       "         5.4\" FWVGA (480 \u00d7 854, mdpi)\n" +
-      "        Resizable (1080 \u00d7 2340, 420dpi)\n" +
+      "        Resizable (Experimental) (1080 \u00d7 2340, 420dpi)\n" +
       "         6.7\" Horizontal Fold-in (1080 \u00d7 2636, xxhdpi)\n" +
       "         7.0\" WSVGA (Tablet) (1024 \u00d7 600, mdpi)\n" +
       "         7.4\" Rollable (1600 \u00d7 2428, 420dpi)\n" +

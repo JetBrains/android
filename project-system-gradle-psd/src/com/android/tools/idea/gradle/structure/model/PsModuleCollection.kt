@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsMutableCollectionBase
 import com.android.tools.idea.gradle.structure.model.empty.PsEmptyModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -166,10 +166,11 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
 }
 
 fun Project.getModuleByGradlePath(gradlePath: String) =
+    // TODO(b/149203281): Fix support for composite builds.
     ModuleManager
         .getInstance(this)  // Use ideProject to find the name of the module.
         .modules
-        .firstOrNull { GradleFacet.getInstance(it)?.gradleModuleModel?.gradlePath == gradlePath }
+        .firstOrNull { it.getGradleProjectPath()?.path == gradlePath }
 
 private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleBuildModel? =
     when {

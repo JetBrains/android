@@ -17,15 +17,17 @@ package com.android.tools.idea.editors.strings;
 
 import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 
+import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -48,13 +50,16 @@ final class Utils {
   }
 
   static @NotNull StringResourceRepository createStringRepository(@NotNull LocalResourceRepository repository) {
+    StringResourceRepository stringResourceRepository = StringResourceRepository.create(repository);
     try {
-      ListenableFuture<@NotNull StringResourceRepository> future = StringResourceRepository.create(repository);
-      waitForCondition(2, TimeUnit.SECONDS, future::isDone);
-      return future.get();
+      AtomicBoolean updatesFinished = new AtomicBoolean();
+      repository.invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(),
+                                                 () -> updatesFinished.set(true));
+      waitForCondition(2, TimeUnit.SECONDS, updatesFinished::get);
     }
     catch (Exception e) {
       throw new RuntimeException(e);
     }
+    return stringResourceRepository;
   }
 }

@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.testFramework.PlatformTestUtil
 
 class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
 
+  private lateinit var resourceIdManger: TestResourceIdManager
+
   override fun setUp() {
     super.setUp()
     loadProject(TestProjectPaths.NAMESPACES_WITH_APPCOMPAT)
     generateSources()
     RenderTestUtil.beforeRenderTestCase()
+    resourceIdManger = TestResourceIdManager.getManager(myAndroidFacet.module)
+    // Disable final IDs for this test, so it can use light classes to resolve resources.
+    // Final IDs being enabled/disabled are covered by other tests, namely ModuleClassLoaderTest and LibraryResourceClassLoaderTest.
+    resourceIdManger.setFinalIdsUsed(false)
   }
 
   override fun tearDown() {
+    resourceIdManger.resetFinalIdsUsed()
     try {
       RenderTestUtil.afterRenderTestCase()
     } finally {

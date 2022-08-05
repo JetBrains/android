@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -40,13 +41,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.MockitoAnnotations
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.test.assertFalse
 
 class MultiRepresentationPreviewTest {
   private lateinit var multiPreview: UpdatableMultiRepresentationPreview
@@ -79,11 +83,11 @@ class MultiRepresentationPreviewTest {
   private suspend fun createMultiRepresentation(psiFile: PsiFile,
                                                 editor: Editor,
                                                 providers: List<PreviewRepresentationProvider>,
-                                                initialState: MultiRepresentationPreviewFileEditorState = MultiRepresentationPreviewFileEditorState()) =
+                                                initialState: MultiRepresentationPreviewFileEditorState? = MultiRepresentationPreviewFileEditorState()) =
     UpdatableMultiRepresentationPreview(psiFile, editor, providers, AndroidCoroutineScope(projectRule.testRootDisposable)).apply {
       onInit()
       // Simulate initial initialization by IntelliJ of the state loaded from disk
-      setStateAndUpdateRepresentations(initialState)
+      initialState?.let { setStateAndUpdateRepresentations(it) }
       onActivate()
       awaitForRepresentationsUpdated()
     }
@@ -310,12 +314,12 @@ class MultiRepresentationPreviewTest {
     val shortcutsApplicableComponent = Mockito.mock(JComponent::class.java)
 
     val initiallyAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(initiallyAcceptedRepresentation.component).thenReturn(JPanel())
+    whenever(initiallyAcceptedRepresentation.component).thenReturn(JPanel())
     val initiallyAcceptingProvider =
       TestPreviewRepresentationProvider("initialRepresentation", true, initiallyAcceptedRepresentation)
 
     val laterAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(laterAcceptedRepresentation.component).thenReturn(JPanel())
+    whenever(laterAcceptedRepresentation.component).thenReturn(JPanel())
     val laterAcceptingProvider = TestPreviewRepresentationProvider("laterRepresentation", false, laterAcceptedRepresentation)
 
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
@@ -348,13 +352,13 @@ class MultiRepresentationPreviewTest {
   @Test
   fun testUpdateNotificationsPropagated() = runBlocking {
     val representation1 = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(representation1.component).thenReturn(JPanel())
+    whenever(representation1.component).thenReturn(JPanel())
 
     val representation2 = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(representation2.component).thenReturn(JPanel())
+    whenever(representation2.component).thenReturn(JPanel())
 
     val representation3 = Mockito.mock(PreviewRepresentation::class.java)
-    Mockito.`when`(representation3.component).thenReturn(JPanel())
+    whenever(representation3.component).thenReturn(JPanel())
 
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
@@ -567,6 +571,49 @@ class MultiRepresentationPreviewTest {
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
     assertEquals("Accepting", multiPreview.currentRepresentationName)
     assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
+  }
+
+  @Ignore("http://b/240355870")
+  @Test
+  fun testRepresentationsAreDisposedInTime() = runBlocking {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+
+    val representations = mutableListOf<PreviewRepresentation>()
+    val enabled = AtomicBoolean()
+
+    val provider = object : PreviewRepresentationProvider {
+      override val displayName = "foo"
+      override suspend fun accept(project: Project, psiFile: PsiFile) = enabled.get()
+
+      @Synchronized
+      override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+        val representation = TestPreviewRepresentation()
+        representations.add(representation)
+        return representation
+      }
+    }
+
+    // TODO(b/236234873): Figure out why coroutines need this kind of warmup. Simply doing several [launch]s does not help.
+    // The first time the coroutine code in updateRepresentations and setStateAndUpdateRepresentations is executed sequentially or with
+    // a significant delay between each other. Therefore, we warm them up.
+    createMultiRepresentation(sampleFile, myFixture.editor, listOf(), null).also {
+      val job = it.updateRepresentations()
+      it.setStateAndUpdateRepresentations(MultiRepresentationPreviewFileEditorState())
+      job.join()
+      Disposer.dispose(it)
+    }
+
+    multiPreview = createMultiRepresentation(sampleFile, myFixture.editor, listOf(provider), null)
+
+    enabled.set(true)
+    val job = multiPreview.updateRepresentations()
+    multiPreview.setStateAndUpdateRepresentations(MultiRepresentationPreviewFileEditorState())
+    job.join()
+
+    assertEquals(1, representations.count { !Disposer.isDisposed(it) })
+    assertNotNull(multiPreview.currentRepresentation)
+    assertFalse(Disposer.isDisposed(multiPreview.currentRepresentation!!))
   }
 }
 

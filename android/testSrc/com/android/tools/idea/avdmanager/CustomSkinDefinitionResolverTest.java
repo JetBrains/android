@@ -32,7 +32,7 @@ public final class CustomSkinDefinitionResolverTest {
   private final @NotNull FileSystem myFileSystem = Jimfs.newFileSystem(Configuration.unix());
 
   private final @NotNull Path PIXEL_4 = myFileSystem.getPath("/home/user/Android/Sdk/skins/pixel_4");
-  private final @NotNull Path NO_SKIN = myFileSystem.getPath(AvdManagerUtils.NO_SKIN);
+  private final @NotNull Path NO_SKIN = myFileSystem.getPath(SkinUtils.NO_SKIN);
 
   @Test
   public void customSkinDefinitionResolverDeviceFrameIsEnabledCustomSkinDefinitionBackupIsNull() {

@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.npw.importing;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDefaultPath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
+
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.util.FormatUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -30,10 +34,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -148,6 +155,32 @@ public final class ModuleListModel {
     }
   }
 
+  /**
+   * Checks if the project already has a module with given Gradle path.
+   */
+  public static boolean hasModule(@Nullable Project project, @NotNull String gradlePath) {
+    if (project == null) {
+      return false;
+    }
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      // TODO(b/149203281): Fix support for composite builds.
+      GradleProjectPath moduleGradlePath = getGradleProjectPath(module);
+
+      if (moduleGradlePath != null && gradlePath.equals(moduleGradlePath.getPath())) {
+        return true;
+      }
+    }
+    File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
+    if (location.isFile()) {
+      return true;
+    }
+    if (location.isDirectory()) {
+      File[] children = location.listFiles();
+      return children == null || children.length > 0;
+    }
+    return false;
+  }
+
   private ModuleValidationState validateModule(ModuleToImport module) {
     VirtualFile location = module.location;
     if (location == null || !location.exists()) {
@@ -157,7 +190,7 @@ public final class ModuleListModel {
     if (!isValidModuleName(moduleName)) {
       return ModuleValidationState.INVALID_NAME;
     }
-    else if (GradleUtil.hasModule(myProject, moduleName)) {
+    else if (hasModule(myProject, moduleName)) {
       return ModuleValidationState.ALREADY_EXISTS;
     }
     else {
@@ -173,7 +206,7 @@ public final class ModuleListModel {
 
   private void checkForDuplicateNames() {
     Collection<ModuleToImport> modules = getSelectedModules();
-    ImmutableMultiset<String> names = ImmutableMultiset.copyOf(Iterables.transform(modules, new Function<>() {
+    ImmutableMultiset<String> names = ImmutableMultiset.copyOf(Iterables.transform(modules, new Function<ModuleToImport, String>() {
       @Override
       public String apply(@Nullable ModuleToImport input) {
         return input == null ? null : getModuleName(input);
@@ -190,7 +223,7 @@ public final class ModuleListModel {
   }
 
   public Set<ModuleToImport> getSelectedModules() {
-    return ImmutableSet.copyOf(Iterables.filter(myModules.keySet(), new Predicate<>() {
+    return ImmutableSet.copyOf(Iterables.filter(myModules.keySet(), new Predicate<ModuleToImport>() {
       @Override
       public boolean apply(@Nullable ModuleToImport input) {
         assert input != null;
@@ -302,7 +335,7 @@ public final class ModuleListModel {
       case DUPLICATE_MODULE_NAME:
         return "More then one module with this name is selected";
       case REQUIRED:
-        Iterable<String> requiredBy = Iterables.transform(myRequiredModules.get(module), new Function<>() {
+        Iterable<String> requiredBy = Iterables.transform(myRequiredModules.get(module), new Function<ModuleToImport, String>() {
           @Override
           public String apply(ModuleToImport input) {
             return "'" + getModuleName(input) + "'";

@@ -66,7 +66,7 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
   private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final boolean myOnTheFly;
-    final List<ProblemDescriptor> myResult = new ArrayList<>();
+    final List<ProblemDescriptor> myResult = new ArrayList<ProblemDescriptor>();
 
     private MyVisitor(InspectionManager inspectionManager, boolean onTheFly) {
       myInspectionManager = inspectionManager;

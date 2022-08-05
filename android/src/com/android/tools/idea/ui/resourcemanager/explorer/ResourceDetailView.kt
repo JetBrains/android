@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.tools.adtui.common.WrappedFlowLayout
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
@@ -24,7 +25,6 @@ import com.android.tools.idea.ui.resourcemanager.rendering.DefaultIconProvider
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.Separator
 import com.android.tools.idea.ui.resourcemanager.widget.SingleAssetCard
-import com.android.tools.idea.ui.wizard.WrappedFlowLayout
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager

@@ -409,8 +409,8 @@ public class MotionLayoutAttributesModel extends NlPropertiesModel {
 
   @Override
   protected boolean wantSelectionUpdate(
-    @Nullable DesignSurface surface,
-    @Nullable DesignSurface activeSurface,
+    @Nullable DesignSurface<?> surface,
+    @Nullable DesignSurface<?> activeSurface,
     @Nullable AccessoryPanelInterface panel,
     @Nullable AccessoryPanelInterface activePanel,
     @Nullable Object selectedAccessoryType,

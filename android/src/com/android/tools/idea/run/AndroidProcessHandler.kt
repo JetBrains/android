@@ -53,18 +53,21 @@ import java.io.OutputStream
  * @param project IDE project which uses this process handler
  * @param targetApplicationId a target application id to be monitored
  * @param captureLogcat true if you need logcat message to be captured and displayed in an attached console view, false otherwise
+ * @param finishAndroidProcessCallback custom way to finish a started process, used by AndroidProcessMonitorManager.
  * @param deploymentApplicationService a service to be used to look up running processes on a device
  * @param androidProcessMonitorManagerFactory a factory method to construct [AndroidProcessMonitorManager]
  */
 class AndroidProcessHandler @JvmOverloads constructor(
   private val project: Project,
   val targetApplicationId: String,
+  finishAndroidProcessCallback: (IDevice) -> Unit = { device -> device.forceStop(targetApplicationId) },
   val captureLogcat: Boolean = true,
   val autoTerminate: Boolean = true,
   private val ansiEscapeDecoder: AnsiEscapeDecoder = AnsiEscapeDecoder(),
-  private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.getInstance(),
+  private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.instance,
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
-    AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, captureLogcat, listener)
+    AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, captureLogcat, listener,
+                                 finishAndroidProcessCallback)
   }) : ProcessHandler(), KillableProcess, SwappableProcessHandler {
 
   companion object {
@@ -77,7 +80,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
 
   /**
    * Logcat messages from all target devices are redirected to [notifyTextAvailable]. When all target processes terminate on
-   * all devices, it invokes [destroyProcess] to terminate android process handler.
+   * all devices, it invokes [notifyProcessTerminated] to terminate android process handler.
    */
   private val myMonitorManager = androidProcessMonitorManagerFactory(
     targetApplicationId,
@@ -88,7 +91,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
     object : AndroidProcessMonitorManagerListener {
       override fun onAllTargetProcessesTerminated() {
         if (autoTerminate) {
-          destroyProcess()
+          notifyProcessTerminated(0)
         }
       }
     })
@@ -105,14 +108,6 @@ class AndroidProcessHandler @JvmOverloads constructor(
   @AnyThread
   fun addTargetDevice(device: IDevice) {
     myMonitorManager.add(device)
-
-    // Keep track of the lowest API level among the monitored devices by this handler.
-    synchronized(this) {
-      val lowestApiLevel = getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)
-      if (lowestApiLevel == null || device.version < lowestApiLevel) {
-        putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, device.version)
-      }
-    }
 
     LOG.info("Adding device ${device.name} to monitor for launched app: ${targetApplicationId}")
   }

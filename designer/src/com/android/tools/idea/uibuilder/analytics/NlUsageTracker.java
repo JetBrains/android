@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface NlUsageTracker {
 
-  DesignerUsageTrackerManager<NlUsageTracker, DesignSurface> MANAGER =
+  DesignerUsageTrackerManager<NlUsageTracker, DesignSurface<?>> MANAGER =
     new DesignerUsageTrackerManager<>((executor, surface, eventLogger) -> new NlUsageTrackerImpl(executor, surface, eventLogger),
                                       new NlNopTracker()
     );
@@ -71,7 +71,7 @@ public interface NlUsageTracker {
    * The stats are also disabled during unit testing.
    */
   @NotNull
-  static NlUsageTracker getInstance(@Nullable DesignSurface surface) {
+  static NlUsageTracker getInstance(@Nullable DesignSurface<?> surface) {
     return MANAGER.getInstance(surface);
   }
 }

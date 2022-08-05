@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.variant
 import com.android.SdkConstants
 import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
@@ -42,15 +42,16 @@ import com.google.common.io.Files.asCharSource
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
@@ -66,9 +67,6 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
-
-  @get:Rule
-  val testName = TestName()
 
   @Test
   fun testSwitchVariants() {
@@ -118,7 +116,28 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     val suffix = "_sm"
     val symlinkPath = File(path.path + suffix)
     Files.createSymbolicLink(symlinkPath.toPath(), path.toPath())
+
     openPreparedProject("project$suffix") { project ->
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      switchVariant(project, ":app", "release")
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "release")
+    }
+  }
+
+  @Test
+  fun testSwitchVariants_app_symlinks() {
+    assumeNotWindows()
+
+    val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val app = path.resolve("app").toPath()
+    val linkSourcePath = path.resolve("app_sm_src").toPath()
+    Files.move(app, linkSourcePath)
+    Files.createSymbolicLink(app, linkSourcePath)
+    VfsUtil.markDirtyAndRefresh(false, true, true, path)
+
+    openPreparedProject("project") { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       switchVariant(project, ":app", "release")
@@ -470,7 +489,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     val (firstSnapshot, secondSnapshot) = openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
-      expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "x86")
+      expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "armeabi-v7a")
       val firstSnapshot = project.saveAndDump()
 
       switchVariant(project, ":app", "x86Debug")
@@ -488,18 +507,38 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       switchAbi(project, ":app", "arm64-v8a")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
-      expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "arm64-v8a")
+      expect.thatModuleVariantIs(project, ":app", "arm8Debug", abi = "arm64-v8a")
 
       switchVariant(project, ":app", "arm7Debug")
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
-      expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "arm64-v8a")
+      expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "armeabi-v7a")
+      expect.that(project.saveAndDump()).isEqualTo(firstSnapshot)
 
       switchAbi(project, ":app", "x86")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
-      expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "x86")
-      expect.that(project.saveAndDump()).isEqualTo(firstSnapshot)
+      expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "x86")
+      expect.that(project.saveAndDump()).isEqualTo(secondSnapshot)
+
+      switchVariant(project, ":app", "enableAllAbisDebug")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "enableAllAbisDebug", abi = "x86")
+
+      switchAbi(project, ":app", "armeabi-v7a")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "enableAllAbisDebug", abi = "armeabi-v7a")
+
+    }
+    openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+
+      switchAbi(project, ":app", "x86")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "enableAllAbisDebug", abi = "x86")
     }
   }
 
@@ -606,13 +645,12 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     }
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()
 }
 
-private fun Module.selectedModelVariant(): String? = AndroidModuleModel.get(this)?.selectedVariant?.name
+private fun Module.selectedModelVariant(): String? = GradleAndroidModel.get(this)?.selectedVariant?.name
 private fun Module.selectedNdkModelVariant(): String? = NdkModuleModel.get(this)?.selectedVariant
 private fun Module.selectedNdkModelAbi(): String? = NdkModuleModel.get(this)?.selectedAbi
 private fun Module.selectedFacetVariant(): String? = AndroidFacet.getInstance(this)?.properties?.SELECTED_BUILD_VARIANT
@@ -622,7 +660,7 @@ private fun Module.selectedNdkFacetAbi(): String? = NdkFacet.getInstance(this)?.
 private fun Expect.consistentConfigurationOf(project: Project) {
   val facetVariants = project.getSelectedVariantAndAbis()
   val projectStructure = ProjectDataManager.getInstance()
-    .getExternalProjectData(project, GradleConstants.SYSTEM_ID, project.basePath!!)
+    .getExternalProjectData(project, GradleConstants.SYSTEM_ID, toCanonicalPath(File(project.basePath!!).canonicalPath))
     ?.externalProjectStructure
   val modelVariants = projectStructure?.getSelectedVariants()
   withMessage("Variants and ABI configured in facets").that(facetVariants).isEqualTo(modelVariants)

@@ -72,7 +72,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
         _status = State.RELEASED
         callstacks.add(BackgroundTaskCallStack(timestamp, backgroundTaskEvent.backgroundTaskEvent.stacktrace))
       }
-      else -> {}
+      else -> { }
     }
   }
 }

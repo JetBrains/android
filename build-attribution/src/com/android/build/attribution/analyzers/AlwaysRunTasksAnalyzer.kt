@@ -39,8 +39,6 @@ class AlwaysRunTasksAnalyzer(
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
       (event.result as TaskSuccessResult).executionReasons?.forEach {
         when (it) {
-          AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS.message -> alwaysRunTasksSet.add(
-            AlwaysRunTaskData(getTask(event), AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS))
           AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS.message -> alwaysRunTasksSet.add(
             AlwaysRunTaskData(getTask(event), AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS))
           AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE.message -> alwaysRunTasksSet.add(

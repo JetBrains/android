@@ -18,14 +18,12 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
-import com.android.tools.idea.profilers.appinspection.AppInspectionIntellijMigrationServices;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
-import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
 import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
@@ -37,7 +35,6 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.appinspection.AppInspectionMigrationServices;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
@@ -46,6 +43,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -68,7 +66,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -96,7 +93,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @NotNull private final Project myProject;
   @NotNull private final IntellijProfilerPreferences myPersistentPreferences;
   @NotNull private final TemporaryProfilerPreferences myTemporaryPreferences;
-  @NotNull private final AppInspectionMigrationServices myMigrationServices;
 
   public IntellijProfilerServices(@NotNull Project project,
                                   @NotNull SymbolFilesLocator symbolLocator) {
@@ -110,7 +106,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     myNativeSymbolizer = new IntelliJNativeFrameSymbolizer(nativeSymbolizer);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
-    myMigrationServices = new AppInspectionIntellijMigrationServices(myPersistentPreferences, project);
 
     myCodeNavigator = new CodeNavigator(new IntelliJNavSource(project, nativeSymbolizer),
                                         CodeNavigator.Companion.getApplicationExecutor());
@@ -294,14 +289,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel) {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
-    CpuProfilingConfigService oldService = CpuProfilingConfigService.getInstance(myProject);
-
-    // We use the deprecated |oldService| to migrate the user created configurations to the new persistent class.
-    // |oldService| probably will be removed in coming versions of Android Studio: http://b/74601959
-    oldService.getConfigurations().forEach(old -> configsState.addUserConfig(CpuProfilerConfigConverter.fromProto(old.toProto())));
-    // We don't need configurations from |oldService| anymore, so clear it.
-    oldService.setConfigurations(Collections.emptyList());
-
     return ContainerUtil.map(
       CpuProfilerConfigConverter.toProto(configsState.getUserConfigs(), apiLevel),
       ProfilingConfiguration::fromProto);
@@ -356,7 +343,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
 
     Notification.UrlData urlData = notification.getUrlData();
     if (urlData != null) {
-      OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(urlData.getUrl(), urlData.getText());
+      NotificationHyperlink hyperlink = new NotificationHyperlink(urlData.getUrl(), urlData.getText()) {
+        protected void execute(@NotNull Project project) {
+          BrowserUtil.browse(getUrl());
+        }
+      };
       AndroidNotification.getInstance(myProject)
         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP, false,
                      hyperlink);
@@ -373,26 +364,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return TraceProcessorServiceImpl.getInstance();
   }
 
-  @Override
-  public @NotNull AppInspectionMigrationServices getAppInspectionMigrationServices() {
-    return myMigrationServices;
-  }
-
   /**
    * Implementation of {@link FeatureConfig} with values used in production.
    */
   @VisibleForTesting
   public static class FeatureConfigProd implements FeatureConfig {
-    @Override
-    public boolean isCpuCaptureStageEnabled() {
-      return StudioFlags.PROFILER_CPU_CAPTURE_STAGE.get();
-    }
-
-    @Override
-    public boolean isCpuNewRecordingWorkflowEnabled() {
-      return StudioFlags.PROFILER_CPU_NEW_RECORDING_WORKFLOW.get();
-    }
-
     @Override
     public boolean isEnergyProfilerEnabled() {
       return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
@@ -401,11 +377,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isJankDetectionUiEnabled() {
       return StudioFlags.PROFILER_JANK_DETECTION_UI.get();
-    }
-
-    @Override
-    public boolean isJniReferenceTrackingEnabled() {
-      return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
     }
 
     @Override
@@ -419,28 +390,13 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isProfileableEnabled() {
-      return StudioFlags.PROFILEABLE.get();
-    }
-
-    @Override
-    public boolean isProfileableInQrEnabled() {
-      return StudioFlags.PROFILEABLE_IN_QR.get();
-    }
-
-    @Override
-    public boolean isStartupCpuProfilingEnabled() {
-      return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
+    public boolean isProfileableBuildsEnabled() {
+      return StudioFlags.PROFILEABLE_BUILDS.get();
     }
 
     @Override
     public boolean isUnifiedPipelineEnabled() {
       return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
-    }
-
-    @Override
-    public boolean isUseTraceProcessor() {
-      return StudioFlags.PROFILER_USE_TRACEPROCESSOR.get();
     }
 
     @Override

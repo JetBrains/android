@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.fixtures
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.LayoutTestUtilities
 import org.intellij.lang.annotations.JdkConstants
@@ -64,21 +65,21 @@ open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordi
   }
 
   open fun build(): MouseEvent {
-    return createMockEvent(MouseEvent::class.java)
+    return createMockEvent(MouseEvent::class.java);
   }
 
   protected fun <T: MouseEvent, U: Class<out T>> createMockEvent(clazz: U): T {
     val event = Mockito.mock(clazz)
-    Mockito.`when`(event.source).thenReturn(mySource)
-    Mockito.`when`(event.x).thenReturn(myX)
-    Mockito.`when`(event.y).thenReturn(myY)
-    Mockito.`when`(event.modifiers).thenReturn(myMask)
-    Mockito.`when`(event.modifiersEx).thenReturn(myMask)
-    Mockito.`when`(event.button).thenReturn(myButton)
-    Mockito.`when`(event.clickCount).thenReturn(myClickCount)
-    Mockito.`when`(event.point).thenReturn(Point(myX, myY))
-    Mockito.`when`(event.getWhen()).thenReturn(System.currentTimeMillis())
-    Mockito.`when`(event.id).thenReturn(myId)
+    whenever(event.source).thenReturn(mySource)
+    whenever(event.x).thenReturn(myX)
+    whenever(event.y).thenReturn(myY)
+    whenever(event.modifiers).thenReturn(myMask)
+    whenever(event.modifiersEx).thenReturn(myMask)
+    whenever(event.button).thenReturn(myButton)
+    whenever(event.clickCount).thenReturn(myClickCount)
+    whenever(event.point).thenReturn(Point(myX, myY))
+    whenever(event.getWhen()).thenReturn(System.currentTimeMillis())
+    whenever(event.id).thenReturn(myId)
     return event
   }
 }

@@ -25,7 +25,7 @@ import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.google.common.annotations.VisibleForTesting
-import io.grpc.StatusRuntimeException
+import com.android.tools.idea.io.grpc.StatusRuntimeException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async

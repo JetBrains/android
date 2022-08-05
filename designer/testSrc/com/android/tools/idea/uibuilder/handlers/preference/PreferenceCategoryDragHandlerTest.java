@@ -23,11 +23,13 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import java.awt.Rectangle;
 import java.util.Collections;
@@ -106,7 +108,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
   @NotNull
   private PreferenceGroupDragHandler newPreferenceCategoryDragHandler(@NotNull SyncNlModel model, @NotNull NlComponent category) {
     ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(model).getScene();
+    Scene scene = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     SceneComponent component = scene.getSceneComponent(category);

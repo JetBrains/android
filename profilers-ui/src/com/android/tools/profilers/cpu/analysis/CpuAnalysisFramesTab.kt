@@ -68,6 +68,9 @@ class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
     add(tableContainer, BorderLayout.CENTER)
   }
 
+  override fun onRemoved() { }
+  override fun onReattached() { }
+
   companion object {
     val PAGE_SIZE_VALUES = arrayOf(10, 25, 50, 100)
   }

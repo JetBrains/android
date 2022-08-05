@@ -22,14 +22,15 @@ import com.android.builder.model.PROPERTY_BUILD_DENSITY
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.run.createSpec
+import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
-import com.android.tools.idea.gradle.task.AndroidGradleTaskManager.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
@@ -46,6 +47,7 @@ import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -55,8 +57,10 @@ import com.intellij.openapi.wm.ToolWindow
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.plugins.gradle.util.getGradlePath
 import java.io.File
 import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Gradle task invoker to run ConnectedAndroidTask for selected devices at once.
@@ -93,13 +97,15 @@ class GradleConnectedAndroidTestInvoker(
                taskId: String,
                processHandler: ProcessHandler,
                consolePrinter: ConsolePrinter,
-               androidModuleModel: AndroidModuleModel,
+               androidModuleModel: GradleAndroidModel,
                waitForDebugger: Boolean,
                testPackageName: String,
                testClassName: String,
                testMethodName: String,
+               testRegex: String,
                device: IDevice,
-               retentionConfiguration: RetentionConfiguration) {
+               retentionConfiguration: RetentionConfiguration,
+               extraInstrumentationOptions: String) {
     scheduledDeviceList.add(device)
     if (scheduledDeviceList.size == selectedDevices) {
       runGradleTask(project,
@@ -111,7 +117,9 @@ class GradleConnectedAndroidTestInvoker(
                     testPackageName,
                     testClassName,
                     testMethodName,
-                    retentionConfiguration)
+                    testRegex,
+                    retentionConfiguration,
+                    extraInstrumentationOptions)
     }
   }
 
@@ -123,18 +131,20 @@ class GradleConnectedAndroidTestInvoker(
     taskId: String,
     processHandler: ProcessHandler,
     consolePrinter: ConsolePrinter,
-    androidModuleModel: AndroidModuleModel,
+    androidModuleModel: GradleAndroidModel,
     waitForDebugger: Boolean,
     testPackageName: String,
     testClassName: String,
     testMethodName: String,
-    retentionConfiguration: RetentionConfiguration
+    testRegex: String,
+    retentionConfiguration: RetentionConfiguration,
+    extraInstrumentationOptions: String
   ) {
     consolePrinter.stdout("Running tests\n")
 
     val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
     val adapters = scheduledDeviceList.associate {
-      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.artifactForAndroidTest, androidTestResultListener)
+      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.getArtifactForAndroidTest(), androidTestResultListener)
       adapter.device.id to adapter
     }
 
@@ -153,11 +163,12 @@ class GradleConnectedAndroidTestInvoker(
         }
       })
 
-      var testRunIsCancelled = false
+      val testRunIsCancelled = AtomicBoolean(false)
+      val onEndIsCalled = AtomicBoolean(false)
 
       override fun onCancel(id: ExternalSystemTaskId) {
         super.onCancel(id)
-        testRunIsCancelled = true
+        testRunIsCancelled.set(true)
       }
 
       override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
@@ -170,6 +181,10 @@ class GradleConnectedAndroidTestInvoker(
       }
 
       override fun onEnd(id: ExternalSystemTaskId) {
+        if (onEndIsCalled.getAndSet(true)) {
+          return
+        }
+
         super.onEnd(id)
 
         val testSuiteStartedOnAnyDevice = adapters.values.any(GradleTestResultAdapter::testSuiteStarted)
@@ -182,7 +197,7 @@ class GradleConnectedAndroidTestInvoker(
         // option.
         var isRerunRequested = false
         val rerunDevices = adapters.values.filter {
-          it.needRerunWithUninstallIncompatibleApkOption()
+          it.needRerunWithUninstallIncompatibleApkOption().needRerunWithUninstallIncompatibleApkOption
         }
         if (rerunDevices.isNotEmpty()) {
           ApplicationManager.getApplication().invokeAndWait {
@@ -212,14 +227,16 @@ class GradleConnectedAndroidTestInvoker(
               testPackageName,
               testClassName,
               testMethodName,
+              testRegex,
               it.iDevice,
-              retentionConfiguration
+              retentionConfiguration,
+              extraInstrumentationOptions
             )
           }
         } else {
           // If Gradle task run finished before the test suite starts, show error
           // in the Build output tool window.
-          if(!testSuiteStartedOnAnyDevice && !testRunIsCancelled) {
+          if(!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
             ApplicationManager.getApplication().invokeLater({
               val toolWindow = buildToolWindowProvider(project)
               if (toolWindow.isAvailable && !toolWindow.isVisible) {
@@ -242,16 +259,30 @@ class GradleConnectedAndroidTestInvoker(
     })
 
     val gradleExecutionSettings = getGradleExecutionSettings(
-      project, waitForDebugger, testPackageName, testClassName, testMethodName, retentionConfiguration)
+      project, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
+      retentionConfiguration, extraInstrumentationOptions)
 
     backgroundTaskExecutor {
-      gradleTaskManagerFactory().executeTasks(
-        externalTaskId,
-        taskNames,
-        path.path,
-        gradleExecutionSettings,
-        null,
-        listener)
+      try {
+        gradleTaskManagerFactory().executeTasks(
+          externalTaskId,
+          taskNames,
+          path.path,
+          gradleExecutionSettings,
+          null,
+          listener)
+      } catch (e: ExternalSystemException) {
+        // No-op.
+        // If there is a failing test case, the test task finished in failed state
+        // that ends up with ExternalSystemException to be thrown on Windows.
+        // On Linux and Mac OS, GradleTaskManager doesn't throw ExternalSystemException
+        // for failed task and it calls listener.onFailure() callback instead.
+      } finally {
+        // When a Gradle task fails, GradleTaskManager.executeTasks method may throw
+        // an ExternalSystemException without calling onEnd() or onFailure() callback.
+        // This often happens on Windows.
+        listener.onEnd(externalTaskId)
+      }
     }
   }
 
@@ -261,7 +292,9 @@ class GradleConnectedAndroidTestInvoker(
     testPackageName: String,
     testClassName: String,
     testMethodName: String,
-    retentionConfiguration: RetentionConfiguration
+    testRegex: String,
+    retentionConfiguration: RetentionConfiguration,
+    extraInstrumentationOptions: String
   ): GradleExecutionSettings {
     return GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
       // Add an environmental variable to filter connected devices for selected devices.
@@ -283,7 +316,9 @@ class GradleConnectedAndroidTestInvoker(
       }
 
       // Add a test filter.
-      if (testPackageName != "" || testClassName != "") {
+      if (testRegex.isNotBlank()) {
+        withArgument("-Pandroid.testInstrumentationRunnerArguments.tests_regex=$testRegex")
+      } else if (testPackageName != "" || testClassName != "") {
         var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
         if (testPackageName != "") {
           testTypeArgs += ".package=$testPackageName"
@@ -305,16 +340,25 @@ class GradleConnectedAndroidTestInvoker(
         withArgument("-P$UNINSTALL_INCOMPATIBLE_APKS_PROPERTY=true")
       }
 
+      // Extra instrumentation params are stored as a String with the format "-e name1 value1 -e name2 value2...". To use these arguments
+      // in a Gradle test, each argument needs to be in the format "-Pandroid.testInstrumentationRunnerArguments.name=value".
+      val extraInstrumentationOptionsList = parseFromString(extraInstrumentationOptions).toList()
+      for (param in extraInstrumentationOptionsList) {
+        withArgument("-Pandroid.testInstrumentationRunnerArguments.${param.NAME}=${param.VALUE.trim()}")
+      }
+
       // Don't switch focus to build tool window even after build failure because
       // if there is a test failure, AGP handles it as a build failure and it hides
       // the test result panel if this option is not set.
+      // TODO(b/233356642): Replace with direct GradleBuildInvoker usage.
+      @Suppress("DEPRECATION")
       putUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE, true)
     }
   }
 
-  private fun getTaskNames(androidModuleModel: AndroidModuleModel): List<String> {
+  private fun getTaskNames(androidModuleModel: GradleAndroidModel): List<String> {
     return listOf(
-      "${moduleData.id}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
+      "${moduleData.getGradlePath().trimEnd(':')}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
     )
   }
 

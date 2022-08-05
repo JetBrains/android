@@ -44,7 +44,7 @@ class LegacyAllocationCommandHandler(val device: IDevice,
     when (command.type) {
       Commands.Command.CommandType.START_ALLOC_TRACKING -> enableAllocations(command)
       Commands.Command.CommandType.STOP_ALLOC_TRACKING -> disableAllocations(command)
-      else -> {}
+      else -> { }
     }
 
     return Transport.ExecuteResponse.getDefaultInstance()

@@ -17,9 +17,11 @@ package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.HtmlLinksHandler
+import com.android.build.attribution.ui.data.DownloadsSummaryUIData
 import com.android.build.attribution.ui.durationStringHtml
+import com.android.build.attribution.ui.helpIcon
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
-import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.model.BuildOverviewPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.shouldShowWarning
 import com.android.build.attribution.ui.percentageStringHtml
@@ -27,6 +29,9 @@ import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.text.Formats
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.text.StringUtil.pluralize
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -41,10 +46,9 @@ import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import javax.swing.event.HyperlinkEvent.EventType
 
 class BuildOverviewPageView(
-  val model: BuildAnalyzerViewModel,
+  val model: BuildOverviewPageModel,
   val actionHandlers: ViewActionHandlers
 ) : BuildAnalyzerDataPageView {
 
@@ -57,21 +61,27 @@ class BuildOverviewPageView(
     val optionalConfigurationCacheLink = if (model.reportUiData.confCachingData.shouldShowWarning())
       linksHandler.actionLink("Optimize this", "configuration-cache") {
         actionHandlers.openConfigurationCacheWarnings()
-      }.let { " - $it." }
+      }.let { " - $it" }
     else ""
     val text = """
       <b>Build finished on ${buildFinishedTime}</b><br/>
-      Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}.<br/>
+      Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}<br/>
       <br/>
       Includes:<br/>
       Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}$optionalConfigurationCacheLink<br/>
       Critical path tasks execution: ${buildSummary.criticalPathDuration.durationStringHtml()}<br/>
+      ${optionalDownloadsOverviewSection(model.downloadsSummaryUiData)}
     """.trimIndent()
-    add(htmlTextLabelWithFixedLines(text, linksHandler).apply {
-      addHyperlinkListener {
-        if (it.eventType == EventType.ACTIVATED && it.description == "configuration-cache") actionHandlers.openConfigurationCacheWarnings()
-      }
-    })
+    add(htmlTextLabelWithFixedLines(text, linksHandler))
+  }
+
+  private fun optionalDownloadsOverviewSection(downloadsData: DownloadsSummaryUIData?):String {
+    if (downloadsData == null || downloadsData.isEmpty) return ""
+    val tooltipDetails = StringUtil.escapeXmlEntities("""<html>
+    This build had ${downloadsData.sumOfRequests} network ${pluralize("request", downloadsData.sumOfRequests)},<br/>
+    downloaded in total ${Formats.formatFileSize(downloadsData.sumOfDataBytes)} in ${durationStringHtml(downloadsData.sumOfTimeMs)}.
+    </html>""")
+    return "Files download: ${durationStringHtml(downloadsData.sumOfTimeMs)} ${helpIcon(tooltipDetails)}<br/>"
   }
 
   private val linksPanel = JPanel().apply {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.TAGS_WITH_GOOGLE_API;
 
 import com.android.annotations.NonNull;
 import com.android.sdklib.SdkVersionInfo;
@@ -109,7 +108,7 @@ public class HaxmAlert extends JPanel {
     }
 
     ListenableFuture<AccelerationErrorCode> accelerationError = getAccelerationState(false);
-    Futures.addCallback(accelerationError, new FutureCallback<>() {
+    Futures.addCallback(accelerationError, new FutureCallback<AccelerationErrorCode>() {
       @Override
       public void onSuccess(AccelerationErrorCode result) {
         myAccelerationErrorCode = result;
@@ -127,11 +126,11 @@ public class HaxmAlert extends JPanel {
           }
           final Runnable action = AccelerationErrorSolution.getActionForFix(result, null, () -> refresh(), null);
           myErrorLinkListener = new HyperlinkAdapter() {
-            @Override
-            protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-              action.run();
-            }
-          };
+              @Override
+              protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
+                action.run();
+              }
+            };
           myErrorInstructionsLink.addHyperlinkListener(myErrorLinkListener);
           myErrorInstructionsLink.setToolTipText(result.getSolution() != NONE ? result.getSolutionMessage() : null);
         }
@@ -152,7 +151,7 @@ public class HaxmAlert extends JPanel {
             warningTextBuilder.append(nonX86ImageWarning + "<br>");
           }
 
-          if (!TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
+          if (!SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
             if (warningTextBuilder.length() > 0) {
               warningTextBuilder.append("<br>");
             }
@@ -167,8 +166,7 @@ public class HaxmAlert extends JPanel {
           myWarningMessage.setText(warningTextBuilder.toString().replaceAll("\n", "<br>"));
           setVisible(true);
           myErrorInstructionsLink.setVisible(hasLink);
-        }
-        else {
+        } else {
           setVisible(false);
         }
       }

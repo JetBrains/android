@@ -34,6 +34,8 @@ import kotlin.concurrent.write
 @VisibleForTesting
 const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
 
+private val systemPackagePrefixes = setOf("android.", "androidx.", "com.android.", "com.google.android.")
+
 /**
  * A view node represents a view in the view hierarchy as seen on the device.
  *
@@ -75,7 +77,7 @@ open class ViewNode(
   /** Returns true if this [ViewNode] is found in a layout in the framework or in a system layout from appcompat */
   open val isSystemNode: Boolean
     get() =
-      layout == null ||
+      (layout == null && systemPackagePrefixes.any { qualifiedName.startsWith(it) }) ||
       layout?.namespace == ResourceNamespace.ANDROID ||
       layout?.name?.startsWith("abc_") == true
 
@@ -113,6 +115,13 @@ open class ViewNode(
   fun setTransformedBounds(bounds: Shape?) {
     _transformedBounds = bounds
   }
+
+  /**
+   *  The rectangular bounds of this node's transformed bounds plus the transitive bounds of all children.
+   *  [calculateTransitiveBounds] must be called before accessing this, but that should be done automatically soon after creation.
+   */
+  lateinit var transitiveBounds: Rectangle
+    private set
 
   private var tagPointer: SmartPsiElementPointer<XmlTag>? = null
 
@@ -157,6 +166,19 @@ open class ViewNode(
    */
   private fun preOrderFlatten(): Sequence<ViewNode> {
     return sequenceOf(this).plus(children.asSequence().flatMap { it.preOrderFlatten() })
+  }
+
+  /**
+   * Calculate the transitive bounds for all nodes under the given [root]. This should be called once after the
+   * ViewNode tree is built.
+   */
+  fun calculateTransitiveBounds() {
+    readAccess {
+      flatten().forEach {
+        it.transitiveBounds = it.children.map(ViewNode::transitiveBounds).plus(it.transformedBounds.bounds)
+          .reduce { r1, r2 -> r1.union(r2) }
+      }
+    }
   }
 
   /**

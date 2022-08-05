@@ -22,16 +22,17 @@ import static java.nio.file.Files.readAllBytes;
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.model.NdkModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.utils.FileUtils;
@@ -60,7 +61,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -77,6 +77,8 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
   private static final Logger LOG = Logger.getInstance(SendFeedbackAction.class);
   private static final Pattern CMAKE_VERSION_PATTERN = Pattern.compile("cmake version\\s+(.*)");
 
+  private static final String UNKNOWN_VERSION = "Unknown";
+
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     submit(e.getProject());
@@ -92,10 +94,36 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
         indicator.setText("Collecting feedback information");
         indicator.setIndeterminate(true);
+        ApplicationInfoEx applicationInfo = ApplicationInfoEx.getInstanceEx();
+        String feedbackUrl = applicationInfo.getFeedbackUrl();
+        String version = getVersion(applicationInfo);
+        feedbackUrl = feedbackUrl.replace("$STUDIO_VERSION", version);
+
         String description = getDescription(project);
-        com.intellij.ide.actions.SendFeedbackAction.submit(project, description + extraDescriptionDetails);
+        com.intellij.ide.actions.SendFeedbackAction.submit(project, feedbackUrl, description + extraDescriptionDetails);
       }
     }.setCancelText("Cancel").queue();
+  }
+
+  private static String getVersion(ApplicationInfoEx applicationInfo) {
+    String major = applicationInfo.getMajorVersion();
+    if (major == null) {
+      return UNKNOWN_VERSION;
+    }
+    String minor = applicationInfo.getMinorVersion();
+    if (minor == null) {
+      return UNKNOWN_VERSION;
+    }
+    String micro = applicationInfo.getMicroVersion();
+    if (micro == null) {
+      return UNKNOWN_VERSION;
+    }
+    String patch = applicationInfo.getPatchVersion();
+    if (patch == null) {
+      return UNKNOWN_VERSION;
+    }
+
+    return String.join(".", major, minor, micro, patch);
   }
 
   @Slow
@@ -109,15 +137,14 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
-      sb.append(String.format("AS: %1$s; ", ApplicationInfoEx.getInstanceEx().getFullVersion()));
-      sb.append(String.format("Kotlin plugin: %1$s; ", safeCall(SendFeedbackAction::getKotlinPluginDetails)));
+      sb.append(String.format("AS: %1$s\n", ApplicationInfoEx.getInstanceEx().getFullVersion()));
+      sb.append(String.format("Kotlin plugin: %1$s\n", safeCall(SendFeedbackAction::getKotlinPluginDetails)));
       if (project != null) {
-        sb.append(String.format("Android Gradle Plugin: %1$s; ", safeCall(() -> getGradlePluginDetails(project))));
-        sb.append(String.format("Gradle: %1$s; ", safeCall(() -> getGradleDetails(project))));
+        sb.append(String.format("Android Gradle Plugin: %1$s\n", safeCall(() -> getGradlePluginDetails(project))));
+        sb.append(String.format("Gradle: %1$s\n", safeCall(() -> getGradleDetails(project))));
       }
-      sb.append(String.format("Gradle JDK: %1$s; ", safeCall(() -> getJdkDetails(project))));
-      sb.append(String.format("NDK: %1$s; ", safeCall(() -> getNdkDetails(project, sdkHandler, progress))));
-      sb.append(String.format("LLDB: %1$s; ", safeCall(() -> getLldbDetails(sdkHandler, progress))));
+      sb.append(String.format("Gradle JDK: %1$s\n", safeCall(() -> getJdkDetails(project))));
+      sb.append(String.format("NDK: %1$s\n", safeCall(() -> getNdkDetails(project, sdkHandler, progress))));
       sb.append(String.format("CMake: %1$s", safeCall(() -> getCMakeDetails(project, sdkHandler, progress))));
       return sb.toString();
     });
@@ -166,6 +193,15 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
                                       @NotNull AndroidSdkHandler sdkHandler,
                                       @NotNull ProgressIndicator progress) {
     StringBuilder sb = new StringBuilder();
+    ProjectSystemUtil.getAndroidFacets(project).forEach(facet -> {
+      com.intellij.openapi.module.Module module = facet.getHolderModule();
+      NdkFacet ndkFacet = NdkFacet.getInstance(module);
+      if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
+        NdkModel ndkModel = ndkFacet.getNdkModuleModel().getNdkModel();
+        sb.append(String.format("from module: %1$s, ", ndkModel.getNdkVersion()));
+      }
+    });
+
     // Get version information from all the channels we know, and include it all into the bug to provide
     // the entire context.
     // NDK specified in local.properties (if any)
@@ -224,7 +260,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       try {
         // NDK 10
         byte[] content = readAllBytes(releaseTxtFile.toPath());
-        return new String(content, StandardCharsets.UTF_8).trim();
+        return new String(content).trim();
       }
       catch (IOException e) {
         LOG.info("Could not read NDK version", e);
@@ -232,19 +268,6 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       }
     }
     return "UNKNOWN";
-  }
-
-  private static String getLldbDetails(@NotNull AndroidSdkHandler sdkHandler, @NotNull ProgressIndicator progress) {
-    String path = DetailsTypes.getLldbPath(Revision.parseRevision(SdkConstants.LLDB_PINNED_REVISION));
-    LocalPackage p = sdkHandler.getLocalPackage(path, progress);
-    if (p == null) {
-      // OK, the version of LLDB compatible with the running version of Studio not found, display the latest installed
-      // information instead (and indicate that the supported version is not found)
-      p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_LLDB, null, false, progress);
-      return String.format("pinned revision %1$s not found, latest from SDK: %2$s", SdkConstants.LLDB_PINNED_REVISION,
-                           getLocalPackageDisplayInfo(p));
-    }
-    return getLocalPackageDisplayInfo(p);
   }
 
   private static String getCMakeDetails(@Nullable Project project,

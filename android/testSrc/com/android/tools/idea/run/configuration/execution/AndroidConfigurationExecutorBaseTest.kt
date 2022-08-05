@@ -16,63 +16,50 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.devices.Abi
-import com.android.testutils.MockitoKt
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ValidationError
-import com.google.common.collect.ImmutableList
-import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.testFramework.replaceService
-import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ProjectRule
+import com.intellij.xdebugger.XDebuggerManager
+import org.junit.After
+import org.junit.Rule
 import java.io.File
 
-abstract class AndroidConfigurationExecutorBaseTest : AndroidTestCase() {
+
+abstract class AndroidConfigurationExecutorBaseTest {
   protected val appId = "com.example.app"
   protected val componentName = "com.example.app.Component"
 
-  override fun setUp() {
-    super.setUp()
-    val projectSystemMock = createProjectSystemMock()
-    Mockito.`when`(projectSystemMock.getApkProvider(MockitoKt.any(RunConfiguration::class.java))).thenReturn(TestApksProvider(appId))
-    Mockito.`when`(projectSystemMock.getApplicationIdProvider(
-      MockitoKt.any(RunConfiguration::class.java))).thenReturn(TestApplicationIdProvider(appId))
+  @get:Rule
+  val projectRule = ProjectRule()
+
+  @get:Rule
+  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+
+  val project: Project
+    get() = projectRule.project
+
+  val myModule: com.intellij.openapi.module.Module
+    get() = projectRule.module
+
+  @After
+  fun after() {
+    XDebuggerManager.getInstance(project).debugSessions.forEach {
+      it.stop()
+    }
   }
 
-  private fun createProjectSystemMock(): AndroidProjectSystem {
-    val projectSystemMock = Mockito.mock(AndroidProjectSystem::class.java)
-    val projectSystemService = Mockito.mock(ProjectSystemService::class.java)
-    Mockito.`when`(projectSystemService.projectSystem).thenReturn(projectSystemMock)
-    project.replaceService(ProjectSystemService::class.java, projectSystemService, testRootDisposable)
-    return projectSystemMock
-  }
-
-  protected fun getMockDevice(): IDevice {
-    val device = Mockito.mock(IDevice::class.java)
-    Mockito.`when`(device.version).thenReturn(AndroidVersion(20, null))
-    Mockito.`when`(device.density).thenReturn(640)
-    Mockito.`when`(device.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86).map { it.toString() })
-    return device
-  }
-
-  private class TestApksProvider(private val appId: String) : ApkProvider {
+  protected class TestApksProvider(private val appId: String) : ApkProvider {
     @Throws(ApkProvisionException::class)
     override fun getApks(device: IDevice): Collection<ApkInfo> {
       return listOf(ApkInfo(File("file"), appId))
     }
-
-    override fun validate(): List<ValidationError> {
-      return ArrayList()
-    }
   }
 
-  private class TestApplicationIdProvider(private val appId: String) : ApplicationIdProvider {
+  protected class TestApplicationIdProvider(private val appId: String) : ApplicationIdProvider {
     override fun getPackageName() = appId
 
     override fun getTestPackageName(): String? = null

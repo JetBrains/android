@@ -17,18 +17,14 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
-import com.android.tools.idea.compose.preview.util.isKotlinFileType
-import com.android.tools.idea.compose.preview.util.requestBuild
-import com.android.tools.idea.editors.shortcuts.asString
-import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.Key
@@ -37,31 +33,11 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.serviceContainer.NonInjectable
-import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
-import com.intellij.ui.LightColors
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import java.awt.Color
 import java.util.concurrent.TimeUnit
-
-private fun createBuildNotificationPanel(project: Project,
-                                         file: VirtualFile,
-                                         text: String,
-                                         buildActionLabel: String = "${message(
-                                           "notification.action.build")}${getBuildAndRefreshShortcut().asString()}",
-                                         color: Color? = null): EditorNotificationPanel? {
-  val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-  return EditorNotificationPanel(color).apply {
-    setText(text)
-    isFocusable = false
-
-    createActionLabel(buildActionLabel) {
-      requestBuild(project, file, true)
-    }
-  }
-}
 
 /**
  * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview import. The notification will close
@@ -84,7 +60,7 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
           if (fileEditor.isValid) {
             FileEditorManager.getInstance(project).closeFile(file)
             FileEditorManager.getInstance(project).openFile(file, true)
-            requestBuild(project, file, true)
+            project.requestBuild(file)
           }
         }
       }
@@ -152,77 +128,4 @@ internal class ComposeNewPreviewNotificationManager(project: Project) {
       }
     }, project)
   }
-}
-
-/**
- * [EditorNotifications.Provider] that displays the notification when the preview needs to be refreshed.
- */
-class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
-  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.notification")
-  private val LOG = Logger.getInstance(ComposePreviewNotificationProvider::class.java)
-
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
-    LOG.debug("createNotificationsProvider")
-    if (!file.isKotlinFileType()) {
-      return null
-    }
-
-    val previewManager = fileEditor.getComposePreviewManager() ?: return null
-    val previewStatus = previewManager.status()
-    if (LOG.isDebugEnabled) {
-      LOG.debug(previewStatus.toString())
-    }
-
-    // Do not show the notification while the build is in progress but refresh is not.
-    if (previewStatus.isRefreshing) {
-      LOG.debug("Refreshing")
-      return when (previewStatus.interactiveMode) {
-        ComposePreviewManager.InteractiveMode.STARTING -> EditorNotificationPanel(fileEditor).apply {
-          text = message("notification.interactive.preview.starting")
-          icon(AnimatedIcon.Default())
-        }
-        ComposePreviewManager.InteractiveMode.STOPPING ->
-          // Don't show the notification when entering animation preview
-          if (previewManager.animationInspectionPreviewElementInstance != null) null
-          else
-            EditorNotificationPanel(fileEditor).apply {
-              text = message("notification.interactive.preview.stopping")
-              icon(AnimatedIcon.Default())
-            }
-        else -> null
-      }
-    }
-
-    val status = GradleBuildState.getInstance(project).lastFinishedBuildSummary?.status
-    // If there was no build or the project is loading, we won't have a status. We do not consider that as a build failure yet.
-    val lastBuildSuccessful = status == null || status.isBuildSuccessful
-
-    return when {
-      // Check if the project has compiled correctly
-      !lastBuildSuccessful -> createBuildNotificationPanel(
-        project,
-        file,
-        text = message("notification.needs.build.broken"),
-        color = LightColors.RED)
-
-      // If the preview is out of date and auto-build is not enabled, display the notification explaining the user they need to refresh.
-      previewStatus.isOutOfDate -> createBuildNotificationPanel(
-        project,
-        file,
-        text = message("notification.preview.out.of.date"),
-        buildActionLabel = "${message("notification.action.build.and.refresh")}${getBuildAndRefreshShortcut().asString()}")
-
-      // If the project has compiled, it could be that we are missing a class because we need to recompile.
-      // Check for errors from missing classes
-      previewStatus.hasErrors -> createBuildNotificationPanel(
-        project,
-        file,
-        text = if (previewStatus.hasSyntaxErrors) message("notification.syntax.errors") else message("notification.needs.build"),
-        color = LightColors.RED)
-
-      else -> null
-    }
-  }
-
-  override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
 }

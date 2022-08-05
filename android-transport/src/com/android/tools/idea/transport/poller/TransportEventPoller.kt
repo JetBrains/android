@@ -65,7 +65,8 @@ class TransportEventPoller(
     // Poll for each listener
     for (eventListener in listeners) {
       // Use start/end time if available
-      val startTimestamp = listenersToLastTimestamp[eventListener] ?: eventListener.startTime?.invoke() ?: Long.MIN_VALUE
+      val startTimestamp = max(listenersToLastTimestamp[eventListener] ?: Long.MIN_VALUE,
+                               eventListener.startTime?.invoke() ?: Long.MIN_VALUE)
       val endTimestamp = eventListener.endTime()
 
       val builder = Transport.GetEventGroupsRequest.newBuilder()
@@ -113,12 +114,21 @@ class TransportEventPoller(
 
     @JvmOverloads
     @JvmStatic
-    fun createPoller(transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
-                     pollPeriodNs: Long,
-                     sortOrder: java.util.Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp),
-                     executorServiceForTest: ScheduledExecutorService? = null
-    ): TransportEventPoller {
+    fun createStartedPoller(
+      transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
+      pollPeriodNs: Long,
+      sortOrder: java.util.Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp),
+      executorServiceForTest: ScheduledExecutorService? = null): TransportEventPoller {
       val poller = TransportEventPoller(transportClient, sortOrder)
+      startPoller(poller, pollPeriodNs, executorServiceForTest)
+      return poller
+    }
+
+    @JvmStatic
+    fun startPoller(
+      poller: TransportEventPoller,
+      pollPeriodNs: Long,
+      executorServiceForTest: ScheduledExecutorService? = null) {
       val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay(
         {
           try {
@@ -130,7 +140,6 @@ class TransportEventPoller(
         },
         0, pollPeriodNs, TimeUnit.NANOSECONDS)
       myScheduledFutures[poller] = scheduledFuture
-      return poller
     }
 
     @JvmStatic
@@ -138,5 +147,9 @@ class TransportEventPoller(
       myScheduledFutures.remove(poller)?.cancel(false)
     }
 
+    @JvmStatic
+    fun isPollerRunning(poller: TransportEventPoller): Boolean {
+      return myScheduledFutures.containsKey(poller)
+    }
   }
 }

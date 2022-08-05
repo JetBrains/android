@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement;
@@ -40,7 +39,6 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElem
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.intellij.psi.PsiElement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,11 +54,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
   public List<RepositoryModel> repositories() {
     List<RepositoryModel> result = new ArrayList<>();
     for (GradleDslElement element : myDslElement.getAllPropertyElements()) {
-      if (element instanceof GradleDslMethodCall) {
-        String methodName = ((GradleDslMethodCall)element).getMethodName();
-        assert !Arrays.asList(MAVEN_CENTRAL_METHOD_NAME, JCENTER.name, GOOGLE_METHOD_NAME).contains(methodName);
-      }
-      else if (element instanceof MavenRepositoryDslElement) {
+      if (element instanceof MavenRepositoryDslElement) {
         if (MAVEN.name.equals(element.getName())) {
           result.add(new MavenRepositoryModelImpl(myDslElement, (MavenRepositoryDslElement)element));
         }

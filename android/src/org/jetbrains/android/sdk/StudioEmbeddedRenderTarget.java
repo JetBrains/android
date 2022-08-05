@@ -21,7 +21,6 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -107,7 +106,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
     String path = FileUtil.join(homePath, "/resources/layoutlib/");
     if (StudioPathManager.isRunningFromSources()) {
-      path = FileUtil.join(StudioPathManager.resolveDevPath("prebuilts/studio/layoutlib/"));
+      path = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/layoutlib/").toString();
     }
 
     List<String> notFoundPaths = new ArrayList<>();

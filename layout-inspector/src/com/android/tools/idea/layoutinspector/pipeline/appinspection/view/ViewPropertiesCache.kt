@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ViewNodeCache
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
 
 /**
  * Cache of view properties, to avoid expensive refetches when possible.

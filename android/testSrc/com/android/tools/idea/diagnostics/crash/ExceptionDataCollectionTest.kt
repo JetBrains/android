@@ -28,10 +28,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.replaceService
-import junit.framework.TestCase
 import org.apache.log4j.LogManager
+import org.hamcrest.Matchers.hasSize
 import org.hamcrest.core.Is.`is`
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
@@ -126,33 +125,35 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
   }
 
   fun testRegisteringAppenders() {
-    // FIXME
+    val registeredAppenders = service.registeredAppenders
+    assertThat(registeredAppenders, hasSize(1))
+    assertThat(registeredAppenders[0].logger.name, equalTo("#com.android.tools.idea.diagnostics.crash.ExceptionDataCollectionTest"))
   }
 
   fun testLogCollection() {
-    val log4jLogger = LogManager.getLogger(exceptionDataCollectionTestLoggerName)
+    //val log4jLogger = LogManager.getLogger(exceptionDataCollectionTestLoggerName)
+    val logger = java.util.logging.LogManager.getLogManager().getLogger(exceptionDataCollectionTestLoggerName)
     with(exceptionDataCollectionTestLogger) {
       for (i in 1..5) {
         trace("trace message #$i")
         debug("debug message #$i")
         info("info message #$i")
         warn("warn message #$i")
-
-        // use log4j logger directly as
-        log4jLogger.error("error message #$i")
+        // use logger directly as
+        logger.severe("severe message #$i")
       }
     }
     val exceptionUploadFields = service.getExceptionUploadFields(ex3, forceExceptionMessage = false, includeLogs = true)
     var result = exceptionUploadFields.logs["test_3"]!!
     // remove time information
     result = result.replace(Regex("^\\[[ 0-9]+\\]", RegexOption.MULTILINE), "[<time>]")
-    TestCase.assertEquals("""
+    assertThat(result.trimEnd(), equalTo("""
 [<time>] W [sh.ExceptionDataCollectionTest] warn message #4
-[<time>] E [sh.ExceptionDataCollectionTest] error message #4
+[<time>] S [sh.ExceptionDataCollectionTest] severe message #4
 [<time>] I [sh.ExceptionDataCollectionTest] info message #5
 [<time>] W [sh.ExceptionDataCollectionTest] warn message #5
-[<time>] E [sh.ExceptionDataCollectionTest] error message #5
-    """.trimIndent(), result.trimEnd())
+[<time>] S [sh.ExceptionDataCollectionTest] severe message #5
+    """.trimIndent()))
   }
 
   fun testCalculateSignature() {

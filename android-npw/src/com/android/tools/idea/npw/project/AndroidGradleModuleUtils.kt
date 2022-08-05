@@ -25,7 +25,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.wizard.template.Parameter
 import com.intellij.openapi.module.Module
@@ -83,7 +83,8 @@ fun determineGradlePluginVersion(project: Project, isNewProject: Boolean): Gradl
     return defaultGradleVersion
   }
 
-  val versionInUse = GradleUtil.getAndroidGradleModelVersionInUse(project)
+  val versionInUse =
+    GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
   if (versionInUse != null) {
     return versionInUse
   }

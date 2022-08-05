@@ -18,13 +18,13 @@ package com.android.tools.idea.compose.preview.scene
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.isInStaticAndNonAnimationMode
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -38,7 +38,7 @@ import org.jetbrains.annotations.VisibleForTesting
 @VisibleForTesting
 fun updateAnimationInspectorToolbarIcon(viewObj: Any,
                                         previewManager: ComposePreviewManager,
-                                        previewElement: PreviewElementInstance,
+                                        previewElement: ComposePreviewElementInstance,
                                         animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker) {
   if (!previewManager.isInStaticAndNonAnimationMode) return
   try {
@@ -65,9 +65,9 @@ fun updateAnimationInspectorToolbarIcon(viewObj: Any,
  * It provides the ability to update the Compose Preview toolbar based on the root Composable.
  */
 class ComposeSceneUpdateListener : SceneManager.SceneUpdateListener {
-  override fun onUpdate(component: NlComponent, designSurface: DesignSurface) {
+  override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
     val previewManager = component.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    val previewElementInstance = (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance) ?: return
+    val previewElementInstance = (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as? ComposePreviewElementInstance) ?: return
     val viewObj = component.viewInfo?.viewObject ?: return
     updateAnimationInspectorToolbarIcon(viewObj, previewManager, previewElementInstance) {
       AnimationToolingUsageTracker.getInstance(designSurface)

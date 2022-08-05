@@ -21,7 +21,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-final class VirtualFiles {
+public final class VirtualFiles {
   private VirtualFiles() {
   }
 
@@ -29,7 +29,7 @@ final class VirtualFiles {
    * Returns a short string representation of a virtual file's path
    */
   @NotNull
-  static String toString(@NotNull VirtualFile file, @NotNull Project project) {
+  public static String toString(@NotNull VirtualFile file, @NotNull Project project) {
     return Strings.nullToEmpty(FileUtil.getRelativePath(project.getBasePath(), file.getPath(), '/'));
   }
 }

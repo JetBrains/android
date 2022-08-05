@@ -242,7 +242,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
                                                @NotNull MotionSelection selection,
                                                @Nullable String subTag) {
     List<? extends NlComponent> components = selection.getComponents();
-    NlPropertyType type = TypeResolver.INSTANCE.resolveType(name, attr);
+    NlPropertyType type = TypeResolver.INSTANCE.resolveType(name, attr, null);
     String libraryName = StringUtil.notNullize(attr != null ? attr.getLibraryName() : null);
     if (namespace.equals(ANDROID_URI) && name.equals(ATTR_ID)) {
       return new MotionIdPropertyItem(model, attr, "", components, selection, subTag);

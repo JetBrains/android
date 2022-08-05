@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 /* Mostly copied from com.intellij.util.ref.DebugReflectionUtil */
 public class ReflectionUtil implements DoNotTrace {
 
-  private static final TObjectHashingStrategy<Class> hashingStrategy = new TObjectHashingStrategy<>() {
+  private static final TObjectHashingStrategy<Class> hashingStrategy = new TObjectHashingStrategy<Class>() {
     // default strategy seems to be too slow
     @Override
     public int computeHashCode(Class aClass) {

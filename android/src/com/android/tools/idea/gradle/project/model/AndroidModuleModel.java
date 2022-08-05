@@ -16,18 +16,8 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
-import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
-import com.android.tools.idea.gradle.model.IdeSourceProvider;
-import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.model.AndroidModel;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import java.io.File;
-import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,30 +26,8 @@ import org.jetbrains.annotations.Nullable;
  * DEPRECATED: AndroidModuleModel is being deprecated and will eventually be deleted. Callers are being migrated to AndroidModel and
  * AndroidProject/ModuleSystem APIs. Those callers needing Gradle specific features should, for now, depend on gradle-project-system.
  */
-public interface AndroidModuleModel extends AndroidModel, ModuleModel {
-  @NotNull IdeDependencies getSelectedMainCompileLevel2Dependencies();
-
-  @Nullable IdeDependencies getSelectedAndroidTestCompileDependencies();
-
+public interface AndroidModuleModel extends AndroidModel {
   @NotNull GradleVersion getAgpVersion();
-
-  @NotNull List<IdeSourceProvider> getActiveSourceProviders();
-
-  @Nullable IdeBuildTypeContainer findBuildType(@NotNull String name);
-
-  @Nullable IdeProductFlavorContainer findProductFlavor(@NotNull String name);
-
-  @NotNull File getRootDirPath();
-
-  @NotNull IdeAndroidProject getAndroidProject();
-
-  @NotNull IdeVariant getSelectedVariant();
-
-  String getSelectedVariantName();
-
-  @NotNull ImmutableList<IdeVariant> getVariants();
-
-  @Nullable IdeAndroidArtifact getArtifactForAndroidTest();
 
   @Nullable
   static AndroidModuleModel get(@NotNull Module module) {

@@ -25,11 +25,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class DevicePickerStateService {
   /** A map from launch configuration id to the state of devices at the time of the launch. */
-  private TIntObjectHashMap<DeviceStateAtLaunch> myLastUsedDevices = new TIntObjectHashMap<>();
+  private TIntObjectHashMap<DeviceStateAtLaunch> myLastUsedDevices = new TIntObjectHashMap<DeviceStateAtLaunch>();
 
   /** A map from launch configuration id to the deploy target picker dialog's result. */
   private TIntObjectHashMap<DeployTarget> myDeployPickerResults =
-    new TIntObjectHashMap<>();
+    new TIntObjectHashMap<DeployTarget>();
 
   public static DevicePickerStateService getInstance(@NotNull Project project) {
     return project.getService(DevicePickerStateService.class);

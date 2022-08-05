@@ -45,7 +45,6 @@ import org.jetbrains.annotations.NotNull;
 public class CpuProfilerTestUtils {
 
   private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
-  public static final String CPU_UI_TRACES_DIR = "tools/adt/idea/profilers-ui/testData/cputraces/";
   public static final String ATRACE_MISSING_DATA_FILE = CPU_TRACES_DIR + "atrace_processid_1.ctrace";
   public static final String ATRACE_DATA_FILE = CPU_TRACES_DIR + "atrace.ctrace";
 
@@ -98,11 +97,6 @@ public class CpuProfilerTestUtils {
 
   public static CpuCapture getCapture(File traceFile, CpuTraceType profilerType) throws ExecutionException, InterruptedException {
     return getCaptureFuture(traceFile, profilerType, 0, "").get();
-  }
-
-  public static CpuCapture getCapture(File traceFile, CpuTraceType profilerType, int processIdHint, String processNameHint)
-    throws ExecutionException, InterruptedException {
-    return getCaptureFuture(traceFile, profilerType, processIdHint, processNameHint).get();
   }
 
   /**
@@ -255,20 +249,9 @@ public class CpuProfilerTestUtils {
     stage.stopCapturing();
 
     transportService.addFile(Long.toString(traceId), traceContent);
-    AspectObserver parseObserver = new AspectObserver();
-    CountDownLatch parsingLatch = new CountDownLatch(0);
-    // If the trace is empty, then parsing will not happen.
-    // If we are in the capture stage then shouldn't create a latch for the capture parsing in the profiler stage.
-    // TODO (b/132268755): Understand what needs to happen here now we have a capture stage.
-    if (traceContent != null &&
-        !traceContent.isEmpty() &&
-        !stage.getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      parsingLatch = waitForParsingStartFinish(stage, parseObserver);
-    }
     // Trigger the TransportEventPoller to run and the CpuTraceInfo to be picked up by the CpuProfilerStage.
     stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
     stopLatch.await();
-    parsingLatch.await();
     return traceId;
   }
 

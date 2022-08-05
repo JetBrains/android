@@ -23,6 +23,7 @@ import com.android.ide.common.repository.MavenRepositories
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
+import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
@@ -37,6 +38,7 @@ import com.android.tools.idea.gradle.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.util.concurrent.Futures
@@ -187,7 +189,10 @@ class GradleDependencyCompatibilityAnalyzer(
    */
   private fun findRelatedModules(): List<Module> {
     val nameLookup = HashMap<String, Module>()
-    ModuleManager.getInstance(moduleSystem.module.project).modules.forEach { nameLookup[moduleReference(it.name)] = it }
+    ModuleManager.getInstance(moduleSystem.module.project)
+      .modules
+      .filter(ProjectStructure::isAndroidOrJavaHolderModule) // The existing implementation considers only MAIN scope dependencies.
+      .forEach { nameLookup[moduleReference(it)] = it }
 
     val dependencies = ArrayListMultimap.create<String, String>()
     val reverseDependencies = ArrayListMultimap.create<String, String>()
@@ -202,8 +207,8 @@ class GradleDependencyCompatibilityAnalyzer(
                                      reverseDependencies: Multimap<String, String>) {
     projectBuildModelHandler.read {
       val dependentNames = getModuleBuildModel(module)?.dependencies()?.modules()?.map { it.path().forceString() } ?: return@read
-      val moduleReference = moduleReference(module.name)
-      dependencies.putAll(moduleReference, dependentNames)
+      val moduleReference = moduleReference(module)
+      dependencies.putAll(moduleReference, dependentNames.map { moduleReferenceWithinSameIncludedBuild(module, it) })
       dependentNames.forEach { reverseDependencies.put(it, moduleReference) }
     }
   }
@@ -211,7 +216,7 @@ class GradleDependencyCompatibilityAnalyzer(
   private fun findTransitiveClosure(dependencies: Multimap<String, String>, reverseDependencies: Multimap<String, String>): Set<String> {
     val result = linkedSetOf<String>()
     val stack = ArrayDeque<String>()
-    stack.push(moduleReference(moduleSystem.module.name))
+    stack.push(moduleReference(moduleSystem.module))
     while (stack.isNotEmpty()) {
       val element = stack.pop()
       dependencies[element]?.stream()
@@ -225,8 +230,12 @@ class GradleDependencyCompatibilityAnalyzer(
     return result
   }
 
-  private fun moduleReference(moduleName: String): String {
-    return ":$moduleName"
+  private fun moduleReference(module: Module): String {
+    return module.getGradleProjectPath()?.let { "${it.buildRoot}:${it.path}" }.orEmpty()
+  }
+
+  private fun moduleReferenceWithinSameIncludedBuild(module: Module, gradlePath: String): String {
+    return module.getGradleProjectPath()?.let { "${it.buildRoot}:${gradlePath}" }.orEmpty()
   }
 
   /**
@@ -257,7 +266,7 @@ class GradleDependencyCompatibilityAnalyzer(
 
     while (found == null) {
       try {
-        analyzer.addExplicitDependency(candidate, moduleSystem.module)
+        analyzer.addExplicitDependency(candidate, moduleSystem.module.getHolderModule())
         baseAnalyzer.copy(analyzer)
         found = candidate
       }

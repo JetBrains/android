@@ -26,10 +26,10 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.runUndoTransparentWriteAction
-import com.intellij.psi.PsiFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -52,18 +52,13 @@ internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: S
   private val composableAnnotationFqName = "$composableAnnotationPackage.Composable"
   private val previewToolingPackage = previewAnnotationPackage
 
-  private val filePath = "src/main/Test.kt"
-
   @get:Rule
   val rule = ComposeProjectRule(
     previewAnnotationPackage = previewAnnotationPackage,
     composableAnnotationPackage = composableAnnotationPackage
   )
 
-
   private val fixture get() = rule.fixture
-
-  private lateinit var psiFile: PsiFile
 
   @get:Rule
   val edtRule = EdtRule()
@@ -72,59 +67,109 @@ internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: S
   fun setup() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.override(true)
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled = true
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     fixture.enableInspections(PreviewPickerAnnotationInspection() as InspectionProfileEntry)
-
-    psiFile = fixture.addFileToProject(
-      filePath,
-      // language=kotlin
-      """
-        import $composableAnnotationFqName
-        import $previewToolingPackage.Preview
-
-        @Preview(
-          device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=480"
-        )
-        @Composable
-        fun preview1() {}
-      """.trimIndent())
-    fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
   }
 
   @After
   fun teardown() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.clearOverride()
     StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @RunsInEdt
   @Test
-  fun triggerErrorAndApplyFix() {
+  fun triggerErrorAndApplyFixForLegacyDeviceSpec() {
+    fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+        import $composableAnnotationFqName
+        import $previewToolingPackage.Preview
+
+        @Preview(
+          // Legacy DeviceSpec has a 'shape' parameter
+          device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=480"
+        )
+        @Composable
+        fun preview1() {}
+      """.trimIndent()
+    )
+
     // No existing errors
     assertNull(annotateAndGetLintInfo())
 
     fixture.moveCaret("unit=px,dpi=480|\"")
     fixture.backspace("px,dpi=480".count())
     fixture.type("sp")
-    val info = annotateAndGetLintInfo()
-    assertNotNull(info)
-    assertEquals("spec:shape=Normal,width=1080,height=1920,unit=sp", info.text)
-    assertEquals(
-      """Bad value type for: unit.
+
+    checkInspectionErrorAndApplyFix(
+      affectedText = "spec:shape=Normal,width=1080,height=1920,unit=sp",
+      errorDescription = """Bad value type for: unit.
 
 Parameter: unit should be one of: px, dp.
 
 Missing parameter: dpi.""",
-      info.description
+      replaceWithMessage = "Replace with spec:shape=Normal,width=1080,height=1920,unit=dp,dpi=420"
+    )
+  }
+
+  @RunsInEdt
+  @Test
+  fun triggerErrorAndApplyFixForDeviceSpecLanguage() {
+    fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+        import $composableAnnotationFqName
+        import $previewToolingPackage.Preview
+
+        @Preview(
+          device = "spec:width=1080px,height=1920px"
+        )
+        @Composable
+        fun preview1() {}
+      """.trimIndent()
     )
 
+    // No existing errors
+    assertNull(annotateAndGetLintInfo())
+
+    fixture.moveCaret("1920px|\"")
+    fixture.backspace("px,height=1920px".count())
+    fixture.type(",isRound=no,chinSize=30,orientation=vertical")
+
+    checkInspectionErrorAndApplyFix(
+      affectedText = "spec:width=1080,isRound=no,chinSize=30,orientation=vertical",
+      errorDescription = """Bad value type for: width, isRound, chinSize, orientation.
+
+Parameter: width, chinSize should have Float(dp/px) value.
+Parameter: isRound should be one of: true, false.
+Parameter: orientation should be one of: portrait, landscape.
+
+Missing parameter: height.""",
+      replaceWithMessage = "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp"
+    )
+  }
+
+  private fun checkInspectionErrorAndApplyFix(
+    affectedText: String,
+    errorDescription: String,
+    replaceWithMessage: String
+  ) {
+    val info = annotateAndGetLintInfo()
+    assertNotNull(info)
+    assertEquals(affectedText, info.text)
+    assertEquals(errorDescription, info.description)
 
     val fixAction = info.quickFixActionMarkers.first().first.action
-    assertEquals("Replace with spec:shape=Normal,width=1080,height=1920,unit=px,dpi=480", fixAction.text)
+    assertEquals(replaceWithMessage, fixAction.text)
 
     runUndoTransparentWriteAction {
-      fixAction.invoke(fixture.project, fixture.editor, psiFile)
+      fixAction.invoke(fixture.project, fixture.editor, fixture.file)
     }
 
     // There should be no more errors
@@ -132,7 +177,7 @@ Missing parameter: dpi.""",
   }
 
   private fun annotateAndGetLintInfo(): HighlightInfo? =
-    fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }.let {
+    fixture.doHighlighting().filter { it.severity == HighlightSeverity.WARNING }.let {
       assert(it.size <= 1)
       it.firstOrNull()
     }

@@ -11,4 +11,14 @@
   <style name="MyTextStyle.Extra">
     <item name="android:textColor">#888800</item>
   </style>
+
+  <style name="Widget.MaterialComponents.Button" parent="Widget.AppCompat.Button">
+    <item name="android:background">@empty</item>
+  </style>
+
+  <style name="Widget.AppCompat.Button" parent="Base.Widget.AppCompat.Button"/>
+  <style name="Widget.MaterialComponents.FloatingActionButton" parent=""/>
+
+  <style name="Base.Widget.AppCompat.Button" parent="android:Widget.Material.Button"/>
+
 </resources>

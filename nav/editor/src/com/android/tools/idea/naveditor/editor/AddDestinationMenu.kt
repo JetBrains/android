@@ -23,6 +23,7 @@ import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.includeFile
 import com.android.tools.idea.naveditor.model.isInclude
+import com.android.tools.idea.naveditor.model.parentSequence
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
 import com.android.tools.idea.naveditor.scene.NavColors.LIST_MOUSEOVER
@@ -92,6 +93,8 @@ import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
+import java.util.TreeSet
+import java.util.stream.Collectors
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JComponent
@@ -158,8 +161,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
       val classToDestination = mutableMapOf<PsiClass, Destination>()
       val schema = model.schema
-      val parent = surface.currentNavigation
-      val existingClasses = parent.children.mapNotNull { it.className }.toSortedSet()
+      val parent = surface.currentNavigation.parentSequence().last()
+      val existingClasses = parent.flatten().map { it?.className }.filter { it != null }.collect(Collectors.toCollection { TreeSet() })
       val hosts = findReferences(model.file, module).map { it.containingFile }
 
       for (tag in schema.allTags) {
@@ -316,8 +319,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
           val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
-          maxIconWidth = dests.map { it.iconWidth }.maxOrNull() ?: 0
-          val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(dests))
+          maxIconWidth = dests.maxOfOrNull { it.iconWidth } ?: 0
+          val listModel = FilteringListModel(CollectionListModel(dests))
           listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
           searchField.addDocumentListener(
             object : DocumentAdapter() {

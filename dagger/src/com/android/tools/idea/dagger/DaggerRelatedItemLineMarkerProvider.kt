@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.dagger.localization.DaggerBundle.message
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
-import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
@@ -47,6 +46,20 @@ import javax.swing.Icon
  * Adds gutter icon that allows to navigate between Dagger elements.
  */
 class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
+
+  override fun getName(): String? {
+    return message("dagger.related.items")
+  }
+
+  override fun getId(): String {
+    // A custom ID is required for isEnabledByDefault to be called
+    return "disable.dagger"
+  }
+
+  override fun isEnabledByDefault(): Boolean {
+    // b/232089770: Dagger line markers are costly, so we provide a way to disable it by default.
+    return !System.getProperty("disable.dagger.relateditems.gutter.icons", "false").toBoolean()
+  }
 
   private class GotoItemWithAnalyticsTracking(
     fromElement: PsiElement,
@@ -81,6 +94,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     val (icon, gotoTargets) = when {
       parent.isDaggerConsumer -> getIconAndGoToItemsForConsumer(parent)
       parent.isDaggerProvider -> getIconAndGoToItemsForProvider(parent)
+      parent.isAssistedInjectedConstructor -> getIconAndGotoItemsForAssistedProvider(parent)
+      parent.isAssistedFactoryMethod -> getIconAndGotoItemsForAssistedFactoryMethod(parent)
       parent.isDaggerModule -> getIconAndGoToItemsForModule(parent)
       parent.isDaggerComponent -> getIconAndGoToItemsForComponent(parent)
       parent.isDaggerSubcomponent -> getIconAndGoToItemsForSubcomponent(parent)
@@ -97,7 +112,6 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       element,
       element.textRange,
       icon,
-      Pass.LINE_MARKERS,
       getTooltipProvider(parent, gotoTargets),
       { mouseEvent, elt ->
         elt.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(typeForMetrics)
@@ -109,13 +123,14 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         }
       },
       GutterIconRenderer.Alignment.RIGHT,
-      gotoTargets
+      { gotoTargets }
     )
     val calculationTime = System.currentTimeMillis() - startTimeMs
     element.project.service<DaggerAnalyticsTracker>().trackGutterWasDisplayed(typeForMetrics, calculationTime)
     result.add(info)
   }
 
+  @Suppress("DialogTitleCapitalization")
   private fun getTooltipProvider(
     targetElement: PsiElement,
     gotoTargets: List<GotoRelatedItem>
@@ -142,6 +157,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
             message("subcomponents") -> message("navigate.to.subcomponent", fromElementString, toElementString)
             message("included.in.components") -> message("navigate.to.component.that.include", fromElementString, toElementString)
             message("included.in.modules") -> message("navigate.to.module.that.include", fromElementString, toElementString)
+            message("assisted.inject") -> message("navigate.to.assisted.inject", fromElementString, toElementString)
+            message("assisted.factory") -> message("navigate.to.assisted.factory", fromElementString, toElementString)
             else -> error("[Dagger tools] Unknown navigation group: $group")
           }
         }
@@ -221,6 +238,20 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, consumers + components + entryPoints)
+  }
+
+  private fun getIconAndGotoItemsForAssistedProvider(provider: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+    val consumers = getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(provider).map {
+      GotoItemWithAnalyticsTracking(provider, it, message("assisted.factory"), it.name)
+    }
+    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, consumers)
+  }
+
+  private fun getIconAndGotoItemsForAssistedFactoryMethod(provider: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+    val consumers = getDaggerAssistedInjectConstructorForAssistedFactoryMethod(provider).map {
+      GotoItemWithAnalyticsTracking(provider, it, message("assisted.inject"), it.name)
+    }
+    return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, consumers)
   }
 
   private fun getProvidersFor(consumer: PsiElement): Pair<Icon, List<GotoRelatedItem>> {

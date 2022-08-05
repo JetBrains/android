@@ -13,6 +13,7 @@ android {
     defaultConfig {
         applicationId 'aId'
         applicationIdSuffix '.aIdS'
+        dimension 'dimension'
         minSdkVersion 21
         maxSdkVersion 30
         multiDexEnabled true

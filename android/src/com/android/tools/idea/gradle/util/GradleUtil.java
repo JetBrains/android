@@ -28,20 +28,12 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.google.common.base.Splitter.on;
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.SystemProperties.getUserHome;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
-import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
-import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
-import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -49,24 +41,16 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.utils.BuildScriptUtil;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -76,7 +60,6 @@ import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtilRt;
 import java.io.File;
@@ -86,7 +69,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
-import javax.swing.Icon;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
@@ -117,85 +99,6 @@ public final class GradleUtil {
   private static final Pattern PLUGIN_VERSION_PATTERN = Pattern.compile("[012]\\..*");
 
   private GradleUtil() {
-  }
-
-  @NotNull
-  public static Icon getModuleIcon(@NotNull Module module) {
-    if (ModuleSystemUtil.isHolderModule(module) || ModuleSystemUtil.isMainModule(module)) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
-      return androidModuleModel != null ? getAndroidModuleIcon(androidModuleModel) : AllIcons.Nodes.Module;
-    } else if (ModuleSystemUtil.isAndroidTestModule(module)) {
-      return ANDROID_MODULE;
-    }
-
-
-    return AllIcons.Nodes.Module;
-  }
-
-  @NotNull
-  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleModel androidModuleModel) {
-    return getAndroidModuleIcon(androidModuleModel.getAndroidProject().getProjectType());
-  }
-
-  @NotNull
-  public static Icon getAndroidModuleIcon(@NotNull IdeAndroidProjectType androidProjectType) {
-    switch (androidProjectType) {
-      case PROJECT_TYPE_APP:
-        return ANDROID_MODULE;
-      case PROJECT_TYPE_FEATURE:
-      case PROJECT_TYPE_DYNAMIC_FEATURE:
-        return FEATURE_MODULE;
-      case PROJECT_TYPE_INSTANTAPP:
-        return INSTANT_APPS;
-      case PROJECT_TYPE_LIBRARY:
-        return LIBRARY_MODULE;
-      case PROJECT_TYPE_TEST:
-        return ANDROID_TEST_ROOT;
-      default:
-        return ANDROID_MODULE;
-    }
-  }
-
-  /**
-   * Returns the Gradle "logical" path (using colons as separators) if the given module represents a Gradle project or sub-project.
-   *
-   * @param module the given module.
-   * @return the Gradle path for the given module, or {@code null} if the module does not represent a Gradle project or sub-project.
-   */
-  @Nullable
-  public static String getGradlePath(@NotNull Module module) {
-    GradleFacet facet = GradleFacet.getInstance(module);
-    return facet != null ? facet.getConfiguration().GRADLE_PROJECT_PATH : null;
-  }
-
-  /**
-   * Returns whether the given module is the module corresponding to the project root (i.e. gradle path of ":") and has no source roots.
-   * <p/>
-   * The default Android Studio projects create an empty module at the root level. In theory, users could add sources to that module, but
-   * we expect that most don't and keep that as a module simply to tie together other modules.
-   */
-  public static boolean isRootModuleWithNoSources(@NotNull Module module) {
-    if (ModuleRootManager.getInstance(module).getSourceRoots().length == 0) {
-      String gradlePath = getGradlePath(module);
-      if (gradlePath == null || gradlePath.equals(":")) {
-        return ModuleManager.getInstance(module.getProject()).getModuleGrouper(null).getGroupPath(module).size() <= 1;
-      }
-    }
-    return false;
-  }
-
-  @Nullable
-  public static Module findModuleByGradlePath(@NotNull Project project, @NotNull String gradlePath) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      GradleFacet gradleFacet = GradleFacet.getInstance(module);
-      if (gradleFacet != null) {
-        if (gradlePath.equals(gradleFacet.getConfiguration().GRADLE_PROJECT_PATH)) {
-          return module;
-        }
-      }
-    }
-    return null;
   }
 
   @NotNull
@@ -417,76 +320,6 @@ public final class GradleUtil {
     return ILLEGAL_GRADLE_PATH_CHARS_MATCHER.indexIn(gradlePath);
   }
 
-  /**
-   * Checks if the project already has a module with given Gradle path.
-   */
-  public static boolean hasModule(@Nullable Project project, @NotNull String gradlePath) {
-    if (project == null) {
-      return false;
-    }
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      if (gradlePath.equals(getGradlePath(module))) {
-        return true;
-      }
-    }
-    File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
-    if (location.isFile()) {
-      return true;
-    }
-    if (location.isDirectory()) {
-      File[] children = location.listFiles();
-      return children == null || children.length > 0;
-    }
-    return false;
-  }
-
-  /**
-   * Determines version of the Android gradle plugin (and model) used by the project. The result can be absent if there are no android
-   * modules in the project or if the last sync has failed.
-   */
-  @Nullable
-  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Project project) {
-    Set<String> foundInLibraries = new HashSet<>();
-    Set<String> foundInApps = new HashSet<>();
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      if (androidModel != null) {
-        IdeAndroidProject androidProject = androidModel.getAndroidProject();
-        String modelVersion = androidProject.getAgpVersion();
-        if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
-          foundInApps.add(modelVersion);
-        }
-        else {
-          foundInLibraries.add(modelVersion);
-        }
-      }
-    }
-
-    String found = null;
-
-    // Prefer the version in app.
-    if (foundInApps.size() == 1) {
-      found = getOnlyElement(foundInApps);
-    }
-    else if (foundInApps.isEmpty() && foundInLibraries.size() == 1) {
-      found = getOnlyElement(foundInLibraries);
-    }
-
-    return found != null ? GradleVersion.tryParse(found) : null;
-  }
-
-  @Nullable
-  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-    if (androidModel != null) {
-      IdeAndroidProject androidProject = androidModel.getAndroidProject();
-      return GradleVersion.tryParse(androidProject.getAgpVersion());
-    }
-
-    return null;
-  }
-
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
     if (IdeInfo.getInstance().isAndroidStudio()) {
       GradleWrapper gradleWrapper = GradleWrapper.find(project);
@@ -556,32 +389,40 @@ public final class GradleUtil {
     return false;
   }
 
-  @Nullable
-  public static File getGradleUserSettingsFile() {
-    String homePath = getUserHome();
-    if (homePath == null) {
-      return null;
+  /**
+   * This method calculates the path for user gradle.properties file based on gradle user home folder
+   * defined in execution settings for this project.
+   *
+   * In case this is not possible use default location as described in {@link  GradleUtil#getUserGradlePropertiesFile()}.
+   */
+  @NotNull
+  public static File getUserGradlePropertiesFile(@NotNull Project project) {
+    GradleExecutionSettings settings = getGradleExecutionSettings(project);
+    if (settings != null) {
+      String gradleHomePath = settings.getServiceDirectory();
+      if (!Strings.isNullOrEmpty(gradleHomePath)) {
+        return new File(gradleHomePath, FN_GRADLE_PROPERTIES);
+      }
     }
-    return new File(homePath, join(DOT_GRADLE, FN_GRADLE_PROPERTIES));
+    return getUserGradlePropertiesFile();
   }
 
   /**
-   * Find the Library whose exploded aar folder matches given directory.
-   *
-   * @param bundleDir The directory to search for.
-   * @param variant   The variant.
-   * @return the Library matches contains given bundleDir
+   * Calculates location of user gradle.properties based on system properties and environment variables. See
+   * <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties">gradle properties</a>
+   * section in gradle documentation for the context.
+   * @return file pointing to gradle.properties in gradle user home.
    */
-  @Nullable
-  public static IdeAndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
-    IdeAndroidArtifact artifact = variant.getMainArtifact();
-    IdeDependencies dependencies = artifact.getLevel2Dependencies();
-    for (IdeAndroidLibrary library : dependencies.getAndroidLibraries()) {
-      if (filesEqual(bundleDir, library.getFolder())) {
-        return library;
-      }
+  @NotNull
+  private static File getUserGradlePropertiesFile() {
+    String gradleUserHome = System.getProperty("gradle.user.home");
+    if (Strings.isNullOrEmpty(gradleUserHome)) {
+      gradleUserHome = System.getenv("GRADLE_USER_HOME");
     }
-    return null;
+    if (Strings.isNullOrEmpty(gradleUserHome)) {
+      gradleUserHome = join(System.getProperty("user.home"), DOT_GRADLE);
+    }
+    return new File(gradleUserHome, FN_GRADLE_PROPERTIES);
   }
 
   /**
@@ -640,28 +481,6 @@ public final class GradleUtil {
     configuration = replaceSuffixWithCase(configuration, "apk", "runtimeOnly");
 
     return configuration;
-  }
-
-  /**
-   * Returns true if we should use compatibility configuration names (such as "compile") instead
-   * of the modern configuration names (such as "api" or "implementation") for the given project
-   *
-   * @param project the project to consult
-   * @return true if we should use compatibility configuration names
-   */
-  public static boolean useCompatibilityConfigurationNames(@NotNull Project project) {
-    return useCompatibilityConfigurationNames(getAndroidGradleModelVersionInUse(project));
-  }
-
-  /**
-   * Returns true if we should use compatibility configuration names (such as "compile") instead
-   * of the modern configuration names (such as "api" or "implementation") for the given Gradle version
-   *
-   * @param gradleVersion the Gradle plugin version to check
-   * @return true if we should use compatibility configuration names
-   */
-  public static boolean useCompatibilityConfigurationNames(@Nullable GradleVersion gradleVersion) {
-    return gradleVersion != null && gradleVersion.getMajor() < 3;
   }
 
 

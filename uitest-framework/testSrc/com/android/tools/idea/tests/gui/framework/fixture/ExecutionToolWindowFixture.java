@@ -213,7 +213,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           Matchers.byText(ActionMenuItem.class, "Add Watchpoint"));
       myRobot.click(addWatchpoint);
 
-      JPanel watchpointConfig = myRobot.finder().find(ideFrame.target(), new GenericTypeMatcher<>(JPanel.class) {
+      JPanel watchpointConfig = myRobot.finder().find(ideFrame.target(), new GenericTypeMatcher<JPanel>(JPanel.class) {
         @Override
         protected boolean isMatching(@NotNull JPanel jPanel) {
           try {
@@ -272,7 +272,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
       TabLabel tabLabel;
       if (parentComponentType == null) {
-        tabLabel = waitUntilShowing(myRobot, new GenericTypeMatcher<>(TabLabel.class) {
+        tabLabel = waitUntilShowing(myRobot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
           @Override
           protected boolean isMatching(@NotNull TabLabel component) {
             return component.toString().equals(tabName);
@@ -281,7 +281,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       }
       else {
         final JComponent parent = myRobot.finder().findByType(root, parentComponentType, false);
-        tabLabel = waitUntilShowing(myRobot, parent, new GenericTypeMatcher<>(TabLabel.class) {
+        tabLabel = waitUntilShowing(myRobot, parent, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
           @Override
           protected boolean isMatching(@NotNull TabLabel component) {
             return component.getParent() == parent && component.toString().equals(tabName);

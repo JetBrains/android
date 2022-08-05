@@ -426,9 +426,11 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myGoLive.setToolTipText(detachAction.getDefaultToolTipText());
     myGoLive.addActionListener(event -> {
       Timeline currentStageTimeline = myStageView.getStage().getTimeline();
-      assert currentStageTimeline instanceof StreamingTimeline;
-      ((StreamingTimeline)currentStageTimeline).toggleStreaming();
-      myProfiler.getIdeServices().getFeatureTracker().trackToggleStreaming();
+      // b/221920489 Hot key may trigger this action from another stage without the streaming timeline
+      if (currentStageTimeline instanceof StreamingTimeline) {
+        ((StreamingTimeline)currentStageTimeline).toggleStreaming();
+        myProfiler.getIdeServices().getFeatureTracker().trackToggleStreaming();
+      }
     });
     myGoLive.addChangeListener(e -> {
       boolean isSelected = myGoLive.isSelected();

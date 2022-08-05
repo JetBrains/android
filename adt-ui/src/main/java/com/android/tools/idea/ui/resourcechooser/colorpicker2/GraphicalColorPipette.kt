@@ -32,6 +32,8 @@ import java.awt.Dialog
 import java.awt.Dimension
 import java.awt.Frame
 import java.awt.Graphics2D
+import java.awt.GraphicsDevice
+import java.awt.GraphicsEnvironment
 import java.awt.Image
 import java.awt.MouseInfo
 import java.awt.Point
@@ -89,6 +91,8 @@ private const val CURSOR_NAME = "GraphicalColorPicker"
 private val COLOR_VALUE_TEXT_COLOR = Color.WHITE
 private const val COLOR_VALUE_FONT_SIZE = 9.2f
 private val COLOR_VALUE_BACKGROUND = Color(0x80, 0x80, 0x80, 0xB0)
+// Windows cannot handle a fully transparent color, so use the smallest non-zero alpha value
+private val COLOR_TRANSPARENT_BACKGROUND = Color(0, 0, 0, 1)
 
 /**
  * Duration of updating the color of current hovered pixel. The unit is millisecond.
@@ -160,7 +164,7 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
     pickerDialog.isAlwaysOnTop = alwaysOnTop
     // Don't use JBDimension here since we want to use Pixel as unit.
     pickerDialog.size = Dimension(ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE + COLOR_CODE_RECTANGLE_GAP + COLOR_CODE_RECTANGLE_HEIGHT)
-    pickerDialog.background = UIUtil.TRANSPARENT_COLOR
+    pickerDialog.background = COLOR_TRANSPARENT_BACKGROUND
     pickerDialog.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
 
     val rootPane = pickerDialog.rootPane
@@ -220,7 +224,7 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
     val location = pointerInfo.location
     val capture = captureScreen(picker, Rectangle(location.x, location.y, 1, 1))
     val pickedColor = if (capture == null) {
-      Logger.getInstance(GraphicalColorPipette::class.java).warn("Cannot capture screen, use ${Color.WHITE} instead")
+      Logger.getInstance(PickerDialogBase::class.java).warn("Cannot capture screen, use ${Color.WHITE} instead")
       Color.WHITE
     }
     else {
@@ -320,9 +324,21 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
 }
 
 private class DefaultPickerDialog(parent: JComponent, callback: ColorPipette.Callback) : PickerDialogBase(parent, callback, false) {
-  private val robot = Robot()
+  private val graphicsDevices = GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices
+  private val graphicsToRobots: Map<GraphicsDevice, Robot> = graphicsDevices.associateWith { device -> Robot(device) }
 
-  override fun captureScreen(belowWindow: Window?, rect: Rectangle): BufferedImage? = robot.createScreenCapture(rect)
+  override fun captureScreen(belowWindow: Window?, rect: Rectangle): BufferedImage? {
+    try {
+      val mousePoint = MouseInfo.getPointerInfo().location
+      val device = graphicsDevices.firstOrNull { it.defaultConfiguration?.bounds?.contains(mousePoint) ?: false } ?: return null
+      val robot = graphicsToRobots[device] ?: return null
+      return robot.createScreenCapture(rect)
+    }
+    catch (e: Exception) {
+      Logger.getInstance(DefaultPickerDialog::class.java).warn("Cannot capture the image from screen")
+      return null
+    }
+  }
 }
 
 private class MacPickerDialog(parent: JComponent, callback: ColorPipette.Callback) : PickerDialogBase(parent, callback, true) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
@@ -39,7 +40,6 @@ import com.intellij.usages.impl.rules.UsageType
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 @RunsInEdt
 class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
@@ -58,8 +58,8 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testNoEquality() {
     val psiElement = mock(PsiElement::class.java)
-    `when`(psiElement.isValid).thenReturn(true)
-    `when`(psiElement.project).thenReturn(project)
+    whenever(psiElement.isValid).thenReturn(true)
+    whenever(psiElement.project).thenReturn(project)
 
     val virtualFile = mock(VirtualFile::class.java)
 
@@ -72,7 +72,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
     val repositoriesModel = mock(RepositoriesModel::class.java)
     val repositoryModel = mock(RepositoryModel::class.java)
     val languageLevelPropertyModel = mock(LanguageLevelPropertyModel::class.java)
-    `when`(languageLevelPropertyModel.gradleFile).thenReturn(virtualFile)
+    whenever(languageLevelPropertyModel.gradleFile).thenReturn(virtualFile)
     val dependenciesModel = mock(DependenciesModel::class.java)
     val dependencyModel = mock(DependencyModel::class.java)
     val artifactDependencyModel = mock(ArtifactDependencyModel::class.java)

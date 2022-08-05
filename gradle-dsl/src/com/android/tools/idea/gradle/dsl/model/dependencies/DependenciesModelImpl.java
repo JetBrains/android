@@ -72,7 +72,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                @NotNull List<? super T> dest);
   }
 
-  private final static Fetcher<ArtifactDependencyModel> ourArtifactFetcher = new Fetcher<>() {
+  private final static Fetcher<ArtifactDependencyModel> ourArtifactFetcher = new Fetcher<ArtifactDependencyModel>() {
     @Override
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
@@ -107,7 +107,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
 
       if (resolved instanceof GradleDslExpressionMap) {
         ArtifactDependencyModel mapNotation = ArtifactDependencyModelImpl.MapNotation.create(
-          configurationName, (GradleDslExpressionMap)resolved, configurationElement, maintainer, methodName);
+            configurationName, (GradleDslExpressionMap)resolved, configurationElement, maintainer, methodName);
         if (mapNotation != null) {
           dest.add(mapNotation);
         }
@@ -122,7 +122,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     }
   };
 
-  private final static Fetcher<ModuleDependencyModel> ourModuleFetcher = new Fetcher<>() {
+  private final static Fetcher<ModuleDependencyModel> ourModuleFetcher = new Fetcher<ModuleDependencyModel>() {
     @Override
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
@@ -137,7 +137,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
             methodCall.getArguments().size() == 1 &&
             methodCall.getArguments().get(0) instanceof GradleDslMethodCall) {
           platformMethodName = methodCall.getMethodName();
-          methodCall = (GradleDslMethodCall)methodCall.getArguments().get(0);
+          methodCall = (GradleDslMethodCall) methodCall.getArguments().get(0);
         }
         if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
           ModuleDependencyModel model = ModuleDependencyModelImpl.create(configurationName, methodCall, maintainer, platformMethodName);
@@ -149,7 +149,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     }
   };
 
-  private final static Fetcher<FileDependencyModel> ourFileFetcher = new Fetcher<>() {
+  private final static Fetcher<FileDependencyModel> ourFileFetcher = new Fetcher<FileDependencyModel>() {
     @Override
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
@@ -166,7 +166,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     }
   };
 
-  private final static Fetcher<FileTreeDependencyModel> ourFileTreeFetcher = new Fetcher<>() {
+  private final static Fetcher<FileTreeDependencyModel> ourFileTreeFetcher = new Fetcher<FileTreeDependencyModel>() {
     @Override
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
@@ -186,7 +186,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     }
   };
 
-  private final static Fetcher<DependencyModel> ourAllFetcher = new Fetcher<>() {
+  private final static Fetcher<DependencyModel> ourAllFetcher = new Fetcher<DependencyModel>() {
     @Override
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,

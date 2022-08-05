@@ -29,14 +29,16 @@ import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
+import javax.swing.ListCellRenderer
 
-/**
- * A fake [JBPopup] for tests.
- */
-class FakeJBPopup<T>(val items: List<T>,
-                     val isMovable: Boolean?,
-                     val isRequestFocus: Boolean?,
-                     private val callback: Consumer<in T>?) : JBPopup {
+/** A fake [JBPopup] for tests. */
+open class FakeJBPopup<T>(
+    val items: List<T>,
+    val isMovable: Boolean? = false,
+    val isRequestFocus: Boolean? = false,
+    val renderer: ListCellRenderer<in T>? = null,
+    private val callback: Consumer<in T>? = null,
+) : JBPopup {
 
   enum class ShowStyle {
     SHOW_UNDERNEATH_OF,
@@ -50,10 +52,12 @@ class FakeJBPopup<T>(val items: List<T>,
 
   var showStyle: ShowStyle? = null
   var showArgs: List<Any>? = null
+  private var minSize: Dimension? = null
 
   fun selectItem(item: T) {
     if (!items.contains(item)) {
-      throw IllegalArgumentException("No such item: $item. Available items: ${items.joinToString(",")}}")
+      throw IllegalArgumentException(
+          "No such item: $item. Available items: ${items.joinToString(",")}}")
     }
     callback?.consume(item)
   }
@@ -105,6 +109,19 @@ class FakeJBPopup<T>(val items: List<T>,
     showArgs = listOf(project)
   }
 
+  override fun setMinimumSize(size: Dimension?) {
+    minSize = size
+  }
+
+  fun getMinimumSize(): Dimension? = minSize
+
+  override fun isFocused(): Boolean {
+    return true
+  }
+
+  override fun setSize(size: Dimension) {
+  }
+
   override fun getBestPositionFor(dataContext: DataContext): Point {
     TODO("Not yet implemented")
   }
@@ -141,10 +158,6 @@ class FakeJBPopup<T>(val items: List<T>,
     TODO("Not yet implemented")
   }
 
-  override fun setSize(size: Dimension) {
-    TODO("Not yet implemented")
-  }
-
   override fun getSize(): Dimension {
     TODO("Not yet implemented")
   }
@@ -173,10 +186,6 @@ class FakeJBPopup<T>(val items: List<T>,
     TODO("Not yet implemented")
   }
 
-  override fun isFocused(): Boolean {
-    TODO("Not yet implemented")
-  }
-
   override fun isCancelKeyEnabled(): Boolean {
     TODO("Not yet implemented")
   }
@@ -194,10 +203,6 @@ class FakeJBPopup<T>(val items: List<T>,
   }
 
   override fun getOwner(): Component {
-    TODO("Not yet implemented")
-  }
-
-  override fun setMinimumSize(size: Dimension?) {
     TODO("Not yet implemented")
   }
 

@@ -16,16 +16,17 @@
 
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
 fun buildGradle(
+  packageName: String,
   buildApiString: String,
   minApi: String,
   targetApiString: String,
@@ -58,7 +59,8 @@ fun buildGradle(
   """
   }
 
-  val targetModuleGradlePath = GradleUtil.getGradlePath(targetModule)
+  // TODO(b/149203281): Fix support for composite builds.
+  val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
 
   val matchingFallbacks =
     if (useGradleKts) {
@@ -71,6 +73,7 @@ fun buildGradle(
 ${emptyPluginsBlock()}
 
 android {
+    namespace '$packageName'
     ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
 
     compileOptions {

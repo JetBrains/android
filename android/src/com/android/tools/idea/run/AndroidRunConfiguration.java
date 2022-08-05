@@ -28,7 +28,13 @@ import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
-import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration;
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
+import com.android.tools.idea.run.configuration.AppRunSettings;
+import com.android.tools.idea.run.configuration.ComponentLaunchOptions;
+import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
+import com.android.tools.idea.run.configuration.execution.DeployOptions;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
@@ -37,7 +43,6 @@ import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionTarget;
@@ -48,11 +53,13 @@ import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.junit.RefactoringListeners;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -85,8 +92,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Run Configuration used for running Android Apps (and Instant Apps) locally on a device/emulator.
  */
-public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider,
-                                                                                    ComponentSpecificConfiguration {
+public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
@@ -103,6 +109,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public String PM_INSTALL_OPTIONS = "";
   public boolean ALL_USERS = false;
   public boolean ALWAYS_INSTALL_WITH_PM = false;
+  public boolean CLEAR_APP_STORAGE = false;
   public String DYNAMIC_FEATURES_DISABLED_LIST = "";
   // Launch options
   public String ACTIVITY_EXTRA_FLAGS = "";
@@ -150,7 +157,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       .setDisabledDynamicFeatures(getDisabledDynamicFeatures())
       .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
       .setDeployAsInstant(DEPLOY_AS_INSTANT)
-      .setAlwaysInstallWithPm(ALWAYS_INSTALL_WITH_PM);
+      .setAlwaysInstallWithPm(ALWAYS_INSTALL_WITH_PM)
+      .setClearAppStorage(CLEAR_APP_STORAGE);
   }
 
   @NotNull
@@ -176,6 +184,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       facet -> false,
       this,
       true,
+      false,
       moduleSelector -> new ApplicationRunParameters<>(getProject(), moduleSelector));
   }
 
@@ -187,7 +196,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     // a RefactoringElementListenerComposite
     final SpecificActivityLaunch.State state = (SpecificActivityLaunch.State)getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
     assert state != null;
-    return RefactoringListeners.getClassOrPackageListener(element, new RefactoringListeners.Accessor<>() {
+    return RefactoringListeners.getClassOrPackageListener(element, new RefactoringListeners.Accessor<PsiClass>() {
       @Override
       public void setName(String qualifiedName) {
         state.ACTIVITY_CLASS = qualifiedName;
@@ -248,10 +257,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     }
     else {
       startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
-        getAndroidDebuggerContext().getAndroidDebugger(),
-        getAndroidDebuggerContext().getAndroidDebuggerState(),
-        getProfilerState(),
-        getProject(),
         waitForDebugger,
         extraFlags);
     }
@@ -310,7 +315,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return StringUtil.equals(((SpecificActivityLaunch.State)state).ACTIVITY_CLASS, activityName);
   }
 
-  @Nullable
+  @NotNull
   public ActivityLaunchOptionState getLaunchOptionState(@NotNull String launchOptionId) {
     return myLaunchOptionStates.get(launchOptionId);
   }
@@ -376,27 +381,44 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   public void updateExtraRunStats(RunStats runStats) {
+    runStats.setAppComponentType(ComponentType.ACTIVITY);
     runStats.setDeployedAsInstant(DEPLOY_AS_INSTANT);
     runStats.setDeployedFromBundle(DEPLOY_APK_FROM_BUNDLE);
   }
 
   @NotNull
-  @Override
-  public ComponentType getComponentType() {
-    return ComponentType.ACTIVITY;
+  public AndroidConfigurationExecutor getExecutor(@NotNull ExecutionEnvironment environment) {
+    Module myModule = getConfigurationModule().getModule();
+    ComponentLaunchOptions launchOptions = getLaunchOptionState(MODE);
+    DeployOptions deployOptions = new DeployOptions(getDisabledDynamicFeatures(), PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM);
+    AppRunSettings settings = new AppRunSettings() {
+
+      @Nullable
+      @Override
+      public Module getModule() {
+        return myModule;
+      }
+
+      @NotNull
+      @Override
+      public ComponentLaunchOptions getComponentLaunchOptions() {
+        return launchOptions;
+      }
+
+      @NotNull
+      @Override
+      public DeployOptions getDeployOptions() {
+        return deployOptions;
+      }
+    };
+    return new AndroidActivityConfigurationExecutor(environment, getDeployTarget(), settings, getApplicationIdProvider(), getApkProvider());
   }
 
-  @Nullable
   @Override
-  public Module getModule() {
-    return getConfigurationModule().getModule();
-  }
-
-  public static boolean shouldDeployApkFromBundle(AndroidRunConfiguration configuration) {
-    if (configuration.DEPLOY_APK_FROM_BUNDLE) {
-      Preconditions.checkArgument(configuration.DEPLOY);
-      return true;
+  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+    if (AndroidConfigurationProgramRunner.Companion.getUseNewExecutionForActivities()) {
+      return new AndroidConfigurationExecutorRunProfileState(getExecutor(env));
     }
-    return false;
+    return super.getState(executor, env);
   }
 }

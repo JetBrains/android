@@ -19,8 +19,9 @@ import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getGrad
 import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getKotlinDaemonXmx;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.google.common.base.Strings;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.Nullable;
@@ -36,18 +37,12 @@ public class GradleUserProperties {
   private int gradleXmx = -1;
   private int kotlinXmx = -1;
 
-  GradleUserProperties() {
-    String userHome = System.getProperty("gradle.user.home");
-    if (Strings.isNullOrEmpty(userHome)) {
-      userHome = getUserHome();
-    }
-    if (userHome != null) {
-      gradleUserHomeProperties = getProperties(userHome);
-      if (gradleUserHomeProperties != null && GradlePropertiesUtil.hasJvmArgs(gradleUserHomeProperties)) {
-        propertiesPath = gradleUserHomeProperties.getPath();
-        findGradleDaemonXmx(gradleUserHomeProperties);
-        findKotlinDaemonXmx(gradleUserHomeProperties);
-      }
+  GradleUserProperties(Project project) {
+    gradleUserHomeProperties = getProperties(project);
+    if (GradlePropertiesUtil.hasJvmArgs(gradleUserHomeProperties)) {
+      propertiesPath = gradleUserHomeProperties.getPath();
+      findGradleDaemonXmx(gradleUserHomeProperties);
+      findKotlinDaemonXmx(gradleUserHomeProperties);
     }
   }
 
@@ -87,9 +82,9 @@ public class GradleUserProperties {
   }
 
   @Nullable
-  private static GradleProperties getProperties(String dir) {
+  private static GradleProperties getProperties(Project project) {
+    File file = GradleUtil.getUserGradlePropertiesFile(project);
     try {
-      File file = new File(dir, "gradle.properties");
       if (file.exists()) {
         return new GradleProperties(file);
       } else {
@@ -97,18 +92,8 @@ public class GradleUserProperties {
       }
     }
     catch (IOException e) {
-      LOG.info("Failed to read gradle.properties from " + dir, e);
+      LOG.info("Failed to read " + file, e);
       return null;
     }
-  }
-
-  @Nullable
-  private static String getUserHome() {
-    String gradleUserHome = System.getenv("GRADLE_USER_HOME");
-    if (gradleUserHome == null) {
-      // If GRADLE_USER_HOME is not defined, use "user.home"
-      gradleUserHome = System.getProperty("user.home") + File.separator + ".gradle";
-    }
-    return gradleUserHome;
   }
 }

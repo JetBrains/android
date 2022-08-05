@@ -37,7 +37,6 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
  * Source code is already in the index, it attached in [AndroidModuleDependenciesSetup#setUpLibraryDependency]
  */
 class ComposeKDocLinkResolutionService : KDocLinkResolutionService {
-
   override fun resolveKDocLink(
     context: BindingContext,
     fromDescriptor: DeclarationDescriptor,

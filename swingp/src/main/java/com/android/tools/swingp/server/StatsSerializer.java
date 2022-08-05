@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -174,7 +173,7 @@ public class StatsSerializer {
           try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             JsonElement element = RenderStatsManager.getJson();
             if (element != JsonNull.INSTANCE) {
-              try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
+              try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream))) {
                 JsonWriter jsonWriter = new JsonWriter(bufferedWriter);
                 jsonWriter.setLenient(true);
                 Streams.write(element, jsonWriter);

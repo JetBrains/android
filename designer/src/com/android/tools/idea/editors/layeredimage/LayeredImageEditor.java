@@ -109,6 +109,12 @@ class LayeredImageEditor extends UserDataHolderBase implements FileEditor {
 
   @NotNull
   @Override
+  public VirtualFile getFile() {
+    return myFile;
+  }
+
+  @NotNull
+  @Override
   public LayeredImageEditorPanel getComponent() {
     if (myEditorPanel == null) {
       myEditorPanel = new LayeredImageEditorPanel(myImageEditor, myImage);
@@ -186,10 +192,5 @@ class LayeredImageEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public StructureViewBuilder getStructureViewBuilder() {
     return myEditor.getStructureViewBuilder();
-  }
-
-  @Override
-  public @NotNull VirtualFile getFile() {
-    return myFile;
   }
 }

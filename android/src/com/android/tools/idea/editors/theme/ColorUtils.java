@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.collect.ImmutableSet;
 import java.awt.Color;
@@ -65,7 +66,7 @@ public class ColorUtils {
     if (!lowContrastColors.isEmpty()) {
       // Using html for the tooltip because the color names are bold
       // Formatted color names are concatenated into an error message
-      return "<html>Not enough contrast with " + ThemeEditorUtils.generateWordEnumeration(lowContrastColors);
+      return "<html>Not enough contrast with " + AndroidTextUtils.generateCommaSeparatedList(lowContrastColors, "and");
     }
 
     return "";

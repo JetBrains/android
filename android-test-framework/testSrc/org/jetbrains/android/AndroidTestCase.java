@@ -8,7 +8,6 @@ import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
-import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
@@ -59,6 +58,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -155,11 +155,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       deleteManifest();
     }
 
-    if (RenderSecurityManager.RESTRICT_READS) {
-      // Unit test class loader includes disk directories which security manager does not allow access to
-      RenderSecurityManager.sEnabled = false;
-    }
-
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, getTestRootDisposable());
@@ -216,9 +211,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       mySettings = null;
 
       getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
-      if (RenderSecurityManager.RESTRICT_READS) {
-        RenderSecurityManager.sEnabled = true;
-      }
     }
     catch (Throwable e) {
       addSuppressedException(e);
@@ -464,7 +456,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   /** Waits 2 seconds for the app resource repository to finish currently pending updates. */
   protected void waitForResourceRepositoryUpdates() throws InterruptedException, TimeoutException {
-    AndroidTestUtils.waitForResourceRepositoryUpdates(myFacet);
+    waitForResourceRepositoryUpdates(2, TimeUnit.SECONDS);
+  }
+
+  protected void waitForResourceRepositoryUpdates(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+    AndroidTestUtils.waitForResourceRepositoryUpdates(myFacet, timeout, unit);
   }
 
   protected final static class MyAdditionalModuleData {

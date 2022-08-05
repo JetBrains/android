@@ -50,6 +50,7 @@ import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.intellij.testFramework.ApplicationRule;
 import com.intellij.util.containers.ImmutableList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,6 +76,7 @@ public class MemoryClassSetViewTest {
   @NotNull private final FakeIdeProfilerComponents myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
   @Rule public final FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer), myMemoryService);
+  @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
 
   private MainMemoryProfilerStage myStage;
 

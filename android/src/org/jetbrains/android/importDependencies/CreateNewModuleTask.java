@@ -42,7 +42,7 @@ class CreateNewModuleTask extends ModuleProvidingTask {
 
   @Override
   public Exception perform() {
-    final Module depModule = ApplicationManager.getApplication().runWriteAction(new Computable<>() {
+    final Module depModule = ApplicationManager.getApplication().runWriteAction(new Computable<Module>() {
       @Override
       public Module compute() {
         final Module depModule =

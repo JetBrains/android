@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TAG;
 import static com.android.SdkConstants.TEXT_VIEW;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -42,7 +41,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT.defaultName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/content_main")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
@@ -64,7 +63,7 @@ public class ScoutConnectArrangeTest1 extends SceneTest {
                        .withBounds(650, 1150, 200, 50)
                        .width("200dp")
                        .height("50dp"),
-                     component(CLASS_CONSTRAINT_LAYOUT_BARRIER.defaultName())
+                     component(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.defaultName())
                        .id("@+id/barrier")
                        .withBounds(50, 750, 200, 40)
                        .withAttribute("app:barrierDirection", "left")

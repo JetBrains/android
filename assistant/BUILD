@@ -5,7 +5,7 @@ iml_module(
     name = "assistant",
     srcs = ["src"],
     iml_files = ["assistant.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -49,5 +49,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/observable:intellij.android.observable[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//prebuilts/tools/common/m2:junit-4.12[test]",
     ],
 )

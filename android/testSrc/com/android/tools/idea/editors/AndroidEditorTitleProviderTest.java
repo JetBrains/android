@@ -20,7 +20,6 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.nio.charset.StandardCharsets;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +53,7 @@ public class AndroidEditorTitleProviderTest extends AndroidTestCase {
   private void checkTitle(@NotNull String path, @Nullable String expected) throws Exception {
     AndroidEditorTitleProvider provider = new AndroidEditorTitleProvider();
     VirtualFile file = myFixture.getTempDirFixture().createFile(path);
-    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes(StandardCharsets.UTF_8)));
+    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes()));
     Project project = getProject();
     String title = provider.getEditorTabTitle(project, file);
     if (expected == null) {

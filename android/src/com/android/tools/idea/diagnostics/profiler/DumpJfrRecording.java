@@ -27,7 +27,7 @@ public class DumpJfrRecording extends DumbAwareAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    getTemplatePresentation().setEnabled(ApplicationManager.getApplication().getService(Jfr.class).isProfilerActive());
+    e.getPresentation().setEnabled(ApplicationManager.getApplication().getService(Jfr.class).isProfilerActive());
   }
 
   @Override

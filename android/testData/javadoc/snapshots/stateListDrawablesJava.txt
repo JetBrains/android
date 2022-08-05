@@ -1,0 +1,25 @@
+<html>
+<body>
+<table><tr><td><div style="background-color:gray;padding:10px"><img src='file:{PROJECT}/res/drawable/button_disabled.png' alt="{PROJECT}/res/drawable/button_disabled.png" /></div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)</td>
+<td>Not enabled</td>
+<td><BR/>
+@drawable/button_disabled => button_disabled.png<BR/>
+</td>
+</tr>
+<tr><td><div style="background-color:gray;padding:10px"><img src='file:{PROJECT}/res/drawable/button_active.png' alt="{PROJECT}/res/drawable/button_active.png" /></div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)</td>
+<td>Active</td>
+<td><BR/>
+@drawable/button_active => button_active.png<BR/>
+</td>
+</tr>
+<tr><td><div style="background-color:gray;padding:10px"><img src='file:{PROJECT}/res/drawable/button.png' alt="{PROJECT}/res/drawable/button.png" /></div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)</td>
+<td>Default</td>
+<td><BR/>
+@drawable/button => button.png<BR/>
+</td>
+</tr>
+</table>
+<BR/>
+@drawable/selector => selector.xml<BR/>
+</body>
+</html>

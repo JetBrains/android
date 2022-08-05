@@ -19,6 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.cacheInvalidatingOnSyncModifications
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.icons.AllIcons
@@ -58,39 +59,55 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
   private val liveLiteralsService by lazy { LiveLiteralsService.getInstance(project) }
   private val liveLiteralsDeploymentReportService by lazy { LiveLiteralsDeploymentReportService.getInstance(project) }
 
+  companion object {
+    private fun isLiveLiterals(): Boolean {
+      return LiveEditApplicationConfiguration.getInstance().isLiveLiterals
+    }
+
+    fun getAction(project: Project): LiveLiteralsStatusAction {
+      return LiveLiteralsStatusAction(project)
+    }
+  }
+
   override fun displayTextInToolbar(): Boolean = true
 
   private fun getIconAndTextForCurrentState(): Pair<String, Icon?> {
+    val enabled = AndroidBundle.message("live.literals.is.enabled")
+    val disabled = AndroidBundle.message("live.literals.is.disabled")
+
     return when {
       // Disabled state if the project is not Compose, or no device is running with LL.
       !project.isCompose() ||
-      !liveLiteralsDeploymentReportService.hasDeviceOrEmulatorRunning() -> AndroidBundle.message("live.literals.is.disabled") to null
-      !liveLiteralsService.isAvailable -> AndroidBundle.message("live.literals.is.disabled") to NOT_AVAILABLE_ICON
-      liveLiteralsDeploymentReportService.hasProblems -> AndroidBundle.message("live.literals.is.enabled") to ERROR_ICON
-      else -> AndroidBundle.message("live.literals.is.enabled") to AVAILABLE_ICON
+      !liveLiteralsDeploymentReportService.hasDeviceOrEmulatorRunning() ||
+      !isLiveLiterals() -> disabled to null
+      !liveLiteralsService.isAvailable -> disabled to NOT_AVAILABLE_ICON
+      liveLiteralsDeploymentReportService.hasProblems -> enabled to ERROR_ICON
+      else -> enabled to AVAILABLE_ICON
     }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent = object : ActionButtonWithText(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
-      override fun updateToolTipText() {
-        if (Registry.`is`("ide.helptooltip.enabled")) {
-          HelpTooltip.dispose(this)
-          val state = getIconAndTextForCurrentState()
-          val title = state.first
+    override fun updateToolTipText() {
+      if (Registry.`is`("ide.helptooltip.enabled")) {
+        val liveLiterals = isLiveLiterals()
+        HelpTooltip.dispose(this)
+        val state = getIconAndTextForCurrentState()
+        val title = state.first
 
-          HelpTooltip.dispose(this)
+        HelpTooltip.dispose(this)
+        if (liveLiterals) {
           HelpTooltip()
             .setTitle(title)
             .setDescription(AndroidBundle.message("live.literals.tooltip.description"))
-            .setBrowserLink(AndroidBundle.message("live.literals.tooltip.url.label"),
-                            URL("https://developer.android.com/jetpack/compose/tooling#live-edit-literals"))
+            .setBrowserLink(AndroidBundle.message("live.literals.tooltip.url.label"), URL("https://developer.android.com/jetpack/compose/tooling#live-edit-literals"))
             .installOn(this)
         }
-        else {
-          super.updateToolTipText()
-        }
+      }
+      else {
+        super.updateToolTipText()
       }
     }
+  }
 
   override fun updateActions(context: DataContext): Boolean {
     removeAll()

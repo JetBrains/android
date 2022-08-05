@@ -23,6 +23,7 @@ import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.junit.Assert.assertTrue;
@@ -34,6 +35,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
 import com.intellij.diagnostic.PerformanceWatcher;
@@ -147,8 +149,6 @@ public final class GuiTests {
     ideSettings.PROXY_PORT = 80;
 
     GuiTestingService.getInstance().setGuiTestingMode(true);
-    GuiTestingService.GuiTestSuiteState state = GuiTestingService.getInstance().getGuiTestSuiteState();
-    state.setSkipSdkMerge(false);
 
     // Clear saved Wizard settings to its initial defaults
     PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", false); // New Project "Include Kotlin Support"
@@ -188,40 +188,6 @@ public final class GuiTests {
 
   public static void refreshFiles() {
     ApplicationManager.getApplication().invokeAndWait(() -> LocalFileSystem.getInstance().refresh(false));
-  }
-
-  /**
-   * @return the path of the installation of a supported Gradle version. The path of the installation is specified via the system property
-   * 'supported.gradle.home.path'. If the system property is not found, the test invoking this method will be skipped.
-   */
-  @NotNull
-  public static File getGradleHomePathOrSkipTest() {
-    return getFilePathPropertyOrSkipTest("supported.gradle.home.path", "the path of a local Gradle 2.2.1 distribution", true);
-  }
-
-  /**
-   * @return the path of the installation of a Gradle version that is no longer supported by the IDE. The path of the installation is
-   * specified via the system property 'unsupported.gradle.home.path'. If the system property is not found, the test invoking this method
-   * will be skipped.
-   */
-  @NotNull
-  public static File getUnsupportedGradleHomeOrSkipTest() {
-    return getGradleHomeFromSystemPropertyOrSkipTest("unsupported.gradle.home.path", "2.1");
-  }
-
-  /**
-   * Returns the Gradle installation directory whose path is specified in the given system property. If the expected system property is not
-   * found, the test invoking this method will be skipped.
-   *
-   * @param propertyName  the name of the system property.
-   * @param gradleVersion the version of the Gradle installation. This is used in the message displayed when the expected system property is
-   *                      not found.
-   * @return the Gradle installation directory whose path is specified in the given system property.
-   */
-  @NotNull
-  public static File getGradleHomeFromSystemPropertyOrSkipTest(@NotNull String propertyName, @NotNull String gradleVersion) {
-    String description = "the path of a Gradle " + gradleVersion + " distribution";
-    return getFilePathPropertyOrSkipTest(propertyName, description, true);
   }
 
   /**
@@ -309,7 +275,7 @@ public final class GuiTests {
     }
     String testDir = System.getenv("TEST_TMPDIR");
     if (testDir == null) {
-      testDir = FileUtilRt.toSystemDependentName(PathManager.getHomePath());
+      testDir = toSystemDependentName(PathManager.getHomePath());
     }
     assertThat(testDir).isNotEmpty();
     File rootDirPath = new File(testDir, join("androidStudio", "gui-tests"));
@@ -338,7 +304,7 @@ public final class GuiTests {
   @NotNull
   public static File getTestProjectsRootDirPath() {
     String testDataPath =
-      toCanonicalPath(FileUtilRt.toSystemDependentName(TestUtils.resolveWorkspacePath("tools/adt/idea/android-uitests").toString()));
+      toCanonicalPath(toSystemDependentName(TestUtils.resolveWorkspacePath("tools/adt/idea/android-uitests").toString()));
     return new File(testDataPath, "testData");
   }
 
@@ -349,7 +315,7 @@ public final class GuiTests {
    * Waits until an IDE popup is shown and returns it.
    */
   public static JBList waitForPopup(@NotNull Robot robot) {
-    return waitUntilFound(robot, null, new GenericTypeMatcher<>(JBList.class) {
+    return waitUntilFound(robot, null, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
         ListModel model = list.getModel();
@@ -359,11 +325,11 @@ public final class GuiTests {
   }
 
   public static SimpleTree waitTreeForPopup(@NotNull Robot robot) {
-    return waitUntilFound(robot, null, new GenericTypeMatcher<>(SimpleTree.class) {
+    return waitUntilFound(robot, null, new GenericTypeMatcher<SimpleTree>(SimpleTree.class) {
       @Override
       protected boolean isMatching(@NotNull SimpleTree tree) {
         Container container = tree.getParent();
-        while (container != null) {
+        while (container != null){
           if (container.getClass().getName().contains("WizardPopup")) return true;
           container = container.getParent();
         }
@@ -387,7 +353,7 @@ public final class GuiTests {
   public static void clickPopupMenuItemMatching(@NotNull Predicate<String> predicate, @NotNull Component component, @NotNull Robot robot) {
     JPopupMenu menu = GuiQuery.get(robot::findActivePopupMenu);
     if (menu != null) {
-      new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<>(JMenuItem.class) {
+      new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
         protected boolean isMatching(@NotNull JMenuItem component) {
           return predicate.test(component.getText());
@@ -404,7 +370,7 @@ public final class GuiTests {
     Container root = GuiQuery.getNonNull(() -> (Container)SwingUtilities.getRoot(component));
     // First find the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
-    JBList list = waitUntilShowing(robot, root, new GenericTypeMatcher<>(JBList.class) {
+    JBList list = waitUntilShowing(robot, root, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
         ListModel model = list.getModel();
@@ -415,7 +381,7 @@ public final class GuiTests {
     // We can't use the normal JListFixture method to click by label since the ListModel items are
     // ActionItems whose toString does not reflect the text, so search through the model items instead:
     ListPopupModel model = (ListPopupModel)list.getModel();
-    List<String> items = new ArrayList<>();
+    java.util.List<String> items = Lists.newArrayList();
     for (int i = 0; i < model.getSize(); i++) {
       Object elementAt = model.getElementAt(i);
       String s;

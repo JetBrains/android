@@ -16,25 +16,19 @@
 package com.android.tools.idea.explorer.mocks
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.delayedValue
 import com.android.tools.idea.explorer.fs.DeviceFileSystem
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener
-import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
-import java.io.File
+import kotlinx.coroutines.delay
 import java.util.concurrent.Executor
-import java.util.function.Supplier
 
-const val OPERATION_TIMEOUT_MILLIS = 10
+const val OPERATION_TIMEOUT_MILLIS = 10L
 
 class MockDeviceFileSystemService(val project: Project, edtExecutor: Executor, taskExecutor: Executor)
   : DeviceFileSystemService<DeviceFileSystem> {
 
   val edtExecutor = FutureCallbackExecutor(edtExecutor)
-  private val myTaskExecutor = FutureCallbackExecutor(taskExecutor)
   private val myListeners: MutableList<DeviceFileSystemServiceListener> = ArrayList()
   private val myDevices: MutableList<MockDeviceFileSystem> = ArrayList()
 
@@ -49,27 +43,15 @@ class MockDeviceFileSystemService(val project: Project, edtExecutor: Executor, t
   val listeners: Array<DeviceFileSystemServiceListener>
     get() = myListeners.toTypedArray()
 
-  override fun start(adbSupplier: Supplier<File?>): ListenableFuture<Unit> {
-    return delayedValue(Unit, OPERATION_TIMEOUT_MILLIS)
+  override suspend fun start() {
+    delay(OPERATION_TIMEOUT_MILLIS)
   }
 
-  override fun restart(adbSupplier: Supplier<File?>): ListenableFuture<Unit> {
-    val futureResult = delayedValue(Unit, OPERATION_TIMEOUT_MILLIS)
-    edtExecutor.addCallback(futureResult, object : FutureCallback<Unit> {
-      override fun onSuccess(result: Unit?) {
-        myListeners.forEach  { it.serviceRestarted() }
-      }
-
-      override fun onFailure(t: Throwable) {}
-    })
-    return futureResult
-  }
-
-  override val devices: ListenableFuture<List<DeviceFileSystem>>
-    get() = Futures.immediateFuture(ArrayList<DeviceFileSystem>(myDevices))
+  override val devices: List<DeviceFileSystem>
+    get() = ArrayList<DeviceFileSystem>(myDevices)
 
   fun addDevice(deviceName: String): MockDeviceFileSystem {
-    val device = MockDeviceFileSystem(this, deviceName, myTaskExecutor)
+    val device = MockDeviceFileSystem(this, deviceName)
     myDevices.add(device)
     myListeners.forEach { it.deviceAdded(device) }
     return device

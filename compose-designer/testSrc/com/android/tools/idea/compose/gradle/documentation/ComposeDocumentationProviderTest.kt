@@ -19,6 +19,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.compose.documentation.ComposeDocumentationProvider
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.roots.ProjectRootManager
@@ -54,7 +55,7 @@ class ComposeDocumentationProviderTest {
   @Test
   fun testBasicDoc() {
     val project = projectRule.project
-    val activityFile = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/MainActivity.kt",
+    val activityFile = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
                                                 ProjectRootManager.getInstance(project).contentRoots[0])!!
 
     val composeDocProvider = ComposeDocumentationProvider()

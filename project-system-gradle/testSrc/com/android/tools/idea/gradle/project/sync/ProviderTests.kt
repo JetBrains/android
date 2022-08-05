@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
@@ -44,6 +45,7 @@ import com.intellij.execution.RunManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import org.hamcrest.Matchers
 import org.jetbrains.annotations.Contract
@@ -52,7 +54,6 @@ import org.junit.Assume
 import org.junit.Assume.assumeFalse
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
@@ -69,6 +70,7 @@ interface ValueNormalizers {
   fun File.toTestString(): String
   fun <T> Result<T>.toTestString(toTestString: T.() -> String = { this?.toString() ?: "(null)" }): String
   fun Map<AgpVersionSoftwareEnvironmentDescriptor, String>.forVersion(): String
+  fun <T> Map<AgpVersionSoftwareEnvironmentDescriptor, T>.forVersion(): T?
 }
 
 data class TestScenario(
@@ -77,7 +79,7 @@ data class TestScenario(
   val executeMakeBeforeRun: Boolean = true,
   val target: Target = Target.AppTargetRunConfiguration,
   val variant: Pair<String, String>? = null,
-  val device: Int = 30,
+  val device: Int = 30
 ) {
   val name: String
     get() {
@@ -130,76 +132,82 @@ fun GradleIntegrationTest.runProviderTest(testDefinition: AggregateTestDefinitio
   with(testDefinition) {
     Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), Matchers.nullValue())
     outputCurrentlyRunningTest(this)
-    prepareGradleProject(
+    val projectPath = prepareGradleProject(
       scenario.testProject,
-      "project",
-      gradleVersion = agpVersion.gradleVersion,
-      gradlePluginVersion = agpVersion.agpVersion,
-      kotlinVersion = agpVersion.kotlinVersion
+      "project"
     )
-
+    val gradlePropertiesPath = projectPath.resolve("gradle.properties")
+    gradlePropertiesPath.writeText(
+      gradlePropertiesPath.readText() + "\n android.suppressUnsupportedCompileSdk=${BuildEnvironment.getInstance().compileSdkVersion}"
+    )
     openPreparedProject("project") { project ->
-      val variant = scenario.variant
-      if (variant != null) {
-        switchVariant(project, variant.first, variant.second)
-      }
-      fun manuallyAssemble(
-        gradlePath: String,
-        forTests: Boolean
-      ): AssembleInvocationResult {
-        val module = project.gradleModule(gradlePath)!!
-        return try {
-          GradleBuildInvoker.getInstance(project)
-            .assemble(arrayOf(module), if (forTests) TestCompileType.ANDROID_TESTS else TestCompileType.NONE)
-            .get(3, TimeUnit.MINUTES)
+      try {
+        val variant = scenario.variant
+        if (variant != null) {
+          switchVariant(project, variant.first, variant.second)
         }
-        finally {
-          runInEdtAndWait {
-            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+        fun manuallyAssemble(
+          gradlePath: String,
+          forTests: Boolean
+        ): AssembleInvocationResult {
+          val module = project.gradleModule(gradlePath)!!
+          return try {
+            GradleBuildInvoker.getInstance(project)
+              .assemble(arrayOf(module), if (forTests) TestCompileType.ANDROID_TESTS else TestCompileType.NONE)
+              .get(3, TimeUnit.MINUTES)
+          } finally {
+            runInEdtAndWait {
+              AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+            }
           }
         }
-      }
 
-      fun androidRunConfigurations() = RunManager
-        .getInstance(project)
-        .allConfigurationsList
-        .filterIsInstance<AndroidRunConfiguration>()
+        fun androidRunConfigurations() = RunManager
+          .getInstance(project)
+          .allConfigurationsList
+          .filterIsInstance<AndroidRunConfiguration>()
 
-      val (runConfiguration, assembleResult) =
-        when (val target = scenario.target) {
-          Target.AppTargetRunConfiguration ->
-            androidRunConfigurations()
-              .single()
-              .also {
-                it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
-              } to null
-          is Target.NamedAppTargetRunConfiguration ->
-            androidRunConfigurations()
-              .single {
-                it.modules.any { module -> ExternalSystemApiUtil.getExternalProjectId(module) == target.externalSystemModuleId }
+        val (runConfiguration, assembleResult) =
+          when (val target = scenario.target) {
+            Target.AppTargetRunConfiguration ->
+              androidRunConfigurations()
+                .single()
+                .also {
+                  it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
+                } to null
+            is Target.NamedAppTargetRunConfiguration ->
+              androidRunConfigurations()
+                .single {
+                  it.modules.any { module -> ExternalSystemApiUtil.getExternalProjectId(module) == target.externalSystemModuleId }
+                }
+                .also {
+                  it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
+                } to null
+            is Target.TestTargetRunConfiguration ->
+              runReadAction { TestConfigurationTesting.createAndroidTestConfigurationFromClass(project, target.testClassFqn)!! } to null
+            is Target.ManuallyAssembled ->
+              if (scenario.viaBundle) error("viaBundle mode is not supported with ManuallyAssembled test configurations")
+              else {
+                null to manuallyAssemble(target.gradlePath, target.forTests)
               }
-              .also {
-                it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
-              } to null
-          is Target.TestTargetRunConfiguration ->
-            runReadAction { TestConfigurationTesting.createAndroidTestConfigurationFromClass(project, target.testClassFqn)!! } to null
-          is Target.ManuallyAssembled ->
-            if (scenario.viaBundle) error("viaBundle mode is not supported with ManuallyAssembled test configurations")
-            else {
-              null to manuallyAssemble(target.gradlePath, target.forTests)
-            }
+          }
+
+        val device = mockDeviceFor(scenario.device, listOf(Abi.X86, Abi.X86_64), density = 160)
+        if (scenario.executeMakeBeforeRun) {
+          runConfiguration?.executeMakeBeforeRunStepInTest(device)
         }
 
-      val device = mockDeviceFor(scenario.device, listOf(Abi.X86, Abi.X86_64), density = 160)
-      if (scenario.executeMakeBeforeRun) {
-        runConfiguration?.executeMakeBeforeRunStepInTest(device)
+        verifyExpectations(expect, valueNormalizers, project, runConfiguration, assembleResult, device)
       }
-
-      verifyExpectations(expect, valueNormalizers, project, runConfiguration, assembleResult, device)
+      finally {
+        runInEdtAndWait {
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+          AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+        }
+      }
     }
   }
 }
-
 
 abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
 
@@ -238,13 +246,13 @@ abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
   @get:Rule
   var expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  var testName = TestName()
-
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()
+
+  override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
+    return testDefinition?.agpVersion ?: AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  }
 
   private val m2Dirs by lazy {
     (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() +
@@ -268,6 +276,9 @@ abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
 
     override fun Map<AgpVersionSoftwareEnvironmentDescriptor, String>.forVersion() =
       (this[testDefinition!!.agpVersion] ?: this[AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT])?.trimIndent().orEmpty()
+
+    override fun <T> Map<AgpVersionSoftwareEnvironmentDescriptor, T>.forVersion(): T? =
+      (this[testDefinition!!.agpVersion] ?: this[AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT])
   }
 }
 
@@ -312,3 +323,5 @@ data class AggregateTestDefinitionImpl(
 
   override fun toString(): String = displayName()
 }
+
+infix fun <T, V> Array<T>.eachTo(value: V): Array<Pair<T, V>> = map { it to value }.toTypedArray()

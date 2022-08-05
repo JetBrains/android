@@ -16,6 +16,7 @@
 package com.android.tools.idea.whatsnew.assistant
 
 import com.android.repository.Revision
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistSidePanel
 import com.android.tools.idea.assistant.AssistantBundleCreator
@@ -32,7 +33,6 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.mockito.stubbing.Answer
 import java.io.File
 import java.io.InputStream
@@ -52,17 +52,17 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
     mockUrlProvider = mock(WhatsNewURLProvider::class.java)
 
     val serverFile = File(myFixture.testDataPath).resolve("whatsnewassistant/server-3.3.0.xml")
-    Mockito.`when`(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + serverFile.path))
+    whenever(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + serverFile.path))
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
-    Mockito.`when`(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
+    whenever(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
       .thenAnswer(Answer<InputStream> {
         URL("file:" + resourceFile.path).openStream()
       })
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     val localPath = tmpDir.resolve("local-3.3.0.xml")
-    Mockito.`when`(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
+    whenever(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
   }
 
   /**
@@ -77,24 +77,13 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
     bundleCreator.setAllowDownload(true)
 
     val completeFuture = SettableFuture.create<String>()
-    val callback = object: FutureCallback<String> {
-      override fun completed(result: String?) {
-        completeFuture.set(result)
-      }
-
-      override fun cancelled() {
-        completeFuture.set("")
-      }
-
-      override fun failed(ex: Exception?) {
-        completeFuture.set("")
-        ex?.printStackTrace()
-      }
-    }
 
     // Tab title will be set after assistant content finishes loading
     WhatsNewMetricsTracker.getInstance().open(project, false) // Needed since creating AssistSidePanel calls metrics
-    AssistSidePanel(WhatsNewBundleCreator.BUNDLE_ID, project, callback)
+    val assistSidePanel = AssistSidePanel(project)
+    assistSidePanel.showBundle(WhatsNewBundleCreator.BUNDLE_ID) {
+      completeFuture.set(it.name)
+    }
     pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     TestCase.assertEquals("Test What's New from Server", completeFuture.get())
   }
@@ -106,7 +95,7 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
   fun testAsyncLoadBundle() {
     val mockBundle = mock(DefaultTutorialBundle::class.java)
     val mockBundleCreator = mock(AssistantBundleCreator::class.java)
-    `when`(mockBundleCreator.getBundle(Mockito.any(Project::class.java))).thenReturn(mockBundle)
+    whenever(mockBundleCreator.getBundle(Mockito.any(Project::class.java))).thenReturn(mockBundle)
 
     val completeFuture = SettableFuture.create<Boolean>()
 

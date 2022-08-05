@@ -70,12 +70,12 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    * Listener that allows performing additional operations affected by the scene root component when updating the scene.
    */
   public interface SceneUpdateListener {
-    void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface designSurface);
+    void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface<?> designSurface);
   }
 
   public static class DefaultSceneUpdateListener implements SceneUpdateListener {
     @Override
-    public void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface designSurface) {
+    public void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface<?> designSurface) {
       // By default, don't do anything extra when updating the scene.
     }
   }
@@ -83,7 +83,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   public static final boolean SUPPORTS_LOCKING = false;
 
   @NotNull private final NlModel myModel;
-  @NotNull private final DesignSurface myDesignSurface;
+  @NotNull private final DesignSurface<?> myDesignSurface;
   @NotNull private final Scene myScene;
   // This will be initialized when constructor calls updateSceneView().
   @Nullable private SceneView mySceneView;
@@ -106,7 +106,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    */
   public SceneManager(
     @NotNull NlModel model,
-    @NotNull DesignSurface surface,
+    @NotNull DesignSurface<?> surface,
     @Nullable SceneComponentHierarchyProvider sceneComponentProvider,
     @Nullable SceneManager.SceneUpdateListener sceneUpdateListener) {
     myModel = model;
@@ -279,7 +279,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   }
 
   @NotNull
-  protected DesignSurface getDesignSurface() {
+  protected DesignSurface<?> getDesignSurface() {
     return myDesignSurface;
   }
 

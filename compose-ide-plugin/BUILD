@@ -5,7 +5,7 @@ iml_module(
     name = "intellij.android.compose-ide-plugin",
     srcs = ["src"],
     iml_files = ["intellij.android.compose-ide-plugin.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -19,7 +19,8 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.1.0-SNAPSHOT",
+        "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.2.0-SNAPSHOT",
+        "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )
 
@@ -35,7 +36,8 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/base/build-system:gradle-distrib",
         "//prebuilts/studio/sdk:licenses",
@@ -57,6 +59,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
@@ -66,9 +69,11 @@ iml_module(
     ],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
-    name = "compiler-hosted-1.1.0-SNAPSHOT",
-    jars = ["lib/compiler-hosted-1.1.0-SNAPSHOT.jar"],
+jvm_import(
+    name = "compiler-hosted-1.2.0-SNAPSHOT",
+    jars = ["lib/compiler-hosted-1.2.0-SNAPSHOT.jar"],
     visibility = ["//visibility:public"],
 )

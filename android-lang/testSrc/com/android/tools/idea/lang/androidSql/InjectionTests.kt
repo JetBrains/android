@@ -21,6 +21,7 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.jetbrains.android.AndroidFacetProjectDescriptor
+import org.jetbrains.kotlin.idea.KotlinFileType
 
 class RoomQueryInjectionTest : RoomLightTestCase() {
 
@@ -54,6 +55,23 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
         interface UserDao {
           @Query("select * $caret from User")
           List<User> findAll();
+        }""".trimIndent()
+    )
+
+    injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
+  }
+
+  fun testSimpleQueryKotlin() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      """
+        package com.example
+
+        import androidx.room.Query
+
+        interface UserDao {
+          @Query("select * $caret from User")
+          fun findAll(): List<User>
         }""".trimIndent()
     )
 

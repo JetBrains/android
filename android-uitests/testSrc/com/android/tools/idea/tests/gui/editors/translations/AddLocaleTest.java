@@ -74,7 +74,8 @@ public class AddLocaleTest {
 
     String expectedLocale = "Abkhazian (ab)";
     assertThat(translationsEditor.locales()).doesNotContain(expectedLocale);
-
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
     translationsEditor.addNewLocale("ab");
 
     assertThat(translationsEditor.locales()).contains(expectedLocale);

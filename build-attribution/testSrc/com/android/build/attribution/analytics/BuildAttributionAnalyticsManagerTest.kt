@@ -16,8 +16,15 @@
 package com.android.build.attribution.analytics
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.FAILURE
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.MISSED
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.SUCCESS
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository.GOOGLE
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
+import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
+import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.createBinaryPluginIdentifierStub
 import com.android.build.attribution.analyzers.createScriptPluginIdentifierStub
 import com.android.build.attribution.data.AlwaysRunTaskData
@@ -31,7 +38,11 @@ import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionReportBuilderTest
+import com.android.ide.common.attribution.CheckJetifierResult
+import com.android.ide.common.attribution.DependencyPath
+import com.android.ide.common.attribution.FullDependencyPath
 import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -41,8 +52,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AnnotationProcessorsAnalyzerData
 import com.google.wireless.android.sdk.stats.BuildAttribuitionTaskIdentifier
 import com.google.wireless.android.sdk.stats.BuildAttributionPluginIdentifier
+import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData
 import com.google.wireless.android.sdk.stats.ConfigurationCacheCompatibilityData
 import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
+import com.google.wireless.android.sdk.stats.JetifierUsageData
 import com.google.wireless.android.sdk.stats.ProjectConfigurationAnalyzerData
 import com.google.wireless.android.sdk.stats.TasksConfigurationIssuesAnalyzerData
 import com.intellij.openapi.module.Module
@@ -53,7 +66,6 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import java.time.Duration
 
@@ -83,10 +95,10 @@ class BuildAttributionAnalyticsManagerTest {
     MockitoAnnotations.initMocks(this)
     UsageTracker.setWriterForTest(tracker)
 
-    `when`(project.basePath).thenReturn("test")
+    whenever(project.basePath).thenReturn("test")
     val moduleManager = Mockito.mock(ModuleManager::class.java)
-    `when`(project.getService(ModuleManager::class.java)).thenReturn(moduleManager)
-    `when`(moduleManager.modules).thenReturn(emptyArray<Module>())
+    whenever(project.getService(ModuleManager::class.java)).thenReturn(moduleManager)
+    whenever(moduleManager.modules).thenReturn(emptyArray<Module>())
   }
 
   @After
@@ -135,6 +147,45 @@ class BuildAttributionAnalyticsManagerTest {
         listOf(IncompatiblePluginWarning(pluginA, GradleVersion.parse("1.0.0"), GradlePluginsData.PluginInfo("Plugin A", listOf("my.plugin.PluginA")))),
         listOf(IncompatiblePluginWarning(applicationPlugin, GradleVersion.parse("2.0.0"), GradlePluginsData.PluginInfo("AGP", listOf("com.android.build.gradle.api.AndroidBasePlugin"))))
       )
+
+      override fun getJetifierUsageResult() = JetifierUsageAnalyzerResult(
+        JetifierRequiredForLibraries(
+          checkJetifierResult = CheckJetifierResult(sortedMapOf(
+            "example:A:1.0" to listOf(FullDependencyPath(
+              projectPath = ":app",
+              configuration = "debugAndroidTestCompileClasspath",
+              dependencyPath = DependencyPath(listOf("example:A:1.0", "example:B:1.0", "com.android.support:support-annotations:28.0.0"))
+            )),
+            "example:B:1.0" to listOf(FullDependencyPath(
+              projectPath = ":lib",
+              configuration = "debugAndroidTestCompileClasspath",
+              dependencyPath = DependencyPath(listOf("example:B:1.0", "com.android.support:support-annotations:28.0.0"))
+            ))
+          ))
+        )
+      )
+
+      override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.ActiveResult(repositoryResults = listOf(
+        DownloadsAnalyzer.RepositoryResult(
+          repository = GOOGLE,
+          downloads = listOf(
+            defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
+            defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
+            defaultDownloadResult(GOOGLE, SUCCESS, 100, 40000),
+            defaultDownloadResult(GOOGLE, SUCCESS, 50, 40000),
+            defaultDownloadResult(GOOGLE, SUCCESS, 50, 40000)
+          )
+        ),
+        DownloadsAnalyzer.RepositoryResult(
+          repository = DownloadsAnalyzer.OtherRepository("other.repo.one"),
+          downloads = listOf(
+            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), SUCCESS, 50, 500),
+            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), SUCCESS, 50, 500),
+            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), FAILURE, 20, 0),
+            defaultDownloadResult(DownloadsAnalyzer.OtherRepository("other.repo.one"), MISSED, 10, 0)
+          )
+        )
+      ))
     }
   }
 
@@ -156,6 +207,8 @@ class BuildAttributionAnalyticsManagerTest {
     checkProjectConfigurationAnalyzerData(buildAttributionAnalyzersData.projectConfigurationAnalyzerData)
     checkConfigurationIssuesAnalyzerData(buildAttributionAnalyzersData.tasksConfigurationIssuesAnalyzerData)
     checkConfigurationCacheCompatibilityData(buildAttributionAnalyzersData.configurationCacheCompatibilityData)
+    checkJetifierUsageAnalyzerData(buildAttributionAnalyzersData.jetifierUsageData)
+    checkDownloadsAnalyzerData(buildAttributionAnalyzersData.downloadsAnalysisData)
 
     val buildAttributionReportSessionId = buildAttributionEvents.first().studioEvent.buildAttributionStats.buildAttributionReportSessionId
     assertThat(buildAttributionReportSessionId).isEqualTo("46f89941-2cea-83d7-e613-0c5823be215a")
@@ -220,6 +273,31 @@ class BuildAttributionAnalyticsManagerTest {
     assertThat(isTheSamePlugin(analyzerData.incompatiblePluginsList[1], applicationPlugin)).isTrue()
   }
 
+  private fun checkJetifierUsageAnalyzerData(jetifierUsageData: JetifierUsageData) {
+    assertThat(jetifierUsageData).isEqualTo(JetifierUsageData.newBuilder().apply {
+      checkJetifierTaskBuild = false
+      jetifierUsageState = JetifierUsageData.JetifierUsageState.JETIFIER_REQUIRED_FOR_LIBRARIES
+      numberOfLibrariesRequireJetifier = 2
+    }.build())
+  }
+
+  private fun checkDownloadsAnalyzerData(analyzerData: BuildDownloadsAnalysisData) {
+    assertThat(analyzerData.repositoriesList).hasSize(2)
+    assertThat(analyzerData.repositoriesList[0].repositoryType).isEqualTo(BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.GOOGLE)
+    assertThat(analyzerData.repositoriesList[1].repositoryType).isEqualTo(BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.OTHER_REPOSITORY)
+    assertThat(analyzerData.repositoriesList[1]).isEqualTo(BuildDownloadsAnalysisData.RepositoryStats.newBuilder().apply {
+      repositoryType = BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.OTHER_REPOSITORY
+      successRequestsCount = 2
+      successRequestsTotalTimeMs = 100
+      successRequestsTotalBytesDownloaded = 1000
+      failedRequestsCount = 1
+      failedRequestsTotalTimeMs = 20
+      failedRequestsTotalBytesDownloaded = 0
+      missedRequestsCount = 1
+      missedRequestsTotalTimeMs = 10
+    }.build())
+  }
+
   private fun isTheSamePlugin(pluginIdentifier: BuildAttributionPluginIdentifier, pluginData: PluginData): Boolean {
     return when (pluginData.pluginType) {
       PluginData.PluginType.UNKNOWN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.UNKNOWN_TYPE &&
@@ -237,3 +315,12 @@ class BuildAttributionAnalyticsManagerTest {
     return isTheSamePlugin(taskIdentifier.originPlugin, taskData.originPlugin) && taskIdentifier.taskClassName == "SampleTask"
   }
 }
+
+private fun defaultDownloadResult(repository: DownloadsAnalyzer.Repository, status: DownloadsAnalyzer.DownloadStatus, duration: Long, bytes: Long): DownloadsAnalyzer.DownloadResult = DownloadsAnalyzer.DownloadResult(
+  timestamp = 0,
+  repository = repository,
+  url = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom",
+  status = status,
+  duration = duration,
+  bytes = bytes,
+  failureMessage = null)

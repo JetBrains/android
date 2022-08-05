@@ -65,6 +65,6 @@ public final class ModuleToImport {
   @NotNull
   public Iterable<String> getDependencies() {
     Iterable<String> deps = myDependencyComputer.get();
-    return deps == null ? Collections.emptySet() : deps;
+    return deps == null ? Collections.<String>emptySet() : deps;
   }
 }

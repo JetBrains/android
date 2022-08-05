@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.External
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.applyDslLiteralOrReference;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.closableBlockNeedsNewline;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.createAndAddClosure;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.createDerivedMap;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.createInfixElement;
@@ -30,7 +31,6 @@ import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensu
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getClosableBlock;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getParentPsi;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getPsiElementForAnchor;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.hasNewLineBetween;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.maybeUpdateName;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.needToCreateParent;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.processListElement;
@@ -247,8 +247,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       }
       else {
         parentPsiElement.addAfter(lineTerminator, addedElement);
-        GrClosableBlock parentBlock = (GrClosableBlock)parentPsiElement;
-        if (parentBlock.getRBrace() != null && !hasNewLineBetween(parentBlock.getLBrace(), parentBlock.getRBrace())) {
+        if (closableBlockNeedsNewline((GrClosableBlock)parentPsiElement)) {
           parentPsiElement.addBefore(lineTerminator, addedElement);
         }
       }

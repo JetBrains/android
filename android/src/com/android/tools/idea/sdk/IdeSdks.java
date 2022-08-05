@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME;
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
@@ -38,7 +37,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -123,6 +122,7 @@ public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "Contents/Home";
   @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_11;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
+  @NotNull public static final String ANDROID_STUDIO_DEFAULT_JDK_NAME = "Android Studio default JDK";
   @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
   private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
   private static final JavaSdkVersion MAX_JDK_VERSION = JDK_11; // the largest LTS JDK compatible with SdkConstants.GRADLE_LATEST_VERSION = "6.1.1"
@@ -503,7 +503,7 @@ public class IdeSdks {
 
     AndroidSdkEventListener[] eventListeners = AndroidSdkEventListener.EP_NAME.getExtensions();
     for (Project project : openProjects) {
-      if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+      if (!ProjectSystemUtil.requiresAndroidModel(project)) {
         continue;
       }
       for (AndroidSdkEventListener listener : eventListeners) {
@@ -1121,7 +1121,7 @@ public class IdeSdks {
       // Recreate remaining JDKs to ensure they are up to date after an update (b/185562147)
       ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
       for (Sdk jdk : jdkTable.getSdksOfType(JavaSdk.getInstance())) {
-        Sdk recreatedJdk = recreateJdk(jdk);
+        Sdk recreatedJdk = jdk.getHomePath() != null ? recreateJdk(jdk.getHomePath(), jdk.getName()) : null;
         if (recreatedJdk != null) {
           jdkTable.updateJdk(jdk, recreatedJdk);
         }
@@ -1134,19 +1134,18 @@ public class IdeSdks {
   }
 
   /**
-   * Recreates a project JDK from the ProjectJDKTable, using only the path from {@param jdk} but settings its properties from scratch and
-   * and updates it in the ProjectJDKTable if there are differences. Must be run on a write action.
-   * If the home path of {@param jdk} is not valid, then the JDK is removed from the table.
-   * If {@param jdk} is valid and is not found in the ProjectJDKTable then it is created and added to it.
-   * @param jdk JDK to be recreated or added.
+   * Recreates a project JDK from the ProjectJDKTable and updates it in the ProjectJDKTable if there are differences. Must be run on a
+   * write action.
+   * If {@param jdkPath} is not valid, then the JDK is removed from the table.
+   * If {@param jdkName} is valid and is not found in the ProjectJDKTable then it is created and added to it.
    */
-  public void recreateOrAddJdkInTable(@NotNull Sdk jdk) {
+  public void recreateOrAddJdkInTable(@NotNull String jdkPath, @NotNull String jdkName) {
     // Look if the JDK is in the table
     ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
-    Sdk jdkInTable = jdkTable.findJdk(jdk.getName());
+    Sdk jdkInTable = jdkTable.findJdk(jdkName);
 
     // Try to recreate it
-    Sdk updatedJdk = recreateJdk(jdk);
+    Sdk updatedJdk = recreateJdk(jdkPath, jdkName);
     if (updatedJdk == null) {
       // Could not recreate it, remove from table
       if (jdkInTable != null) {
@@ -1163,6 +1162,8 @@ public class IdeSdks {
       }
       if (shouldUpdate) {
         ProjectJdkTable.getInstance().updateJdk(jdkInTable, updatedJdk);
+      } else {
+        Disposer.dispose((ProjectJdkImpl)updatedJdk);
       }
     }
     else {
@@ -1172,10 +1173,9 @@ public class IdeSdks {
   }
 
   @Nullable
-  private Sdk recreateJdk(@NotNull Sdk originalJdk) {
-    String jdkPath = originalJdk.getHomePath();
-    if (jdkPath != null && (validateJdkPath(Paths.get(jdkPath)) != null)) {
-      return JavaSdk.getInstance().createJdk(originalJdk.getName(), jdkPath, false);
+  private Sdk recreateJdk(@NotNull String jdkPath, @NotNull String jdkName) {
+    if (validateJdkPath(Paths.get(jdkPath)) != null) {
+      return JavaSdk.getInstance().createJdk(jdkName, jdkPath, false);
     }
     return null;
   }

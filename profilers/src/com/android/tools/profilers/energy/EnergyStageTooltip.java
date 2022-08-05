@@ -29,9 +29,4 @@ final class EnergyStageTooltip implements TooltipModel {
   EnergyProfilerStage.EnergyUsageLegends getUsageLegends() {
     return myStage.getUsageTooltipLegends();
   }
-
-  @NotNull
-  EnergyProfilerStage.EnergyEventLegends getEventLegends() {
-    return myStage.getEventTooltipLegends();
-  }
 }

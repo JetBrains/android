@@ -40,6 +40,7 @@ public class ProguardR8QualifiedNameImpl extends ASTWrapperPsiElement implements
     visitor.visitQualifiedName(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ProguardR8Visitor) accept((ProguardR8Visitor)visitor);
     else super.accept(visitor);

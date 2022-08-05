@@ -30,6 +30,7 @@ import com.intellij.refactoring.RefactoringActionHandler;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,6 +81,13 @@ public class UnusedResourcesHandler implements RefactoringActionHandler {
       if (module != null) {
         moduleSet.add(module);
       }
+    }
+
+    // If you've only selected the root project, which isn't an Android module,
+    // analyze the whole project.
+    if (moduleSet.size() == 1 &&
+           AndroidFacet.getInstance(moduleSet.iterator().next()) == null) {
+      moduleSet.clear();
     }
 
     invoke(project, moduleSet.toArray(Module.EMPTY_ARRAY), null, false, false);

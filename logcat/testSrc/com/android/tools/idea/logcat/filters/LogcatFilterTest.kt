@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.ddmlib.Log.LogLevel
-import com.android.ddmlib.Log.LogLevel.INFO
-import com.android.ddmlib.Log.LogLevel.WARN
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
-import com.android.tools.idea.logcat.logCatMessage
+import com.android.tools.idea.logcat.logcatMessage
+import com.android.tools.idea.logcat.message.LogLevel
+import com.android.tools.idea.logcat.message.LogLevel.ASSERT
+import com.android.tools.idea.logcat.message.LogLevel.ERROR
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogLevel.VERBOSE
+import com.android.tools.idea.logcat.message.LogLevel.WARN
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Test
@@ -35,8 +39,8 @@ import java.time.ZoneId
 
 private val TIMESTAMP = Instant.ofEpochMilli(1000)
 private val ZONE_ID = ZoneId.of("UTC")
-private val MESSAGE1 = logCatMessage(WARN, pid = 1, tid = 1, "app1", "Tag1", TIMESTAMP, "message1")
-private val MESSAGE2 = logCatMessage(WARN, pid = 2, tid = 2, "app2", "Tag2", TIMESTAMP, "message2")
+private val MESSAGE1 = logcatMessage(WARN, pid = 1, tid = 1, "app1", "Tag1", TIMESTAMP, "message1")
+private val MESSAGE2 = logcatMessage(WARN, pid = 2, tid = 2, "app2", "Tag2", TIMESTAMP, "message2")
 
 /**
  * Tests for [LogcatFilter] implementations.
@@ -46,9 +50,19 @@ class LogcatFilterTest {
   @Test
   fun logcatMasterFilter() {
     val filter = object : LogcatFilter {
-      override fun matches(message: LogcatMessageWrapper) = message.logCatMessage == MESSAGE1
+      override fun matches(message: LogcatMessageWrapper) = message.logcatMessage == MESSAGE1
     }
     assertThat(LogcatMasterFilter(filter).filter(listOf(MESSAGE1, MESSAGE2))).containsExactly(MESSAGE1)
+  }
+
+  @Test
+  fun logcatMasterFilter_systemMessages() {
+    val filter = object : LogcatFilter {
+      override fun matches(message: LogcatMessageWrapper) = false
+    }
+    val systemMessage = LogcatMessage(SYSTEM_HEADER, "message")
+
+    assertThat(LogcatMasterFilter(filter).filter(listOf(systemMessage))).containsExactly(systemMessage)
   }
 
   @Test
@@ -129,8 +143,8 @@ class LogcatFilterTest {
 
   @Test
   fun regexFilter() {
-    assertThat(RegexFilter("tag1.*message", LINE).matches(MESSAGE1)).isTrue()
-    assertThat(RegexFilter("tag2.*message", LINE).matches(MESSAGE1)).isFalse()
+    assertThat(RegexFilter("Tag1.*message", LINE).matches(MESSAGE1)).isTrue()
+    assertThat(RegexFilter("Tag2.*message", LINE).matches(MESSAGE1)).isFalse()
   }
 
   @Test
@@ -140,8 +154,8 @@ class LogcatFilterTest {
 
   @Test
   fun negatedRegexFilter() {
-    assertThat(NegatedRegexFilter("tag1.*message", LINE).matches(MESSAGE1)).isFalse()
-    assertThat(NegatedRegexFilter("tag2.*message", LINE).matches(MESSAGE1)).isTrue()
+    assertThat(NegatedRegexFilter("Tag1.*message", LINE).matches(MESSAGE1)).isFalse()
+    assertThat(NegatedRegexFilter("Tag2.*message", LINE).matches(MESSAGE1)).isTrue()
   }
 
   @Test
@@ -150,33 +164,37 @@ class LogcatFilterTest {
   }
 
   @Test
+  fun exactFilter() {
+    val message = logcatMessage(tag = "MyTag1")
+
+    assertThat(ExactStringFilter("Tag", TAG).matches(message)).isFalse()
+    assertThat(ExactStringFilter("Tag1", TAG).matches(message)).isFalse()
+    assertThat(ExactStringFilter("MyTag", TAG).matches(message)).isFalse()
+    assertThat(ExactStringFilter("MyTag1", TAG).matches(message)).isTrue()
+  }
+
+  @Test
+  fun negatedExactFilter() {
+    val message = logcatMessage(tag = "MyTag1")
+
+    assertThat(NegatedExactStringFilter("Tag", TAG).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("Tag1", TAG).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("MyTag", TAG).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("MyTag1", TAG).matches(message)).isFalse()
+  }
+
+  @Test
   fun levelFilter() {
     val levelFilter = LevelFilter(INFO)
     for (logLevel in LogLevel.values()) {
-      assertThat(levelFilter.matches(logCatMessage(logLevel))).named(logLevel.name).isEqualTo(logLevel == INFO)
-    }
-  }
-
-  @Test
-  fun fromLevelFilter() {
-    val levelFilter = FromLevelFilter(INFO)
-    for (logLevel in LogLevel.values()) {
-      assertThat(levelFilter.matches(logCatMessage(logLevel))).named(logLevel.name).isEqualTo(logLevel.ordinal >= INFO.ordinal)
-    }
-  }
-
-  @Test
-  fun toLevelFilter() {
-    val levelFilter = ToLevelFilter(INFO)
-    for (logLevel in LogLevel.values()) {
-      assertThat(levelFilter.matches(logCatMessage(logLevel))).named(logLevel.name).isEqualTo(logLevel.ordinal <= INFO.ordinal)
+      assertThat(levelFilter.matches(logcatMessage(logLevel))).named(logLevel.name).isEqualTo(logLevel.ordinal >= INFO.ordinal)
     }
   }
 
   @Test
   fun ageFilter() {
     val clock = Clock.fixed(Instant.EPOCH, ZONE_ID)
-    val message = logCatMessage(timestamp = clock.instant())
+    val message = logcatMessage(timestamp = clock.instant())
 
     assertThat(AgeFilter(Duration.ofSeconds(10), Clock.offset(clock, Duration.ofSeconds(5))).matches(message)).isTrue()
     assertThat(AgeFilter(Duration.ofSeconds(10), Clock.offset(clock, Duration.ofSeconds(15))).matches(message)).isFalse()
@@ -184,9 +202,9 @@ class LogcatFilterTest {
 
   @Test
   fun appFilter_matches() {
-    val message1 = logCatMessage(appName = "foo")
-    val message2 = logCatMessage(appName = "bar")
-    val message3 = logCatMessage(appName = "foobar")
+    val message1 = logcatMessage(appId = "foo")
+    val message2 = logcatMessage(appId = "bar")
+    val message3 = logcatMessage(appId = "foobar")
 
     assertThat(ProjectAppFilter(FakePackageNamesProvider("foo", "bar")).filter(listOf(message1, message2, message3)))
       .containsExactly(
@@ -196,17 +214,111 @@ class LogcatFilterTest {
   }
 
   @Test
-  fun appFilter_emptyMatchesAll() {
-    val message1 = logCatMessage(appName = "foo")
-    val message2 = logCatMessage(appName = "bar")
-    val message3 = logCatMessage(appName = "foobar")
+  fun appFilter_emptyMatchesNone() {
+    val message1 = logcatMessage(appId = "foo")
+    val message2 = logcatMessage(appId = "bar")
+    val message3 = logcatMessage(appId = "error", logLevel = ERROR)
 
-    assertThat(ProjectAppFilter(FakePackageNamesProvider()).filter(listOf(message1, message2, message3)))
+    assertThat(ProjectAppFilter(FakePackageNamesProvider()).filter(listOf(message1, message2, message3))).isEmpty()
+  }
+
+  @Test
+  fun appFilter_matchedMessageText() {
+    val message1 = logcatMessage(logLevel = ASSERT, message = "Assert message from com.app1")
+    val message2 = logcatMessage(logLevel = ERROR, message = "Error message from com.app2")
+    val message3 = logcatMessage(logLevel = WARN, message = "Warning message from com.app2")
+    val message4 = logcatMessage(logLevel = ERROR, message = "Error message from com.app3")
+
+    assertThat(ProjectAppFilter(FakePackageNamesProvider("app1", "app2")).filter(listOf(message1, message2, message3, message4)))
       .containsExactly(
         message1,
         message2,
-        message3
       ).inOrder()
+  }
+
+  @Test
+  fun stackTraceFilter() {
+    val message = """
+      Failed metering RPC
+        io.grpc.StatusRuntimeException: UNAVAILABLE
+          at io.grpc.stub.ClientCalls.toStatusRuntimeException(ClientCalls.java:262)
+          at io.grpc.stub.ClientCalls.getUnchecked(ClientCalls.java:243)
+    """.trimIndent()
+    val message1 = logcatMessage(logLevel = ERROR, message = message)
+    val message2 = logcatMessage(logLevel = VERBOSE, message = message)
+    val message3 = logcatMessage(logLevel = INFO, message = "Not a stacktrace")
+
+    assertThat(StackTraceFilter.filter(listOf(message1, message2, message3)))
+      .containsExactly(
+        message1,
+        message2,
+      ).inOrder()
+  }
+
+  @Test
+  fun crashFilter_jvm() {
+    val message1 = logcatMessage(tag = "AndroidRuntime", logLevel = ERROR, message = "FATAL EXCEPTION")
+    val message2 = logcatMessage(tag = "Foo", logLevel = ERROR, message = "FATAL EXCEPTION")
+    val message3 = logcatMessage(tag = "AndroidRuntime", logLevel = ASSERT, message = "FATAL EXCEPTION")
+    val message4 = logcatMessage(tag = "AndroidRuntime", logLevel = ERROR, message = "Not a FATAL EXCEPTION")
+
+    assertThat(CrashFilter.filter(listOf(message1, message2, message3, message4))).containsExactly(message1)
+  }
+
+  @Test
+  fun crashFilter_native() {
+    val message1 = logcatMessage(tag = "libc", logLevel = ASSERT, message = "Native crash")
+    val message2 = logcatMessage(tag = "DEBUG", logLevel = ASSERT, message = "Native crash")
+    val message3 = logcatMessage(tag = "libc", logLevel = ERROR, message = "Not a native crash")
+    val message4 = logcatMessage(tag = "DEBUG", logLevel = ERROR, message = "Not a native crash")
+
+    assertThat(CrashFilter.filter(listOf(message1, message2, message3, message4)))
+      .containsExactly(
+        message1,
+        message2,
+      ).inOrder()
+  }
+
+  @Test
+  fun nameFilter_matches() {
+    assertThat(NameFilter("name").matches(logcatMessage(message = "whatever"))).isTrue()
+  }
+
+  @Test
+  fun getFilterName_nameFilter() {
+    assertThat(NameFilter("name").getFilterName()).isEqualTo("name")
+  }
+
+  @Test
+  fun getFilterName_simpleFilters() {
+    assertThat(StringFilter("string", TAG).getFilterName()).isNull()
+    assertThat(NegatedStringFilter("string", TAG).getFilterName()).isNull()
+    assertThat(ExactStringFilter("string", TAG).getFilterName()).isNull()
+    assertThat(NegatedExactStringFilter("string", TAG).getFilterName()).isNull()
+    assertThat(RegexFilter("string", TAG).getFilterName()).isNull()
+    assertThat(NegatedRegexFilter("string", TAG).getFilterName()).isNull()
+    assertThat(LevelFilter(INFO).getFilterName()).isNull()
+    assertThat(AgeFilter(Duration.ofSeconds(60), Clock.systemDefaultZone()).getFilterName()).isNull()
+    assertThat(CrashFilter.getFilterName()).isNull()
+    assertThat(StackTraceFilter.getFilterName()).isNull()
+  }
+
+  @Test
+  fun getFilterName_compoundFilter() {
+    assertThat(AndLogcatFilter(StringFilter("string", TAG), LevelFilter(INFO)).getFilterName()).isNull()
+    assertThat(OrLogcatFilter(StringFilter("string", TAG), LevelFilter(INFO)).getFilterName()).isNull()
+    assertThat(AndLogcatFilter(
+      NameFilter("name1"),
+      StringFilter("string", TAG),
+      LevelFilter(INFO),
+      NameFilter("name2"),
+    ).getFilterName()).isEqualTo("name2")
+    assertThat(OrLogcatFilter(
+      NameFilter("name1"),
+      StringFilter("string", TAG),
+      LevelFilter(INFO),
+      NameFilter("name2"),
+    ).getFilterName()).isEqualTo("name2")
   }
 }
 
@@ -218,6 +330,6 @@ private class FalseFilter : LogcatFilter {
   override fun matches(message: LogcatMessageWrapper) = false
 }
 
-private fun LogcatFilter.filter(messages: List<LogCatMessage>) = LogcatMasterFilter(this).filter(messages)
+private fun LogcatFilter.filter(messages: List<LogcatMessage>) = LogcatMasterFilter(this).filter(messages)
 
-private fun LogcatFilter.matches(logCatMessage: LogCatMessage) = matches(LogcatMessageWrapper(logCatMessage))
+private fun LogcatFilter.matches(logcatMessage: LogcatMessage) = matches(LogcatMessageWrapper(logcatMessage))

@@ -19,36 +19,48 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ModalityUiUtil;
 import icons.StudioIcons;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Model to centralize every issue that should be used in the Layout Editor
  */
-public class IssueModel {
+public class IssueModel implements Disposable {
   private static final int MAX_ISSUE_NUMBER_LIMIT = 200;
 
+  @NotNull private final Project myProject;
   /**
    * Maximum number of issues allowed by this model. This allows to limit how many issues will be handled
    * by this model.
    */
   private final int myIssueNumberLimit;
-  private ImmutableList<Issue> myIssues = ImmutableList.of();
+  @NotNull private ImmutableList<Issue> myIssues = ImmutableList.of();
   private final ListenerCollection<IssueModelListener> myListeners;
   protected int myWarningCount;
   protected int myErrorCount;
   @VisibleForTesting
   public final Runnable myUpdateCallback = () -> updateErrorsList();
 
-  private final List<IssueProvider> myIssueProviders = new ArrayList<>();
+  private final Set<IssueProvider> myIssueProviders = new HashSet<>();
+
+  @NotNull
+  private final AtomicBoolean myIsActivated = new AtomicBoolean(true);
 
   /**
    * IssueModel constructor.
@@ -56,19 +68,25 @@ public class IssueModel {
    * @param issueNumberLimit maximum number of issues to be handled by this model. If the number of issues exceeds this number, it will be
    *                         truncated to <code>issueNumberLimit</code> and a new {@link TooManyIssuesIssue} added.
    */
-  @VisibleForTesting
-  IssueModel(@NotNull Executor listenerExecutor, int issueNumberLimit) {
+  private IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project, @NotNull Executor listenerExecutor, int issueNumberLimit) {
+    Disposer.register(parentDisposable, this);
+    myProject = project;
     myListeners = ListenerCollection.createWithExecutor(listenerExecutor);
     myIssueNumberLimit = issueNumberLimit;
   }
 
-  @VisibleForTesting
-  IssueModel(@NotNull Executor listenerExecutor) {
-    this(listenerExecutor, MAX_ISSUE_NUMBER_LIMIT);
+  public IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project) {
+    this(parentDisposable, project, command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command), MAX_ISSUE_NUMBER_LIMIT);
   }
 
-  public IssueModel() {
-    this(command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command));
+  @TestOnly
+  public static IssueModel createForTesting(@NotNull Disposable parentDisposable, @NotNull Project project, int issueNumberLimit) {
+    return new IssueModel(parentDisposable, project, MoreExecutors.directExecutor(), issueNumberLimit);
+  }
+
+  @TestOnly
+  public static IssueModel createForTesting(@NotNull Disposable parentDisposable, @NotNull Project project) {
+    return new IssueModel(parentDisposable, project, MoreExecutors.directExecutor(), MAX_ISSUE_NUMBER_LIMIT);
   }
 
   @Nullable
@@ -93,6 +111,12 @@ public class IssueModel {
     return max;
   }
 
+  @Override
+  public void dispose() {
+    myIssueProviders.clear();
+    myListeners.clear();
+  }
+
   /**
    * Get the icon for the severity level.
    *
@@ -112,9 +136,9 @@ public class IssueModel {
     myErrorCount = 0;
     ImmutableList.Builder<Issue> issueListBuilder = ImmutableList.builder();
 
-    ImmutableList<IssueProvider> providers;
+    ImmutableSet<IssueProvider> providers;
     synchronized (myIssueProviders) {
-      providers = ImmutableList.copyOf(myIssueProviders);
+      providers = ImmutableSet.copyOf(myIssueProviders);
     }
     for (IssueProvider provider : providers) {
       provider.collectIssues(issueListBuilder);
@@ -131,6 +155,9 @@ public class IssueModel {
     myIssues = newIssueList;
     // Run listeners on the UI thread
     myListeners.forEach(IssueModelListener::errorModelChanged);
+    if (myIsActivated.get()) {
+      myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, newIssueList);
+    }
   }
 
   private void updateIssuesCounts(@NotNull Issue issue) {
@@ -196,6 +223,16 @@ public class IssueModel {
 
   public boolean hasIssues() {
     return !myIssues.isEmpty();
+  }
+
+  public void activate() {
+    myIsActivated.set(true);
+    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, myIssues);
+  }
+
+  public void deactivate() {
+    myIsActivated.set(false);
+    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, Collections.emptyList());
   }
 
   public interface IssueModelListener {

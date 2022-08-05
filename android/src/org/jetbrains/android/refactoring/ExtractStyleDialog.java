@@ -80,7 +80,7 @@ class ExtractStyleDialog extends DialogWrapper {
       }
     }
 
-    final Set<Module> modulesSet = new HashSet<>();
+    final Set<Module> modulesSet = new HashSet<Module>();
     modulesSet.add(module);
 
     for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
@@ -121,7 +121,7 @@ class ExtractStyleDialog extends DialogWrapper {
     myTree = new CheckboxTree(renderer, myRootNode) {
       @Override
       protected void installSpeedSearch() {
-        new TreeSpeedSearch(this, new Convertor<>() {
+        new TreeSpeedSearch(this, new Convertor<TreePath, String>() {
           @Override
           public String convert(TreePath path) {
             Object object = path.getLastPathComponent();
@@ -227,7 +227,7 @@ class ExtractStyleDialog extends DialogWrapper {
 
   @NotNull
   public List<XmlAttribute> getStyledAttributes() {
-    List<XmlAttribute> attributes = new ArrayList<>();
+    List<XmlAttribute> attributes = new ArrayList<XmlAttribute>();
     int count = myRootNode.getChildCount();
 
     for (int i = 0; i < count; i++) {

@@ -88,7 +88,7 @@ public final class ConnectionsStateChart {
       series.add(data.getConnectionEndTimeUs(), NetworkState.NONE);
     }
     StateChartModel<NetworkState> stateModel = new StateChartModel<>();
-    StateChart<NetworkState> chart = new StateChart<>(stateModel, new StateChartColorProvider<>() {
+    StateChart<NetworkState> chart = new StateChart<>(stateModel, new StateChartColorProvider<NetworkState>() {
       @NotNull
       @Override
       public Color getColor(boolean isMouseOver, @NotNull NetworkState value) {

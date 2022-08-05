@@ -32,7 +32,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -54,15 +53,22 @@ public class IntellijDataViewer implements DataViewer {
    * <p>
    * Note: to prevent UI from being frozen by large text, the content will be truncated.
    */
-
-  public static IntellijDataViewer createRawTextViewer(@NotNull byte[] content) {
-    JTextArea textArea = new JTextArea(new String(content, 0, Math.min(content.length, RAW_VIEWER_MAX_STRING_LENGTH),
-                                                  StandardCharsets.UTF_8));
+  public static IntellijDataViewer createRawTextViewer(@NotNull byte[] content, Boolean isEditable) {
+    JTextArea textArea = new JTextArea(new String(content, 0, Math.min(content.length, RAW_VIEWER_MAX_STRING_LENGTH)));
     textArea.setLineWrap(true);
     textArea.setFont(AdtUiUtils.DEFAULT_FONT.biggerOn(3f));
-    textArea.setEditable(false);
+    textArea.setEditable(isEditable);
     textArea.setBackground(null);
     return new IntellijDataViewer(textArea, Style.RAW);
+  }
+
+  /**
+   * Create an editable data viewer that renders its content as is, without any attempt to clean it up.
+   * <p>
+   * Note: to prevent UI from being frozen by large text, the content will be truncated.
+   */
+  public static IntellijDataViewer createRawTextViewer(@NotNull byte[] content) {
+    return createRawTextViewer(content, false);
   }
 
   /**
@@ -86,7 +92,7 @@ public class IntellijDataViewer implements DataViewer {
       // content and the user will see a mysterious "NO PREVIEW" message without any information
       // on why. The Document class allows you to change a setting to allow \r, but this breaks
       // soft wrapping in the editor.
-      String contentStr = new String(content, StandardCharsets.UTF_8).replace("\r\n", "\n");
+      String contentStr = new String(content).replace("\r\n", "\n");
 
       Style style = Style.RAW;
       Document document = null;

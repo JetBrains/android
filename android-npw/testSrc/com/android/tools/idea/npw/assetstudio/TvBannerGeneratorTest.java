@@ -20,7 +20,6 @@ import static com.android.SdkConstants.FD_TEST;
 import static com.android.SdkConstants.FD_UNIT_TEST;
 import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
 import static com.android.tools.adtui.imagediff.ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.io.Images;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
@@ -61,25 +60,25 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
 
   private final AndroidModulePaths myProjectPaths = new AndroidModulePaths() {
     @Override
-    @Nullable
+    @NotNull
     public File getModuleRoot() {
       return new File("/fictitious/root");
     }
 
     @Override
-    @Nullable
+    @NotNull
     public File getSrcDirectory(@Nullable String packageName) {
       return new File(getModuleRoot(), "src");
     }
 
     @Override
-    @Nullable
+    @NotNull
     public File getTestDirectory(@Nullable String packageName) {
       return new File(getModuleRoot(), FD_TEST);
     }
 
-    @Nullable
     @Override
+    @NotNull
     public File getUnitTestDirectory(@Nullable String packageName) {
       return new File(getModuleRoot(), FD_UNIT_TEST);
     }
@@ -91,13 +90,13 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
     }
 
     @Override
-    @Nullable
+    @NotNull
     public File getAidlDirectory(@Nullable String packageName) {
       return new File(getModuleRoot(), "aidl");
     }
 
     @Override
-    @Nullable
+    @NotNull
     public File getManifestDirectory() {
       return new File(getModuleRoot(), "manifests");
     }
@@ -151,7 +150,8 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
 
   private void checkGeneratedIcons(@NotNull String[] expectedFilenames, double imageDiffThresholdPercent,
                                    @NotNull String... excludedFromContentComparison) throws IOException {
-    Map<File, GeneratedIcon> pathIconMap = myIconGenerator.generateIntoIconMap(myProjectPaths);
+    List<File> resDirs = myProjectPaths.getResDirectories();
+    Map<File, GeneratedIcon> pathIconMap = myIconGenerator.generateIntoIconMap(myProjectPaths, resDirs.get(resDirs.size() - 1));
     Set<File> unexpectedFiles = new HashSet<>(pathIconMap.keySet());
     Path goldenDir = Paths.get(getTestDataPath(), getTestName(true), "golden");
     for (String filename : expectedFilenames) {
@@ -165,8 +165,7 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
       if (!Arrays.asList(excludedFromContentComparison).contains(filename)) {
         if (filename.endsWith(".xml")) {
           assertEquals("File " + filename + " does not match",
-                       new String(Files.readAllBytes(goldenFile), UTF_8).replaceAll("(\r\n|\n)",
-                                                                                    CodeStyle.getSettings(getProject()).getLineSeparator()),
+                       Files.readString(goldenFile).replaceAll("(\r\n|\n)", CodeStyle.getSettings(getProject()).getLineSeparator()),
                        ((GeneratedXmlResource)icon).getXmlText());
         }
         else {

@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.lang.aidl.psi;
 
-import com.intellij.psi.PsiNameIdentifierOwner;
+import com.android.annotations.NonNull;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * AidlDeclaration is either a {@code AidlParcelableDeclaration}, {@code AidlInterfaceDeclaration} or {@code AidlMethodDeclaration}.
+ * AidlDeclaration is either a {@code AidlParcelableDeclaration}, {@code AidlInterfaceDeclaration},
+ * {@link AidlEnumDeclaration}, {@link AidlUnionDeclaration}, or a {@code AidlMethodDeclaration}.
  */
-public interface AidlDeclaration extends AidlPsiCompositeElement, PsiNameIdentifierOwner {
+public interface AidlDeclaration extends AidlPsiCompositeElement {
   @NotNull
-  AidlDeclarationName getDeclarationName();
+  AidlNamedElement getDeclarationName();
 
   @NotNull
   @Override
@@ -34,9 +35,8 @@ public interface AidlDeclaration extends AidlPsiCompositeElement, PsiNameIdentif
   String getQualifiedName();
 
   /**
-   * Get the PSI element of the generated Java code for this AIDL declaration.
-   * @return
+   * Get the PSI elements of the generated Java code for this AIDL declaration.
    */
-  @Nullable
-  PsiNameIdentifierOwner getGeneratedPsiElement();
+  @NonNull
+  PsiElement[] getGeneratedPsiElements();
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.adtui.LegendComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.AspectObserver
@@ -22,11 +23,12 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.Legend
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.idea.appinspection.inspectors.network.ide.analytics.IdeNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.FAKE_THREAD_LIST
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
@@ -34,14 +36,26 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ja
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
+import com.android.tools.idea.appinspection.inspectors.network.view.TestNetworkInspectorUsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.EdtRule
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import studio.network.inspection.NetworkInspectorProtocol
 import java.awt.Component
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
@@ -50,8 +64,8 @@ import javax.swing.JTextPane
 private const val FAKE_TRACE = "com.google.downloadUrlToStream(ImageFetcher.java:274)"
 private const val FAKE_RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n"
 
-private val DEFAULT_DATA = createFakeHttpData(1, 10000, 25000, 50000, 100000, 100000,
-                                              responseFields = FAKE_RESPONSE_HEADERS, url = "dumbUrl", trace = FAKE_TRACE, method = "GET")
+val DEFAULT_DATA = createFakeHttpData(1, 10000, 25000, 50000, 100000, 100000,
+                                      responseFields = FAKE_RESPONSE_HEADERS, url = "dumbUrl", trace = FAKE_TRACE, method = "GET")
 
 /**
  * Header names chosen and intentionally unsorted, to make sure that they are shown in the UI in sorted order.
@@ -71,19 +85,43 @@ private fun <T : TabContent?> ConnectionDetailsView.findTab(tabClass: Class<T>):
 
 @RunsInEdt
 class ConnectionDetailsViewTest {
+
+  private class TestNetworkInspectorClient : NetworkInspectorClient {
+    override suspend fun getStartTimeStampNs() = 0L
+    override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) = Unit
+  }
+
+  @get:Rule
+  val setFlagRule = SetFlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
+
+  private lateinit var client: TestNetworkInspectorClient
+  private lateinit var tracker: TestNetworkInspectorUsageTracker
+  private lateinit var services: TestNetworkInspectorServices
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
   private lateinit var detailsView: ConnectionDetailsView
   private val timer: FakeTimer = FakeTimer()
-
-  @get:Rule
-  val edtRule = EdtRule()
+  private lateinit var scope: CoroutineScope
+  private lateinit var disposable: Disposable
 
   @Before
   fun before() {
+    disposable = Disposer.newDisposable()
     val codeNavigationProvider = FakeCodeNavigationProvider()
-    val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), object : HttpDataModel {
+    client = TestNetworkInspectorClient()
+    tracker = TestNetworkInspectorUsageTracker()
+    Disposer.register(disposable, tracker)
+    services = TestNetworkInspectorServices(
+      codeNavigationProvider,
+      timer,
+      client,
+      IdeNetworkInspectorTracker(projectRule.project)
+    )
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
       private val dataList = listOf(DEFAULT_DATA)
       override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
         return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
@@ -91,9 +129,16 @@ class ConnectionDetailsViewTest {
     })
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, StubNetworkInspectorTracker())
+
+    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
-    detailsView = inspectorView.connectionDetails
+    detailsView = inspectorView.detailsPanel.connectionDetailsView
+  }
+
+  @After
+  fun tearDown() {
+    scope.cancel()
+    Disposer.dispose(disposable)
   }
 
   @Test
@@ -127,20 +172,6 @@ class ConnectionDetailsViewTest {
     val payloadBody = detailsView.findTab(ResponseTabContent::class.java)!!.findPayloadBody()!!
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Parsed" }).isTrue()
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Source" }).isTrue()
-  }
-
-  @Test
-  fun viewIsVisibleWhenDataIsNotNull() {
-    detailsView.isVisible = false
-    detailsView.setHttpData(DEFAULT_DATA)
-    assertThat(detailsView.isVisible).isTrue()
-  }
-
-  @Test
-  fun viewIsNotVisibleWhenDataIsNull() {
-    detailsView.isVisible = true
-    detailsView.setHttpData(null)
-    assertThat(detailsView.isVisible).isFalse()
   }
 
   @Test
@@ -268,6 +299,27 @@ class ConnectionDetailsViewTest {
     )
     assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(1000), "0 ms", "0 ms")
     assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(2000), "1 s", "0 ms")
+  }
+
+  @Test
+  fun trackConnectionComponentSelections() {
+    assertThat(HttpDataComponentFactory.findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())).isNull()
+    model.setSelectedConnection(DEFAULT_DATA)
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.CONNECTION_DETAIL_SELECTED)
+    }
+    detailsView.selectedIndex = 1
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.RESPONSE_TAB_SELECTED)
+    }
+    detailsView.selectedIndex = 2
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.REQUEST_TAB_SELECTED)
+    }
+    detailsView.selectedIndex = 3
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.CALLSTACK_TAB_SELECTED)
+    }
   }
 
   private fun assertExpectedTimingLegends(

@@ -151,7 +151,8 @@ public final class TransformedImageAsset {
         if (myTransformedDrawable == null) {
           xmlDrawable = LINE_ENDING_PATTERN.matcher(xmlDrawable).replaceAll(myLineSeparator);
           Rectangle2D clipRectangle = myIsTrimmed ? getTrimRectangle(xmlDrawable) : null;
-          myTransformedDrawable = transform(xmlDrawable, myTargetSize, myGravity, myScaleFactor, clipRectangle, myShift, myTint, myOpacity);
+          myTransformedDrawable =
+            transform(xmlDrawable, myTargetSize, myGravity, myScaleFactor, clipRectangle, myShift, myTint, myOpacity, false);
         }
         return myTransformedDrawable;
       }

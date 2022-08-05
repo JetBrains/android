@@ -75,7 +75,7 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
     if (activityClass != null) {
       final CompletionResultSet finalResult = result;
 
-      ClassInheritorsSearch.search(activityClass, module.getModuleWithDependenciesScope(), true, true, false).forEach(new Processor<>() {
+      ClassInheritorsSearch.search(activityClass, module.getModuleWithDependenciesScope(), true, true, false).forEach(new Processor<PsiClass>() {
         @Override
         public boolean process(PsiClass psiClass) {
           final PsiModifierList modifierList = psiClass.getModifierList();
@@ -111,7 +111,7 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
 
   @NotNull
   private static Set<String> collectActivityAliases(@NotNull AndroidFacet facet) {
-    final Set<String> result = new HashSet<>();
+    final Set<String> result = new HashSet<String>();
 
     doCollectActivityAliases(facet, result);
 

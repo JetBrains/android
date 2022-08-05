@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.util.ListenerCollection
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -30,6 +32,7 @@ import java.util.concurrent.TimeUnit
 @VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 30L
 
 class InspectorClientLaunchMonitor(
+  private val attachErrorStateListeners: ListenerCollection<(AttachErrorState) -> Unit>,
   @TestOnly private val executorService: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService()
 ) {
   private var lastUpdate: Long = 0L
@@ -44,6 +47,8 @@ class InspectorClientLaunchMonitor(
   }
 
   fun updateProgress(progress: AttachErrorState) {
+    attachErrorStateListeners.forEach { it.invoke(progress) }
+
     if (progress <= currentProgress) {
       return
     }
@@ -56,14 +61,23 @@ class InspectorClientLaunchMonitor(
           client?.let { client ->
             Logger.getInstance(InspectorClientLaunchMonitor::class.java).warn(
               "Client $client timed out during attach at step $currentProgress")
-            LayoutInspectorMetrics(null, client.process, null, null).logEvent(
-              DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, currentProgress)
+            logAttachError(AttachErrorCode.CONNECT_TIMEOUT)
             client.disconnect()
           }
         },
         CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS
       )
     }
+  }
+
+  fun onFailure(t: Throwable) {
+    logAttachError(t.errorCode)
+    stop()
+  }
+
+  private fun logAttachError(errorCode: AttachErrorCode) {
+    LayoutInspectorMetrics(null, client?.process, null, null).logEvent(
+      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, currentProgress, errorCode)
   }
 
   fun stop() {

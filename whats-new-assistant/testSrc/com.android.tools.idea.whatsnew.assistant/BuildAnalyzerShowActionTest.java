@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
+import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -43,11 +43,16 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Component;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +61,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 @RunWith(JUnit4.class)
@@ -79,13 +83,8 @@ public final class BuildAnalyzerShowActionTest {
 
     WhatsNewURLProvider mockUrlProvider = mock(WhatsNewURLProvider.class);
 
-    when(mockUrlProvider.getResourceFileAsStream(myBundleCreator, REVISION)).thenAnswer(new Answer<InputStream>() {
-      @Override
-      @NotNull
-      public InputStream answer(@NotNull InvocationOnMock invocation) {
-        return new ByteArrayInputStream(myDefaultResource.getBytes(StandardCharsets.UTF_8));
-      }
-    });
+    when(mockUrlProvider.getResourceFileAsStream(myBundleCreator, REVISION)).thenAnswer(
+      (Answer<InputStream>)invocation -> new ByteArrayInputStream(myDefaultResource.getBytes(StandardCharsets.UTF_8)));
 
     Path tmpDir = TestUtils.createTempDirDeletedOnExit();
     Path localPath = tmpDir.resolve("local-4.0.0.xml");
@@ -110,19 +109,21 @@ public final class BuildAnalyzerShowActionTest {
 
   @RunsInEdt
   @Test
-  public void testShowBuildAnalyzerButtonWithoutBuild() {
+  public void testShowBuildAnalyzerButtonWithoutBuild() throws TimeoutException {
     when(myBuildAttributionStateReporterMock.currentState()).thenReturn(State.NO_DATA);
 
     StatefulButton statefulButton = getOpenBuildAnalyzerButton();
 
     StatefulButton.ActionButton button = getActionButton(statefulButton);
+    waitForCondition(5, TimeUnit.SECONDS, statefulButton::isLoaded);
+
     StatefulButtonMessage message = getActionMessage(statefulButton);
 
     Truth.assertThat(button.isVisible()).isTrue();
     Truth.assertThat(button.isEnabled()).isTrue();
     Truth.assertThat(button.getText()).isEqualTo("Analyze Build");
     Truth.assertThat(message.isVisible()).isTrue();
-    List<JEditorPane> textPanes = UIUtil.findComponentsOfType(message, JEditorPane.class);
+    List<JEditorPane> textPanes = findComponentsOfType(message, JEditorPane.class);
     Truth.assertThat(cleanUpText(textPanes.get(0).getText())).contains(
       "No report is available.<br>" +
       "Click Analyze Build to build your project<br>" +
@@ -144,7 +145,7 @@ public final class BuildAnalyzerShowActionTest {
     Truth.assertThat(button.isEnabled()).isTrue();
     Truth.assertThat(button.getText()).isEqualTo("Analyze Build");
     Truth.assertThat(message.isVisible()).isTrue();
-    List<JEditorPane> textPanes = UIUtil.findComponentsOfType(message, JEditorPane.class);
+    List<JEditorPane> textPanes = findComponentsOfType(message, JEditorPane.class);
     Truth.assertThat(cleanUpText(textPanes.get(0).getText())).contains("Previous build's report is available. Click to open.");
   }
 
@@ -163,7 +164,7 @@ public final class BuildAnalyzerShowActionTest {
     Truth.assertThat(button.isEnabled()).isFalse();
     Truth.assertThat(button.getText()).isEqualTo("Analyze Build");
     Truth.assertThat(message.isVisible()).isTrue();
-    List<JEditorPane> textPanes = UIUtil.findComponentsOfType(message, JEditorPane.class);
+    List<JEditorPane> textPanes = findComponentsOfType(message, JEditorPane.class);
     Truth.assertThat(cleanUpText(textPanes.get(0).getText())).contains("Generating build report now.");
   }
 
@@ -181,7 +182,7 @@ public final class BuildAnalyzerShowActionTest {
     Truth.assertThat(button.isEnabled()).isTrue();
     Truth.assertThat(button.getText()).isEqualTo("Analyze Build");
     Truth.assertThat(message.isVisible()).isTrue();
-    List<JEditorPane> textPanes = UIUtil.findComponentsOfType(message, JEditorPane.class);
+    List<JEditorPane> textPanes = findComponentsOfType(message, JEditorPane.class);
     Truth.assertThat(cleanUpText(textPanes.get(0).getText())).contains(
       "Build failed to complete.<br>" +
       "Resolve any errors and try again."
@@ -202,7 +203,7 @@ public final class BuildAnalyzerShowActionTest {
     Truth.assertThat(button.isEnabled()).isFalse();
     Truth.assertThat(button.getText()).isEqualTo("Analyze Build");
     Truth.assertThat(message.isVisible()).isTrue();
-    List<JEditorPane> textPanes = UIUtil.findComponentsOfType(message, JEditorPane.class);
+    List<JEditorPane> textPanes = findComponentsOfType(message, JEditorPane.class);
     Truth.assertThat(cleanUpText(textPanes.get(0).getText())).contains(
       "Android Gradle Plugin 4.0.0 or higher<br>" +
       "is required to use the Build Analyzer."
@@ -222,7 +223,7 @@ public final class BuildAnalyzerShowActionTest {
     Truth.assertThat(getActionButton(statefulButton).isVisible()).isTrue();
     Truth.assertThat(getActionButton(statefulButton).isEnabled()).isTrue();
     Truth.assertThat(getActionMessage(statefulButton).isVisible()).isTrue();
-    Truth.assertThat(cleanUpText(UIUtil.findComponentsOfType(getActionMessage(statefulButton), JEditorPane.class).get(0).getText()))
+    Truth.assertThat(cleanUpText(findComponentsOfType(getActionMessage(statefulButton), JEditorPane.class).get(0).getText()))
       .contains(
         "No report is available.<br>" +
         "Click Analyze Build to build your project<br>" +
@@ -236,7 +237,7 @@ public final class BuildAnalyzerShowActionTest {
     Truth.assertThat(getActionButton(statefulButton).isVisible()).isTrue();
     Truth.assertThat(getActionButton(statefulButton).isEnabled()).isFalse();
     Truth.assertThat(getActionMessage(statefulButton).isVisible()).isTrue();
-    Truth.assertThat(cleanUpText(UIUtil.findComponentsOfType(getActionMessage(statefulButton), JEditorPane.class).get(0).getText()))
+    Truth.assertThat(cleanUpText(findComponentsOfType(getActionMessage(statefulButton), JEditorPane.class).get(0).getText()))
       .contains("Generating build report now.");
 
     when(myBuildAttributionStateReporterMock.currentState()).thenReturn(State.REPORT_DATA_READY);
@@ -246,7 +247,7 @@ public final class BuildAnalyzerShowActionTest {
     Truth.assertThat(getActionButton(statefulButton).isVisible()).isTrue();
     Truth.assertThat(getActionButton(statefulButton).isEnabled()).isTrue();
     Truth.assertThat(getActionMessage(statefulButton).isVisible()).isTrue();
-    Truth.assertThat(cleanUpText(UIUtil.findComponentsOfType(getActionMessage(statefulButton), JEditorPane.class).get(0).getText()))
+    Truth.assertThat(cleanUpText(findComponentsOfType(getActionMessage(statefulButton), JEditorPane.class).get(0).getText()))
       .contains("Previous build's report is available. Click to open.");
   }
 
@@ -280,7 +281,7 @@ public final class BuildAnalyzerShowActionTest {
 
     button.doClick();
 
-    verify(myBuildInvoker).assemble(any(), eq(TestCompileType.ALL));
+    verify(myBuildInvoker).assemble(eq(TestCompileType.ALL));
     verify(myBuildAttributionUiManagerMock).requestOpenTabWhenDataReady(eq(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON));
   }
 
@@ -293,20 +294,27 @@ public final class BuildAnalyzerShowActionTest {
 
   @NotNull
   private StatefulButton getOpenBuildAnalyzerButton() {
-    AssistSidePanel sidePanel = new AssistSidePanel(myBundleCreator.getBundleId(), myRule.getProject(), null);
-    List<StatefulButton> actionButtons = UIUtil.findComponentsOfType(sidePanel, StatefulButton.class);
+    AssistSidePanel sidePanel = new AssistSidePanel(myRule.getProject());
+    sidePanel.showBundle(myBundleCreator.getBundleId(), null, null);
+    List<StatefulButton> actionButtons = findComponentsOfType(sidePanel, StatefulButton.class);
     assertEquals(1, actionButtons.size());
     StatefulButton statefulButton = actionButtons.get(0);
     statefulButton.addNotify(); // Trigger subscription to update events
+    try {
+      waitForCondition(5, TimeUnit.SECONDS, statefulButton::isLoaded);
+    }
+    catch (TimeoutException e) {
+      throw new RuntimeException(e);
+    }
     return statefulButton;
   }
 
   private static StatefulButtonMessage getActionMessage(StatefulButton statefulButton) {
-    return UIUtil.findComponentsOfType(statefulButton, StatefulButtonMessage.class).get(0);
+    return findComponentsOfType(statefulButton, StatefulButtonMessage.class).get(0);
   }
 
   private static StatefulButton.ActionButton getActionButton(StatefulButton statefulButton) {
-    return UIUtil.findComponentsOfType(statefulButton, StatefulButton.ActionButton.class).get(0);
+    return findComponentsOfType(statefulButton, StatefulButton.ActionButton.class).get(0);
   }
 
   @Language("XML")
@@ -371,4 +379,26 @@ public final class BuildAnalyzerShowActionTest {
     "    </tutorial>\n" +
     "  </feature>\n" +
     "</tutorialBundle>\n";
+
+
+  public static @NotNull <T extends JComponent> java.util.List<T> findComponentsOfType(JComponent parent, @NotNull Class<? extends T> cls) {
+    java.util.List<T> result = new ArrayList<>();
+    findComponentsOfType(parent, cls, result);
+    return result;
+  }
+
+  private static <T extends JComponent> void findComponentsOfType(JComponent parent,
+                                                                  @NotNull Class<T> cls,
+                                                                  @NotNull List<? super T> result) {
+    if (parent == null) return;
+    if (cls.isAssignableFrom(parent.getClass())) {
+      @SuppressWarnings("unchecked") final T t = (T)parent;
+      result.add(t);
+    }
+    for (Component c : parent.getComponents()) {
+      if (c instanceof JComponent) {
+        findComponentsOfType((JComponent)c, cls, result);
+      }
+    }
+  }
 }

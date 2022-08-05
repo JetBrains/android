@@ -25,9 +25,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction;
 import com.intellij.openapi.project.DumbAwareAction;
 import java.util.ArrayList;
@@ -147,8 +145,11 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     @Override
     public void update(@NotNull AnActionEvent e) {
       boolean enabled = e.getData(LangDataKeys.CONSOLE_VIEW) != null;
-      Editor editor = e.getData(CommonDataKeys.EDITOR);
-      if (editor != null && editor.getDocument().getTextLength() == 0) {
+      if (myConsole.getOriginalDocument().length() == 0) {
+        enabled = false;
+      }
+      // Check for !isOnline() because isOffline() doesn't check for DISCONNECTED state.
+      if (myConsole.getSelectedDevice() == null || !myConsole.getSelectedDevice().isOnline()) {
         enabled = false;
       }
       e.getPresentation().setEnabled(enabled);

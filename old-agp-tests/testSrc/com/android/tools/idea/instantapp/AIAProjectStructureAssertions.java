@@ -19,8 +19,8 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeModuleLibrary;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.model.IdeDependencyKt;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ContainerUtil;
@@ -72,15 +72,15 @@ public class AIAProjectStructureAssertions {
                                                 @NotNull Collection<String> expectedDependencies,
                                                 IdeAndroidProjectType moduleType,
                                                 boolean isBaseFeature) {
-    AndroidModuleModel model = AndroidModuleModel.get(module);
+    GradleAndroidModel model = GradleAndroidModel.get(module);
     assertThat(module).isNotNull();
     IdeAndroidProjectType projectType = model.getAndroidProject().getProjectType();
     assertThat(projectType).named("Module type").isEqualTo(moduleType);
     assertThat(model.isBaseSplit()).named("IsBaseSplit").isEqualTo(isBaseFeature);
 
-    IdeDependencies dependencies = model.getSelectedMainCompileLevel2Dependencies();
+    IdeDependencies dependencies = model.getSelectedMainCompileDependencies();
     List<String> libraries =
-      ContainerUtil.map(dependencies.getModuleDependencies(), IdeModuleLibrary::getProjectPath);
+      ContainerUtil.map(dependencies.getModuleDependencies(), IdeDependencyKt::getProjectPath);
     assertThat(libraries).containsExactlyElementsIn(expectedDependencies);
   }
 }

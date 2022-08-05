@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.tools.adtui.ui.ClickableLabel;
@@ -1424,7 +1424,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     public static boolean isAvailable() {
       // Wayland's stricter security policy prevents applications from grabbing screenshots of windows they do not owm.
-      // OpenJDK crashes if such a request is made to the robot: https://bugs.openjdk.org/browse/JDK-8171000
+      // OpenJDK crashes if such a request is made to the robot: https://bugs.openjdk.java.net/browse/JDK-8171000
       // Unfortunately the color pipette relies on this kind of functionality, so we disable it.
       return !SystemInfo.isWayland && WindowManager.getInstance().isAlphaModeSupported();
     }
@@ -1739,3 +1739,4 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 interface ColorListener {
   void colorChanged(Color color, Object source);
 }
+

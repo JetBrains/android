@@ -25,8 +25,8 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.fest.reflect.core.Reflection.method;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.editor.DesignerEditor;
@@ -34,10 +34,12 @@ import com.android.tools.idea.common.editor.SplitEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.io.TestFileUtils;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.VisualizationFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
@@ -47,6 +49,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -82,11 +85,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -433,7 +437,7 @@ public class EditorFixture {
     // 1) text-only, 2) split view, 3) preview(design)-only. We try to find this toolbar and select the corresponding action.
     SplitEditorToolbar toolbar = robot.finder().find(
       editor.getComponent(),
-      new GenericTypeMatcher<>(SplitEditorToolbar.class) {
+      new GenericTypeMatcher<SplitEditorToolbar>(SplitEditorToolbar.class) {
         @Override
         protected boolean isMatching(@NotNull SplitEditorToolbar component) {
           return true;
@@ -443,7 +447,7 @@ public class EditorFixture {
 
     ActionToolbar actionToolbar = robot.finder().find(
       toolbar,
-      new GenericTypeMatcher<>(ActionToolbarImpl.class) {
+      new GenericTypeMatcher<ActionToolbarImpl>(ActionToolbarImpl.class) {
         @Override
         protected boolean isMatching(@NotNull ActionToolbarImpl component) {
           return component.getPlace().equals("TextEditorWithPreview");
@@ -451,20 +455,34 @@ public class EditorFixture {
       }
     );
 
-    List<AnAction> actions = actionToolbar.getActions();
+    List<ToggleAction> actions =
+      actionToolbar.getActions()
+        .stream()
+        .flatMap((action) -> {
+          if (action instanceof DefaultActionGroup) {
+            return Arrays.stream(((DefaultActionGroup)action).getChildren(null));
+          }
+          return Stream.of(action);
+        })
+        .filter(ToggleAction.class::isInstance)
+        .map(ToggleAction.class::cast)
+        .collect(Collectors.toList());
     TestActionEvent e = new TestActionEvent();
-    if (tab == Tab.EDITOR) {
-      ToggleAction textOnly = (ToggleAction)actions.get(0); // Text-only is the first action in the toolbar
-      if (!textOnly.isSelected(e)) {
-        textOnly.setSelected(e, true);
-      }
+    int actionToSelect = -1;
+    switch (tab) {
+      case EDITOR:
+        // Text-only is the first action in the toolbar
+        actionToSelect = 0;
+        break;
+      case DESIGN:
+        // Design is the third action in the toolbar
+        actionToSelect = 2;
+        break;
+      default: fail("Wrong tab action to select " + tab);
     }
-    else {
-      assertSame(Tab.DESIGN, tab);
-      ToggleAction designOnly = (ToggleAction)actions.get(2); // Design-only is the third action in the toolbar
-      if (!designOnly.isSelected(e)) {
-        designOnly.setSelected(e, true);
-      }
+    ToggleAction toggleAction = actions.get(actionToSelect);
+    if (!toggleAction.isSelected(e)) {
+      toggleAction.setSelected(e, true);
     }
     return true;
   }
@@ -634,7 +652,7 @@ public class EditorFixture {
 
   @NotNull
   public List<String> getHighlights(HighlightSeverity severity) {
-    List<String> infos = new ArrayList<>();
+    List<String> infos = Lists.newArrayList();
     for (HighlightInfo info : getCurrentFileFixture().getHighlightInfos(severity)) {
       infos.add(info.getDescription());
     }
@@ -660,6 +678,23 @@ public class EditorFixture {
     return this;
   }
 
+  public List<String> moreActionsOptions() {
+    JBList list = getList();
+    final JListFixture listFixture = new JListFixture(robot, list);
+    final ImmutableList<String> result = ImmutableList.copyOf(listFixture.contents());
+    return result;
+  }
+
+  @NotNull
+  private JBList getList() {
+    return GuiTests.waitUntilShowingAndEnabled(robot, null, new GenericTypeMatcher<JBList>(JBList.class) {
+      @Override
+      protected boolean isMatching(@NotNull JBList list) {
+        return list.getClass().getName().equals("com.intellij.ui.popup.list.ListPopupImpl$MyList");
+      }
+    });
+  }
+
   @NotNull
   public EditorFixture waitUntilErrorAnalysisFinishes() {
     FileFixture file = getCurrentFileFixture();
@@ -669,7 +704,7 @@ public class EditorFixture {
 
   @NotNull
   public EditorFixture waitForQuickfix() {
-    waitUntilFound(robot, new GenericTypeMatcher<>(JLabel.class) {
+    waitUntilFound(robot, new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
       protected boolean isMatching(@NotNull JLabel component) {
         Icon icon = component.getIcon();
@@ -860,7 +895,7 @@ public class EditorFixture {
       GuiTask.execute(() -> selectSplitEditorTab(tab, (TextEditorWithPreview)selected));
     }
     else {
-      TabLabel tab = waitUntilShowing(robot, new GenericTypeMatcher<>(TabLabel.class) {
+      TabLabel tab = waitUntilShowing(robot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
         @Override
         protected boolean isMatching(@NotNull TabLabel tabLabel) {
           return tabName.equals(tabLabel.getAccessibleContext().getAccessibleName());

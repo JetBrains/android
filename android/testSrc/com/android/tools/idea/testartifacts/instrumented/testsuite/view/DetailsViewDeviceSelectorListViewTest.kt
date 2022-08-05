@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -35,7 +36,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import java.time.Duration
 import javax.swing.JLabel
@@ -108,8 +108,8 @@ class DetailsViewDeviceSelectorListViewTest {
   fun cellRenderer() {
     val device = device(id = "device id", name = "<device name>")
     val results = mock<AndroidTestResults>().apply {
-      `when`(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234))
-      `when`(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234))
+      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.FAILED)
     }
     val view = DetailsViewDeviceSelectorListView(mockListener).apply {
       addDevice(device)

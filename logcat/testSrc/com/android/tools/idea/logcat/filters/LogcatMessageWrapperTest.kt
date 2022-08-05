@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.ddmlib.Log
-import com.android.tools.idea.logcat.logCatMessage
+import com.android.tools.idea.logcat.logcatMessage
+import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.time.Instant
@@ -29,16 +29,16 @@ private val ZONE_ID = ZoneId.of("Asia/Yerevan")
  * Tests for [LogcatMessageWrapper]
  */
 class LogcatMessageWrapperTest {
-  private val logCatMessage = logCatMessage(Log.LogLevel.WARN, pid = 1, tid = 2, "app", "tag", TIMESTAMP, "message")
+  private val logcatMessage = logcatMessage(WARN, pid = 1, tid = 2, "app", "tag", TIMESTAMP, "message")
 
   @Test
   fun logLine() {
-    assertThat(LogcatMessageWrapper(logCatMessage, ZONE_ID).logLine)
+    assertThat(LogcatMessageWrapper(logcatMessage, ZONE_ID).logLine)
       .isEqualTo("1970-01-01 04:00:01.000 1-2 tag app W: message")
   }
 
   @Test
   fun message() {
-    assertThat(LogcatMessageWrapper(logCatMessage, ZONE_ID).logCatMessage).isSameAs(logCatMessage)
+    assertThat(LogcatMessageWrapper(logcatMessage, ZONE_ID).logcatMessage).isSameAs(logcatMessage)
   }
 }

@@ -19,9 +19,9 @@ package trebuchet.importers.ftrace
 import trebuchet.util.BufferReader
 
 object TracingMarkerWrite : FunctionHandlerRegistry() {
-    const val Begin = 'B'.toByte()
-    const val End = 'E'.toByte()
-    const val Counter = 'C'.toByte()
+    const val Begin = 'B'.code.toByte()
+    const val End = 'E'.code.toByte()
+    const val Counter = 'C'.code.toByte()
 
     init {
         "tracing_mark_write" handleWith this::handle
@@ -89,7 +89,7 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
         skipCount(2)
         val tgid = readInt()
         skip()
-        val name = stringTo { skipUntil { it == '|'.toByte() } }
+        val name = stringTo { skipUntil { it == '|'.code.toByte() } }
         skip()
         val value = readInt()
         data.line.tgid = tgid

@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorCompose
 
@@ -44,6 +45,16 @@ class ComposeStatistics {
   private var goToSourceFromPropertyValueClicks = 0
 
   /**
+   * The max recomposition numbers seen in the session.
+   */
+  private val maxRecompositions = RecompositionData(0, 0)
+
+  /**
+   * How many times were the recomposition counts explicitly reset.
+   */
+  private var resetRecompositionCountsClicks = 0
+
+  /**
    * Start a new session by resetting all counters.
    */
   fun start() {
@@ -61,6 +72,10 @@ class ComposeStatistics {
     data.imageClicks = imageClicks
     data.componentTreeClicks = componentTreeClicks
     data.goToSourceFromPropertyValueClicks = goToSourceFromPropertyValueClicks
+    data.maxRecompositionCount = maxRecompositions.count
+    data.maxRecompositionSkips = maxRecompositions.skips
+    data.maxRecompositionHighlight = maxRecompositions.highlightCount
+    data.recompositionResetClicks = resetRecompositionCountsClicks
   }
 
   /**
@@ -88,5 +103,20 @@ class ComposeStatistics {
     if (view is ComposeViewNode) {
       goToSourceFromPropertyValueClicks++
     }
+  }
+
+  /**
+   * Log the max recomposition counts seen in the session.
+   */
+  fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {
+    maxRecompositions.maxOf(recompositions)
+    maxRecompositions.highlightCount = maxOf(maxRecompositions.highlightCount, maxHighlight)
+  }
+
+  /**
+   * Log that the recomposition counts were explicitly reset.
+   */
+  fun resetRecompositionCountsClick() {
+    resetRecompositionCountsClicks++
   }
 }

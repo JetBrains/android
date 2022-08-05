@@ -25,8 +25,7 @@ public interface ListItemBase extends DrawableDomElement {
   List<Ripple> getRipples(); // API 21
   List<ColorDrawable> getColors();
   List<Shape> getShapes();
-  // Being considered:
-  //List<Vector> getVectors();
+  List<Vector> getVectors();
   List<Scale> getScales();
   List<Clip> getClips();
   List<Rotate> getRotates();

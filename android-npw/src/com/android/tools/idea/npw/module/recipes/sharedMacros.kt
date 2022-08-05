@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstru
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.GradlePluginVersion
@@ -30,7 +31,6 @@ import com.android.tools.idea.wizard.template.renderIf
 import java.io.File
 
 fun generateManifest(
-  packageName: String,
   hasApplicationBlock: Boolean = false,
   theme: String = "@style/Theme.App",
   usesFeatureBlock: String = "",
@@ -61,7 +61,7 @@ fun generateManifest(
     <?xml version="1.0" encoding="utf-8"?>
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     ${renderIf(addBackupRules) { """xmlns:tools="http://schemas.android.com/tools"""" }}
-    package="${packageName}">
+    >
     $usesFeatureBlock
     $applicationBlock
     </manifest>
@@ -172,6 +172,7 @@ fun androidConfig(
 
   return """
     android {
+    namespace '$applicationId'
     ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
 
     defaultConfig {
@@ -190,8 +191,9 @@ fun androidConfig(
 
 private fun resource(path: String) = File("templates/module", path)
 
-fun RecipeExecutor.copyIcons(destination: File) {
-  fun copyAdaptiveIcons() {
+fun RecipeExecutor.copyIcons(destination: File, targetSdkVersion: ApiVersion) {
+
+  fun copyAdaptiveIcons(targetSdkVersion: ApiVersion) {
     copy(
       resource("mipmap-anydpi-v26/ic_launcher.xml"),
       destination.resolve("mipmap-anydpi-v26/ic_launcher.xml")
@@ -208,11 +210,18 @@ fun RecipeExecutor.copyIcons(destination: File) {
       resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
       destination.resolve("mipmap-anydpi-v26/ic_launcher_round.xml")
     )
+    if (targetSdkVersion.api >= 33) {
+      // For themed app icons
+      copy(
+        resource("mipmap-anydpi-v33/ic_launcher.xml"),
+        destination.resolve("mipmap-anydpi-v33/ic_launcher.xml")
+      )
+    }
   }
 
   copyMipmapFolder(destination)
   copyMipmapFolder(destination)
-  copyAdaptiveIcons()
+  copyAdaptiveIcons(targetSdkVersion)
 }
 
 fun RecipeExecutor.copyMipmapFolder(destination: File) {
@@ -231,8 +240,21 @@ fun RecipeExecutor.copyMipmapFile(destination: File, file: String) {
   copy(resource("mipmap-xxxhdpi/$file"), destination.resolve("mipmap-xxxhdpi/$file"))
 }
 
-fun RecipeExecutor.addTests(
-  packageName: String, useAndroidX: Boolean, isLibraryProject: Boolean, testOut: File, unitTestOut: File, language: Language
+fun RecipeExecutor.addLocalTests(
+  packageName: String, localTestOut: File, language: Language
+) {
+  val ext = language.extension
+  save(
+    if (language == Language.Kotlin)
+      exampleUnitTestKt(packageName)
+    else
+      exampleUnitTestJava(packageName),
+    localTestOut.resolve("ExampleUnitTest.$ext")
+  )
+}
+
+fun RecipeExecutor.addInstrumentedTests(
+  packageName: String, useAndroidX: Boolean, isLibraryProject: Boolean, instrumentedTestOut: File, language: Language
 ) {
   val ext = language.extension
   save(
@@ -240,14 +262,7 @@ fun RecipeExecutor.addTests(
       exampleInstrumentedTestKt(packageName, useAndroidX, isLibraryProject)
     else
       exampleInstrumentedTestJava(packageName, useAndroidX, isLibraryProject),
-    testOut.resolve("ExampleInstrumentedTest.$ext")
-  )
-  save(
-    if (language == Language.Kotlin)
-      exampleUnitTestKt(packageName)
-    else
-      exampleUnitTestJava(packageName),
-    unitTestOut.resolve("ExampleUnitTest.$ext")
+    instrumentedTestOut.resolve("ExampleInstrumentedTest.$ext")
   )
 }
 

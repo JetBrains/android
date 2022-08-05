@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.message.LogcatMessage
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -36,19 +36,20 @@ private val DATE_TIME_FORMATTER = DateTimeFormatterBuilder()
   .toFormatter(Locale.ROOT)
 
 /**
- * Todo
+ * A wrapper around LogcatMessage that holds the complete log lne as a lazy property so it doesn't have to be computed for each filter
+ * evaluation.
  */
-internal class LogcatMessageWrapper(val logCatMessage: LogCatMessage, zoneId: ZoneId = ZoneId.systemDefault()) {
+internal class LogcatMessageWrapper(val logcatMessage: LogcatMessage, zoneId: ZoneId = ZoneId.systemDefault()) {
   val logLine by lazy { toLine(zoneId) }
 
   /**
-   * Canonical formatting of a [LogCatMessage] used when filtering without a specific field scope.
+   * Canonical formatting of a [LogcatMessage] used when filtering without a specific field scope.
    *
    * See [Never use toString() for behaviour](https://java.christmas/2019/4)
    */
   private fun toLine(zoneId: ZoneId): String {
-    val (logLevel, pid, tid, appName, tag, timestamp) = logCatMessage.header
+    val (logLevel, pid, tid, applicationId, _, tag, timestamp) = logcatMessage.header
     val datetime = DATE_TIME_FORMATTER.format(LocalDateTime.ofInstant(timestamp, zoneId))
-    return "$datetime$pid-$tid $tag $appName ${logLevel.priorityLetter}: ${logCatMessage.message}"
+    return "$datetime$pid-$tid $tag $applicationId ${logLevel.priorityLetter}: ${logcatMessage.message}"
   }
 }

@@ -60,7 +60,7 @@ public class RectangleGenerator {
    * @return
    */
   public ArrayList<ScoutWidget> random(int count, int sizeRatio, int width, int height) {
-    recs = new ArrayList<>();
+    recs = new ArrayList<ScoutWidget>();
     FakeWidget parent = new FakeWidget(null);
     parent.setX(0);
     parent.setY(0);

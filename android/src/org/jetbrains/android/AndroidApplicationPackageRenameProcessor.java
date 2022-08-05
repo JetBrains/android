@@ -86,7 +86,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
   public void renameElement(@NotNull PsiElement element, @NotNull String newName, @NotNull UsageInfo[] usages, @Nullable RefactoringElementListener listener)
     throws IncorrectOperationException {
     if (element instanceof PsiPackage) {
-      final Map<GenericAttributeValue, String> newAttrValues = new HashMap<>();
+      final Map<GenericAttributeValue, String> newAttrValues = new HashMap<GenericAttributeValue, String>();
 
       final Project project = element.getProject();
       final String oldPackageQName = ((PsiPackage)element).getQualifiedName();
@@ -107,7 +107,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
             }
             processAllAttributesToUpdate(
               (XmlFile)manifestPsiFile, basePackage, oldPackageQName, newPackageQName,
-              new Processor<>() {
+              new Processor<Pair<GenericAttributeValue, String>>() {
                 @Override
                 public boolean process(Pair<GenericAttributeValue, String> pair) {
                   newAttrValues.put(pair.getFirst(), pair.getSecond());
@@ -154,9 +154,9 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
 
   @NotNull
   private static Map<GenericAttributeValue, PsiClass> buildAttr2ClassMap(@NotNull XmlFile file) {
-    final Map<GenericAttributeValue, PsiClass> map = new HashMap<>();
+    final Map<GenericAttributeValue, PsiClass> map = new HashMap<GenericAttributeValue, PsiClass>();
 
-    processAllClassAttrValues(file, new Processor<>() {
+    processAllClassAttrValues(file, new Processor<Pair<GenericAttributeValue, PsiClass>>() {
       @Override
       public boolean process(Pair<GenericAttributeValue, PsiClass> pair) {
         map.put(pair.getFirst(), pair.getSecond());
@@ -175,7 +175,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
         !AndroidUtils.isPackagePrefix(newPackageQName, basePackage)) {
       return;
     }
-    processAllClassAttrValues(file, new Processor<>() {
+    processAllClassAttrValues(file, new Processor<Pair<GenericAttributeValue, PsiClass>>() {
       @Override
       public boolean process(Pair<GenericAttributeValue, PsiClass> pair) {
         final GenericAttributeValue domValue = pair.getFirst();

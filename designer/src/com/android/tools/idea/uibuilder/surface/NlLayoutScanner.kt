@@ -93,9 +93,8 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
     surface.issuePanel.addEventListener(issuePanelListener)
 
     // Enabling this will retrieve text character locations from TextView to improve the
-    // accuracy of TextContrastCheck in ATF. However, it can burden the render time quite alot
-    // specially if the view contains a long text.
-    LayoutValidator.setObtainCharacterLocations(false)
+    // accuracy of TextContrastCheck in ATF
+    LayoutValidator.setObtainCharacterLocations(true)
   }
 
   override fun pause() {

@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 public class GradleProjectDependencyParser {
   @NotNull
   public static Function<VirtualFile, Iterable<String>> newInstance(@NotNull final Project project) {
-    return CacheBuilder.newBuilder().build(new CacheLoader<>() {
+    return CacheBuilder.newBuilder().build(new CacheLoader<VirtualFile, Iterable<String>>() {
       @Override
       public Iterable<String> load(@NotNull VirtualFile key) throws Exception {
         return parse(key, project);

@@ -15,23 +15,41 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeDependencies
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import java.io.File
+import com.android.tools.idea.gradle.model.IdeDependenciesCore
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
+import com.android.tools.idea.gradle.model.IdeModuleDependency
 import java.io.Serializable
 
-data class IdeDependenciesImpl(
-  override val androidLibraries: Collection<IdeAndroidLibrary>,
-  override val javaLibraries: Collection<IdeJavaLibrary>,
-  override val moduleDependencies: Collection<IdeModuleLibrary>,
-  override val runtimeOnlyClasses: Collection<File>
-) : IdeDependencies, Serializable
+data class IdeDependenciesCoreImpl(
+  override val dependencies: Collection<IdeDependencyCoreImpl>
+) : IdeDependenciesCore, Serializable
 
-class ThrowingIdeDependencies : IdeDependencies, Serializable {
-  override val androidLibraries: Collection<IdeAndroidLibrary> get() = throw NotImplementedError()
-  override val javaLibraries: Collection<IdeJavaLibrary> get() = throw NotImplementedError()
-  override val moduleDependencies: Collection<IdeModuleLibrary> get() = throw NotImplementedError()
-  override val runtimeOnlyClasses: Collection<File> get() = throw NotImplementedError()
+data class IdeDependenciesImpl(
+  private val classpath: IdeDependenciesCore,
+  private val resolver: IdeLibraryModelResolver
+) : IdeDependencies {
+  override val androidLibraries: Collection<IdeAndroidLibraryDependency> =
+    classpath.dependencies.flatMap(resolver::resolveAndroidLibrary)
+  override val javaLibraries: Collection<IdeJavaLibraryDependency> =
+    classpath.dependencies.flatMap(resolver::resolveJavaLibrary)
+  override val moduleDependencies: Collection<IdeModuleDependency> =
+    classpath.dependencies.flatMap(resolver::resolveModule)
+}
+
+fun throwingIdeDependencies(): IdeDependenciesCoreImpl {
+  return IdeDependenciesCoreImpl(object : Collection<IdeDependencyCoreImpl> {
+    override val size: Int get() = unexpected()
+    override fun isEmpty(): Boolean = unexpected()
+    override fun iterator(): Iterator<IdeDependencyCoreImpl> = unexpected()
+    override fun containsAll(elements: Collection<IdeDependencyCoreImpl>): Boolean = unexpected()
+    override fun contains(element: IdeDependencyCoreImpl): Boolean = unexpected()
+
+    private fun unexpected(): Nothing {
+      error("Should not be called")
+    }
+
+  })
 }

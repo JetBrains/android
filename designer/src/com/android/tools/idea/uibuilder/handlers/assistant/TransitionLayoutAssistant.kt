@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-class MotionLayoutAssistantPanel(val designSurface: DesignSurface, val component: NlComponent) : JPanel() {
+class MotionLayoutAssistantPanel(val designSurface: DesignSurface<*>, val component: NlComponent) : JPanel() {
   val toolbar: AnimationToolbar
 
   init {

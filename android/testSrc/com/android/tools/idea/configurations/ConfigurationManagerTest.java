@@ -16,8 +16,8 @@
 package com.android.tools.idea.configurations;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.ide.common.resources.Locale;
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;

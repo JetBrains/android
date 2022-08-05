@@ -31,12 +31,25 @@ import org.jetbrains.annotations.NotNull;
  * Basic syntax highlighter that highlights the keywords and comments.
  */
 public class AidlSyntaxHighlighter extends JavaFileHighlighter {
-  private static final Map<IElementType, TextAttributesKey> ATTRIBUTES = new HashMap<>();
+  private static final Map<IElementType, TextAttributesKey> ATTRIBUTES = new HashMap<IElementType, TextAttributesKey>();
 
   static {
     fillMap(ATTRIBUTES, AidlTokenTypeSets.KEY_WORDS, DefaultLanguageHighlighterColors.KEYWORD);
+    fillMap(ATTRIBUTES, AidlTokenTypeSets.NUMBERS, DefaultLanguageHighlighterColors.NUMBER);
+    fillMap(ATTRIBUTES, AidlTokenTypeSets.OPERATORS, DefaultLanguageHighlighterColors.OPERATION_SIGN);
     ATTRIBUTES.put(AidlTokenTypes.COMMENT, DefaultLanguageHighlighterColors.LINE_COMMENT);
     ATTRIBUTES.put(AidlTokenTypes.BLOCK_COMMENT, DefaultLanguageHighlighterColors.BLOCK_COMMENT);
+    ATTRIBUTES.put(AidlTokenTypes.C_STR, DefaultLanguageHighlighterColors.STRING);
+    ATTRIBUTES.put(AidlTokenTypes.CHARVALUE, DefaultLanguageHighlighterColors.STRING);
+    ATTRIBUTES.put(AidlTokenTypes.LBRACKET, DefaultLanguageHighlighterColors.BRACKETS);
+    ATTRIBUTES.put(AidlTokenTypes.RBRACKET, DefaultLanguageHighlighterColors.BRACKETS);
+    ATTRIBUTES.put(AidlTokenTypes.LBRACE, DefaultLanguageHighlighterColors.BRACES);
+    ATTRIBUTES.put(AidlTokenTypes.RBRACE, DefaultLanguageHighlighterColors.BRACES);
+    ATTRIBUTES.put(AidlTokenTypes.LPAREN, DefaultLanguageHighlighterColors.PARENTHESES);
+    ATTRIBUTES.put(AidlTokenTypes.RPAREN, DefaultLanguageHighlighterColors.PARENTHESES);
+    ATTRIBUTES.put(AidlTokenTypes.DOT, DefaultLanguageHighlighterColors.DOT);
+    ATTRIBUTES.put(AidlTokenTypes.COMMA, DefaultLanguageHighlighterColors.COMMA);
+    ATTRIBUTES.put(AidlTokenTypes.SEMICOLON, DefaultLanguageHighlighterColors.SEMICOLON);
   }
 
   @Override

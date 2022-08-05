@@ -38,11 +38,11 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewStr
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.properties.PropertyType.INT32
 import com.android.tools.idea.layoutinspector.view
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.DisposableRule
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -235,7 +235,7 @@ class AppInspectionSnapshotSupportTest {
       assertThat(item.type).isEqualTo(INT32)
       checkedProperties = true
     }
-    snapshotLoader.propertiesProvider.requestProperties(newModel[VIEW2]!!)
+    snapshotLoader.propertiesProvider.requestProperties(newModel[VIEW2]!!).get()
     assertThat(checkedProperties).isTrue()
   }
 

@@ -27,16 +27,27 @@ import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.AdditionalLibraryRootsProvider;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesLibraryRootProvider;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    // Disable the extension to prevent it from adding a lot of content to indexes in order to provide code completion
+    // in .kts files.
+    AdditionalLibraryRootsProvider.EP_NAME.getPoint().unregisterExtension(KotlinScriptDependenciesLibraryRootProvider.class);
+  }
+
   public void testGetGradleBuildFileFromAppModule() throws Exception {
     loadSimpleApplication();
     verifyBuildFile(TestModuleUtil.findAppModule(getProject()), "app", "build.gradle");
@@ -64,6 +75,18 @@ public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
 
   public void testJdkPathFromProjectJavaCurrent() throws Exception {
     verifyJdkPathFromProject(IdeSdks.getInstance().getJdkPath().toAbsolutePath().toString());
+  }
+
+  public void testUserGradlePropertiesFileDetectionForGradleHomeChangedInSettings() throws Exception {
+    loadSimpleApplication();
+    String gradleHome = Paths.get(getBaseTestPath(), "gradleHome").toString();
+
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      GradleSettings.getInstance(getProject()).setServiceDirectoryPath(gradleHome);
+    });
+
+    File userGradlePropertiesFile = GradleUtil.getUserGradlePropertiesFile(getProject());
+    assertThat(userGradlePropertiesFile).isEqualTo(new File(gradleHome, "gradle.properties"));
   }
 
   private void verifyBuildFile(@NotNull Module module, @NotNull String... expectedPath) {

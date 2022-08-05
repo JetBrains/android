@@ -17,9 +17,10 @@ package com.android.tools.idea.editors.strings;
 
 import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 
+import com.android.ide.common.resources.Locale;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.io.TestFileUtils;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.application.Application;
@@ -74,7 +75,7 @@ public final class TranslationsEditorGradleTest {
     Runnable loadResources = () -> Utils.loadResources(panel, Arrays.asList(mainRes, debugRes));
 
     application.invokeAndWait(loadResources);
-    StringsWriteUtils.removeLocale(Locale.create("ab"), AndroidFacet.getInstance(module), this);
+    StringResourceWriter.INSTANCE.removeLocale(Locale.create("ab"), AndroidFacet.getInstance(module), this);
     application.invokeAndWait(loadResources);
 
     // Assert.

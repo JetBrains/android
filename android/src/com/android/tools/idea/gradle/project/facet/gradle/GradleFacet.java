@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetType;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -59,7 +58,7 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
 
   @NotNull
   public static GradleFacetType getFacetType() {
-    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(getFacetId());
+    final var facetType = FacetTypeRegistry.getInstance().findFacetType(getFacetId());
     assert facetType instanceof GradleFacetType;
     return (GradleFacetType)facetType;
   }

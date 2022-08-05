@@ -41,9 +41,10 @@ internal val deviceServices
 internal val ioDispatcher
   get() = AdbLibApplicationService.instance.session.host.ioDispatcher
 
-internal fun IDevice.toDeviceSelector(): DeviceSelector {
-  return DeviceSelector.fromSerialNumber(serialNumber)
-}
+/**
+ * Returns a [DeviceSelector] instance that identifies this [IDevice]
+ */
+fun IDevice.toDeviceSelector(): DeviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
 
 internal fun throwIfDispatchThread() {
   @Suppress("UnstableApiUsage")
@@ -63,7 +64,6 @@ internal suspend fun createOpenFileChannel(localFilename: String) =
 
 internal suspend fun createOpenFileChannel(path: Path) =
   AdbLibApplicationService.instance.session.channelFactory.openFile(path)
-
 
 internal inline fun <R> mapToDdmlibException(block: () -> R): R {
   return try {

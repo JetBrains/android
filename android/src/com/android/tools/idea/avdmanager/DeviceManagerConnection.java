@@ -209,7 +209,7 @@ public class DeviceManagerConnection {
     if (!initIfNecessary()) {
       return false;
     }
-    return Iterables.any(ourDeviceManager.getDevices(DeviceManager.DeviceFilter.USER), new Predicate<>() {
+    return Iterables.any(ourDeviceManager.getDevices(DeviceManager.DeviceFilter.USER), new Predicate<Device>() {
       @Override
       public boolean apply(Device input) {
         return device.getId().equalsIgnoreCase(input.getId());

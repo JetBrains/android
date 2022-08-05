@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
@@ -27,7 +28,6 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import org.mockito.Mockito.`when`
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent.BUTTON1
 
@@ -49,7 +49,7 @@ class SelectionTest : NavTestCase() {
     }
     val surface = model.surface as NavDesignSurface
     val sceneView = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
+    whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     val scene = model.surface.scene!!
     scene.layout(0, SceneContext.get())
@@ -131,7 +131,7 @@ class SelectionTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     val sceneView = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
+    whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     val scene = model.surface.scene!!
     scene.layout(0, SceneContext.get())

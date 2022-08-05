@@ -35,17 +35,20 @@ import javax.swing.ListCellRenderer
  *
  * This class is implemented ad hoc. All unused methods will throw a [NotImplementedError].
  *
- * Note to contributors:
- * As methods are implemented, please move them towards the top of the file.
+ * Note to contributors: As methods are implemented, please move them towards the top of the file.
  */
-internal class FakePopupChooserBuilder<T>(private val factory: FakeJBPopupFactory, private val list: MutableList<out T>)
-  : IPopupChooserBuilder<T> {
+internal class FakePopupChooserBuilder<T>(
+    private val factory: FakeJBPopupFactory,
+    private val list: MutableList<out T>
+) : IPopupChooserBuilder<T> {
 
   private var isMovable: Boolean? = null
   private var isRequestFocus: Boolean? = null
   private var callback: Consumer<in T>? = null
+  private var renderer: ListCellRenderer<in T>? = null
 
-  override fun createPopup(): JBPopup = FakeJBPopup(list, isMovable, isRequestFocus, callback).also(factory::addPopup)
+  override fun createPopup(): JBPopup =
+      FakeJBPopup(list, isMovable, isRequestFocus, renderer, callback).also(factory::addPopup)
 
   override fun setMovable(forceMovable: Boolean): IPopupChooserBuilder<T> {
     isMovable = forceMovable
@@ -62,13 +65,16 @@ internal class FakePopupChooserBuilder<T>(private val factory: FakeJBPopupFactor
     return this
   }
 
-  // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELLOW THIS COMMENT
-
   override fun setRenderer(renderer: ListCellRenderer<in T>?): IPopupChooserBuilder<T> {
-    TODO("Not yet implemented")
+    this.renderer = renderer
+    return this
   }
 
-  override fun setItemsChosenCallback(callback: Consumer<in MutableSet<out T>>): IPopupChooserBuilder<T> {
+  // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELOW THIS COMMENT
+
+  override fun setItemsChosenCallback(
+      callback: Consumer<in MutableSet<out T>>
+  ): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 
@@ -116,7 +122,9 @@ internal class FakePopupChooserBuilder<T>(private val factory: FakeJBPopupFactor
     TODO("Not yet implemented")
   }
 
-  override fun setAutoPackHeightOnFiltering(autoPackHeightOnFiltering: Boolean): IPopupChooserBuilder<T> {
+  override fun setAutoPackHeightOnFiltering(
+      autoPackHeightOnFiltering: Boolean
+  ): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 
@@ -128,7 +136,10 @@ internal class FakePopupChooserBuilder<T>(private val factory: FakeJBPopupFactor
     TODO("Not yet implemented")
   }
 
-  override fun registerKeyboardAction(keyStroke: KeyStroke?, actionListener: ActionListener?): IPopupChooserBuilder<T> {
+  override fun registerKeyboardAction(
+      keyStroke: KeyStroke?,
+      actionListener: ActionListener?
+  ): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 
@@ -164,7 +175,9 @@ internal class FakePopupChooserBuilder<T>(private val factory: FakeJBPopupFactor
     TODO("Not yet implemented")
   }
 
-  override fun setCancelOnWindowDeactivation(cancelOnWindowDeactivation: Boolean): IPopupChooserBuilder<T> {
+  override fun setCancelOnWindowDeactivation(
+      cancelOnWindowDeactivation: Boolean
+  ): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 

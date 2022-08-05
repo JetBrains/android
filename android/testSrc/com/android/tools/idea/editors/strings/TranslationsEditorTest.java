@@ -19,11 +19,13 @@ import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static org.junit.Assert.assertEquals;
 
+import com.android.ide.common.resources.Locale;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.io.TestFileUtils;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
@@ -76,19 +78,22 @@ public final class TranslationsEditorTest {
   public void reusedColumnHeaderValuesAreCleared() {
     Utils.loadResources(myPanel, Collections.singletonList(myRes));
 
-    AddLocaleAction action = myPanel.getAddLocaleAction();
-    action.createItem(Locale.create("b+ace"));
+    StringResourceKey key = myPanel.getTable().getData().getKeys().stream().filter(k -> k.getDirectory() != null).findFirst().orElseThrow();
+
+    StringResourceWriter.INSTANCE.add(projectRule.getProject(), key, "", Locale.create("b+ace"));
+
     Utils.loadResources(myPanel, Collections.singletonList(myRes));
 
-    action.createItem(Locale.create("ab"));
+    StringResourceWriter.INSTANCE.add(projectRule.getProject(), key, "", Locale.create("ab"));
+
     Utils.loadResources(myPanel, Collections.singletonList(myRes));
 
     TableColumnModel model = myTable.getScrollableTable().getColumnModel();
 
     Object values = IntStream.range(0, model.getColumnCount())
-                             .mapToObj(model::getColumn)
-                             .map(TableColumn::getHeaderValue)
-                             .collect(Collectors.toList());
+      .mapToObj(model::getColumn)
+      .map(TableColumn::getHeaderValue)
+      .collect(Collectors.toList());
 
     assertEquals(Arrays.asList("Abkhazian (ab)", "Achinese (ace)"), values);
   }

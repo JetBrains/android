@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.ddms;
 
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -58,6 +60,8 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   private static final Logger LOG = Logger.getInstance(DevicePanel.class);
 
   private final DeviceContext myDeviceContext;
+  @Nullable
+  private final IDevice myInitialDevice;
   @Nullable private AndroidDebugBridge myBridge;
 
   @NotNull private final Project myProject;
@@ -70,7 +74,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   private DeviceComboBox myDeviceCombo;
   private JComboBox<Client> myProcessComboBox;
-  private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<>() {
+  private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<String>() {
     @Nullable
     @Override
     protected String compute() {
@@ -79,18 +83,29 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   };
 
   public DevicePanel(@NotNull Project project, @NotNull DeviceContext deviceContext) {
-    this(project, deviceContext, new MyDeviceComboBox(), new MyProcessComboBox());
+    this(project, deviceContext, null);
+  }
+
+  /**
+   * A constructor that takes an initial {@link IDevice} to connect to when the {@link DeviceComboBox} is initialized.
+   * If the device is not already in the combo, it is added and selected. This allows clients to restore  the state of a previously selected
+   * device.
+   */
+  public DevicePanel(@NotNull Project project, @NotNull DeviceContext deviceContext, @Nullable IDevice initialDevice) {
+    this(project, deviceContext, new MyDeviceComboBox(), new MyProcessComboBox(), initialDevice);
   }
 
   @VisibleForTesting
   DevicePanel(@NotNull Project project,
               @NotNull DeviceContext deviceContext,
               @NotNull DeviceComboBox deviceComboBox,
-              @NotNull ComboBox<Client> processComboBox) {
+              @NotNull ComboBox<Client> processComboBox,
+              @Nullable IDevice initialDevice) {
     myProject = project;
     myProvider = new DeviceNamePropertiesFetcher(myProject);
     myDeviceContext = deviceContext;
     myPreferredClients = new HashMap<>();
+    myInitialDevice = initialDevice;
 
     initializeDeviceCombo(deviceComboBox);
     initializeProcessComboBox(processComboBox);
@@ -207,7 +222,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
       @Override
       protected boolean compare(@NotNull String text, @Nullable String pattern) {
-        return pattern != null && CharSequences.indexOfIgnoreCase(text,  pattern, 0) >= 0;
+        return pattern != null && CharSequences.indexOfIgnoreCase(text, pattern, 0) >= 0;
       }
     };
   }
@@ -264,6 +279,20 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> UIUtil.invokeLaterIfNeeded(() -> {
       myBridge = bridge;
       updateDeviceCombo();
+
+      if (myInitialDevice != null) {
+        Optional<IDevice> optionalDevice = IntStream.range(0, myDeviceCombo.getItemCount())
+          .mapToObj(i -> myDeviceCombo.getItemAt(i))
+          .filter(device -> equals(device, myInitialDevice))
+          .findFirst();
+        if (optionalDevice.isPresent()) {
+          myDeviceCombo.setSelectedItem(optionalDevice.get());
+        }
+        else {
+          myDeviceCombo.addItem(myInitialDevice);
+          myDeviceCombo.setSelectedItem(myInitialDevice);
+        }
+      }
     }));
   }
 
@@ -275,7 +304,13 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Override
   public void deviceConnected(@NotNull final IDevice device) {
     LOG.info("Device connected: " + device.getName());
-    UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo);
+    if (device.isEmulator()) {
+      // If the device is an emulator, wait until we load the AVD data before updating the device combo so that we properly identify the
+      // device.
+      device.getAvdData().addListener(() -> UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo), directExecutor());
+    } else {
+      UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo);
+    }
   }
 
   @Override

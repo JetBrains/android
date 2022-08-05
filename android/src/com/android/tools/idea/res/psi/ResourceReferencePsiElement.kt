@@ -38,6 +38,7 @@ import com.android.tools.idea.res.isValueBased
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.HashCodes
 import com.android.utils.SdkUtils
 import com.android.utils.reflection.qualifiedName
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
@@ -53,6 +54,8 @@ import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.impl.compiled.ClsFieldImpl
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
@@ -69,7 +72,7 @@ import javax.swing.Icon
  * A fake PsiElement that wraps a [ResourceReference].
  *
  * Android resources can have multiple definitions, but most editor operations should not need to know how many definitions a given resource
- * has or which one was used to start a refactoring, e.g. a rename. A [ResourceReferencePsiElement] implements [PsiElement] so can be used
+ * has or which one was used to start a refactoring, e.g. rename. A [ResourceReferencePsiElement] implements [PsiElement] so can be used
  * in editor APIs, but abstracts away how the resource was actually defined.
  *
  * Most [PsiReference]s related to Android resources resolve to instances of this class (other than R fields, since we don't control
@@ -80,14 +83,82 @@ import javax.swing.Icon
  * [GotoDeclarationHandler] and [RenameHandler] are used to handle all these cases uniformly.
  */
 class ResourceReferencePsiElement(
+  val delegate: PsiElement,
   val resourceReference: ResourceReference,
-  val psiManager: PsiManager,
-  val writable: Boolean = false) : FakePsiElement() {
+  val writable: Boolean = false
+) : FakePsiElement() {
+
+  override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
+
+  override fun getPresentableText(): String = resourceReference.resourceUrl.toString()
+
+  override fun getManager(): PsiManager = delegate.manager
+
+  override fun getProject() = delegate.project
+
+  override fun getLanguage() = delegate.language
+
+  override fun getParent(): PsiElement? = delegate.parent
+
+  override fun isValid() = true
+
+  override fun isWritable(): Boolean {
+    return writable
+  }
+
+  override fun getUseScope(): SearchScope {
+    // Returning GlobalSearchScope.allScope is probably a hack, but it replicates previous
+    // behavior when the getContainingFile method returned null.
+    return GlobalSearchScope.allScope(project)
+  }
+
+  override fun getName() = resourceReference.name
+
+  override fun isEquivalentTo(element: PsiElement) = create(element)?.resourceReference == resourceReference
+
+  fun toWritableResourceReferencePsiElement() : ResourceReferencePsiElement? {
+    // Framework resources are not writable.
+    if (this.resourceReference.namespace != ResourceNamespace.ANDROID) {
+      val writableElement = ResourceReferencePsiElement(originalElement, resourceReference, true)
+      copyCopyableDataTo(writableElement)
+      return writableElement
+    }
+    return null
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    other as ResourceReferencePsiElement
+    return delegate == other.delegate && resourceReference == other.resourceReference
+  }
+
+  override fun hashCode(): Int {
+    return HashCodes.mix(delegate.hashCode(), resourceReference.hashCode())
+  }
+
+  override fun toString(): String {
+    return "$delegate: $resourceReference"
+  }
+
+  /**
+   * Element description for Android resources.
+   */
+  class ResourceReferencePsiElementDescriptorProvider : ElementDescriptionProvider {
+    override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
+      val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
+      return when (location) {
+        is UsageViewTypeLocation -> "${resourceReference.resourceType.displayName} Resource"
+        is UsageViewLongNameLocation -> element.presentableText
+        else -> resourceReference.name
+      }
+    }
+  }
 
   companion object {
 
     @JvmField val RESOURCE_ICON: Icon =  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
-    @JvmField val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> = Key.create<PsiElement>(::RESOURCE_CONTEXT_ELEMENT.qualifiedName)
+    @JvmField val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> = Key.create(::RESOURCE_CONTEXT_ELEMENT.qualifiedName)
 
     @JvmStatic
     fun create(element: PsiElement): ResourceReferencePsiElement? {
@@ -114,7 +185,7 @@ class ResourceReferencePsiElement(
       val resourceNamespace = element.resourceNamespace ?: return null
       if (FileResourceNameValidator.getErrorTextForFileResource(element.name, resourceFolderType) != null) return null
       val resourceName = SdkUtils.fileNameToResourceName(element.name)
-      return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, resourceName), element.manager)
+      return ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, resourceType, resourceName))
     }
 
     private fun convertStyleableAttrLightField(element: StyleableAttrLightField): ResourceReferencePsiElement? {
@@ -127,7 +198,7 @@ class ResourceReferencePsiElement(
       else {
         ResourceNamespace.RES_AUTO
       }
-      return ResourceReferencePsiElement(ResourceReference(resourceNamespace, STYLEABLE, element.name), element.manager)
+      return ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, STYLEABLE, element.name))
     }
 
     private fun convertResourceLightField(element: ResourceLightField): ResourceReferencePsiElement? {
@@ -142,14 +213,14 @@ class ResourceReferencePsiElement(
           else {
             ResourceNamespace.RES_AUTO
           }
-          ResourceReferencePsiElement(ResourceReference(resourceNamespace, element.resourceType, element.resourceName), element.manager)
+          ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, element.resourceType, element.resourceName))
         }
         is TransitiveAarRClass -> {
-          ResourceReferencePsiElement(ResourceReference(ResourceNamespace.RES_AUTO, element.resourceType, element.resourceName), element.manager)
+          ResourceReferencePsiElement(element, ResourceReference(ResourceNamespace.RES_AUTO, element.resourceType, element.resourceName))
         }
         is SmallAarRClass -> {
           val resourceNamespace = ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
-          ResourceReferencePsiElement(ResourceReference(resourceNamespace, element.resourceType, element.resourceName), element.manager)
+          ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, element.resourceType, element.resourceName))
         }
         else -> null
       }
@@ -164,7 +235,7 @@ class ResourceReferencePsiElement(
         return null
       }
       val resourceType = containingClass.name?.let { ResourceType.fromClassName(it) } ?: return null
-      return ResourceReferencePsiElement(ResourceReference(ResourceNamespace.ANDROID, resourceType, element.name), element.manager)
+      return ResourceReferencePsiElement(element, ResourceReference(ResourceNamespace.ANDROID, resourceType, element.name))
     }
 
     /**
@@ -178,7 +249,7 @@ class ResourceReferencePsiElement(
       val resUrl = ResourceUrl.parse(element.value)
       if (resUrl != null) {
         val resourceReference = resUrl.resolve(element) ?: return null
-        return ResourceReferencePsiElement(resourceReference, element.manager)
+        return ResourceReferencePsiElement(element, resourceReference)
       }
       else {
         // Instances of value resources
@@ -192,65 +263,8 @@ class ResourceReferencePsiElement(
           val name = element.value
           ResourceReference(ResourceNamespace.TODO(), type, name)
         }
-        return ResourceReferencePsiElement(resourceReference, element.manager)
+        return ResourceReferencePsiElement(element, resourceReference)
       }
     }
-  }
-
-  override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
-
-  override fun getPresentableText(): String = resourceReference.resourceUrl.toString()
-
-  override fun getManager(): PsiManager = psiManager
-
-  override fun getProject() = psiManager.project
-
-  override fun getParent(): PsiElement? = null
-
-  override fun isValid() = true
-
-  override fun isWritable(): Boolean {
-    return writable
-  }
-
-  override fun getContainingFile(): PsiFile? = null
-
-  override fun getName() = resourceReference.name
-
-  override fun isEquivalentTo(element: PsiElement) = create(element) == this
-
-  /**
-   * Element description for Android resources.
-   */
-  class ResourceReferencePsiElementDescriptorProvider : ElementDescriptionProvider {
-    override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
-      val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
-      return when (location) {
-        is UsageViewTypeLocation -> "${resourceReference.resourceType.displayName} Resource"
-        is UsageViewLongNameLocation -> element.presentableText
-        else -> resourceReference.name
-      }
-    }
-  }
-
-  override fun equals(other: Any?): Boolean {
-    return (other as? ResourceReferencePsiElement)?.resourceReference == this.resourceReference
-  }
-
-  fun toWritableResourceReferencePsiElement() : ResourceReferencePsiElement? {
-    // Framework resources are not writable.
-    if (this.resourceReference.namespace != ResourceNamespace.ANDROID) {
-      val writableElement = ResourceReferencePsiElement(this.resourceReference, this.psiManager, true)
-      copyCopyableDataTo(writableElement)
-      return writableElement
-    }
-    return null
-  }
-
-  override fun hashCode(): Int {
-    var result = resourceReference.hashCode()
-    result = 31 * result + psiManager.hashCode()
-    result = 31 * result + writable.hashCode()
-    return result
   }
 }

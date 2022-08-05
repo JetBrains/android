@@ -33,6 +33,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.RO
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BORDER
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_TEXT
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerEnterKeyAction
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Component
@@ -56,7 +57,7 @@ import javax.swing.table.AbstractTableModel
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
  * for network inspector. Each row in the table represents a single connection.
  */
-class ConnectionsView(private val model: NetworkInspectorModel, private val parentPane: TooltipLayeredPane) {
+class ConnectionsView(private val model: NetworkInspectorModel, private val parentPane: TooltipLayeredPane) : AspectObserver() {
   /**
    * Columns for each connection information
    */
@@ -109,10 +110,10 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
 
 
   init {
-    connectionsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.ordinal)
+    connectionsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.ordinal, true)
     customizeConnectionsTable()
     createTooltip()
-    model.aspect.addDependency(AspectObserver()).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) { updateTableSelection() }
+    model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) { updateTableSelection() }
   }
 
   private fun customizeConnectionsTable() {
@@ -124,6 +125,19 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
     connectionsTable.columnModel.getColumn(Column.TIME.ordinal).cellRenderer = TimeRenderer()
     connectionsTable.columnModel.getColumn(Column.TIMELINE.ordinal).cellRenderer = TimelineRenderer(connectionsTable, model.timeline)
     connectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+    connectionsTable.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        val row = connectionsTable.rowAtPoint(e.point)
+        if (row != -1) {
+          model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+        }
+      }
+    })
+    connectionsTable.registerEnterKeyAction {
+      if (connectionsTable.selectedRow != -1) {
+        model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+      }
+    }
     connectionsTable.selectionModel.addListSelectionListener { e: ListSelectionEvent ->
       if (e.valueIsAdjusting) {
         return@addListSelectionListener   // Only handle listener on last event, not intermediate events
@@ -268,7 +282,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
   }
 
   private class TimelineRenderer(private val table: JTable, timeline: StreamingTimeline) :
-    TimelineTable.CellRenderer(timeline), TableModelListener {
+    TimelineTable.CellRenderer(timeline, true), TableModelListener {
     /**
      * Keep in sync 1:1 with [ConnectionsTableModel.dataList]. When the table asks for the
      * chart to render, it will be converted from model index to view index.
@@ -290,7 +304,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
       connectionsCharts.clear()
       val model = table.model as ConnectionsTableModel
       for (i in 0 until model.rowCount) {
-        val chart = ConnectionsStateChart(model.getHttpData(i), timeline.selectionRange)
+        val chart = ConnectionsStateChart(model.getHttpData(i), activeRange)
         chart.setHeightGap(0.3f)
         connectionsCharts.add(chart)
       }

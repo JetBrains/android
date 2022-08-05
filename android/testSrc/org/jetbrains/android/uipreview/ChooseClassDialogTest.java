@@ -16,9 +16,9 @@
 package org.jetbrains.android.uipreview;
 
 import static com.android.SdkConstants.CLASS_AD_VIEW;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.FQCN_IMAGE_VIEW;
 
+import com.android.AndroidXConstants;
 import com.intellij.psi.PsiClass;
 import java.util.function.Predicate;
 import org.intellij.lang.annotations.Language;
@@ -111,8 +111,8 @@ public class ChooseClassDialogTest extends AndroidTestCase {
     assertFalse(isUserDefined.test("android.view.ViewStub"));
     assertFalse(isUserDefined.test("android.webkit.WebView"));
     assertFalse(isUserDefined.test(CLASS_AD_VIEW));
-    assertFalse(isUserDefined.test(CLASS_CONSTRAINT_LAYOUT.oldName()));
-    assertFalse(isUserDefined.test(CLASS_CONSTRAINT_LAYOUT.newName()));
+    assertFalse(isUserDefined.test(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.oldName()));
+    assertFalse(isUserDefined.test(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.newName()));
     assertTrue(isUserDefined.test("p1.p2.CustomImageView"));
   }
 }

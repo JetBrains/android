@@ -26,7 +26,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.guava.await
 import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.coroutines.coroutineContext
@@ -76,7 +75,7 @@ class FileDatabaseManagerImpl(
         pathsToDownload,
         disposableDownloadProgress,
         downloadDestinationFolder
-      ).await()
+      )
     } catch (e: IllegalArgumentException) {
       throw DeviceNotFoundException("Device '${processDescriptor.device.model} ${processDescriptor.device.serial}' not found.", e)
     } catch (e: DeviceFileDownloaderService.FileDownloadFailedException) {
@@ -93,9 +92,7 @@ class FileDatabaseManagerImpl(
 
   override suspend fun cleanUp(databaseFileData: DatabaseFileData) {
     val filesToClose = (listOf(databaseFileData.mainFile) + databaseFileData.walFiles).filter { it.exists() }
-    deviceFileDownloaderService
-      .deleteFiles(filesToClose)
-      .await()
+    deviceFileDownloaderService.deleteFiles(filesToClose)
   }
 
   private class DisposableDownloadProgress(private val coroutineJob: Job) : DownloadProgress, Disposable {

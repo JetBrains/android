@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.ui.ComboBox
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import java.awt.Graphics2D
 import javax.swing.JSlider
@@ -34,9 +35,9 @@ class InspectorPainterTest {
   @Test
   fun zeroWidth() {
     val slider = mock(JSlider::class.java)
-    Mockito.`when`(slider.width).thenReturn(0)
-    Mockito.`when`(slider.maximum).thenReturn(200)
-    Mockito.`when`(slider.minimum).thenReturn(0)
+    whenever(slider.width).thenReturn(0)
+    whenever(slider.maximum).thenReturn(200)
+    whenever(slider.minimum).thenReturn(0)
     val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(200, result)
   }
@@ -44,9 +45,9 @@ class InspectorPainterTest {
   @Test
   fun maxIntMaximum() {
     val slider = mock(JSlider::class.java)
-    Mockito.`when`(slider.width).thenReturn(300)
-    Mockito.`when`(slider.maximum).thenReturn(Int.MAX_VALUE)
-    Mockito.`when`(slider.minimum).thenReturn(0)
+    whenever(slider.width).thenReturn(300)
+    whenever(slider.maximum).thenReturn(Int.MAX_VALUE)
+    whenever(slider.minimum).thenReturn(0)
     val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(700_000_000, result)
   }
@@ -54,9 +55,9 @@ class InspectorPainterTest {
   @Test
   fun largeMaximum() {
     val slider = mock(JSlider::class.java)
-    Mockito.`when`(slider.width).thenReturn(300)
-    Mockito.`when`(slider.maximum).thenReturn(200_000_000)
-    Mockito.`when`(slider.minimum).thenReturn(0)
+    whenever(slider.width).thenReturn(300)
+    whenever(slider.maximum).thenReturn(200_000_000)
+    whenever(slider.minimum).thenReturn(0)
     val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(60_000_000, result)
   }
@@ -64,9 +65,9 @@ class InspectorPainterTest {
   @Test
   fun smallMaximum() {
     val slider = mock(JSlider::class.java)
-    Mockito.`when`(slider.width).thenReturn(300)
-    Mockito.`when`(slider.maximum).thenReturn(5)
-    Mockito.`when`(slider.minimum).thenReturn(0)
+    whenever(slider.width).thenReturn(300)
+    whenever(slider.maximum).thenReturn(5)
+    whenever(slider.minimum).thenReturn(0)
     val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(1, result)
   }
@@ -95,6 +96,45 @@ class InspectorPainterTest {
   }
 
   @Test
+  fun createStartEndComboBoxes() {
+    var callbacks = 0
+    val comboBoxOne: InspectorPainter.StateComboBox =
+      InspectorPainter.StartEndComboBox(mock(DesignSurface::class.java), logger = {}, callback = { callbacks++ })
+    val comboBoxTwo: InspectorPainter.StateComboBox =
+      InspectorPainter.StartEndComboBox(mock(DesignSurface::class.java), logger = {}, callback = { callbacks++ })
+    val boxes = InspectorPainter.StateComboBoxes(listOf(comboBoxOne, comboBoxTwo))
+
+    // All StateComboBox have the same state.
+    boxes.updateStates(setOf("One", "Two", "Three"))
+    boxes.setStartState("One")
+    assertEquals("One", boxes.getState(0))
+    assertEquals("One", comboBoxOne.getState(0))
+    assertEquals("One", comboBoxTwo.getState(0))
+    assertEquals("Two", boxes.getState(1))
+    assertEquals("Two", comboBoxOne.getState(1))
+    assertEquals("Two", comboBoxTwo.getState(1))
+    // All StateComboBox have the same stateHashCode.
+    assertEquals(boxes.stateHashCode(), comboBoxOne.stateHashCode())
+    assertEquals(boxes.stateHashCode(), comboBoxTwo.stateHashCode())
+    // Callback is called only once and state for all comboBoxes has changed.
+    boxes.setupListeners()
+    (comboBoxOne.component.components.first { it is ComboBox<*> } as ComboBox<*>).apply {
+      this.selectedIndex = 2
+      assertEquals(1, callbacks)
+      assertEquals("Three", boxes.getState(0))
+      assertEquals("Three", comboBoxOne.getState(0))
+      assertEquals("Three", comboBoxTwo.getState(0))
+    }
+    (comboBoxTwo.component.components.first { it is ComboBox<*> } as ComboBox<*>).apply {
+      this.selectedIndex = 1
+      assertEquals(2, callbacks)
+      assertEquals("Two", boxes.getState(0))
+      assertEquals("Two", comboBoxOne.getState(0))
+      assertEquals("Two", comboBoxTwo.getState(0))
+    }
+  }
+
+  @Test
   fun createAnimatedVisibilityComboBox() {
     val comboBox: InspectorPainter.StateComboBox =
       InspectorPainter.AnimatedVisibilityComboBox(logger = {}, callback = {})
@@ -105,6 +145,42 @@ class InspectorPainterTest {
     comboBox.setStartState("Two")
     assertEquals("Two", comboBox.getState(0))
     comboBox.setupListeners()
+  }
+
+  @Test
+  fun createAnimatedVisibilityComboBoxes() {
+    var callbacks = 0
+    val comboBoxOne: InspectorPainter.StateComboBox =
+      InspectorPainter.AnimatedVisibilityComboBox(logger = {}, callback = { callbacks++ })
+    val comboBoxTwo: InspectorPainter.StateComboBox =
+      InspectorPainter.AnimatedVisibilityComboBox(logger = {}, callback = { callbacks++ })
+    val boxes = InspectorPainter.StateComboBoxes(listOf(comboBoxOne, comboBoxTwo))
+
+    // All StateComboBox have the same state.
+    boxes.updateStates(setOf("One", "Two", "Three"))
+    boxes.setStartState("One")
+    assertEquals("One", boxes.getState(0))
+    assertEquals("One", comboBoxOne.getState(0))
+    assertEquals("One", comboBoxTwo.getState(0))
+    // All StateComboBox have the same stateHashCode.
+    assertEquals(boxes.stateHashCode(), comboBoxOne.stateHashCode())
+    assertEquals(boxes.stateHashCode(), comboBoxTwo.stateHashCode())
+    // Callback is called only once.
+    boxes.setupListeners()
+    (comboBoxOne.component as ComboBox<*>).apply {
+      this.selectedIndex = 2
+      assertEquals(1, callbacks)
+      assertEquals("Three", boxes.getState(0))
+      assertEquals("Three", comboBoxOne.getState(0))
+      assertEquals("Three", comboBoxTwo.getState(0))
+    }
+    (comboBoxTwo.component as ComboBox<*>).apply {
+      this.selectedIndex = 1
+      assertEquals(2, callbacks)
+      assertEquals("Two", boxes.getState(0))
+      assertEquals("Two", comboBoxOne.getState(0))
+      assertEquals("Two", comboBoxTwo.getState(0))
+    }
   }
 
   @Test

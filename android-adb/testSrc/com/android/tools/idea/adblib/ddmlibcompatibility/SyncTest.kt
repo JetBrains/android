@@ -135,7 +135,7 @@ class SyncTest {
     val fileDate = FileTime.from(1_000_000, TimeUnit.SECONDS)
     val fileState = DeviceFileState(
       filePath,
-      fileMode.modeBits.toString(),
+      fileMode.modeBits,
       (fileDate.toMillis() / 1_000).toInt(),
       fileBytes
     )
@@ -144,7 +144,7 @@ class SyncTest {
   }
 
   private fun prepareSingleDevice(): Pair<IDevice, DeviceState> {
-    val deviceState = fakeAdbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
+    val deviceState = fakeAdbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29")
     val device: IDevice = fakeAdbRule.bridge.devices.single()
     return Pair(device, deviceState)
   }

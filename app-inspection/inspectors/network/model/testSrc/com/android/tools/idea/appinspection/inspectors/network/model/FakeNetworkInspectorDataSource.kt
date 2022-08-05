@@ -16,6 +16,9 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.Range
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import java.util.concurrent.TimeUnit
 
@@ -25,6 +28,8 @@ class FakeNetworkInspectorDataSource(
 ) : NetworkInspectorDataSource {
   private fun Event.isInRange(range: Range) =
     timestamp >= TimeUnit.MICROSECONDS.toNanos(range.min.toLong()) && timestamp <= TimeUnit.MICROSECONDS.toNanos(range.max.toLong())
+
+  override val connectionEventFlow: Flow<NetworkInspectorProtocol.HttpConnectionEvent> = flow { }
 
   override suspend fun queryForHttpData(range: Range) = httpEventList.filter { it.isInRange(range) }
 

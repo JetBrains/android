@@ -16,6 +16,7 @@
 package com.android.build.attribution
 
 import com.android.build.attribution.data.GradlePluginsData
+import com.android.testutils.MockitoKt.whenever
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Pair
@@ -42,8 +43,8 @@ class KnownGradlePluginsServiceImplTest {
     val data = LocalKnownGradlePluginsServiceImpl().gradlePluginsData
 
     assertThat(data).isNotEqualTo(GradlePluginsData.emptyData)
-    assertThat(data.pluginsInfo).hasSize(32)
-    assertThat(data.pluginsInfo.filter { it.configurationCachingCompatibleFrom == null }).hasSize(6)
+    assertThat(data.pluginsInfo).hasSize(38)
+    assertThat(data.pluginsInfo.filter { it.configurationCachingCompatibleFrom == null }).hasSize(8)
     assertThat(data.pluginsInfo.filter { it.pluginArtifact == null }).isEmpty()
   }
 
@@ -78,7 +79,7 @@ class KnownGradlePluginsServiceImplTest {
     val downloadableFileDescription = DownloadableFileDescriptionImpl(distributionUrl.toString(), fileName, "json")
 
     val downloader = Mockito.mock(FileDownloader::class.java)
-    Mockito.`when`(downloader.download(ArgumentMatchers.any(File::class.java)))
+    whenever(downloader.download(ArgumentMatchers.any(File::class.java)))
       .thenReturn(listOf(Pair(distributionFile, downloadableFileDescription)))
 
     val service = KnownGradlePluginsServiceImpl(downloader, localCache)
@@ -91,19 +92,11 @@ class KnownGradlePluginsServiceImplTest {
     val outputDir = temporaryFolder.newFolder()
     val localCache = FileUtils.join(outputDir, "cache")
     val downloader = Mockito.mock(FileDownloader::class.java)
-    Mockito.`when`(downloader.download(ArgumentMatchers.any(File::class.java)))
+    whenever(downloader.download(ArgumentMatchers.any(File::class.java)))
       .thenThrow(IOException())
 
     val service = KnownGradlePluginsServiceImpl(downloader, localCache)
     service.refreshSynchronously()
     assertThat(service.gradlePluginsData).isNotEqualTo(GradlePluginsData.emptyData)
   }
-
-/*
-  TODO (b/173784161): add tests:
-      normal - downloaded from url (mock is triggered), copied to temp
-      test second request in a row doesn't try to download
-      test failed request => tries to load previous download
-      (if possible and have time) test long async then sync => sync waits for async to finish
-*/
 }

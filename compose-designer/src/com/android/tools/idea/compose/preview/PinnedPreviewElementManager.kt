@@ -3,11 +3,12 @@ package com.android.tools.idea.compose.preview
 import com.android.annotations.concurrency.Slow
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.util.DisplayPositioning
-import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.DisplayPositioning
+import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ReadAction
@@ -46,19 +47,19 @@ private fun PsiElement.containingPath(): String? =
   }
 
 /**
- * Returns the [PinnedElementReference] for the [PreviewElement]. This is just a key that can be serialized
- * pointing to the [PreviewElement].
+ * Returns the [PinnedElementReference] for the [ComposePreviewElement]. This is just a key that can be serialized
+ * pointing to the [ComposePreviewElement].
  */
-private fun PreviewElement.asPinnedElement(): PinnedElementReference? {
-  val containingFilePath = previewBodyPsi?.containingFile?.virtualFile?.path ?: return null
+private fun ComposePreviewElement.asPinnedElement(): PinnedElementReference? {
+  val containingFilePath = containingFile?.virtualFile?.path ?: return null
   return PinnedElementReference(containingFilePath, composableMethodFqn)
 }
 
 /**
- * A [PreviewElementInstance] for pinned elements.
+ * A [ComposePreviewElementInstance] for pinned elements.
  */
-private class PinnedPreviewElementInstance(
-  private val basePreviewElement: PreviewElementInstance) : PreviewElementInstance(), PreviewElement by basePreviewElement {
+private class PinnedComposePreviewElementInstance(
+  private val basePreviewElement: ComposePreviewElementInstance) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
   override val instanceId: String = "PINNED#${basePreviewElement.instanceId}"
   override val displaySettings: PreviewDisplaySettings = PreviewDisplaySettings(
       basePreviewElement.displaySettings.name,
@@ -76,7 +77,7 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
   private val pinsModificationTracker = SimpleModificationTracker()
   private val listenerCollection = ListenerCollection.createWithDirectExecutor<PinnedPreviewElementManager.Listener>()
 
-  internal val previewElements: Sequence<PreviewElementInstance>
+  internal val previewElements: Sequence<ComposePreviewElementInstance>
     get() {
       val filesWithPinnedElements = pinnedElements.map { it.containingFilePath }.toSet()
       val kotlinAnnotations: Sequence<PsiElement> = CachedValuesManager.getManager(project).getCachedValue(project) {
@@ -100,8 +101,8 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
         .mapNotNull {
           ReadAction.compute<UAnnotation?, Throwable> { it.psiOrParent.toUElementOfType() }?.toPreviewElement()
         }
-        .filterIsInstance<PreviewElementInstance>()
-        .map { PinnedPreviewElementInstance(it) }
+        .filterIsInstance<ComposePreviewElementInstance>()
+        .map { PinnedComposePreviewElementInstance(it) }
         .filter { pinnedElements.contains(it.asPinnedElement()) }
         .distinct()
 
@@ -111,7 +112,7 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
       return foundPreviewElements
     }
 
-  override fun pin(elements: Collection<PreviewElementInstance>): Boolean =
+  override fun pin(elements: Collection<ComposePreviewElementInstance>): Boolean =
     elements.filter {
       pinnedElements.add(it.asPinnedElement() ?: return@filter false)
     }.ifNotEmpty {
@@ -120,7 +121,7 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
       true
     } ?: false
 
-  override fun unpin(elements: Collection<PreviewElementInstance>): Boolean =
+  override fun unpin(elements: Collection<ComposePreviewElementInstance>): Boolean =
     elements.filter {
       pinnedElements.remove(it.asPinnedElement() ?: return@filter false)
     }.ifNotEmpty {
@@ -136,7 +137,7 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
     }
   }
 
-  override fun isPinned(element: PreviewElement) = pinnedElements.contains(element.asPinnedElement())
+  override fun isPinned(element: ComposePreviewElement) = pinnedElements.contains(element.asPinnedElement())
 
   override fun isPinned(file: PsiFile) = pinnedElements.any { it.containingFilePath == file.virtualFile.path }
 
@@ -152,10 +153,10 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
 }
 
 private object NopPinnedPreviewElementManager : PinnedPreviewElementManager, ModificationTracker by ModificationTracker.NEVER_CHANGED {
-  override fun pin(elements: Collection<PreviewElementInstance>): Boolean = false
-  override fun unpin(elements: Collection<PreviewElementInstance>): Boolean = false
+  override fun pin(elements: Collection<ComposePreviewElementInstance>): Boolean = false
+  override fun unpin(elements: Collection<ComposePreviewElementInstance>): Boolean = false
   override fun unpinAll(): Boolean = false
-  override fun isPinned(element: PreviewElement): Boolean = false
+  override fun isPinned(element: ComposePreviewElement): Boolean = false
   override fun isPinned(file: PsiFile): Boolean = false
   override fun addListener(listener: PinnedPreviewElementManager.Listener) {}
 
@@ -169,34 +170,34 @@ interface PinnedPreviewElementManager: ModificationTracker {
   }
 
   /**
-   * Pins the given [PreviewElementInstance]s. Returns true if any element was not pinned and was successfully pinned.
+   * Pins the given [ComposePreviewElementInstance]s. Returns true if any element was not pinned and was successfully pinned.
    */
-  fun pin(elements: Collection<PreviewElementInstance>): Boolean
+  fun pin(elements: Collection<ComposePreviewElementInstance>): Boolean
 
   /**
-   * Unpins the given [PreviewElementInstance]s. Returns true if any element was pinned and was successfully unpinned.
+   * Unpins the given [ComposePreviewElementInstance]s. Returns true if any element was pinned and was successfully unpinned.
    */
-  fun unpin(elements: Collection<PreviewElementInstance>): Boolean
+  fun unpin(elements: Collection<ComposePreviewElementInstance>): Boolean
 
   /**
-   * Pins the given [PreviewElementInstance]. Returns true if the element was not pinned and was successfully pinned.
+   * Pins the given [ComposePreviewElementInstance]. Returns true if the element was not pinned and was successfully pinned.
    */
-  fun pin(element: PreviewElementInstance): Boolean = pin(listOf(element))
+  fun pin(element: ComposePreviewElementInstance): Boolean = pin(listOf(element))
 
   /**
-   * Unpins the given [PreviewElementInstance]. Returns true if the element was pinned and was successfully unpinned.
+   * Unpins the given [ComposePreviewElementInstance]. Returns true if the element was pinned and was successfully unpinned.
    */
-  fun unpin(element: PreviewElementInstance): Boolean = unpin(listOf(element))
+  fun unpin(element: ComposePreviewElementInstance): Boolean = unpin(listOf(element))
 
   /**
-   * Unpins all the current pinned [PreviewElementInstance]. Returns true if there was at least one pinned instance.
+   * Unpins all the current pinned [ComposePreviewElementInstance]. Returns true if there was at least one pinned instance.
    */
   fun unpinAll(): Boolean
 
   /**
-   * Returns true if the given [PreviewElement] is pinned. Only [PreviewElementInstance]s can be pinned.
+   * Returns true if the given [ComposePreviewElement] is pinned. Only [ComposePreviewElementInstance]s can be pinned.
    */
-  fun isPinned(element: PreviewElement): Boolean
+  fun isPinned(element: ComposePreviewElement): Boolean
 
   /**
    * Returns true if the given [PsiFile] has any elements pinned.
@@ -217,14 +218,14 @@ interface PinnedPreviewElementManager: ModificationTracker {
     }
 
     /**
-     * Returns a [PreviewElementProvider] for pinned previews. Pinned previews are [PreviewElement] that can be anywhere in the project
+     * Returns a [PreviewElementProvider] for pinned previews. Pinned previews are [ComposePreviewElement] that can be anywhere in the project
      * and that are not meant to be only from the current opened editor.
      */
     @JvmStatic
-    fun getPreviewElementProvider(project: Project): PreviewElementProvider<PreviewElementInstance> = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-      object : PreviewElementProvider<PreviewElementInstance> {
+    fun getPreviewElementProvider(project: Project): PreviewElementProvider<ComposePreviewElementInstance> = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+      object : PreviewElementProvider<ComposePreviewElementInstance> {
         @Slow
-        override suspend fun previewElements(): Sequence<PreviewElementInstance> =
+        override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
           project.getService(PinnedPreviewElementManagerImpl::class.java).previewElements
       }
     }

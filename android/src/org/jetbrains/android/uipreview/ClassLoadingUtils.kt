@@ -16,16 +16,12 @@
 package org.jetbrains.android.uipreview
 
 import com.android.SdkConstants
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
 import java.nio.file.Path
 
@@ -33,14 +29,7 @@ import java.nio.file.Path
  * Returns a stream of JAR files of the referenced libraries for the [Module] of this class loader.
  */
 private fun Module.getExternalLibraryJars(): Sequence<File> {
-  val facet = AndroidFacet.getInstance(this)
-  if (facet != null && AndroidModel.isRequired(facet)) {
-    val model = AndroidModel.get(facet)
-    if (model != null) {
-      return model.classJarProvider.getModuleExternalLibraries(this).asSequence()
-    }
-  }
-  return AndroidRootUtil.getExternalLibraries(this).asSequence().map { file: VirtualFile? -> VfsUtilCore.virtualToIoFile(file!!) }
+  return project.getProjectSystem().getClassJarProvider().getModuleExternalLibraries(this).asSequence()
 }
 
 /**

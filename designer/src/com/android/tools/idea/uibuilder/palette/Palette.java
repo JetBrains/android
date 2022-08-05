@@ -89,15 +89,18 @@ public class Palette {
     });
   }
 
-  public @NotNull List<BaseItem> getItems() {
+  @NotNull
+  public List<BaseItem> getItems() {
     return myItems;
   }
 
-  public @Nullable Item getItemById(@NotNull String id) {
+  @Nullable
+  public Item getItemById(@NotNull String id) {
     return myItemsById.get(id);
   }
 
-  public @NotNull Set<String> getGradleCoordinateIds() {
+  @NotNull
+  public Set<String> getGradleCoordinateIds() {
     Set<String> gradleCoordinateIds = new HashSet<>();
     accept(item -> item.addGradleCoordinateId(gradleCoordinateIds));
     return gradleCoordinateIds;
@@ -154,7 +157,10 @@ public class Palette {
 
   @SuppressWarnings("unused")
   public static class Group implements BaseItem {
-    @XmlAttribute(required = true, name = "name") @SuppressWarnings("NullableProblems") private @NotNull String myName;
+    @XmlAttribute(required = true, name = "name")
+    @NotNull
+    @SuppressWarnings("NullableProblems")
+    private String myName;
 
     // @formatter:off
     @XmlElements({
@@ -164,7 +170,8 @@ public class Palette {
     private List<BaseItem> myItems = new ArrayList<>();
     // @formatter:on
 
-    private @Nullable Group myParent;
+    @Nullable
+    private Group myParent;
 
     // Needed for JAXB
     private Group() {
@@ -174,20 +181,24 @@ public class Palette {
       myName = name;
     }
 
-    public @NotNull String getName() {
+    @NotNull
+    public String getName() {
       return myName;
     }
 
-    public @NotNull List<BaseItem> getItems() {
+    @NotNull
+    public List<BaseItem> getItems() {
       return myItems;
     }
 
-    public @NotNull BaseItem getItem(int index) {
+    @NotNull
+    public BaseItem getItem(int index) {
       return myItems.get(index);
     }
 
     @Override
-    public @Nullable Group getParent() {
+    @Nullable
+    public Group getParent() {
       return myParent;
     }
 
@@ -205,42 +216,70 @@ public class Palette {
       visitor.visitAfter(this);
     }
 
+    @NotNull
     @Override
-    public @NotNull String toString() {
+    public String toString() {
       return myName;
     }
   }
 
   @SuppressWarnings("unused")
   public static class Item implements BaseItem {
-    @XmlAttribute(required = true, name = "tag") @SuppressWarnings({"NullableProblems", "unused"}) private @NotNull String myTagName;
+    @XmlAttribute(required = true, name = "tag")
+    @NotNull
+    @SuppressWarnings({"NullableProblems", "unused"})
+    private String myTagName;
 
-    @XmlAttribute(name = "id") private @Nullable String myId;
+    @XmlAttribute(name = "id")
+    @Nullable
+    private String myId;
 
-    @XmlAttribute(name = "title") private @Nullable String myTitle;
+    @XmlAttribute(name = "title")
+    @Nullable
+    private String myTitle;
 
-    @XmlAttribute(name = "icon") private @Nullable String myIconName;
+    @XmlAttribute(name = "icon")
+    @Nullable
+    private String myIconName;
 
-    @XmlAttribute(name = "coordinate") private @Nullable String myGradleCoordinateId;
+    @XmlAttribute(name = "coordinate")
+    @Nullable
+    private String myGradleCoordinateId;
 
-    @XmlAttribute(name = "handler-class") private @Nullable String myHandlerClass;
+    @XmlAttribute(name = "handler-class")
+    @Nullable
+    private String myHandlerClass;
 
-    @XmlAttribute(name = "suggested") private @Nullable Boolean mySuggested;
+    @XmlAttribute(name = "suggested")
+    @Nullable
+    private Boolean mySuggested;
 
-    @XmlAttribute(name = "meta") private @Nullable String myMeta;
+    @XmlAttribute(name = "meta")
+    @Nullable
+    private String myMeta;
 
-    @XmlAttribute(name = "materialReference") private @Nullable String myMaterialReference;
+    @XmlAttribute(name = "materialReference")
+    @Nullable
+    private String myMaterialReference;
 
-    @XmlAttribute(name = "info") private @Nullable String myInfo;
+    @XmlAttribute(name = "info")
+    @Nullable
+    private String myInfo;
 
     @XmlElement(name = "xml", type = XmlValuePart.class)
     private XmlValuePart myXmlValuePart;
 
-    @Language("XML") private @Nullable String myXml;
+    @Language("XML")
+    @Nullable
+    private String myXml;
 
-    @XmlElement(name = "drag-preview") @Language("XML") private @Nullable String myDragPreviewXml;
+    @XmlElement(name = "drag-preview")
+    @Language("XML")
+    @Nullable
+    private String myDragPreviewXml;
 
-    private @Nullable Group myParent;
+    @Nullable
+    private Group myParent;
 
     private List<String> myMetaTags;
 
@@ -255,22 +294,26 @@ public class Palette {
       myHandler = handler;
     }
 
-    public @NotNull String getTagName() {
+    @NotNull
+    public String getTagName() {
       return myTagName;
     }
 
-    public @NotNull String getId() {
+    @NotNull
+    public String getId() {
       return myId != null ? myId : myTagName;
     }
 
-    public @NotNull String getTitle() {
+    @NotNull
+    public String getTitle() {
       if (myTitle != null) {
         return myTitle;
       }
       return myHandler.getTitle(myTagName);
     }
 
-    public @NotNull Icon getIcon() {
+    @NotNull
+    public Icon getIcon() {
       if (myIconName != null) {
         Icon icon = IconLoader.findIcon(myIconName, getClass().getClassLoader());
         if (icon != null) {
@@ -295,28 +338,33 @@ public class Palette {
       return false;
     }
 
-    public @NotNull List<String> getMetaTags() {
+    @NotNull
+    public List<String> getMetaTags() {
       return myMetaTags;
     }
 
-    public @Nullable String getMaterialReference() {
+    @Nullable
+    public String getMaterialReference() {
       return myMaterialReference;
     }
 
-    public @Nullable String getInfo() {
+    @Nullable
+    public String getInfo() {
       return myInfo;
     }
 
+    @NotNull
     @Language("XML")
-    public @NotNull String getXml() {
+    public String getXml() {
       if (myXml != null) {
         return myXml;
       }
       return myHandler.getXml(myTagName, XmlType.COMPONENT_CREATION);
     }
 
+    @NotNull
     @Language("XML")
-    public @NotNull String getDragPreviewXml() {
+    public String getDragPreviewXml() {
       if (myDragPreviewXml != null) {
         return myDragPreviewXml;
       }
@@ -324,7 +372,8 @@ public class Palette {
     }
 
     @Override
-    public @Nullable Group getParent() {
+    @Nullable
+    public Group getParent() {
       return myParent;
     }
 
@@ -387,8 +436,9 @@ public class Palette {
       }
     }
 
+    @NotNull
     @Override
-    public @NotNull String toString() {
+    public String toString() {
       return getTitle();
     }
   }
@@ -396,12 +446,16 @@ public class Palette {
   @SuppressWarnings("unused")
   public static class XmlValuePart {
 
-    @XmlValue @Language("XML") private @Nullable String myValue;
+    @XmlValue
+    @Language("XML")
+    @Nullable
+    private String myValue;
 
     @XmlAttribute(name = "reuse")
     private String myReuse;
 
-    public @Nullable String getValue() {
+    @Nullable
+    public String getValue() {
       return myValue;
     }
 

@@ -31,10 +31,8 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
-        "//tools/adt/idea/android-layout-inspector[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module, test]",
-        "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module, test]",
         "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
@@ -51,5 +49,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
+        "//tools/adt/idea/wizard:intellij.android.wizard[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )

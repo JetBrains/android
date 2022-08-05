@@ -42,26 +42,25 @@ public class MenuHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent parent,
+  public void onChildInserted(@NotNull NlComponent parent,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType type) {
     if (SearchItemHandler.handles(newChild)) {
-      SearchItemHandler.onChildInserted(editor);
+      SearchItemHandler.onChildInserted(newChild);
     }
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    return NlWriteCommandActionUtil.compute(newChild, "Create Menu",
-      () -> {
+    if (type == InsertType.CREATE) {
+      NlWriteCommandActionUtil.run(newChild, "Create Menu", () -> {
         newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
         newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-        return true;
-    });
+      });
+    }
+    return true;
   }
 
   @Override

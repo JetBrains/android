@@ -19,7 +19,7 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.AnyThread
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import io.grpc.stub.StreamObserver
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 
 /**
  * A [StreamObserver] that exposes the result of the gRPC call as a [ListenableFuture].

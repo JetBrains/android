@@ -39,9 +39,7 @@ private val STRING_KEYS = listOf(
 )
 private val NON_STRING_KEYS = listOf(
   "age",
-  "fromLevel",
   "level",
-  "toLevel",
 )
 
 /**

@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.flags.junit.SetFlagRule
+import com.android.io.readImage
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.TestUtils
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertSameElements
 import org.junit.Assert.assertEquals
@@ -31,15 +37,17 @@ import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
-import java.io.File
-import javax.imageio.ImageIO
+import org.mockito.Mockito.verify
 import kotlin.test.fail
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class InspectorModelTest {
+  @get:Rule
+  val highlightFlag = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true)
+
   @Test
   fun testUpdatePropertiesOnly() {
     val model = model {
@@ -85,7 +93,7 @@ class InspectorModelTest {
 
   @Test
   fun testChildCreated() {
-    val image1 = ImageIO.read(File(getWorkspaceRoot().toFile(), "${TEST_DATA_PATH}/image1.png"))
+    val image1 = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/image1.png").readImage()
     val model = model {
       view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
         view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
@@ -159,7 +167,11 @@ class InspectorModelTest {
     val model = model {
       view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
         view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") {
+            compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 15, composeSkips = 12) {
+              compose(COMPOSE1, "Text", "text.kt", 234, composeCount = 5, composeSkips = 22)
+            }
+          }
         }
         view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
@@ -172,7 +184,11 @@ class InspectorModelTest {
     val newWindow =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
         view(VIEW4, 8, 6, 4, 2, qualifiedName = "v4Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") {
+            compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 16, composeSkips = 52) {
+              compose(COMPOSE1, "Text", "text.kt", 234, composeCount = 35, composeSkips = 33)
+            }
+          }
         }
         view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
@@ -180,6 +196,8 @@ class InspectorModelTest {
     val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
     model.update(newWindow, listOf(ROOT), 0)
+    assertThat(model.maxRecomposition.count).isEqualTo(35)
+    assertThat(model.maxRecomposition.skips).isEqualTo(52)
     assertTrue(isModified)
     assertNull(model.selection)
     assertNull(model.hoveredNode)
@@ -197,7 +215,7 @@ class InspectorModelTest {
 
   @Test
   fun testWindows() {
-    val model = InspectorModel(mock(Project::class.java))
+    val model = InspectorModel(mock())
     assertTrue(model.isEmpty)
 
     // add first window
@@ -352,6 +370,189 @@ class InspectorModelTest {
     t1.join(1000L)
     t2.join(1000L)
     exception?.let { throw it }
+  }
+
+  @Test
+  fun fireAttachStateEvent() {
+    val model = InspectorModel(mock())
+    val mockListener = mock<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
+    model.attachStageListeners.add(mockListener)
+
+    model.fireAttachStateEvent(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+
+    verify(mockListener).invoke(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+  }
+
+  @Test
+  fun testHighlightCounts() {
+    val virtualTimeScheduler = VirtualTimeScheduler()
+    val scheduler = MoreExecutors.listeningDecorator(virtualTimeScheduler)
+
+    val model = model(scheduler = scheduler) {
+      view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+        compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
+          compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 0, composeSkips = 0)
+        }
+      }
+    }
+    val compose1 = model[COMPOSE1] as ComposeViewNode
+    val compose2 = model[COMPOSE2] as ComposeViewNode
+
+    // Receive an update from the device with recomposition counts:
+    val window1 = window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+      compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 4, composeSkips = 0) {
+        compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 1, composeSkips = 0)
+      }
+    }
+    model.update(window1, listOf(ROOT), 0)
+
+    // Check recomposition counts and highlight counts:
+    assertThat(model.maxHighlight).isEqualTo(4.0f)
+    assertThat(compose1.recompositions.count).isEqualTo(4)
+    assertThat(compose1.recompositions.highlightCount).isEqualTo(4.0f)
+    assertThat(compose2.recompositions.count).isEqualTo(1)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(1f)
+
+    // Advance timer to the next highlight decrease:
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isEqualTo(4.0f)
+    assertThat(compose1.recompositions.count).isEqualTo(4)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(3.36f)
+    assertThat(compose2.recompositions.count).isEqualTo(1)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(0.84f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(2.83f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(0.71f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(2.38f)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(0f)
+
+    // Receive another update from the device:
+    val window2 = window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+      compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 6, composeSkips = 2) {
+        compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 3, composeSkips = 2)
+      }
+    }
+    model.update(window2, listOf(ROOT), 0)
+
+    // Check recomposition counts and highlight counts:
+    assertThat(model.maxHighlight).isWithin(0.01f).of(4.38f)
+    assertThat(compose1.recompositions.count).isEqualTo(6)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(4.38f)
+    assertThat(compose2.recompositions.count).isEqualTo(3)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(2f)
+
+    // Advance timer and check:
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isWithin(0.01f).of(4.38f)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(3.68f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(1.68f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(3.10f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(1.41f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(2.60f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(1.19f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(2.19f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(1.00f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(1.84f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(0.84f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(1.55f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(0.71f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(1.30f)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(0f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(1.09f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(0.92f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(0.77f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(0.65f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isEqualTo(0f)
+    assertThat(compose1.recompositions.highlightCount).isEqualTo(0f)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(0f)
+  }
+
+  @Test
+  fun testHighlightCountDownDoNotStop() {
+    val virtualTimeScheduler = VirtualTimeScheduler()
+    val scheduler = MoreExecutors.listeningDecorator(virtualTimeScheduler)
+    var stop = false
+    var countdownStopped = false
+
+    val model = model(scheduler = scheduler) {
+      view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+        compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
+          compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 0, composeSkips = 0)
+        }
+      }
+    }
+    // In this test do not spend time refreshingImages. We want to focus on the recomposition countdown logic:
+    model.windows.values.filterIsInstance<FakeAndroidWindow>().forEach { it.refreshImages = null }
+
+    // Generate an update with a new number for the composeCount of COMPOSE2
+    fun window1(count: Int) = window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+      compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
+        compose(COMPOSE2, "Text", "text.kt", 234, composeCount = count, composeSkips = 0)
+      }
+    }
+
+    // Check that we are never in a state where neither thread can advance
+    val compose2 = model[COMPOSE2] as ComposeViewNode
+    val lock = Object()
+    fun check() {
+      synchronized(lock) {
+        val running = ViewNode.readAccess {
+          model.maxHighlight > 0f || compose2.recompositions.highlightCount < DECREASE_BREAK_OFF
+        }
+        if (!running) {
+          stop = true
+          countdownStopped = true
+        }
+      }
+    }
+
+    // Start a thread that constantly runs the scheduler to decrease the highlight count in COMPOSE2
+    val thread1 = Thread {
+      while (!stop) {
+        Thread.yield()
+        if (model.maxHighlight > 0f) {
+          virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+        } else {
+          check()
+        }
+      }
+    }.apply { start() }
+
+    // Start a thread that constantly runs an update to increase the highlight count of COMPOSE2
+    var count = 0
+    val thread2 = Thread {
+      while (!stop) {
+        Thread.yield()
+        if (compose2.recompositions.highlightCount < DECREASE_BREAK_OFF) {
+          model.update(window1(++count), listOf(ROOT), 0)
+        } else {
+          check()
+        }
+      }
+    }.apply { start() }
+
+    // Run the 2 threads for 2 seconds:
+    Thread.sleep(2000)
+
+    // Stop both threads
+    stop = true
+    thread1.join(1000)
+    thread2.join(1000)
+
+    // At no time should both threads be waiting for each other:
+    assertThat(countdownStopped).isFalse()
   }
 
   private fun children(view: ViewNode): List<ViewNode> =

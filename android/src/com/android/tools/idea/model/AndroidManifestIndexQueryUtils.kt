@@ -80,8 +80,8 @@ fun AndroidFacet.queryActivitiesFromManifestIndex() = queryManifestIndex { overr
   val activityAliasWrappers = LinkedList<DefaultActivityLocator.ActivityWrapper>()
 
   contributors.forEach { manifest ->
-    activityWrappers.addAll(getActivities(manifest, overrides))
-    activityAliasWrappers.addAll(getActivityAliases(manifest, overrides))
+    activityWrappers.addAll(getActivities(this, manifest, overrides))
+    activityAliasWrappers.addAll(getActivityAliases(this, manifest, overrides))
   }
   ActivitiesAndAliases(activityWrappers, activityAliasWrappers)
 }

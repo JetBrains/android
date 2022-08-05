@@ -26,7 +26,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -76,7 +75,7 @@ public class BaseMotionEditorTest extends TestCase {
     StringBuilder stringBuilder = new StringBuilder();
     String line = null;
 
-    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
       while ((line = bufferedReader.readLine()) != null) {
         stringBuilder.append(line);
       }

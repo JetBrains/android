@@ -206,6 +206,7 @@ public class StudioCrashReporterTest {
     FreezeReport freezeReport =
       new FreezeReport(null,
                           new HashMap(),
+                          new HashMap(),
                           timedOut,
                           totalDuration,
                           description);
@@ -268,7 +269,7 @@ public class StudioCrashReporterTest {
 
   @Test
   public void serializeFreezeReportEmpty() throws Exception {
-    CrashReport report = new FreezeReport(null, new TreeMap<>(), false, null, null).asCrashReport();
+    CrashReport report = new FreezeReport(null, new TreeMap<>(), new TreeMap<>(), false, null, null).asCrashReport();
 
     String request = getSerializedContent(report);
 

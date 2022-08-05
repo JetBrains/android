@@ -42,7 +42,7 @@ class StreamingReader(val source: BufferProducer, val keepLoadedSize: Int = 8096
     }
 
     fun loadIndex(index: Int): Boolean {
-        while (endIndex < index && !reachedEof) {
+        while (index > endIndex && !reachedEof) {
             val nextBuffer = source.next()
             if (nextBuffer == null) {
                 reachedEof = true

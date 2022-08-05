@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.facet.ui.FacetDependentToolWindow
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -31,8 +30,6 @@ class ShowLayoutInspectorAction : DumbAwareAction(
   StudioIcons.Shell.Menu.LAYOUT_INSPECTOR
 ) {
   override fun update(e: AnActionEvent) {
-    e.presentation.isVisible = enableLiveLayoutInspector
-
     val project = e.project
     e.presentation.isEnabled = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }

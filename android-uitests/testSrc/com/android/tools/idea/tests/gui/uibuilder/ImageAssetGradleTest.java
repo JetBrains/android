@@ -66,6 +66,7 @@ public class ImageAssetGradleTest {
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
       .setName("local_library")
       .clickNext()
+      .selectResFolder("main")
       .clickFinish()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)

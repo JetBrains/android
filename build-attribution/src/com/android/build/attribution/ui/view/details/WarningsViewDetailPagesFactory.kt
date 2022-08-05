@@ -18,7 +18,6 @@ package com.android.build.attribution.ui.view.details
 import com.android.build.attribution.analyzers.AGPUpdateRequired
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
-import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOff
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
@@ -204,7 +203,8 @@ class WarningsViewDetailPagesFactory(
       is NoIncompatiblePlugins -> this.createNoIncompatiblePluginsPanel(uiData, projectConfigurationTime)
       is IncompatiblePluginsDetected -> this.createIncompatiblePluginsDetectedPanel(uiData, projectConfigurationTime)
       is ConfigurationCacheCompatibilityTestFlow -> this.createConfigurationCacheTestFlowPanel()
-      ConfigurationCachingTurnedOn, ConfigurationCachingTurnedOff -> Unit
+      ConfigurationCachingTurnedOn -> Unit
+      else -> Unit
     }
   }
 

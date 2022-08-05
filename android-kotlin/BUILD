@@ -47,13 +47,14 @@ iml_module(
     iml_files = ["android-extensions-idea/intellij.android.kotlin.extensions.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
+    exports = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common[module]",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -109,4 +110,19 @@ filegroup(
         "android-extensions-runtime/src/**",
     ]),
     visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.kotlin.extensions.common",
+    srcs = ["android-extensions-idea-common/src"],
+    iml_files = ["android-extensions-idea-common/intellij.android.kotlin.extensions.common.iml"],
+    jvm_target = "8",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+    ],
 )

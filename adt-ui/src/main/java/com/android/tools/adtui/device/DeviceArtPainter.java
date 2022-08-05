@@ -203,8 +203,13 @@ public class DeviceArtPainter {
     }
   }
 
-  /** Creates a frame around the given image, using the given descriptor */
-  public static BufferedImage createFrame(BufferedImage image, DeviceArtDescriptor descriptor, boolean addShadow, boolean addReflection) {
+  /** Creates a frame around the given image, using the given descriptor. */
+  public static @NotNull BufferedImage createFrame(@NotNull BufferedImage image, @NotNull DeviceArtDescriptor descriptor) {
+    return createFrame(image, descriptor, false, false);
+  }
+
+  public static @NotNull BufferedImage createFrame(@NotNull BufferedImage image, @NotNull DeviceArtDescriptor descriptor,
+                                                   boolean addShadow, boolean addReflection) {
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
     ScreenOrientation orientation = imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
 
@@ -577,9 +582,9 @@ public class DeviceArtPainter {
     private final FrameData myDouble;
 
     @SuppressWarnings("ConstantConditions")
-    @NotNull private SoftReference<BufferedImage> myPlainImage = new SoftReference<>(null);
+    @NotNull private SoftReference<BufferedImage> myPlainImage = new SoftReference<BufferedImage>(null);
     @SuppressWarnings("ConstantConditions")
-    @NotNull private SoftReference<BufferedImage> myEffectsImage = new SoftReference<>(null);
+    @NotNull private SoftReference<BufferedImage> myEffectsImage = new SoftReference<BufferedImage>(null);
 
     private boolean isPortrait() {
       return myOrientation == ScreenOrientation.PORTRAIT;
@@ -817,9 +822,9 @@ public class DeviceArtPainter {
 
       if (image != null) {
         if (showEffects) {
-          myEffectsImage = new SoftReference<>(image);
+          myEffectsImage = new SoftReference<BufferedImage>(image);
         } else {
-          myPlainImage = new SoftReference<>(image);
+          myPlainImage = new SoftReference<BufferedImage>(image);
         }
       }
 

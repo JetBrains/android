@@ -106,19 +106,19 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
     assertPagesVisible(null, true, false);
 
-    InstallerData correctData = new InstallerData(null, androidHome, true, "timestamp", "1234");
+    InstallerData correctData = new InstallerData(androidHome, true, "timestamp", "1234");
     assertPagesVisible(correctData, false, true);
 
-    InstallerData noAndroidSdkData = new InstallerData(null, null, true, "timestamp", "1234");
+    InstallerData noAndroidSdkData = new InstallerData(null, true, "timestamp", "1234");
     assertPagesVisible(noAndroidSdkData, true, false);
 
-    InstallerData noJdkData = new InstallerData(null, androidHome, true, "timestamp", "1234");
+    InstallerData noJdkData = new InstallerData(androidHome, true, "timestamp", "1234");
     assertPagesVisible(noJdkData, false, true);
 
-    InstallerData noInstallAndroidData = new InstallerData(androidHome, androidHome, true, "timestamp", "1234");
+    InstallerData noInstallAndroidData = new InstallerData(androidHome, true, "timestamp", "1234");
     assertPagesVisible(noInstallAndroidData, false, true);
 
-    InstallerData bogusPathsData = new InstallerData(wrongPath, wrongPath, true, "timestamp", "1234");
+    InstallerData bogusPathsData = new InstallerData(wrongPath, true, "timestamp", "1234");
     assertPagesVisible(bogusPathsData, true, false);
   }
 

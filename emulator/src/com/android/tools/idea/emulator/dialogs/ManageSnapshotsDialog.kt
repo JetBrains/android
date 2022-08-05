@@ -758,15 +758,15 @@ internal class ManageSnapshotsDialog(
     }
 
     fun setBootSnapshot(row: Int, value: Boolean) {
-      if (value) {
-        val oldBootSnapshot = bootSnapshot
-        bootSnapshot = getItem(row)
-        if (oldBootSnapshot != null) {
-          fireTableCellUpdated(indexOf(oldBootSnapshot), bootColumnIndex)
-        }
+      val oldBootSnapshot = bootSnapshot
+      val snapshot = getItem(row)
+      bootSnapshot = when {
+        value -> snapshot
+        snapshot === bootSnapshot -> null
+        else -> bootSnapshot
       }
-      else {
-        bootSnapshot = null
+      if (bootSnapshot !== oldBootSnapshot && oldBootSnapshot != null) {
+        fireTableCellUpdated(indexOf(oldBootSnapshot), bootColumnIndex)
       }
       fireTableCellUpdated(row, bootColumnIndex)
       saveBootMode(bootSnapshot)
@@ -1057,7 +1057,7 @@ internal class ManageSnapshotsDialog(
         for (i in 0 until model.rowCount) {
           val snapshotFolder = model.getItem(i).snapshotFolder
           val row = table.convertRowIndexToView(i)
-          if (snapshotFolder in selected) {
+          if (selected.contains(snapshotFolder)) {
             selectionModel.addSelectionInterval(row, row)
           }
           if (snapshotFolder == anchor) {

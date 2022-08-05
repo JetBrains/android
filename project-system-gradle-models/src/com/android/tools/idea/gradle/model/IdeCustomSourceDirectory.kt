@@ -30,6 +30,7 @@ interface IdeCustomSourceDirectory {
    * only one of those plugins is applied to any particular project within the build.
    */
   val sourceTypeName: String
+
   /** The single source folder for the source type. */
   val directory: File
 }

@@ -52,9 +52,9 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
   private var previousVerticalPadding = 0
 
   override fun getPreferredSize(content: Collection<PositionableContent>,
-                                availableWidth: Int,
-                                availableHeight: Int,
-                                dimension: Dimension?)
+                                @SwingCoordinate availableWidth: Int,
+                                @SwingCoordinate availableHeight: Int,
+                                @SwingCoordinate dimension: Dimension?)
     : Dimension {
     val dim = dimension ?: Dimension()
 
@@ -77,7 +77,10 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
     return dim
   }
 
-  override fun getRequiredSize(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int, dimension: Dimension?): Dimension {
+  override fun getRequiredSize(content: Collection<PositionableContent>,
+                               @SwingCoordinate availableWidth: Int,
+                               @SwingCoordinate availableHeight: Int,
+                               @SwingCoordinate dimension: Dimension?): Dimension {
     val dim = dimension ?: Dimension()
 
     val requiredWidth: Int
@@ -97,7 +100,9 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
     return dim
   }
 
-  protected open fun isVertical(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Boolean {
+  protected open fun isVertical(content: Collection<PositionableContent>,
+                                @SwingCoordinate availableWidth: Int,
+                                @SwingCoordinate availableHeight: Int): Boolean {
     if (content.isEmpty()) {
       return false
     }
@@ -106,7 +111,10 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
     return (availableHeight > 3 * availableWidth / 2) || primary.scaledContentSize.width > primary.scaledContentSize.height
   }
 
-  override fun layout(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean) {
+  override fun layout(content: Collection<PositionableContent>,
+                      @SwingCoordinate availableWidth: Int,
+                      @SwingCoordinate availableHeight: Int,
+                      keepPreviousPadding: Boolean) {
     if (content.isEmpty()) {
       return
     }
@@ -166,7 +174,9 @@ class VerticalOnlyLayoutManager(@SwingCoordinate horizontalPadding: Int,
                                 @SwingCoordinate verticalViewDelta: Int,
                                 val startBorderAlignment: Alignment) : SingleDirectionLayoutManager(
   horizontalPadding, verticalPadding, horizontalViewDelta, verticalViewDelta, startBorderAlignment) {
-  override fun isVertical(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Boolean = true
+  override fun isVertical(content: Collection<PositionableContent>,
+                          @SwingCoordinate availableWidth: Int,
+                          @SwingCoordinate availableHeight: Int): Boolean = true
 }
 
 // Helper functions to improve readability

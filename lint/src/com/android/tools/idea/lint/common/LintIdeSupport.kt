@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
+import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
+import com.android.SdkConstants.OLD_PROGUARD_FILE
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.lint.client.api.IssueRegistry
@@ -88,7 +91,7 @@ abstract class LintIdeSupport {
     }
     else if (fileType === FileTypes.PLAIN_TEXT) {
       val name = file.name
-      return name == "proguard-project.txt" || name == "proguard-android.txt" || name == "proguard.cfg"
+      return name == FN_PROJECT_PROGUARD_FILE || name == FN_ANDROID_PROGUARD_FILE || name == OLD_PROGUARD_FILE
     }
     else if (file.isGradleFile()) {
       return true

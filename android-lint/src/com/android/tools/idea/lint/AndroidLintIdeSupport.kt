@@ -20,11 +20,11 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.findPluginInfo
-import com.android.tools.idea.gradle.project.upgrade.performDeprecatedConfigurationsUpgrade
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
@@ -36,10 +36,10 @@ import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintResult
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.res.AndroidFileChangeListener
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
@@ -78,7 +78,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   override fun getBaselineFile(client: LintIdeClient, module: Module): File? {
-    val model = AndroidModuleModel.get(module) ?: return null
+    val model = GradleAndroidModel.get(module) ?: return null
     val version = model.agpVersion ?: return null
     if (version.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions
@@ -101,7 +101,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   override fun getSeverityOverrides(module: Module): Map<String, Int>? {
-    val model = AndroidModuleModel.get(module) ?: return null
+    val model = GradleAndroidModel.get(module) ?: return null
     val version = model.agpVersion ?: return null
     if (version.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions
@@ -158,7 +158,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     else if (file.isGradleFile()) {
       // Ensure that we're listening to the PSI structure for Gradle file edit notifications
       val project = file.project
-      if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+      if (project.requiresAndroidModel()) {
         AndroidFileChangeListener.getInstance(project)
       }
       return true
@@ -179,7 +179,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun createProject(client: LintIdeClient,
                              files: List<VirtualFile>?,
                              vararg modules: Module): List<com.android.tools.lint.detector.api.Project> {
-    return AndroidLintIdeProject.create(client, files, *modules)
+    return AndroidLintIdeProject.create(client, files, *modules);
   }
 
   override fun createProjectForSingleFile(client: LintIdeClient,
@@ -237,7 +237,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
     ApplicationManager.getApplication().executeOnPooledThread {
-      performDeprecatedConfigurationsUpgrade(project, element)
+      project.getService(AssistantInvoker::class.java).performDeprecatedConfigurationsUpgrade(project, element)
     }
   }
 

@@ -20,9 +20,9 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
 import java.util.Optional;
@@ -49,7 +49,7 @@ public class ChooseSystemImageStep extends ModelWizardStep<AvdOptionsModel> {
     myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Select a system image");
     FormScalingUtil.scaleComponentTree(this.getClass(), myStudioWizardStepPanel);
 
-    myChooseImagePanel.addSystemImageListener(new Consumer<>() {
+    myChooseImagePanel.addSystemImageListener(new Consumer<SystemImageDescription>() {
       @Override
       public void consume(SystemImageDescription systemImage) {
         getModel().systemImage().setNullableValue(systemImage);
@@ -59,7 +59,7 @@ public class ChooseSystemImageStep extends ModelWizardStep<AvdOptionsModel> {
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myValidatorPanel.registerValidator(getModel().systemImage(), new Validator<>() {
+    myValidatorPanel.registerValidator(getModel().systemImage(), new Validator<Optional<SystemImageDescription>>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<SystemImageDescription> value) {

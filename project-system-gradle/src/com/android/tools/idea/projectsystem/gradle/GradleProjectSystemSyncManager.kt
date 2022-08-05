@@ -18,7 +18,8 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
@@ -26,26 +27,14 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ThreeState
-import org.jetbrains.annotations.Contract
 
 class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncManager {
-  private val syncResultPublisher = GradleSyncResultPublisher.getInstance(project)
-
-  @Contract(pure = true)
-  private fun convertReasonToTrigger(reason: SyncReason): GradleSyncStats.Trigger = when {
-      reason === SyncReason.PROJECT_LOADED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED
-      reason === SyncReason.PROJECT_MODIFIED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
-      reason === SyncReason.PROJECT_DEPENDENCY_UPDATED -> GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_UPDATED
-      else -> GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
-  }
-
   private fun requestSync(project: Project, reason: SyncReason): ListenableFuture<SyncResult> {
-    val trigger = convertReasonToTrigger(reason)
+    val trigger = reason.forStats
     val syncResult = SettableFuture.create<SyncResult>()
 
     // Listen for the next sync result.
@@ -58,13 +47,9 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
       })
     }
 
-    val request = GradleSyncInvoker.Request(trigger)
-    request.runInBackground = true
-
     try {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, request)
-    }
-    catch (t: Throwable) {
+      GradleSyncInvoker.getInstance().requestProjectSync(project, trigger)
+    } catch (t: Throwable) {
       if (!Disposer.isDisposed(connection)) {
         connection.disconnect()
       }
@@ -101,5 +86,5 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
 
   override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress
   override fun isSyncNeeded() = GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.NO
-  override fun getLastSyncResult() = syncResultPublisher.lastSyncResult
+  override fun getLastSyncResult() = GradleSyncStateHolder.getInstance(project).syncResult
 }

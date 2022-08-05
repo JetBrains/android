@@ -130,7 +130,7 @@ open class GuiTestRemoteRunner(testClass: Class<*>): BlockJUnit4ClassRunner(test
           }
           server.send(RunTestMessage(JUnitTestContainer(method.declaringClass, method.name, message.index)))
         }
-
+        else -> { }
       }
     }
   }

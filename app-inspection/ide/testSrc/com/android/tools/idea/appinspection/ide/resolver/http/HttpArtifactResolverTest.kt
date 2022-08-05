@@ -60,6 +60,6 @@ class HttpArtifactResolverTest {
     val jar = resolver.resolveArtifact(request)
 
     assertThat(jar).isNotNull()
-    assertThat(jar!!.fileName.toString()).isEqualTo("work-runtime-2.5.0-beta01.aar")
+    assertThat(jar.fileName.toString()).isEqualTo("work-runtime-2.5.0-beta01.aar")
   }
 }

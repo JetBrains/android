@@ -28,7 +28,7 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
   }
 
   public static <T extends Component> FluentMatcher<T> wrap(GenericTypeMatcher<T> matcher) {
-    return new FluentMatcher<>(matcher.supportedType()) {
+    return new FluentMatcher<T>(matcher.supportedType()) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return matcher.matches(component);
@@ -37,7 +37,7 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
   }
 
   public FluentMatcher<T> and(@NotNull GenericTypeMatcher<? extends T> other) {
-    return new FluentMatcher<>(supportedType()) {
+    return new FluentMatcher<T>(supportedType()) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return FluentMatcher.this.isMatching(component) && other.matches(component);
@@ -50,7 +50,7 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
    * before isMatching is even called, and so it's impossible to reverse it.
    */
   public FluentMatcher<Component> negate() {
-    return new FluentMatcher<>(Component.class) {
+    return new FluentMatcher<Component>(Component.class) {
       @Override
       protected boolean isMatching(@NotNull Component component) {
         return !FluentMatcher.this.matches(component);
@@ -65,7 +65,7 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
    * @return In effect a matcher for components of type {@code R} that {@code this} does not match (including the type check for {@code T}).
    */
   public <R extends Component> FluentMatcher<R> negate(Class<R> type) {
-    return new FluentMatcher<>(type) {
+    return new FluentMatcher<R>(type) {
       @Override
       protected boolean isMatching(@NotNull R component) {
         return !FluentMatcher.this.matches(component);
@@ -74,7 +74,7 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
   }
 
   public FluentMatcher<T> andIsShowing() {
-    return and(new GenericTypeMatcher<>(supportedType(), true) {
+    return and(new GenericTypeMatcher<T>(supportedType(), true) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return true;
@@ -83,7 +83,7 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
   }
 
   public FluentMatcher<T> andIsEnabled() {
-    return and(new FluentMatcher<>(supportedType()) {
+    return and(new FluentMatcher<T>(supportedType()) {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return component.isEnabled();

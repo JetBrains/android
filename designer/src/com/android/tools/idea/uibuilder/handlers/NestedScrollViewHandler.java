@@ -47,15 +47,14 @@ public class NestedScrollViewHandler extends ScrollViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    if (!super.onCreate(editor, parent, newChild, type)) {
+    if (!super.onCreate(parent, newChild, type)) {
       return false;
     }
 
-    if (type.isCreate()) {
+    if (type == InsertType.CREATE) {
       NlWriteCommandActionUtil.run(newChild, "Setting fill_viewport", () -> {
         newChild.setAndroidAttribute(ATTR_FILL_VIEWPORT, "true");
       });

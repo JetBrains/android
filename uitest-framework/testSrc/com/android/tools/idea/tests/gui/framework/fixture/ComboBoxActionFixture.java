@@ -54,7 +54,7 @@ public class ComboBoxActionFixture {
   }
 
   public static ComboBoxActionFixture findComboBox(@NotNull Robot robot, @NotNull Container root) {
-    JButton comboBoxButton = robot.finder().find(root, new GenericTypeMatcher<>(JButton.class) {
+    JButton comboBoxButton = robot.finder().find(root, new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
       protected boolean isMatching(@NotNull JButton component) {
         return ourComboBoxButtonClass.isInstance(component);
@@ -111,7 +111,7 @@ public class ComboBoxActionFixture {
 
   @NotNull
   private JBList getList() {
-    return GuiTests.waitUntilShowingAndEnabled(myRobot, null, new GenericTypeMatcher<>(JBList.class) {
+    return GuiTests.waitUntilShowingAndEnabled(myRobot, null, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
         return list.getClass().getName().equals("com.intellij.ui.popup.list.ListPopupImpl$MyList");

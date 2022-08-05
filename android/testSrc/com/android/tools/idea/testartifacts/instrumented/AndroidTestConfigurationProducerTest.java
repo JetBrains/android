@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromMethod;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createConfigurationFromPsiElement;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM;
@@ -174,6 +175,23 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertThat(runConfig.PACKAGE_NAME).isEmpty();
     assertThat(runConfig.CLASS_NAME).isEmpty();
     assertThat(runConfig.METHOD_NAME).isEmpty();
+    assertThat(runConfig.TEST_NAME_REGEX).isEmpty();
+    assertThat(runConfig.suggestedName()).isEqualTo("All Tests");
+  }
+
+  public void testSingleParameterizedTestIsCreatedKotlin() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromMethod(
+      getProject(), "com.example.android.kotlin.ParameterizedTest", "exampleParameterizedTest");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+    assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);
+    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
+    assertThat(runConfig.PACKAGE_NAME).isEmpty();
+    assertThat(runConfig.CLASS_NAME).isEqualTo("com.example.android.kotlin.ParameterizedTest");
+    assertThat(runConfig.METHOD_NAME).isEqualTo("exampleParameterizedTest");
+    assertThat(runConfig.TEST_NAME_REGEX).isEqualTo("com.example.android.kotlin.ParameterizedTest.exampleParameterizedTest\\[.*\\]");
+    assertThat(runConfig.suggestedName()).isEqualTo("exampleParameterizedTest()");
   }
 
   public void testCanCreateAndroidTestConfigurationFromFromTestOnlyModule() throws Exception {

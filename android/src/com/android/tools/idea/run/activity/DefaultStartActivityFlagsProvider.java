@@ -16,45 +16,21 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.editor.AndroidDebugger;
-import com.android.tools.idea.run.editor.AndroidDebuggerState;
-import com.android.tools.idea.run.editor.ProfilerState;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.LinkedList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProvider {
 
-  @Nullable private final AndroidDebugger myAndroidDebugger;
-  @Nullable private final AndroidDebuggerState myAndroidDebuggerState;
-  @NotNull private final ProfilerState myProfilerState;
   private final boolean myWaitForDebugger;
   @NotNull private final String myExtraFlags;
-  private final Project myProject;
 
-  public DefaultStartActivityFlagsProvider(@Nullable AndroidDebugger androidDebugger,
-                                           @Nullable AndroidDebuggerState androidDebuggerState,
-                                           @NotNull Project project,
-                                           boolean waitForDebugger,
-                                           @NotNull String extraFlags) {
-    this(androidDebugger, androidDebuggerState, new ProfilerState(), project, waitForDebugger, extraFlags);
-  }
 
-  public DefaultStartActivityFlagsProvider(@Nullable AndroidDebugger androidDebugger,
-                                           @Nullable AndroidDebuggerState androidDebuggerState,
-                                           @NotNull ProfilerState profilerState,
-                                           @NotNull Project project,
-                                           boolean waitForDebugger,
+  public DefaultStartActivityFlagsProvider(boolean waitForDebugger,
                                            @NotNull String extraFlags) {
-    myAndroidDebugger = androidDebugger;
-    myAndroidDebuggerState = androidDebuggerState;
-    myProfilerState = profilerState;
     myWaitForDebugger = waitForDebugger;
     myExtraFlags = extraFlags;
-    myProject = project;
   }
 
   @Override
@@ -66,12 +42,6 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
     }
     if (!myExtraFlags.isEmpty()) {
       flags.add(myExtraFlags);
-    }
-    if (myWaitForDebugger && myAndroidDebugger != null) {
-      String extraOptions = myAndroidDebugger.getAmStartOptions(myAndroidDebuggerState, myProject, device.getVersion());
-      if (!extraOptions.isEmpty()) {
-        flags.add(extraOptions);
-      }
     }
 
     return StringUtil.join(flags, " ");

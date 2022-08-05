@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.fixtures;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.APP_PREFIX;
 import static com.android.SdkConstants.ATTR_ID;
@@ -75,6 +76,7 @@ public class ComponentDescriptor {
   @Nullable private Object myLayoutParamsObject;
   private ViewType myViewType;
   private boolean myUseMockView;
+  private Class<? extends android.view.View> myMockViewClass;
 
   public ComponentDescriptor(@NotNull String tagName) {
     myTagName = tagName;
@@ -97,7 +99,7 @@ public class ComponentDescriptor {
       view = viewGroup;
     }
     else {
-      view = mock(android.view.View.class);
+      view = mock(myMockViewClass);
     }
     when(view.getX()).thenReturn((float)myX);
     when(view.getY()).thenReturn((float)myY);
@@ -114,6 +116,17 @@ public class ComponentDescriptor {
     assert myViewObject == null : "You already set a view object";
 
     myUseMockView = true;
+    myMockViewClass = android.view.View.class;
+
+    return this;
+  }
+
+  @NotNull
+  public ComponentDescriptor withMockView(@NotNull Class<? extends android.view.View> mockViewClass) {
+    assert myViewObject == null : "You already set a view object";
+
+    myUseMockView = true;
+    myMockViewClass = mockViewClass;
 
     return this;
   }
@@ -311,7 +324,7 @@ public class ComponentDescriptor {
   public ComponentDescriptor findById(@NotNull String id) {
     assertThat(id).startsWith("@");
     for (Pair<String, String> pair : myAttributes) {
-      if (ATTR_ID.equals(pair.getFirst())) {
+      if ((ANDROID_NS_NAME_PREFIX + ATTR_ID).equals(pair.getFirst())) {
         if (id.equals(pair.getSecond())) {
           return this;
         }

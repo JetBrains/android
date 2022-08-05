@@ -17,9 +17,11 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.TestUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
+import com.android.tools.idea.testing.flags.override
 import com.android.utils.FileUtils
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
@@ -58,6 +60,7 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import java.io.File
+import java.time.Clock
 import java.util.concurrent.TimeoutException
 
 /**
@@ -98,6 +101,11 @@ class AndroidProjectRule private constructor(
   private val projectModuleBuilders: List<ModuleModelBuilder>? = null,
 
   /**
+   * When not null and the project is initialized from an instance of [AndroidModel] is called to prepare source code.
+   */
+  private val prepareProjectSourcesWith: ((File) -> Unit)? = null,
+
+  /**
    * Name of the fixture used to create the project directory when not
    * using a light fixture.
    *
@@ -127,7 +135,7 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that uses a fixture which create the
      * project in an in memory TempFileSystem
      *
-     * @see IdeaTestFixtureFactory.createLightFixtureBuilder(String)
+     * @see IdeaTestFixtureFactory.createLightFixtureBuilder
      */
     @JvmStatic
     fun inMemory() = AndroidProjectRule()
@@ -173,7 +181,25 @@ class AndroidProjectRule private constructor(
      * [androidProjectBuilder].
      */
     @JvmStatic
-    fun withAndroidModels(vararg projectModuleBuilders: ModuleModelBuilder): AndroidProjectRule = AndroidProjectRule(
+    fun withAndroidModels(
+      prepareProjectSources: ((dir: File) -> Unit)? = null,
+      vararg projectModuleBuilders: ModuleModelBuilder
+    ): AndroidProjectRule = AndroidProjectRule(
+      initAndroid = false,
+      lightFixture = false,
+      withAndroidSdk = false,
+      prepareProjectSourcesWith = prepareProjectSources,
+      projectModuleBuilders = projectModuleBuilders.toList()
+    )
+
+    /**
+     * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
+     * [androidProjectBuilder].
+     */
+    @JvmStatic
+    fun withAndroidModels(
+      vararg projectModuleBuilders: ModuleModelBuilder
+    ): AndroidProjectRule = AndroidProjectRule(
       initAndroid = false,
       lightFixture = false,
       withAndroidSdk = false,
@@ -183,6 +209,11 @@ class AndroidProjectRule private constructor(
 
   fun initAndroid(shouldInit: Boolean): AndroidProjectRule {
     initAndroid = shouldInit
+    return this
+  }
+
+  fun named(projectName: String?): AndroidProjectRule {
+    fixtureName = projectName
     return this
   }
 
@@ -199,8 +230,8 @@ class AndroidProjectRule private constructor(
   fun <T : Any> registerExtension(epName: ExtensionPointName<T>, extension: T) =
     project.registerExtension(epName, extension, fixture.projectDisposable)
 
-  fun <T: CodeInsightTestFixture> getFixture(type: Class<T>): T? {
-    return if (type.isInstance(fixture)) fixture as T else null
+  inline fun <reified T: CodeInsightTestFixture> getTypedFixture(): T? {
+    return fixture as? T
   }
 
   override fun before(description: Description) {
@@ -232,10 +263,14 @@ class AndroidProjectRule private constructor(
       // 2. IDEA downloads and setups new wrapper in each test because .gradle is new directory in different tests. This works really SLOW.
       // 3. `user.home` sometimes not restored if AndroidProjectRule fails during initialization.
 
-      val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName
+      val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName.substringAfterLast('$')
       // Reset user home directory.
       System.setProperty("user.home", FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"))
     }
+
+    // Disable antivirus checks on Windows.
+    StudioFlags.ANTIVIRUS_METRICS_ENABLED.override(false, testRootDisposable)
+    StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.override(false, testRootDisposable)
 
     fixture.setUp()
     // Initialize an Android manifest
@@ -251,6 +286,7 @@ class AndroidProjectRule private constructor(
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
         // properly.
         val basePath = File(fixture.tempDirPath)
+        prepareProjectSourcesWith?.let { it(basePath) }
         if (projectModuleBuilders.isNotEmpty()) {
           setupTestProjectFromAndroidModel(project, basePath, *projectModuleBuilders.toTypedArray())
         }
@@ -280,9 +316,12 @@ class AndroidProjectRule private constructor(
         AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
         AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java)
 
-    val name = fixtureName ?: description.className.substringAfterLast('.')
+    // Below "p" is just a short directory name for a project directory. We have some tests that need more than one project in a test,
+    // and they rely on ability to do "../another". This temporary directory test fixture will delete all of them at tear down.
+    val name = fixtureName ?: "p"
     val tempDirFixture = object: AndroidTempDirTestFixture(name) {
-      private val tempRoot: String = FileUtil.createTempDirectory(UsefulTestCase.TEMP_DIR_MARKER + name, "", false).path
+      private val tempRoot: String =
+        FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
       override fun getRootTempDirectory(): String = tempRoot
       override fun tearDown() {
         super.tearDown()  // Deletes the project directory.

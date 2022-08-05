@@ -24,7 +24,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.Point;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
@@ -45,16 +45,16 @@ import org.jetbrains.annotations.Nullable;
  */
 public class NlComponentFixture {
   private static final long TIMEOUT_FOR_WRITE_IN_SECONDS = 10;
-  private static final int MINIMUM_ANCHOR_GAP = JBUIScale.scale(6) * 2; // Based on DrawAnchor.java
+  private static final int MINIMUM_ANCHOR_GAP = JBUI.scale(6) * 2; // Based on DrawAnchor.java
   private final Robot myRobot;
   private final NlComponent myComponent;
-  private final DesignSurface mySurface;
+  private final DesignSurface<?> mySurface;
   private final ComponentDragAndDrop myDragAndDrop;
   private final SceneComponent mySceneComponent;
 
   public NlComponentFixture(@NotNull Robot robot,
                             @NotNull NlComponent component,
-                            @NotNull DesignSurface surface) {
+                            @NotNull DesignSurface<?> surface) {
     myRobot = robot;
     myComponent = component;
     mySceneComponent = surface.getScene().getSceneComponent(myComponent);
@@ -189,7 +189,7 @@ public class NlComponentFixture {
   public NlComponentFixture createBaselineConstraintWith(@NotNull NlComponentFixture destination) {
     getSceneComponent().rightClick();
     JPopupMenuFixture popupMenuFixture = new JPopupMenuFixture(myRobot, myRobot.findActivePopupMenu());
-    popupMenuFixture.menuItem(new GenericTypeMatcher<>(JMenuItem.class) {
+    popupMenuFixture.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
       @Override
       protected boolean isMatching(@NotNull JMenuItem component) {
         return "Show Baseline".equals(component.getText());

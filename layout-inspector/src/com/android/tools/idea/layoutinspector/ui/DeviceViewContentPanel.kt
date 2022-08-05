@@ -16,12 +16,13 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.Pannable
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -29,6 +30,8 @@ import com.android.tools.idea.layoutinspector.model.getDrawNodeLabelHeight
 import com.android.tools.idea.layoutinspector.model.getEmphasizedBorderOutlineThickness
 import com.android.tools.idea.layoutinspector.model.getFoldStroke
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
+import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
@@ -65,6 +68,7 @@ import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
 import java.awt.geom.Line2D
 import java.awt.geom.Point2D
+import javax.swing.JComponent
 
 private const val MARGIN = 50
 
@@ -72,24 +76,30 @@ private const val FRAMES_BEFORE_RESET_TO_BITMAP = 3
 
 private val HQ_RENDERING_HINTS = mapOf(
   RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
+  RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
+  RenderingHints.KEY_FRACTIONALMETRICS to RenderingHints.VALUE_FRACTIONALMETRICS_ON,
   RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
   RenderingHints.KEY_INTERPOLATION to RenderingHints.VALUE_INTERPOLATION_BILINEAR,
   RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE
 )
 
+// We use a generic DropDownAction container because actions can be [SelectDeviceAction] or [SelectProcessAction].
+data class DropDownActionWithButton(val dropDownAction: DropDownAction, val button: JComponent?)
+
 class DeviceViewContentPanel(
   val inspectorModel: InspectorModel,
+  val deviceModel: DeviceModel?,
   val stats: SessionStatistics,
   val treeSettings: TreeSettings,
   val viewSettings: DeviceViewSettings,
   val currentClient: () -> InspectorClient?,
   val pannable: Pannable,
-  @VisibleForTesting val selectProcessAction: SelectProcessAction?,
+  @VisibleForTesting val selectTargetAction: DropDownActionWithButton?,
   disposableParent: Disposable
 ) : AdtPrimaryPanel() {
 
-  @VisibleForTesting
   var showEmptyText = true
+  var showProcessNotDebuggableText = false
 
   val model = DeviceViewPanelModel(inspectorModel, stats, treeSettings, currentClient)
 
@@ -101,22 +111,29 @@ class DeviceViewContentPanel(
     }
 
   private val emptyText: StatusText = object : StatusText(this) {
-    override fun isStatusVisible() = !model.isActive && showEmptyText
+    override fun isStatusVisible() = !model.isActive && showEmptyText && deviceModel?.selectedDevice == null
+  }
+
+  private val processNotDebuggableText: StatusText = object : StatusText(this) {
+    override fun isStatusVisible() = !model.isActive && showProcessNotDebuggableText && deviceModel?.selectedDevice != null
   }
 
   init {
-    selectProcessAction?.let { selectProcessAction ->
+    processNotDebuggableText.appendLine("Application not inspectable.")
+    processNotDebuggableText.appendLine("Switch to a debuggable application on your device to inspect.")
+
+    selectTargetAction?.let { selectDeviceAction ->
       emptyText.appendLine("No process connected")
 
       emptyText.appendLine("Deploy your app or ")
       @Suppress("DialogTitleCapitalization")
       emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
-        val button = selectProcessAction.button
+        val button = selectDeviceAction.button
         val dataContext = DataManager.getInstance().getDataContext(button)
-        selectProcessAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
-        val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectProcessAction.templatePresentation,
+        selectDeviceAction.dropDownAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
+        val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectDeviceAction.dropDownAction.templatePresentation,
                                                         dataContext)
-        selectProcessAction.actionPerformed(event)
+        selectDeviceAction.dropDownAction.actionPerformed(event)
       }
       @Suppress("DialogTitleCapitalization")
       emptyText.appendText(" to begin inspection.")
@@ -242,6 +259,7 @@ class DeviceViewContentPanel(
     g2d.color = primaryPanelBackground
     g2d.fillRect(0, 0, width, height)
     emptyText.paint(this, g)
+    processNotDebuggableText.paint(this, g)
     g2d.translate(size.width / 2.0, size.height / 2.0)
     g2d.scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
 
@@ -255,12 +273,17 @@ class DeviceViewContentPanel(
     }
   }
 
-  override fun getPreferredSize() =
-    if (inspectorModel.isEmpty) Dimension(0, 0)
-    // Give twice the needed size, so we have room to move the view around a little. Otherwise things can jump around
-    // when the number of layers changes and the canvas size adjusts to smaller than the viewport size.
-    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUIScale.scale(MARGIN)).toInt() * 2,
-                   (model.maxHeight * viewSettings.scaleFraction + JBUIScale.scale(MARGIN)).toInt() * 2)
+  override fun getPreferredSize(): Dimension {
+    val (desiredWidth, desiredHeight) = when {
+      inspectorModel.isEmpty -> Pair(0, 0)
+      // If rotated, give twice the needed size, so we have room to move the view around a little. Otherwise things can jump around
+      // when the number of layers changes and the canvas size adjusts to smaller than the viewport size.
+      model.isRotated -> Pair(model.maxWidth * 2, model.maxHeight * 2)
+      else -> inspectorModel.root.transitiveBounds.run { Pair(width, height) }
+    }
+    return Dimension((desiredWidth * viewSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2,
+                     (desiredHeight * viewSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2)
+  }
 
   private fun autoScrollAndRepaint(origin: SelectionOrigin) {
     val selection = inspectorModel.selection
@@ -299,8 +322,13 @@ class DeviceViewContentPanel(
     g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
 
     if (!drawInfo.isCollapsed &&
-        (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode)) {
-      drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings, treeSettings)
+        (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode ||
+         (treeSettings.showRecompositions &&
+          (view as? ComposeViewNode)?.recompositions?.hasHighlight == true &&
+          inspectorModel.maxHighlight != 0f)
+        )
+    ) {
+      drawView.paintBorder(g2, view == selection, view == hoveredNode, inspectorModel, viewSettings, treeSettings)
     }
     if (viewSettings.drawFold && model.hitRects.isNotEmpty() && (
         // nothing is selected or hovered: draw on the root

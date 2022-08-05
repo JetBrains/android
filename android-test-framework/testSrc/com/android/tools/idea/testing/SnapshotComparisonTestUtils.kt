@@ -35,7 +35,7 @@ import java.nio.file.Paths
 bazel test [target]  \
    --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
    --sandbox_writable_path=$(bazel info workspace) \
-   --spawn_strategy=local \
+   --test_strategy=standalone \
    --nocache_test_results \
    --test_timeout=6000
 ```
@@ -46,6 +46,7 @@ interface SnapshotComparisonTest {
   /**
    * The name of the property which should be set to activate "update snapshots" test execution mode.
    */
+  @JvmDefault
   val updateSnapshotsJvmProperty: String get() = "UPDATE_TEST_SNAPSHOTS"
 
   /**
@@ -56,6 +57,7 @@ interface SnapshotComparisonTest {
   /**
    * The list of file name suffixes applicable to the currently running test.
    */
+  @JvmDefault
   val snapshotSuffixes: List<String> get() = listOf("")
 
   /**
@@ -138,3 +140,25 @@ data class ProjectViewSettings(
 )
 
 fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }
+
+fun nameProperties(snapshotLines: Sequence<String>): Sequence<Pair<String, String>> = sequence {
+  val context = mutableListOf<Pair<Int, String>>()
+  var previousIndentation = -1
+  for (line in snapshotLines) {
+    val propertyName = line.trimStart().removePrefix("- ").substringBefore(' ', line).trim()
+    val indentation = line.indexOfFirst { !it.isWhitespace() }.let { if (it == -1) line.length else it }
+    when {
+      indentation > previousIndentation -> context.add(indentation to propertyName)
+      indentation == previousIndentation -> context[context.size - 1] = indentation to propertyName
+      else -> {
+        while (context.size > 1 && context[context.size - 1].first > indentation) {
+          context.removeLast()
+        }
+        context[context.size - 1] = indentation to propertyName
+      }
+    }
+    previousIndentation = indentation
+    yield(context.map { it.second }.joinToString(separator = "/") to line)
+  }
+}
+

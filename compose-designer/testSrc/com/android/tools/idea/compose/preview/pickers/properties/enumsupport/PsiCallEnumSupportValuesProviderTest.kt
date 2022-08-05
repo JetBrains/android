@@ -16,8 +16,7 @@
 package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.SdkConstants
-import com.android.tools.compose.ComposeLibraryNamespace
-import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
+import com.android.tools.compose.COMPOSE_UI_TOOLING_PREVIEW_PACKAGE
 import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceDesktopConfig
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceFoldableConfig
@@ -27,6 +26,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.intellij.openapi.module.Module
@@ -70,14 +70,13 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   @get:Rule
   val edtRule = EdtRule()
 
-  private val composeLibraryNamespace = ComposeLibraryNamespace.values().first { it.apiPreviewPackage == previewAnnotationPackage }
   private val module: Module
     get() = rule.fixture.module
 
   @Before
   fun setup() {
     ConfigurationManager.getOrCreateInstance(module)
-    rule.fixture.stubDevicesAsLibrary(composeLibraryNamespace.apiPreviewPackage)
+    rule.fixture.stubDevicesAsLibrary(COMPOSE_UI_TOOLING_PREVIEW_PACKAGE)
   }
 
   @RunsInEdt
@@ -111,16 +110,16 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Normal", uiModeValues[6].display)
 
     val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
-    assertEquals(15, deviceValues.size) // 4 headers + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
+    assertEquals(18, deviceValues.size) // 4 headers + 3 separators + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
     // Generic devices are not shown since they are empty when running on test
     assertEquals("Reference Devices", (deviceValues[0] as HeaderEnumValue).header)
     assertEquals("Phone", deviceValues[1].display)
     assertEquals("Foldable", deviceValues[2].display)
     assertEquals("Tablet", deviceValues[3].display)
     assertEquals("Desktop", deviceValues[4].display)
-    assertEquals("Wear", (deviceValues[5] as HeaderEnumValue).header)
-    assertEquals("Tv", (deviceValues[9] as HeaderEnumValue).header)
-    assertEquals("Auto", (deviceValues[13] as HeaderEnumValue).header)
+    assertEquals("Wear", (deviceValues[6] as HeaderEnumValue).header)
+    assertEquals("Tv", (deviceValues[11] as HeaderEnumValue).header)
+    assertEquals("Auto", (deviceValues[16] as HeaderEnumValue).header)
 
     // Verify reference values
     assertEquals(ReferencePhoneConfig.deviceSpec(), deviceValues[1].value)
@@ -129,13 +128,13 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals(ReferenceDesktopConfig.deviceSpec(), deviceValues[4].value)
 
     // Verify Wear, Tv and Auto are custom devices (start with "spec:")
-    assertTrue(deviceValues[6].value!!.startsWith("spec:"))
     assertTrue(deviceValues[7].value!!.startsWith("spec:"))
     assertTrue(deviceValues[8].value!!.startsWith("spec:"))
-    assertTrue(deviceValues[10].value!!.startsWith("spec:"))
-    assertTrue(deviceValues[11].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[9].value!!.startsWith("spec:"))
     assertTrue(deviceValues[12].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[13].value!!.startsWith("spec:"))
     assertTrue(deviceValues[14].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[17].value!!.startsWith("spec:"))
 
     val localeValues = valuesProvider.getValuesProvider("locale")!!.invoke()
     assertEquals(4, localeValues.size)
@@ -174,10 +173,11 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Reference Devices", deviceHeaders[0].header)
     assertEquals("Phone", deviceHeaders[1].header)
     assertEquals("Tablet", deviceHeaders[2].header)
-    assertEquals("Wear", deviceHeaders[3].header)
-    assertEquals("Tv", deviceHeaders[4].header)
-    assertEquals("Auto", deviceHeaders[5].header)
-    assertEquals("Generic Devices", deviceHeaders[6].header)
+    assertEquals("Desktop", deviceHeaders[3].header)
+    assertEquals("Wear", deviceHeaders[4].header)
+    assertEquals("Tv", deviceHeaders[5].header)
+    assertEquals("Auto", deviceHeaders[6].header)
+    assertEquals("Generic Devices", deviceHeaders[7].header)
 
     // With Sdk verify that Wear, Tv and Auto have actual devices (their value start with "id:" instead of "spec:")
     val wearIndex = deviceEnumValues.indexOfFirst { it is HeaderEnumValue && it.header == "Wear" }
@@ -198,7 +198,7 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   @Test
   fun testGroupValuesProvider() {
     rule.fixture.stubComposableAnnotation() // Package does not matter, we are not testing the Composable annotation
-    rule.fixture.stubPreviewAnnotation(composeLibraryNamespace.apiPreviewPackage)
+    rule.fixture.stubPreviewAnnotation(COMPOSE_UI_TOOLING_PREVIEW_PACKAGE)
     val file = rule.fixture.addFileToProjectAndInvalidate(
       "Test.kt",
       // language=kotlin

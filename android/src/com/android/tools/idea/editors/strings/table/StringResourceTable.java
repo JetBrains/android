@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.StringResourceData;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.editors.strings.table.filter.StringResourceTableColumnFilter;
+import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRowFilter;
 import com.intellij.ui.scale.JBUIScale;
 import java.awt.event.KeyEvent;
 import java.util.List;
@@ -31,7 +33,7 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class StringResourceTable extends FrozenColumnTable<StringResourceTableModel> {
+public class StringResourceTable extends FrozenColumnTable<StringResourceTableModel> {
   private final TableCellRenderer myLocaleRenderer;
 
   @Nullable
@@ -141,11 +143,7 @@ public final class StringResourceTable extends FrozenColumnTable<StringResourceT
 
     int maxColumnWidth = JBUIScale.scale(200);
 
-    if (columnWidth > maxColumnWidth) {
-      return maxColumnWidth;
-    }
-
-    return columnWidth;
+    return Math.min(columnWidth, maxColumnWidth);
   }
 
   private int getPreferredHeaderWidth(int viewColumnIndex) {

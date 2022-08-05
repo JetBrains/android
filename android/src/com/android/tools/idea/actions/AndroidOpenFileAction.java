@@ -15,23 +15,26 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.intellij.ide.actions.OpenFileAction.openFile;
+import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
+import static com.intellij.ide.impl.ProjectUtil.openOrImport;
+import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
+import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor;
+import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
+import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
+import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
+
 import com.android.tools.adtui.validation.Validator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
-import com.intellij.ide.actions.OpenFileAction;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
-import com.intellij.openapi.fileChooser.impl.FileChooserUtil;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -88,7 +91,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
           explicitPreferredDirectory = VfsUtil.findFileByIoFile(new File(GeneralSettings.getInstance().getDefaultProjectDirectory()), true);
         }
         else {
-          explicitPreferredDirectory = VfsUtil.getUserHomeDir();
+          explicitPreferredDirectory = getUserHomeDir();
         }
       }
 
@@ -96,7 +99,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
       // a user closes the dialog.
       // Note: this method is invoked from the main thread but chooseFiles uses a nested message
       // loop to avoid the IDE from freeze.
-      FileChooser.chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
+      chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
         ValidationIssue issue = validateFiles(files, descriptor);
         if (issue.result.getSeverity() != Validator.Severity.OK) {
           boolean isError = issue.result.getSeverity() == Validator.Severity.ERROR;
@@ -136,33 +139,33 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         // proceed with opening as a directory only if the pointed directory is not the base one
         // for the current project. The check is similar to what is done below for file-based projects
         if ((project != null) && !project.isDefault() && file.equals(project.getBaseDir())) {
-          ProjectUtil.focusProjectWindow(project, false);
-          return;
+          focusProjectWindow(project, false);
+          continue;
         }
         if (ProjectAttachProcessor.canAttachToProject()) {
           Project openedProject = PlatformProjectOpenProcessor.doOpenProject(file, project, -1, null, EnumSet.noneOf(PlatformProjectOpenProcessor.Option.class));
-          FileChooserUtil.setLastOpenedFile(openedProject, file.toNioPath());
+          setLastOpenedFile(openedProject, file.toNioPath());
         }
         else {
           openOrImportProject(file.toNioPath(), project);
         }
-        return;
+        continue;
       }
 
       // try to open as a project - unless the file is an .ipr of the current one
       if ((project == null || !file.equals(project.getProjectFile())) && OpenProjectFileChooserDescriptor.isProjectFile(file)) {
         if (openOrImportProject(file.toNioPath(), project)) {
-          return;
+          continue;
         }
       }
 
-      FileType type = FileTypeChooser.getKnownFileTypeOrAssociate(file, project);
+      FileType type = getKnownFileTypeOrAssociate(file, project);
       if (type == null) {
-        return;
+        continue;
       }
 
       if (project != null) {
-        OpenFileAction.openFile(file, project);
+        openFile(file, project);
       }
       else {
         PlatformProjectOpenProcessor processor = PlatformProjectOpenProcessor.getInstanceIfItExists();
@@ -174,9 +177,9 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   }
 
   private static boolean openOrImportProject(@NotNull Path file, @Nullable Project project) {
-    Project opened = ProjectUtil.openOrImport(file, project, false);
+    Project opened = openOrImport(file, project, false);
     if (opened != null) {
-      FileChooserUtil.setLastOpenedFile(opened, file);
+      setLastOpenedFile(opened, file);
       return true;
     }
     return false;
@@ -203,8 +206,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   }
 
   private static class ProjectOrFileChooserDescriptor extends OpenProjectFileChooserDescriptorWithAsyncIcon {
-    private final FileChooserDescriptor myStandardDescriptor = FileChooserDescriptorFactory
-      .createSingleFileNoJarsDescriptor().withHideIgnored(false);
+    private final FileChooserDescriptor myStandardDescriptor = createSingleFileNoJarsDescriptor().withHideIgnored(false);
 
     public ProjectOrFileChooserDescriptor() {
       setTitle(IdeBundle.message("title.open.file.or.project"));

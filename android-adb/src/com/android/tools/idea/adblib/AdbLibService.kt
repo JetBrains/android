@@ -16,7 +16,7 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbChannelProviderFactory
-import com.android.adblib.AdbLibSession
+import com.android.adblib.AdbSession
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.DdmPreferences
 import com.android.tools.idea.adb.AdbFileProvider
@@ -28,9 +28,10 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
+import java.time.Duration
 
 /**
- * [Project] service that provides access to the corresponding [AdbLibSession] for that project.
+ * [Project] service that provides access to the corresponding [AdbSession] for that project.
  *
  * Example: `AdbLibService.getInstance(project).hostServices`
  *
@@ -46,10 +47,10 @@ class AdbLibService(val project: Project) : Disposable {
     listOf(getAdbSocketAddress())
   }
 
-  val session = AdbLibSession(
+  val session: AdbSession = AdbSession.create(
     host = host,
     channelProvider = channelProvider,
-    connectionTimeoutMillis = DdmPreferences.getTimeOut().toLong()
+    connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut ().toLong())
   )
 
   override fun dispose() {
@@ -58,11 +59,13 @@ class AdbLibService(val project: Project) : Disposable {
 
   private suspend fun getAdbSocketAddress(): InetSocketAddress {
     return withContext(host.ioDispatcher) {
-      // Ensure ddmlib is initialized with path to ADB server from current project
-      val adbFile = AdbFileProvider.fromProject(project)?.adbFile
-                    ?: throw IllegalStateException("ADB has not been initialized for this project")
-      AdbService.getInstance().getDebugBridge(adbFile).await()
-
+      val needToConnect = AndroidDebugBridge.getBridge()?.let { !it.isConnected } ?: true
+      if (needToConnect) {
+        // Ensure ddmlib is initialized with ADB server path from project context
+        val adbFile = AdbFileProvider.fromProject(project)?.adbFile
+                      ?: throw IllegalStateException("ADB has not been initialized for this project")
+        AdbService.getInstance().getDebugBridge(adbFile).await()
+      }
       AndroidDebugBridge.getSocketAddress()
     }
   }

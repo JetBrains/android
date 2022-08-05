@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.resource
 
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.packageNameHash
 import com.intellij.ide.util.PsiNavigationSupport
@@ -30,6 +31,7 @@ import org.jetbrains.kotlin.psi.KtFile
  */
 open class ComposeResolver(val project: Project) {
 
+  @Slow
   fun findComposableNavigatable(node: ComposeViewNode): Navigatable? {
     val ktFile = findKotlinFile(node.composeFilename) { packageNameHash(it) == node.composePackageHash } ?: return null
     val vFile = ktFile.virtualFile ?: return null
@@ -41,6 +43,7 @@ open class ComposeResolver(val project: Project) {
    *
    * If there are multiple files with the same name use the package name matcher.
    */
+  @Slow
   protected fun findKotlinFile(fileName: String, packageNameMatcher: (String) -> Boolean): KtFile? {
     val files = FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project))
     if (files.size == 1) {

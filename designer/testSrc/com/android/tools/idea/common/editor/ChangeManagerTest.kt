@@ -2,6 +2,9 @@ package com.android.tools.idea.common.editor
 
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
+import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupEx
+import com.intellij.codeInsight.lookup.LookupManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -70,6 +73,11 @@ private class ChangeTracker {
    * Asserts that the given [runnable] triggers refresh notification.
    */
   fun assertRefreshed(runnable: () -> Unit) = assertWithCounters(refresh = 1, runnable = runnable)
+
+  /**
+   * Asserts that the given [runnable] does not trigger refresh notification.
+   */
+  fun assertDoesNotRefresh(runnable: () -> Unit) = assertWithCounters(refresh = 0, runnable = runnable)
 }
 
 class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
@@ -186,5 +194,71 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
     assertEquals(1, saveCount)
+  }
+
+  fun testLookupDelaysChange() {
+    @Language("kotlin")
+    val startFileContent = """
+      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview
+      fun Preview1() {
+      }
+    """.trimIndent()
+
+    val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
+    myFixture.configureFromExistingVirtualFile(composeTest.virtualFile)
+
+    val tracker = ChangeTracker()
+    val testMergeQueue = MergingUpdateQueue("Document change queue",
+                                            0,
+                                            true,
+                                            null,
+                                            testRootDisposable).apply {
+      isPassThrough = true
+    }
+    setupChangeListener(project,
+                        composeTest,
+                        tracker::onRefresh,
+                        testRootDisposable,
+                        mergeQueue = testMergeQueue)
+    val lookupManager = LookupManager.getInstance(project)
+
+    run {
+      val lookup = lookupManager.showLookup(myFixture.editor,
+                                            LookupElementBuilder.create("Test"),
+                                            LookupElementBuilder.create("TestB"))!!
+
+      // Perform guarded change ensures that the completion popup is not closed on change.
+      lookup.performGuardedChange {
+        tracker.assertDoesNotRefresh {
+          composeTest.replaceStringOnce("Preview1", "Preview2")
+        }
+
+        // Pending refresh will be executed on hide
+        tracker.assertRefreshed {
+          LookupManager.getInstance(project).hideActiveLookup()
+        }
+        tracker.assertRefreshed {
+          composeTest.replaceStringOnce("Preview2", "Preview1")
+        }
+      }
+    }
+
+    // Verify that opening and closing lookup does not trigger a refresh
+    run {
+      var lookup: LookupEx? = null
+      tracker.assertDoesNotRefresh {
+        lookup = lookupManager.showLookup(myFixture.editor,
+                                          LookupElementBuilder.create("Test"),
+                                          LookupElementBuilder.create("TestB"))
+      }
+      // Perform guarded change ensures that the completion popup is not closed on change.
+      tracker.assertDoesNotRefresh {
+        LookupManager.getInstance(project).hideActiveLookup()
+      }
+    }
   }
 }

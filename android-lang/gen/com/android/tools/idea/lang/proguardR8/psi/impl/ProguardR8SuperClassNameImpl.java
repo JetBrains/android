@@ -38,6 +38,7 @@ public class ProguardR8SuperClassNameImpl extends ASTWrapperPsiElement implement
     visitor.visitSuperClassName(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ProguardR8Visitor) accept((ProguardR8Visitor)visitor);
     else super.accept(visitor);

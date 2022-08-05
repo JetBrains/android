@@ -31,9 +31,8 @@ class RenderATFBasePerfgateTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     // Enabling this will retrieve text character locations from TextView to improve the
-    // accuracy of TextContrastCheck in ATF. However, it can burden the render time quite alot
-    // specially if the view contains a long text.
-    LayoutValidator.setObtainCharacterLocations(false)
+    // accuracy of TextContrastCheck in ATF.
+    LayoutValidator.setObtainCharacterLocations(true)
     RenderTestUtil.beforeRenderTestCase()
 
     layoutFile = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).virtualFile

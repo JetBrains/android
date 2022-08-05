@@ -25,10 +25,8 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.DismissibleMessage;
-import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsView;
@@ -104,24 +102,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @NotNull private final CpuThreadsView myThreads;
 
-  /**
-   * The action listener of the capture button changes depending on the state of the profiler.
-   * It can be either "start capturing" or "stop capturing".
-   * This will be null if {@link FeatureConfig ::isCpuCaptureStageEnabled}
-   */
-  @NotNull private final JBSplitter mySplitter;
-
   @NotNull private final RecordingOptionsView myRecordingOptionsView;
 
   @NotNull private final RangeTooltipComponent myTooltipComponent;
-
-  @NotNull private final CpuUsageView myUsageView;
 
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     super(profilersView, stage);
     myStage = stage;
     myThreads = new CpuThreadsView(myStage);
-    myUsageView = new CpuUsageView(myStage);
     myTooltipComponent = new RangeTooltipComponent(getStage().getTimeline(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
@@ -133,9 +121,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    myTooltipComponent.registerListenersOn(myUsageView);
+    CpuUsageView usageView = new CpuUsageView(myStage);
+    myTooltipComponent.registerListenersOn(usageView);
     MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuProfilerStageCpuUsageTooltip(myStage));
-    myUsageView.addMouseListener(listener);
+    usageView.addMouseListener(listener);
 
     // "Fit" for the event profiler, "*" for everything else.
     final JPanel details = new JPanel(new TabularLayout("*", "Fit-,*"));
@@ -152,10 +141,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     TabularLayout mainLayout = new TabularLayout("*");
     mainLayout.setRowSizing(PanelSizing.MONITOR.getRow(), PanelSizing.MONITOR.getRowRule());
     mainLayout.setRowSizing(PanelSizing.DETAILS.getRow(), PanelSizing.DETAILS.getRowRule());
-    final JPanel mainPanel = new JBPanel(mainLayout);
+    final JPanel mainPanel = new JBPanel<>(mainLayout);
     mainPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
-    mainPanel.add(myUsageView, new TabularLayout.Constraint(PanelSizing.MONITOR.getRow(), 0));
+    mainPanel.add(usageView, new TabularLayout.Constraint(PanelSizing.MONITOR.getRow(), 0));
     mainPanel.add(createCpuStatePanel(), new TabularLayout.Constraint(PanelSizing.DETAILS.getRow(), 0));
 
     // Panel that represents all of L2
@@ -165,23 +154,24 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     // The first component in the splitter is the recording options, the 2nd component is the L2 components.
     myRecordingOptionsView = new RecordingOptionsView(getStage().getRecordingModel(), this::editConfigurations);
-    mySplitter = new JBSplitter(false);
-    mySplitter.setFirstComponent(myRecordingOptionsView);
-    mySplitter.setSecondComponent(details);
-    mySplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
-    mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
-    getComponent().add(mySplitter, BorderLayout.CENTER);
 
-    CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), myUsageView, getComponent());
+    JBSplitter splitter = new JBSplitter(false);
+    splitter.setFirstComponent(myRecordingOptionsView);
+    splitter.setSecondComponent(details);
+    splitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
+    splitter.setProportion(SPLITTER_DEFAULT_RATIO);
+    getComponent().add(splitter, BorderLayout.CENTER);
+
+    CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), usageView, getComponent());
     // Add the profilers common menu items
-    getProfilersView().installCommonMenuItems(myUsageView);
+    getProfilersView().installCommonMenuItems(usageView);
 
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, this::sessionChanged);
     sessions.addDependency(this).onChange(SessionAspect.PROFILING_SESSION, this::sessionChanged);
 
     if (!getStage().hasUserUsedCpuCapture()) {
-      installProfilingInstructions(myUsageView);
+      installProfilingInstructions(usageView);
     }
     sessionChanged();
   }
@@ -217,7 +207,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   @NotNull
   private JPanel createCpuStatePanel() {
     TabularLayout cpuStateLayout = new TabularLayout("*");
-    JPanel cpuStatePanel = new JBPanel(cpuStateLayout);
+    JPanel cpuStatePanel = new JBPanel<>(cpuStateLayout);
 
     cpuStatePanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     cpuStateLayout.setRowSizing(PanelSizing.THREADS.getRow(), PanelSizing.THREADS.getRowRule());
@@ -235,17 +225,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     FontMetrics metrics = UIUtilities.getFontMetrics(parent, ProfilerFonts.H2_FONT);
     InstructionsPanel panel =
       new InstructionsPanel.Builder(new TextInstruction(metrics, "Click Record to start capturing CPU activity"))
-        .setEaseOut(myStage.getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
+        .setEaseOut(myStage.getInstructionsEaseOutModel(), parent::remove)
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
         .build();
     // Add the instructions panel as the first component of |parent|, so that |parent| renders the instructions on top of other components.
     parent.add(panel, new TabularLayout.Constraint(0, 0), 0);
-  }
-
-  private void updateCaptureViewVisibility() {
-    if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
-      mySplitter.setFirstComponent(myRecordingOptionsView);
-    }
   }
 
   /**

@@ -94,7 +94,7 @@ public class GraphRender {
       return false;
     }
 
-    Arrays.sort(keyFrames, new Comparator<>() {
+    Arrays.sort(keyFrames, new Comparator<MTag>() {
       @Override
       public int compare(MTag t1, MTag t2) {
         int p1 = Integer.parseInt(t1.getAttributeValue("framePosition"));
@@ -284,7 +284,7 @@ public class GraphRender {
       if (DEBUG) {
         Debug.log(attr + " no of keyFrames = " + keyFrames.length);
       }
-      Arrays.sort(keyFrames, new Comparator<>() {
+      Arrays.sort(keyFrames, new Comparator<MTag>() {
         @Override
         public int compare(MTag t1, MTag t2) {
           int p1 = Integer.parseInt(t1.getAttributeValue("framePosition"));

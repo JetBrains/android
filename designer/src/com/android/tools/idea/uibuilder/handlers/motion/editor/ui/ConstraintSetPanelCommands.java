@@ -29,7 +29,7 @@ public class ConstraintSetPanelCommands {
   private static final boolean DEBUG = false;
 
   public static void createAllConstraints(ArrayList<MTag> displayedRows, MTag constraintSet) {
-    ArrayList<MTag> tagList = new ArrayList<>();
+    ArrayList<MTag> tagList = new ArrayList<MTag>();
     for (MTag row : displayedRows) {
       if (!constraintSet.equals(row.getParent())) {
         tagList.add(row);

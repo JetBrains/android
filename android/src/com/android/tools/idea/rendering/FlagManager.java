@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -56,7 +57,8 @@ public class FlagManager {
    *
    * @return the {@linkplain FlagManager} singleton, never null
    */
-  public static @NotNull FlagManager get() {
+  @NotNull
+  public static FlagManager get() {
     return ourInstance;
   }
 
@@ -84,28 +86,6 @@ public class FlagManager {
   @Nullable
   public Icon getFlag(@Nullable String language, @Nullable String region) {
     assert region != null || language != null;
-    if (region == null || region.isEmpty()) {
-      // Look up the region for a given language
-      assert language != null;
-
-      if (!showFlagsForLanguages()) {
-        return null;
-      }
-
-      // Special cases where we have a dedicated flag available:
-      if (language.equals("ca")) {        //$NON-NLS-1$
-        return getIcon("catalonia");      //$NON-NLS-1$
-      }
-      else if (language.equals("gd")) { //$NON-NLS-1$
-        return getIcon("scotland");     //$NON-NLS-1$
-      }
-      else if (language.equals("cy")) { //$NON-NLS-1$
-        return getIcon("wales");        //$NON-NLS-1$
-      }
-
-      // Pick based on various heuristics
-      region = LocaleManager.getLanguageRegion(language);
-    }
 
     if (region == null || region.isEmpty() || region.length() == 3) {
       // No country specified, and the language is for a country we
@@ -114,10 +94,6 @@ public class FlagManager {
     }
 
     return getIcon(region);
-  }
-
-  public static boolean showFlagsForLanguages() {
-    return AndroidEditorAppearanceSettings.Companion.getInstance().getState().getEnableFlagsForLanguages();
   }
 
   /**
@@ -183,37 +159,35 @@ public class FlagManager {
   @Nullable
   private Icon getIcon(@NotNull String base) {
     Icon flagImage = myImageMap.get(base);
-    if (flagImage != null) {
-      return flagImage;
-    }
-
-    // TODO: Special case locale currently running on system such
-    // that the current country matches the current locale
-    if (myImageMap.containsKey(base)) {
-      // Already checked: there's just no image there
-      return null;
-    }
-    @SuppressWarnings("UnnecessaryFullyQualifiedName")
-    String flagFileName = StringUtil.toLowerCase(base) + ".png"; //$NON-NLS-1$
-    try {
-      flagImage = IconLoader.findResolvedIcon("icons/flags/" + flagFileName, AndroidIcons.class.getClassLoader());
-    }
-    catch (Throwable t) {
-      // This shouldn't happen in production, but IconLoader.findIcon can throw exceptions
-      // when IconLoader.STRICT is set to true, which is the case when running unit tests
-      // or with idea.is.internal=true
-      Logger.getInstance(FlagManager.class).error(t);
-    }
     if (flagImage == null) {
-      flagImage = StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
+      // TODO: Special case locale currently running on system such
+      // that the current country matches the current locale
+      if (myImageMap.containsKey(base)) {
+        // Already checked: there's just no image there
+        return null;
+      }
+      @SuppressWarnings("UnnecessaryFullyQualifiedName")
+      String flagFileName = StringUtil.toLowerCase(base) + ".png"; //$NON-NLS-1$
+      try {
+        flagImage = IconLoader.findResolvedIcon("icons/flags/" + flagFileName, AndroidIcons.class.getClassLoader());
+      } catch (Throwable t) {
+        // This shouldn't happen in production, but IconLoader.findIcon can throw exceptions
+        // when IconLoader.STRICT is set to true, which is the case when running unit tests
+        // or with idea.is.internal=true
+        Logger.getInstance(FlagManager.class).error(t);
+      }
+      if (flagImage == null) {
+        flagImage = StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
+      }
+      myImageMap.put(base, flagImage);
     }
-    myImageMap.put(base, flagImage);
 
     return flagImage;
   }
 
   /** Returns a {@link ListCellRenderer} suitable for displaying languages when the list model contains String language codes */
-  public @NotNull ListCellRenderer getLanguageCodeCellRenderer() {
+  @NotNull
+  public ListCellRenderer getLanguageCodeCellRenderer() {
     final Function<Object, String> nameMapper = getLanguageNameMapper();
     return SimpleListCellRenderer.create((label, value, index) -> {
       label.setText(nameMapper.fun(value));
@@ -222,7 +196,8 @@ public class FlagManager {
   }
 
   /** Returns a {@link ListCellRenderer} suitable for displaying regions when the list model contains String region codes */
-  public @NotNull ListCellRenderer getRegionCodeCellRenderer() {
+  @NotNull
+  public ListCellRenderer getRegionCodeCellRenderer() {
     final Function<Object, String> nameMapper = getRegionNameMapper();
     return SimpleListCellRenderer.create((label, value, index) -> {
       label.setText(nameMapper.fun(value));
@@ -231,8 +206,9 @@ public class FlagManager {
   }
 
   /** A function which maps from language code to a language label: code + name */
-  public static @NotNull Function<Object, String> getLanguageNameMapper() {
-    return new Function<>() {
+  @NotNull
+  public static  Function<Object, String> getLanguageNameMapper() {
+    return new Function<Object, String>() {
       @Override
       public String fun(Object value) {
         String languageCode = (String)value;
@@ -249,8 +225,9 @@ public class FlagManager {
   }
 
   /** A function which maps from language code to a language label: code + name */
-  public static @NotNull Function<Object, String> getRegionNameMapper() {
-    return new Function<>() {
+  @NotNull
+  public static Function<Object, String> getRegionNameMapper() {
+    return new Function<Object, String>() {
       @Override
       public String fun(Object value) {
         String regionCode = (String)value;
@@ -264,5 +241,26 @@ public class FlagManager {
         return String.format("%1$s: %2$s", regionCode, regionName);
       }
     };
+  }
+
+  /**
+   * Returns a flag image to use for this locale
+   *
+   * @return a flag image, or a default globe icon
+   */
+  @NotNull
+  public static Icon getFlagImage(Locale locale) {
+    String languageCode = locale.qualifier.hasLanguage() ? locale.qualifier.getLanguage() : null;
+    if (languageCode == null) {
+      return StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
+    }
+    String regionCode = locale.hasRegion() ? locale.qualifier.getRegion() : null;
+    FlagManager icons = FlagManager.get();
+    Icon image = icons.getFlag(languageCode, regionCode);
+    if (image == null) {
+      image = StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
+    }
+
+    return image;
   }
 }

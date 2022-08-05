@@ -19,6 +19,16 @@ filegroup(
 )
 
 filegroup(
+    name = "javadoc",
+    srcs = glob(
+        include = [
+            "javadoc/**",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "snapshots",
     srcs = glob(
         include = [

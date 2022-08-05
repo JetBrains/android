@@ -28,7 +28,6 @@ import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 
 public class ThemeResolverTest extends AndroidTestCase {
   /*

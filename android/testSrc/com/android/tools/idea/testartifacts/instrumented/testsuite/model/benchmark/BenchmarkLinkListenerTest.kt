@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchm
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditor
@@ -31,7 +32,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.`when`
 
 class BenchmarkLinkListenerTest {
 
@@ -47,7 +47,7 @@ class BenchmarkLinkListenerTest {
   fun setup() {
     componentStack = ComponentStack(projectRule.project)
     componentStack.registerComponentInstance(FileEditorManager::class.java, mockEditorService)
-    `when`(mockEditorService.openEditor(fileCapture.capture(), any())).thenReturn(ArrayList<FileEditor>())
+    whenever(mockEditorService.openEditor(fileCapture.capture(), any())).thenReturn(ArrayList<FileEditor>())
   }
 
   @After

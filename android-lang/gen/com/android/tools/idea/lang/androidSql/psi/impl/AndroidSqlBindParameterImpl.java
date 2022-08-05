@@ -39,6 +39,7 @@ public class AndroidSqlBindParameterImpl extends ASTWrapperPsiElement implements
     visitor.visitBindParameter(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

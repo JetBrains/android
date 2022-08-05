@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.PROGRESS_BAR;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,7 @@ public class TooltipTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT.defaultName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/root")
                    .withBounds(0, 0, 1000, 1000)
                    .children(

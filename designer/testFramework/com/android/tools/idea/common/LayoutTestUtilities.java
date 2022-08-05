@@ -17,9 +17,7 @@ package com.android.tools.idea.common;
 
 import static com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -39,27 +37,19 @@ import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.common.fixtures.KeyEventBuilder;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
-import com.android.tools.idea.common.model.DefaultSelectionModel;
-import com.android.tools.idea.common.model.DnDTransferItem;
-import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.model.NlComponentMixin;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
-import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -74,10 +64,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,10 +85,10 @@ public class LayoutTestUtilities {
     double xSlope = (x2 - x) / frames;
     double ySlope = (y2 - y) / frames;
 
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     for (int i = 0; i < frames + 1; i++) {
       MouseEvent event = new MouseEventBuilder((int)x, (int)y)
-        .withSource(layeredPane)
+        .withSource(interactionPane)
         .withMask(modifiers | InputEvent.BUTTON1_DOWN_MASK)
         .withId(MouseEvent.MOUSE_DRAGGED)
         .build();
@@ -120,7 +107,7 @@ public class LayoutTestUtilities {
     assertTrue(listener instanceof MouseMotionListener);
     MouseMotionListener mouseListener = (MouseMotionListener)listener;
 
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     int frames = 5;
     double x = x1;
     double y = y1;
@@ -128,7 +115,7 @@ public class LayoutTestUtilities {
     double ySlope = (y2 - y) / frames;
     for (int i = 0; i < frames + 1; i++) {
       MouseEvent event = new MouseEventBuilder((int)x, (int)y)
-        .withSource(layeredPane)
+        .withSource(interactionPane)
         .withId(MouseEvent.MOUSE_MOVED)
         .build();
       mouseListener.mouseMoved(event);
@@ -141,9 +128,9 @@ public class LayoutTestUtilities {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     mouseListener.mousePressed(new MouseEventBuilder(x, y)
-                                 .withSource(layeredPane)
+                                 .withSource(interactionPane)
                                  .withMask(modifiers)
                                  .withButton(button)
                                  .withId(MouseEvent.MOUSE_PRESSED)
@@ -154,9 +141,9 @@ public class LayoutTestUtilities {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     mouseListener.mouseReleased(new MouseEventBuilder(x, y)
-                                  .withSource(layeredPane)
+                                  .withSource(interactionPane)
                                   .withMask(modifiers)
                                   .withButton(button)
                                   .withId(MouseEvent.MOUSE_RELEASED).build());
@@ -168,7 +155,7 @@ public class LayoutTestUtilities {
                                 @SwingCoordinate int x,
                                 @SwingCoordinate int y,
                                 int modifiers) {
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     for (int i = 0; i < count; i++) {
       pressMouse(manager, button, x, y, modifiers);
       releaseMouse(manager, button, x, y, modifiers);
@@ -178,7 +165,7 @@ public class LayoutTestUtilities {
       MouseListener mouseListener = (MouseListener)listener;
       MouseEvent event =
         new MouseEventBuilder(x, y)
-          .withSource(layeredPane)
+          .withSource(interactionPane)
           .withButton(button)
           .withMask(modifiers)
           .withClickCount(i + 1)
@@ -233,9 +220,9 @@ public class LayoutTestUtilities {
     Object listener = manager.getListener();
     assertTrue(listener instanceof KeyListener);
     KeyListener keyListener = (KeyListener)listener;
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     keyListener.keyReleased(new KeyEventBuilder(keyCode, KeyEvent.CHAR_UNDEFINED)
-                              .withSource(layeredPane)
+                              .withSource(interactionPane)
                               .build());
   }
 
@@ -245,10 +232,10 @@ public class LayoutTestUtilities {
 
   public static ScreenView createScreen(SyncNlModel model, double scale,
                                         @SwingCoordinate int x, @SwingCoordinate int y) {
-    NlDesignSurface surface = (NlDesignSurface) model.getSurface();
+    DesignSurface<LayoutlibSceneManager> surface = (DesignSurface<LayoutlibSceneManager>)model.getSurface();
     LayoutlibSceneManager spy = spy(surface.getSceneManager());
     when(surface.getSceneManager()).thenReturn(spy);
-    ScreenView screenView = new ScreenView(surface, spy, DEVICE_CONTENT_SIZE_POLICY) {
+    ScreenView screenView = new ScreenView((NlDesignSurface)surface, spy, DEVICE_CONTENT_SIZE_POLICY) {
       @Override
       public double getScale() {
         return scale;
@@ -258,25 +245,6 @@ public class LayoutTestUtilities {
     when(spy.getSceneView()).thenReturn(screenView);
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     return screenView;
-  }
-
-  public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
-    JComponent layeredPane = new JPanel();
-    DesignSurface surface = mock(surfaceClass);
-    SelectionModel selectionModel = new DefaultSelectionModel();
-    List<DesignSurfaceListener> listeners = new ArrayList<>();
-    when(surface.getLayeredPane()).thenReturn(layeredPane);
-    when(surface.getSelectionModel()).thenReturn(selectionModel);
-    when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
-    when(surface.getScale()).thenReturn(0.5);
-    when(surface.getSelectionAsTransferable()).thenReturn(new ItemTransferable(new DnDTransferItem(0, ImmutableList.of())));
-    doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
-    doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
-    selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
-    if (NlDesignSurface.class.equals(surfaceClass)) {
-      when(((NlDesignSurface)surface).getScreenViewProvider()).thenReturn(NlScreenViewProvider.BLUEPRINT);
-    }
-    return surface;
   }
 
   public static DropTargetContext createDropTargetContext() {
@@ -313,7 +281,7 @@ public class LayoutTestUtilities {
     return null;
   }
 
-  public static NlUsageTracker mockNlUsageTracker(@NotNull DesignSurface surface) {
+  public static NlUsageTracker mockNlUsageTracker(@NotNull DesignSurface<?> surface) {
     AnalyticsSettingsData settings = new AnalyticsSettingsData();
     settings.setOptedIn(true);
     AnalyticsSettings.setInstanceForTest(settings);
@@ -326,7 +294,7 @@ public class LayoutTestUtilities {
     return usageTracker;
   }
 
-  public static void cleanUsageTrackerAfterTesting(@NotNull DesignSurface surface) {
+  public static void cleanUsageTrackerAfterTesting(@NotNull DesignSurface<?> surface) {
     NlUsageTracker.MANAGER.cleanAfterTesting(surface);
     UsageTracker.cleanAfterTesting();
   }

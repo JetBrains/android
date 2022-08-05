@@ -15,12 +15,12 @@
  */
 package org.jetbrains.android.actions
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.replaceService
 import org.mockito.Mockito
-
 
 /**
  * Tests for [GenerateSignedApkAction]
@@ -33,7 +33,7 @@ class GenerateSignedApkActionTest: AndroidGradleTestCase() {
   fun testApkProjectBundleDisabled() {
     loadSimpleApplication()
     val mockInfo = Mockito.mock(AndroidProjectInfo::class.java)
-    Mockito.`when`(mockInfo.isApkProject).thenReturn(true)
+    whenever(mockInfo.isApkProject).thenReturn(true)
     project.replaceService(AndroidProjectInfo::class.java, mockInfo, testRootDisposable)
     assertThat(GenerateSignedApkAction.allowBundleSigning(project)).isFalse()
   }

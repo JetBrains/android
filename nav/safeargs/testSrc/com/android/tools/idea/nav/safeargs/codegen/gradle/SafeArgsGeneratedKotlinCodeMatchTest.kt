@@ -43,8 +43,8 @@ import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
-import org.jetbrains.kotlin.types.error.ErrorType
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.error.ErrorType
 import org.jetbrains.kotlin.types.typeUtil.makeNullable
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.kotlin.KotlinUClass
@@ -226,7 +226,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
       // Note: References to dependencies are not working when generating sources, e.g. NavDirections, but they are
       // not critical to verifying safe args behavior, so we're OK simply peeling the class name out of the error type
       // for now.
-      is ErrorType -> type.debugMessage.substringAfterLast('.').substringAfterLast('$')
+      is ErrorType -> type.debugMessage.removePrefix("Unresolved type for ").substringAfterLast('.').substringAfterLast('$')
       else -> type.fqName!!.shortName().asString().substringAfterLast('$')
     }
   }

@@ -51,10 +51,10 @@ public class AppBarConfigurationDialogTest {
 
     String layoutFileContents = editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
-    assertThat(layoutFileContents).doesNotContain("<android.support.design.widget.AppBarLayout");
+    assertThat(layoutFileContents).doesNotContain("<com.google.android.material.appbar.AppBarLayout");
     String gradleContents = editor.open("app/build.gradle")
       .getCurrentFileContents();
-    assertThat(gradleContents).doesNotContain("com.android.support:design:");
+    assertThat(gradleContents).doesNotContain("com.google.android.material:material:");
 
     // Now repeat the same process but ADD the dependency.
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
@@ -70,10 +70,10 @@ public class AppBarConfigurationDialogTest {
     layoutFileContents = editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
     // The component was not added (we canceled the AppBarConfigurationDialog
-    assertThat(layoutFileContents).doesNotContain("<android.support.design.widget.AppBarLayout");
+    assertThat(layoutFileContents).doesNotContain("<com.google.android.material.appbar.AppBarLayout");
     gradleContents = editor.open("app/build.gradle")
       .getCurrentFileContents();
-    assertThat(gradleContents).contains("com.android.support:design:");
+    assertThat(gradleContents).contains("com.google.android.material:material:");
   }
 
   @Test
@@ -94,9 +94,9 @@ public class AppBarConfigurationDialogTest {
 
     String layoutFileContents = editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
-    assertThat(layoutFileContents).contains("<android.support.design.widget.AppBarLayout");
+    assertThat(layoutFileContents).contains("<com.google.android.material.appbar.AppBarLayout");
     String gradleContents = editor.open("app/build.gradle")
       .getCurrentFileContents();
-    assertThat(gradleContents).contains("com.android.support:design:");
+    assertThat(gradleContents).contains("com.google.android.material:material:");
   }
 }

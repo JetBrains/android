@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.ide.DataManager
@@ -91,6 +92,7 @@ class LayoutInspector private constructor(
       client.registerErrorCallback(::logError)
       client.registerTreeEventCallback(::loadComponentTree)
       client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
+      client.registerConnectionTimeoutCallback { state -> layoutInspectorModel.fireAttachStateEvent(state) }
       stats.start(client.isCapturing)
     }
     else {
@@ -122,8 +124,16 @@ class LayoutInspector private constructor(
             return@execute
           }
           latestLoadTime.set(time)
-          layoutInspectorModel.update(data.window, allIds, data.generation)
-          currentClient.updateProgress(AttachErrorState.MODEL_UPDATED)
+          // If we've disconnected, don't continue with the update.
+          if (currentClient.state <= InspectorClient.State.CONNECTED) {
+            layoutInspectorModel.update(data.window, allIds, data.generation) {
+              currentClient.updateProgress(AttachErrorState.MODEL_UPDATED)
+            }
+          }
+          // Check one more time to see if we've disconnected.
+          if (currentClient.state > InspectorClient.State.CONNECTED) {
+            layoutInspectorModel.clear()
+          }
         }
       }
     }
@@ -131,6 +141,7 @@ class LayoutInspector private constructor(
 
   private fun logError(error: String) {
     Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(error)
+    InspectorBannerService.getInstance(layoutInspectorModel.project).setNotification(error)
 
     if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
       ApplicationManager.getApplication().invokeLater {

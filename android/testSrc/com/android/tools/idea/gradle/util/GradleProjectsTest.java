@@ -20,8 +20,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPrepar
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -47,7 +46,6 @@ import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -63,12 +61,9 @@ public class GradleProjectsTest implements GradleIntegrationTest {
   @Rule
   public Expect expect = Expect.createAndEnableStackTrace();
 
-  @Rule
-  public TestName testName = new TestName();
-
   @Test
   public void testIsGradleProjectWithRegularProject() {
-    expect.that(AndroidProjectInfo.getInstance(projectRule.getProject()).requiresAndroidModel()).isFalse();
+    expect.that(ProjectSystemUtil.requiresAndroidModel(projectRule.getProject())).isFalse();
   }
 
   @Test
@@ -77,7 +72,7 @@ public class GradleProjectsTest implements GradleIntegrationTest {
     AndroidFacet facet = AndroidFacet.getInstance(gradleModule(projectRule.getProject(), ":"));
 
     expect.that(facet.getProperties().ALLOW_USER_CONFIGURATION).isFalse();
-    expect.that(AndroidProjectInfo.getInstance(projectRule.getProject()).requiresAndroidModel()).isTrue();
+    expect.that(ProjectSystemUtil.requiresAndroidModel(projectRule.getProject())).isTrue();
   }
 
   @Test
@@ -98,8 +93,7 @@ public class GradleProjectsTest implements GradleIntegrationTest {
   }
 
   @Test
-  public void testGradlePathWithModulePerSourceSet() {
-    StudioFlags.USE_MODULE_PER_SOURCE_SET.override(   true);
+  public void testGradlePath() {
     prepareGradleProject(this,  TestProjectPaths.SIMPLE_APPLICATION, "project");
     openPreparedProject(this, "project", project -> {
       List<Module> modules = Arrays.stream(ModuleManager.getInstance(project).getModules()).sorted(Comparator.comparing(Module::getName))
@@ -111,7 +105,6 @@ public class GradleProjectsTest implements GradleIntegrationTest {
       expect.that(GradleProjects.getGradleModulePath(modules.get(4))).isEqualTo(":app"); // unit test module
       return Unit.INSTANCE;
     });
-    StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride();
   }
 
   private void validateModuleGradlePath(Project project, String s) {
@@ -140,12 +133,6 @@ public class GradleProjectsTest implements GradleIntegrationTest {
   @Override
   public Collection<File> getAdditionalRepos() {
     return Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return testName.getMethodName();
   }
 
   @NotNull

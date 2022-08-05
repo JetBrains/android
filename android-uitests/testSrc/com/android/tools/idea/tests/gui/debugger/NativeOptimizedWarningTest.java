@@ -44,13 +44,12 @@ public class NativeOptimizedWarningTest extends DebuggerTestBase {
 
   private static final String DEBUG_CONFIG_NAME = "app";
 
-  private final GenericTypeMatcher<JLabel> myWarningMatcher = new GenericTypeMatcher<>(JLabel.class) {
+  private final GenericTypeMatcher<JLabel> myWarningMatcher = new GenericTypeMatcher<JLabel>(JLabel.class) {
     @Override
     protected boolean isMatching(@NotNull JLabel component) {
       String text = component.getText();
-      if (text == null) {
+      if (text == null)
         return false;
-      }
       return text.contains("WARNING: This function was compiled");
     }
   };

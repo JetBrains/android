@@ -18,8 +18,10 @@ package com.android.tools.nativeSymbolizer
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.projectsystem.SourceProviders
+import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -68,13 +70,9 @@ class NdkSymbolSource(private val module: Module): SymbolSource {
 }
 
 /** Gets symbol directories from a module's Gradle file. */
-class JniSymbolSource(private val module:Module): SymbolSource {
+class JniSymbolSource(private val module: Module) : SymbolSource {
   override fun getDirsFor(abi: Abi): Collection<File> {
-    val androidModel = AndroidModuleModel.get(module) ?: return emptySet()
-
-    return androidModel.activeSourceProviders
-        .flatMapTo(mutableSetOf()) { it.jniLibsDirectories }
-        .map { jniDir -> File(jniDir, abi.toString()) }
+    return module.androidFacet?.let { SourceProviders.getInstance(it) }?.sources?.jniLibsDirectories?.map { it.toIoFile() }.orEmpty()
   }
 }
 

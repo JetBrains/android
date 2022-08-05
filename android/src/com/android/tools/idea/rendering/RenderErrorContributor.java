@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CLASS_FLEXBOX_LAYOUT;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.DOT_JAVA;
@@ -41,12 +41,9 @@ import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
-import com.android.tools.idea.rendering.classloading.ClassConverter;
-import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -56,34 +53,21 @@ import com.android.xml.AndroidManifest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
-import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
-import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -93,17 +77,14 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -125,20 +106,15 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
 
 /**
  * Class that finds {@link RenderErrorModel.Issue}s in a {@link RenderResult}.
  */
 public class RenderErrorContributor {
   private static final String RENDER_SESSION_IMPL_FQCN = "com.android.layoutlib.bridge.impl.RenderSessionImpl";
-  private static final Key<CachedValue<Set<String>>> VIEWS_CACHE_KEY =
-    new Key<>(RenderErrorContributor.class.getName() + ".VIEWS_CACHE");
 
   // These priorities can be used to promote certain issues to the top of the list
   protected static final int HIGH_PRIORITY = 100;
@@ -151,15 +127,23 @@ public class RenderErrorContributor {
   private final Set<RenderErrorModel.Issue> myIssues = new LinkedHashSet<>();
   private final HtmlLinkManager myLinkManager;
   private final HyperlinkListener myLinkHandler;
-  private final RenderResult myResult;
+  @NotNull private final Module myModule;
+  @NotNull protected final PsiFile mySourceFile;
+  @NotNull private final RenderLogger myLogger;
+  @Nullable private final RenderContext myRenderContext;
+  private final boolean myHasRequestedCustomViews;
   private final DataContext myDataContext;
   private final EditorDesignSurface myDesignSurface;
 
   protected RenderErrorContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
-    myResult = result;
-
+    // To get rid of memory leak, get needed RenderResult attributes to avoid referencing RenderResult.
+    myModule = result.getModule();
+    mySourceFile = result.getSourceFile();
+    myLogger = result.getLogger();
+    myRenderContext = result.getRenderContext();
+    myHasRequestedCustomViews = result.hasRequestedCustomViews();
     myDesignSurface = surface;
-    myLinkManager = myResult.getLogger().getLinkManager();
+    myLinkManager = result.getLogger().getLinkManager();
     myLinkHandler = e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         JEditorPane pane = (JEditorPane)e.getSource();
@@ -170,7 +154,7 @@ public class RenderErrorContributor {
           return;
         }
 
-        performClick(myResult, e.getDescription());
+        performClick(e.getDescription());
       }
     };
 
@@ -228,68 +212,6 @@ public class RenderErrorContributor {
     return TagToClassMapper.getInstance(module).getClassMap(CLASS_VIEW).values().stream()
       .map(PsiClass::getQualifiedName)
       .collect(Collectors.toSet());
-  }
-
-  static boolean isBuiltByJdk7OrHigher(@NotNull Module module) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null) {
-      return false;
-    }
-
-    AndroidSdks androidSdks = AndroidSdks.getInstance();
-    if (androidSdks.isAndroidSdk(sdk)) {
-      AndroidSdkAdditionalData data = androidSdks.getAndroidSdkAdditionalData(sdk);
-      if (data != null) {
-        Sdk jdk = data.getJavaSdk();
-        if (jdk != null) {
-          sdk = jdk;
-        }
-      }
-    }
-    return sdk.getSdkType() instanceof JavaSdk &&
-           JavaSdk.getInstance().isOfVersionOrHigher(sdk, JavaSdkVersion.JDK_1_7);
-  }
-
-  private static void collectProblemModules(@NotNull Module module, @NotNull Set<Module> visited, @NotNull Collection<Module> result) {
-    if (!visited.add(module)) {
-      return;
-    }
-
-    if (isBuiltByJdk7OrHigher(module)) {
-      result.add(module);
-    }
-
-    for (Module depModule : ModuleRootManager.getInstance(module).getDependencies(false)) {
-      collectProblemModules(depModule, visited, result);
-    }
-  }
-
-  @NotNull
-  private static Set<String> getSdkNamesFromModules(@NotNull Collection<Module> modules) {
-    final Set<String> result = new HashSet<>();
-    for (Module module : modules) {
-      final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-
-      if (sdk != null) {
-        result.add(sdk.getName());
-      }
-    }
-    return result;
-  }
-
-  @NotNull
-  private static List<Module> getProblemModules(@NotNull Module root) {
-    final List<Module> result = new ArrayList<>();
-    collectProblemModules(root, new HashSet<>(), result);
-    return result;
-  }
-
-  private static void askAndRebuild(Project project) {
-    final int r = Messages.showYesNoDialog(project, "You have to rebuild project to see the fixed preview. Would you like to do it?",
-                                           "Rebuild Project", Messages.getQuestionIcon());
-    if (r == Messages.YES) {
-      CompilerManager.getInstance(project).rebuild(null);
-    }
   }
 
   /**
@@ -443,11 +365,8 @@ public class RenderErrorContributor {
   }
 
   @VisibleForTesting
-  public void performClick(@NotNull RenderResult result, @NotNull String url) {
-    Module module = result.getModule();
-    PsiFile file = result.getSourceFile();
-
-    myLinkManager.handleUrl(url, module, file, myDataContext, result, myDesignSurface);
+  public void performClick(@NotNull String url) {
+    myLinkManager.handleUrl(url, myModule, mySourceFile, myDataContext, true, myDesignSurface);
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
@@ -477,7 +396,7 @@ public class RenderErrorContributor {
           .newline().newline();
       }
     }
-    else if (myResult.hasRequestedCustomViews()) {
+    else if (myHasRequestedCustomViews) {
       boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> FileTypeRegistry.getInstance().isFileOfType(virtualFile, JavaFileType.INSTANCE));
       if (hasJavaErrors) {
         summary = "Compilation errors";
@@ -629,8 +548,8 @@ public class RenderErrorContributor {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myResult.getRenderContext() != null ?
-                                      myResult.getRenderContext().getConfiguration().getRealTarget() :
+              IAndroidTarget target = myRenderContext != null ?
+                                      myRenderContext.getConfiguration().getRealTarget() :
                                       null;
               platformSource = target != null ? AndroidSdks.getInstance().findPlatformSources(target) : null;
               platformSourceExists = platformSource != null;
@@ -725,7 +644,7 @@ public class RenderErrorContributor {
     });
   }
 
-  private void reportTagResourceFormat(@NotNull RenderResult result, @NotNull RenderProblem message) {
+  private void reportTagResourceFormat(@NotNull RenderProblem message) {
     Object clientData = message.getClientData();
     if (!(clientData instanceof String[])) {
       return;
@@ -735,7 +654,7 @@ public class RenderErrorContributor {
       return;
     }
 
-    RenderContext renderContext = result.getRenderContext();
+    RenderContext renderContext = myRenderContext;
     if (renderContext == null) {
       return;
     }
@@ -748,7 +667,7 @@ public class RenderErrorContributor {
       return;
     }
     AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
-    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(result.getSourceFile().getProject());
+    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(mySourceFile.getProject());
     String attributeName = strings[0];
     String currentValue = strings[1];
     AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
@@ -800,7 +719,7 @@ public class RenderErrorContributor {
       if (tag != null) {
         switch (tag) {
           case ILayoutLog.TAG_RESOURCES_FORMAT:
-            reportTagResourceFormat(myResult, message);
+            reportTagResourceFormat(message);
             continue;
           case ILayoutLog.TAG_RTL_NOT_ENABLED:
             reportRtlNotEnabled(logger);
@@ -863,7 +782,7 @@ public class RenderErrorContributor {
 
       addRefreshAction(builder);
       addIssue()
-        .setSeverity(HighlightSeverity.ERROR)
+        .setSeverity(message.getSeverity())
         .setSummary(summary)
         .setHtmlContent(builder)
         .build();
@@ -1191,95 +1110,6 @@ public class RenderErrorContributor {
       .build();
   }
 
-  private void reportInstantiationProblems(@NotNull final RenderLogger logger) {
-    Map<String, Throwable> classesWithIncorrectFormat = logger.getClassesWithIncorrectFormat();
-    if (classesWithIncorrectFormat.isEmpty()) {
-      return;
-    }
-
-    HtmlBuilder builder = new HtmlBuilder();
-    builder
-      .add("Preview might be incorrect: unsupported class version.").newline()
-      .addIcon(HtmlBuilderHelper.getTipIconPath())
-      .add("Tip: ");
-
-    builder.add("You need to run the IDE with the highest JDK version that you are compiling custom views with. ");
-
-    int highest = ClassConverter.findHighestMajorVersion(classesWithIncorrectFormat.values());
-    if (highest > 0 && highest > ClassConverter.getCurrentClassVersion()) {
-      String required = ClassConverter.classVersionToJdk(highest);
-      builder.add("One or more views have been compiled with JDK ")
-        .add(required)
-        .add(", but you are running the IDE on JDK ")
-        .add(ClassConverter.getCurrentJdkVersion())
-        .add(". ");
-    }
-    else {
-      builder.add("For example, if you are compiling with sourceCompatibility 1.7, you must run the IDE with JDK 1.7. ");
-    }
-    builder.add("Running on a higher JDK is necessary such that these classes can be run in the layout renderer. " +
-                "(Or, extract your custom views into a library which you compile with a lower JDK version.)")
-      .newline().newline()
-      .addLink("If you have just accidentally built your code with a later JDK, try to ", "build", " the project.",
-               myLinkManager.createBuildProjectUrl())
-      .newline().newline()
-      .add("Classes with incompatible format:");
-
-    builder.beginList();
-    List<String> names = Lists.newArrayList(classesWithIncorrectFormat.keySet());
-    Collections.sort(names);
-    for (String className : names) {
-      builder.listItem();
-      builder.add(className);
-      //noinspection ThrowableResultOfMethodCallIgnored
-      Throwable throwable = classesWithIncorrectFormat.get(className);
-      if (throwable instanceof InconvertibleClassError) {
-        InconvertibleClassError error = (InconvertibleClassError)throwable;
-        builder.add(" (Compiled with ")
-          .add(ClassConverter.classVersionToJdk(error.getMajor()))
-          .add(")");
-      }
-    }
-    builder.endList();
-
-    Module module = logger.getModule();
-    if (module == null) {
-      return;
-    }
-    final List<Module> problemModules = getProblemModules(module);
-    if (!problemModules.isEmpty()) {
-      builder.add("The following modules are built with incompatible JDK:").newline();
-      for (Iterator<Module> it = problemModules.iterator(); it.hasNext(); ) {
-        Module problemModule = it.next();
-        builder.add(problemModule.getName());
-        if (it.hasNext()) {
-          builder.add(", ");
-        }
-      }
-      builder.newline();
-    }
-
-    AndroidFacet facet = AndroidFacet.getInstance(logger.getModule());
-    if (facet != null && !AndroidModel.isRequired(facet)) {
-      Project project = logger.getModule().getProject();
-      builder
-        .addLink("Rebuild project with '-target 1.6'", myLinkManager.createRunnableLink(new RebuildWith16Fix(project)))
-        .newline();
-
-      if (!problemModules.isEmpty()) {
-        builder
-          .addLink("Change Java SDK to 1.6", myLinkManager.createRunnableLink(new SwitchTo16Fix(project, problemModules)))
-          .newline();
-      }
-    }
-
-    addIssue()
-      .setSeverity(HighlightSeverity.WARNING)
-      .setSummary("Some classes have an unsupported version")
-      .setHtmlContent(builder)
-      .build();
-  }
-
   private void reportUnknownFragments(@NotNull final RenderLogger logger) {
     List<String> fragmentNames = logger.getMissingFragments();
     if (fragmentNames == null || fragmentNames.isEmpty()) {
@@ -1328,7 +1158,7 @@ public class RenderErrorContributor {
           PsiClass clz = DumbService.getInstance(project).isDumb() ?
                          null :
                          JavaPsiFacade.getInstance(project).findClass(className, scope);
-          String layoutName = myResult.getSourceFile().getName();
+          String layoutName = mySourceFile.getName();
           boolean separate = false;
           if (clz != null) {
             // TODO: Should instead find all R.layout elements
@@ -1406,8 +1236,8 @@ public class RenderErrorContributor {
   }
 
   public Collection<RenderErrorModel.Issue> reportIssues() {
-    RenderLogger logger = myResult.getLogger();
-    RenderContext renderContext = myResult.getRenderContext();
+    RenderLogger logger = myLogger;
+    RenderContext renderContext = myRenderContext;
 
     reportMissingStyles(logger);
     reportAppCompatRequired(logger);
@@ -1415,11 +1245,10 @@ public class RenderErrorContributor {
       reportRelevantCompilationErrors(logger);
       reportMissingSizeAttributes(logger,
                                   renderContext,
-                                  (myResult.getSourceFile() instanceof XmlFile) ? (XmlFile)myResult.getSourceFile() : null);
+                                  (mySourceFile instanceof XmlFile) ? (XmlFile)mySourceFile : null);
       reportMissingClasses(logger);
     }
     reportBrokenClasses(logger);
-    reportInstantiationProblems(logger);
     reportOtherProblems(logger);
     reportUnknownFragments(logger);
     reportRenderingFidelityProblems(logger);
@@ -1428,66 +1257,12 @@ public class RenderErrorContributor {
     return getIssues();
   }
 
-  protected RenderResult getResult() {
-    return myResult;
-  }
-
   protected HtmlLinkManager getLinkManager() {
     return myLinkManager;
   }
 
   protected Collection<RenderErrorModel.Issue> getIssues() {
     return Collections.unmodifiableCollection(myIssues);
-  }
-
-  private static class RebuildWith16Fix implements Runnable {
-    private final Project myProject;
-
-    private RebuildWith16Fix(Project project) {
-      myProject = project;
-    }
-
-    @Override
-    public void run() {
-      final JpsJavaCompilerOptions settings = JavacConfiguration.getOptions(myProject, JavacConfiguration.class);
-      if (!settings.ADDITIONAL_OPTIONS_STRING.isEmpty()) {
-        settings.ADDITIONAL_OPTIONS_STRING += ' ';
-      }
-      settings.ADDITIONAL_OPTIONS_STRING += "-target 1.6";
-      CompilerManager.getInstance(myProject).rebuild(null);
-    }
-  }
-
-  private static class SwitchTo16Fix implements Runnable {
-    final List<Module> myProblemModules;
-    private final Project myProject;
-
-    private SwitchTo16Fix(Project project, List<Module> problemModules) {
-      myProject = project;
-      myProblemModules = problemModules;
-    }
-
-    @Override
-    public void run() {
-      final Set<String> sdkNames = getSdkNamesFromModules(myProblemModules);
-      if (sdkNames.size() == 1) {
-        final Sdk sdk = ProjectJdkTable.getInstance().findJdk(sdkNames.iterator().next());
-        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-          final ProjectStructureConfigurable config = ProjectStructureConfigurable.getInstance(myProject);
-          if (ShowSettingsUtil.getInstance().editConfigurable(myProject, config, () -> config.select(sdk, true))) {
-            askAndRebuild(myProject);
-          }
-          return;
-        }
-      }
-
-      final String moduleToSelect = !myProblemModules.isEmpty()
-                                    ? myProblemModules.iterator().next().getName()
-                                    : null;
-      if (ModulesConfigurator.showDialog(myProject, moduleToSelect, ClasspathEditor.getName())) {
-        askAndRebuild(myProject);
-      }
-    }
   }
 
   public static class Provider {

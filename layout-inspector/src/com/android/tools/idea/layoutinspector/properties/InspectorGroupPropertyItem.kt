@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
-import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable.PTableGroupItem
 
 /**
  * PropertyItem instance that holds child items.

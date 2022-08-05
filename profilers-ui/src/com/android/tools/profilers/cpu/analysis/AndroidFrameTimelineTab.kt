@@ -53,4 +53,12 @@ class AndroidFrameTimelineTab(profilersView: StudioProfilersView, model: Android
     }
     private val PAGE_SIZE_VALUES = arrayOf(10, 25, 50, 100)
   }
+
+  override fun onRemoved() {
+    // this tab doesn't leak heavy listeners
+  }
+
+  override fun onReattached() {
+    // this tab doesn't remove anything to restore
+  }
 }

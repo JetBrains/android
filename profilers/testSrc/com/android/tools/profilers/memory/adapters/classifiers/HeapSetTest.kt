@@ -32,4 +32,17 @@ class HeapSetTest {
     h.removeAddedDeltaInstanceObject(inst1)
     assertThat(h.totalRemainingSize).isEqualTo(inst2.shallowSize)
   }
+
+  @Test
+  fun `heap set makes use of classes' retained sizes if present`() {
+    val capture = FakeCaptureObject.Builder().build()
+    val cl = capture.registerClass(1, 0, "obj", 8)
+    val inst1 = FakeInstanceObject.Builder(cl).setRetainedSize(8).build()
+    val inst2 = FakeInstanceObject.Builder(cl).setRetainedSize(4).build()
+    val h = HeapSet(capture, "Fake", 0)
+    h.addDeltaInstanceObject(inst1)
+    h.addDeltaInstanceObject(inst2)
+    assertThat(h.totalRetainedSize).isEqualTo(8)
+    assertThat(h.childrenClassifierSets[0].totalRetainedSize).isEqualTo(8)
+  }
 }

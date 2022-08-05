@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.emulator
 
-import io.grpc.ManagedChannelBuilder
-import io.grpc.netty.NettyChannelBuilder
+import com.android.tools.idea.io.grpc.ManagedChannelBuilder
+import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 
 /**
  * A container of properties that may have different values in production environment and in tests.

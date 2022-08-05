@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
@@ -174,17 +173,15 @@ class TableViewImpl : TableView {
       }
       .installOn(liveUpdatesCheckBox)
 
-    if (DatabaseInspectorFlagController.isExportToFileEnabled) {
-      exportButton.name = "export-button"
-      exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
-      exportButton.isEnabled = false
-      HelpTooltip()
-        .setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title"))
-        .installOn(exportButton)
-      tableActionsPanel.add(Box.createHorizontalStrut(4))
-      tableActionsPanel.add(exportButton)
-      exportButton.addActionListener { listeners.forEach { it.showExportToFileDialogInvoked() } }
-    }
+    exportButton.name = "export-button"
+    exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
+    exportButton.isEnabled = false
+    HelpTooltip()
+      .setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title"))
+      .installOn(exportButton)
+    tableActionsPanel.add(Box.createHorizontalStrut(4))
+    tableActionsPanel.add(exportButton)
+    exportButton.addActionListener { listeners.forEach { it.showExportToFileDialogInvoked() } }
 
     readOnlyLabel.isVisible = false
     readOnlyLabel.name = "read-only-label"

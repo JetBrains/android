@@ -16,6 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ModuleRClass.SourceSet.MAIN
 import com.android.tools.idea.res.ModuleRClass.SourceSet.TEST
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.NON_TRANSITIVE
@@ -27,9 +28,7 @@ import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.LIGHT_CLASS_K
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.MODULE_POINTER_KEY
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.TRANSITIVITY_KEY
 import org.jetbrains.android.augment.AndroidLightField
-import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.dom.manifest.getPackageName as getPackageNameFromManifest
 
 class ModuleRClass(
   val facet: AndroidFacet,
@@ -75,8 +74,8 @@ class ModuleRClass(
     override fun getFieldModifier() = _fieldModifier
 
     override fun getPackageName() = when (sourceSet) {
-      MAIN -> getPackageNameFromManifest(facet)
-      TEST -> getTestPackageName(facet)
+      MAIN -> facet.getModuleSystem().getPackageName()
+      TEST -> facet.getModuleSystem().getTestPackageName()
     }
 
     override fun getResourceRepositoryManager(): ResourceRepositoryManager {

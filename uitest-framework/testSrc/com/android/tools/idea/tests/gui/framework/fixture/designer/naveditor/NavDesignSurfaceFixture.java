@@ -112,7 +112,7 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
     waitForRenderToFinish();
     ActionToolbarImpl toolbar = robot().finder().findByName(target().getParent(), "NlLayoutToolbar", ActionToolbarImpl.class);
     ActionButton button =
-      waitUntilShowingAndEnabled(robot(), toolbar.getComponent(), new GenericTypeMatcher<>(ActionButton.class) {
+      waitUntilShowingAndEnabled(robot(), toolbar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
         @Override
         protected boolean isMatching(@NotNull ActionButton component) {
           return menuType.isInstance(component.getAction());

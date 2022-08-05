@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils.MOTION_LAYOUT_PROPERTIES;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
@@ -25,7 +26,6 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MotionLayoutDecorator extends SceneDecorator {
   public static final String CONSTRAINT_HOVER = "CONSTRAINT_HOVER";
-  private static boolean ourBlockSelection = !StudioFlags.NELE_CONSTRAINT_SELECTOR.get();
+  private static final boolean ourBlockSelection = false;
   private final static String[] LEFT_DIR = {
     SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
     SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
@@ -606,9 +606,9 @@ public class MotionLayoutDecorator extends SceneDecorator {
         if (child.getParent().equals(sc)) { // flag a child connection
           destType = DrawConnection.DEST_PARENT;
         }
-        else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))
+        else if (AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))
                  ||
-                 SdkConstants.CONSTRAINT_LAYOUT_BARRIER
+                 AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER
                    .isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))) {
           destType = DrawConnection.DEST_GUIDELINE;
         }
@@ -686,9 +686,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
         }
 
         DrawConnection
-          .buildDisplayList(list, ourBlockSelection
-                                  ? null
-                                  : SecondarySelector.get(child.getNlComponent(), SecondarySelector.Constraint.values()[i]), connectType,
+          .buildDisplayList(list, SecondarySelector.get(child.getNlComponent(), SecondarySelector.Constraint.values()[i]), connectType,
                             source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
                             isMarginReference, bias, previousMode, currentMode, changeStart);
         if (((anchorTarget != null && anchorTarget.isMouseHovered()) || hoverConnection) && viewSelected) {

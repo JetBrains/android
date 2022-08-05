@@ -275,7 +275,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
           "overrides.deprecated.method",
           HighlightMessageUtil.getSymbolName(aClass, PsiSubstitutor.EMPTY));
 
-        List<LocalQuickFix> fixes = new ArrayList<>(4);
+        List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>(4);
         String symbolName = HighlightMessageUtil.getSymbolName(methodName, PsiSubstitutor.EMPTY);
         for (DeprecationFilter filter : getFilters()) {
           if (filter.isExcluded(superMethod, methodName, symbolName)) {
@@ -329,7 +329,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
     String symbolName = HighlightMessageUtil.getSymbolName(refElement, PsiSubstitutor.EMPTY);
     String description = JavaErrorBundle.message("deprecated.symbol", symbolName);
 
-    List<LocalQuickFix> fixes = new ArrayList<>(4);
+    List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>(4);
     for (DeprecationFilter filter : getFilters()) {
       if (filter.isExcluded(refElement, elementToHighlight, symbolName)) {
         return;

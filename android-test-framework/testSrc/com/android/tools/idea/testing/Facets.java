@@ -17,7 +17,6 @@ package com.android.tools.idea.testing;
 
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetConfiguration;
@@ -57,11 +56,6 @@ public final class Facets {
   }
 
   @NotNull
-  public static JavaFacet createAndAddJavaFacet(@NotNull Module module) {
-    return createAndAddFacet(module, JavaFacet.getFacetType(), JavaFacet.getFacetName());
-  }
-
-  @NotNull
   public static GradleFacet createAndAddGradleFacet(@NotNull Module module) {
     return createAndAddFacet(module, GradleFacet.getFacetType(), GradleFacet.getFacetName());
   }
@@ -77,10 +71,6 @@ public final class Facets {
 
   public static void deleteApkFacetIfExists(@NotNull Module module) {
     deleteFacetIfExists(module, ApkFacet.getFacetTypeId(), ApkFacet.getFacetName());
-  }
-
-  public static void deleteJavaFacetIfExists(@NotNull Module module) {
-    deleteFacetIfExists(module, JavaFacet.getFacetTypeId(), JavaFacet.getFacetName());
   }
 
   public static void deleteNdkFacetIfExists(@NotNull Module module) {

@@ -68,6 +68,7 @@ public class ApkViewerTest {
 
     ProjectViewFixture projectView = ideFrame
       .invokeAndWaitForBuildAction(Wait.seconds(180), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
+      .requestProjectSyncAndWaitForSyncToFinish()
       .getProjectView();
 
     PaneFixture paneFixture = projectView.selectProjectPane();

@@ -16,17 +16,11 @@
 package com.android.tools.idea.gradle.actions;
 
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -38,8 +32,6 @@ import org.mockito.Mock;
  */
 public class MakeGradleProjectActionTest extends PlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
-  @Mock private ProjectStructure myProjectStructure;
-
   private MakeGradleProjectAction myAction;
 
   @Override
@@ -49,43 +41,15 @@ public class MakeGradleProjectActionTest extends PlatformTestCase {
 
     Project project = getProject();
     ServiceContainerUtil.replaceService(project, GradleBuildInvoker.class, myBuildInvoker, getTestRootDisposable());
-    ServiceContainerUtil.replaceService(project, ProjectStructure.class, myProjectStructure, getTestRootDisposable());
 
     myAction = new MakeGradleProjectAction();
   }
 
   public void testDoPerform() {
-    ImmutableList<Module> leafModules = ImmutableList.of(createModule("leaf1"), createModule("leaf2"));
-    when(myProjectStructure.getLeafModules()).thenReturn(leafModules);
-
     // Method to test.
     myAction.doPerform(new TestActionEvent(), getProject());
 
-    // Verify that only "leaf" modules were built.
-    verify(myBuildInvoker).assemble(eq(leafModules.toArray(Module.EMPTY_ARRAY)), eq(TestCompileType.ALL));
-  }
-
-  public void testDoPerformWithFailedSync() {
-    // Simulate failed sync.
-    GradleSyncState syncState = mock(GradleSyncState.class);
-    ServiceContainerUtil.replaceService(getProject(), GradleSyncState.class, syncState, getTestRootDisposable());
-    when(syncState.lastSyncFailed()).thenReturn(true);
-
-    // when sync fails, the list of "leaf" modules is empty.
-    when(myProjectStructure.getLeafModules()).thenReturn(ImmutableList.of());
-
-    // Method to test.
-    myAction.doPerform(new TestActionEvent(), getProject());
-
-    verify(myBuildInvoker).assemble(eq(Module.EMPTY_ARRAY), eq(TestCompileType.ALL));
-  }
-
-  public void testActionNotEnabledOnFailedSync() {
-    when(myProjectStructure.getLeafModules()).thenReturn(ImmutableList.of());
-
-    TestActionEvent testAction = new TestActionEvent();
-    myAction.doUpdate(testAction, getProject());
-
-    assertFalse(testAction.getPresentation().isEnabled());
+    // Verify.
+    verify(myBuildInvoker).assemble(eq(TestCompileType.ALL));
   }
 }

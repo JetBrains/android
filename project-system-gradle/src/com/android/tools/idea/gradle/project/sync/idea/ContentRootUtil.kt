@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.gradle.model.IdeVariantCore
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
+import com.android.tools.idea.gradle.project.model.activeSourceProviders
+import com.android.tools.idea.gradle.project.model.androidTestSourceProviders
+import com.android.tools.idea.gradle.project.model.testFixturesSourceProviders
+import com.android.tools.idea.gradle.project.model.unitTestSourceProviders
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGeneratedSourceFoldersToUse
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -37,107 +39,11 @@ import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceTyp
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE_GENERATED
 import com.intellij.openapi.externalSystem.model.project.ModuleData
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.annotations.SystemDependent
+import org.jetbrains.kotlin.idea.base.externalSystem.NodeWithData
+import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
-
-/**
- * Sets up all of the content entries for a given [DataNode] containing the [ModuleData]. We use the given
- * [variant] to find the information required to set up the [ContentRootData] if the root folder of the module
- * exists as a content root we will attempt to re-use it. Anything outside of this folder will be added in their
- * own [ContentRootData].
- *
- * If no [variant] is provided that this method will operate solely on the information contained within the [DataNode] tree.
- * This method should have no effects outside of manipulating the [DataNode] tree from the [ModuleData] node downwards.
- */
-fun DataNode<ModuleData>.setupAndroidContentEntries(variant: IdeVariant?) {
-  // 1 - Extract all of the information (models) we need from the nodes
-  val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
-  val selectedVariant = variant ?: androidModel.selectedVariant
-
-  // 2 - Compute all of the content roots that this module requires from the models we obtained above.
-  val contentRoots = collectContentRootData(selectedVariant, androidModel)
-
-  // 3 - Add the ContentRootData nodes to the module.
-  contentRoots.forEach { contentRootData ->
-    this.createChild(ProjectKeys.CONTENT_ROOT, contentRootData)
-  }
-}
-
-/**
- * This is a helper for [setupAndroidContentEntries] this method collects all of the content roots for a given variant.
- *
- * This method will attempt to reuse the root project path from [androidModel] and will create new content entries for
- * anything outside of this path.
- *
- * Any existing [ContentRootData] will not be included in the returned collection, these may be modified.
- * The returned collection contains only new [ContentRootData] that were created inside this method.
- */
-private fun collectContentRootData(
-  variant: IdeVariant,
-  androidModel: GradleAndroidModel
-): Collection<ContentRootData> {
-  val buildDir: File = androidModel.androidProject.buildFolder
-  val moduleRootPath = ExternalSystemApiUtil.toCanonicalPath(androidModel.rootDirPath.absolutePath)
-
-  val newContentRoots = mutableListOf<ContentRootData>()
-  val mainContentRootData = ContentRootData(GradleConstants.SYSTEM_ID, moduleRootPath).also {
-    newContentRoots.add(it)
-  }
-
-  val handleBuildDir = FileUtil.isAncestor(moduleRootPath, buildDir.path, false)
-  // Function passed in to the methods below to register each source path with a ContentRootData object.
-  fun addSourceFolder(path: @SystemDependent String, sourceType: ExternalSystemSourceType?) {
-    if (sourceType != null && handleBuildDir && FileUtil.isAncestor(buildDir.path, path, false)) {
-      mainContentRootData.storePath(sourceType, path)
-    }
-    else {
-      val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, path)
-      if (sourceType != null) {
-        contentRootData.storePath(sourceType, path)
-      }
-      newContentRoots.add(contentRootData)
-    }
-  }
-
-  // Processes all generated sources that are contained directly in the artifacts and are not part of the source providers.
-  variant.processGeneratedSources(androidModel, ::addSourceFolder)
-
-  // Process all of the non-test source providers that are currently active for the selected variant.
-  androidModel.activeSourceProviders.forEach { sourceProvider ->
-    sourceProvider.processAll(false, ::addSourceFolder)
-  }
-  // Process all of the unit test and Android test source providers for the selected variant.
-  (androidModel.unitTestSourceProviders + androidModel.androidTestSourceProviders).forEach { sourceProvider ->
-    sourceProvider.processAll(true, ::addSourceFolder)
-  }
-
-  return newContentRoots
-}
-
-/**
- * Processes all the [SourceProvider]s and sources contained within this [IdeBaseArtifact], these are
- * processed by using the provided [processor], each [SourceProvider] is then passed to [processAll] along
- * with the processor.
- */
-private fun IdeVariant.processGeneratedSources(
-  androidModel: AndroidModuleModel,
-  processor: (String, ExternalSystemSourceType) -> Unit
-) {
-
-  fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = getGeneratedSourceFoldersToUse(this, androidModel)
-  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { processor(it.absolutePath, type) }
-
-  // Note: This only works with Gradle plugin versions 1.2 or higher. However we should be fine not supporting
-  // this far back.
-  mainArtifact.applicableGeneratedSourceFolders().processAs(SOURCE_GENERATED)
-  mainArtifact.generatedResourceFolders.processAs(RESOURCE_GENERATED)
-  unitTestArtifact?.applicableGeneratedSourceFolders()?.processAs(TEST_GENERATED)
-  androidTestArtifact?.applicableGeneratedSourceFolders()?.processAs(TEST_GENERATED)
-  androidTestArtifact?.generatedResourceFolders?.processAs(TEST_RESOURCE_GENERATED)
-}
 
 /**
  * Processes all sources contained within this [SourceProvider] using the given [processor]. This
@@ -162,17 +68,11 @@ private fun IdeSourceProvider.processAll(
   }
 }
 
-//****************************************************************************************************************************
-/* Below are methods related to the processing of content roots for Android modules when module per source set is being used */
-//****************************************************************************************************************************
+private typealias ArtifactSelector = (IdeVariantCore) -> IdeBaseArtifactCore?
+private typealias SourceProviderSelector = (GradleAndroidModelData) -> List<IdeSourceProvider>
 
-private typealias ArtifactSelector = (IdeVariant) -> IdeBaseArtifact?
-private typealias SourceProviderSelector = (GradleAndroidModel) -> List<IdeSourceProvider>
-
-fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(
-  androidModel: GradleAndroidModel
-) {
-  val variant = androidModel.selectedVariant
+fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: GradleAndroidModelData) {
+  val variant = androidModel.selectedVariantCore
 
   fun populateContentEntries(
     artifactSelector: ArtifactSelector,
@@ -184,18 +84,18 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(
   }
 
   val sourceSetContentRoots =
-    populateContentEntries(IdeVariant::mainArtifact, GradleAndroidModel::getActiveSourceProviders) +
-      populateContentEntries(IdeVariant::unitTestArtifact, GradleAndroidModel::getUnitTestSourceProviders) +
-      populateContentEntries(IdeVariant::androidTestArtifact, GradleAndroidModel::getAndroidTestSourceProviders) +
-      populateContentEntries(IdeVariant::testFixturesArtifact, GradleAndroidModel::getTestFixturesSourceProviders)
+    populateContentEntries(IdeVariantCore::mainArtifact,  GradleAndroidModelData::activeSourceProviders) +
+      populateContentEntries(IdeVariantCore::unitTestArtifact, GradleAndroidModelData::unitTestSourceProviders) +
+      populateContentEntries(IdeVariantCore::androidTestArtifact, GradleAndroidModelData::androidTestSourceProviders) +
+      populateContentEntries(IdeVariantCore::testFixturesArtifact, GradleAndroidModelData::testFixturesSourceProviders)
 
-  val holderModuleRoots = ExternalSystemApiUtil.findAll(this, ProjectKeys.CONTENT_ROOT)
+  val holderModuleRoots = findAll(ProjectKeys.CONTENT_ROOT)
 
   maybeMoveDuplicateHolderContentRootsToSourceSets(holderModuleRoots, sourceSetContentRoots)
 }
 
 private fun maybeMoveDuplicateHolderContentRootsToSourceSets(
-  holderModuleRoots: Collection<DataNode<ContentRootData>>,
+  holderModuleRoots: List<NodeWithData<ContentRootData>>,
   sourceSetContentRoots: List<DataNode<ContentRootData>>
 ) {
   val sourceSetContentRootsByPath = sourceSetContentRoots.associateBy { it.data.rootPath }
@@ -208,15 +108,15 @@ private fun maybeMoveDuplicateHolderContentRootsToSourceSets(
       }
     }
     // NOTE: `.clear(true)` means remove this node from its parent and also clear it.
-    root.clear(true)
+    root.node.clear(true)
   }
 }
 
 private fun collectContentRootDataForArtifact(
   artifactSelector: ArtifactSelector,
   sourceProviderSelector: SourceProviderSelector,
-  androidModel: GradleAndroidModel,
-  selectedVariant: IdeVariant
+  androidModel: GradleAndroidModelData,
+  selectedVariant: IdeVariantCore
 ) : Collection<ContentRootData> {
   val artifact = artifactSelector(selectedVariant) ?: throw ExternalSystemException("Couldn't find artifact for descriptor")
 
@@ -231,15 +131,23 @@ private fun collectContentRootDataForArtifact(
     newContentRoots.add(contentRootData)
   }
 
+  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it.absolutePath, type) }
+  fun Collection<String>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it, type) }
+
+  val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(artifact, androidModel).map(File::getAbsolutePath).toSet()
   sourceProviderSelector(androidModel).forEach { sourceProvider ->
-    sourceProvider.processAll(artifact.isTestArtifact, ::addSourceFolder)
+    sourceProvider.processAll(artifact.isTestArtifact) { path, sourceType ->
+      // For b/232007221 the variant specific source provider is currently giving us a kapt generated source folder as a Java folder.
+      // In order to prevent duplicate root warnings and to ensure this kapt path is marked generated we ensure it is not added as
+      // a source root.
+      if (!generatedSourceFolderPaths.contains(path)) {
+        addSourceFolder(path, sourceType)
+      }
+    }
   }
 
-  fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = getGeneratedSourceFoldersToUse(this, androidModel)
-  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it.absolutePath, type) }
-
-  artifact.applicableGeneratedSourceFolders().processAs(if (artifact.isTestArtifact) TEST_GENERATED else SOURCE_GENERATED)
-  if (artifact is IdeAndroidArtifact) {
+  generatedSourceFolderPaths.processAs(if (artifact.isTestArtifact) TEST_GENERATED else SOURCE_GENERATED)
+  if (artifact is IdeAndroidArtifactCore) {
     artifact.generatedResourceFolders.processAs(if (artifact.isTestArtifact) TEST_RESOURCE_GENERATED else RESOURCE_GENERATED)
   }
 

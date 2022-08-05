@@ -34,7 +34,7 @@ public class UnsafeUsagesDialogFixture extends IdeaDialogFixture<UnsafeUsagesDia
   @NotNull
   public static UnsafeUsagesDialogFixture find(@NotNull IdeFrameFixture ideFrame) {
     JDialog dialog = GuiTests.waitUntilShowing(ideFrame.robot(), Matchers.byTitle(JDialog.class, "Usages Detected").and(
-      new GenericTypeMatcher<>(JDialog.class) {
+      new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           return getDialogWrapperFrom(dialog, UnsafeUsagesDialog.class) != null;

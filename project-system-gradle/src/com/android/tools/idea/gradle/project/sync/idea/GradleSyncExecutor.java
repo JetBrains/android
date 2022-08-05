@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import static com.android.tools.idea.gradle.project.sync.GradleSyncStateKt.PROJECT_SYNC_REQUEST;
+import static com.android.tools.idea.gradle.project.sync.GradleSyncStateImplKt.setProjectSyncRequest;
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REQUESTED_PROJECT_RESOLUTION_MODE_KEY;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NATIVE_VARIANTS;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
@@ -33,22 +32,24 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.fin
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.GradleProjectModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.ProjectSyncRequest;
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
@@ -69,7 +70,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -78,8 +78,11 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.annotations.VisibleForTesting;
+import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.service.project.GradlePartialResolverPolicy;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
+import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -89,17 +92,19 @@ import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 public class GradleSyncExecutor {
   @NotNull private final Project myProject;
 
-  @NotNull public static final Key<Boolean> ALL_VARIANTS_SYNC_KEY = new Key<>("android.all.variants.sync");
   @NotNull public static final Key<Boolean> ALWAYS_SKIP_SYNC = new Key<>("android.always.skip.sync");
+  @VisibleForTesting @NotNull public static final Key<GradleSyncInvoker.Request> SKIPPED_SYNC = new Key<>("android.skipped.sync");
 
   public GradleSyncExecutor(@NotNull Project project) {
     myProject = project;
   }
 
-  @WorkerThread
+  @UiThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     if (Objects.equals(myProject.getUserData(ALWAYS_SKIP_SYNC), true)) {
-      GradleSyncState.getInstance(myProject).syncSkipped(listener);
+      if (myProject.getUserData(SKIPPED_SYNC) != null) throw new IllegalStateException("Skipped sync request already present");
+      myProject.putUserData(SKIPPED_SYNC, request);
+      GradleSyncStateHolder.getInstance(myProject).syncSkipped(listener);
       return;
     }
 
@@ -124,7 +129,7 @@ public class GradleSyncExecutor {
         }
         else {
           // Linking failed.
-          GradleSyncState.getInstance(myProject).syncSkipped(listener);
+          GradleSyncStateHolder.getInstance(myProject).syncSkipped(listener);
           return;
         }
       }
@@ -134,7 +139,8 @@ public class GradleSyncExecutor {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, listener);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       ImportSpecBuilder builder = new ImportSpecBuilder(myProject, GRADLE_SYSTEM_ID).callback(setUpTask).use(executionMode);
-      myProject.putUserData(PROJECT_SYNC_REQUEST, new ProjectSyncRequest(rootPath, request.trigger));
+      if (request.getDontFocusSyncFailureOutput()) builder.dontReportRefreshErrors();
+      setProjectSyncRequest(myProject, rootPath, request);
       refreshProject(rootPath, builder.build());
     }
   }
@@ -158,7 +164,6 @@ public class GradleSyncExecutor {
 
     String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(projectBasePath);
     VirtualFile projectRootFolder = project.getBaseDir();
-    projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
 
     if (!GradleProjectImportUtil.canOpenGradleProject(projectRootFolder)) {
       return null;
@@ -175,61 +180,86 @@ public class GradleSyncExecutor {
 
   @WorkerThread
   @NotNull
-  public List<GradleModuleModels> fetchGradleModels() {
+  public GradleProjectModels fetchGradleModels() {
     GradleExecutionSettings settings = getGradleExecutionSettings(myProject);
+    if (settings == null) {
+      throw new IllegalStateException("Cannot obtain GradleExecutionSettings");
+    }
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject);
     String projectPath = myProject.getBasePath();
     assert projectPath != null;
 
     DataNode<ProjectData> projectDataNode;
 
-    myProject.putUserData(ALL_VARIANTS_SYNC_KEY, true);
-    try {
-      GradleProjectResolver projectResolver = new GradleProjectResolver();
-      projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
-    }
-    finally {
-      myProject.putUserData(ALL_VARIANTS_SYNC_KEY, null);
-    }
+    settings.putUserData(REQUESTED_PROJECT_RESOLUTION_MODE_KEY,
+                         ProjectResolutionMode.FetchAllVariantsMode.INSTANCE);
+    GradleProjectResolver projectResolver = new GradleProjectResolver();
+    projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
+    @Nullable IdeResolvedLibraryTable libraryTable = null;
 
     if (projectDataNode != null) {
+      @SuppressWarnings("UnstableApiUsage") DataNode<ExternalProject> rootProjectNode = find(projectDataNode, ExternalProjectDataCache.KEY);
+      DataNode<IdeResolvedLibraryTable> libraryTableNode = find(projectDataNode, AndroidProjectKeys.IDE_LIBRARY_TABLE);
+      if (libraryTableNode != null) {
+        libraryTable = libraryTableNode.getData();
+      }
       Collection<DataNode<ModuleData>> moduleNodes = findAll(projectDataNode, MODULE);
       for (DataNode<ModuleData> moduleNode : moduleNodes) {
         DataNode<GradleModuleModel> gradleModelNode = find(moduleNode, GRADLE_MODULE_MODEL);
-        if (gradleModelNode != null) {
-          PsdModuleModels moduleModules = new PsdModuleModels(moduleNode.getData().getExternalName());
-          moduleModules.addModel(GradleModuleModel.class, gradleModelNode.getData());
+        if (gradleModelNode == null) {
+          continue;
+        }
 
-          @NotNull Collection<DataNode<IdeSyncIssue>> syncIssueNodes = findAll(moduleNode, SYNC_ISSUE);
-          if (!syncIssueNodes.isEmpty()) {
-            moduleModules.addModel(SyncIssues.class, new SyncIssues(ContainerUtil.map(syncIssueNodes, it -> it.getData())));
-          }
+        PsdModuleModels moduleModules = new PsdModuleModels(moduleNode.getData().getExternalName());
+        moduleModules.addModel(GradleModuleModel.class, gradleModelNode.getData());
 
-          DataNode<GradleAndroidModel> androidModelNode = find(moduleNode, ANDROID_MODEL);
-          if (androidModelNode != null) {
-            moduleModules.addModel(GradleAndroidModel.class, androidModelNode.getData());
+        @NotNull Collection<DataNode<IdeSyncIssue>> syncIssueNodes = findAll(moduleNode, SYNC_ISSUE);
+        if (!syncIssueNodes.isEmpty()) {
+          moduleModules.addModel(SyncIssues.class, new SyncIssues(ContainerUtil.map(syncIssueNodes, DataNode::getData)));
+        }
 
-            DataNode<NdkModuleModel> ndkModelNode = find(moduleNode, NDK_MODEL);
-            if (ndkModelNode != null) {
-              moduleModules.addModel(NdkModuleModel.class, ndkModelNode.getData());
-            }
+        DataNode<GradleAndroidModelData> androidModelNode = find(moduleNode, ANDROID_MODEL);
+        if (androidModelNode != null) {
+          moduleModules.addModel(GradleAndroidModelData.class, androidModelNode.getData());
 
-            builder.add(moduleModules);
-            continue;
-          }
-
-          DataNode<JavaModuleModel> javaModelNode = find(moduleNode, JAVA_MODULE_MODEL);
-          if (javaModelNode != null) {
-            moduleModules.addModel(JavaModuleModel.class, javaModelNode.getData());
-
-            builder.add(moduleModules);
+          DataNode<NdkModuleModel> ndkModelNode = find(moduleNode, NDK_MODEL);
+          if (ndkModelNode != null) {
+            moduleModules.addModel(NdkModuleModel.class, ndkModelNode.getData());
           }
         }
+
+        if (rootProjectNode != null) {
+          ExternalProject project = findExternalProjectForModule(rootProjectNode, moduleNode);
+          if (project != null) {
+            moduleModules.addModel(ExternalProject.class, project);
+          }
+        }
+        builder.add(moduleModules);
       }
     }
 
-    return builder.build();
+    return new GradleProjectModels(builder.build(), libraryTable);
+  }
+
+  @Nullable
+  private ExternalProject findExternalProjectForModule(@NotNull DataNode<ExternalProject> rootProjectNode,
+                                                       @NotNull DataNode<ModuleData> moduleNode) {
+    String[] moduleIdParts = moduleNode.getData().getId().split(":");
+    ExternalProject project = rootProjectNode.getData();
+    for (String idPart : moduleIdParts) {
+      if (idPart.isEmpty()) {
+        continue;
+      }
+
+      project = project.getChildProjects().get(idPart);
+      if (project == null) {
+        Logger.getInstance(GradleSyncExecutor.class)
+          .warn("Could not find ExternalProject for " + moduleNode.getData().getId(), new Throwable());
+        return null;
+      }
+    }
+    return project;
   }
 
   @WorkerThread

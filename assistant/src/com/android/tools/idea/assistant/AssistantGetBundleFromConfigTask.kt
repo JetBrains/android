@@ -27,7 +27,7 @@ class AssistantGetBundleFromConfigTask(
   private val config: URL,
   private val uiCallback: FutureCallback<TutorialBundleData>,
   private val bundleCreatorId: String
-): Task.Backgroundable(project, "Loading assistant content...") {
+) : Task.Backgroundable(project, "Loading assistant content...") {
 
   private lateinit var bundleData: TutorialBundleData
 
@@ -50,10 +50,6 @@ class AssistantGetBundleFromConfigTask(
   }
 
   private fun getBundle(config: URL): TutorialBundleData {
-    val inputStream = config.openStream()
-    val bundle: TutorialBundleData
-    bundle = DefaultTutorialBundle.parse(inputStream!!, bundleCreatorId)
-    inputStream.close()
-    return bundle
+    return config.openStream().use { DefaultTutorialBundle.parse(it, bundleCreatorId) }
   }
 }

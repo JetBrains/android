@@ -202,6 +202,8 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
   private void createUIComponents() {
     myValueField = new JTextField();
+    myValueField.setName("Resource value field"); // For ui-test
+
     // this panel just holds the value field component within the swing form, so we strip any UI from it and use a very simple LayoutManager
     myValueFieldContainer = new JPanel();
     myValueFieldContainer.setFocusable(false);

@@ -19,10 +19,8 @@ import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.lint.detector.api.Desugaring;
-import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -61,7 +59,6 @@ public interface AndroidModel {
    */
   static void set(@NotNull AndroidFacet facet, @Nullable AndroidModel androidModel) {
     facet.putUserData(KEY, androidModel);
-    facet.getModule().getProject().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
   }
 
   /**
@@ -121,28 +118,6 @@ public interface AndroidModel {
 
   default @NotNull EnumSet<Abi> getSupportedAbis() { return EnumSet.allOf(Abi.class); }
 
-  /**
-   * Indicates whether the given file or directory is generated.
-   *
-   * @param file the file or directory.
-   * @return {@code true} if the given file or directory is generated; {@code false} otherwise.
-   */
-  boolean isGenerated(@NotNull VirtualFile file);
-
-  /**
-   * @return A provider for finding .class output files and external .jars.
-   */
-  @NotNull
-  ClassJarProvider getClassJarProvider();
-
-  /**
-   * @return Whether the class specified by fqcn is out of date and needs to be rebuilt.
-   * <p>
-   * NOTE: Implementations are not necessarily able to detect all the cases when the file is out of date. Therefore, {@code false} should
-   *       be interpreted as meaning "not known".
-   */
-  boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile);
-
   @NotNull
   Namespacing getNamespacing();
 
@@ -165,8 +140,13 @@ public interface AndroidModel {
     return Collections.emptyMap();
   }
 
+  @NotNull
+  default TestOptions getTestOptions() { return TestOptions.DEFAULT; }
+
   @Nullable
-  default TestExecutionOption getTestExecutionOption() { return null; }
+  default TestExecutionOption getTestExecutionOption() {
+    return getTestOptions().getExecutionOption();
+  }
 
   /**
    * Returns the resource prefix to use, if any. This is an optional prefix which can be set and

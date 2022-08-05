@@ -20,8 +20,6 @@ import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createN
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
-import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
-import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -30,7 +28,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,25 +37,14 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateNewProjectWithCpp2Test {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
   private FakeAdbServer fakeAdbServer;
 
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
-    ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
-      @NotNull
-      @Override
-      public String startProcess(@NotNull DeviceState deviceState) {
-        deviceState.startClient(1234, 1235, "com.example.myapplication", false);
-        return "";
-      }
-    };
-
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
-    adbBuilder.installDefaultCommandHandlers()
-              .addDeviceHandler(new ActivityManagerCommandHandler(startCmdHandler))
-              .addDeviceHandler(new JdwpCommandHandler());
+    adbBuilder.installDefaultCommandHandlers();
 
     fakeAdbServer = adbBuilder.build();
     DeviceState fakeDevice = fakeAdbServer.connectDevice(
@@ -69,6 +55,12 @@ public class CreateNewProjectWithCpp2Test {
       "28",
       DeviceState.HostConnectionType.LOCAL
     ).get();
+    fakeDevice.setActivityManager((args, serviceOutput) -> {
+      if ("start".equals(args.get(0))) {
+        fakeDevice.startClient(1234, 1235, "com.example.myapplication", false);
+        serviceOutput.writeStdout("Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]");
+      }
+    });
     fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
 
     fakeAdbServer.start();

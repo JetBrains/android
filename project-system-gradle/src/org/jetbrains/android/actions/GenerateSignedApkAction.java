@@ -20,6 +20,7 @@ import static org.jetbrains.android.util.AndroidUtils.getApplicationFacets;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -63,7 +64,7 @@ public class GenerateSignedApkAction extends AnAction {
     boolean enabled = project != null && !getApplicationFacets(project).isEmpty() &&
                       /* Available for Gradle projects and legacy IDEA Android projects */
                       (GradleProjectInfo.getInstance(project).isBuildWithGradle() ||
-                       !AndroidProjectInfo.getInstance(project).requiresAndroidModel());
+                       !ProjectSystemUtil.requiresAndroidModel(project));
     e.getPresentation().setEnabledAndVisible(enabled);
     if (enabled) {
       String actionText = allowBundleSigning(project) ?  "android.generate.signed.apk.action.bundle.text"

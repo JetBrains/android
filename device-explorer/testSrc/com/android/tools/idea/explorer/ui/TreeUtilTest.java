@@ -259,7 +259,7 @@ public class TreeUtilTest {
 
   @NotNull
   private static TreeUtil.UpdateChildrenOps<EntryNode, Entry> createDefaultOps() {
-    return new TreeUtil.UpdateChildrenOps<>() {
+    return new TreeUtil.UpdateChildrenOps<EntryNode, Entry>() {
       @Nullable
       @Override
       public EntryNode getChildNode(@NotNull EntryNode parentNode, int index) {

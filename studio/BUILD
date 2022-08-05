@@ -1,4 +1,4 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
 
 studio_plugin(
@@ -28,6 +28,8 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:dexlib2",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",
+        "//tools/adt/idea/.idea/libraries:firebase_java_proto",
+        "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/adt/idea/.idea/libraries:kxml2",
@@ -62,6 +64,7 @@ studio_plugin(
         "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/base/deploy/deployer:deploy_java_proto",
         "//tools/base/deploy/deployer:libjava_sites",
+        "//tools/base/lint:liblint-checks-proto",
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/base/deploy/deployer:libjava_version",
         "//tools/vendor/google/game-tools/main:game-tools-protos",
@@ -69,6 +72,7 @@ studio_plugin(
         "//tools/data-binding:compilerCommon.antlr.shaded",
     ],
     licenses = [
+        "//prebuilts/r8:license",
         "//tools/adt/idea/android/lib:licenses",
     ],
     modules = {
@@ -78,9 +82,11 @@ studio_plugin(
         ],
         "android-common.jar": [
             "//tools/adt/idea/android-common:intellij.android.common",
+            "//tools/adt/idea/jps-model:intellij.android.jps.model",
         ],
         "android-extensions-ide.jar": [
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
+            "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common",
         ],
         "android-kotlin.jar": [
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
@@ -97,11 +103,11 @@ studio_plugin(
         ],
         "android.jar": [
             "//tools/adt/idea/analytics:analytics",
-            "//tools/adt/idea/android-layout-inspector:android-layout-inspector",
             "//tools/base/flags:studio.android.sdktools.flags",
             "//tools/adt/idea/assistant:assistant",
             "//tools/adt/idea/connection-assistant:connection-assistant",
             "//tools/adt/idea/android-adb:intellij.android.adb",
+            "//tools/adt/idea/android-adb-ui:intellij.android.adb.ui",
             "//tools/adt/idea/android-lint:intellij.android.lint",
             "//tools/adt/idea/android-templates:intellij.android.templates",
             "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
@@ -125,11 +131,14 @@ studio_plugin(
             "//tools/adt/idea/debuggers:intellij.android.debuggers",
             "//tools/adt/idea/deploy:intellij.android.deploy",
             "//tools/adt/idea/device-explorer:intellij.android.device-explorer",
+            "//tools/adt/idea/device-monitor:intellij.android.device-monitor",
+            "//tools/adt/idea/device-manager:intellij.android.device-manager",
             "//tools/adt/idea/emulator:intellij.android.emulator",
             "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
             "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+            "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
             "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding",
             "//tools/adt/idea/android-lang:intellij.android.lang",
             "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector",
@@ -146,12 +155,15 @@ studio_plugin(
             "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
             "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",
             "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
+            "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
             "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
             "//tools/adt/idea/project-system:intellij.android.projectSystem",
             "//tools/adt/idea/room:intellij.android.room",
             "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates",
             "//tools/adt/idea/android-test-retention:intellij.android.testRetention",
+            "//tools/adt/idea/threading-checker:intellij.android.threading-checker",
             "//tools/adt/idea/android-transport:intellij.android.transport",
+            "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing",
             "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
             "//tools/adt/idea/wizard:intellij.android.wizard",
             "//tools/adt/idea/native-symbolizer:native-symbolizer",
@@ -209,11 +221,12 @@ studio_plugin(
             "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model",
             "//tools/base/build-system/builder-test-api:studio.android.sdktools.builder-test-api",
             "//tools/base/adblib:studio.android.sdktools.adblib",
+            "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
+            "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
             "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
             "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
             "//tools/base/device_validator:studio.android.sdktools.dvlib",
             "//tools/base/draw9patch:studio.android.sdktools.draw9patch",
-            "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector",
             "//tools/base/lint:studio.android.sdktools.lint-api",
             "//tools/base/lint:studio.android.sdktools.lint-checks",
             "//tools/base/lint:studio.android.sdktools.lint-model",
@@ -222,6 +235,7 @@ studio_plugin(
             "//tools/base/ninepatch:studio.android.sdktools.ninepatch",
             "//tools/base/perflib:studio.android.sdktools.perflib",
             "//tools/base/resource-repository:studio.android.sdktools.resource-repository",
+            "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback",
             "//tools/base/tracer:studio.android.sdktools.tracer",
             "//tools/base/usb-devices:studio.usb-devices",
             "//tools/base/zipflinger:studio.android.sdktools.zipflinger",
@@ -250,11 +264,16 @@ studio_plugin(
         ],
     },
     resources = {
+        "lib": [
+            "//prebuilts/tools/common/m2:ffmpeg-platform-bundle",
+        ],
         "resources": [
             "//tools/adt/idea/android/lib:sample-data-bundle",
+            "//tools/adt/idea/android/lib:apks-bundle",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/annotations:androidAnnotations",
             "//tools/adt/idea/emulator/native:native_lib",
+            "//tools/adt/idea/emulator/screen-sharing-agent:bundle",
             "//tools/base/app-inspection/inspectors/backgroundtask:bundle",
             "//tools/base/app-inspection/inspectors/network:bundle",
             "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
@@ -281,6 +300,7 @@ studio_plugin(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
     ],
 )
@@ -339,7 +359,6 @@ studio_plugin(
     resources = {
         "resources": [
             "//prebuilts/studio/layoutlib:layoutlib",
-            "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         ],
     },
     deps = [
@@ -352,7 +371,7 @@ studio_plugin(
 studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
-    libs = ["//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.1.0-SNAPSHOT"],
+    libs = ["//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.2.0-SNAPSHOT"],
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
     deps = [
         ":org.jetbrains.android",
@@ -373,6 +392,7 @@ studio_plugin(
         ":com.google.gct.test.recorder",
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )
 
@@ -380,6 +400,7 @@ studio_plugin(
     name = "com.google.gct.testing",
     directory = "firebase-testing",
     libs = [
+        "//prebuilts/tools/common/m2:JSch",
         "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-storage-v1-rev1-1.18.0-rc",
         "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-testing-v1-revsnapshot-1.20.0",
         "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-toolresults-v1beta3-rev20151013-1.20.0",
@@ -516,6 +537,7 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )
 
@@ -543,10 +565,10 @@ android_studio(
         ":com.google.urlassistant",
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
-    version_eap = False,
-    version_full = "Chipmunk | {0}.{1}.{2}",
+    version_eap = True,
+    version_full = "Electric Eel | {0}.{1}.{2} Canary {3}",
     version_micro = 1,
-    version_patch = 14,
+    version_patch = 9,
     visibility = ["//visibility:public"],
 )
 
@@ -566,20 +588,18 @@ py_test(
 )
 
 py_test(
-    name = "startup_test",
-    srcs = [
-        "tests/startup_test.py",
-    ],
+    name = "test_updater",
+    timeout = "long",  # b/233245811
+    srcs = ["tests/test_updater.py"],
     data = [
         ":android-studio.linux.zip",
-        "//tools/vendor/google/testing/display:xvfb",
+        ":android-studio.mac.zip",
+        ":android-studio.mac_arm.zip",
+        ":android-studio.win.zip",
+        ":updater",
+        ":updater.jar",
     ],
-    python_version = "PY3",
-    tags = [
-        "block_network",
-        "no_mac",
-        "no_windows",
-    ],
+    tags = ["no_windows"],  # b/233968084
 )
 
 py_binary(
@@ -672,7 +692,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-hg4idea",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-intellij-toml",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-decompiler",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-i18n",
@@ -698,12 +718,18 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-debugger-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRanking",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-ml-models-local",
     ],
 )
 
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.studio.tests",
+    data = [
+        # These are to be able to create patches in the test.
+        ":updater",
+        ":updater.jar",
+    ],
     iml_files = ["tests/intellij.android.studio.tests.iml"],
     tags = [
         "no_mac",
@@ -723,6 +749,59 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.studio.integration",
+    enable_tests = False,
+    iml_files = ["integration/intellij.android.studio.integration/intellij.android.studio.integration.iml"],
+    test_srcs = ["integration/intellij.android.studio.integration/testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/tools/common/m2:junit-4.12[test]",
+        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+    ],
+)
+
+iml_test(
+    name = "StartUpTest",
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
+    }),
+    module = ":intellij.android.studio.integration",
+    test_class = "com.android.tools.idea.StartUpTest",
+)
+
+iml_test(
+    name = "UpdateTest",
+    data = select({
+        "@platforms//os:linux": [
+            ":android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            ":android-studio.mac.zip",
+        ],
+        "@platforms//os:windows": [
+            ":android-studio.win.zip",
+        ],
+    }) + [
+        ":updater",
+        ":updater.jar",
+    ],
+    module = ":intellij.android.studio.integration",
+    test_class = "com.android.tools.idea.UpdateTest",
 )

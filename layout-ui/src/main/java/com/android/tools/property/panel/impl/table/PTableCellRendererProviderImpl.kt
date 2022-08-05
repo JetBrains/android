@@ -19,11 +19,11 @@ import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertyItem
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableCellRenderer
-import com.android.tools.property.ptable2.PTableCellRendererProvider
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableCellRenderer
+import com.android.tools.property.ptable.PTableCellRendererProvider
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableItem
 import com.intellij.util.ui.UIUtil
 
 /**

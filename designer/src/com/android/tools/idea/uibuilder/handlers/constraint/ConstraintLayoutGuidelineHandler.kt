@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL
 import com.android.SdkConstants.ATTR_ORIENTATION
-import com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE
 import com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
 import com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END
 import com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
@@ -34,7 +34,7 @@ import javax.swing.Icon
 class ConstraintLayoutGuidelineHandler : ViewHandler() {
 
   override fun getIcon(component: NlComponent): Icon {
-    if (!CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.tagName)) {
+    if (!AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.tagName)) {
       return super.getIcon(component)
     }
     return if (isVertical(component)) {

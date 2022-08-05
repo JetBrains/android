@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property.testutil
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -99,13 +100,13 @@ class MotionAttributeRule(
 
   fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
-    Mockito.`when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+    whenever(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
-    Mockito.`when`(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    Mockito.`when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    whenever(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    whenever(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     @Suppress("UnstableApiUsage")
-    Mockito.`when`(fileManager!!.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
-    Mockito.`when`(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    whenever(fileManager!!.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
+    whenever(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
   }
 
@@ -170,8 +171,8 @@ class MotionAttributeRule(
     val model = NlModelBuilderUtil.model(facet, projectRule.fixture, "layout", "layout.xml", ComponentDescriptorUtil.component(layout)).build()
     val surface = model.surface
     val panel = Mockito.mock(AccessoryPanel::class.java)
-    Mockito.`when`(surface.accessoryPanel).thenReturn(panel)
-    Mockito.`when`(panel.currentPanel).thenReturn(timeline)
+    whenever(surface.accessoryPanel).thenReturn(panel)
+    whenever(panel.currentPanel).thenReturn(timeline)
     return model
   }
 

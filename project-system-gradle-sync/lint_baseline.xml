@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 7.4.0-dev">
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AdditionalClassifierArtifactsModelCollector.kt"
+            line="38"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AdditionalClassifierArtifactsModelCollector.kt"
+            line="45"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="283"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="284"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="290"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="382"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="384"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="391"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="392"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="393"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="398"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="655"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="694"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="713"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="718"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="734"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="866"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="866"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/AndroidExtraModelProviderWorker.kt"
+            line="870"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/ModelFetchers.kt"
+            line="101"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/project/sync/ModelFetchers.kt"
+            line="101"/>
+    </issue>
+
+</issues>

@@ -17,18 +17,24 @@
 
 package com.android.tools.idea.projectsystem
 
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
+import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
@@ -82,6 +88,11 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   @JvmDefault
   fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? = null
 
+  @JvmDefault
+  fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+    return listOf(ValidationError.fatal("Run configuration ${runConfiguration.name} is not supported in this project"));
+  }
+
   /**
    * Returns an instance of [ProjectSystemSyncManager] that applies to the project.
    */
@@ -108,9 +119,24 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   fun getSourceProvidersFactory(): SourceProvidersFactory
 
   /**
+   * Returns a source provider describing build configuration files.
+   */
+  fun getBuildConfigurationSourceProvider(): BuildConfigurationSourceProvider? = null
+
+  /**
+   * @return A provider for finding .class output files and external .jars.
+   */
+  fun getClassJarProvider(): ClassJarProvider
+  /**
    * Returns a list of [AndroidFacet]s by given package name.
    */
   fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet>
+
+  /**
+   * @return all the application IDs of artifacts this project module is known to produce.
+   */
+  @JvmDefault
+  fun getKnownApplicationIds(project: Project): Set<String> = emptySet()
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
@@ -140,7 +166,7 @@ fun Module.getModuleSystem(): AndroidModuleSystem {
  * Returns the instance of [AndroidModuleSystem] that applies to the given [AndroidFacet].
  */
 fun AndroidFacet.getModuleSystem(): AndroidModuleSystem {
-  return module.project.getProjectSystem().getModuleSystem(module)
+  return module.getModuleSystem()
 }
 
 /**
@@ -174,3 +200,23 @@ fun Project?.getAndroidFacets(): List<AndroidFacet> {
     }
   } ?: listOf()
 }
+
+/**
+ * Indicates whether the given project has at least one module backed by build models.
+ */
+fun Project.requiresAndroidModel(): Boolean {
+  val androidFacets: List<AndroidFacet> = getAndroidFacets()
+  return ContainerUtil.exists(androidFacets) { facet: AndroidFacet -> AndroidModel.isRequired(facet) }
+}
+
+fun isAndroidTestFile(project: Project, file: VirtualFile?) = runReadAction {
+  val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
+  module?.let { TestArtifactSearchScopes.getInstance(module)?.isAndroidTestSource(file) } ?: false
+}
+
+fun isUnitTestFile(project: Project, file: VirtualFile?) = runReadAction {
+  val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
+  module?.let { TestArtifactSearchScopes.getInstance(module)?.isUnitTestSource(file) } ?: false
+}
+
+fun isTestFile(project: Project, file: VirtualFile?) = isUnitTestFile(project, file) || isAndroidTestFile(project, file)

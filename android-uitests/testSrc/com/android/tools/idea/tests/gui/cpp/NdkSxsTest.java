@@ -64,7 +64,7 @@ public class NdkSxsTest {
   @RunIn(TestGroup.FAST_BAZEL)
   public void checkMultiNdkVersions() {
     guiTest.welcomeFrame()
-      .openSdkManager();
+      .openSdkManagerFromMoreOptions();
 
     IdeSettingsDialogFixture ideSettingsDialogFixture = IdeSettingsDialogFixture.find(guiTest.robot());
     findAndClickLabel(ideSettingsDialogFixture, "SDK Tools");
@@ -77,25 +77,24 @@ public class NdkSxsTest {
   private void checkNdkSideBySide(@NotNull IdeSettingsDialogFixture ideSettingsDialogFixture) {
     GuiTests.waitUntilFound(guiTest.robot(),
                             ideSettingsDialogFixture.target(),
-                            new GenericTypeMatcher<>(TreeTableView.class) {
-                              @Override
-                              protected boolean isMatching(TreeTableView treeTableView) {
-                                DefaultMutableTreeNode root = (DefaultMutableTreeNode)treeTableView.getTableModel().getRoot();
-                                for (Object object : Collections.list(root.children())) {  // refer to: MultiVersionTreeNode.java
-                                  try {
-                                    String title = method("getDisplayName")
-                                      .withReturnType(String.class)
-                                      .in(object).invoke();
-                                    if (title.contains("NDK (Side by side)")) {
-                                      assertThat(field("myVersionNodes").ofType(Collection.class).in(object).get().size()).isGreaterThan(0);
-                                      return true;
-                                    }
-                                  }
-                                  catch (ReflectionError e) {
-                                  }
-                                }
-                                return false;
-                              }
-                            });
+                            new GenericTypeMatcher<TreeTableView>(TreeTableView.class) {
+        @Override
+        protected boolean isMatching(TreeTableView treeTableView) {
+          DefaultMutableTreeNode root = (DefaultMutableTreeNode)treeTableView.getTableModel().getRoot();
+          for (Object object : Collections.list(root.children())) {  // refer to: MultiVersionTreeNode.java
+            try {
+              String title = method("getDisplayName")
+                .withReturnType(String.class)
+                .in(object).invoke();
+              if(title.contains("NDK (Side by side)")) {
+                assertThat(field("myVersionNodes").ofType(Collection.class).in(object).get().size()).isGreaterThan(0);
+                return true;
+              }
+            } catch (ReflectionError e) {
+            }
+          }
+          return false;
+        }
+      });
     }
 }

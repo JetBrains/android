@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.stripSuffix
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.ui.ConsoleViewContentType

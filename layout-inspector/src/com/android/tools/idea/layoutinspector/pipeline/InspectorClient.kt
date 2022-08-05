@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.CompletableFuture
@@ -67,6 +68,11 @@ interface InspectorClient: Disposable {
      * Indicates that this client is able to inspect compose parts of the application.
      */
     SUPPORTS_COMPOSE,
+
+    /**
+     * Indicates that this client is able to inspect compose recomposition counts of the application.
+     */
+    SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS,
   }
 
   /**
@@ -88,6 +94,11 @@ interface InspectorClient: Disposable {
   fun registerTreeEventCallback(callback: (Any) -> Unit)
 
   /**
+   * Register a handle that is triggered when this client receives a launch event.
+   */
+  fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit)
+
+  /**
    * Connect this client to the device.
    *
    * Use [registerStateCallback] and check for [State.CONNECTED] if you need to know when this has
@@ -95,7 +106,7 @@ interface InspectorClient: Disposable {
    *
    * You are only supposed to call this once.
    */
-  fun connect()
+  fun connect(project: Project)
 
   fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState)
 
@@ -200,7 +211,7 @@ interface InspectorClient: Disposable {
 }
 
 object DisconnectedClient : InspectorClient {
-  override fun connect() {}
+  override fun connect(project: Project) {}
   override fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {}
 
   override fun disconnect() {}
@@ -208,6 +219,8 @@ object DisconnectedClient : InspectorClient {
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
   override fun registerErrorCallback(callback: (String) -> Unit) = Unit
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
+  override fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit) = Unit
+
   override fun startFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
   override fun stopFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
   override fun refresh() {}

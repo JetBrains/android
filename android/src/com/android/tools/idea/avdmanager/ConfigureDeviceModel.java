@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.KeyboardState;
 import com.android.resources.Navigation;
@@ -59,9 +58,6 @@ public final class ConfigureDeviceModel extends WizardModel {
       }
       myDeviceData.setUniqueName(String.format("%s (Edited)", device.getDisplayName()));
     }
-
-    // Clear device's density. This will cause us to calculate the most accurate setting based on the final screen size.
-    myDeviceData.density().set(Density.NODPI);
 
     if (device != null) {
       initBootProperties(device);

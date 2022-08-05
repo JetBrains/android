@@ -9,8 +9,6 @@
     <option name="tab" path="ActionManager" hit="Move Tab Right" />
     <option name="rename" path="ActionManager" hit="Rename Tab" />
     <option name="tab" path="ActionManager" hit="Rename Tab" />
-    <option name="reset" path="ActionManager" hit="Reset Zoom" />
-    <option name="zoom" path="ActionManager" hit="Reset Zoom" />
     <option name="default" path="ActionManager" hit="Reset zoom level to default" />
     <option name="level" path="ActionManager" hit="Reset zoom level to default" />
     <option name="reset" path="ActionManager" hit="Reset zoom level to default" />

@@ -15,11 +15,8 @@
  */
 package com.android.tools.datastore;
 
-import io.grpc.ForwardingServerCall;
-import io.grpc.Metadata;
-import io.grpc.ServerCall;
-import io.grpc.ServerCallHandler;
-import io.grpc.ServerInterceptor;
+import com.android.tools.idea.io.grpc.*;
+
 import java.io.FileNotFoundException;
 
 public class TestServerInterceptor implements ServerInterceptor {
@@ -35,7 +32,7 @@ public class TestServerInterceptor implements ServerInterceptor {
                                                                Metadata metadata,
                                                                ServerCallHandler<ReqT, RespT> handler) {
     String methodName = call.getMethodDescriptor().getFullMethodName();
-    ServerCall.Listener<ReqT> resp = handler.startCall(new ForwardingServerCall.SimpleForwardingServerCall<>(call) {
+    ServerCall.Listener<ReqT> resp = handler.startCall(new ForwardingServerCall.SimpleForwardingServerCall<ReqT, RespT>(call) {
       @Override
       public void sendMessage(RespT msg) {
         myFile.recordCall(methodName, msg.getClass().toString(), msg.toString());

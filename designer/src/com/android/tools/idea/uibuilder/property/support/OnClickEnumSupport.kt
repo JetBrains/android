@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants.CLASS_ACTIVITY
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.ApplicationManager
@@ -25,7 +26,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import org.jetbrains.android.dom.converters.OnClickConverter
-import org.jetbrains.android.dom.manifest.getPackageName
 
 /**
  * [EnumSupport] for the "onClick" attribute.
@@ -60,7 +60,7 @@ class OnClickEnumSupport(val model: NlModel) : EnumSupport {
     val classes: Collection<PsiClass>
     if (activityClassName != null) {
       if (activityClassName.startsWith(".")) {
-        val pkg = getPackageName(module)
+        val pkg = module.getModuleSystem().getPackageName()
         activityClassName = pkg + activityClassName
       }
       val activityClass = facade.findClass(activityClassName, module.moduleScope)

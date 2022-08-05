@@ -60,8 +60,18 @@
               icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
       <action id="android.emulator.overview.button" class="com.android.tools.idea.emulator.actions.EmulatorOverviewButtonAction"
               icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
+      <action id="android.emulator.wear1.button" class="com.android.tools.idea.emulator.actions.EmulatorWear1ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button"/>
+      <action id="android.emulator.wear2.button" class="com.android.tools.idea.emulator.actions.EmulatorWear2ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Button 2" description="Press the second button"/>
+      <action id="android.emulator.sleep" class="com.android.tools.idea.emulator.actions.EmulatorPalmAction"
+              icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture"/>
+      <action id="android.emulator.tilt" class="com.android.tools.idea.emulator.actions.EmulatorTiltAction"
+              icon="StudioIcons.Emulator.Wear.TILT" text="Tilt" description="Simulate the Tilt gesture"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
-              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
+              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device"/>
+      <action id="android.emulator.screen.record" class="com.android.tools.idea.ui.screenrecording.ScreenRecorderAction"
+              icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display"/>
       <group id="android.emulator.display.mode" class="com.android.tools.idea.emulator.actions.DisplayModeActionGroup"
               text="Display Mode" description="Select display mode" popup="true">
         <action id="android.emulator.display.mode.phone" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Phone"
@@ -79,6 +89,28 @@
               icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete snapshots"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show extended controls"/>
+    </group>
+    <group id="DeviceToolbar">
+      <action id="android.device.power.button" class="com.android.tools.idea.device.actions.DevicePowerButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button"/>
+      <action id="android.device.volume.up.button" class="com.android.tools.idea.device.actions.DeviceVolumeUpButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
+      <action id="android.device.volume.down.button" class="com.android.tools.idea.device.actions.DeviceVolumeDownButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
+      <action id="android.device.rotate.left" class="com.android.tools.idea.device.actions.DeviceRotateAction$Left"
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
+      <action id="android.device.rotate.right" class="com.android.tools.idea.device.actions.DeviceRotateAction$Right"
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
+      <action id="android.device.back.button" class="com.android.tools.idea.device.actions.DeviceBackButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
+      <action id="android.device.home.button" class="com.android.tools.idea.device.actions.DeviceHomeButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
+      <action id="android.device.overview.button" class="com.android.tools.idea.device.actions.DeviceOverviewButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
+      <action id="android.device.screenshot" class="com.android.tools.idea.ui.screenshot.ScreenshotAction"
+              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device"/>
+      <action id="android.device.screen.record" class="com.android.tools.idea.ui.screenrecording.ScreenRecorderAction"
+              icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display"/>
     </group>
   </actions>
 </idea-plugin>

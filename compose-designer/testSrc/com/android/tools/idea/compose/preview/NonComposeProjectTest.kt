@@ -16,7 +16,9 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import junit.framework.Assert.assertFalse
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
@@ -40,6 +42,8 @@ class NonComposeProjectTest {
       """.trimIndent())
 
     val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
-    assertFalse(previewProvider.accept(project, file))
+    runBlocking {
+      assertFalse(previewProvider.accept(project, file))
+    }
   }
 }

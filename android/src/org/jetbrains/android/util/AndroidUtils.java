@@ -12,7 +12,7 @@ import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.res.AndroidDependenciesCache;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -89,15 +89,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidFacetProperties;
@@ -146,6 +143,15 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   private static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
 
+  /**
+   * The package is used to create a directory (eg: MyApplication/app/src/main/java/src/my/package/name)
+   * A windows directory path cannot be longer than 250 chars
+   * On unix/mac a directory name cannot be longer than 250 chars
+   * On all platforms, aapt fails with really cryptic errors if the package name is longer that ~200 chars
+   * Having a sane length for the package also seems a good thing
+   */
+  private static final int PACKAGE_LENGTH_LIMIT = 100;
+
   private AndroidUtils() {
   }
 
@@ -188,46 +194,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     ProgressManager.checkCanceled();
     DomFileElement<T> element = domManager.getFileElement(xmlFile, aClass);
     return element == null ? null : element.getRootElement();
-  }
-
-  @Nullable
-  public static VirtualFile findSourceRoot(@NotNull Module module, VirtualFile file) {
-    Set<VirtualFile> sourceRoots = new HashSet<>();
-    Collections.addAll(sourceRoots, ModuleRootManager.getInstance(module).getSourceRoots());
-
-    while (file != null) {
-      if (sourceRoots.contains(file)) {
-        return file;
-      }
-      file = file.getParent();
-    }
-    return null;
-  }
-
-  @Nullable
-  public static String computePackageName(@NotNull Module module, VirtualFile file) {
-    Set<VirtualFile> sourceRoots = new HashSet<>();
-    Collections.addAll(sourceRoots, ModuleRootManager.getInstance(module).getSourceRoots());
-
-    VirtualFile projectDir = module.getProject().getBaseDir();
-    List<String> packages = new ArrayList<>();
-    file = file.getParent();
-
-    while (file != null && !Objects.equals(projectDir, file) && !sourceRoots.contains(file)) {
-      packages.add(file.getName());
-      file = file.getParent();
-    }
-
-    if (file != null && sourceRoots.contains(file)) {
-      StringBuilder packageName = new StringBuilder();
-
-      for (int i = packages.size() - 1; i >= 0; i--) {
-        packageName.append(packages.get(i));
-        if (i > 0) packageName.append('.');
-      }
-      return packageName.toString();
-    }
-    return null;
   }
 
   public static boolean isAbstract(@NotNull PsiClass c) {
@@ -356,9 +322,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     properties.LIBS_FOLDER_RELATIVE_PATH = '/' + s + properties.LIBS_FOLDER_RELATIVE_PATH;
     properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH = '/' + s + properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH;
 
-    for (int i = 0; i < properties.RES_OVERLAY_FOLDERS.size(); i++) {
-      properties.RES_OVERLAY_FOLDERS.set(i, '/' + s + properties.RES_OVERLAY_FOLDERS.get(i));
-    }
+    properties.RES_OVERLAY_FOLDERS.replaceAll(overlayFolder -> '/' + s + overlayFolder);
   }
 
   @Nullable
@@ -457,26 +421,6 @@ public class AndroidUtils extends CommonAndroidUtil {
       }
     }
     return depFacets;
-  }
-
-  @NotNull
-  public static Set<String> getDepLibsPackages(Module module) {
-    Set<String> result = new HashSet<>();
-    HashSet<Module> visited = new HashSet<>();
-
-    if (visited.add(module)) {
-      for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
-        Manifest manifest = Manifest.getMainManifest(depFacet);
-
-        if (manifest != null) {
-          String aPackage = manifest.getPackage().getValue();
-          if (aPackage != null) {
-            result.add(aPackage);
-          }
-        }
-      }
-    }
-    return result;
   }
 
   public static void checkNewPassword(JPasswordField passwordField, JPasswordField confirmedPasswordField) throws CommitStepException {
@@ -620,6 +564,15 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   @Nullable
+  public static String validatePackageName(@Nullable String packageName) {
+    packageName = (packageName == null) ? "" : packageName;
+    if (packageName.length() >= PACKAGE_LENGTH_LIMIT) {
+      return AndroidBundle.message("android.wizard.module.package.too.long");
+    }
+    return AndroidUtils.validateAndroidPackageName(packageName);
+  }
+
+  @Nullable
   public static String isReservedKeyword(@NotNull String string) {
     Lexer lexer = JAVA_LEXER;
     lexer.start(string);
@@ -671,10 +624,6 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   public static boolean isIdentifier(@NotNull String candidate) {
     return StringUtil.isJavaIdentifier(candidate) && !JavaLexer.isKeyword(candidate, LanguageLevel.JDK_1_5);
-  }
-
-  public static void reportImportErrorToEventLog(String message, String modName, Project project) {
-    reportImportErrorToEventLog(message, modName, project, null);
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
@@ -754,7 +703,7 @@ public class AndroidUtils extends CommonAndroidUtil {
       boolean startsWithDot = context.charAt(0) == '.';
       if (startsWithDot || context.indexOf('.') == -1) {
         // Prepend application package
-        String pkg = AndroidManifestUtils.getPackageName(module);
+        String pkg = ProjectSystemUtil.getModuleSystem(module).getPackageName();
         return startsWithDot ? pkg + context : pkg + '.' + context;
       }
       return context;

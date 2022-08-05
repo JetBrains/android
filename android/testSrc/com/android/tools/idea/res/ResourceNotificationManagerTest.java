@@ -39,6 +39,7 @@ import com.intellij.util.ui.UIUtil;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
@@ -137,7 +138,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     XmlTag tag = values1.getDocument().getRootTag().getSubTags()[1].getSubTags()[0];
     assertEquals("item", tag.getName());
     WriteCommandAction.runWriteCommandAction(getProject(), () -> tag.getValue().setEscapedText("@color/color2"));
-    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
+    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT); ///
 
     // First check: Modify the layout by changing @string/hello to @string/hello_world
     // and verify that our listeners are called.
@@ -304,7 +305,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
   private void ensureCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Set<Reason>> calledValue1,
                             @NotNull Ref<Boolean> called2, @NotNull Ref<Set<Reason>> calledValue2,
                             @NotNull Reason reason) throws InterruptedException, TimeoutException {
-    waitForResourceRepositoryUpdates();
+    waitForResourceRepositoryUpdates(4, TimeUnit.SECONDS);
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(called1.get());
     assertEquals(EnumSet.of(reason), calledValue1.get());

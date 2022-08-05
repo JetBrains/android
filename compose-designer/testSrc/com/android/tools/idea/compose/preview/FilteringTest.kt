@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
-import com.android.tools.idea.compose.preview.util.PreviewElementTemplate
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.ComposePreviewElementTemplate
+import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
+import com.android.tools.idea.preview.StaticPreviewProvider
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertEquals
@@ -29,10 +30,10 @@ class FilteringTest {
   @Test
   fun testGroupFiltering() = runBlocking {
     val groupPreviewProvider = GroupNameFilteredPreviewProvider(StaticPreviewProvider(listOf(
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod4", "PreviewMethod4")
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod4", "PreviewMethod4")
     )))
 
     // No filtering at all
@@ -56,11 +57,11 @@ class FilteringTest {
 
   @Test
   fun testSingleElementFiltering() = runBlocking {
-    val staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod4", "PreviewMethod4")
+    val staticPreviewProvider = StaticPreviewProvider<ComposePreviewElementInstance>(listOf(
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod4", "PreviewMethod4")
     ))
     val singleElementProvider = SinglePreviewElementInstanceFilteredPreviewProvider(staticPreviewProvider)
 
@@ -68,54 +69,54 @@ class FilteringTest {
     assertEquals(4, singleElementProvider.previewElements().count())
 
     // An invalid group should return all the items
-    singleElementProvider.instance = SinglePreviewElementInstance.forTesting("com.notvalid.NotValid", "blank", "GroupX")
+    singleElementProvider.instance = SingleComposePreviewElementInstance.forTesting("com.notvalid.NotValid", "blank", "GroupX")
     assertEquals(4, singleElementProvider.previewElements().count())
 
     singleElementProvider.instance =
-      staticPreviewProvider.previewElements().first { it.composableMethodFqn == "com.sample.preview.TestClass.PreviewMethod3" } as SinglePreviewElementInstance
+      staticPreviewProvider.previewElements().first { it.composableMethodFqn == "com.sample.preview.TestClass.PreviewMethod3" } as SingleComposePreviewElementInstance
     assertEquals("PreviewMethod3", singleElementProvider.previewElements().single().displaySettings.name)
-    singleElementProvider.instance = staticPreviewProvider.previewElements().first() as SinglePreviewElementInstance
+    singleElementProvider.instance = staticPreviewProvider.previewElements().first() as SingleComposePreviewElementInstance
     assertEquals("PreviewMethod1", singleElementProvider.previewElements().single().displaySettings.name)
   }
 
   @Test
   fun `multiple @Preview for the same MethodFqn`() = runBlocking {
-    val staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "Name1"),
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "Name2"),
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "Name1")
+    val staticPreviewProvider = StaticPreviewProvider<ComposePreviewElementInstance>(listOf(
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "Name1"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "Name2"),
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "Name1")
     ))
     val singleElementProvider = SinglePreviewElementInstanceFilteredPreviewProvider(staticPreviewProvider)
 
     singleElementProvider.instance =
       staticPreviewProvider.previewElements().first {
         it.composableMethodFqn == "com.sample.preview.TestClass.PreviewMethod1" && it.displaySettings.name == "Name1"
-      } as SinglePreviewElementInstance
+      } as SingleComposePreviewElementInstance
 
     assertEquals(1, singleElementProvider.previewElements().count())
     assertEquals("com.sample.preview.TestClass.PreviewMethod1", singleElementProvider.previewElements().single().composableMethodFqn)
     assertEquals("Name1", singleElementProvider.previewElements().single().displaySettings.name)
   }
 
-  private class TestPreviewElementTemplateInstance(private val basePreviewElement: PreviewElement,
-                                                   index: Int) : PreviewElementInstance(), PreviewElement by basePreviewElement {
+  private class TestComposePreviewElementTemplateInstance(private val basePreviewElement: ComposePreviewElement,
+                                                          index: Int) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
     override val instanceId: String = "${basePreviewElement.composableMethodFqn}#$index"
   }
 
-  private class TestPreviewElementTemplate(private val basePreviewElement: PreviewElement,
-                                           private val instanceCount: Int) :
-    PreviewElementTemplate, PreviewElement by basePreviewElement {
-    override fun instances(): Sequence<PreviewElementInstance> = generateSequence(instanceCount, {
+  private class TestComposePreviewElementTemplate(private val basePreviewElement: ComposePreviewElement,
+                                                  private val instanceCount: Int) :
+    ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
+    override fun instances(): Sequence<ComposePreviewElementInstance> = generateSequence(instanceCount, {
       if (it > 1) it - 1 else null
     }).map {
-      TestPreviewElementTemplateInstance(basePreviewElement, it)
+      TestComposePreviewElementTemplateInstance(basePreviewElement, it)
     }
   }
 
   @Test
   fun testParametrizedElementFiltering() = runBlocking {
-    val template = TestPreviewElementTemplate(
-      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod", "PreviewMethod"), 10)
+    val template = TestComposePreviewElementTemplate(
+      SingleComposePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod", "PreviewMethod"), 10)
 
     val instances = template.instances().toList()
     val singleElementProvider = SinglePreviewElementInstanceFilteredPreviewProvider(StaticPreviewProvider(instances))

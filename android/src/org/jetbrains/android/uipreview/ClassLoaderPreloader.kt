@@ -17,7 +17,6 @@ package org.jetbrains.android.uipreview
 
 import com.google.common.util.concurrent.MoreExecutors
 import java.lang.ref.WeakReference
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 
 /**
@@ -28,17 +27,16 @@ import java.util.concurrent.Executor
 @JvmOverloads
 fun preload(
   classLoader: ClassLoader,
+  isActive: () -> Boolean,
   classesToPreload: Collection<String>,
-  executor: Executor = MoreExecutors.directExecutor()): CompletableFuture<Void> {
-  val future = CompletableFuture<Void>()
+  executor: Executor = MoreExecutors.directExecutor()) {
   val classLoaderRef = WeakReference(classLoader)
 
   executor.execute {
-    try {
       val theClassLoader = classLoaderRef.get() ?: return@execute
       for (classToPreload in classesToPreload) {
         try {
-          if (future.isCancelled) {
+          if (!isActive()) {
             break
           }
           theClassLoader.loadClass(classToPreload)
@@ -47,9 +45,4 @@ fun preload(
         catch (_: ClassNotFoundException) {}
       }
     }
-    finally {
-      future.complete(null)
-    }
-  }
-  return future
 }

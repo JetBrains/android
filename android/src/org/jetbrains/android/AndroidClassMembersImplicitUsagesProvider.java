@@ -5,9 +5,9 @@ import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
 import static com.android.SdkConstants.CLASS_BACKUP_AGENT;
 import static com.android.SdkConstants.CLASS_CONTEXT;
 import static com.android.SdkConstants.CLASS_FRAGMENT;
-import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.CLASS_VIEW;
 
+import com.android.AndroidXConstants;
 import com.intellij.codeInsight.daemon.ImplicitUsageProvider;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
@@ -185,8 +185,8 @@ public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageP
       final PsiClass aClass = method.getContainingClass();
       if (aClass != null) {
         if (InheritanceUtil.isInheritor(aClass, CLASS_FRAGMENT)
-          || InheritanceUtil.isInheritor(aClass, CLASS_V4_FRAGMENT.oldName())
-          || InheritanceUtil.isInheritor(aClass, CLASS_V4_FRAGMENT.newName())
+          || InheritanceUtil.isInheritor(aClass, AndroidXConstants.CLASS_V4_FRAGMENT.oldName())
+          || InheritanceUtil.isInheritor(aClass, AndroidXConstants.CLASS_V4_FRAGMENT.newName())
           || InheritanceUtil.isInheritor(aClass, CLASS_BACKUP_AGENT)) {
           // Activity, Service, ContentProvider and BroadcastReceiver should also be treated as having implicit usages,
           // but for some reason that's already the case (they are not marked as unused constructors currently;

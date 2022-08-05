@@ -109,12 +109,12 @@ private constructor(
   private fun onTransitionChanged(playable: Boolean) {
     if (playable) {
       setEnabledState(play = true, pause = false, stop = false, frame = true, speed = true)
-      setPlayButtonStatus(false)
+      setVisibilityOfPlayAndPauseButtons(playing = false)
       setTooltips(DEFAULT_PLAY_TOOLTIP, DEFAULT_PAUSE_TOOLTIP, DEFAULT_STOP_TOOLTIP)
     }
     else {
       setEnabledState(play = false, pause = false, stop = false, frame = false, speed = false)
-      setPlayButtonStatus(false)
+      setVisibilityOfPlayAndPauseButtons(playing = false)
       setTooltips(NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP)
     }
   }

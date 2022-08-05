@@ -23,7 +23,7 @@ fun appAndroidManifest(needsTargetFlag: Boolean) = """
 ${renderIf(needsTargetFlag) { "xmlns:tools=\"http://schemas.android.com/tools\"" }}>
 
   <application>
-    <profileable android:shell="true" ${renderIf(needsTargetFlag) { "tools:targetApi=\"q\"" }}/>
+    <profileable android:shell="true" ${renderIf(needsTargetFlag) { "tools:targetApi=\"29\"" }}/>
   </application>
 
 </manifest>

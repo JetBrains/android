@@ -20,20 +20,20 @@ import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.resources.ResourceRepository
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.DependencyScopeType
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
-import com.android.tools.idea.res.ResourceIdManager.Companion.get
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.VirtualFileSystemOpener.recognizes
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.uipreview.ModuleClassLoader
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.regex.Pattern
@@ -99,7 +99,7 @@ private fun ExternalAndroidLibrary.registerLibraryResources(
 private fun registerResources(module: Module) {
   val androidFacet: AndroidFacet = AndroidFacet.getInstance(module) ?: return
   val repositoryManager = ResourceRepositoryManager.getInstance(androidFacet)
-  val idManager = get(module)
+  val idManager = ResourceIdManager.get(module)
   val classRegistry = ResourceClassRegistry.get(module.project)
 
   // If final ids are used, we will read the real class from disk later (in loadAndParseRClass), using this class loader. So we
@@ -108,7 +108,7 @@ private fun registerResources(module: Module) {
     classRegistry.addLibrary(repositoryManager.appResources,
                              idManager,
                              ReadAction.compute<String?, RuntimeException> {
-                               getPackageName(androidFacet)
+                               androidFacet.getModuleSystem().getPackageName()
                              },
                              repositoryManager.namespace)
 
@@ -116,15 +116,14 @@ private fun registerResources(module: Module) {
       .distinct()
       .forEach { facet ->
         classRegistry.addLibrary(repositoryManager.appResources,
-                                idManager,
-                                ReadAction.compute<String?, RuntimeException> {
-                                  getPackageName(facet)
-                                },
-                                repositoryManager.namespace)
-    }
+                                 idManager,
+                                 ReadAction.compute<String?, RuntimeException> {
+                                   facet.getModuleSystem().getPackageName()
+                                 },
+                                 repositoryManager.namespace)
+      }
   }
-
-  module.getModuleSystem().getAndroidLibraryDependencies()
+  module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
     .filter { it.hasResources }
     .forEach { it.registerLibraryResources(repositoryManager, classRegistry, idManager) }
 }
@@ -149,10 +148,32 @@ class LibraryResourceClassLoader(parent: ClassLoader?, module: Module) : ClassLo
       throw ClassNotFoundException(name)
     }
 
+    if (ResourceIdManager.get(module).finalIdsUsed) {
+      // If final IDs are used, we check if the last build was successful in order to use the compiled classes instead of load them from
+      // this class loader. If the compiled classes are available, they will be used (i.e. we'll throw a ClassNotFoundException here and
+      // let the R classes be loaded by a parent class loader (ProjectSystemClassLoader). If compiled classes are not available, there are
+      // two possible scenarios:
+      //     1) We are looking for a resource class available in the ResourceClassRegistry
+      //     2) We are looking for a resource class that's not available in the ResourceClassRegistry
+      //
+      // In the first scenario, we'll load the R class using this class loader. This covers the case where users are opening a project
+      // before compiling and want to view an XML resource file, which should work.
+      //
+      // In the second scenario, we'll fail to find the class in the ResourceClassRegistry below and will throw a ClassNotFoundException,
+      // delegating loading to a parent class loader. If compilation *actually* didn't happen (the check below has a limitation of not
+      // detecting if a just-opened project is already built), the resource class won't be loaded. However, if the project was built at
+      // some point, the ProjectSystemClassLoader will load the resource classes from the compiled sources regardless.
+      val lastBuild = ProjectSystemService.getInstance(module.project).projectSystem.getBuildManager().getLastBuildResult()
+      if (lastBuild.mode != ProjectSystemBuildManager.BuildMode.CLEAN
+          && lastBuild.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+        throw ClassNotFoundException(name)
+      }
+    }
+
     val facet: AndroidFacet = AndroidFacet.getInstance(module) ?: throw ClassNotFoundException(name)
     val repositoryManager = ResourceRepositoryManager.getInstance(facet)
     val data = ResourceClassRegistry.get(module.project).findClassDefinition(name, repositoryManager) ?: throw ClassNotFoundException(name)
-    Logger.getInstance(ModuleClassLoader::class.java).debug("  Defining class from AAR registry")
+    Logger.getInstance(LibraryResourceClassLoader::class.java).debug("  Defining class from AAR registry")
     return defineClass(name, data, 0, data.size)
   }
 

@@ -73,6 +73,7 @@
                      restartRequired="false"/>
     </extensions>
 
+
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <quickFixContributor implementation="org.jetbrains.kotlin.android.quickfix.AndroidQuickFixRegistrar"/>
         <projectConfigurator implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleModuleConfigurator"/>

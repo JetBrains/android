@@ -21,8 +21,9 @@ package com.android.tools.idea.templates
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
-import com.android.tools.idea.gradle.project.common.GradleInitScripts
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintIdeRequest
 import com.android.tools.idea.lint.common.LintIdeSupport
@@ -36,10 +37,10 @@ import com.android.tools.idea.templates.KeystoreUtils.sha1
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
-import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.lint.checks.ManifestDetector
@@ -54,25 +55,14 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
-import com.intellij.util.WaitFor
+import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import junit.framework.TestCase
 import junit.framework.TestCase.assertTrue
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
 import java.util.EnumSet
-import java.util.concurrent.TimeUnit
 import kotlin.streams.toList
 
 /**
@@ -82,6 +72,7 @@ internal fun isBroken(templateName: String): Boolean {
   if (SystemInfo.isWindows) {
     if ("AIDL File" == templateName) return true // b/37139315
     if ("Native C++" == templateName) return true // b/158067606
+    if ("Game Activity (C++)" == templateName) return true // b/158067606
   }
 
   return false
@@ -136,7 +127,7 @@ internal fun getModifiedModuleName(moduleName: String, avoidModifiedModuleName: 
  * @param moduleState  the module state, containing kotlin support info for template render event
  */
 internal fun verifyLastLoggedUsage(usageTracker: TestUsageTracker, templateName: String, formFactor: FormFactor, moduleState: ModuleTemplateData) {
-  val usage = usageTracker.usages.last()!!
+  val usage = usageTracker.usages.last { it.studioEvent.kind == EventKind.TEMPLATE_RENDER }!!
   assertEquals(EventKind.TEMPLATE_RENDER, usage.studioEvent.kind)
 
   val templateRenderer = titleToTemplateRenderer(templateName, formFactor)
@@ -149,66 +140,12 @@ internal fun verifyLastLoggedUsage(usageTracker: TestUsageTracker, templateName:
                  .setKotlinSupportVersion(moduleState.projectTemplateData.kotlinVersion).build(),
                usage.studioEvent.kotlinSupport)
 }
-// TODO(qumeric) should it be removed in favor of AndroidGradleTestCase.setUpFixture?
-internal fun setUpFixtureForProject(projectName: String): JavaCodeInsightTestFixture {
-  val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(projectName)
-  val fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture).apply {
-    setUp()
-  }
-  val project = fixture.project
-  FileUtil.ensureExists(File(toSystemDependentName(project.basePath!!)))
-  LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath!!)
-  return fixture
-}
 
 internal fun verifyLanguageFiles(projectDir: File, language: Language) {
   // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave locked directories on Windows
   val allPaths = Files.walk(projectDir.toPath()).toList()
   val wrongLanguageExtension = if (language == Language.Kotlin) ".java" else ".kt"
   assertTrue(allPaths.none { it.toString().endsWith(wrongLanguageExtension) })
-}
-
-internal fun invokeGradleForProjectDir(projectRoot: File) {
-  val connection = (GradleConnector.newConnector() as DefaultGradleConnector).apply {
-    forProjectDirectory(projectRoot)
-    daemonMaxIdleTime(10000, TimeUnit.MILLISECONDS)
-  }.connect()
-  val buildLauncher = connection.newBuild().forTasks("assembleDebug")
-  val commandLineArguments = mutableListOf<String>()
-  GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments)
-  buildLauncher.withArguments(commandLineArguments)
-  val baos = ByteArrayOutputStream()
-  try {
-    buildLauncher.setStandardOutput(baos).setStandardError(baos).run()
-  }
-  // Use the following commented out code to debug the generated project in case of a failure.
-  catch (e: Exception) {
-    //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
-    //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
-    //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
-    throw RuntimeException(baos.toString("UTF-8"), e)
-  }
-  finally {
-    shutDownGradleConnection(connection, projectRoot)
-  }
-}
-
-internal fun shutDownGradleConnection(connection: ProjectConnection, projectRoot: File) {
-  connection.close()
-  // Windows work-around: After closing the gradle connection, it's possible that some files (eg local.properties) are locked
-  // for a bit of time. It is also possible that there are Virtual Files that are still synchronizing to the File System, this will
-  // break tear-down, when it tries to delete the project.
-  if (SystemInfo.isWindows) {
-    println("Windows: Attempting to delete project Root - $projectRoot")
-    object : WaitFor(60000) {
-      override fun condition(): Boolean {
-        if (!FileUtil.delete(projectRoot)) {
-          println("Windows: delete project Root failed - time = ${System.currentTimeMillis()}")
-        }
-        return projectRoot.mkdir()
-      }
-    }
-  }
 }
 
 internal fun lintIfNeeded(project: Project) {
@@ -221,16 +158,22 @@ internal fun lintIfNeeded(project: Project) {
   }
 }
 
-internal fun cleanupProjectFiles(projectDir: File) {
-  if (projectDir.exists()) {
-    FileUtil.delete(projectDir)
-    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir)
+internal fun checkDslParser(project: Project) {
+  val projectBuildModel = ProjectBuildModel.get(project)
+  val allModels = projectBuildModel.allIncludedBuildModels
+  val unresolvedDependencies = allModels.flatMap {
+    when (it) {
+      is GradleFileModelImpl ->
+        it.dslFile.context.dependencyManager.myUnresolvedReferences.entries.flatMap { entry -> entry.component2() }
+      else -> listOf()
+    }
   }
+  assertEmpty(unresolvedDependencies)
 }
 
 private const val defaultPackage = "template.test.pkg"
 
-internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder {
+internal fun getDefaultModuleState(project: Project, template: Template): ModuleTemplateDataBuilder {
   // TODO(qumeric): is always new?
   val projectStateBuilder = ProjectTemplateDataBuilder(true).apply {
     androidXSupport = true
@@ -242,21 +185,22 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     overridePathCheck = true // To disable android plugin checking for ascii in paths (windows tests)
   }
 
+  val minSdk = template.minSdk.coerceAtLeast(AndroidVersion.VersionCodes.M)
   return ModuleTemplateDataBuilder(
     projectStateBuilder,
     isNewModule = true,
     viewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE).apply { name = "Template test module"
     packageName = defaultPackage
-    val paths = createDefaultTemplateAt(project.basePath!!, name!!).paths
+    val paths = createDefaultModuleTemplate(project, name!!).paths
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
-    formFactor = FormFactor.Mobile // FIXME
-    category = Category.Activity
+    formFactor = template.formFactor
+    category = template.category
     themesData = ThemesData("App")
     apis = ApiTemplateData(
       buildApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
       targetApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
-      minApi = ApiVersion(AndroidVersion.VersionCodes.M, AndroidVersion.VersionCodes.M.toString()),
+      minApi = ApiVersion(minSdk, minSdk.toString()),
       // The highest supported/recommended appCompact version is P(28)
       appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P)
     )

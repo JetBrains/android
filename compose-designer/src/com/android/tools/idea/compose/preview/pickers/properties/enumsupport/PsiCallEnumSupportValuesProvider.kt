@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.SdkConstants
+import com.android.ide.common.resources.Locale
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.DeviceManager
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
@@ -28,11 +28,11 @@ import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceClass
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceEnumValueBuilder
+import com.android.tools.idea.compose.preview.pickers.properties.utils.getSdkDevices
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction
@@ -42,8 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.util.text.nullize
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AndroidSdkData
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
@@ -89,13 +88,12 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
         DeviceGroup.NEXUS,
         DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
         DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
+        DeviceGroup.OTHER, // Group other with generic to guarantee all devices are available
         DeviceGroup.GENERIC -> devices.forEach(devicesEnumValueBuilder::addGeneric)
         DeviceGroup.WEAR -> devices.forEach(devicesEnumValueBuilder::addWear)
         DeviceGroup.TV -> devices.forEach(devicesEnumValueBuilder::addTv)
         DeviceGroup.AUTOMOTIVE -> devices.forEach(devicesEnumValueBuilder::addAuto)
-        DeviceGroup.OTHER -> {
-          // Do nothing
-        }
+        DeviceGroup.DESKTOP -> devices.forEach(devicesEnumValueBuilder::addDesktop)
       }
     }
     devicesEnumValueBuilder.includeDefaultsAndBuild()
@@ -125,13 +123,15 @@ private fun DeviceEnumValueBuilder.addGeneric(device: Device) {
   addGenericById(displayName = device.displayName, id = device.id)
 }
 
+private fun DeviceEnumValueBuilder.addDesktop(device: Device) {
+  addById(displayName = device.displayName, id = device.id, type = DeviceClass.Desktop)
+}
+
 /**
  * Returns grouped devices from the DeviceManager.
  */
 private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
-  val studioDevices = AndroidFacet.getInstance(module)?.let { facet ->
-    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
-  } ?: emptyList()
+  val studioDevices = getSdkDevices(module)
   return groupDevices(studioDevices)
 }
 
@@ -197,7 +197,7 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider =
 
 private fun createGroupEnumProvider(module: Module, containingFile: VirtualFile): EnumValuesProvider =
   {
-    AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile).mapNotNull { previewElement ->
+    runBlocking { AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile) }.mapNotNull { previewElement ->
       previewElement.displaySettings.group
     }.distinct().map { group ->
       EnumValue.Companion.item(group)

@@ -26,9 +26,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import java.awt.BasicStroke;
@@ -41,7 +39,6 @@ import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -57,12 +54,6 @@ public class ScreenViewLayerTest {
   private static final Rectangle FULL_SIZE = new Rectangle(IMAGE_WIDTH, IMAGE_HEIGHT);
 
   private Disposable myDisposable =  Disposer.newDisposable();
-
-  @Before
-  public void setUp() {
-    MockApplication instance = new MockApplication(myDisposable);
-    ApplicationManager.setApplication(instance, myDisposable);
-  }
 
   @After
   public void tearDown() {

@@ -17,7 +17,6 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
@@ -38,7 +37,7 @@ class LogcatFilterSyntaxHighlighterTest {
 
   @Test
   fun getTokenHighlights() {
-    for (token in listOf(KEY, KVALUE, STRING_KEY, STRING_KVALUE, REGEX_KEY, REGEX_KVALUE, PROJECT_APP, VALUE)) {
+    for (token in listOf(KEY, KVALUE, STRING_KEY, STRING_KVALUE, REGEX_KEY, REGEX_KVALUE, VALUE)) {
       assertThat(LogcatFilterSyntaxHighlighter().getTokenHighlights(token)).isNotEmpty()
     }
   }

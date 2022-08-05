@@ -118,48 +118,6 @@ class UsageTypeProvidersTest : AndroidTestCase() {
   }
 
   /**
-   * Tests for [GradleUsageTypeProvider]
-   */
-  fun testGroovyElement() {
-    val file = myFixture.addFileToProject("Foo.gradle", "class F${caret}oo {}")
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    val elementAtCaret = file.findElementAt(myFixture.caretOffset)
-    val usageType = getUsageType(elementAtCaret!!)
-    assertThat(usageType).isNotNull()
-    assertThat(usageType.toString()).isEqualTo("In Gradle build script")
-  }
-
-  fun testKotlinScriptElement() {
-    val file = myFixture.addFileToProject("Foo.gradle.kts", "class F${caret}oo {}")
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    val elementAtCaret = file.findElementAt(myFixture.caretOffset)
-    val usageType = getUsageType(elementAtCaret!!)
-    assertThat(usageType).isNotNull()
-    assertThat(usageType.toString()).isEqualTo("In Gradle build script")
-  }
-
-  // whatever is returned on a normal Kotlin file, it should not be related to Gradle (a null result is OK)
-  fun testKotlinClassNameElement() {
-    val file = myFixture.addFileToProject("Foo.kt", "class F${caret}oo {}")
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    val elementAtCaret = file.findElementAt(myFixture.caretOffset)
-    val usageType = getUsageType(elementAtCaret!!)
-    if (usageType != null) {
-      assertThat(usageType.toString()).doesNotContainMatch("Gradle")
-    }
-  }
-
-  fun testKotlinClassReferenceElement() {
-    val file = myFixture.addFileToProject("Foo.kt", "class Foo {}\n\nclass Bar : F${caret}oo {}")
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    val elementAtCaret = file.findElementAt(myFixture.caretOffset)
-    val usageType = getUsageType(elementAtCaret!!)
-    if (usageType != null) {
-      assertThat(usageType.toString()).doesNotContainMatch("Gradle")
-    }
-  }
-
-  /**
    * Tests for [AndroidOldXmlUsageProvider]
    */
   fun testResourceDomElement() {

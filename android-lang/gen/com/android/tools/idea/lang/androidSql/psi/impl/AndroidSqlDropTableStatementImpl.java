@@ -38,6 +38,7 @@ public class AndroidSqlDropTableStatementImpl extends ASTWrapperPsiElement imple
     visitor.visitDropTableStatement(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

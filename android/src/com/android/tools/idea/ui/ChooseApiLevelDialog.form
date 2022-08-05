@@ -10,7 +10,7 @@
     <children>
       <component id="67aca" class="javax.swing.JPanel" binding="myChartPanel" custom-create="true">
         <constraints>
-          <grid row="0" column="0" row-span="3" col-span="1" vsize-policy="3" hsize-policy="6" anchor="8" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="2" col-span="1" vsize-policy="3" hsize-policy="6" anchor="8" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
       </component>
@@ -87,6 +87,16 @@
       <component id="61336" class="com.intellij.ui.components.JBLabel" binding="myLearnMoreLinkLabel">
         <constraints>
           <grid row="2" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="308" height="0"/>
+          </grid>
+        </constraints>
+        <properties>
+          <horizontalTextPosition value="0"/>
+        </properties>
+      </component>
+      <component id="4d912" class="com.intellij.ui.components.JBLabel" binding="myLastUpdatedLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
             <preferred-size width="308" height="0"/>
           </grid>
         </constraints>

@@ -16,209 +16,192 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
-import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.google.common.collect.HashMultimap
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
-import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
-import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
-import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
-import org.jetbrains.kotlin.backend.jvm.jvmPhases
-import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.codegen.ClassBuilderFactories
-import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.config.languageVersionSettings
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.diagnostics.Severity
+import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
-import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
-import org.jetbrains.kotlin.load.kotlin.toSourceElement
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
-import org.jetbrains.kotlin.resolve.jvm.jvmSignature.KotlinToJvmSignatureMapper
-import org.jetbrains.kotlin.resolve.source.PsiSourceFile
-import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
-import java.lang.Math.ceil
-import java.util.ServiceLoader
+import org.objectweb.asm.ClassReader
 
-const val SLOTS_PER_INT = 10
-const val BITS_PER_INT = 31
+class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCache: SourceInlineCandidateCache? = null) {
+  data class CodeGeneratorInput(val file: PsiFile, var element: KtElement, var parentGroups: List<KtFunction>? = null)
 
-class AndroidLiveEditCodeGenerator {
-
-  private val SIGNATURE_MAPPER = ServiceLoader.load(
-    KotlinToJvmSignatureMapper::class.java,
-    KotlinToJvmSignatureMapper::class.java.classLoader
-  ).iterator().next()
-
-  fun interface CodeGenCallback {
-    operator fun invoke(className: String, methodName: String, methodDesc: String, classData: ByteArray, supportClasses: Map<String, ByteArray>)
+  enum class FunctionType {
+    NONE, KOTLIN, COMPOSABLE
   }
 
+  data class CodeGeneratorOutput(val className: String,
+                                 val methodName: String,
+                                 val methodDesc: String,
+                                 val classData: ByteArray,
+                                 val functionType: FunctionType,
+                                 val hasGroupId: Boolean,
+                                 val groupId: Int,
+                                 val supportClasses: Map<String, ByteArray>)
+
   /**
-   * Compile a given set of MethodReferences to Java .class files and invoke a callback upon completion.
+   * Compile a given set of MethodReferences to Java .class files and populates the output list with the compiled code.
+   * The compilation is wrapped in a cancelable read action, and will be interrupted by a PSI write action.
+   *
+   * Returns true if the compilation is successful, and false if the compilation was interrupted and did not complete.
+   * If compilation fails due to issues with invalid syntax or other compiler-specific errors, throws a
+   * LiveEditException detailing the failure.
    */
   @Trace
-  fun compile(project: Project, methods: List<LiveEditService.MethodReference>, callback: CodeGenCallback) {
+  fun compile(inputs: List<CodeGeneratorInput>, outputs: MutableList<CodeGeneratorOutput>) : Boolean {
+    outputs.clear()
+
+    // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
+    // scenario is multiple pending changes in the same file, so this is somewhat important.
+    val changedFiles = HashMultimap.create<KtFile, CodeGeneratorInput>()
+    for (input in inputs) {
+      if (input.file is KtFile) {
+        changedFiles.put(input.file, input)
+      }
+    }
+
+    // Wrap compilation in a read action that can be interrupted by any other read or write action,
+    // which prevents the UI from freezing during compilation if the user continues typing.
+    val progressManager = ProgressManager.getInstance()
+    return progressManager.runInReadActionWithWriteActionPriority(
+      {
+        for ((file, input) in changedFiles.asMap()) {
+          outputs.addAll(compileKtFile(file, input))
+        }
+      }, progressManager.progressIndicator)
+  }
+
+  private fun compileKtFile(file: KtFile, inputs: Collection<CodeGeneratorInput>) : List<CodeGeneratorOutput> {
     val tracker = PerformanceTracker()
+    var inputFiles = listOf(file)
 
-    // If we (or the user) ended up setting the update time intervals to be long. It is very possible that
-    // that multiple change events of the same file can be queue up. We keep track of what we have deploy
-    // so we don't compile the same file twice.
-    val compiled = HashSet<PsiFile>()
-    for (method in methods) {
-      val root = method.file
+    return runWithCompileLock {
+      // This is a three-step process:
+      // 1) Compute binding context based on any previous cached analysis results.
+      //    On small edits of previous analyzed project, this operation should be below 30ms or so.
+      ProgressManager.checkCanceled()
+      val resolution = tracker.record({ fetchResolution(project, inputFiles) }, "resolution_fetch")
 
-      if (root !is KtFile || compiled.contains(root)) {
-        continue
-      }
-      val inputs = listOf(root)
+      ProgressManager.checkCanceled()
+      var bindingContext = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
+      var inlineCandidates = inlineCandidateCache?.let { analyzeSingleDepthInlinedFunctions(resolution, file, bindingContext, it) }
 
-      // A compile is always going to be a ReadAction because it reads an KtFile completely.
-      ApplicationManager.getApplication().runReadAction {
-        try {
-          // Three steps process:
-
-          // 1) Compute binding context based on any previous cached analysis results.
-          //    On small edits of previous analyzed project, this operation should be below 30ms or so.
-          var resolution = tracker.record({fetchResolution(project, inputs)}, "resolution_fetch")
-          var bindingContext = tracker.record({analyze(inputs, resolution)}, "analysis")
-
-          // 2) Invoke the backend with the inputs and the binding context computed from step 1.
-          //    This is the one of the most time consuming step with 80 to 500ms turnaround depending the
-          //    complexity of the input .kt file.
-          var classes = tracker.record({backendCodeGen(project, resolution, bindingContext, inputs,
-                                       AndroidLiveEditLanguageVersionSettings(root.languageVersionSettings))}, "codegen")
-
-          // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
-          //    decide which classes we want to send to the device along with what extra meta-information the
-          //    agent need.
-          if (!tracker.record({deployLiveEditToDevice(method.function, bindingContext, classes, callback)}, "deploy")) return@runReadAction
-        } catch (e : LiveEditUpdateException) {
-          // TODO: We need to make deployLiveEditToDevice() atomic when there are multiple functions getting
-          //       update even thought that's probably a very unlikely scenario.
-          reportLiveEditError(e)
-        } finally {
-          compiled.add(root)
+      // 2) Invoke the backend with the inputs and the binding context computed from step 1.
+      //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
+      //    the complexity of the input .kt file.
+      ProgressManager.checkCanceled()
+      var generationState : GenerationState? = null
+      try {
+        generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
+                                                         inputFiles.first().module!!,
+                                                         inlineCandidates,
+                                                         AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
+                                         "codegen")
+      } catch (e : LiveEditUpdateException) {
+        if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
+          throw e
         }
-        reportDeployPerformance(tracker)
-      }
-    }
-  }
 
-  /**
-   * Fetch the resolution based on the cached service.
-   */
-  fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
-    val kotlinCacheService = KotlinCacheService.getInstance(project)
-    return kotlinCacheService.getResolutionFacade(input)
-  }
+        // 2.1) Add any extra source file this compilation need in order to support the input file calling an inline function
+        //      from another source file then perform a compilation again.
+        if (LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis) {
+          inputFiles = performInlineSourceDependencyAnalysis(resolution, file, bindingContext)
 
-  /**
-   * Compute the BindingContext of the input file that can be used for code generation.
-   *
-   * This function needs to be done in a read action.
-   */
-  fun analyze(input: List<KtFile>, resolution: ResolutionFacade) : BindingContext {
-    val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
-      resolution.analyzeWithAllCompilerChecks(input) {
-        if (it.severity== Severity.ERROR) {
-          throw LiveEditUpdateException.analysisError("Analyze Error. $it")
+          // We need to perform the analysis once more with the new set of input files.
+          val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
+
+          // We will need to start using the binding context from the new analysis for code gen.
+          bindingContext = newAnalysisResult.bindingContext
+
+          generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
+                                                           inputFiles.first().module!!, inlineCandidates,
+                                                           AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
+                                           "codegen_inline")
+        } else {
+          throw e
         }
       }
+
+      // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
+      //    decide which classes we want to send to the device along with what extra meta-information the
+      //    agent need.
+      return@runWithCompileLock inputs.map { getGeneratedCode(it, generationState!!)}
+    }
+  }
+
+  /**
+   * Pick out what classes we need from the generated list of .class files.
+   */
+  private fun getGeneratedCode(input: CodeGeneratorInput, generationState: GenerationState): CodeGeneratorOutput {
+    val compilerOutput = generationState.factory.asList()
+    val bindingContext = generationState.bindingContext
+
+    if (compilerOutput.isEmpty()) {
+      throw LiveEditUpdateException.internalError("No compiler output.", input.file)
     }
 
-    if (analysisResult.isError()) {
-      throw LiveEditUpdateException.analysisError(analysisResult.error.message?:"No Error message")
-    }
+    when(input.element) {
+      // When the edit event was contained in a function
+      is KtNamedFunction -> {
+        val targetFunction = input.element as KtNamedFunction
+        var group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
+          getGroupKey(compilerOutput, targetFunction) else null
+        return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
+      }
 
-    for (diagnostic in analysisResult.bindingContext.diagnostics) {
-      if (diagnostic.severity == Severity.ERROR) {
-        throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic")
+      is KtFunction -> {
+        val targetFunction = input.element as KtFunction
+        var group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
+            getGroupKey(compilerOutput, targetFunction, input.parentGroups) else null
+        return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
+      }
+
+      // When the edit event was at class level
+      is KtClass -> {
+        val targetClass = input.element as KtClass
+        val desc = bindingContext[BindingContext.CLASS, targetClass]!!
+        val internalClassName = getInternalClassName(desc.containingPackage(), targetClass.fqName.toString(), input.file)
+        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
+        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE, false,0, supportClasses)
+      }
+
+      // When the edit was at top level
+      is KtFile -> {
+        val targetFile = input.element as KtFile
+        val internalClassName = getInternalClassName(targetFile.packageFqName, targetFile.javaFileFacadeFqName.toString(), input.file)
+        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
+        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE, false,0, supportClasses)
       }
     }
 
-    return analysisResult.bindingContext
+    throw LiveEditUpdateException.compilationError("Event was generated for unsupported kotlin element")
   }
 
-  /**
-   * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
-   * the extension point to generate code for @composable functions.
-   */
-  fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext,
-                     input: List<KtFile>, langVersion: LanguageVersionSettings): List<OutputFile> {
-    val compilerConfiguration = CompilerConfiguration()
-    compilerConfiguration.languageVersionSettings = langVersion
-
-    // TODO: Resolve this using the project itself, somehow.
-    compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, "app_debug")
-
-    val useComposeIR = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER.get();
-    if (useComposeIR) {
-      // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
-      compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
-    }
-
-    val generationStateBuilder = GenerationState.Builder(project,
-                                                         ClassBuilderFactories.BINARIES,
-                                                         resolution.moduleDescriptor,
-                                                         bindingContext,
-                                                         input,
-                                                         compilerConfiguration);
-
-    if (useComposeIR) {
-      generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(
-        compilerConfiguration,
-        PhaseConfig(jvmPhases),
-        jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
-          override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
-            val psiSourceFile =
-              descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
-            return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
-          }
-        }
-      ))
-    }
-
-    val generationState = generationStateBuilder.build();
-
-    try {
-      KotlinCodegenFacade.compileCorrectFiles(generationState)
-    } catch (e : Throwable) {
-      handleCompilerErrors(e)
-      return emptyList() // handleCompilerErrors() always throw anyways.
-    }
-
-    return generationState.factory.asList();
-  }
-
-  /**
-   * Pick out what classes we need from the generated list of .class files and invoke the callback.
-   */
-  fun deployLiveEditToDevice(targetFunction: KtNamedFunction,
-                             bindingContext: BindingContext,
-                             compilerOutput: List<OutputFile>,
-                             callback: CodeGenCallback): Boolean {
-    val methodSignature = functionSignature(bindingContext, targetFunction)
+  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction, groupId: Int?, generationState: GenerationState) : CodeGeneratorOutput {
+    val desc = generationState.bindingContext[BindingContext.FUNCTION, targetFunction]!!
+    val methodSignature = remapFunctionSignatureIfNeeded(desc, generationState.typeMapper)
+    val isCompose = desc.hasComposableAnnotation()
 
     var elem: PsiElement = targetFunction
     while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
       if (elem.parent == null) {
-        throw LiveEditUpdateException.internalError("Could not find a non-null named method");
+        throw LiveEditUpdateException.internalError("Unable to retrieve context for function ${targetFunction.name}", elem.containingFile);
       }
       elem = elem.parent
     }
@@ -233,93 +216,85 @@ class AndroidLiveEditCodeGenerator {
     }
 
     if (className.isEmpty() || methodSignature.isEmpty()) {
-      throw LiveEditUpdateException.internalError("Empty class name / method signature.")
+      throw LiveEditUpdateException.internalError("Empty class name / method signature.", function.containingFile)
     }
 
-    if (compilerOutput.isEmpty()) {
-      throw LiveEditUpdateException.internalError("No compiler output.")
-    }
+    val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
+    val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, elem.containingFile as KtFile, compilerOutput)
 
-    // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
-    val internalClassName = className.replace(".", "/")
-    var primaryClass = ByteArray(0)
-    val supportClasses = mutableMapOf<String, ByteArray>()
-    for (c in compilerOutput) {
-      if (c.relativePath == "$internalClassName.class") {
-        primaryClass = c.asByteArray()
-      }
-      else if (c.relativePath.endsWith(".class")) {
-        val name = c.relativePath.substringBefore(".class")
-        supportClasses[name] = c.asByteArray()
-      }
-    }
     val idx = methodSignature.indexOf('(')
     val methodName = methodSignature.substring(0, idx);
     val methodDesc = methodSignature.substring(idx)
-    callback(internalClassName, methodName, methodDesc, primaryClass, supportClasses)
-    return true
+    val functionType = if (isCompose) FunctionType.COMPOSABLE else FunctionType.KOTLIN
+    return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, functionType, groupId != null, groupId?: 0, supportClasses)
   }
 
-  fun handleCompilerErrors(e : Throwable) {
-    // Given that the IDE already provide enough information about compilation errors, there is no
-    // real need to surface any compilation exception. We will just print the true cause for the
-    // exception for our own debugging purpose only.
-    var cause = e;
-    while (cause.cause != null) {
-      cause = cause.cause!!
-      var message = cause.message!!
-      if (message.contains("Unhandled intrinsic in ExpressionCodegen")) {
-        var nameStart = message.indexOf("name:") + "name:".length
-        var nameEnd = message.indexOf(' ', nameStart)
-        var name = message.substring(nameStart, nameEnd)
+  private fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
+    fun isProxiable(clazzFile : ClassReader) : Boolean = clazzFile.superName == "kotlin/jvm/internal/Lambda" ||
+                                                         clazzFile.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
+                                                         clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
+                                                         clazzFile.className.contains("ComposableSingletons\$")
 
-        throw LiveEditUpdateException.knownIssue(201728545,
-                                                 "unable to compile a file that reference a top level function in another source file.\n" +
-                                                 "For now work around this by moving function $name inside the class.")
+    var primaryClass = ByteArray(0)
+    val supportClasses = mutableMapOf<String, ByteArray>()
+    // TODO: Remove all these println once we are more stable.
+    println("Lived edit classes summary start")
+    for (c in compilerOutput) {
+
+      // We get things like folder path an
+      if (!c.relativePath.endsWith(".class")) {
+        println("   Skipping output: ${c.relativePath}")
+        continue
       }
+
+      if (isKeyMetaClass(c)) {
+        println("   Skipping MetaKey: ${c.relativePath}")
+        continue
+      }
+
+      // The class to become interpreted
+      if (c.relativePath == "$internalClassName.class") {
+        primaryClass = c.asByteArray()
+        println("   Primary class: ${c.relativePath}")
+        inlineCandidateCache?.let { cache ->
+          cache.computeIfAbsent(internalClassName) {
+          SourceInlineCandidate(input, it, input.module!!)
+        }.setByteCode(primaryClass)}
+        continue
+      }
+
+      // Lambdas and compose classes are proxied in the interpreted on device.
+      val reader = ClassReader(c.asByteArray());
+      if (isProxiable(reader)) {
+        println("   Proxiable class: ${c.relativePath}")
+        val name = c.relativePath.substringBefore(".class")
+        supportClasses[name] = c.asByteArray()
+        inlineCandidateCache?.let { cache ->
+          cache.computeIfAbsent(name) {
+          SourceInlineCandidate(input, it, input.module!!)
+        }.setByteCode(supportClasses[name]!!)}
+        continue
+      }
+
+      println("   Ignored class: ${c.relativePath}")
+      // TODO: New classes (or existing unmodified classes) are not handled here. We should let the user know here.
     }
-    throw LiveEditUpdateException.compilationError(e.message?:"No error message")
+    println("Lived edit classes summary end")
+    return Pair(primaryClass, supportClasses)
   }
 
-  fun functionSignature(context: BindingContext, function : KtNamedFunction) : String {
-    val desc = context[BindingContext.FUNCTION, function]
-    val signature = SIGNATURE_MAPPER.mapToJvmMethodSignature(desc!!)
-
-    if (!desc.annotations.hasAnnotation(FqName("androidx.compose.runtime.Composable"))) {
-      // This is a pure Kotlin function and not a Composable. The method signature will not
-      // be changed by the compose compiler at all.
-      return signature.toString()
+  // The PSI returns the class name in the same format it would be used in an import statement: com.package.Class.InnerClass; however,
+  // java's internal name format requires the same class name to be formatted as com/package/Class$InnerClass. This method takes a package
+  // and class name in "import" format and returns the same class name in "internal" format.
+  private fun getInternalClassName(packageName : FqName?, className : String, file: PsiFile) : String {
+    var packagePrefix = ""
+    if (packageName != null && !packageName.isRoot) {
+      packagePrefix = "$packageName."
     }
-
-    // The number of synthetic int param added to a function is the total of:
-    // 1. max (1, ceil(numParameters / 10))
-    // 2. 0 default int parameters if none of the N parameters have default expressions
-    // 3. ceil(N / 31) N parameters have default expressions if there are any defaults
-    //
-    // The formula follows the one found in ComposableFunctionBodyTransformer.kt
-
-    var totalSyntheticParamCount = 0
-    var realValueParamsCount = desc.valueParameters.size
-
-    if (realValueParamsCount == 0) {
-      totalSyntheticParamCount += 1;
-    } else {
-      val totalParams = realValueParamsCount
-      totalSyntheticParamCount += ceil(totalParams.toDouble() / SLOTS_PER_INT.toDouble()).toInt()
+    if (!className.contains(packagePrefix)) {
+      throw LiveEditUpdateException.internalError("Expected package prefix '$packagePrefix' not found in class name '$className'")
     }
-
-    var numDefaults = desc.valueParameters.count { it.hasDefaultValue() }
-
-    if (desc.valueParameters.size != 0 && numDefaults != 0) {
-      totalSyntheticParamCount += ceil(realValueParamsCount.toDouble() / BITS_PER_INT.toDouble()).toInt()
-    }
-
-    var target = signature.toString()
-
-    // Add the Composer parameter as well as number of additional ints computed above.
-    var additionalParams = "Landroidx/compose/runtime/Composer;"
-    for (x in 1 .. totalSyntheticParamCount) additionalParams += "I"
-    target = target.replace(")", additionalParams + ")")
-    return target
+    val classSuffix = className.substringAfter(packagePrefix)
+    return packagePrefix.replace(".", "/") + classSuffix.replace(".", "$")
   }
 }

@@ -16,14 +16,8 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.build.GradleBuildContext;
-import com.android.tools.idea.gradle.project.build.JpsBuildContext;
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationsConfiguration;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import org.jetbrains.annotations.NotNull;
@@ -38,33 +32,6 @@ public class AndroidGradleProjectDumbStartupActivity implements StartupActivity.
     if (IdeInfo.getInstance().isAndroidStudio()) {
       disableGradlePluginNotifications();
     }
-
-    // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
-    registerAfterTaskForAndroidGradleProjectCompiledViaJPS(project);
-
-    // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
-    registerAfterTaskForAndroidGradleProjectCompiledViaGradleInvocation(project);
-  }
-
-  private void registerAfterTaskForAndroidGradleProjectCompiledViaGradleInvocation(Project project) {
-    GradleBuildInvoker.getInstance(project).add(result -> {
-      if (project.isDisposed()) return;
-      PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion();
-      GradleBuildContext newContext = new GradleBuildContext(result);
-      AndroidProjectBuildNotifications.getInstance(project).notifyBuildComplete(newContext);
-    });
-  }
-
-  private void registerAfterTaskForAndroidGradleProjectCompiledViaJPS(Project project) {
-    CompilerManager.getInstance(project).addAfterTask(context -> {
-      if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
-        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion();
-
-        JpsBuildContext newContext = new JpsBuildContext(context);
-        AndroidProjectBuildNotifications.getInstance(project).notifyBuildComplete(newContext);
-      }
-      return true;
-    });
   }
 
   private void disableGradlePluginNotifications() {

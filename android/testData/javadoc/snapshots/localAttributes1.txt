@@ -1,0 +1,4 @@
+<html>
+<body>
+Formats: boolean, integer<br><br>my attr 1 docs for MyView1</body>
+</html>

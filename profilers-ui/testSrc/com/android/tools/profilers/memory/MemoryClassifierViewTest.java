@@ -764,7 +764,7 @@ public class MemoryClassifierViewTest {
       .thenReturn(new NativeCallStackSet(AllocationStack.StackFrame.newBuilder().setMethodName(ALLOCATION_FUNCTION).build(), 0));
     CaptureObject captureObject = new FakeCaptureObject.Builder().build();
     myStage
-      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> captureObject)),
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
     myStage.getCaptureSelection().selectHeapSet(new FakeHeapSet());
     renderer.customizeCellRenderer(myClassifierView.getTree(), node, false, false, false, 0, false);
@@ -780,7 +780,7 @@ public class MemoryClassifierViewTest {
     Mockito.when(node.getAdapter()).thenReturn(new NativeAllocationMethodSet(ALLOCATION_FUNCTION));
     CaptureObject captureObject = new FakeCaptureObject.Builder().build();
     myStage
-      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> captureObject)),
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
     myStage.getCaptureSelection().selectHeapSet(new FakeHeapSet());
     renderer.customizeCellRenderer(myClassifierView.getTree(), node, false, false, false, 0, false);
@@ -1305,7 +1305,7 @@ public class MemoryClassifierViewTest {
   public void testClassifierHeaders() {
     CaptureObject captureObject = new FakeCaptureObject.Builder().build();
     myStage
-      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> captureObject)),
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
     myStage.getCaptureSelection().selectHeapSet(new FakeHeapSet());
     TableColumnModel tableColumnModel = myClassifierView.getTableColumnModel();

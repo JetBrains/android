@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.tools.idea.gradle.project.ProjectStructure
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
-import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
@@ -44,8 +48,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.CompilerModuleExtension
 import com.intellij.openapi.roots.ContentEntry
-import com.intellij.openapi.roots.DependencyScope
+import com.intellij.openapi.roots.DependencyScope.COMPILE
 import com.intellij.openapi.roots.ExcludeFolder
+import com.intellij.openapi.roots.ExportableOrderEntry
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
 import com.intellij.openapi.roots.JavadocOrderRootType
 import com.intellij.openapi.roots.JdkOrderEntry
@@ -68,6 +73,9 @@ import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
 import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.pathString
 
 fun ProjectDumper.dumpProject(project: Project) {
   println("<PROJECT>     <== ${File(project.basePath!!)}")
@@ -86,10 +94,28 @@ fun ProjectDumper.dumpProject(project: Project) {
         libraries.sortedBy { it.name }.forEach { dump(it) }
       }
     }
+    @Suppress("UnstableApiUsage")
+    dumpTasks { buildMode ->
+      fun List<Module>.sortedModules(): Array<Module> = sortedBy { it.moduleFilePath.replaceKnownPaths() }.toTypedArray()
+
+      val allModules = ModuleManager.getInstance(project).modules.toList().sortedModules()
+      val appModules = ProjectStructure.getInstance(project).appHolderModules.sortedModules()
+      val leafModules = ProjectStructure.getInstance(project).leafHolderModules.sortedModules()
+
+      when (buildMode) {
+        BuildMode.REBUILD -> allModules
+        BuildMode.COMPILE_JAVA -> allModules
+        BuildMode.ASSEMBLE -> leafModules
+        BuildMode.CLEAN -> allModules
+        BuildMode.APK_FROM_BUNDLE -> appModules
+        BuildMode.BUNDLE -> appModules
+        BuildMode.SOURCE_GEN -> allModules
+      }
+    }
   }
 }
 
-private fun ProjectDumper.dump(module: Module) {
+fun ProjectDumper.dump(module: Module) {
   val moduleFile = module.moduleFilePath.toPrintablePath()
   head("MODULE") { module.name }
   nest {
@@ -140,6 +166,57 @@ private fun ProjectDumper.dump(module: Module) {
                 { (it as? LibraryOrderEntry)?.scope})).forEach {
       dump(it)
     }
+    val classes = moduleRootModel.orderEntries().withoutDepModules().withoutLibraries().withoutSdk().classes().urls
+    if (classes.isNotEmpty()) {
+      head("Classes")
+      nest {
+        classes.forEach {
+          prop("-") { it.replaceKnownPaths() }
+        }
+      }
+    }
+
+    dumpTasks{ arrayOf(module) }
+  }
+}
+
+fun ProjectDumper.dumpTasks(modulesProvider: (buildMode: BuildMode) -> Array<Module>) {
+  val taskFinder = GradleTaskFinder.getInstance()
+  head("BUILD_TASKS")
+  nest {
+    TestCompileType.values().forEach { testCompileMode ->
+      head("TEST_COMPILE_MODE") { testCompileMode.displayName }
+      nest {
+        BuildMode.values().forEach { buildMode ->
+          val modules = modulesProvider(buildMode).takeUnless { it.isEmpty()  } ?: return@forEach
+          val expectedRoot = modules.mapNotNull {it.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath()}.singleOrNull()
+
+          fun Map<Path, MutableCollection<String>>.asFirstEntry(): Set<String> {
+            if (expectedRoot != null && keys.size > 1) {
+              prop("ERROR") {
+                "Multiple project roots for a single module: " +
+                  keys.sortedBy { it.pathString.replaceKnownPaths() }.joinToString(",") { it.absolutePathString().replaceKnownPaths() }
+              }
+            }
+            return entries
+              .sortedBy { it.key.pathString.replaceKnownPaths() }
+              .flatMap { (path, tasks) ->
+                if (path == expectedRoot) tasks
+                else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" }
+              }
+              .toSet()
+          }
+
+          fun getTasks(): Set<String> = taskFinder.findTasksToExecute(modules, buildMode, testCompileMode).asMap().asFirstEntry()
+
+          fun Set<String>.dumpAs(name: String) {
+            prop(name) { this.takeUnless { it.isEmpty() }?.sorted()?.joinToString(", ") }
+          }
+
+          getTasks().dumpAs(buildMode.toString())
+        }
+      }
+    }
   }
 }
 
@@ -167,7 +244,6 @@ private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
     prop("PackageName") { runConfiguration.PACKAGE_NAME }
     prop("InstrumentationRunnerClass") { runConfiguration.INSTRUMENTATION_RUNNER_CLASS }
     prop("ExtraOptions") { runConfiguration.EXTRA_OPTIONS }
-    prop("IncludeGradleExtraOptions") { runConfiguration.INCLUDE_GRADLE_EXTRA_OPTIONS.takeUnless { it == true }?.toString() }
     prop("TargetSelectionMode") { runConfiguration.deployTargetContext.TARGET_SELECTION_MODE }
     prop("DebuggerType") { runConfiguration.androidDebuggerContext.DEBUGGER_TYPE }
   }
@@ -184,7 +260,16 @@ private fun ProjectDumper.dump(orderEntry: OrderEntry) {
   when (orderEntry) {
     is JdkOrderEntry -> dumpJdk(orderEntry)
     is LibraryOrderEntry -> dumpLibrary(orderEntry)
-    else -> head("ORDER_ENTRY") { orderEntry.presentableName.removeAndroidVersionsFromDependencyNames() }
+    else -> {
+      head("ORDER_ENTRY") { orderEntry.presentableName.removeAndroidVersionsFromDependencyNames() }
+      val exportable = orderEntry as? ExportableOrderEntry
+      if (exportable != null) {
+        nest {
+          prop("Scope") { exportable.scope.takeIf { it != COMPILE }?.toString() }
+          prop("IsExported") { exportable.isExported.takeIf { it }?.toString() }
+        }
+      }
+    }
   }
 }
 
@@ -207,7 +292,7 @@ private fun ProjectDumper.dumpLibrary(library: LibraryOrderEntry) {
   nest {
     prop("LibraryLevel") { library.libraryLevel.takeUnless { it == "project" } }
     prop("IsModuleLevel") { library.isModuleLevel.takeIf { it }?.toString() }
-    prop("Scope") { library.scope.takeIf {it != DependencyScope.COMPILE}?.toString () }
+    prop("Scope") { library.scope.takeIf {it != COMPILE }?.toString () }
     prop("IsExported") { library.isExported.takeIf{ it}?.toString() }
     if (library.libraryLevel != "project" ) {
       library.library?.let { dump(it) }
@@ -283,20 +368,16 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
   head("FACET") { facet.name }
   nest {
     prop("TypeId") { facet.typeId.toString() }
-//TODO(b/184826517):    prop("ExternalSource") { facet.externalSource?.id }
-    when (val configuration = facet.configuration) {
+    prop("ExternalSource") { facet.externalSource?.id }
+    val configuration = facet.configuration
+    when (configuration) {
       is GradleFacetConfiguration -> dump(configuration)
-      is JavaFacetConfiguration -> dump(configuration)
       is AndroidFacetConfiguration -> dump(configuration)
       is NdkFacetConfiguration -> dump(configuration)
       is KotlinFacetConfiguration -> dump(configuration)
       else -> prop("Configuration") { configuration.toString() }
     }
   }
-}
-
-private fun ProjectDumper.dump(javaFacetConfiguration: JavaFacetConfiguration) {
-  prop("Buildable") { javaFacetConfiguration.BUILDABLE.toString() }
 }
 
 private fun ProjectDumper.dump(gradleFacetConfiguration: GradleFacetConfiguration) {
@@ -306,12 +387,6 @@ private fun ProjectDumper.dump(gradleFacetConfiguration: GradleFacetConfiguratio
 private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfiguration) {
   with(androidFacetConfiguration.state ?: return) {
     prop("SelectedBuildVariant") { SELECTED_BUILD_VARIANT.nullize() }
-    prop("AssembleTaskName") { ASSEMBLE_TASK_NAME.nullize() }
-    prop("CompileJavaTaskName") { COMPILE_JAVA_TASK_NAME.nullize() }
-    prop("AssembleTestTaskName") { ASSEMBLE_TEST_TASK_NAME.nullize() }
-    prop("CompileJavaTestTaskName") { COMPILE_JAVA_TEST_TASK_NAME.nullize() }
-    prop("CompileJavaTestTaskName") { COMPILE_JAVA_TEST_TASK_NAME.nullize() }
-    AFTER_SYNC_TASK_NAMES.sorted().forEach { prop("- AfterSyncTask") { it } }
     prop("AllowUserConfiguration") {
       @Suppress("DEPRECATION")
       ALLOW_USER_CONFIGURATION.toString()
@@ -324,31 +399,15 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
     TEST_RES_FOLDERS_RELATIVE_PATH?.toPrintablePaths()?.forEach { prop("- TestResFoldersRelativePath") { it } }
     prop("AssetsFolderRelativePath") { ASSETS_FOLDER_RELATIVE_PATH.nullize() }
     prop("LibsFolderRelativePath") { LIBS_FOLDER_RELATIVE_PATH.nullize() }
-    prop("UseCustomApkResourceFolder") { USE_CUSTOM_APK_RESOURCE_FOLDER.toString() }
-    prop("CustomApkResourceFolder") { CUSTOM_APK_RESOURCE_FOLDER.nullize() }
-    prop("CustomCompilerManifest") { CUSTOM_COMPILER_MANIFEST.nullize() }
     prop("ApkPath") { APK_PATH.nullize() }
     prop("ProjectType") { PROJECT_TYPE.toString() }
-    prop("RunProcessResourcesMavenTask") { RUN_PROCESS_RESOURCES_MAVEN_TASK.toString() }
     prop("CustomDebugKeystorePath") { CUSTOM_DEBUG_KEYSTORE_PATH.nullize() }
     prop("PackTestCode") { PACK_TEST_CODE.toString() }
     prop("RunProguard") { RUN_PROGUARD.toString() }
     prop("ProguardLogsFolderRelativePath") { PROGUARD_LOGS_FOLDER_RELATIVE_PATH.nullize() }
     prop("UseCustomManifestPackage") { USE_CUSTOM_MANIFEST_PACKAGE.toString() }
     prop("CustomManifestPackage") { CUSTOM_MANIFEST_PACKAGE.nullize() }
-    prop("AdditionalPackagingCommandLineParameters") { ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS.nullize() }
-    prop("UpdatePropertyFiles") { UPDATE_PROPERTY_FILES.nullize() }
-    prop("EnableManifestMerging") { ENABLE_MANIFEST_MERGING.toString() }
-    prop("EnablePreDexing") { ENABLE_PRE_DEXING.toString() }
-    prop("CompileCustomGeneratedSources") { COMPILE_CUSTOM_GENERATED_SOURCES.toString() }
-    prop("EnableSourcesAutogeneration") { ENABLE_SOURCES_AUTOGENERATION.toString() }
-    prop("EnableMultiDex") { ENABLE_MULTI_DEX.toString() }
-    prop("MainDexList") { MAIN_DEX_LIST.nullize() }
-    prop("MinimalMainDex") { MINIMAL_MAIN_DEX.toString() }
-    prop("IncludeAssetsFromLibraries") { myIncludeAssetsFromLibraries.toString() }
     myProGuardCfgFiles.forEach { prop("- ProGuardCfgFiles") { it } }
-    myNativeLibs.forEach { prop("- NativeLibs") { it.toString() } }
-    myNotImportedProperties.sorted().forEach { prop("- NotImportedProperties") { it.toString() } }
   }
 }
 

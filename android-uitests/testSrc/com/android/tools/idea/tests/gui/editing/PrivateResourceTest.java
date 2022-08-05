@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.editing;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -34,8 +33,6 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.timing.Wait;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,16 +40,6 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class PrivateResourceTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-
-  @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
 
   /**
    * Verifies that private resources from libraries are not suggested to the
@@ -122,6 +109,6 @@ public class PrivateResourceTest {
 
     Collection<String> lintWarnings = editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.WARNING, 1)
       .getHighlights(HighlightSeverity.WARNING);
-    assertThat(lintWarnings).contains("The resource `@string/abc_action_bar_home_description` is marked as private in com.android.support:design");
+    assertThat(lintWarnings).contains("The resource `@string/abc_action_bar_home_description` is marked as private in com.android.support:design:28.0.0");
   }
 }

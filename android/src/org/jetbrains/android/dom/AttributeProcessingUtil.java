@@ -15,6 +15,10 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.AndroidXConstants.CLASS_DRAWER_LAYOUT;
+import static com.android.AndroidXConstants.CLASS_NESTED_SCROLL_VIEW;
+import static com.android.AndroidXConstants.FQCN_GRID_LAYOUT_V7;
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_ARCH_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_PKG;
@@ -35,9 +39,6 @@ import static com.android.SdkConstants.ATTR_LISTFOOTER;
 import static com.android.SdkConstants.ATTR_LISTHEADER;
 import static com.android.SdkConstants.ATTR_LISTITEM;
 import static com.android.SdkConstants.ATTR_MENU;
-import static com.android.SdkConstants.ATTR_MOCKUP;
-import static com.android.SdkConstants.ATTR_MOCKUP_CROP;
-import static com.android.SdkConstants.ATTR_MOCKUP_OPACITY;
 import static com.android.SdkConstants.ATTR_OPEN_DRAWER;
 import static com.android.SdkConstants.ATTR_PARENT_TAG;
 import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
@@ -49,15 +50,11 @@ import static com.android.SdkConstants.ATTR_VIEW_BINDING_IGNORE;
 import static com.android.SdkConstants.ATTR_VIEW_BINDING_TYPE;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW;
-import static com.android.SdkConstants.CLASS_DRAWER_LAYOUT;
-import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
 import static com.android.SdkConstants.CLASS_PERCENT_FRAME_LAYOUT;
 import static com.android.SdkConstants.CLASS_PERCENT_RELATIVE_LAYOUT;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
 import static com.android.SdkConstants.FQCN_ADAPTER_VIEW;
-import static com.android.SdkConstants.FQCN_GRID_LAYOUT_V7;
 import static com.android.SdkConstants.GRID_LAYOUT;
-import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.REQUEST_FOCUS;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.android.SdkConstants.TABLE_LAYOUT;
@@ -551,13 +548,6 @@ public class AttributeProcessingUtil {
           registerToolsAttribute(ATTR_ITEM_COUNT, callback);
           registerToolsAttribute(ATTR_LISTITEM, callback);
         }
-      }
-
-      // Mockup attributes can be associated with any View, even include tag
-      if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
-        registerToolsAttribute(ATTR_MOCKUP, callback);
-        registerToolsAttribute(ATTR_MOCKUP_CROP, callback);
-        registerToolsAttribute(ATTR_MOCKUP_OPACITY, callback);
       }
     }
 

@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -188,6 +190,18 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
       return model;
     }).filter(Objects::nonNull).collect(Collectors.toList()));
     return allModels;
+  }
+
+  @Override
+  public @Nullable GradleVersionCatalogModel getVersionCatalogModel() {
+    if (!GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled()) return null;
+    // TODO(b/238981516): actually compute the set of version catalog files to read from the settings model.
+    VirtualFile versionCatalogVirtualFile = myBuildModelContext.getVersionCatalogFile("libs");
+    if (versionCatalogVirtualFile == null) return null;
+    GradleVersionCatalogFile versionCatalogFile = myBuildModelContext.getOrCreateVersionCatalogFile(versionCatalogVirtualFile, "libs");
+    // TODO(b/238981516): when we support multiple files, should we have one Catalog model per file?  One Catalog model?  How should the
+    //  internals be organized?  How does this change when we support multiple catalogs?
+    return new GradleVersionCatalogModelImpl(versionCatalogFile);
   }
 
   private void runOverProjectTree(@NotNull Consumer<GradleDslFile> func) {

@@ -196,6 +196,7 @@ class SelectProcessAction(
     }
 
     override fun update(event: AnActionEvent) {
+      super.update(event)
       customDeviceAttribution(device, event)
     }
   }

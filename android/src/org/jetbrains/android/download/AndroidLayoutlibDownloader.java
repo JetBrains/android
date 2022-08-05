@@ -44,4 +44,9 @@ public class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
     return AndroidLayoutlibDownloader.Holder.INSTANCE;
   }
 
+  @Override
+  protected @NotNull String getVersion() {
+    LOG.assertTrue(super.getVersion().startsWith("27.3.0."), "Obsolete version override.");
+    return "27.3.0.1";
+  }
 }

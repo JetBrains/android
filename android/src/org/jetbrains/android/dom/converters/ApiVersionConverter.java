@@ -22,7 +22,7 @@ public class ApiVersionConverter extends ResolvingConverter<String> {
 
     for (int i = 1; i <= SdkVersionInfo.HIGHEST_KNOWN_API; i++) {
       if (i > SdkVersionInfo.HIGHEST_KNOWN_STABLE_API) {
-        result.add(SdkVersionInfo.getBuildCode(i));
+        result.add(SdkVersionInfo.getCodeName(i));
       } else {
         result.add(Integer.toString(i));
       }

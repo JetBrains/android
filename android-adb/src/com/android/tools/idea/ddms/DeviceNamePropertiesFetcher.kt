@@ -160,7 +160,7 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
       edtExecutor.execute {
         assertThreadMatch(ThreadType.EDT)
         deviceNamePropertiesMap.remove(device)
-        tasksMap.remove(device)
+        tasksMap.remove(device);
       }
     }
 

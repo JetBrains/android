@@ -1577,5 +1577,24 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       )
     )
   }
-
+    
+  fun testClassFilter() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-dontwarn')
+          ProguardR8ClassNameImpl(CLASS_NAME)
+            ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+              PsiElement(JAVA_IDENTIFIER)('com')
+              PsiElement(dot)('.')
+              PsiElement(JAVA_IDENTIFIER)('MyClass${"$"}InnerClass')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+          -dontwarn com.MyClass${"$"}InnerClass
+        """.trimIndent()
+      )
+    )
+  }
 }

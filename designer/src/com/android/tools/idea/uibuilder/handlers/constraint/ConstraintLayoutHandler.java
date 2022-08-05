@@ -16,6 +16,15 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
+import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
 import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL;
@@ -33,17 +42,8 @@ import static com.android.SdkConstants.ATTR_MIN_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_VALUE;
 import static com.android.SdkConstants.AUTO_URI;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
-import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
 import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
@@ -54,7 +54,6 @@ import static com.android.SdkConstants.TAG;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.tools.adtui.ImageUtils.iconToImage;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
 import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
@@ -85,7 +84,6 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
@@ -106,8 +104,6 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.WidgetDraw;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecoratorConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
@@ -201,43 +197,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   // This is used to efficiently test if they are horizontal or vertical.
   private static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
-
-  /**
-   * Base constructor
-   */
-  public ConstraintLayoutHandler() {
-    loadWidgetDecoratorImages();
-  }
-
-  private static void loadWidgetDecoratorImages() {
-    if (WidgetDecoratorConstants.sLockImageIcon == null) {
-      WidgetDecoratorConstants.sLockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.LOCK);
-    }
-    if (WidgetDecoratorConstants.sUnlockImageIcon == null) {
-      WidgetDecoratorConstants.sUnlockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.UNLOCK);
-    }
-    if (WidgetDecoratorConstants.sDeleteConnectionsImageIcon == null) {
-      WidgetDecoratorConstants.sDeleteConnectionsImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
-    }
-    if (WidgetDecoratorConstants.sPackChainImageIcon == null) {
-      WidgetDecoratorConstants.sPackChainImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_PACKED);
-    }
-    if (WidgetDraw.sGuidelineArrowLeft == null) {
-      WidgetDraw.sGuidelineArrowLeft = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_LEFT);
-    }
-    if (WidgetDraw.sGuidelineArrowRight == null) {
-      WidgetDraw.sGuidelineArrowRight = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_RIGHT);
-    }
-    if (WidgetDraw.sGuidelineArrowUp == null) {
-      WidgetDraw.sGuidelineArrowUp = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_UP);
-    }
-    if (WidgetDraw.sGuidelineArrowDown == null) {
-      WidgetDraw.sGuidelineArrowDown = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_DOWN);
-    }
-    if (WidgetDraw.sGuidelinePercent == null) {
-      WidgetDraw.sGuidelinePercent = iconToImage(StudioIcons.LayoutEditor.Toolbar.PERCENT);
-    }
-  }
 
   @NotNull
   private static NlAnalyticsManager getAnalyticsManager(@NotNull ViewEditor editor) {
@@ -389,9 +348,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add(new DisappearingActionMenu("Center", CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
     actions.add(new DisappearingActionMenu("Add helpers", GUIDELINE_VERTICAL, ConstraintViewActions.HELPER_ACTIONS));
 
-    if (StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get()) {
-      actions.add(new ConvertToMotionLayoutComponentsAction());
-    }
+    actions.add(new ConvertToMotionLayoutComponentsAction());
     return true;
   }
 
@@ -526,8 +483,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   @Override
-  public void onChildRemoved(@NotNull ViewEditor editor,
-                             @NotNull NlComponent layout,
+  public void onChildRemoved(@NotNull NlComponent layout,
                              @NotNull NlComponent newChild,
                              @NotNull InsertType insertType) {
     for (String attribute : ConstraintComponentUtilities.ourConstraintLayoutAttributesToClear) {
@@ -639,7 +595,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           ScoutMotionConvert.convert(componentToConvert);
         });
 
-        DesignSurface designSurface = editor.getScene().getDesignSurface();
+        DesignSurface<?> designSurface = editor.getScene().getDesignSurface();
 
         Timer t = new Timer(300, new ActionListener() {
           @Override
@@ -864,7 +820,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         switch (myType) {
           case HORIZONTAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
+              .createChild(parent, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
                            null, InsertType.CREATE);
             assert guideline != null;
             guideline.ensureId();
@@ -875,7 +831,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case VERTICAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
+              .createChild(parent, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
                            null, InsertType.CREATE);
             assert guideline != null;
             guideline.ensureId();
@@ -886,7 +842,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case GROUP: {
             NlComponent group = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_GROUP.newName() : CLASS_CONSTRAINT_LAYOUT_GROUP.oldName(),
+              .createChild(parent, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_GROUP.newName() : CLASS_CONSTRAINT_LAYOUT_GROUP.oldName(),
                            null, InsertType.CREATE);
             assert group != null;
             String referencedIds = getSelectedIds(selectedChildren);
@@ -898,9 +854,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case CONSTRAINT_SET: {
             NlComponent constraints =
-              NlComponentHelperKt.createChild(parent, editor, useAndroidx
-                                                              ? CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.newName()
-                                                              : CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.oldName(), null, InsertType.CREATE);
+              NlComponentHelperKt.createChild(parent,useAndroidx
+                                                     ? CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.newName()
+                                                     : CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.oldName(), null, InsertType.CREATE);
             assert constraints != null;
             constraints.ensureId();
             ConstraintReferenceManagement.populateConstraints(constraints);
@@ -908,7 +864,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case LAYER: {
             NlComponent layer = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
+              .createChild(parent, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
             removeAbsolutePositioning(selectedChildren);
@@ -921,7 +877,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case FLOW: {
             NlComponent layer = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_FLOW.newName() : CLASS_CONSTRAINT_LAYOUT_FLOW.oldName(),
+              .createChild(parent, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_FLOW.newName() : CLASS_CONSTRAINT_LAYOUT_FLOW.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
             removeAbsolutePositioning(selectedChildren);
@@ -957,7 +913,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                     if (ConstraintComponentUtilities.isLine(child)) {
                       continue;
                     }
-                    NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                    NlComponent tag = NlComponentHelperKt.createChild(barrier, TAG, null, InsertType.CREATE);
                     if (tag != null) {
                       tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                       tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
@@ -971,7 +927,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             }
 
             NlComponent barrier = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
+              .createChild(parent, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
                            InsertType.CREATE);
             assert barrier != null;
 
@@ -985,7 +941,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
               if (!selectedChildren.isEmpty()) {
-                NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                NlComponent tag = NlComponentHelperKt.createChild(barrier, TAG, null, InsertType.CREATE);
                 if (tag != null) {
                   tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                   tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
@@ -1026,7 +982,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                     if (ConstraintComponentUtilities.isLine(child)) {
                       continue;
                     }
-                    NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                    NlComponent tag = NlComponentHelperKt.createChild(barrier, TAG, null, InsertType.CREATE);
                     if (tag != null) {
                       tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                       tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
@@ -1039,7 +995,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               return;
             }
             NlComponent barrier = NlComponentHelperKt
-              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
+              .createChild(parent, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
                            InsertType.CREATE);
             assert barrier != null;
             String referencedIds = getSelectedIds(selectedChildren);
@@ -1058,7 +1014,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                   if (ConstraintComponentUtilities.isLine(child)) {
                     continue;
                   }
-                  NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
+                  NlComponent tag = NlComponentHelperKt.createChild(barrier, TAG, null, InsertType.CREATE);
                   if (tag != null) {
                     tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                     tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
@@ -1401,7 +1357,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @InputEventMask int modifiers) {
       myComponent = component;
       myMarginPopup = createIfNeeded();
-      DesignSurface surface = editor.getScene().getDesignSurface();
+      DesignSurface<?> surface = editor.getScene().getDesignSurface();
       getAnalyticsManager(editor).trackDefaultMargins();
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
@@ -1618,7 +1574,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     return ImmutableList.of(new ConstraintPlaceholder(component));
   }
 

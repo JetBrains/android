@@ -17,6 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
 import com.android.build.attribution.BuildAttributionManagerImpl
+import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.ui.controllers.createCheckJetifierTaskRequest
@@ -235,8 +236,9 @@ class JetifierUsageAnalyzerUnitTest {
     StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
     val studioProvidedInfo = StudioProvidedInfo(
       agpVersion = GradleVersion.parse("7.1.0-alpha11"),
+      gradleVersion = null,
       configurationCachingGradlePropertyState = null,
-      isInConfigurationCacheTestFlow = false,
+      buildInvocationType = BuildInvocationType.REGULAR_BUILD,
       enableJetifierPropertyState = true,
       useAndroidXPropertyState = true,
       buildRequestHolder = MockitoKt.mock()
@@ -255,8 +257,9 @@ class JetifierUsageAnalyzerUnitTest {
     StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
     val studioProvidedInfo = StudioProvidedInfo(
       agpVersion = GradleVersion.parse("7.1.0"),
+      gradleVersion = null,
       configurationCachingGradlePropertyState = null,
-      isInConfigurationCacheTestFlow = false,
+      buildInvocationType = BuildInvocationType.REGULAR_BUILD,
       enableJetifierPropertyState = true,
       useAndroidXPropertyState = true,
       buildRequestHolder = BuildRequestHolder(builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build())

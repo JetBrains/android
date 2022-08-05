@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface
 import android.view.View
 import com.android.ide.common.rendering.api.Result
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
@@ -57,16 +58,16 @@ class ScannerTestHelper {
   fun buildNlComponent(model: NlModel? = null, tagName: String = "tagname"): NlComponent {
     val nlComponent = Mockito.mock(NlComponent::class.java)
     val mixin = NlComponentMixin(nlComponent)
-    Mockito.`when`(nlComponent.mixin).thenReturn(mixin)
+    whenever(nlComponent.mixin).thenReturn(mixin)
     model?.let {
-      Mockito.`when`(nlComponent.model).thenReturn(model!!)
+      whenever(nlComponent.model).thenReturn(model!!)
     }
 
     val model = Mockito.mock(NlModel::class.java)
-    Mockito.`when`(nlComponent.model).thenReturn(model)
-    Mockito.`when`(model.modelDisplayName).thenReturn("displayName")
+    whenever(nlComponent.model).thenReturn(model)
+    whenever(model.modelDisplayName).thenReturn("displayName")
 
-    Mockito.`when`(nlComponent.tagName).thenReturn(tagName)
+    whenever(nlComponent.tagName).thenReturn(tagName)
 
     val viewInfos = buildViewInfo()
     nlComponent.viewInfo = viewInfos
@@ -79,8 +80,8 @@ class ScannerTestHelper {
     val viewInfo = Mockito.mock(ViewInfo::class.java)
     val view = Mockito.mock(View::class.java)
 
-    Mockito.`when`(viewInfo.viewObject).thenReturn(view)
-    Mockito.`when`(view.id).thenReturn(viewId)
+    whenever(viewInfo.viewObject).thenReturn(view)
+    whenever(view.id).thenReturn(viewId)
     return viewInfo
   }
 
@@ -105,16 +106,16 @@ class ScannerTestHelper {
       it?.viewInfo?.let { viewInfo -> viewInfos.add(viewInfo) }
     }
     if (injectedResult != null) {
-      Mockito.`when`(result.validatorResult).thenReturn(injectedResult)
+      whenever(result.validatorResult).thenReturn(injectedResult)
     } else {
-      Mockito.`when`(result.validatorResult).thenReturn(validatorResult.build())
+      whenever(result.validatorResult).thenReturn(validatorResult.build())
     }
-    Mockito.`when`(result.rootViews).thenReturn(viewInfos.build())
+    whenever(result.rootViews).thenReturn(viewInfos.build())
 
     val renderResult = Mockito.mock(Result::class.java)
-    Mockito.`when`(result.renderResult).thenReturn(renderResult)
-    Mockito.`when`(result.stats).thenReturn(RenderResultStats())
-    Mockito.`when`(renderResult.isSuccess).thenReturn(true)
+    whenever(result.renderResult).thenReturn(renderResult)
+    whenever(result.stats).thenReturn(RenderResultStats())
+    whenever(renderResult.isSuccess).thenReturn(true)
 
     return result
   }
@@ -127,7 +128,7 @@ class ScannerTestHelper {
     val model = Mockito.mock(NlModel::class.java)
     val builder = ImmutableList.Builder<NlComponent>()
     if (size == 0) {
-      Mockito.`when`(model.components).thenReturn(builder.build())
+      whenever(model.components).thenReturn(builder.build())
       return model
     }
 
@@ -140,15 +141,15 @@ class ScannerTestHelper {
       builder.add(component)
       children.add(component)
     }
-    Mockito.`when`(root.children).thenReturn(children)
-    Mockito.`when`(model.components).thenReturn(builder.build())
+    whenever(root.children).thenReturn(children)
+    whenever(model.components).thenReturn(builder.build())
 
     val module = Mockito.mock(Module::class.java)
-    Mockito.`when`(module.isDisposed).thenReturn(false)
-    Mockito.`when`(model.module).thenReturn(module)
+    whenever(module.isDisposed).thenReturn(false)
+    whenever(model.module).thenReturn(module)
 
     val configuration = Mockito.mock(Configuration::class.java)
-    Mockito.`when`(model.configuration).thenReturn(configuration)
+    whenever(model.configuration).thenReturn(configuration)
 
     return model
   }

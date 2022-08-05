@@ -67,3 +67,17 @@ class AgpVersionIncompatible(agpVersion: GradleVersion) : AndroidSyncException(g
     val ALWAYS_PRESENT_STRINGS = listOf(A, B, C)
   }
 }
+
+class AgpVersionsMismatch(agpVersions: List<Pair<String, String>>) : AndroidSyncException(generateMessage(agpVersions)) {
+  companion object {
+    private fun generateMessage(agpVersions: List<Pair<String, String>>): String {
+      return "$MESSAGE_START ${agpVersions.map { it.first }.distinct()}" +
+             " $MESSAGE_CORE.\n$MESSAGE_END ${agpVersions.map { it.second }.distinct()}.\n"
+    }
+
+    const val MESSAGE_START = "Using multiple versions of the Android Gradle Plugin"
+    const val MESSAGE_CORE = "across Gradle builds is not allowed"
+    const val MESSAGE_END = "Affected builds:"
+    val INCOMPATIBLE_AGP_VERSIONS = Pattern.compile("$MESSAGE_START (.*) $MESSAGE_CORE\\.\n$MESSAGE_END (.*)\\.\n")
+  }
+}

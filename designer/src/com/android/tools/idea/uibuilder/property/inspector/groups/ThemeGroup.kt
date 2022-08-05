@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTableItem
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers

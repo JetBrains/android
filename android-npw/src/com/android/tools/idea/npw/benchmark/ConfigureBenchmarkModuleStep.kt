@@ -27,7 +27,9 @@ import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MACROBENCHMARK
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MICROBENCHMARK
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
+import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.module.ConfigureModuleStep
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.observable.ui.SelectedItemProperty
@@ -45,6 +47,7 @@ import javax.swing.JComboBox
 import javax.swing.JRadioButton
 
 private const val MACRO_AGP_MIN_VERSION = "7.0.0"
+private const val MACRO_SDK_MIN_VERSION = 23
 
 class ConfigureBenchmarkModuleStep(
   model: NewBenchmarkModuleModel
@@ -81,8 +84,8 @@ class ConfigureBenchmarkModuleStep(
 
     // Only allow min SDK >= 23 for macrobenchmarks.
     validatorPanel.registerValidator(model.androidSdkInfo, createValidator { value ->
-      if (model.benchmarkModuleType.get() == MACROBENCHMARK && value.isPresent && value.get().minApiLevel < 23)
-        Validator.Result.fromNullableMessage("Macrobenchmark requires minimum SDK >= 23")
+      if (model.benchmarkModuleType.get() == MACROBENCHMARK && value.isPresent && value.get().minApiLevel < MACRO_SDK_MIN_VERSION)
+        Validator.Result.fromNullableMessage("Macrobenchmark requires minimum SDK >= $MACRO_SDK_MIN_VERSION")
       else
         OK
     }, model.benchmarkModuleType)
@@ -140,4 +143,19 @@ class ConfigureBenchmarkModuleStep(
   }.withBorder(empty(6))
 
   override fun getPreferredFocusComponent() = moduleName
+
+  override fun onEntering() {
+    super.onEntering()
+
+    if (model.benchmarkModuleType.get() == MACROBENCHMARK) {
+      apiLevelCombo.selectAtLeastMinApiLevel(MACRO_SDK_MIN_VERSION)
+    }
+  }
+
+  private fun AndroidApiLevelComboBox.selectAtLeastMinApiLevel(minApiLevel: Int) {
+    val currentItem = selectedItem
+    if (currentItem is AndroidVersionsInfo.VersionItem && currentItem.minApiLevel < minApiLevel) {
+      (0 until itemCount).firstOrNull { getItemAt(it)!!.minApiLevel == minApiLevel }?.let { selectedIndex = it }
+    }
+  }
 }

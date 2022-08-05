@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene
 
-import com.android.tools.adtui.ImageUtils.iconToImage
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.SwingEllipse
 import com.android.tools.adtui.common.SwingFont
@@ -36,8 +35,9 @@ import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.util.IconUtil
+import com.intellij.util.ui.ImageUtil
 import java.awt.Color
-import java.awt.Image
 import javax.swing.Icon
 import kotlin.math.min
 
@@ -108,7 +108,8 @@ enum class ArrowDirection {
 }
 
 fun makeDrawImageCommand(icon: Icon, rectangle: SwingRectangle): DrawCommand {
-  val image = iconToImage(icon).getScaledInstance(rectangle.width.toInt(), rectangle.height.toInt(), Image.SCALE_SMOOTH)
+  var image = IconUtil.toImage(icon)
+  image = ImageUtil.scaleImage(image, rectangle.width.toInt(), rectangle.height.toInt())
   return DrawImage(rectangle, image)
 }
 

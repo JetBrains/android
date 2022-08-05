@@ -16,29 +16,45 @@
 package com.android.tools.idea.instantapp;
 
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_LIBRARY_DEPENDENCY;
+import static com.intellij.testFramework.UsefulTestCase.assertSize;
+import static org.junit.Assert.assertEquals;
 
 import com.android.testutils.junit4.OldAgpTest;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.EdtRule;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 @OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
-public class FeatureMergedManifestTest extends AndroidGradleTestCase {
+public class FeatureMergedManifestTest {
 
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+
+  @Rule
+  public RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
+
+  @Test
+  @Ignore("b/203803107")
   public void testLibraryManifestMergedOnFeature() throws Exception {
     // Use a plugin version with feature support
-    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0");
-    Module featureModule = getModule("feature");
+    projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0");
+    Module featureModule = projectRule.getModule("feature");
     MergedManifestSnapshot mergedManifestManager = MergedManifestManager.getSnapshot(featureModule);
     assertSize(1, mergedManifestManager.getActivities());
   }
 
+  @Test
+  @Ignore("b/203803107")
   public void testCanFindURL() throws Exception {
     // Use a plugin version with feature support
-    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0");
-    Module bundleModule = getModule("instantapp");
+    projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0");
+    Module bundleModule = projectRule.getModule("instantapp");
     AndroidFacet facet = AndroidFacet.getInstance(bundleModule);
     assertEquals("https://android.example.com/example", InstantApps.getDefaultInstantAppUrl(facet));
   }

@@ -21,7 +21,6 @@ import com.android.SdkConstants.GRADLE_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
@@ -202,13 +201,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       if (targetPluginModel == null) {
         pluginsBlockToModify.applyPlugin(plugin, resolvedVersion, applyFlag)
       }
-      else {
-        val toBeAddedVersion = GradleVersion.parse(resolvedVersion)
-        val existingVersion = GradleVersion.parse(targetPluginModel.version().toString())
-        if (toBeAddedVersion > existingVersion) {
-          targetPluginModel.version().setValue(resolvedVersion)
-        }
-      }
     }
   }
 
@@ -234,13 +226,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
     if (targetDependencyModel == null) {
       buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)
-    }
-    else {
-      val toBeAddedVersion = GradleVersion.parse(toBeAddedDependency.version ?: "")
-      val existingVersion = GradleVersion.parse(targetDependencyModel.version().toString())
-      if (toBeAddedVersion > existingVersion) {
-        targetDependencyModel.version().setValue(toBeAddedDependency.version ?: "")
-      }
     }
   }
 
@@ -456,7 +441,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       "compose" -> buildModel.android().buildFeatures().compose()
       "mlModelBinding" -> buildModel.android().buildFeatures().mlModelBinding()
       "viewBinding" -> buildModel.android().buildFeatures().viewBinding()
-      else -> throw IllegalArgumentException("currently only compose build feature is supported")
+      "prefab" -> buildModel.android().buildFeatures().prefab()
+      else -> throw IllegalArgumentException("$name is not a supported build feature.")
     }
 
     if (feature.valueType == ValueType.NONE) {
@@ -490,7 +476,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   override fun setCppOptions(cppFlags: String, cppPath: String, cppVersion: String) {
     val buildModel = moduleGradleBuildModel ?: return
     buildModel.android().apply {
-      defaultConfig().externalNativeBuild().cmake().cppFlags().setValue(cppFlags)
+      if (cppFlags.isNotBlank()) {
+        defaultConfig().externalNativeBuild().cmake().cppFlags().setValue(cppFlags)
+      }
 
       externalNativeBuild().cmake().apply {
         path().setValue(cppPath)

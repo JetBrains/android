@@ -18,36 +18,36 @@ package com.android.tools.idea.profilers.commands
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.profiler.proto.Commands
 import org.junit.Test
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 
 class GcCommandHandlerTest {
   @Test
   fun testExecute() {
     val testPid = 1
-    val device = mock(IDevice::class.java)
-    val client = mock(Client::class.java)
-    val clientData = mock(ClientData::class.java)
-    `when`<ClientData>(client.getClientData()).thenReturn(clientData)
-    `when`<Int>(clientData.getPid()).thenReturn(testPid)
-    `when`<Array<Client>>(device.getClients()).thenReturn(arrayOf(client))
-    `when`<Boolean>(device.isOnline()).thenReturn(true)
+    val device: IDevice = mock()
+    val client: Client = mock()
+    val clientData: ClientData = mock()
+    whenever(client.clientData).thenReturn(clientData)
+    whenever(clientData.pid).thenReturn(testPid)
+    whenever(device.clients).thenReturn(arrayOf(client))
+    whenever(device.isOnline).thenReturn(true)
     val gcCommand = GcCommandHandler(device)
 
     var command = Commands.Command.newBuilder().apply {
       pid = 2
     }.build()
     gcCommand.execute(command)
-    verify<Client>(client, times(0)).executeGarbageCollector()
+    verify(client, times(0)).executeGarbageCollector()
 
     command = Commands.Command.newBuilder().apply {
       pid = testPid
     }.build()
     gcCommand.execute(command)
-    verify<Client>(client, times(1)).executeGarbageCollector()
+    verify(client, times(1)).executeGarbageCollector()
   }
 }

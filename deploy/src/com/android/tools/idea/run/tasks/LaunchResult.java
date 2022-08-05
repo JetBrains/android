@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import static com.android.tools.idea.run.tasks.LaunchResult.Result.ERROR;
+import static com.android.tools.idea.run.tasks.LaunchResult.Result.SUCCESS;
+import static com.android.tools.idea.run.tasks.LaunchResult.Result.WARNING;
+
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.notification.NotificationListener;
 import java.util.ArrayList;
@@ -22,42 +26,47 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class LaunchResult {
-  private boolean mySuccess;
-  private String myError;
+  public enum Result {
+    SUCCESS,
+    WARNING,
+    ERROR,
+  }
+  private Result myResult;
+  private String myMessage;
   private String myErrorId;
-  private String myConsoleError;
+  private String myConsoleMessage;
   private NotificationListener myNotificationListener;
 
   // Hyperlink to be appended to the footer of the console error message.
   private String myConsoleHyperlinkText;
   private HyperlinkInfo myConsoleHyperlinkInfo;
-  private List<Runnable> myOnFinishedCallbacks;
+  private final List<Runnable> myOnFinishedCallbacks;
 
   public LaunchResult() {
-    mySuccess = true;
-    myError = "";
+    myResult = SUCCESS;
+    myMessage = "";
     myErrorId = "";
-    myConsoleError = "";
+    myConsoleMessage = "";
     myConsoleHyperlinkText = "";
     myConsoleHyperlinkInfo = null;
     myNotificationListener = null;
     myOnFinishedCallbacks = new ArrayList<>();
   }
 
-  public void setSuccess(boolean success) {
-    mySuccess = success;
+  public void setResult(Result result) {
+    myResult = result;
   }
 
-  public boolean getSuccess() {
-    return mySuccess;
+  public Result getResult() {
+    return myResult;
   }
 
-  public void setError(String error) {
-    myError = error;
+  public void setMessage(String message) {
+    myMessage = message;
   }
 
-  public String getError() {
-    return myError;
+  public String getMessage() {
+    return myMessage;
   }
 
   public void setErrorId(String id) {
@@ -68,12 +77,12 @@ public class LaunchResult {
     return myErrorId;
   }
 
-  public void setConsoleError(String error) {
-    myConsoleError = error;
+  public void setConsoleMessage(String consoleMessage) {
+    myConsoleMessage = consoleMessage;
   }
 
-  public String getConsoleError() {
-    return myConsoleError;
+  public String getConsoleMessage() {
+    return myConsoleMessage;
   }
 
   public void setConsoleHyperlink(String hyperlinkText, HyperlinkInfo hyperlinkInfo) {
@@ -113,10 +122,19 @@ public class LaunchResult {
   @NotNull
   public static LaunchResult error(@NotNull String errorId, @NotNull String taskDescription) {
     LaunchResult result = new LaunchResult();
-    result.setSuccess(false);
+    result.setResult(ERROR);
     result.setErrorId(errorId);
-    result.setError("Error " + taskDescription);
-    result.setConsoleError("Error while " + taskDescription);
+    result.setMessage("Error " + taskDescription);
+    result.setConsoleMessage("Error while " + taskDescription);
+    return result;
+  }
+
+  @NotNull
+  public static LaunchResult warning(@NotNull String message) {
+    LaunchResult result = new LaunchResult();
+    result.setResult(WARNING);
+    result.setMessage(message);
+    result.setConsoleMessage(message);
     return result;
   }
 }

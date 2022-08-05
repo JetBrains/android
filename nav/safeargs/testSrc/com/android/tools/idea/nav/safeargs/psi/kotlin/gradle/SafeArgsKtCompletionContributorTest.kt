@@ -104,13 +104,13 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("val argsClass = |")
     fixture.type("Args")
     fixture.completeBasic()
-    val argsElements = fixture.lookupElements
-      ?.map {
+    val argsElements = fixture.lookupElements!!
+      .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      ?.map { it.itemText + " " + it.tailText }
+      .map { it.itemText + " " + it.tailText }
 
     assertThat(argsElements).containsAllOf(
       "FirstFragmentArgs  (com.example.mylibrary)",
@@ -121,13 +121,13 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("val directionsClass = |")
     fixture.type("Directions")
     fixture.completeBasic()
-    val directionsElements = fixture.lookupElements
-      ?.map {
+    val directionsElements = fixture.lookupElements!!
+      .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      ?.map { it.itemText + " " + it.tailText }
+      .map { it.itemText + " " + it.tailText }
 
     assertThat(directionsElements).containsAllOf(
       "SecondFragmentDirections  (com.example.myapplication)",
@@ -138,14 +138,14 @@ class SafeArgsKtCompletionContributorTest {
     // check all safe args classes
     fixture.moveCaret("val generatedClass = |")
     fixture.completeBasic()
-    val allElements = fixture.lookupElements
-      ?.map {
+    val allElements = fixture.lookupElements!!
+      .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
-      ?.map { it.itemText + " " + it.tailText }
+      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      .map { it.itemText + " " + it.tailText }
 
     assertThat(allElements).containsAllOf(
       "FirstFragmentArgs  (com.example.mylibrary)",
@@ -178,27 +178,27 @@ class SafeArgsKtCompletionContributorTest {
     // no safe args classes show up in completions
     fixture.moveCaret("import com.|")
     fixture.completeBasic()
-    fixture.lookupElements
-      ?.map {
+    fixture.lookupElements!!
+      .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
       .let { assertThat(it).isEmpty() }
 
     // all safe args classes in mylibrary package show up in completions
     // (Just for sanity check, completions are not provided by [SafeArgsKtCompletionContributor])
     fixture.moveCaret("import com.example.mylibrary.|")
     fixture.completeBasic()
-    val allElements = fixture.lookupElements
-      ?.map {
+    val allElements = fixture.lookupElements!!
+      .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
-      ?.map { it.itemText + " " + it.tailText }
+      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      .map { it.itemText + " " + it.tailText }
 
     assertThat(allElements).containsAllOf(
       "FirstFragmentArgs  (com.example.mylibrary)",
@@ -230,27 +230,27 @@ class SafeArgsKtCompletionContributorTest {
     // no safe args classes show up in completions
     fixture.moveCaret("com.|")
     fixture.completeBasic()
-    fixture.lookupElements
-      ?.map {
+    fixture.lookupElements!!
+      .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
       .let { assertThat(it).isEmpty() }
 
     // all safe args classes in mylibrary package show up in completions
     // (Just for sanity check, completions are not provided by [SafeArgsKtCompletionContributor])
     fixture.moveCaret("com.example.mylibrary.|")
     fixture.completeBasic()
-    val allElements = fixture.lookupElements
-      ?.map {
+    val allElements = fixture.lookupElements!!
+      .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
         presentation
       }
-      ?.filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
-      ?.map { it.itemText + " " + it.tailText }
+      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+      .map { it.itemText + " " + it.tailText }
 
     assertThat(allElements).containsAllOf(
       "FirstFragmentArgs  (com.example.mylibrary)",

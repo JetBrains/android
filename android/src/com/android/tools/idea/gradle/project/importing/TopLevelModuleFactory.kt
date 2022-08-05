@@ -26,6 +26,7 @@ import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager.C
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists
 import com.intellij.openapi.module.StdModuleTypes
@@ -95,7 +96,12 @@ class TopLevelModuleFactory() {
                      StdModuleTypes.JAVA.id, projectRootDir.name,
                      projectRootDirPath!!,
                      projectRootDirPath),
-          ProjectData(GradleUtil.GRADLE_SYSTEM_ID, project.name, project.basePath!!, project.basePath!!)
+          ProjectData(
+            /* owner = */ GradleUtil.GRADLE_SYSTEM_ID,
+            /* externalName = */ project.name,
+            /* ideProjectFileDirectoryPath = */ project.basePath!!,
+            /* linkedExternalProjectPath = */ toCanonicalPath(File(project.basePath!!).canonicalPath)
+          )
         )
       val model = ModuleRootManager.getInstance(module).modifiableModel
       model.addContentEntry(contentRoot)

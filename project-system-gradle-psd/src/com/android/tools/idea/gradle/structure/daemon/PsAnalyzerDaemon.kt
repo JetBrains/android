@@ -18,13 +18,18 @@ package com.android.tools.idea.gradle.structure.daemon
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.ERROR
+import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.INFO
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.UPDATE
+import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE
+import com.android.tools.idea.gradle.structure.model.PsIssueType.PLAY_SDK_INDEX_ISSUE
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -33,6 +38,8 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
+import com.android.tools.idea.gradle.structure.quickfix.SdkIndexLinkQuickFix
+import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -43,6 +50,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
 import org.jetbrains.kotlin.utils.addToStdlib.cast
+import java.io.File
 import java.util.EventListener
 
 private val LOG = Logger.getInstance(PsAnalyzerDaemon::class.java)
@@ -51,6 +59,7 @@ class PsAnalyzerDaemon(
   parentDisposable: Disposable,
   private val project: PsProject,
   private val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon,
+  private val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon,
   private val modelAnalyzers: Map<Class<*>, PsModelAnalyzer<out PsModule>>
 ) :
   PsDaemon(parentDisposable) {
@@ -64,11 +73,13 @@ class PsAnalyzerDaemon(
 
   init {
     libraryUpdateCheckerDaemon.add({ recreateUpdatesAsIssues() }, this)
+    sdkIndexCheckerDaemon.add({ recreateSdkIndexIssues() }, this)
   }
 
   @UiThread
-  fun recreateUpdateIssues() {
+  fun recreateIssues() {
     libraryUpdateCheckerDaemon.queueUpdateCheck()
+    sdkIndexCheckerDaemon.queueCheck()
   }
 
   @UiThread
@@ -174,7 +185,7 @@ class PsAnalyzerDaemon(
     onRunningEventDispatcher.multicaster.issuesUpdated()
   }
 
-  private inner class AnalyzeModuleStructure internal constructor(private val myModel: PsModule) : Update(myModel) {
+  private inner class AnalyzeModuleStructure(private val myModel: PsModule): Update(myModel) {
     override fun run() {
       try {
         if (!isDisposed && !isStopped) {
@@ -187,7 +198,7 @@ class PsAnalyzerDaemon(
     }
   }
 
-  private inner class IssuesComputed() : Update(IssuesComputed::class.java) {
+  private inner class IssuesComputed: Update(IssuesComputed::class.java) {
     @UiThread
     override fun run() {
       issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
@@ -197,5 +208,84 @@ class PsAnalyzerDaemon(
   private interface IssuesUpdatedListener : EventListener {
     fun issuesUpdated()
   }
+
+  @UiThread
+  private fun recreateSdkIndexIssues() {
+    removeIssues(PLAY_SDK_INDEX_ISSUE, now = true)
+    addAll(project.modules.flatMap { module ->
+      module.dependencies.libraries.mapNotNull {
+        getSdkIndexIssueFor(it.spec, it.path, it.parent.rootDir)
+      }
+    }, now = false)
+    notifyRunning()
+  }
 }
 
+/**
+ * Checks if the dependency has issues in the Google Play SDK Index and if it does, returns the one with higher severity.
+ *
+ * @param dependencySpec: dependency being checked
+ * @param libraryPath: path of the library dependency, used generating the issues
+ * @param parentModuleRootDir: root dir of the parent module of this dependency
+ *
+ * @return The issue with the higher severity from the SDK index, or null if there are no issues
+ */
+fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec, libraryPath: PsPath, parentModuleRootDir: File?): PsGeneralIssue? {
+  val sdkIndex = IdeGooglePlaySdkIndex
+  val groupId = dependencySpec.group ?: return null
+  val versionString = dependencySpec.version ?: return null
+  val artifactId = dependencySpec.name
+
+  if (sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)) {
+    val message = sdkIndex.generatePolicyMessage(groupId, artifactId, versionString)
+    return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
+  }
+  val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
+  if (isBlocking) {
+    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)) {
+      val message = sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
+      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
+    }
+    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)) {
+      val message = sdkIndex.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
+      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
+    }
+  }
+  else {
+    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)) {
+      val message = sdkIndex.generateOutdatedMessage(groupId, artifactId, versionString)
+      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING)
+    }
+    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)) {
+      val message = sdkIndex.generateCriticalMessage(groupId, artifactId, versionString)
+      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, INFO)
+    }
+  }
+  return null
+}
+
+private fun createIndexIssue(
+  message: String,
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  mainPath: PsPath,
+  severity: PsIssue.Severity
+): PsGeneralIssue {
+  val sdkIndex = IdeGooglePlaySdkIndex
+  val url = sdkIndex.getSdkUrl(groupId, artifactId)
+  val fixes = if (url != null) {
+    listOf(SdkIndexLinkQuickFix("View details on Google Play SDK Index", url, groupId, artifactId, versionString))
+  }
+  else {
+    listOf()
+  }
+  return PsGeneralIssue(
+    message,
+    "",
+    mainPath,
+    PLAY_SDK_INDEX_ISSUE,
+    severity,
+    fixes
+  )
+}

@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
@@ -42,12 +43,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertTrue
 
-/**
- * Return a fake directory on a DummyFileSystem.
- * The application must be set to [com.intellij.mock.MockApplication] to use this.
- *
- * @see com.intellij.openapi.application.ApplicationManager.setApplication
- */
+/** Return a fake directory on a DummyFileSystem. */
 fun getExternalResourceDirectory(vararg files: String): VirtualFile {
   val fileSystem = DummyFileSystem()
   val root = fileSystem.createRoot("design")
@@ -108,7 +104,12 @@ private const val WAIT_TIMEOUT = 3000
 
 internal inline fun <reified T : JComponent> waitAndAssert(container: JPanel, crossinline condition: (list: T?) -> Boolean) {
   val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
-    public override fun condition() = condition(UIUtil.findComponentOfType(container, T::class.java))
+    public override fun condition(): Boolean {
+      invokeAndWaitIfNeeded {
+        UIUtil.dispatchAllInvocationEvents()
+      }
+      return@condition condition(UIUtil.findComponentOfType(container, T::class.java))
+    }
   }
   assertTrue(waitForComponentCondition.isConditionRealized)
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+
 import com.android.tools.idea.run.applychanges.ApplyChangesUtilsKt;
 import com.android.tools.idea.run.applychanges.ExistingSession;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
@@ -38,10 +39,10 @@ import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import java.util.function.BiConsumer;
+import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 public class AndroidRunState implements RunProfileState {
   @NotNull private final ExecutionEnvironment myEnv;
   @NotNull private final String myLaunchConfigName;
@@ -75,9 +76,14 @@ public class AndroidRunState implements RunProfileState {
     ExecutionConsole console = prevHandler.getExecutionConsole();
 
     if (processHandler == null) {
+      String appId = getMasterAndroidProcessId(myEnv.getRunProfile());
       processHandler = new AndroidProcessHandler(
         myEnv.getProject(),
-        getMasterAndroidProcessId(myEnv.getRunProfile()),
+        appId,
+        (device) -> {
+          device.forceStop(appId);
+          return Unit.INSTANCE;
+        },
         shouldCaptureLogcat(myEnv.getRunnerAndConfigurationSettings()),
         shouldAutoTerminate(myEnv.getRunnerAndConfigurationSettings()));
     }

@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("deprecation")
 public class ImportDependenciesUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.importDependencies.ImportDependenciesUtil");
-  private static final Key<Boolean> WAIT_FOR_IMPORTING_DEPENDENCIES_KEY = new Key<>("WAIT_FOR_IMPORTING_DEPENDENCIES_KEY");
+  private static final Key<Boolean> WAIT_FOR_IMPORTING_DEPENDENCIES_KEY = new Key<Boolean>("WAIT_FOR_IMPORTING_DEPENDENCIES_KEY");
   private static final Object LOCK = new Object();
 
   private ImportDependenciesUtil() {
@@ -104,7 +104,7 @@ public class ImportDependenciesUtil {
 
     project.putUserData(WAIT_FOR_IMPORTING_DEPENDENCIES_KEY, null);
 
-    final List<Module> modulesToProcess = new ArrayList<>();
+    final List<Module> modulesToProcess = new ArrayList<Module>();
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       if (module.getUserData(WAIT_FOR_IMPORTING_DEPENDENCIES_KEY) == Boolean.TRUE) {
@@ -116,14 +116,14 @@ public class ImportDependenciesUtil {
   }
 
   public static void doImportDependencies(@NotNull Project project, @NotNull List<Module> modules, boolean updateBackwardDependencies) {
-    final List<ImportDependenciesTask> tasks = new OrderedSet<>();
-    final List<MyUnresolvedDependency> unresolvedDependencies = new ArrayList<>();
+    final List<ImportDependenciesTask> tasks = new OrderedSet<ImportDependenciesTask>();
+    final List<MyUnresolvedDependency> unresolvedDependencies = new ArrayList<MyUnresolvedDependency>();
 
     for (Module module : modules) {
       importDependencies(module, updateBackwardDependencies, tasks, unresolvedDependencies);
     }
 
-    final Map<VirtualFile, ModuleProvidingTask> libDir2ModuleProvidingTask = new HashMap<>();
+    final Map<VirtualFile, ModuleProvidingTask> libDir2ModuleProvidingTask = new HashMap<VirtualFile, ModuleProvidingTask>();
     for (ImportDependenciesTask task : tasks) {
       if (task instanceof ModuleProvidingTask) {
         final ModuleProvidingTask moduleProvidingTask = (ModuleProvidingTask)task;
@@ -166,7 +166,7 @@ public class ImportDependenciesUtil {
     final List<ImportDependenciesTask> selectedTasks = dialog.getSelectedTasks();
     final StringBuilder messageBuilder = new StringBuilder();
     boolean failed = false;
-    final List<CreateNewModuleTask> createNewModuleTasks = new ArrayList<>();
+    final List<CreateNewModuleTask> createNewModuleTasks = new ArrayList<CreateNewModuleTask>();
 
     for (ImportDependenciesTask selectedTask : selectedTasks) {
       final Exception error = selectedTask.perform();
@@ -184,7 +184,7 @@ public class ImportDependenciesUtil {
     }
 
     if (!createNewModuleTasks.isEmpty()) {
-      final List<JavaModuleSourceRoot> sourceRoots = new ArrayList<>();
+      final List<JavaModuleSourceRoot> sourceRoots = new ArrayList<JavaModuleSourceRoot>();
       for (CreateNewModuleTask task : createNewModuleTasks) {
         final String contentRootPath = task.getContentRoot().getPath();
         sourceRoots.addAll(SourcePathsStep.calculateSourceRoots(contentRootPath));
@@ -322,7 +322,7 @@ public class ImportDependenciesUtil {
 
   @NotNull
   public static Set<VirtualFile> getLibDirs(@NotNull Pair<Properties, VirtualFile> properties) {
-    final Set<VirtualFile> resultSet = new HashSet<>();
+    final Set<VirtualFile> resultSet = new HashSet<VirtualFile>(); 
     final VirtualFile baseDir = properties.second.getParent();
     
     String libDirPath;

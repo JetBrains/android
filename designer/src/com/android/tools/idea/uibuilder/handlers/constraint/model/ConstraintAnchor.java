@@ -223,7 +223,7 @@ public class ConstraintAnchor {
      */
     @Override
     public String toString() {
-        HashSet<ConstraintAnchor> visited = new HashSet<>();
+        HashSet<ConstraintAnchor> visited = new HashSet<ConstraintAnchor>();
         return mOwner.getDebugName() + ":" + mType.toString() + (mTarget != null ? " connected to " + mTarget.toString(visited) : "");
     }
 

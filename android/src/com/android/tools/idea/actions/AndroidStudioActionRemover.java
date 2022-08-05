@@ -17,7 +17,7 @@ package com.android.tools.idea.actions;
 
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -55,7 +55,7 @@ public class AndroidStudioActionRemover extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+    if (project != null && ProjectSystemUtil.requiresAndroidModel(project)) {
       presentation.setEnabledAndVisible(false);
       return;
     }

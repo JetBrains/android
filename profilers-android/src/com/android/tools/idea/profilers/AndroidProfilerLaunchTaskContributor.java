@@ -68,9 +68,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import io.grpc.StatusRuntimeException;
-import java.io.File;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -124,7 +126,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
+    ProfilerClient client = new ProfilerClient(TransportService.getChannelName());
     Common.Device profilerDevice;
     try {
       profilerDevice = waitForDaemon(device, client);
@@ -379,15 +381,15 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                           @NotNull String releaseDir,
                                           @NotNull String devDir,
                                           @NotNull String fileName) {
-    File dir;
+    Path dir;
     if (StudioPathManager.isRunningFromSources()) {
-      dir = new File(StudioPathManager.resolveDevPath(devDir));
+      dir = StudioPathManager.resolvePathFromSourcesRoot(devDir);
     } else {
-      dir = new File(PathManager.getHomePath(), releaseDir);
+      dir = Paths.get(PathManager.getHomePath(), releaseDir);
     }
     for (String abi : device.getAbis()) {
-      File candidate = new File(dir, abi + "/" + fileName);
-      if (candidate.exists()) {
+      Path candidate = dir.resolve(abi).resolve(fileName);
+      if (Files.exists(candidate)) {
         return Abi.getEnum(abi).getCpuArch();
       }
     }
@@ -499,7 +501,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       if (transportService == null) {
         return startTimeNs;
       }
-      ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
+      ProfilerClient client = new ProfilerClient(TransportService.getChannelName());
 
       // If we are launching from the "Profile" action, wait for daemon to start properly to get the time.
       // Note: daemon should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be

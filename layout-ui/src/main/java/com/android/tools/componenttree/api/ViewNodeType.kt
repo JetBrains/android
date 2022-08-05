@@ -15,7 +15,7 @@
  */
 package com.android.tools.componenttree.api
 
-import com.android.tools.componenttree.impl.ViewTreeCellRenderer
+import com.android.tools.componenttree.common.ViewTreeCellRenderer
 import javax.swing.Icon
 import javax.swing.tree.TreeCellRenderer
 

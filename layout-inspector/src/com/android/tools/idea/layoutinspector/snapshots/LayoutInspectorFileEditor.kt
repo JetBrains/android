@@ -17,8 +17,6 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -34,7 +32,6 @@ import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefin
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.EditorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
-import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOADED
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOAD_ERROR
@@ -124,7 +121,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       stats = SessionStatistics(model, treeSettings)
 
       val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
-      val deviceViewPanel = DeviceViewPanel(null, layoutInspector, viewSettings, workbench)
+      val deviceViewPanel = DeviceViewPanel(null, null, { }, { }, layoutInspector, viewSettings, workbench)
       DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
       workbench.init(deviceViewPanel, layoutInspector, listOf(
         LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
@@ -190,14 +187,11 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
   }
 
   /**
-   * Factory for [LayoutInspectorFileEditor]s. Note that for now [StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS] needs to be on or
-   * else [com.android.tools.idea.profiling.capture.CaptureEditorProvider] will be used to create
-   * `com.android.tools.idea.editors.layoutInspector.LayoutInspectorEditor`s
+   * Factory for [LayoutInspectorFileEditor]s.
    */
   class Provider : FileEditorProvider, DumbAware {
     override fun accept(project: Project, file: VirtualFile): Boolean {
-      return FileTypeRegistry.getInstance().getFileTypeByExtension(file.extension ?: "") == LayoutInspectorFileType.INSTANCE &&
-             StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS.get() && enableLiveLayoutInspector
+      return FileTypeRegistry.getInstance().getFileTypeByExtension(file.extension ?: "") == LayoutInspectorFileType
     }
 
     override fun createEditor(project: Project, file: VirtualFile) = LayoutInspectorFileEditor(project, file.toNioPath())

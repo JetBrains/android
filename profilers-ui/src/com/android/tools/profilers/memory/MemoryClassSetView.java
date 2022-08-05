@@ -334,7 +334,7 @@ public final class MemoryClassSetView extends AspectObserver {
     assert myTree != null && myCaptureObject != null && myClassSet != null;
 
     Comparator<MemoryObjectTreeNode<MemoryObject>> comparator = myTreeRoot == null ? myInitialComparator : myTreeRoot.getComparator();
-    myTreeRoot = new LazyMemoryObjectTreeNode<>(myClassSet, true) {
+    myTreeRoot = new LazyMemoryObjectTreeNode<MemoryObject>(myClassSet, true) {
       @Override
       public int computeChildrenCount() {
         return myClassSet.getInstancesCount();

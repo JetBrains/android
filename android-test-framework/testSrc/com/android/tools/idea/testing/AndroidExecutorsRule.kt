@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.AutoCloseDisposable
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.AndroidIoManager
@@ -24,7 +25,6 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.`when`
 import java.util.concurrent.Executor
 
 /**
@@ -36,7 +36,7 @@ import java.util.concurrent.Executor
  */
 class AndroidExecutorsRule(
   private val workerThreadExecutor: Executor? = null,
-  private val ioThreadExecutor: Executor? = null,
+  private val diskIoThreadExecutor: Executor? = null,
   private val uiThreadExecutor: ((ModalityState, Runnable) -> Unit)? = null,
 ) : TestRule {
   override fun apply(base: Statement, description: Description): Statement {
@@ -47,13 +47,13 @@ class AndroidExecutorsRule(
           application.registerServiceInstance(AndroidIoManager::class.java, AndroidIoManager(), it)
           val androidExecutors = spy(AndroidExecutors())
           if (workerThreadExecutor != null) {
-            `when`(androidExecutors.workerThreadExecutor).thenReturn(workerThreadExecutor)
+            whenever(androidExecutors.workerThreadExecutor).thenReturn(workerThreadExecutor)
           }
-          if (ioThreadExecutor != null) {
-            `when`(androidExecutors.ioThreadExecutor).thenReturn(ioThreadExecutor)
+          if (diskIoThreadExecutor != null) {
+            whenever(androidExecutors.diskIoThreadExecutor).thenReturn(diskIoThreadExecutor)
           }
           if (uiThreadExecutor != null) {
-            `when`(androidExecutors.uiThreadExecutor).thenReturn(uiThreadExecutor)
+            whenever(androidExecutors.uiThreadExecutor).thenReturn(uiThreadExecutor)
           }
           application.registerServiceInstance(AndroidExecutors::class.java, androidExecutors, it)
           base.evaluate()

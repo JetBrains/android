@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.rendering.RenderResult
 
 internal fun findComposeViewAdapter(viewObj: Any): Any? {
-  if (COMPOSE_VIEW_ADAPTER_FQNS.contains(viewObj.javaClass.name)) {
+  if (COMPOSE_VIEW_ADAPTER_FQN == viewObj.javaClass.name) {
     return viewObj
   }
 

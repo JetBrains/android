@@ -43,8 +43,6 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.uniquenessSatisfied
 import com.android.tools.idea.templates.validate
-import com.android.tools.idea.ui.wizard.WizardUtils
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.CheckBoxWidget
 import com.android.tools.idea.wizard.template.Constraint
@@ -73,6 +71,8 @@ import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.TextFieldWidget
 import com.android.tools.idea.wizard.template.UrlLinkWidget
 import com.android.tools.idea.wizard.template.Widget
+import com.android.tools.idea.wizard.ui.WizardUtils
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.google.common.base.Joiner
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
@@ -85,7 +85,6 @@ import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
-import org.jetbrains.android.util.firstNotNullResult
 import java.awt.FlowLayout
 import java.util.EnumSet
 import java.util.Optional
@@ -261,6 +260,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       if (TemplateConstraint.Kotlin in model.newTemplate.constraints) {
         model.language.value = Language.Kotlin
         it.setEnabled(false)
+        it.setVisible(false)
       }
     }
     is PackageNameWidget -> {
@@ -334,8 +334,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     return parameters
       .filterIsInstance<StringParameter>()
       .filter { it.isVisibleAndEnabled }
-      .firstNotNullResult { parameter ->
-        val property = parameterRows[parameter as Parameter<in Any>]?.property ?: return@firstNotNullResult null
+      .firstNotNullOfOrNull { parameter ->
+        val property = parameterRows[parameter as Parameter<in Any>]?.property ?: return@firstNotNullOfOrNull null
         parameter.validate(project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
       }
   }

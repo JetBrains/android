@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.toProto
 import com.android.tools.idea.stats.TypingLatencyTracker.reportTypingLatency
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorFileType
+import com.google.wireless.android.sdk.stats.TypingLatencyStats
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -50,6 +53,31 @@ object TypingLatencyTracker : LatencyListener {
    * Resets statistics so that latencies are not double-counted in the next report.
    */
   fun reportTypingLatency() {
-    // method body was removed because it depends on modified platform
+    val allStats = TypingLatencyStats.newBuilder()
+    for ((fileType, recorder) in latencyRecorders) {
+      val histogram = recorder.intervalHistogram // Automatically resets statistics for this recorder.
+      if (histogram.totalCount == 0L) {
+        continue
+      }
+      val record = TypingLatencyStats.LatencyRecord.newBuilder().also {
+        it.fileType = fileType
+        it.totalKeysTyped = histogram.totalCount
+        it.totalLatencyMs = (histogram.totalCount * histogram.mean).toLong()
+        it.maxLatencyMs = histogram.maxValue
+        it.histogram = histogram.toProto()
+      }
+      allStats.addLatencyRecords(record.build())
+    }
+
+    if (allStats.latencyRecordsCount == 0) {
+      return
+    }
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.TYPING_LATENCY_STATS
+        typingLatencyStats = allStats.build()
+      }
+    )
   }
 }

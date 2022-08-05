@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.dom.structure.manifest;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.android.tools.idea.fileTypes.AndroidIconProvider.getModuleIcon;
 
 import com.intellij.ide.presentation.PresentationProvider;
 import com.intellij.openapi.module.Module;

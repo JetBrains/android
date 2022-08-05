@@ -18,7 +18,7 @@ package org.jetbrains.android.facet;
 
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.toVirtualFileArray;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -26,11 +26,9 @@ import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.ide.highlighter.ArchiveFileType;
-import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -48,7 +46,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.OrderedSet;
 import java.io.File;
@@ -56,7 +53,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -83,11 +79,6 @@ public class AndroidRootUtil {
     return SourceProviderManager.getInstance(facet).getMainManifestFile();
   }
 
-  @Nullable
-  public static VirtualFile getCustomManifestFileForCompiler(@NotNull AndroidFacet facet) {
-    return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().CUSTOM_COMPILER_MANIFEST, false);
-  }
-
   /**
    * @deprecated You must use {@link ResourceFolderManager#getFolders()} instead
    */
@@ -95,41 +86,6 @@ public class AndroidRootUtil {
   @Nullable
   public static VirtualFile getResourceDir(@NotNull AndroidFacet facet) {
     return ResourceFolderManager.getInstance(facet).getPrimaryFolder();
-  }
-
-  @Nullable
-  private static String suggestResourceDirPath(@NotNull AndroidFacet facet) {
-    Module module = facet.getModule();
-
-    VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-    if (contentRoots.length == 0) {
-      return null;
-    }
-
-    VirtualFile root = contentRoots[0];
-
-    if (contentRoots.length > 1) {
-      String moduleFileParentDirPath = toSystemIndependentName(new File(module.getModuleFilePath()).getParent());
-      VirtualFile moduleFileParentDir = LocalFileSystem.getInstance().findFileByPath(moduleFileParentDirPath);
-      if (moduleFileParentDir != null) {
-        for (VirtualFile contentRoot : contentRoots) {
-          if (Objects.equals(contentRoot, moduleFileParentDir)) {
-            root = contentRoot;
-          }
-        }
-      }
-    }
-    return root.getPath() + facet.getProperties().RES_FOLDER_RELATIVE_PATH;
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static String getResourceDirPath(@NotNull AndroidFacet facet) {
-    VirtualFile resourceDir = getResourceDir(facet);
-    return resourceDir != null ? resourceDir.getPath() : suggestResourceDirPath(facet);
   }
 
   @Nullable
@@ -153,44 +109,6 @@ public class AndroidRootUtil {
   @Nullable
   public static VirtualFile getLibsDir(@NotNull AndroidFacet facet) {
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().LIBS_FOLDER_RELATIVE_PATH, false);
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static VirtualFile getAidlGenDir(@NotNull AndroidFacet facet) {
-    return AndroidProjectRootUtil.getAidlGenDir(facet);
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static VirtualFile getAaptGenDir(@NotNull AndroidFacet facet) {
-    String genPath = getAptGenSourceRootPath(facet);
-    return genPath != null ? LocalFileSystem.getInstance().findFileByPath(genPath) : null;
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static VirtualFile getRenderscriptGenDir(@NotNull AndroidFacet facet) {
-    return AndroidProjectRootUtil.getRenderscriptGenDir(facet);
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static VirtualFile getBuildconfigGenDir(@NotNull AndroidFacet facet) {
-    String path = getBuildconfigGenSourceRootPath(facet);
-    return path != null ? LocalFileSystem.getInstance().findFileByPath(path) : null;
   }
 
   private static void collectClassFilesAndJars(@NotNull VirtualFile root,
@@ -326,18 +244,6 @@ public class AndroidRootUtil {
     }
   }
 
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @NotNull
-  public static Set<VirtualFile> getDependentModules(@NotNull Module module, @NotNull VirtualFile moduleOutputDir) {
-    Set<VirtualFile> files = new HashSet<>();
-    fillExternalLibrariesAndModules(module, files, new HashSet<>(), null, false, true);
-    files.remove(moduleOutputDir);
-    return files;
-  }
-
   @NotNull
   public static VirtualFile[] getResourceOverlayDirs(@NotNull AndroidFacet facet) {
     List<String> overlayFolders = facet.getProperties().RES_OVERLAY_FOLDERS;
@@ -364,25 +270,6 @@ public class AndroidRootUtil {
     return new File(PathUtil.toSystemDependentName(path));
   }
 
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static String getRenderscriptGenSourceRootPath(@NotNull AndroidFacet facet) {
-    return AndroidProjectRootUtil.getRenderscriptGenSourceRootPath(facet);
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static String getBuildconfigGenSourceRootPath(@NotNull AndroidFacet facet) {
-    // todo: return correct path for mavenized module when it'll be supported
-    return getAptGenSourceRootPath(facet);
-  }
-
   @Nullable
   public static VirtualFile getMainContentRoot(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
@@ -404,24 +291,6 @@ public class AndroidRootUtil {
       }
     }
     return contentRoots[0];
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static Pair<PropertiesFile, VirtualFile> findPropertyFile(@NotNull Module module, @NotNull String propertyFileName) {
-    for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
-      VirtualFile vFile = contentRoot.findChild(propertyFileName);
-      if (vFile != null) {
-        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(module.getProject(), vFile);
-        if (psiFile instanceof PropertiesFile) {
-          return Pair.create((PropertiesFile)psiFile, vFile);
-        }
-      }
-    }
-    return null;
   }
 
   /**

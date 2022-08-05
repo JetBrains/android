@@ -24,7 +24,6 @@ import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawCenterX
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawCenterY
 import com.android.tools.idea.uibuilder.model.ensureLiveId
-import com.google.common.annotations.VisibleForTesting
 import java.awt.Point
 
 const val SIZE = 20
@@ -79,7 +78,6 @@ class CoordinatorPlaceholder(host: SceneComponent, private val anchor: SceneComp
     Type.RIGHT_BOTTOM -> "end|bottom"
   }
 
-  @VisibleForTesting
   enum class Type {
     LEFT_TOP,
     LEFT,

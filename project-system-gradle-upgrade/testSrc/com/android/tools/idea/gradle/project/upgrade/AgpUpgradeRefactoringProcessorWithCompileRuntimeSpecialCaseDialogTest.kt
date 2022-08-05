@@ -22,10 +22,8 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
-import com.intellij.openapi.util.Disposer
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.testFramework.HeavyPlatformTestCase
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Test
 import java.lang.reflect.Field
 import javax.swing.Action
@@ -42,10 +40,11 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
   override fun tearDown() {
     isPreviewUsagesField.isAccessible = isPreviewUsagesFieldAccessible
     super.tearDown()
+    checkNoUndisposedDialogs()
   }
 
   private fun AgpUpgradeRefactoringProcessor.getCompileRuntimeProcessor() =
-    componentRefactoringProcessors.firstIsInstance<CompileRuntimeConfigurationRefactoringProcessor>()
+    componentRefactoringProcessors.firstNotNullOfOrNull { it as? CompileRuntimeConfigurationRefactoringProcessor }!!
 
   private fun AgpUpgradeRefactoringProcessor.setCompileRuntimeIsAlwaysNoOpForProject(value: Boolean) {
     this.getCompileRuntimeProcessor().isAlwaysNoOpForProject = value
@@ -71,10 +70,9 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
       }
     }
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
-    (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkInitialConsistency(it) }
-    val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, processor.getCompileRuntimeProcessor())
-    (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkFinalConsistency(it) }
-    Disposer.dispose(dialog.disposable)
+    processor.componentRefactoringProcessors.forEach { checkInitialConsistency(it) }
+    registerDialogDisposable(AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, processor.getCompileRuntimeProcessor()))
+    processor.componentRefactoringProcessors.forEach { checkFinalConsistency(it) }
   }
 
   @Test
@@ -109,5 +107,14 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
     previewAction.actionPerformed(null)
     assertTrue(dialog.isOK)
     assertTrue(isPreviewUsagesField.getBoolean(processor))
+  }
+
+  @Test
+  fun testOneArgumentConstructor() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    val dialog = registerDialogDisposable(AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor))
+    val field = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog::class.java.getDeclaredField("myCompileRuntimeProcessor")
+    field.isAccessible = true
+    assertEquals(processor.getCompileRuntimeProcessor(), field.get(dialog))
   }
 }

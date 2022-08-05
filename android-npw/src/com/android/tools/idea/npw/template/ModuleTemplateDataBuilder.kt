@@ -24,13 +24,13 @@ import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.model.isViewBindingSupported
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.projectsystem.AndroidModulePaths
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.templates.getAppNameForTheme
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
@@ -81,6 +81,8 @@ class ModuleTemplateDataBuilder(
   var apis: ApiTemplateData? = null
   var category: Category? = null
   var isMaterial3: Boolean = false
+  var useGenericLocalTests: Boolean = true
+  var useGenericInstrumentedTests: Boolean = true
 
   /**
    * Adds common module roots template values like [rootDir], [srcDir], etc
@@ -149,7 +151,8 @@ class ModuleTemplateDataBuilder(
                                      ?: VfsUtilCore.urlToPath(mainSourceProvider.resDirectoryUrls.first())
 
     this.baseFeature = BaseFeature(
-      GradleUtil.getGradlePath(baseFeature).orEmpty(),
+      // TODO(b/149203281): Fix support for composite builds.
+      baseFeature.getGradleProjectPath()?.path.orEmpty(),
       AndroidRootUtil.findModuleRootFolderPath(baseFeature)!!,
       File(baseModuleResourceRootPath) // Put the new resources in any of the available res directories
     )
@@ -229,7 +232,9 @@ class ModuleTemplateDataBuilder(
     apis!!,
     viewBindingSupport = viewBindingSupport,
     category!!,
-    isMaterial3
+    isMaterial3,
+    useGenericLocalTests = useGenericLocalTests,
+    useGenericInstrumentedTests = useGenericInstrumentedTests
   )
 }
 
@@ -246,7 +251,7 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
   return ModuleTemplateDataBuilder(projectStateBuilder, true, project.isViewBindingSupported()).apply {
     name = "Fake module state"
     packageName = ""
-    val paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, name!!).paths
+    val paths = GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, name!!).paths
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
     formFactor = FormFactor.Mobile

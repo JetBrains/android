@@ -32,9 +32,9 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.CollectionComboBoxModel;
@@ -180,6 +180,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
         getModel().getDeviceData().isWear().set(selectedType.equals(SystemImage.WEAR_TAG));
         getModel().getDeviceData().isTv().set(selectedType.equals(SystemImage.ANDROID_TV_TAG)
                                               || selectedType.equals(SystemImage.GOOGLE_TV_TAG));
+        getModel().getDeviceData().isDesktop().set(selectedType.equals(SystemImage.DESKTOP_TAG));
         myIsScreenRound.setEnabled(selectedType.equals(SystemImage.WEAR_TAG));
         myIsScreenRound.setSelected(getModel().getDeviceData().isScreenRound().get());
       }

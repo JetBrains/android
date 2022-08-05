@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.SdkConstants;
+import com.android.AndroidXConstants;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class TextInputLayoutHandlerTest {
                       "        android:hint=\"hint\" />\n" +
                       "</android.support.design.widget.TextInputLayout>\n";
     TextInputLayoutHandler handler = new TextInputLayoutHandler();
-    assertThat(handler.getXml(SdkConstants.TEXT_INPUT_LAYOUT.oldName(), XmlType.COMPONENT_CREATION)).isEqualTo(expected);
+    assertThat(handler.getXml(AndroidXConstants.TEXT_INPUT_LAYOUT.oldName(), XmlType.COMPONENT_CREATION)).isEqualTo(expected);
   }
 
   @Test
@@ -53,6 +53,6 @@ public class TextInputLayoutHandlerTest {
                       "        android:hint=\"hint\" />\n" +
                       "</com.google.android.material.textfield.TextInputLayout>\n";
     TextInputLayoutHandler handler = new TextInputLayoutHandler();
-    assertThat(handler.getXml(SdkConstants.TEXT_INPUT_LAYOUT.newName(), XmlType.COMPONENT_CREATION)).isEqualTo(expected);
+    assertThat(handler.getXml(AndroidXConstants.TEXT_INPUT_LAYOUT.newName(), XmlType.COMPONENT_CREATION)).isEqualTo(expected);
   }
 }

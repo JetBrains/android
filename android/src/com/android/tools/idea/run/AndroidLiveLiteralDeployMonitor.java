@@ -26,7 +26,7 @@ import com.android.tools.idea.editors.literals.LiteralReference;
 import com.android.tools.idea.editors.literals.LiteralUsageReference;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
 import com.android.tools.idea.editors.literals.LiveLiteralsService;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.util.StudioPathManager;
@@ -41,13 +41,15 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -103,13 +105,13 @@ class AndroidLiveLiteralDeployMonitor {
    *
    * This method mostly create a call back and it is locked to be thread-safe.
    */
-  static Runnable getCallback(Project project, String packageName, IDevice device) {
+  static Callable<?> getCallback(Project project, String packageName, IDevice device) {
     String deviceId = device.getSerialNumber();
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
 
     // Live Edit will eventually replace Live Literals. They conflict with each other the only way the enable
     // one is to to disable the other.
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get() || !StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
+    if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveLiterals()) {
       return null;
     }
 
@@ -144,6 +146,8 @@ class AndroidLiveLiteralDeployMonitor {
 
       // Event a listener has been installed, we always need to re-enable as certain action can disable the service (such as a rebuild).
       LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
+
+      return null;
     };
   }
 
@@ -216,7 +220,7 @@ class AndroidLiveLiteralDeployMonitor {
             List<LiveUpdateDeployer.UpdateLiveEditError> errors = deployer.updateLiveLiteral(installer, adb, packageName, params);
             LiveLiteralsService.getInstance(project)
                 .liveLiteralPushed(deviceId, pushKey, errors.stream().map(
-                  e -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, e.msg)
+                  e -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, e.getMessage())
                 ).collect(Collectors.toList()));
           }
         }
@@ -302,14 +306,14 @@ class AndroidLiveLiteralDeployMonitor {
 
   // TODO: Unify this part.
   private static String getLocalInstaller() {
-    File path;
+    Path path;
     if (StudioPathManager.isRunningFromSources()) {
       // Development mode
-      path = new File(StudioPathManager.resolveDevPath("bazel-bin/tools/base/deploy/installer/android-installer"));
+      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
     } else {
-      path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
+      path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
     }
-    return path.getAbsolutePath();
+    return path.toString();
   }
 
   public static String getLiteralTimeStampKey(String deviceId, String helper, int offset) {

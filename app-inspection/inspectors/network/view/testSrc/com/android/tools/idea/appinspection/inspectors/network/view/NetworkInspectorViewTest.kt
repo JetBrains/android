@@ -15,28 +15,29 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view
 
-import com.android.tools.adtui.RangeSelectionComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.ui.ThreeComponentsSplitter
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfoRt
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -67,17 +68,22 @@ class NetworkInspectorViewTest {
   private lateinit var fakeUi: FakeUi
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
-  private lateinit var disposable: Disposable
+  private lateinit var scope: CoroutineScope
   private val timer = FakeTimer()
 
   @get:Rule
   val edtRule = EdtRule()
 
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   @Before
   fun setUp() {
-    disposable = Disposer.newDisposable()
-
     val codeNavigationProvider = FakeCodeNavigationProvider()
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(
       speedEventList = listOf(
@@ -90,12 +96,12 @@ class NetworkInspectorViewTest {
         createSpeedEvent(40, 1, 1),
         createSpeedEvent(50, 1, 1)
       )
-    ))
+    ), scope)
 
 
     val parentPanel = JPanel(BorderLayout())
     parentPanel.background = DEFAULT_BACKGROUND
-    val splitter = ThreeComponentsSplitter(disposable)
+    val splitter = ThreeComponentsSplitter(disposableRule.disposable)
     splitter.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     splitter.dividerWidth = 0
     splitter.setDividerMouseZoneSize(-1)
@@ -104,40 +110,26 @@ class NetworkInspectorViewTest {
     val component = TooltipLayeredPane(splitter)
     val stagePanel = JPanel(BorderLayout())
     parentPanel.add(stagePanel, BorderLayout.CENTER)
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, StubNetworkInspectorTracker())
+    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     stagePanel.add(inspectorView.component)
-    component.size = Dimension(1000, 200)
+    component.size = Dimension(1000, 800)
     fakeUi = FakeUi(component)
     model.timeline.viewRange.set(VIEW_RANGE)
   }
 
   @After
   fun tearDown() {
-    Disposer.dispose(disposable)
+    scope.cancel()
   }
 
   @Test
-  fun draggingSelectionOpensConnectionsViewAndPressingEscapeClosesIt() {
+  fun connectionsViewIsVisibleAtStart() {
     if (SystemInfoRt.isWindows) {
       return  // b/163140665
     }
-    val stageWalker = TreeWalker(inspectorView.component)
-    val lineChart = stageWalker.descendants().first { it is LineChart }
-    val rangeSelectionComponent = stageWalker.descendants().first { it is RangeSelectionComponent }
     val connectionsView = inspectorView.connectionsView
     val connectionsViewWalker = TreeWalker(connectionsView.component)
-    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
-    val start = fakeUi.getPosition(lineChart)
-    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
-    fakeUi.mouse.press(start.x, start.y)
-    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
-    fakeUi.mouse.dragDelta(10, 0)
-    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
-    fakeUi.mouse.release()
     assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isTrue()
-    fakeUi.keyboard.setFocus(rangeSelectionComponent)
-    fakeUi.keyboard.press(FakeKeyboard.Key.ESC)
-    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
   }
 
   @Test

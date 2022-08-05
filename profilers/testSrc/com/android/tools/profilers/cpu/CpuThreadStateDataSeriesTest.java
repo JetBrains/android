@@ -27,61 +27,34 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.event.FakeEventService;
-import com.android.tools.profilers.memory.FakeMemoryService;
-import com.android.tools.profilers.network.FakeNetworkService;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public class CpuThreadStateDataSeriesTest {
-  @Parameterized.Parameters(name = "isUnifiedPipeline={0}")
-  public static Collection<Boolean> useNewEventPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
-
   private final FakeTimer myTimer = new FakeTimer();
-  private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
-  private final FakeCpuService myService = new FakeCpuService();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  private CpuProfilerStage myProfilerStage;
-  private boolean myIsUnifiedPipeline;
+  private StudioProfilers myStudioProfilers;
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
-                        new FakeMemoryService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
-
-  public CpuThreadStateDataSeriesTest(boolean isUnifiedPipeline) {
-    myIsUnifiedPipeline = isUnifiedPipeline;
-  }
+    new FakeGrpcChannel("CpuThreadStateDataSeriesTestChannel", myTransportService);
 
   @Before
   public void setUp() {
-    if (myIsUnifiedPipeline) {
-      ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
-    }
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
+    FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
+    ideProfilerServices.enableEventsPipeline(true);
+    ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
+    myStudioProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), ideProfilerServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    profilers.setProcess(FAKE_DEVICE, FAKE_PROCESS);
-    myProfilerStage = new CpuProfilerStage(profilers);
-    myProfilerStage.enter();
+    myStudioProfilers.setProcess(FAKE_DEVICE, FAKE_PROCESS);
   }
 
   @Test
@@ -113,82 +86,11 @@ public class CpuThreadStateDataSeriesTest {
     assertEquals(ThreadState.DEAD, dataSeries.get(4).value);
   }
 
-  @Test
-  public void nonEmptyRangeWithFakeTraceSuccessStatus() throws Exception {
-    // CPU recording is not supported in new pipeline yet.
-    Assume.assumeFalse(myIsUnifiedPipeline);
-
-    // Generate and select a capture in the stage
-    CpuProfilerTestUtils.captureSuccessfully(myProfilerStage, myService, myTransportService, CpuProfilerTestUtils.readValidTrace());
-    CpuCapture capture = myProfilerStage.getCapture();
-    assertNotNull(capture);
-    int tid = capture.getMainThreadId();
-
-    // Create a series with trace file's main thread tid and the capture range
-    DataSeries<ThreadState> series = createThreadSeries(tid);
-
-    // Create the thread activities to be 2 seconds before the capture start and 2 seconds before the capture finishes
-    myService.addThreads(tid, "main", Arrays.asList(
-      CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-        .setTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()) - TimeUnit.SECONDS.toNanos(2))
-        .setNewState(Cpu.CpuThreadData.State.RUNNING).build(),
-      CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-        .setTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()) - TimeUnit.SECONDS.toNanos(2))
-        .setNewState(Cpu.CpuThreadData.State.SLEEPING).build()));
-    List<SeriesData<ThreadState>> dataSeries = series.getDataForRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
-    assertNotNull(dataSeries);
-    // We expect the portions of the thread activities that are within the capture range to be duplicated with a "_CAPTURED" suffix.
-    assertEquals(4, dataSeries.size());
-    assertEquals(ThreadState.RUNNING, dataSeries.get(0).value);
-    assertEquals(ThreadState.RUNNING_CAPTURED, dataSeries.get(1).value);
-    assertEquals(ThreadState.SLEEPING_CAPTURED, dataSeries.get(2).value);
-    assertEquals(ThreadState.SLEEPING, dataSeries.get(3).value);
-  }
-
-  @Test
-  public void captureBeforeFirstActivity() throws Exception {
-    // CPU recording is not supported in new pipeline yet.
-    Assume.assumeFalse(myIsUnifiedPipeline);
-
-    // Generate and select a capture in the stage
-    CpuProfilerTestUtils.captureSuccessfully(myProfilerStage, myService, myTransportService, CpuProfilerTestUtils.readValidTrace());
-    CpuCapture capture = myProfilerStage.getCapture();
-    assertNotNull(capture);
-    int tid = capture.getMainThreadId();
-
-    // Create a series with trace file's main thread tid and the capture range
-    DataSeries<ThreadState> series = createThreadSeries(tid);
-
-    // Create the thread activities to be 1 second after the capture
-    myService.addThreads(tid, "main", Arrays.asList(
-      CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-        .setTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()) + TimeUnit.SECONDS.toNanos(1))
-        .setNewState(Cpu.CpuThreadData.State.RUNNING).build(),
-      CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-        .setTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()) + TimeUnit.SECONDS.toNanos(2))
-        .setNewState(Cpu.CpuThreadData.State.SLEEPING).build()));
-
-    List<SeriesData<ThreadState>> dataSeries = series.getDataForRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
-    assertNotNull(dataSeries);
-
-    // We expect the portions of the thread activities that are within the capture range to be duplicated with a "_CAPTURED" suffix.
-    // The first activity happens inside the capture, therefore it has only the "_CAPTURED" state.
-    assertEquals(3, dataSeries.size());
-    assertEquals(ThreadState.RUNNING_CAPTURED, dataSeries.get(0).value);
-    assertEquals(ThreadState.SLEEPING_CAPTURED, dataSeries.get(1).value);
-    assertEquals(ThreadState.SLEEPING, dataSeries.get(2).value);
-  }
-
   private DataSeries<ThreadState> createThreadSeries(int tid) {
-    return myIsUnifiedPipeline
-           ? new CpuThreadStateDataSeries(myProfilerStage.getStudioProfilers().getClient().getTransportClient(),
-                                          ProfilersTestData.SESSION_DATA.getStreamId(),
-                                          ProfilersTestData.SESSION_DATA.getPid(),
-                                          tid,
-                                          myProfilerStage.getCapture())
-           : new LegacyCpuThreadStateDataSeries(myProfilerStage.getStudioProfilers().getClient().getCpuClient(),
-                                                ProfilersTestData.SESSION_DATA,
-                                                tid,
-                                                myProfilerStage.getCapture());
+    return new CpuThreadStateDataSeries(myStudioProfilers.getClient().getTransportClient(),
+                                        ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.SESSION_DATA.getPid(),
+                                        tid,
+                                        null);
   }
 }

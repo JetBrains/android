@@ -16,8 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvisionException
@@ -53,11 +52,15 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
                                                       packageName: String,
                                                       className: String,
                                                       methodName: String,
+                                                      private val testRegex: String,
                                                       private val retentionConfiguration: RetentionConfiguration) : LaunchTasksProvider {
   private val myFacet: AndroidFacet = facet
   private val myApplicationIdProvider: ApplicationIdProvider = applicationIdProvider
   private val myLaunchOptions: LaunchOptions = launchOptions
   private val myProject: Project = facet.module.project
+  private val myExtraInstrumentationOptions: String = if (myRunConfig is AndroidTestRunConfiguration) {
+    myRunConfig.getExtraInstrumentationOptions(facet)
+  } else ""
   private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker =
     GradleConnectedAndroidTestInvoker(
       getNumberOfSelectedDevices(),
@@ -71,37 +74,41 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
   private val myClassName: String = className
   private val myMethodName: String = methodName
 
+  private val myLogger: Logger = Logger.getInstance(GradleAndroidTestApplicationLaunchTasksProvider::class.java)
+
   override fun getTasks(device: IDevice, launchStatus: LaunchStatus, consolePrinter: ConsolePrinter): List<LaunchTask> {
     val launchTasks: MutableList<LaunchTask> = Lists.newArrayList()
-    val testAppId: String?
-    try {
-      testAppId = myApplicationIdProvider.testPackageName
-      if (testAppId == null) {
-        launchStatus.terminateLaunch("Unable to determine test package name", true)
-        return launchTasks
-      }
+
+    val testAppId: String? = try {
+      myApplicationIdProvider.testPackageName
+    } catch (e: ApkProvisionException) {
+      myLogger.warn(e)
+      null
     }
-    catch (e: ApkProvisionException) {
+    if (testAppId == null) {
       launchStatus.terminateLaunch("Unable to determine test package name", true)
       return launchTasks
     }
+
     val appLaunchTask = when (myTestingType) {
       TEST_ALL_IN_MODULE -> {
         allInModuleTest(
           myProject,
-          requireNotNull(AndroidModuleModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
           launchStatus.processHandler,
           consolePrinter,
           device,
+          testRegex,
           myGradleConnectedAndroidTestInvoker,
-          retentionConfiguration)
+          retentionConfiguration,
+          myExtraInstrumentationOptions)
       }
       TEST_ALL_IN_PACKAGE -> {
         allInPackageTest(
           myProject,
-          requireNotNull(AndroidModuleModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
           launchStatus.processHandler,
@@ -109,12 +116,13 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           device,
           myPackageName,
           myGradleConnectedAndroidTestInvoker,
-          retentionConfiguration)
+          retentionConfiguration,
+          myExtraInstrumentationOptions)
       }
       TEST_CLASS -> {
         classTest(
           myProject,
-          requireNotNull(AndroidModuleModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
           launchStatus.processHandler,
@@ -122,12 +130,13 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           device,
           myClassName,
           myGradleConnectedAndroidTestInvoker,
-          retentionConfiguration)
+          retentionConfiguration,
+          myExtraInstrumentationOptions)
       }
      TEST_METHOD -> {
        methodTest(
          myProject,
-         requireNotNull(AndroidModuleModel.get(myFacet)),
+         requireNotNull(GradleAndroidModel.get(myFacet)),
          testAppId,
          myLaunchOptions.isDebug,
          launchStatus.processHandler,
@@ -136,7 +145,8 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
          myClassName,
          myMethodName,
          myGradleConnectedAndroidTestInvoker,
-         retentionConfiguration)
+         retentionConfiguration,
+         myExtraInstrumentationOptions)
      } else -> {
       launchStatus.terminateLaunch("Unknown testing type is selected, testing type is $myTestingType", true)
       null
@@ -148,7 +158,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
     return launchTasks
   }
 
-  override fun getConnectDebuggerTask(launchStatus: LaunchStatus, version: AndroidVersion?): ConnectDebuggerTask? {
+  override fun getConnectDebuggerTask(): ConnectDebuggerTask? {
     if (!myLaunchOptions.isDebug) {
       return null
     }
@@ -162,12 +172,12 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
     logger.info("Using debugger: " + debugger.id)
     val androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
     return if (androidDebuggerState != null) {
-      debugger.getConnectDebuggerTask(myEnv,
-                                      version,
-                                      myApplicationIdProvider,
-                                      myFacet,
-                                      androidDebuggerState,
-                                      myRunConfig.type.id).apply {
+      debugger.getConnectDebuggerTask(
+        myEnv,
+        myApplicationIdProvider,
+        myFacet,
+        androidDebuggerState
+      ).apply {
         timeoutSeconds = -1  // No timeout.
       }
     }

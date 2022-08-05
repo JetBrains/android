@@ -47,7 +47,7 @@ public class MlModelFileIndex {
     .newVirtualFileGist(
       "MlModelFileGist",
       1,
-      new DataExternalizer<>() {
+      new DataExternalizer<MlModelMetadata>() {
         @Override
         public void save(@NotNull DataOutput out, @NotNull MlModelMetadata value) throws IOException {
           out.writeUTF(value.myModelFileUrl);

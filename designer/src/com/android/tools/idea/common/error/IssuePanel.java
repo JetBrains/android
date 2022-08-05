@@ -17,8 +17,6 @@ package com.android.tools.idea.common.error;
 
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.util.ActionToolbarUtil;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
@@ -28,6 +26,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
@@ -72,7 +71,6 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,6 +126,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
 
   public IssuePanel(@NotNull IssueModel issueModel, @NotNull IssueListener listener) {
     super(new BorderLayout());
+    Disposer.register(issueModel, this);
     setName(ISSUE_PANEL_NAME);
     myIssueModel = issueModel;
     myListener = listener;
@@ -151,14 +150,8 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     setRequestFocusEnabled(true);
     registerKeyboardActions();
     addFocusListener(createFocusListener());
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      isMinimized = false;
-      myAutoSize = false;
-    }
-    else {
-      setMinimized(true);
-      myAutoSize = true;
-    }
+    setMinimized(true);
+    myAutoSize = true;
     setMinimumSize(JBUI.size(200));
     UIManager.addPropertyChangeListener(this);
     myInitialized = true;
@@ -259,10 +252,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   @NotNull
   private ActionToolbar createToolbar() {
     DefaultActionGroup actionGroup = new DefaultActionGroup();
-    if (!StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      // The minimize button is not needed when showing issue panel in IJ's problem panel.
-      actionGroup.add(new MinimizeAction());
-    }
+    actionGroup.add(new MinimizeAction());
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ACTION_BAR_PLACE, actionGroup, true);
     toolbar.setTargetComponent(this);
     ActionToolbarUtil.makeToolbarNavigable(toolbar);
@@ -285,9 +275,6 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    * Disables the auto-sizing of the panel. This will prevent the panel from automatically collapsing if there are no errors.
    */
   public void disableAutoSize() {
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      Logger.getLogger(IssuePanel.class).warn("The issue panel should never auto resize when showing in IJ's problem panel.");
-    }
     myAutoSize = false;
   }
 
@@ -321,7 +308,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
         setSelectedIssue(null);
         myDisplayedError.clear();
         myErrorListPanel.removeAll();
-        if (!StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get() && myAutoSize) {
+        if (myAutoSize) {
           setMinimized(true);
         }
         return;
@@ -452,10 +439,6 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   }
 
   public void setMinimized(boolean minimized) {
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      Logger.getLogger(IssuePanel.class).warn("Issue panel should never be minimized when showing in IJ's problems panel");
-      return;
-    }
     if (minimized == isMinimized) {
       return;
     }
@@ -531,6 +514,11 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     return myTitleLabel.getText();
   }
 
+  @Nullable
+  public IssueView getDisplayIssueView(@NotNull Issue issue) {
+    return myDisplayedError.get(issue);
+  }
+
   @VisibleForTesting
   public IssueModel getIssueModel() {
     return myIssueModel;
@@ -555,37 +543,8 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       .collect(Collectors.joining());
   }
 
-  /**
-   * Select the highest severity issue related to the provided component and scroll the viewport to this issue
-   *
-   * @param component      The component owning the issue to show
-   * @param collapseOthers if true, all other issues will be collapsed
-   */
-  public void showIssueForComponent(@NotNull NlComponent component, boolean collapseOthers) {
-    Issue issue = myIssueModel.getHighestSeverityIssue(component);
-    if (issue == null) {
-      return;
-    }
-
-    IssueView issueView = myDisplayedError.get(issue);
-    if (issueView != null) {
-      setSelectedIssue(issueView);
-      issueView.setExpanded(true);
-
-      // Collapse all other issue
-      if (collapseOthers) {
-        for (IssueView other : myDisplayedError.values()) {
-          if (other != issueView) {
-            other.setExpanded(false);
-          }
-        }
-      }
-    }
-
-    if (!StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      setMinimized(false);
-    }
-    if (issueView != null) {
+  public void scrollToIssueView(@NotNull IssueView issueView) {
+    if (getIssueViews().contains(issueView)) {
       JViewport viewport = myScrollPane.getViewport();
       viewport.validate();
       viewport.setViewPosition(issueView.getLocation());

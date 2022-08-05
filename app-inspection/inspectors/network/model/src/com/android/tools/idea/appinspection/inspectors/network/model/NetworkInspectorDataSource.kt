@@ -24,10 +24,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import studio.network.inspection.NetworkInspectorProtocol.Event
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import java.util.concurrent.TimeUnit
 
 
@@ -79,8 +85,18 @@ private fun searchRange(data: List<Event>, range: Range): List<Event> {
   // If the result of binary search is less than 0, the index of the start or end element is gotten by:
   // 1) solving for x in the formula (result = -x - 1)
   // 2) startIndex = x, endIndex = x - 1
-  val startIndex = data.binarySearch(min).let { pos -> if (pos < 0) { -pos - 1 } else data.findStartIndex(pos) }
-  val endIndex = data.binarySearch(max).let { pos -> if (pos < 0) { -pos - 2 } else data.findEndIndex(pos) }
+  val startIndex = data.binarySearch(min).let { pos ->
+    if (pos < 0) {
+      -pos - 1
+    }
+    else data.findStartIndex(pos)
+  }
+  val endIndex = data.binarySearch(max).let { pos ->
+    if (pos < 0) {
+      -pos - 2
+    }
+    else data.findEndIndex(pos)
+  }
 
   return data.slice(startIndex..endIndex)
 }
@@ -132,7 +148,7 @@ private fun CoroutineScope.processEvents(commandChannel: ReceiveChannel<Intentio
 private fun intersectsRange(min: Long, max: Long, data: List<Event>): Boolean {
   val firstEventTimestamp = data.firstOrNull()?.timestamp ?: return false
   val lastEventTimestamp = data.last().timestamp
-  if (firstEventTimestamp in min..max || lastEventTimestamp in min .. max || (firstEventTimestamp < min && lastEventTimestamp > max)) {
+  if (firstEventTimestamp in min..max || lastEventTimestamp in min..max || (firstEventTimestamp < min && lastEventTimestamp > max)) {
     return true
   }
   return false
@@ -145,16 +161,19 @@ private fun intersectsRange(min: Long, max: Long, data: List<Event>): Boolean {
  * for queries based on time ranges.
  */
 interface NetworkInspectorDataSource {
+  val connectionEventFlow: Flow<HttpConnectionEvent>
   suspend fun queryForHttpData(range: Range): List<Event>
   suspend fun queryForSpeedData(range: Range): List<Event>
 }
 
 class NetworkInspectorDataSourceImpl(
   messenger: AppInspectorMessenger,
-  parentScope: CoroutineScope
+  parentScope: CoroutineScope,
+  replayCacheSize: Int = 1
 ) : NetworkInspectorDataSource {
-  private val scope = parentScope.createChildScope()
+  val scope = parentScope.createChildScope()
   private val channel = Channel<Intention>()
+  override val connectionEventFlow: Flow<HttpConnectionEvent>
 
   init {
     scope.coroutineContext[Job]!!.invokeOnCompletion { e ->
@@ -163,16 +182,16 @@ class NetworkInspectorDataSourceImpl(
     scope.launch {
       try {
         processEvents(channel)
-      } catch (e: CancellationException) {
+      }
+      catch (e: CancellationException) {
         channel.close(e.cause)
       }
     }
-    scope.launch {
-      messenger.eventFlow.collect {
-        val event = Event.parseFrom(it)
-        channel.send(Intention.InsertData(event))
-      }
-    }
+    connectionEventFlow = messenger.eventFlow
+      .map { data -> Event.parseFrom(data) }
+      .onEach { data -> channel.send(Intention.InsertData(data)) }
+      .mapNotNull { if (it.hasHttpConnectionEvent()) it.httpConnectionEvent else null }
+      .shareIn(scope, SharingStarted.Eagerly, replayCacheSize)
   }
 
   override suspend fun queryForHttpData(range: Range) = withContext(scope.coroutineContext) {

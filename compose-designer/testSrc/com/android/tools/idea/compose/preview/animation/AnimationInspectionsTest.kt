@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
 import com.intellij.codeInspection.ex.QuickFixWrapper

@@ -89,6 +89,15 @@ public class HeadlessTableUI extends BasicTableUI {
       adjustSelection(e);
     }
 
+    @Override
+    public void mouseReleased(MouseEvent e) {
+      if (UIUtilities.shouldIgnore(e, table)) {
+        return;
+      }
+      repostEvent(e);
+      setValueIsAdjusting(false);
+    }
+
     private void setValueIsAdjusting(boolean flag) {
       table.getSelectionModel().setValueIsAdjusting(flag);
       table.getColumnModel().getSelectionModel().

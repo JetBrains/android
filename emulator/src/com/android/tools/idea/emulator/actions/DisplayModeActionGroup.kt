@@ -61,12 +61,12 @@ internal class DisplayModeActionGroup : DefaultActionGroup() {
   }
 
   override fun update(event: AnActionEvent) {
-    val visible = hasDisplayModes(event)
+    val hasDisplayModes = getEmulatorConfig(event)?.displayModes?.isNotEmpty() ?: false
     val presentation = event.presentation
-    presentation.isVisible = visible
-    presentation.isEnabled = visible && isEmulatorConnected(event)
-    if (visible) {
-      presentation.icon = when(getCurrentDisplayMode(event)) {
+    presentation.isVisible = hasDisplayModes
+    if (hasDisplayModes) {
+      presentation.isEnabled = isEmulatorConnected(event)
+      presentation.icon = when (getCurrentDisplayMode(event)) {
         DisplayModeValue.DESKTOP -> StudioIcons.Emulator.Menu.MODE_DESKTOP
         DisplayModeValue.FOLDABLE -> StudioIcons.Emulator.Menu.MODE_FOLDABLE
         DisplayModeValue.PHONE -> StudioIcons.Emulator.Menu.MODE_PHONE

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -53,7 +54,7 @@ public class ConstraintDragHandler extends DragHandler {
       NlComponent component = components.get(0);
       myComponent = new TemporarySceneComponent(layout.getScene(), component);
       myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(component)), editor.pxToDp(NlComponentHelperKt.getH(component)));
-      if (SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())) {
+      if (AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())) {
         if (SdkConstants.VALUE_VERTICAL.equals(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION))) {
           myComponent.setSize(2, 200);
         } else {

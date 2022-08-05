@@ -162,7 +162,7 @@ public final class AvdScreenData {
 
     screen.setRatio(getScreenRatio(screenWidth, screenHeight));
 
-    Double dpi = myDeviceData.screenDpi().get();
+    double dpi = myDeviceData.screenDpi().get();
     if (dpi <= 0) {
       dpi = calculateDpi(screenWidth, screenHeight, screenDiagonal, myDeviceData.isScreenRound().get());
     }
@@ -171,7 +171,7 @@ public final class AvdScreenData {
     screen.setYdpi(dpi);
     screen.setXdpi(dpi);
 
-    screen.setPixelDensity( getScreenDensity(myDeviceData.deviceId().get(), myDeviceData.isTv().get(), dpi, screenHeight) );
+    screen.setPixelDensity(myDeviceData.density().get());
     return screen;
   }
 }

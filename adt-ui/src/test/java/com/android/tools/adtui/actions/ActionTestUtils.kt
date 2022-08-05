@@ -45,11 +45,7 @@ fun prettyPrintActions(
 private fun prettyPrintActions(
   action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean, presentationFactory: PresentationFactory?
 ) {
-  val text: String? = when {
-    action is Separator -> SEPARATOR_TEXT
-    presentationFactory != null -> presentationFactory.getPresentation(action).text
-    else -> action.templatePresentation.text
-  }
+  val text = action.toText(presentationFactory)
   if (text != null) {
     for (i in 0 until depth) {
       sb.append("    ")
@@ -77,10 +73,26 @@ private fun prettyPrintActions(
   }
 }
 
+
+private fun AnAction.toText(presentationFactory: PresentationFactory?): String? {
+  if (this is Separator) {
+    return SEPARATOR_TEXT
+  }
+  val event = createTestActionEvent(this, presentationFactory = presentationFactory)
+  update(event)
+  return event.presentation.text
+}
+
 /**
  * Create an [AnActionEvent] for testing purpose.
  */
 @JvmOverloads
-fun createTestActionEvent(action: AnAction, inputEvent: InputEvent? = null, dataContext: DataContext): AnActionEvent {
-  return AnActionEvent(inputEvent, dataContext, "", action.templatePresentation, ActionManager.getInstance(), 0)
+fun createTestActionEvent(
+  action: AnAction,
+  inputEvent: InputEvent? = null,
+  dataContext: DataContext = DataContext.EMPTY_CONTEXT,
+  presentationFactory: PresentationFactory? = null
+): AnActionEvent {
+  val presentation = presentationFactory?.getPresentation(action) ?: action.templatePresentation.clone()
+  return AnActionEvent(inputEvent, dataContext, "", presentation, ActionManager.getInstance(), 0)
 }

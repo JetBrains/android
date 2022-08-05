@@ -345,11 +345,13 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     val appTestScope = myFixture.findClass("com.example.projectwithappandlib.app.test.R", appTest)!!.useScope as GlobalSearchScope
     assertFalse(appTestScope.isSearchInLibraries)
-    assertEquals(appTestScope, myFixture.findClass("com.example.projectwithappandlib.app.RClassAndroidTest").useScope)
+    assertTrue(
+      appTestScope.contains(myFixture.findClass("com.example.projectwithappandlib.app.RClassAndroidTest").containingFile.virtualFile))
 
     val libTestScope = myFixture.findClass("com.example.projectwithappandlib.lib.test.R", libTest)!!.useScope as GlobalSearchScope
     assertFalse(libTestScope.isSearchInLibraries)
-    assertEquals(libTestScope, myFixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest").useScope)
+    assertTrue(
+      libTestScope.contains(myFixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest").containingFile.virtualFile))
   }
 }
 

@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.SdkConstants.CONSTRAINT_LAYOUT
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.RELATIVE_LAYOUT
-import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.TestSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.google.common.collect.ImmutableList
@@ -56,8 +56,8 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testAddAndRemoveModel() {
-    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).build()
-    val model2 = model("model2.xml", component(CONSTRAINT_LAYOUT.oldName())).build()
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val model2 = model("model2.xml", component(CONSTRAINT_LAYOUT.oldName())).buildWithoutSurface()
     val surface = TestDesignSurface(myModule.project, myModule.project)
 
     assertEquals(0, surface.models.size)
@@ -78,7 +78,7 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testAddDuplicatedModel() {
-    val model = model("model.xml", component(RELATIVE_LAYOUT)).build()
+    val model = model("model.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val surface = TestDesignSurface(myModule.project, myModule.project)
 
     assertEquals(0, surface.models.size)
@@ -92,8 +92,8 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testRemoveIllegalModel() {
-    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).build()
-    val model2 = model("model2.xml", component(RELATIVE_LAYOUT)).build()
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val model2 = model("model2.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val surface = TestDesignSurface(myModule.project, myModule.project)
 
     assertEquals(0, surface.models.size)
@@ -129,8 +129,8 @@ class DesignSurfaceTest : LayoutTestCase() {
                           .withBounds(0, 0, 1000, 1000)
                           .matchParentWidth()
                           .matchParentHeight())
-    val model1 = builder.build()
-    val model2 = builder.build()
+    val model1 = builder.buildWithoutSurface()
+    val model2 = builder.buildWithoutSurface()
 
     val surface = TestDesignSurface(project, testRootDisposable)
     surface.addModelWithoutRender(model1)
@@ -154,8 +154,8 @@ class DesignSurfaceTest : LayoutTestCase() {
                           .withBounds(0, 0, 1000, 1000)
                           .matchParentWidth()
                           .matchParentHeight())
-    val model1 = builder.build()
-    val model2 = builder.build()
+    val model1 = builder.buildWithoutSurface()
+    val model2 = builder.buildWithoutSurface()
 
     val surface = TestDesignSurface(project, testRootDisposable)
     surface.addModelWithoutRender(model1)
@@ -177,9 +177,9 @@ class DesignSurfaceTest : LayoutTestCase() {
                           .withBounds(0, 0, 1000, 1000)
                           .matchParentWidth()
                           .matchParentHeight())
-    val model1 = builder.build()
-    val model2 = builder.build()
-    val model3 = builder.build()
+    val model1 = builder.buildWithoutSurface()
+    val model2 = builder.buildWithoutSurface()
+    val model3 = builder.buildWithoutSurface()
 
 
     val surface = TestDesignSurface(project, testRootDisposable)
@@ -268,20 +268,20 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 }
 
-class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(surface) {
+class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase(surface) {
   override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 }
 
-class TestLayoutManager(private val surface: DesignSurface) : PositionableContentLayoutManager() {
+class TestLayoutManager(private val surface: DesignSurface<*>) : PositionableContentLayoutManager() {
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {}
 
   override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
     surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
 }
 
-class TestActionHandler(surface: DesignSurface) : DesignSurfaceActionHandler(surface) {
+class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(surface) {
   override fun getPasteTarget(): NlComponent? = null
   override fun canHandleChildren(component: NlComponent, pasted: MutableList<NlComponent>): Boolean = false
   override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
@@ -293,19 +293,20 @@ class TestActionHandler(surface: DesignSurface) : DesignSurfaceActionHandler(sur
   override fun isPastePossible(dataContext: DataContext): Boolean = false
 }
 
-class TestDesignSurface(project: Project, disposible: Disposable)
-  : DesignSurface(project,
-                  disposible,
-                  java.util.function.Function { ModelBuilder.TestActionManager(it) },
-                  java.util.function.Function { TestInteractionHandler(it) },
-                  java.util.function.Function { TestLayoutManager(it) },
-                  java.util.function.Function { TestActionHandler(it) },
-                  ZoomControlsPolicy.VISIBLE) {
+class TestDesignSurface(project: Project, disposible: Disposable) :
+  DesignSurface<SceneManager>(
+    project,
+    disposible,
+    java.util.function.Function { ModelBuilder.TestActionManager(it) },
+    java.util.function.Function { TestInteractionHandler(it) },
+    java.util.function.Function { TestLayoutManager(it) },
+    java.util.function.Function { TestActionHandler(it) },
+    ZoomControlsPolicy.VISIBLE) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
-  override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
+  override fun createSceneManager(model: NlModel) = TestSceneManager(model, this).apply { updateSceneView() }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
 

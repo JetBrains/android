@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.ATTR_BACKGROUND;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TOOLS_PREFIX;
 
 import com.android.tools.idea.common.api.DragType;
@@ -31,6 +31,7 @@ import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentUtil;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
@@ -146,7 +147,7 @@ public class NlDropListener extends DropTargetAdapter {
         }
         else {
           // TODO: support nav editor
-          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(model.createComponents(myTransferItem, insertType, scene.getDesignSurface())));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(model.createComponents(myTransferItem, insertType)));
         }
         return insertType;
       }
@@ -202,12 +203,6 @@ public class NlDropListener extends DropTargetAdapter {
         model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0), true)) {
       performNormalDrop(event, insertType, model);
     }
-    else if (!myDragReceiver.isRoot()
-             && !NlComponentUtil.isDescendant(myDragReceiver, myDragged)
-             && NlComponentHelperKt.isMorphableToViewGroup(myDragReceiver)) {
-      morphReceiverIntoViewGroup();
-      performNormalDrop(event, insertType, model);
-    }
     else {
       // Not a viewgroup, but let's give a chance to the handler to do something with the drop event
       ViewHandler handler = NlComponentHelperKt.getViewHandler(myDragReceiver);
@@ -227,8 +222,18 @@ public class NlDropListener extends DropTargetAdapter {
   private void performNormalDrop(@NotNull NlDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
     try {
       Scene scene = myTree.getScene();
-      DesignSurface surface = scene != null ? scene.getDesignSurface() : null;
-      model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, surface);
+      DesignSurface<?> surface = scene != null ? scene.getDesignSurface() : null;
+      if (surface != null) {
+        UtilsKt.addComponentsAndSelectedIfCreated(model,
+                                                  myDragged,
+                                                  myDragReceiver,
+                                                  myNextDragSibling,
+                                                  insertType,
+                                                  surface.getSelectionModel());
+      }
+      else {
+        model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, null);
+      }
 
       event.accept(insertType);
 
@@ -244,27 +249,5 @@ public class NlDropListener extends DropTargetAdapter {
       Logger.getInstance(NlDropListener.class).warn(exception);
       event.reject();
     }
-  }
-
-  /**
-   * Morph the receiver into a constraint layout and add the dragged component to it.
-   */
-  private void morphReceiverIntoViewGroup() {
-
-    final AttributesTransaction transaction = myDragReceiver.startAttributeTransaction();
-    for (AttributeSnapshot attribute : myDragReceiver.getAttributes()) {
-      if (!TOOLS_PREFIX.equals(attribute.prefix) && !ourCopyableAttributes.contains(attribute.name)
-          && attribute.namespace != null) {
-        transaction.removeAttribute(attribute.namespace, attribute.name);
-      }
-    }
-
-    NlWriteCommandActionUtil.run(myDragReceiver, "", () -> {
-      XmlTag tag = myDragReceiver.getTagDeprecated();
-      tag.setName(DependencyManagementUtil.mapAndroidxName(ModuleUtilCore.findModuleForPsiElement(tag), CONSTRAINT_LAYOUT));
-
-      myDragReceiver.setTag(tag);
-      transaction.commit();
-    });
   }
 }

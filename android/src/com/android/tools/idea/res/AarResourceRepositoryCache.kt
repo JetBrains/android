@@ -54,14 +54,13 @@ class AarResourceRepositoryCache private constructor() {
    *     to a local file system directory
    */
   fun getSourceRepository(library: ExternalAndroidLibrary): AarSourceResourceRepository {
-    val libraryName = library.location?.fileName ?: library.address
-    val resFolder = library.resFolder ?: throw IllegalArgumentException("No resources for $libraryName")
+    val resFolder = library.resFolder ?: throw IllegalArgumentException("No resources for ${library.libraryName()}")
 
     if (resFolder.root.toPath() == null) {
-      throw IllegalArgumentException("Cannot find resource directory ${resFolder.root} for $libraryName")
+      throw IllegalArgumentException("Cannot find resource directory ${resFolder.root} for ${library.libraryName()}")
     }
-    return getRepository(resFolder, libraryName, mySourceRepositories) {
-        AarSourceResourceRepository.create(resFolder.root, resFolder.resources, libraryName, createCachingData(library))
+    return getRepository(resFolder, mySourceRepositories) {
+      AarSourceResourceRepository.create(resFolder.root, resFolder.resources, library.libraryName(), createCachingData(library))
     }
   }
 
@@ -73,12 +72,11 @@ class AarResourceRepositoryCache private constructor() {
    * @throws IllegalArgumentException if `library` doesn't contain res.apk or its res.apk isn't a file on the local file system
    */
   fun getProtoRepository(library: ExternalAndroidLibrary): AarProtoResourceRepository {
-    val libraryName = library.location?.fileName ?: library.address
-    val resApkPath = library.resApkFile ?: throw IllegalArgumentException("No res.apk for $libraryName")
+    val resApkPath = library.resApkFile ?: throw IllegalArgumentException("No res.apk for ${library.libraryName()}")
 
-    val resApkFile = resApkPath.toPath() ?: throw IllegalArgumentException("Cannot find $resApkPath for $libraryName")
+    val resApkFile = resApkPath.toPath() ?: throw IllegalArgumentException("Cannot find $resApkPath for ${library.libraryName()}")
 
-    return getRepository(resApkFile, libraryName, myProtoRepositories) { AarProtoResourceRepository.create(resApkFile, libraryName) }
+    return getRepository(resApkFile, myProtoRepositories) { AarProtoResourceRepository.create(resApkFile, library.libraryName()) }
   }
 
   fun removeProtoRepository(resApkFile: Path) {
@@ -108,7 +106,12 @@ class AarResourceRepositoryCache private constructor() {
     }
     library.location?.let {
       try {
-        modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(it.toPath()!!))
+        val libraryPath = it.toPath()
+        if (libraryPath == null) {
+          thisLogger().error("Library ${library.libraryName()} has an invalid location: \"$it\"");
+        } else {
+          modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(libraryPath))
+        }
       }
       catch (ignore: NoSuchFileException) {
       }
@@ -135,14 +138,8 @@ class AarResourceRepositoryCache private constructor() {
     val instance: AarResourceRepositoryCache
         get() = ApplicationManager.getApplication().getService(AarResourceRepositoryCache::class.java)
 
-    private fun <K, T : AarResourceRepository> getRepository(key: K, libraryName: String, cache: Cache<K, T>, factory: () -> T): T {
-      val aarRepository = cache.getAndUnwrap(key, { factory() })
-
-      if (libraryName != aarRepository.libraryName) {
-        thisLogger().error(Exception("Library name mismatch: $libraryName vs ${aarRepository.libraryName}"))
-      }
-
-      return aarRepository
+    private fun <K, T : AarResourceRepository> getRepository(key: K, cache: Cache<K, T>, factory: () -> T): T {
+      return cache.getAndUnwrap(key) { factory() }
     }
   }
 }

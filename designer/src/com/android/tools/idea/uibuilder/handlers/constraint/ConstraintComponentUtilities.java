@@ -74,18 +74,13 @@ import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH_MAX;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH_MIN;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_PARENT;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
-import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_REFERENCE;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_BOTTOM;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_END;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_LEFT;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_RIGHT;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_START;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_TOP;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN;
 import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END;
 import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT;
@@ -102,6 +97,7 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuid
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.END;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.PERCENT;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
@@ -685,15 +681,15 @@ public final class ConstraintComponentUtilities {
    * @return
    */
   private static NlComponent getOriginalComponent(@NotNull NlComponent component) {
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
       NlComponent parent = component.getParent();
       assert parent != null;
 
-      if (NlComponentHelperKt.isOrHasSuperclass(parent, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(parent, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
         parent = parent.getParent();
         assert parent != null;
 
-        if (NlComponentHelperKt.isOrHasSuperclass(parent, CLASS_CONSTRAINT_LAYOUT)) {
+        if (NlComponentHelperKt.isOrHasSuperclass(parent, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT)) {
           for (NlComponent child : parent.getChildren()) {
             if (child.getId() != null && child.getId().equals(component.getId())) {
               return child;
@@ -793,7 +789,7 @@ public final class ConstraintComponentUtilities {
    *
    * @return Whether it deleted a constraint or not.
    */
-  public static boolean clearSelectedConstraint(@NotNull DesignSurface surface) {
+  public static boolean clearSelectedConstraint(@NotNull DesignSurface<?> surface) {
     // TODO: Move uses to a more common place for deletion.
     SelectionModel selectionModel = surface.getSelectionModel();
     Object secondarySelection = selectionModel.getSecondarySelection();
@@ -1052,6 +1048,29 @@ public final class ConstraintComponentUtilities {
     return hasAttributes(transaction, SHERPA_URI, ourEndAttributes);
   }
 
+  // check if the component is added into a Flow helper.
+  private static boolean isInFlow(@NotNull NlComponent component) {
+    NlComponent parent = component.getParent();
+    if (parent == null) {
+      return false;
+    }
+
+    String componentId = component.getId();
+    for (NlComponent child: parent.getChildren()) {
+      if (NlComponentHelperKt.isOrHasSuperclass(child, AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW)) {
+        String attr = child.getAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
+        if (attr != null) {
+          for(String id: attr.split(",")) {
+            if (id.equals(componentId)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   /**
    * This clean up any left over attributes (margins, chain style, bias..) when
    * they are not applicable anymore.
@@ -1067,6 +1086,7 @@ public final class ConstraintComponentUtilities {
     boolean hasBaseline = transaction.getAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
     boolean hasStart = hasStart(transaction);
     boolean hasEnd = hasEnd(transaction);
+    boolean inFlow = isInFlow(component);
     String margin;
     // Horizontal attributes
     // cleanup needs to be sdk range specific
@@ -1116,7 +1136,7 @@ public final class ConstraintComponentUtilities {
     }
 
     if (!hasLeft && !hasRight && !hasStart && !hasEnd) {
-      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X) == null) {
+      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X) == null && !inFlow) {
         setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, pixelToDP(component, getXfromParent(component)));
         transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, null);
       }
@@ -1148,7 +1168,7 @@ public final class ConstraintComponentUtilities {
       }
     }
     if (!hasTop && !hasBottom && !hasBaseline) {
-      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y) == null) {
+      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y) == null && !inFlow) {
         setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, pixelToDP(component, getYfromParent(component)));
         transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, null);
       }
@@ -1180,7 +1200,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isGuideLine(@NotNull NlComponent component) {
-    return CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getTagName());
+    return AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getTagName());
   }
 
   public static @Nullable
@@ -1331,10 +1351,10 @@ public final class ConstraintComponentUtilities {
     if (viewInfo == null) {
       return false;
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       return true;
     }
-    return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_BARRIER);
+    return NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER);
   }
 
   /**
@@ -1348,13 +1368,13 @@ public final class ConstraintComponentUtilities {
     if (viewInfo == null) {
       return false;
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         return true;
       }
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_BARRIER)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER)) {
       String dir = component.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
       if (dir != null) {
         if (dir.equalsIgnoreCase(CONSTRAINT_BARRIER_LEFT)
@@ -1379,13 +1399,13 @@ public final class ConstraintComponentUtilities {
     if (viewInfo == null) {
       return false;
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
         return true;
       }
     }
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_BARRIER)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER)) {
       String dir = component.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
 
       if (dir != null) {
@@ -1401,7 +1421,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isHorizontalGuideline(@NotNull NlComponent component) {
     if (NlComponentHelperKt.getViewInfo(component) != null &&
-        NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+        NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
         return true;
@@ -1412,7 +1432,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isVerticalGuideline(@NotNull NlComponent component) {
     if (NlComponentHelperKt.getViewInfo(component) != null &&
-        NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
+        NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         return true;
@@ -1544,7 +1564,7 @@ public final class ConstraintComponentUtilities {
 
   public static void setScoutVerticalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
     AttributesTransaction transaction = component.startAttributeTransaction();
-    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(value));
+    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(value));
     transaction.apply();
   }
 
@@ -1581,8 +1601,8 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isConstraintLayout(@NotNull NlComponent component) {
-    return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT)
-           || CONSTRAINT_LAYOUT.isEquals(component.getTagDeprecated().getName()); // used during layout conversion
+    return NlComponentHelperKt.isOrHasSuperclass(component, AndroidXConstants.CONSTRAINT_LAYOUT)
+           || AndroidXConstants.CONSTRAINT_LAYOUT.isEquals(component.getTagDeprecated().getName()); // used during layout conversion
   }
 
   // ordered the same as Direction enum

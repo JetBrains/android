@@ -32,6 +32,8 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
   public boolean USE_L2_DEPENDENCIES_ON_SYNC = true;
   public boolean SKIP_GRADLE_TASKS_LIST = false;
 
+  public boolean ENABLE_PARALLEL_SYNC = true;
+
   // Settings related to Gradle sync tracer.
   public boolean TRACE_GRADLE_SYNC = false;
   public TraceProfileItem TRACE_PROFILE_SELECTION = TraceProfileItem.DEFAULT;

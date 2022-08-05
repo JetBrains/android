@@ -41,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NativeLibrary {
+
   // These fields get serialized to/from XML in ApkFacet.
   @NotNull public String name = "";
 
@@ -68,8 +69,8 @@ public class NativeLibrary {
 
   public boolean hasDebugSymbols;
 
-  public NativeLibrary() {
-  }
+  // Needed for deserialization from disk.
+  public NativeLibrary() {}
 
   public NativeLibrary(@NotNull String name) {
     this.name = name;

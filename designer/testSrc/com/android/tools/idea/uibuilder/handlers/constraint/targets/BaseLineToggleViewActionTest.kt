@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.target.AnchorTarget
@@ -42,7 +43,7 @@ class BaseLineToggleViewActionTest : SceneTest() {
 
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",
-                 component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
                    .withBounds(0, 0, 1000, 1000)
                    .id("@id/constraint")
                    .matchParentWidth()

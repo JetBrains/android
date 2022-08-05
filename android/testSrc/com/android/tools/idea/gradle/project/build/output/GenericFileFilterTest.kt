@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.util.oneOf
 import com.android.tools.idea.util.plus
 import com.android.tools.idea.util.repeated
@@ -27,11 +28,10 @@ import com.intellij.execution.filters.OpenFileHyperlinkInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import kotlin.random.Random
 
@@ -43,10 +43,10 @@ class GenericFileFilterTest {
 
   @Before
   fun setUp() {
-    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.anyString())).thenAnswer { invocation ->
+    whenever(localFileSystem.findFileByPathIfCached(ArgumentMatchers.anyString())).thenAnswer { invocation ->
       val pathString = invocation.arguments.single() as String
       mock(VirtualFile::class.java).apply {
-        `when`(this.path).thenReturn(pathString)
+        whenever(this.path).thenReturn(pathString)
       }
     }
   }
@@ -63,7 +63,7 @@ class GenericFileFilterTest {
   @Test
   fun `honor FILENAME_MAX for performance reasons`() {
     val longString = RandomStringUtils.randomAlphanumeric(GenericFileFilter.FILENAME_MAX + 1)
-    `when`(localFileSystem.findFileByPathIfCached(eq("/$longString"))).thenThrow(AssertionError("Should not be queried"))
+    whenever(localFileSystem.findFileByPathIfCached(eq("/$longString"))).thenThrow(AssertionError("Should not be queried"))
 
     getFilterResultAndCheckHighlightPositions("/$longString /path/to/file", listOf("/path/to/file"), checkHighlights = false)
       .checkFileLinks("/path/to/file")
@@ -75,8 +75,8 @@ class GenericFileFilterTest {
     val p2 = RandomStringUtils.randomAlphanumeric(GenericFileFilter.FILENAME_MAX / 2 + 1)
     assert(p1.length + p2.length > GenericFileFilter.FILENAME_MAX)
 
-    `when`(localFileSystem.findFileByPathIfCached(eq("/$p1"))).thenReturn(null)
-    `when`(localFileSystem.findFileByPathIfCached(eq("/$p1 $p2"))).thenThrow(AssertionError("Should not be queried"))
+    whenever(localFileSystem.findFileByPathIfCached(eq("/$p1"))).thenReturn(null)
+    whenever(localFileSystem.findFileByPathIfCached(eq("/$p1 $p2"))).thenThrow(AssertionError("Should not be queried"))
     getFilterResultAndCheckHighlightPositions("/$p1 $p2 /path/to/file", listOf("/path/to/file"), checkHighlights = false)
       .checkFileLinks("/path/to/file")
   }
@@ -319,7 +319,7 @@ class GenericFileFilterTest {
     var previousInputStartIndex = 0
     val results = mutableListOf<Filter.Result?>()
 
-    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
+    whenever(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
       !validPaths.any {
         arg == it || it.startsWith("$arg/") || it.startsWith("$arg\\")
       }

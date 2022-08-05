@@ -33,6 +33,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.Consumer
 import org.jetbrains.android.facet.AndroidFacet
@@ -45,10 +47,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@RunsInEdt
 class ResourceImportDialogViewModelTest {
 
   @get:Rule
   val rule = AndroidProjectRule.withAndroidModel()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   @Test
   fun importMoreAssets() {

@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Function;
+import kotlin.jvm.functions.Function3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 /**
  * Represents the extra user-defined properties defined in the Gradle file.
@@ -36,8 +42,31 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel {
   public ExtModelImpl(@NotNull ExtDslElement dslElement) {
-    super(dslElement);
+    this(dslElement, GradlePropertyModelImpl::new, GradlePropertyModelImpl::new);
   }
+
+  public ExtModelImpl(@NotNull ExtDslElement dslElement,
+                      @NotNull Function<GradleDslElement,GradlePropertyModel> factory,
+                      @NotNull Function3<GradlePropertiesDslElement,PropertyType,String,GradlePropertyModel> holderFactory) {
+    super(dslElement);
+    this.factory = factory;
+    this.holderFactory = holderFactory;
+  }
+
+  public ExtModelImpl(@NotNull GradleDslExpressionMap dslElement) {
+    this(dslElement, GradlePropertyModelImpl::new, GradlePropertyModelImpl::new);
+  }
+
+  public ExtModelImpl(@NotNull GradleDslExpressionMap dslElement,
+                      @NotNull Function<GradleDslElement,GradlePropertyModel> factory,
+                      @NotNull Function3<GradlePropertiesDslElement,PropertyType,String,GradlePropertyModel> holderFactory) {
+    super(dslElement);
+    this.factory = factory;
+    this.holderFactory = holderFactory;
+  }
+
+  private final @NotNull Function<GradleDslElement,GradlePropertyModel> factory;
+  private final @NotNull Function3<GradlePropertiesDslElement,PropertyType,String,GradlePropertyModel> holderFactory;
 
   @Nullable
   public <T extends GradleDslElement> T getPropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
@@ -52,20 +81,18 @@ public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel 
       element = myDslElement.getVariableElement(name);
     }
 
-    return element == null ? new GradlePropertyModelImpl(myDslElement, REGULAR, name) : new GradlePropertyModelImpl(element);
+    return element == null ? holderFactory.invoke(myDslElement, REGULAR, name) : factory.apply(element);
   }
 
   @Override
   @NotNull
   public List<GradlePropertyModel> getProperties() {
-    return myDslElement.getPropertyElements().values().stream().map(element -> new GradlePropertyModelImpl(element))
-      .collect(Collectors.toList());
+    return myDslElement.getPropertyElements().values().stream().map(factory).collect(Collectors.toList());
   }
 
   @NotNull
   @Override
   public List<GradlePropertyModel> getVariables() {
-    return myDslElement.getVariableElements().values().stream().map(element -> new GradlePropertyModelImpl(element))
-      .collect(Collectors.toList());
+    return myDslElement.getVariableElements().values().stream().map(factory).collect(Collectors.toList());
   }
 }

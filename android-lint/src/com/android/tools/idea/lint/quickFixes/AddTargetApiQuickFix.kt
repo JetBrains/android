@@ -26,7 +26,7 @@ import com.android.tools.idea.lint.common.isAnnotationTarget
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
 import com.android.tools.idea.res.ensureNamespaceImported
 import com.android.tools.idea.util.mapAndroidxName
-import com.android.tools.lint.checks.ApiDetector.Companion.REQUIRES_API_ANNOTATION
+import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_API_ANNOTATION
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.intention.AddAnnotationFix

@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
-import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.FileTransferProgress
-import com.google.common.util.concurrent.ListenableFuture
 import java.nio.file.Path
 
 /**
@@ -30,30 +28,24 @@ class AdbDeviceDefaultFileEntry(
   entry: AdbFileListingEntry,
   parent: AdbDeviceFileEntry?
 ) : AdbDeviceFileEntry(device, entry, parent) {
-  override val entries: ListenableFuture<List<DeviceFileEntry>>
-    get() =
-      fileSystem.resolveMountPoint(this).transformAsync(fileSystem.taskExecutor) { it.entries }
+  override suspend fun entries(): List<DeviceFileEntry> =
+    fileSystem.resolveMountPoint(this).entries()
 
-  override fun delete(): ListenableFuture<Unit> =
-    fileSystem.resolveMountPoint(this).transformAsync(fileSystem.taskExecutor) { it.delete() }
+  override suspend fun delete() =
+    fileSystem.resolveMountPoint(this).delete()
 
-  override fun createNewFile(fileName: String): ListenableFuture<Unit> =
-    fileSystem.resolveMountPoint(this).transformAsync(fileSystem.taskExecutor) { it.createNewFile(fileName) }
+  override suspend fun createNewFile(fileName: String) =
+    fileSystem.resolveMountPoint(this).createNewFile(fileName)
 
-  override fun createNewDirectory(directoryName: String): ListenableFuture<Unit> =
-    fileSystem.resolveMountPoint(this).transformAsync(fileSystem.taskExecutor) { it.createNewDirectory(directoryName) }
+  override suspend fun createNewDirectory(directoryName: String) =
+    fileSystem.resolveMountPoint(this).createNewDirectory(directoryName)
 
-  override val isSymbolicLinkToDirectory: ListenableFuture<Boolean>
-    get() =
-      fileSystem.resolveMountPoint(this).transformAsync(fileSystem.taskExecutor) { it.isSymbolicLinkToDirectory }
+  override suspend fun isSymbolicLinkToDirectory(): Boolean =
+    fileSystem.resolveMountPoint(this).isSymbolicLinkToDirectory()
 
-  override fun downloadFile(localPath: Path, progress: FileTransferProgress): ListenableFuture<Unit> =
-    fileSystem.resolveMountPoint(this).transformAsync(fileSystem.taskExecutor) { mountPoint ->
-      mountPoint.downloadFile(localPath, progress)
-    }
+  override suspend fun downloadFile(localPath: Path, progress: FileTransferProgress) =
+    fileSystem.resolveMountPoint(this).downloadFile(localPath, progress)
 
-  override fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress): ListenableFuture<Unit> =
-    fileSystem.resolveMountPoint(this).transformAsync(fileSystem.taskExecutor) { mountPoint ->
-      mountPoint.uploadFile(localPath, fileName, progress)
-    }
+  override suspend fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress) =
+    fileSystem.resolveMountPoint(this).uploadFile(localPath, fileName, progress)
 }

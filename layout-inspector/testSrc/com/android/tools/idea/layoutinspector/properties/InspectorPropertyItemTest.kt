@@ -50,7 +50,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   @Before
   fun setUp() {
     val project = projectRule.project
-    model = model(project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
+    model = model(project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     model!!.resourceLookup.dpi = 560
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
@@ -94,7 +94,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
 
   private val fakeComposeNode: ComposeViewNode =
     ComposeViewNode(-2L, "Text", null, 20, 20, 600, 200, null, null, "",
-                    0, "Text.kt", composePackageHash = 1777, composeOffset = 420, composeLineNumber = 17, 0)
+                    0, 0, 0, "Text.kt", composePackageHash = 1777, composeOffset = 420, composeLineNumber = 17, 0, 0)
 
   protected fun browseProperty(attrName: String, type: Type, source: ResourceReference?) {
     val node = model!!["title"]!!

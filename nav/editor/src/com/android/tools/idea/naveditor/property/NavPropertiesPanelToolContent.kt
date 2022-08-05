@@ -26,7 +26,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-class NavPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable) : ToolContent<DesignSurface> {
+class NavPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable) : ToolContent<DesignSurface<*>> {
   private val panel = JPanel(BorderLayout())
   private val componentModel = NlPropertiesModel(this, facet)
   private val componentView = NavPropertiesView(componentModel)
@@ -38,7 +38,7 @@ class NavPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispo
     properties.addView(componentView)
   }
 
-  override fun setToolContext(toolContext: DesignSurface?) {
+  override fun setToolContext(toolContext: DesignSurface<*>?) {
     componentModel.surface = toolContext
   }
 

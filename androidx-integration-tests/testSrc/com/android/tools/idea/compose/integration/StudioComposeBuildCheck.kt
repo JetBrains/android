@@ -26,15 +26,11 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
 import java.io.File
 
 class StudioComposeBuildCheck : GradleIntegrationTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  @get:Rule
-  var testName = TestName()
 
   /**
    * Checks the rendering of the default `@Preview` in the Compose template.
@@ -45,11 +41,9 @@ class StudioComposeBuildCheck : GradleIntegrationTest {
     openPreparedProject("SimpleComposeProject") {}
   }
 
-  override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf(
     resolveWorkspacePath(ANDROIDX_SNAPSHOT_REPO_PATH).toFile()
   )
-
 }

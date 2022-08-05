@@ -95,6 +95,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     String gapi31Path = "system-images;android-31;google_apis;";
     // Google API 32 image
     String gapi32Path = "system-images;android-32;google_apis;";
+    // Google API 33 image
+    String gapi33Path = "system-images;android-33;google_apis;";
     // Play Store image
     String psPath = "system-images;android-24;google_apis_playstore;";
     // Android Wear image
@@ -117,6 +119,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgGapi30;
     FakePackage.FakeLocalPackage pkgGapi31;
     FakePackage.FakeLocalPackage pkgGapi32;
+    FakePackage.FakeLocalPackage pkgGapi33;
     FakePackage.FakeLocalPackage pkgPs;
     FakePackage.FakeLocalPackage pkgWear;
     FakePackage.FakeLocalPackage pkgWear29;
@@ -131,6 +134,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     SystemImageDescription gapi30ImageDescription;
     SystemImageDescription gapi31ImageDescription;
     SystemImageDescription gapi32ImageDescription;
+    SystemImageDescription gapi33ImageDescription;
     SystemImageDescription psImageDescription;
     SystemImageDescription wearImageDescription;
     SystemImageDescription wear29ImageDescription;
@@ -146,6 +150,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       gapi30Path += abi;
       gapi31Path += abi;
       gapi32Path += abi;
+      gapi33Path += abi;
       psPath += abi;
       wearPath += abi;
       wear29Path += abi;
@@ -165,6 +170,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                                       IdDisplay.create("google", "Google"), 31, sdkRoot);
       pkgGapi32 = createSysimgPackage(gapi32Path, abi, IdDisplay.create("google_apis", "Google APIs"),
                                       IdDisplay.create("google", "Google"), 32, sdkRoot);
+      pkgGapi33 = createSysimgPackage(gapi33Path, abi, IdDisplay.create("google_apis", "Google APIs"),
+                                      IdDisplay.create("google", "Google"), 33, sdkRoot);
       pkgPs = createSysimgPackage(psPath, abi, IdDisplay.create("google_apis_playstore", "Google Play"),
                                   IdDisplay.create("google", "Google"), 24, sdkRoot);
       pkgWear = createSysimgPackage(wearPath, abi, IdDisplay.create("android-wear", "Wear OS"),
@@ -187,7 +194,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     }
 
     ImmutableList<FakePackage.FakeLocalPackage> getPackageInfoList() {
-      return ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgGapi31, pkgGapi32, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive,
+      return ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgGapi31, pkgGapi32, pkgGapi33, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive,
                               pkgAutomotivePs, pkgTv30, pkgTv31);
     }
 
@@ -205,6 +212,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
         sdkHandler.getLocalPackage(gapi31Path, progress).getLocation());
       ISystemImage gapi32Image = systemImageManager.getImageAt(
         sdkHandler.getLocalPackage(gapi32Path, progress).getLocation());
+      ISystemImage gapi33Image = systemImageManager.getImageAt(
+        sdkHandler.getLocalPackage(gapi33Path, progress).getLocation());
       ISystemImage playStoreImage = systemImageManager.getImageAt(
         sdkHandler.getLocalPackage(psPath, progress).getLocation());
       ISystemImage wearImage = systemImageManager.getImageAt(
@@ -227,6 +236,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       gapi30ImageDescription = new SystemImageDescription(gapi30Image);
       gapi31ImageDescription = new SystemImageDescription(gapi31Image);
       gapi32ImageDescription = new SystemImageDescription(gapi32Image);
+      gapi33ImageDescription = new SystemImageDescription(gapi33Image);
       psImageDescription = new SystemImageDescription(playStoreImage);
       wearImageDescription = new SystemImageDescription(wearImage);
       wear29ImageDescription = new SystemImageDescription(wear29Image);
@@ -520,8 +530,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertFalse(systemImageMatchesDevice(mSysImgsX86.gapiImageDescription, myFoldable));
     assertTrue(systemImageMatchesDevice(mSysImgsX86.gapi30ImageDescription, myFoldable));
     assertFalse(systemImageMatchesDevice(mSysImgsX86.wearImageDescription, myResizable));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.gapi31ImageDescription, myResizable));
-    assertTrue(systemImageMatchesDevice(mSysImgsX86.gapi32ImageDescription, myResizable));
+    assertFalse(systemImageMatchesDevice(mSysImgsX86.gapi32ImageDescription, myResizable));
+    assertTrue(systemImageMatchesDevice(mSysImgsX86.gapi33ImageDescription, myResizable));
     assertFalse(systemImageMatchesDevice(mSysImgsX86.wearImageDescription, myRollable));
     assertFalse(systemImageMatchesDevice(mSysImgsX86.wear29ImageDescription, myRollable));
     assertFalse(systemImageMatchesDevice(mSysImgsX86.gapiImageDescription, myRollable));

@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.model.UtilsKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
@@ -39,14 +40,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
-  protected final DesignSurface mySurface;
+  protected final DesignSurface<?> mySurface;
   private final CopyPasteManager myCopyPasteManager;
 
-  public DesignSurfaceActionHandler(@NotNull DesignSurface surface) {
+  public DesignSurfaceActionHandler(@NotNull DesignSurface<?> surface) {
     this(surface, CopyPasteManager.getInstance());
   }
 
-  protected DesignSurfaceActionHandler(@NotNull DesignSurface surface, @NotNull CopyPasteManager copyPasteManager) {
+  protected DesignSurfaceActionHandler(@NotNull DesignSurface<?> surface, @NotNull CopyPasteManager copyPasteManager) {
     mySurface = surface;
     myCopyPasteManager = copyPasteManager;
   }
@@ -167,7 +168,7 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
     DragType dragType = transferItem.isCut() ? DragType.MOVE : DragType.PASTE;
     InsertType insertType = model.determineInsertType(dragType, transferItem, checkOnly);
 
-    List<NlComponent> pasted = model.createComponents(transferItem, insertType, mySurface);
+    List<NlComponent> pasted = model.createComponents(transferItem, insertType);
 
     NlComponent before = null;
     if (canHandleChildren(receiver, pasted)) {
@@ -190,7 +191,7 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
       return true;
     }
     transferItem.consumeCut();
-    model.addComponents(pasted, receiver, before, insertType, mySurface);
+    UtilsKt.addComponentsAndSelectedIfCreated(model, pasted, receiver, before, insertType, mySurface.getSelectionModel());
     if (insertType == InsertType.PASTE) {
       mySurface.getSelectionModel().setSelection(pasted);
     }

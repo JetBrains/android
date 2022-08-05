@@ -1,7 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 load("//tools/base/bazel:proto.bzl", "android_java_proto_library", "java_proto_library")
@@ -23,12 +22,24 @@ iml_module(
     name = "intellij.android.core",
     srcs = ["src"],
     iml_files = ["intellij.android.core.iml"],
+    javacopts_from_jps = [
+        "--add-exports",
+        "java.desktop/sun.swing=ALL-UNNAMED",
+        "--add-exports",
+        "java.desktop/sun.awt.image=ALL-UNNAMED",
+        "--add-exports",
+        "jdk.attach/sun.tools.attach=ALL-UNNAMED",
+    ],
     lint_baseline = "lint_baseline.xml",
     lint_timeout = "long",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
-    runtime_deps = ["//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+        "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
+    ],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -37,6 +48,7 @@ iml_module(
         "//tools/analytics-library/publisher:analytics-publisher[module]",
         "//tools/adt/idea/build-common:intellij.android.buildCommon[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/rt:intellij.android.rt[module]",
         "//tools/base/draw9patch:studio.android.sdktools.draw9patch[module]",
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
@@ -80,6 +92,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
@@ -111,17 +124,21 @@ iml_module(
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser[module]",
+        "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module]",
+        "//tools/adt/idea/threading-checker:intellij.android.threading-checker[module]",
     ],
 )
 
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core.tests",
-    exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {
+        "modularize": {
+            "test_filter": "com.android.tools.idea.refactoring.modularize",
+        },
         "gradle": {
-            "shard_count": 10,
+            "shard_count": 6,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.gradle",
         },
@@ -145,13 +162,13 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.structure.configurables.dependencies.treeview",
         },
         "gradle.structure.model.android": {
-            "shard_count": 4,
+            "shard_count": 6,
             # Timeout waiting to lock Artifact transforms cache (b/152652501)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
         },
         "gradle.project.sync": {
-            "shard_count": 2,
+            "shard_count": 4,
             "data": [
                 "//prebuilts/studio/sdk:ndk",
                 "//tools/data-binding:data_binding_runtime.zip",
@@ -214,11 +231,13 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
         "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/lib:apks",
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
-        "//tools/base/build-system:gradle-distrib",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
-        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system:android_gradle_plugin.zip",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/base/resource-repository/test/resources",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
@@ -241,6 +260,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
@@ -271,6 +291,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module, test]",
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module, test]",
         "//tools/adt/idea/.idea/libraries:sqlite[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
@@ -314,6 +335,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
         "//tools/adt/idea/utp[module, test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/adt/idea/.idea/libraries:layoutlib[test]",
@@ -326,6 +348,7 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator[module, test]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator.testutils[module, test]",
+        "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module, test]",
     ],
 )
 
@@ -384,23 +407,33 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "app-inspection-artifacts",
+    srcs = [
+        "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
+        "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
+        "//tools/base/app-inspection/inspectors/backgroundtask:agent",
+        "//tools/base/app-inspection/inspectors/backgroundtask:backgroundtask_inspector_java_proto",
+        "//tools/base/app-inspection/inspectors/network:agent",
+        "//tools/base/app-inspection/inspectors/network:network_inspector_java_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
     srcs = [
         ":android-core-proto",
         ":android-core-proto-test",
+        ":app-inspection-artifacts",
         ":deploy-artifacts",
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
-        "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
-        "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
         "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
-        "//tools/base/app-inspection/inspectors/network:network_inspector_java_proto",
-        "//tools/base/app-inspection/inspectors/backgroundtask:backgroundtask_inspector_java_proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
@@ -408,9 +441,12 @@ filegroup(
         "//tools/base/ddmlib:app-processes-proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
+        "//tools/base/lint:lint-checks-proto",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
+        "//tools/base/threading-agent:threading_agent.jar",
         "//tools/base/tracer:trace_agent",
+        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:studio.android-test-plugin-host-retention-proto",
         "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:studio.android-test-plugin-result-listener-gradle-proto",
@@ -438,10 +474,10 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.2.0-beta01",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.0.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.1.0-beta01",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.0-beta04",
+        "@maven//:androidx.compose.ui.ui-tooling_1.1.1",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
-        "@maven//:androidx.constraintlayout.constraintlayout_2.0.4",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
@@ -449,7 +485,8 @@ maven_repository(
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.3.1",
-        "@maven//:androidx.lifecycle.lifecycle-runtime_2.3.0-rc01",
+        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.4.0",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
@@ -468,8 +505,9 @@ maven_repository(
         "@maven//:com.android.support.multidex-instrumentation_1.0.2",
         "@maven//:com.android.support.support-v13_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
-        "@maven//:com.android.tools.desugar_jdk_libs_1.0.5",
+        "@maven//:com.android.tools.desugar_jdk_libs_1.1.5",
         "@maven//:com.google.android.gms.play-services-maps_17.0.1",
+        "@maven//:com.google.android.gms.play-services-maps_18.0.2",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.code.gson.gson_2.2.4",
@@ -482,7 +520,7 @@ maven_repository(
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:junit.junit_4.13.2",
-        "@maven//:org.jacoco.org.jacoco.ant_0.8.7",
+        "@maven//:org.jacoco.org.jacoco.ant_0.8.8",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
@@ -538,22 +576,24 @@ java_binary(
     ],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "libandroid-core-proto",
     jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
     visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "libandroid-core-proto-test",
     jars = ["//tools/adt/idea/android:libandroid-core-proto-test.jar"],
     visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "libstudio.android-test-plugin-host-retention-proto",
     jars = ["//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto.jar"],
     visibility = ["//visibility:public"],
@@ -564,6 +604,9 @@ iml_module(
     name = "intellij.android.core.agp-integration-tests",
     iml_files = ["intellij.android.core.agp-integration-tests.iml"],
     split_test_targets = {
+        "modularize": {
+            "test_filter": "com.android.tools.idea.refactoring.modularize",
+        },
         "UnusedResourcesGradleTest": {
             # The testKotlin test case takes 3 minutes (linux) or 5 minutes (windows).
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
@@ -579,6 +622,7 @@ iml_module(
         },
         "other": {
             "shard_count": 3,
+            "tags": ["no_windows"],
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
@@ -593,9 +637,11 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/testData:javadoc",
         "//tools/adt/idea/android/testData:projects",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
-        "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
@@ -611,7 +657,9 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",

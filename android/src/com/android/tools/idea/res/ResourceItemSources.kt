@@ -39,11 +39,9 @@ internal interface ResourceItemSource<T : ResourceItem> : Iterable<T> {
   val configuration: RepositoryConfiguration
   val folderType: ResourceFolderType?
 
-  @JvmDefault
   val repository: ResourceFolderRepository
     get() = configuration.repository as ResourceFolderRepository
 
-  @JvmDefault
   val folderConfiguration: FolderConfiguration
     get() = configuration.folderConfiguration
 

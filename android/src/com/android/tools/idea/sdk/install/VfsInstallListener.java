@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.sdk.install;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep.updateSdkIfNeeded;
+import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupUtil.updateSdkIfNeeded;
 
 import com.android.annotations.NonNull;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -38,15 +36,13 @@ public class VfsInstallListener implements PackageOperation.StatusChangeListener
   @Override
   public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress) {
     if (op.getInstallStatus().equals(PackageOperation.InstallStatus.COMPLETE)) {
-      Task refreshTask = new Task.Backgroundable(null, "Refreshing...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+      new Task.Backgroundable(null, "Refreshing...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
         @Override
         public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
           indicator.setIndeterminate(true);
           doRefresh(op, progress);
         }
-      };
-
-      ApplicationManager.getApplication().invokeLater(refreshTask::queue, ModalityState.NON_MODAL);
+      }.queue();
     }
   }
 

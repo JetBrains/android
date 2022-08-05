@@ -38,6 +38,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -102,7 +103,7 @@ public class RenderTestUtil {
   }
 
   @NotNull
-  private static Device findDeviceById(ConfigurationManager manager, String id) {
+  public static Device findDeviceById(ConfigurationManager manager, String id) {
     for (Device device : manager.getDevices()) {
       if (device.getId().equals(id)) {
         return device;
@@ -165,11 +166,12 @@ public class RenderTestUtil {
     PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(psiFile);
     RenderService renderService = RenderService.getInstance(module.getProject());
-    final RenderTask task = renderService.taskBuilder(facet, configuration)
+    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(facet, configuration)
       .withLogger(logger)
       .withPsiFile(psiFile)
       .disableSecurityManager()
-      .buildSynchronously();
+      .build();
+    RenderTask task = Futures.getUnchecked(taskFuture);
     assertNotNull(task);
     return task;
   }

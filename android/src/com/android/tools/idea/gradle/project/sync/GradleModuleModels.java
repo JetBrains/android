@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import java.io.Serializable;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,12 +26,6 @@ public interface GradleModuleModels extends Serializable {
    */
   @Nullable
   <T> T findModel(@NotNull Class<T> modelType);
-
-  /**
-   * Obtain list of models with the given modelType.
-   */
-  @Nullable
-  <T> List<T> findModels(@NotNull Class<T> modelType);
 
   @NotNull
   String getModuleName();

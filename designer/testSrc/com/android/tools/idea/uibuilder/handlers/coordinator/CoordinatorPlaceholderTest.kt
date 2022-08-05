@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
+import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SnappingInfo
@@ -112,7 +113,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
 
   fun testAddComponentWithoutSnappingToAnchor() {
     val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
-    val placeholders = coordinatorLayout.nlComponent.viewGroupHandler!!.getPlaceholders(coordinatorLayout)
+    val placeholders = coordinatorLayout.nlComponent.viewGroupHandler!!.getPlaceholders(coordinatorLayout, emptyList())
 
     val left = 100
     val top = 120
@@ -133,7 +134,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
                    .matchParentWidth()
                    .matchParentHeight()
                    .children(
-                     component(SdkConstants.COORDINATOR_LAYOUT.newName())
+                     component(AndroidXConstants.COORDINATOR_LAYOUT.newName())
                        .withBounds(0, 0, 400, 400)
                        .id("@id/coordinator")
                        .width("200dp")

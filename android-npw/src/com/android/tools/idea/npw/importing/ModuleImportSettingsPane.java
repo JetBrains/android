@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import static com.android.tools.idea.ui.wizard.WizardUtils.toHtmlString;
+import static com.android.tools.idea.wizard.ui.WizardUtils.toHtmlString;
 import static com.google.common.base.Strings.nullToEmpty;
 
 import com.google.common.base.Objects;

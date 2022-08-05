@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.addComponentsAndSelectedIfCreated
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
@@ -200,7 +201,20 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     firstMouse.x = x
     firstMouse.y = y
 
-    placeholders = component.scene.getPlaceholders(component).filter { it.host != component }
+    val scene = component.scene
+    val selection = scene.selection
+    val selectedSceneComponents = selection.mapNotNull { scene.getSceneComponent(it) }
+    draggedComponents = if (myComponent !in selectedSceneComponents) {
+      // In case the dragging is started without selecting first. This happens when dragging an unselected component.
+      listOf(component)
+    }
+    else {
+      // Make sure myComponent is the first one which is interacted with user.
+      // Note that myComponent may not be the first one in selection, since user may drag the component which is not selected first.
+      sequenceOf(component).plus(selectedSceneComponents.filterNot { it == myComponent }).toList()
+    }
+
+    placeholders = component.scene.getPlaceholders(component, draggedComponents).filter { it.host != component }
 
     val dominateBuilder = ImmutableList.builder<Placeholder>()
     val recessiveBuilder = ImmutableList.builder<Placeholder>()
@@ -210,18 +224,6 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
     placeholderHosts = placeholders.asSequence().map { it.host }.toSet()
 
-    val scene = component.scene
-    val selection = scene.selection
-    val selectedSceneComponents = selection.mapNotNull { scene.getSceneComponent(it) }
-    if (myComponent !in selectedSceneComponents) {
-      // In case the dragging is started without selecting first.
-      draggedComponents = listOf(component)
-    }
-    else {
-      // Make sure myComponent is the first one which is interacted with user.
-      // Note that myComponent may not be the first one in selection, since user may drag the component which is not selected first.
-      draggedComponents = sequenceOf(component).plus(selectedSceneComponents.filterNot { it == myComponent }).toList()
-    }
     initialPositions = draggedComponents.map { Point(it.drawX, it.drawY) }
     offsets = draggedComponents.map { Point(-1, -1) }
 
@@ -403,7 +405,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       }
       modification
     }
-    model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
+
+    model.addComponentsAndSelectedIfCreated(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface.selectionModel) {
       attributesTransactions.forEach { it.commit() }
       myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
@@ -420,7 +423,10 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
    */
   private fun handleRemainingComponentsOnRelease() {
     draggedComponents.mapNotNull { draggedComponent ->
-      draggedComponent.authoritativeNlComponent.attributeTransaction?.let { draggedComponent.authoritativeNlComponent }
+      // We only need to apply changes if there are any pending.
+      if (draggedComponent.authoritativeNlComponent.attributeTransaction?.hasPendingChanges() == true)
+        draggedComponent.authoritativeNlComponent
+      else null
     }.ifNotEmpty {
       NlWriteCommandActionUtil.run(
         this,

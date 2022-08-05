@@ -20,9 +20,13 @@ import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.ImageUtil
+import com.intellij.util.ui.JBImageIcon
+import com.intellij.util.ui.JBUI
 import java.awt.Dimension
+import java.awt.Image
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
@@ -69,7 +73,7 @@ class SlowResourcePreviewManager(
   private val fetchImageExecutor = service<FetchImageExecutor>()
 
   private val PLACEHOLDER_IMAGE = resourcePreviewProvider.previewPlaceholder
-  private val imageIcon = ImageIcon(PLACEHOLDER_IMAGE)
+  private val imageIcon = JBImageIcon(PLACEHOLDER_IMAGE)
   private val contentRatio = 0.1
 
   override var supportsTransparency: Boolean = true
@@ -91,7 +95,7 @@ class SlowResourcePreviewManager(
         val bufferedImage = ImageUtil.toBufferedImage(image)
         if (scale < 1) {
           // Prefer to scale down a high quality image.
-          image = ImageUtils.scale(bufferedImage, scale, scale)
+          image = ImageUtil.scaleImage(bufferedImage, scale)
         }
         else {
           // Return a low quality scaled version, then trigger a callback to request high quality version.
@@ -144,14 +148,15 @@ class SlowResourcePreviewManager(
                          refreshCallBack: () -> Unit,
                          isStillVisible: () -> Boolean,
                          targetSize: Dimension,
-                         forceImageRender: Boolean = false): BufferedImage {
+                         forceImageRender: Boolean = false): Image {
     return imageCache.computeAndGet(asset, PLACEHOLDER_IMAGE, forceImageRender, refreshCallBack) {
       if (isStillVisible()) {
         CompletableFuture.supplyAsync(Supplier {
           // Check for visibility again right before rendering.
           if (isStillVisible()) {
             try {
-              val previewImage = resourcePreviewProvider.getSlowPreview(targetSize.width, targetSize.height, asset)
+              val previewImage = resourcePreviewProvider.getSlowPreview(JBUI.pixScale(targetSize.width.toFloat()).toInt(),
+                                                                        JBUI.pixScale(targetSize.height.toFloat()).toInt(), asset)
                                  ?: throw Exception("Failed to resolve resource")
               return@Supplier scaleToFitIfNeeded(previewImage, targetSize)
             }
@@ -175,19 +180,20 @@ class SlowResourcePreviewManager(
    * Scale the provided [image] to fit into [targetSize] if needed. It might be converted to a
    * [BufferedImage] before being scaled
    */
-  private fun scaleToFitIfNeeded(image: BufferedImage, targetSize: Dimension): BufferedImage {
+  private fun scaleToFitIfNeeded(bufferedImage: BufferedImage, targetSize: Dimension): BufferedImage {
+    var image = ImageUtil.ensureHiDPI(bufferedImage, ScaleContext.create())
     val imageSize = Dimension(image.getWidth(null), image.getHeight(null))
     val scale = getScale(targetSize, imageSize)
     if (shouldScale(scale)) {
       val newWidth = (imageSize.width * scale).toInt()
       val newHeight = (imageSize.height * scale).toInt()
       if (newWidth > 0 && newHeight > 0) {
-        val scaledImage = ImageUtil.scaleImage(image, scale)
-        if (scaledImage !is BufferedImage) {
-          Logger.getInstance(SlowResourcePreviewManager::class.java).error("Not BufferedImage")
-        }
-        return ImageUtil.toBufferedImage(scaledImage)
+        image = ImageUtil.scaleImage(image, scale)
       }
+    }
+    if (image !is BufferedImage) {
+      Logger.getInstance(SlowResourcePreviewManager::class.java).error("Not BufferedImage")
+      return ImageUtil.toBufferedImage(image)
     }
     return image
   }

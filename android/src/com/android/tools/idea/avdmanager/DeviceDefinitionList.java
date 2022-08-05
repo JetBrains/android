@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -30,7 +31,6 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -84,9 +83,12 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String DEFAULT_WEAR = "Wear OS Square";
   private static final String DEFAULT_TV = "Android TV (1080p)";
   private static final String DEFAULT_AUTOMOTIVE = "Automotive (1024p landscape)";
+  private static final String DEFAULT_DESKTOP = "Medium Desktop";
   private static final String TV = "TV";
   private static final String WEAR = "Wear OS";
   private static final String AUTOMOTIVE = "Automotive";
+  private static final String DESKTOP = "Desktop";
+  private static final List<String> CATEGORY_ORDER = ImmutableList.of(PHONE_TYPE, TABLET_TYPE, WEAR, DESKTOP, TV, AUTOMOTIVE);
 
   private Map<String, List<Device>> myDeviceCategoryMap = new HashMap<>();
   private static final Map<String, Device> myDefaultCategoryDeviceMap = new HashMap<>();
@@ -277,6 +279,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     updateDefaultDevice(TV, DEFAULT_TV);
     updateDefaultDevice(WEAR, DEFAULT_WEAR);
     updateDefaultDevice(AUTOMOTIVE, DEFAULT_AUTOMOTIVE);
+    updateDefaultDevice(DESKTOP, DEFAULT_DESKTOP);
   }
 
   private Device updateDefaultDevice(String type, String deviceDisplayName) {
@@ -415,9 +418,12 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       }
       myDeviceCategoryMap.get(category).add(d);
     }
-    Set<String> categories = myDeviceCategoryMap.keySet();
-    String[] categoryArray = ArrayUtilRt.toStringArray(categories);
-    myCategoryModel.setItems(Lists.newArrayList(categoryArray));
+    ArrayList<String> categories = Lists.newArrayList(myDeviceCategoryMap.keySet());
+    categories.sort(Comparator.comparing(category -> {
+      int index = CATEGORY_ORDER.indexOf(category);
+      return index >= 0 ? index : Integer.MAX_VALUE;
+    }));
+    myCategoryModel.setItems(categories);
   }
 
   /**
@@ -429,6 +435,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   public static String getCategory(@NotNull Device d) {
     if (HardwareConfigHelper.isAutomotive(d)) {
       return AUTOMOTIVE;
+    } else if (HardwareConfigHelper.isDesktop(d)) {
+      return DESKTOP;
     } else if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
       return TV;
     } else if (HardwareConfigHelper.isWear(d)) {

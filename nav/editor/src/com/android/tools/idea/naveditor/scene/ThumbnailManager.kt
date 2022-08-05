@@ -16,9 +16,7 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.res.LocalResourceRepository
@@ -30,18 +28,20 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.reference.SoftReference
+import com.intellij.ui.scale.ScaleContext
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.ImageUtil
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetScopedService
 import java.awt.Dimension
+import java.awt.Image
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
 private val KEY = Key.create<ThumbnailManager>(ThumbnailManager::class.java.name)
 
-data class RefinableImage(val image: BufferedImage? = null, val refined: CompletableFuture<RefinableImage?>? = null) {
+data class RefinableImage(val image: Image? = null, val refined: CompletableFuture<RefinableImage?>? = null) {
   val lastCompleted
     get() = generateSequence(this) { if (it.refined?.isDone == true) it.refined.get() else null }.last()
 
@@ -55,7 +55,7 @@ data class RefinableImage(val image: BufferedImage? = null, val refined: Complet
 open class ThumbnailManager protected constructor(facet: AndroidFacet) : AndroidFacetScopedService(facet) {
 
   private val myImages = HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>?>()
-  private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, MutableMap<Dimension, SoftReference<BufferedImage>?>?>()
+  private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, MutableMap<Dimension, SoftReference<Image>?>?>()
   private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet)
@@ -85,14 +85,13 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     super.onDispose()
   }
 
-  // open for testing only
-  open fun getThumbnail(
+  fun getThumbnail(
     xmlFile: XmlFile,
     configuration: Configuration,
     dimensions: Dimension
   ): RefinableImage {
     val file = xmlFile.virtualFile
-    val cachedByDimension = myScaledImages[file, configuration] ?: mutableMapOf<Dimension, SoftReference<BufferedImage>?>().also {
+    val cachedByDimension = myScaledImages[file, configuration] ?: mutableMapOf<Dimension, SoftReference<Image>?>().also {
       myScaledImages.put(file, configuration, it)
     }
     val cached = cachedByDimension[dimensions]?.get()
@@ -141,9 +140,9 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
           }
           // This does the high-quality scaling asynchronously
           val scaledFuture = scaleImage(full, dimensions).thenApply { scaled ->
-            val dimensionMap: MutableMap<Dimension, SoftReference<BufferedImage>?> =
+            val dimensionMap: MutableMap<Dimension, SoftReference<Image>?> =
               myScaledImages[xmlFile.virtualFile, configuration]
-              ?: mutableMapOf<Dimension, SoftReference<BufferedImage>?>().also {
+              ?: mutableMapOf<Dimension, SoftReference<Image>?>().also {
                 myScaledImages.put(xmlFile.virtualFile, configuration, it)
               }
             dimensionMap[dimensions] = SoftReference(scaled)
@@ -182,19 +181,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
       CompletableFuture.completedFuture(fullSize)
     }
     else {
-      val result = CompletableFuture<BufferedImage?>()
-      // TODO we run in a separate thread because task.render() currently isn't asynchronous
-      // if inflate() (which is itself synchronous) hasn't already been called.
-      ApplicationManager.getApplication().executeOnPooledThread {
-        try {
-          val image = getImage(xmlFile, file, configuration)
-          result.complete(image)
-        }
-        catch (t: Throwable) {
-          result.completeExceptionally(t)
-        }
-      }
-      result
+      getImage(xmlFile, file, configuration)
     }
   }
 
@@ -204,57 +191,41 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     return scaled
   }
 
-  private fun scaleImage(image: BufferedImage, dimensions: Dimension): CompletableFuture<BufferedImage> {
-    val result = CompletableFuture<BufferedImage>()
+  private fun scaleImage(image: BufferedImage, dimensions: Dimension): CompletableFuture<Image> {
+    val result = CompletableFuture<Image>()
     ApplicationManager.getApplication().executeOnPooledThread {
-      var scaledImage: BufferedImage? = null
-      val xScale = dimensions.width.toDouble() / image.width
-      val yScale = dimensions.height.toDouble() / image.height
-      if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
-        scaledImage = ImageUtils.scale(image, xScale * 2, yScale * 2)
-        scaledImage = ImageUtils.convertToRetina(scaledImage)
-      }
-      if (scaledImage == null) {
-        scaledImage = ImageUtils.scale(image, xScale, yScale)
-      }
+      var scaledImage = ImageUtil.ensureHiDPI(image, ScaleContext.create())
+      scaledImage = ImageUtil.scaleImage(scaledImage, dimensions.width, dimensions.height)
 
       result.complete(scaledImage)
     }
     return result
   }
 
-  private fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): BufferedImage? {
+  // open for testing
+  @VisibleForTesting
+  protected open fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
     val renderService = RenderService.getInstance(module.project)
-    val task = createTask(facet, xmlFile, configuration, renderService)
-    try {
-      var renderResult: CompletableFuture<RenderResult>? = null
-      if (task != null) {
-        renderResult = task.render()
-      }
-      var image: BufferedImage? = null
-      if (renderResult != null) {
-        // This should also be done in a listener if task.render() were actually async.
-        image = renderResult.get().renderedImage.copy
+    val renderTaskFuture = createTask(facet, xmlFile, configuration, renderService)
+    return renderTaskFuture.thenCompose { task -> task.render() }
+      .thenApply {
+        val image = it.renderedImage.copy
         myImages.put(file, configuration, SoftReference<BufferedImage>(image))
         myRenderVersions.put(file, configuration, myResourceRepository.modificationCount)
         myRenderModStamps.put(file, configuration, file.timeStamp)
+        image
       }
-      return image
-    }
-    finally {
-      task?.dispose()
-    }
+      .whenCompleteAsync({ _, _ -> renderTaskFuture.get()?.dispose() }, AppExecutorUtil.getAppExecutorService())
   }
 
   protected open fun createTask(facet: AndroidFacet,
                                 file: XmlFile,
                                 configuration: Configuration,
-                                renderService: RenderService): RenderTask? {
-    val task = renderService.taskBuilder(facet, configuration)
+                                renderService: RenderService): CompletableFuture<RenderTask> {
+    return renderService.taskBuilder(facet, configuration)
       .withPsiFile(file)
-      .buildSynchronously()
-    task?.setDecorations(false)
-    return task
+      .build()
+      .whenComplete { task, _ -> task.setDecorations(false) }
   }
 
   override fun onServiceDisposal(facet: AndroidFacet) {}

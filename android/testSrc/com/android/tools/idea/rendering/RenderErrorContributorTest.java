@@ -16,13 +16,11 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc;
-import static com.android.tools.idea.rendering.RenderErrorContributor.isBuiltByJdk7OrHigher;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.util.concurrent.Futures;
@@ -32,13 +30,11 @@ import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -48,6 +44,21 @@ import org.jetbrains.annotations.Nullable;
 
 public class RenderErrorContributorTest extends AndroidTestCase {
   public static final String BASE_PATH = "render/";
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    RenderTestUtil.beforeRenderTestCase();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      RenderTestUtil.afterRenderTestCase();
+    } finally {
+      super.tearDown();
+    }
+  }
 
   // Image paths will include full resource urls which depends on the test environment
   public static String stripImages(@NotNull String html) {
@@ -87,9 +98,6 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         continue;
       }
       Path path = target.getPath(IAndroidTarget.ANDROID_JAR);
-      if (path == null) {
-        continue;
-      }
       if (path.getParent() != null && path.getParent().getFileName().toString().equals(platformDir)) {
         return target;
       }
@@ -119,56 +127,45 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     @NotNull VirtualFile file,
     @Nullable LogOperation logOperation,
     boolean useDumbMode) {
-    assertNotNull(file);
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    assertNotNull(psiFile);
     assertNotNull(facet);
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    assertNotNull(configurationManager);
     IAndroidTarget target = getTestTarget(configurationManager);
     assertNotNull(target);
     configurationManager.setTarget(target);
     Configuration configuration = configurationManager.getConfiguration(file);
     assertSame(target, configuration.getRealTarget());
 
-    // TODO: Remove this after http://b.android.com/203392 is released
-    // If we are using the embedded layoutlib, use a recent theme to avoid missing styles errors.
-    configuration.setTheme("android:Theme.Material");
-
     RenderService renderService = RenderService.getInstance(myModule.getProject());
     RenderLogger logger = renderService.createLogger(facet);
-    RenderLogger.ignoreFidelityWarning("Font$Builder.nAddAxis is not supported.");
-    final RenderTask task = renderService.taskBuilder(facet, configuration)
-                                   .withLogger(logger)
-                                   .withPsiFile(psiFile)
-                                   .disableSecurityManager()
-                                   .buildSynchronously();
-    assertNotNull(task);
-    RenderResult render = RenderTestUtil.renderOnSeparateThread(task);
-    assertNotNull(render);
+    List<RenderErrorModel.Issue> issues = new ArrayList<>();
 
-    if (logOperation != null) {
-      logOperation.addErrors(logger, render);
-    }
+    RenderTestUtil.withRenderTask(facet, file, configuration, logger, task -> {
+      RenderResult render = RenderTestUtil.renderOnSeparateThread(task);
+      assertNotNull(render);
 
-    if (useDumbMode) {
-      DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(true);
-    }
-
-    try {
-      // The error model must be created on a background thread.
-      Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
-        () -> RenderErrorModelFactory.createErrorModel(null, render, null));
-
-      return Futures.getUnchecked(errorModel).getIssues().stream().sorted().collect(Collectors.toList());
-    }
-    finally {
-      if (useDumbMode) {
-        DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
+      if (logOperation != null) {
+        logOperation.addErrors(logger, render);
       }
-      task.dispose();
-    }
+
+      if (useDumbMode) {
+        DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(true);
+      }
+
+      try {
+        // The error model must be created on a background thread.
+        Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
+          () -> RenderErrorModelFactory.createErrorModel(null, render, null));
+
+        Futures.getUnchecked(errorModel).getIssues().stream().sorted().forEachOrdered(issues::add);
+      }
+      finally {
+        if (useDumbMode) {
+          DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
+        }
+      }
+    });
+    return issues;
   }
 
   public void testPanel() {
@@ -406,45 +403,6 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "Widgets possibly involved: Button, TextView<BR/>" +
       "<BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
-  }
-
-  public void testWrongClassFormat() {
-    LogOperation operation = (logger, render) -> {
-      // MANUALLY register errors
-      logger.addIncorrectFormatClass("com.example.unit.test.R",
-                                     new InconvertibleClassError(null, "com.example.unit.test.R", 51, 0));
-      logger.addIncorrectFormatClass("com.example.unit.test.MyButton",
-                                     new InconvertibleClassError(null, "com.example.unit.test.MyButton", 52, 0));
-    };
-
-    List<RenderErrorModel.Issue> issues =
-      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    assertSize(1, issues);
-
-    String incompatible = "";
-    String modules = "";
-    if (isBuiltByJdk7OrHigher(myModule)) {
-      incompatible = "The following modules are built with incompatible JDK:<BR/>" +
-                     myModule.getName() + "<BR/>";
-      modules = "<A HREF=\"runnable:1\">Change Java SDK to 1.6</A><BR/>";
-    }
-
-    assertHtmlEquals(
-      "Preview might be incorrect: unsupported class version.<BR/>" +
-      "Tip: You need to run the IDE with the highest JDK version that you are compiling custom views with. " +
-      "For example, if you are compiling with sourceCompatibility 1.7, you must run the IDE with JDK 1.7. " +
-      "Running on a higher JDK is necessary such that these classes can be run in the layout renderer. (Or, extract your custom views " +
-      "into a library which you compile with a lower JDK version.)<BR/>" +
-      "<BR/>" +
-      "If you have just accidentally built your code with a later JDK, try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
-      "<BR/>" +
-      "Classes with incompatible format:<DL>" +
-      "<DD>-&NBSP;com.example.unit.test.MyButton (Compiled with 1.8)" +
-      "<DD>-&NBSP;com.example.unit.test.R (Compiled with 1.7)" +
-      "</DL>" +
-      incompatible +
-      "<A HREF=\"runnable:0\">Rebuild project with '-target 1.6'</A><BR/>" +
-      modules, issues.get(0));
   }
 
   public void testSecurity() throws Exception {
@@ -735,6 +693,23 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       List<RenderErrorModel.Issue> issues =
         getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
       assertSize(2, issues);
+  }
+
+  /**
+   * Tests that the RenderErrorContributor builds issues using the correct severity
+   */
+  public void testIssueSeverity() {
+    LogOperation operation = (logger, render) -> {
+      // MANUALLY register errors
+      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error"));
+      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning"));
+    };
+
+    List<RenderErrorModel.Issue> issues =
+      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertSize(2, issues);
+    assertEquals(HighlightSeverity.ERROR, issues.get(0).getSeverity());
+    assertEquals(HighlightSeverity.WARNING, issues.get(1).getSeverity());
   }
 
   private String stripSdkHome(@NotNull String html) {

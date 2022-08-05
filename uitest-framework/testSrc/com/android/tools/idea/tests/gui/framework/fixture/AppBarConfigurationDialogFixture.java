@@ -55,7 +55,7 @@ public class AppBarConfigurationDialogFixture extends DialogFixture {
   public AppBarConfigurationDialogFixture waitForPreview() {
     waitForBackgroundTasks(robot());
     waitUntilShowing(robot(),
-                   Matchers.byName(JBLabel.class, "CollapsedPreview").and(new GenericTypeMatcher<>(JBLabel.class) {
+                   Matchers.byName(JBLabel.class, "CollapsedPreview").and(new GenericTypeMatcher<JBLabel>(JBLabel.class) {
                      @Override
                      protected boolean isMatching(@NotNull JBLabel component) {
                        return component.getIcon() != null;

@@ -31,8 +31,8 @@ import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_STYLUS
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
 import com.android.tools.idea.layoutinspector.resource.data.Resource
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.common.truth.Truth.assertThat
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.After
 import org.junit.Test
 import java.lang.String.join

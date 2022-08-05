@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.TEXT_VIEW;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -33,7 +32,7 @@ public class ScoutTest4 extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT.defaultName())
+                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/content_main")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
@@ -44,7 +43,7 @@ public class ScoutTest4 extends SceneTest {
                        .withBounds(100, 750, 200, 40)
                        .width("100dp")
                        .height("40dp"),
-                     component(CONSTRAINT_LAYOUT_GUIDELINE.defaultName())
+                     component(AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.defaultName())
                        .id("@+id/guide1")
                        .withBounds(100, 0, 1, 1000)
                        .withAttribute("android:orientation","vertical")

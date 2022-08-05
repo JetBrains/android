@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.0.0-dev">
+<issues format="5" by="lint 7.4.0-dev">
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/CloseButton.java"
+            line="31"/>
+    </issue>
 
     <issue
         id="JbUiStored"
@@ -78,7 +86,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/main/java/com/android/tools/adtui/instructions/InstructionsPanel.java"
-            line="302"/>
+            line="340"/>
     </issue>
 
     <issue
@@ -350,7 +358,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/main/java/com/android/tools/adtui/workbench/WorkBench.java"
-            line="620"/>
+            line="679"/>
     </issue>
 
     <issue
@@ -358,14 +366,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/main/java/com/android/tools/adtui/treegrid/TreeGridSpeedSearch.java"
-            line="51"/>
+            line="52"/>
     </issue>
 
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-      <location
-          file="src/main/java/com/android/tools/adtui/stdui/CloseButton.java"
-          line="31"/>
-    </issue>
 </issues>

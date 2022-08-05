@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 
-class AddGlobalAction(private val mySurface: DesignSurface, private val component: NlComponent) : AnAction("Global") {
+class AddGlobalAction(private val mySurface: DesignSurface<*>, private val component: NlComponent) : AnAction("Global") {
   override fun actionPerformed(e: AnActionEvent) {
     WriteCommandAction.runWriteCommandAction(null) {
       assert(component.parent != null)

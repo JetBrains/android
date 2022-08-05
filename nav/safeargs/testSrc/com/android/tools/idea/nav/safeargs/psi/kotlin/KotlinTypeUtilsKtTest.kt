@@ -171,7 +171,7 @@ class KotlinTypeUtilsKtTest {
     ) as ErrorType
 
     assertThat(type.nullability()).isEqualTo(TypeNullability.NOT_NULL)
-    assertThat(type.debugMessage).isEqualTo("test.safeargs.MyCustomType")
+    assertThat(type.debugMessage).isEqualTo("Unresolved type for test.safeargs.MyCustomType")
   }
 
   @Test
@@ -183,7 +183,7 @@ class KotlinTypeUtilsKtTest {
     )
 
     val elementType = builtIn.getArrayElementType(type) as ErrorType
-    assertThat(elementType.debugMessage).isEqualTo("test.safeargs.MyCustomType")
+    assertThat(elementType.debugMessage).isEqualTo("Unresolved type for test.safeargs.MyCustomType")
   }
 
   /**

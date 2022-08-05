@@ -23,23 +23,23 @@ import com.android.tools.idea.npw.hasComposeMinAgpVersion
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
-import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
-import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.WizardUiContext
+import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.MENU_GALLERY
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.module.Module
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
@@ -84,7 +84,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
 
   @Suppress("DialogTitleCapitalization")
   override fun update(e: AnActionEvent) {
-    val module = LangDataKeys.MODULE.getData(e.dataContext) ?: return
+    val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext) ?: return
     val moduleInfo = AndroidModuleInfo.getInstance(module) ?: return
     val presentation = e.presentation
     presentation.isVisible = true
@@ -112,7 +112,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val module = LangDataKeys.MODULE.getData(e.dataContext) ?: return
+    val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext) ?: return
     val facet = AndroidFacet.getInstance(module) ?: return
     if (AndroidModel.get(facet) == null) {
       return
@@ -128,7 +128,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val moduleTemplates = facet.getModuleTemplates(targetDirectory)
     assert(moduleTemplates.isNotEmpty())
     val initialPackageSuggestion =
-      if (targetDirectory == null) facet.getPackageForApplication() else facet.getPackageForPath(moduleTemplates, targetDirectory)
+      if (targetDirectory == null) facet.getModuleSystem().getPackageName() else facet.getPackageForPath(moduleTemplates, targetDirectory)
     val templateModel = fromFacet(
       facet, initialPackageSuggestion, moduleTemplates[0], "New $activityDescription", DefaultProjectSyncInvoker(),
       shouldOpenFiles, MENU_GALLERY

@@ -19,11 +19,12 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
-import static com.android.tools.idea.flags.StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -50,8 +51,10 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -77,7 +80,6 @@ import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
-import com.intellij.ide.PowerSaveMode;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -434,7 +436,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param sessionClockFactory        a factory to create a session clock used in the interactive preview.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
-                                  @NotNull DesignSurface designSurface,
+                                  @NotNull DesignSurface<? extends LayoutlibSceneManager> designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Function<Disposable, RenderingQueue> renderingQueueFactory,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
@@ -491,7 +493,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param sessionClockFactory    a factory to create a session clock used in the interactive preview.
    */
   public LayoutlibSceneManager(@NotNull NlModel model,
-                               @NotNull DesignSurface designSurface,
+                               @NotNull DesignSurface<LayoutlibSceneManager> designSurface,
                                @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                @NotNull SceneManager.SceneUpdateListener sceneUpdateListener,
                                @NotNull Supplier<SessionClock> sessionClockFactory) {
@@ -514,7 +516,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    * @param config configuration for layout validation when rendering.
    */
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, LayoutScannerConfiguration config) {
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config) {
     this(
       model,
       designSurface,
@@ -758,8 +760,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
-      if (DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.get() &&
-          PowerSaveMode.isEnabled() &&
+      if (PreviewPowerSaveManager.INSTANCE.isInPowerSaveMode() &&
           powerModeChangesNotTriggeringRefresh.contains(model.getLastChangeType())) {
         isOutOfDate.set(true);
         return;
@@ -1136,8 +1137,6 @@ public class LayoutlibSceneManager extends SceneManager {
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
         if (newTask != null) {
-          newTask.getLayoutlibCallback()
-            .setAdaptiveIconMaskPath(configuration.getAdaptiveShape().getPathDescription());
           return newTask.inflate().whenComplete((result, inflateException) -> {
             Throwable exception = null;
             if (inflateException != null) {
@@ -1151,7 +1150,16 @@ public class LayoutlibSceneManager extends SceneManager {
 
             if (exception != null) {
               if (result == null || !result.getRenderResult().isSuccess()) {
-                logger.error("INFLATE", "Error inflating the preview", exception, null, null);
+                // Do not ignore ClassNotFoundException on inflate
+                if (exception instanceof ClassNotFoundException) {
+                  logger.addMessage(RenderProblem.createPlain(ERROR,
+                                                              "Error inflating the preview",
+                                                              logger.getProject(),
+                                                              logger.getLinkManager(), exception));
+                }
+                else {
+                  logger.error(ILayoutLog.TAG_INFLATE, "Error inflating the preview", exception, null, null);
+                }
               }
               Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
             }
@@ -1163,6 +1171,11 @@ public class LayoutlibSceneManager extends SceneManager {
             }
             else {
               updateRenderTask(newTask);
+            }
+            if (result != null && !result.getRenderResult().isSuccess()) {
+              // Erase the previously cached result in case the render has finished, but was not a success. Otherwise, we might end up
+              // in a state where the user thinks the render was successful, but it actually failed.
+              updateRenderTask(null);
             }
           })
             .handle((result, exception) ->
@@ -1302,7 +1315,7 @@ public class LayoutlibSceneManager extends SceneManager {
     getModel().notifyListenersModelDerivedDataChanged();
   }
 
-  private void logConfigurationChange(@NotNull DesignSurface surface) {
+  private void logConfigurationChange(@NotNull DesignSurface<?> surface) {
     int flags = myConfigurationUpdatedFlags.getAndSet(0);  // Get and reset the saved flags
     if (flags != 0) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
@@ -1352,7 +1365,7 @@ public class LayoutlibSceneManager extends SceneManager {
       myPendingFutures.clear();
     }
     try {
-      DesignSurface surface = getDesignSurface();
+      NlDesignSurface surface = getDesignSurface();
       logConfigurationChange(surface);
       getModel().resetLastChange();
 

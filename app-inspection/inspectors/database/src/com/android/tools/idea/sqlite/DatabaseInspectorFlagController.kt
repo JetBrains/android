@@ -16,9 +16,6 @@
 package com.android.tools.idea.sqlite
 
 import com.android.flags.Flag
-import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_ENABLED
-import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED
-import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED
 import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_OPEN_FILES_ENABLED
 import org.jetbrains.annotations.TestOnly
 
@@ -26,22 +23,10 @@ import org.jetbrains.annotations.TestOnly
  * Simple abstraction over enabled/disabling the Database Inspector feature.
  */
 object DatabaseInspectorFlagController {
-  val isFeatureEnabled get() = DATABASE_INSPECTOR_ENABLED.get()
-  val isOpenFileEnabled get() = DATABASE_INSPECTOR_ENABLED.get() && DATABASE_INSPECTOR_OPEN_FILES_ENABLED.get()
-  val isOfflineModeEnabled get() = DATABASE_INSPECTOR_ENABLED.get() && DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.get()
-  val isExportToFileEnabled get() = DATABASE_INSPECTOR_ENABLED.get() && DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED.get()
-
-  @TestOnly
-  fun enableFeature(enabled: Boolean): Boolean = setFlagState(DATABASE_INSPECTOR_ENABLED, enabled)
+  val isOpenFileEnabled get() = DATABASE_INSPECTOR_OPEN_FILES_ENABLED.get()
 
   @TestOnly
   fun enableOpenFile(enabled: Boolean): Boolean = setFlagState(DATABASE_INSPECTOR_OPEN_FILES_ENABLED, enabled)
-
-  @TestOnly
-  fun enableOfflineMode(enabled: Boolean): Boolean = setFlagState(DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED, enabled)
-
-  @TestOnly
-  fun enableExportToFile(enabled: Boolean): Boolean = setFlagState(DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED, enabled)
 
   /**
    * Clears an existing flag overrides, and if the flag value afterwards is not equal to [desiredState],

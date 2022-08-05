@@ -46,8 +46,8 @@ import com.android.tools.adtui.stdui.StreamingScrollbar
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkTrafficTooltipModel
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataListener
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
@@ -63,7 +63,9 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.ST
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TIME_AXIS_HEIGHT
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.Y_AXIS_TOP_MARGIN
-import com.android.tools.idea.appinspection.inspectors.network.view.details.ConnectionDetailsView
+import com.android.tools.idea.appinspection.inspectors.network.view.details.NetworkInspectorDetailsPanel
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.RulesTableView
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBPanel
@@ -71,9 +73,11 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtilities
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.awt.Component
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -82,7 +86,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.Collections
 import java.util.concurrent.TimeUnit
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -99,7 +102,8 @@ class NetworkInspectorView(
   val model: NetworkInspectorModel,
   val componentsProvider: UiComponentsProvider,
   private val parentPane: TooltipLayeredPane,
-  usageTracker: NetworkInspectorTracker
+  private val inspectorServices: NetworkInspectorServices,
+  scope: CoroutineScope
 ) : AspectObserver() {
 
   val component = JPanel(BorderLayout())
@@ -122,8 +126,10 @@ class NetworkInspectorView(
   @VisibleForTesting
   val connectionsView = ConnectionsView(model, parentPane)
 
+  val rulesView = RulesTableView(inspectorServices.client, scope, model, inspectorServices.usageTracker)
+
   @VisibleForTesting
-  val connectionDetails = ConnectionDetailsView(this, usageTracker)
+  val detailsPanel = NetworkInspectorDetailsPanel(this, inspectorServices.usageTracker).apply { isVisible = false }
   private val mainPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
   private val tooltipBinder = ViewBinder<NetworkInspectorView, TooltipModel, TooltipView>()
 
@@ -133,18 +139,12 @@ class NetworkInspectorView(
     model.addDependency(this).onChange(NetworkInspectorAspect.TOOLTIP) { tooltipChanged() }
     model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) { selectionChanged() }
     selectionChanged()
-
-    model.aspect.addDependency(this)
-      .onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
-        usageTracker.trackConnectionDetailsSelected()
-        updateConnectionDetailsView()
-      }
     tooltipBinder.bind(NetworkTrafficTooltipModel::class.java) { view: NetworkInspectorView, tooltip ->
       NetworkTrafficTooltipView(view, tooltip)
     }
-    connectionDetails.minimumSize = Dimension(JBUI.scale(450), connectionDetails.minimumSize.getHeight().toInt())
+    detailsPanel.minimumSize = Dimension(JBUI.scale(550), detailsPanel.minimumSize.getHeight().toInt())
     val threadsView = ThreadsView(model, parentPane)
-    val leftSplitter = JBSplitter(true)
+    val leftSplitter = JBSplitter(true, 0.25f)
     leftSplitter.divider.border = DEFAULT_HORIZONTAL_BORDERS
     leftSplitter.firstComponent = buildMonitorUi()
     val connectionsPanel = JPanel(CardLayout())
@@ -155,7 +155,29 @@ class NetworkInspectorView(
     threadsViewScrollPane.border = JBUI.Borders.empty()
     connectionsTab.addTab("Connection View", connectionScrollPane)
     connectionsTab.addTab("Thread View", threadsViewScrollPane)
-    // The toolbar overlays the tab panel so we have to make sure we repaint the parent panel when switching tabs.
+    if (StudioFlags.ENABLE_NETWORK_INTERCEPTION.get()) {
+      connectionsTab.addTab("Rules", rulesView.component)
+      var selectedComponent: Component? = null
+      connectionsTab.addChangeListener {
+        when (connectionsTab.selectedComponent) {
+          connectionScrollPane, threadsViewScrollPane ->
+            // Switching tabs between connection view and threads view does not open or close details panel.
+            if (selectedComponent == rulesView.component) {
+              model.detailContent =
+                if (model.selectedConnection == null) NetworkInspectorModel.DetailContent.EMPTY
+                else NetworkInspectorModel.DetailContent.CONNECTION
+            }
+          rulesView.component ->
+            if (selectedComponent == connectionScrollPane || selectedComponent == threadsViewScrollPane) {
+              model.detailContent =
+                if (model.selectedRule == null) NetworkInspectorModel.DetailContent.EMPTY
+                else NetworkInspectorModel.DetailContent.RULE
+            }
+        }
+        selectedComponent = connectionsTab.selectedComponent
+      }
+    }
+    // The toolbar overlays the tab panel, so we have to make sure we repaint the parent panel when switching tabs.
     connectionsTab.addChangeListener { mainPanel.repaint() }
     connectionsPanel.add(connectionsTab, CARD_CONNECTIONS)
     val infoPanel = JPanel(BorderLayout())
@@ -177,7 +199,6 @@ class NetworkInspectorView(
     toolbar.add(selectionTimeLabel)
     mainPanel.add(toolbar, TabularLayout.Constraint(0, 1))
     mainPanel.add(connectionsPanel, TabularLayout.Constraint(0, 0, 2, 2))
-    mainPanel.isVisible = false
     leftSplitter.secondComponent = mainPanel
 
     model.selectionRangeDataFetcher.addListener(object : SelectionRangeDataListener {
@@ -196,11 +217,10 @@ class NetworkInspectorView(
     })
     val splitter = JBSplitter(false, 0.6f)
     splitter.firstComponent = leftSplitter
-    splitter.secondComponent = connectionDetails
+    splitter.secondComponent = detailsPanel
     splitter.setHonorComponentsMinimumSize(true)
     splitter.divider.border = DEFAULT_VERTICAL_BORDERS
     component.add(splitter, BorderLayout.CENTER)
-    updateConnectionDetailsView()
   }
 
   private fun buildTimeAxis(axis: ResizingAxisComponentModel): JComponent {
@@ -256,7 +276,7 @@ class NetworkInspectorView(
   private fun createSelectionTimeLabel(): JLabel {
     val label = JLabel("")
     label.font = STANDARD_FONT
-    label.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+    label.border = JBUI.Borders.empty(3, 3, 3, 3)
     label.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         val timeline = model.timeline
@@ -296,7 +316,7 @@ class NetworkInspectorView(
     label.verticalAlignment = SwingConstants.TOP
     val lineChartPanel = JBPanel<Nothing>(BorderLayout())
     lineChartPanel.isOpaque = false
-    lineChartPanel.border = BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0)
+    lineChartPanel.border = JBUI.Borders.empty(Y_AXIS_TOP_MARGIN, 0, 0, 0)
     val usage = model.networkUsage
     val lineChart = LineChart(usage)
     val receivedConfig = LineConfig(NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE)
@@ -324,13 +344,8 @@ class NetworkInspectorView(
     legendPanel.add(label, BorderLayout.WEST)
     legendPanel.add(legend, BorderLayout.EAST)
     model.rangeSelectionModel.addListener(object : RangeSelectionListener {
-      override fun selectionCreated() {
-        mainPanel.isVisible = true
-      }
-
       override fun selectionCleared() {
-        mainPanel.isVisible = false
-        connectionDetails.setHttpData(null)
+        model.setSelectedConnection(null)
       }
     })
     selection.addMouseListener(TooltipMouseAdapter(model) { NetworkTrafficTooltipModel(model) })
@@ -345,10 +360,6 @@ class NetworkInspectorView(
     return panel
   }
 
-  private fun updateConnectionDetailsView() {
-    connectionDetails.setHttpData(model.selectedConnection)
-  }
-
   private fun hasTrafficUsage(series: RangedContinuousSeries, range: Range): Boolean {
     val list = series.getSeriesForRange(range)
     if (list.any { data -> data.x >= range.min && data.x <= range.max && data.value > 0 }) {
@@ -361,7 +372,7 @@ class NetworkInspectorView(
       val index = Collections.binarySearch(list, SeriesData(time, 0L)) { o1, o2 ->
         o1.x.compareTo(o2.x)
       }
-      if (index < 0) - (index + 1) else index
+      if (index < 0) -(index + 1) else index
     }
     val minIndex = getInsertPoint(range.min.toLong())
     val maxIndex = getInsertPoint(range.max.toLong())

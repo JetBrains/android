@@ -17,8 +17,9 @@
 package org.jetbrains.android.uipreview
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
@@ -129,7 +130,7 @@ internal fun isResourceClassName(fqcn: String): Boolean =
   fqcn.substringAfterLast(".").let { it == "R" || it.startsWith("R$") }
 
 fun Module?.isSourceModified(fqcn: String, classFile: VirtualFile): Boolean = this?.let {
-  AndroidModel.get(it)?.isClassFileOutOfDate(it, fqcn, classFile) ?: false
+  it.project.getProjectSystem().getClassJarProvider().isClassFileOutOfDate(it, fqcn, classFile)
 } ?: false
 
 
@@ -144,14 +145,18 @@ fun Module?.isSourceModified(fqcn: String, classFile: VirtualFile): Boolean = th
  *
  * The [binaryCache] provides a cache where the transformed classes from the libraries are reused. The cache can be shared across multiple
  * [ModuleClassLoaderImpl] to benefit from sharing the classes already loaded.
+ *
+ * The passed [ModuleClassLoaderDiagnosticsWrite] will be used to report class rewrites.
  */
 internal class ModuleClassLoaderImpl(module: Module,
                                      private val projectSystemLoader: ProjectSystemClassLoader,
                                      val projectTransforms: ClassTransform,
                                      val nonProjectTransforms: ClassTransform,
                                      private val binaryCache: ClassBinaryCache,
-                                     onClassRewrite: (String, Long, Int) -> Unit) : UserDataHolderBase(), DelegatingClassLoader.Loader, Disposable {
+                                     private val diagnostics: ModuleClassLoaderDiagnosticsWrite) : UserDataHolderBase(), DelegatingClassLoader.Loader, Disposable {
   private val loader: DelegatingClassLoader.Loader
+
+  private val onClassRewrite = { fqcn: String, timeMs: Long, size: Int -> diagnostics.classRewritten(fqcn, size, timeMs) }
 
   private val _projectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
   private val _nonProjectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
@@ -269,7 +274,7 @@ internal class ModuleClassLoaderImpl(module: Module,
 
   init {
     // Project classes loading pipeline
-    val projectLoader = if (!StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+    val projectLoader = if (!FastPreviewManager.getInstance(module.project).isEnabled) {
       createProjectLoader(projectSystemLoader, onClassRewrite)
     }
     else {
@@ -309,7 +314,7 @@ internal class ModuleClassLoaderImpl(module: Module,
 
   override fun loadClass(fqcn: String): ByteArray? {
     if (Disposer.isDisposed(this)) {
-      Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("Using already disposed ModuleClassLoaderImpl", Disposer.getDisposalTrace(this))
+      Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("Using already disposed ModuleClassLoaderImpl", Throwable(Disposer.getDisposalTrace(this)))
       return null
     }
 

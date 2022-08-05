@@ -119,7 +119,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     EnumColors<ThreadState> enumColors = ProfilerColors.THREAD_STATES.build();
     StateChart<ThreadState> stateChart =
       new StateChart<>(model,
-                       new StateChartColorProvider<>() {
+                       new StateChartColorProvider<ThreadState>() {
                          @NotNull
                          @Override
                          public Color getColor(boolean isMouseOver, @NotNull ThreadState value) {

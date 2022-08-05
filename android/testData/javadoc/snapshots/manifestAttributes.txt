@@ -1,0 +1,8 @@
+<html>
+<body>
+Formats: string<br><br>Required name of the class implementing the activity, deriving from
+            {@link android.app.Activity}.  This is a fully
+            qualified class name (for example, com.mycompany.myapp.MyActivity); as a
+            short-hand if the first character of the class
+            is a period then it is appended to your package name.</body>
+</html>

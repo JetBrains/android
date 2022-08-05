@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.APP_BAR_LAYOUT;
 import static com.android.SdkConstants.APP_PREFIX;
 import static com.android.SdkConstants.ATTR_BACKGROUND_TINT;
 import static com.android.SdkConstants.ATTR_BACKGROUND_TINT_MODE;
@@ -35,9 +34,9 @@ import static com.android.SdkConstants.ATTR_SHOW_MOTION_SPEC;
 import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.ATTR_TINT;
-import static com.android.SdkConstants.COORDINATOR_LAYOUT;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 
+import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
@@ -121,11 +120,11 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
       component = parent;
       parent = component.getParent();
     }
-    if (!COORDINATOR_LAYOUT.isEquals(component.getTagName())) {
+    if (!AndroidXConstants.COORDINATOR_LAYOUT.isEquals(component.getTagName())) {
       return null;
     }
     for (NlComponent child : component.getChildren()) {
-      if (APP_BAR_LAYOUT.isEquals(child.getTagName())) {
+      if (AndroidXConstants.APP_BAR_LAYOUT.isEquals(child.getTagName())) {
         return child;
       }
     }

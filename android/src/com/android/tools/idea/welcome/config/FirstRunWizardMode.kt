@@ -36,7 +36,6 @@ enum class FirstRunWizardMode {
 
   val installerTimestamp: String? get() = installerData.timestamp
   val sdkLocation: File? get() = installerData.androidDest
-  val androidSrc: File? get() = installerData.androidSrc
   private val installerData: InstallerData
     @Synchronized get() =
       if (this == INSTALL_HANDOFF) {

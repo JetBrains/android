@@ -24,7 +24,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.awt.event.InputEvent.CTRL_MASK;
 import static java.awt.event.InputEvent.META_MASK;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -33,7 +32,6 @@ import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
@@ -45,6 +43,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEv
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.actions.RunConfigurationsComboBoxAction;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
@@ -76,7 +75,6 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -95,7 +93,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   private EditorFixture myEditor;
@@ -117,7 +114,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public List<String> getModuleNames() {
-    List<String> names = new ArrayList<>();
+    List<String> names = Lists.newArrayList();
     for (Module module : getModuleManager().getModules()) {
       names.add(module.getName());
     }
@@ -183,8 +180,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ThreeComponentsSplitterFixture findToolWindowSplitter() {
-    ToolWindowPane toolWindowsPane = GuiTests.waitUntilFound(robot(), target(), Matchers.byType(ToolWindowPane.class));
-    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)toolWindowsPane.getLayeredPane().getComponent(0);
+    ToolWindowPane toolWindowPane = GuiTests.waitUntilFound(robot(), target(), Matchers.byType(ToolWindowPane.class));
+    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)toolWindowPane.getLayeredPane().getComponent(0);
     return new ThreeComponentsSplitterFixture(robot(), splitter);
   }
 
@@ -342,7 +339,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
    */
   public IdeFrameFixture waitAndInvokeMenuPath(@NotNull String... path) {
-    waitAndInvokeMenuPath(10, path);
+    waitAndInvokeMenuPath(20, path);
     return this;
   }
 
@@ -380,7 +377,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       Project project = getProject();
       actions.accept(this);
 
-      (wait != null ? wait : Wait.seconds(60))
+      (wait != null ? wait : Wait.seconds(90))
         .expecting("build '" + project.getName() + "' to finish")
         .until(() -> gradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
 
@@ -505,7 +502,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * checking the component tree, as that will cause the test to immediately fail.
    */
   private static boolean hasValidWindowAncestor(@NotNull Component target) {
-    return execute(new GuiQuery<>() {
+    return execute(new GuiQuery<Boolean>() {
       @Nullable
       @Override
       protected Boolean executeInEDT() {
@@ -532,7 +529,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         ActionButtonFixture fixture = locateActionButtonByActionId(actionId);
         fixtureRef.set(fixture);
         if (hasValidWindowAncestor(fixture.target())) {
-          return execute(new GuiQuery<>() {
+          return execute(new GuiQuery<Boolean>() {
             @Nullable
             @Override
             protected Boolean executeInEDT() {
@@ -566,11 +563,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public AndroidLogcatToolWindowFixture getAndroidLogcatToolWindow() {
-    return new AndroidLogcatToolWindowFixture(getProject(), robot());
-  }
-
-  @NotNull
   public BuildVariantsToolWindowFixture getBuildVariantsWindow() {
     return new BuildVariantsToolWindowFixture(this);
   }
@@ -600,28 +592,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture useLocalGradleDistribution(@NotNull File gradleHomePath) {
-    return useLocalGradleDistribution(gradleHomePath.getPath());
-  }
-
-  @NotNull
-  public IdeFrameFixture useLocalGradleDistribution(@NotNull String gradleHome) {
-    GradleProjectSettings settings = getGradleSettings();
-    settings.setDistributionType(LOCAL);
-    settings.setGradleHome(gradleHome);
-    return this;
-  }
-
-  @NotNull
-  public GradleProjectSettings getGradleSettings() {
-    return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(getProject());
-  }
-
-  @NotNull
   public AvdManagerDialogFixture invokeAvdManager() {
     // The action button is prone to move during rendering so that robot.click() could miss.
     // So, we use component's click here directly.
-    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.RunAndroidAvdManager", 30);
+    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.DeviceManager", 30);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() {
@@ -633,7 +607,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeSettingsDialogFixture invokeSdkManager() {
-    ActionButton sdkButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<>(ActionButton.class) {
+    ActionButton sdkButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton actionButton) {
         return "SDK Manager".equals(actionButton.getAccessibleContext().getAccessibleName());
@@ -733,7 +707,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   public void selectPreviousEditor() {
     robot().pressAndReleaseKey(KeyEvent.VK_E, SystemInfo.isMac ? META_MASK : CTRL_MASK);
-    GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<>(JLabel.class) {
+    GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
       protected boolean isMatching(@NotNull JLabel header) {
         return Objects.equals(header.getText(), "Recent Files");
@@ -756,7 +730,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture closeProjectPanel() {
-    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "1: Project"))).deselect();
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Project"))).deselect();
     return this;
   }
 

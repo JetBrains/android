@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_DROPDOWN_HEIGHT
 import com.android.SdkConstants.ATTR_DROPDOWN_WIDTH
@@ -32,7 +33,6 @@ import com.android.SdkConstants.AUTO_COMPLETE_TEXT_VIEW
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.CALENDAR_VIEW
-import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.uibuilder.property.NlPropertyType

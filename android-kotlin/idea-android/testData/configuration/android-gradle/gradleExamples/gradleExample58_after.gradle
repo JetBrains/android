@@ -1,5 +1,7 @@
 buildscript {
-    ext.kotlin_version = '$VERSION$'
+    ext {
+        kotlin_version = '$VERSION$'
+    }
     repositories {
         mavenCentral()
     }
@@ -9,7 +11,7 @@ buildscript {
     }
 }
 apply plugin: 'android'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 repositories {
   mavenCentral()
@@ -24,9 +26,10 @@ android {
     }
 }
 
-android.applicationVariants.each { variant ->
-    variant.outputFile = file("$project.buildDir/${variant.name}.apk")
-}
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+
+android.applicationVariants.each { variant ->
+    variant.outputFile = file("$project.buildDir/${variant.name}.apk")
 }

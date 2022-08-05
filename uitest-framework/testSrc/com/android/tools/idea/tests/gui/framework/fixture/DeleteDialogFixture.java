@@ -40,7 +40,7 @@ public class DeleteDialogFixture extends IdeaDialogFixture<SafeDeleteDialog> {
   public static DeleteDialogFixture find(@NotNull IdeFrameFixture ideFrame) {
     Robot robot = ideFrame.robot();
     JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Delete").and(
-      new GenericTypeMatcher<>(JDialog.class) {
+      new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           return getDialogWrapperFrom(dialog, SafeDeleteDialog.class) != null;

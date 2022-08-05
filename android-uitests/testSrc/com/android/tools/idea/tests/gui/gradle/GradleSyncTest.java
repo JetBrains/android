@@ -16,27 +16,24 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
-import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getFilePathPropertyOrSkipTest;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.getUnsupportedGradleHomeOrSkipTest;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.skipTest;
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.getUserGradlePropertiesFile;
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static com.intellij.openapi.util.io.FileUtil.createIfNotExists;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -52,7 +49,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
-import com.android.tools.idea.ui.GuiTestingService;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -98,8 +94,6 @@ public class GradleSyncTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String ANDROID_SDK_MANAGER_DIALOG_TITLE = "Android SDK Manager";
-  private static final String GRADLE_SETTINGS_DIALOG_TITLE = "Gradle Settings";
-  private static final String GRADLE_SYNC_DIALOG_TITLE = "Gradle Sync";
 
   /**
    * Generate a backup copy of user gradle.properties since some tests in this class make changes to the proxy that could
@@ -146,24 +140,6 @@ public class GradleSyncTest {
       }
     }
     fail("No dependency for library3 found");
-  }
-
-  @Test
-  public void userFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
-    File unsupportedGradleHome = getUnsupportedGradleHomeOrSkipTest();
-
-    guiTest.importMultiModule();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    File wrapperDirPath = new File(ideFrame.getProjectPath(), SdkConstants.FD_GRADLE);
-    delete(wrapperDirPath);
-    ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> {
-      it.useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
-
-      // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-      it.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
-    });
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74341
@@ -256,8 +232,6 @@ public class GradleSyncTest {
   @Test
   public void sdkSwitch() throws IOException {
     File secondSdkPath = getFilePathPropertyOrSkipTest("second.android.sdk.path", "the path of a secondary Android SDK", true);
-
-    GuiTestingService.getInstance().getGuiTestSuiteState().setSkipSdkMerge(true);
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     File originalSdkPath = ideSdks.getAndroidSdkPath();

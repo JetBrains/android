@@ -297,6 +297,10 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
         LOGGING_NOTIFICATION.createNotification("APK Analyzer successfully loaded maps from: " + StringUtil.join(loaded, ", "),
                                                 MessageType.INFO).notify(myProject);
       }
+      else if (loaded.isEmpty()) {
+        BALLOON_NOTIFICATION.createNotification("APK Analyzer encountered problems loading: " + StringUtil.join(errors, ", "),
+                                                MessageType.WARNING).notify(myProject);
+      }
       else {
         BALLOON_NOTIFICATION.createNotification("APK Analyzer successfully loaded maps from: " + StringUtil.join(loaded, ",") + "\n"
                                                 + "There were problems loading: " + StringUtil.join(errors, ", "),
@@ -322,7 +326,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     });
 
     ListenableFuture<DexPackageNode> treeNodeFuture =
-      Futures.transform(dexFileFuture, new Function<>() {
+      Futures.transform(dexFileFuture, new Function<Map<Path, DexBackedDexFile>, DexPackageNode>() {
         @NotNull
         @Override
         public DexPackageNode apply(@Nullable Map<Path, DexBackedDexFile> input) {
@@ -332,7 +336,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
         }
       }, pooledThreadExecutor);
 
-    Futures.addCallback(treeNodeFuture, new FutureCallback<>() {
+    Futures.addCallback(treeNodeFuture, new FutureCallback<DexPackageNode>() {
       @Override
       public void onSuccess(DexPackageNode result) {
         myLoadingPanel.stopLoading();
@@ -367,7 +371,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }, EdtExecutorService.getInstance());
 
     ListenableFuture<DexFileStats> dexStatsFuture =
-      Futures.transform(dexFileFuture, new Function<>() {
+      Futures.transform(dexFileFuture, new Function<Map<Path, DexBackedDexFile>, DexFileStats>() {
         @NotNull
         @Override
         public DexFileStats apply(@Nullable Map<Path, DexBackedDexFile> input) {
@@ -384,7 +388,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
       titleComponent.append("Loading dex stats");
       myTopPanel.add(titleComponent, BorderLayout.EAST);
 
-      Futures.addCallback(dexStatsFuture, new FutureCallback<>() {
+      Futures.addCallback(dexStatsFuture, new FutureCallback<DexFileStats>() {
         @Override
         public void onSuccess(DexFileStats result) {
           titleComponent.clear();
@@ -491,7 +495,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
         }
         return files;
       });
-      myDexReferences = Futures.transform(dexFileFuture, new Function<>() {
+      myDexReferences = Futures.transform(dexFileFuture, new Function<DexBackedDexFile[], DexReferences>() {
         @Override
         public DexReferences apply(@Nullable DexBackedDexFile[] inputs) {
           assert inputs != null;

@@ -30,6 +30,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.SyncException
 import com.android.ddmlib.SyncService
 import com.android.ddmlib.TimeoutException
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -80,7 +81,7 @@ private suspend fun syncSend(device: IDevice,
                              remoteFilepath: String,
                              monitor: SyncService.ISyncProgressMonitor) {
   @Suppress("BlockingMethodInNonBlockingContext")
-  withContext(ioDispatcher) {
+  withContext(AndroidDispatchers.diskIoThread) {
     val localFilePath = Paths.get(localFilename)
     val localFileSize = Files.size(localFilePath)
     val localFileMode = RemoteFileMode.fromPath(localFilePath) ?: RemoteFileMode.DEFAULT
@@ -103,12 +104,11 @@ private suspend fun syncRecv(device: IDevice,
                              remoteFilepath: String,
                              localFilename: String,
                              monitor: SyncService.ISyncProgressMonitor) {
-  withContext(ioDispatcher) {
+  withContext(AndroidDispatchers.diskIoThread) {
     val progress = SyncProgressToISyncProgressMonitor(monitor)
     val fileChannel = createNewFileChannel(localFilename)
     fileChannel.use {
       deviceServices.syncRecv(device.toDeviceSelector(), remoteFilepath, fileChannel, progress)
-      fileChannel.close()
     }
   }
 }
@@ -128,10 +128,10 @@ internal inline fun <R> mapToSyncException(block: () -> R): R {
   catch (e: CancellationException) {
     throw SyncException(SyncException.SyncError.CANCELED, e)
   }
-  catch (e: java.util.concurrent.CancellationException) {
-    throw SyncException(SyncException.SyncError.CANCELED, e)
-  }
   catch(e: AdbProtocolErrorException) {
+    throw SyncException(SyncException.SyncError.TRANSFER_PROTOCOL_ERROR, e)
+  }
+  catch (e: AdbFailResponseException) {
     throw SyncException(SyncException.SyncError.TRANSFER_PROTOCOL_ERROR, e)
   }
 }

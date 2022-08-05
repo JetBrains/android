@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework.heapassertions
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
-import com.intellij.util.containers.ContainerUtil
+import java.util.WeakHashMap
 
 class HeapAssertionsTest : PlatformTestCase() {
 
@@ -54,7 +54,7 @@ class HeapAssertionsTest : PlatformTestCase() {
 
   fun test_weakHashMap() {
     val dummy = Any()
-    leakyMap = ContainerUtil.createWeakMap<Any, () -> Any>()
+    leakyMap = WeakHashMap<Any, () -> Any>()
     leakyMap!![dummy] = { dummy } // lambda leaks the key (the leaky listener pattern)
 
     try {

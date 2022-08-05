@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
 public class AdaptiveIconActionGroups extends ToolbarActionGroups {
-  public AdaptiveIconActionGroups(@NotNull DesignSurface surface) {
+  public AdaptiveIconActionGroups(@NotNull DesignSurface<?> surface) {
     super(surface);
   }
 

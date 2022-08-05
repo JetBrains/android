@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryUsedFeaturesFromManifestIndex;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.CMAKE;
@@ -32,6 +33,7 @@ import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.model.UsedFeatureRawText;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
@@ -45,14 +47,17 @@ import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule;
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.model.ExternalProject;
+import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache;
 
 /**
  * Tracks, using {@link UsageTracker}, the structure of a project.
@@ -66,11 +71,13 @@ public class ProjectStructureUsageTracker {
     myProject = project;
   }
 
-  public void trackProjectStructure() {
+  public void trackProjectStructure(@NotNull String linkedGradleBuildPath) {
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
       try {
-        trackProjectStructure(moduleManager.getModules());
+        ExternalProject externalProject = ExternalProjectDataCache.getInstance(myProject).getRootExternalProject(linkedGradleBuildPath);
+        if (externalProject != null) {
+          trackProjectStructure(externalProject);
+        }
       }
       catch (Throwable e) {
         // Any errors in project tracking should not be displayed to the user.
@@ -80,7 +87,7 @@ public class ProjectStructureUsageTracker {
   }
 
   @VisibleForTesting
-  void trackProjectStructure(@NotNull Module[] modules) {
+  void trackProjectStructure(@NotNull ExternalProject externalProject) {
     GradleAndroidModel appModel = null;
     GradleAndroidModel libModel = null;
 
@@ -92,15 +99,23 @@ public class ProjectStructureUsageTracker {
     for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(myProject)) {
       GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
       if (androidModel != null) {
-        if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
-          libModel = androidModel;
-          libCount++;
-          continue;
+        switch (androidModel.getAndroidProject().getProjectType()) {
+          case PROJECT_TYPE_LIBRARY:
+            libModel = androidModel;
+            libCount++;
+            break;
+          case PROJECT_TYPE_APP:
+            appModel = androidModel;
+            appCount++;
+            GradleLibrary gradleLibrary = trackExternalDependenciesInAndroidApp(androidModel);
+            gradleLibraries.add(gradleLibrary);
+            break;
+          case PROJECT_TYPE_ATOM:
+          case PROJECT_TYPE_DYNAMIC_FEATURE:
+          case PROJECT_TYPE_FEATURE:
+          case PROJECT_TYPE_INSTANTAPP:
+          case PROJECT_TYPE_TEST:
         }
-        appModel = androidModel;
-        appCount++;
-        GradleLibrary gradleLibrary = trackExternalDependenciesInAndroidApp(androidModel);
-        gradleLibraries.add(gradleLibrary);
       }
     }
 
@@ -119,7 +134,7 @@ public class ProjectStructureUsageTracker {
       }
 
       // @formatter:off
-      GradleModule gradleModule = GradleModule.newBuilder().setTotalModuleCount(modules.length)
+      GradleModule gradleModule = GradleModule.newBuilder().setTotalModuleCount(countGradleProjects(externalProject))
                                                            .setAppModuleCount(appCount)
                                                            .setLibModuleCount(libCount)
                                                            .build();
@@ -137,6 +152,9 @@ public class ProjectStructureUsageTracker {
                        .setBuildTypeCount(androidModel.getBuildTypeNames().size())
                        .setFlavorCount(androidModel.getProductFlavorNames().size())
                        .setFlavorDimension(moduleAndroidProject.getFlavorDimensions().size());
+          if (!androidModule.getIsLibrary() && isWatchHardwareRequired(facet)) {  // Ignore library modules to query Manifest Index less.
+            androidModule.setRequiredHardware(UsesFeature.HARDWARE_TYPE_WATCH);
+          }
           // @formatter:on
           gradleAndroidModules.add(androidModule.build());
         }
@@ -179,6 +197,19 @@ public class ProjectStructureUsageTracker {
     }
   }
 
+  private boolean isWatchHardwareRequired(AndroidFacet facet) {
+    try {
+      return DumbService.getInstance(myProject).runReadActionInSmartMode(() -> {
+        Set<UsedFeatureRawText> usedFeatures = queryUsedFeaturesFromManifestIndex(facet);
+        return usedFeatures.contains(new UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
+               || usedFeatures.contains(new UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true"));
+      });
+    } catch (Throwable e) {
+      LOG.warn("Manifest Index could not be queried", e);
+    }
+    return false;
+  }
+
   @VisibleForTesting
   static NativeBuildSystemType stringToBuildSystemType(@NotNull String buildSystem) {
     switch (buildSystem) {
@@ -210,11 +241,24 @@ public class ProjectStructureUsageTracker {
       chosenVariant.set(model.getSelectedVariant());
     }
 
-    IdeDependencies dependencies = chosenVariant.get().getMainArtifact().getLevel2Dependencies();
+    IdeDependencies dependencies = chosenVariant.get().getMainArtifact().getCompileClasspath();
     // @formatter:off
     return GradleLibrary.newBuilder().setAarDependencyCount(dependencies.getAndroidLibraries().size())
                                      .setJarDependencyCount(dependencies.getJavaLibraries().size())
                                      .build();
     // @formatter:on
+  }
+
+  private static int countGradleProjects(@NotNull ExternalProject externalProject) {
+    List<ExternalProject> projects = new ArrayList<>();
+    projects.add(externalProject);
+    int count = 0;
+    while (!projects.isEmpty()) {
+      count++;
+      ExternalProject project = projects.remove(0);
+      projects.addAll(project.getChildProjects().values());
+    }
+
+    return count;
   }
 }

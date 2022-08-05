@@ -6,7 +6,7 @@ import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualF
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
@@ -202,7 +202,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     }
 
     if (mySelection == null) return true;
-    return DynamicAppUtils.supportsBundleTask(mySelection.getModule());
+    return GradleProjectSystemUtil.supportsBundleTask(mySelection.getModule());
   }
 
   private void showGradleError(boolean showError) {
@@ -263,26 +263,26 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
           createKeystoreDeprecatedAttributesPre_2021_1_1_3(keyStorePasswordKey),
           createDeprecatedAttributesPre_3_2(keyStorePasswordKey)
         )).map(Credentials::getPassword).ifPresent(password -> ModalityUiUtil.invokeLaterIfNeeded(
+          // Need to be any modality as it is not guaranteed that dialog is already opened, but we need to run anyway.
+          ModalityState.any(),
           () -> {
             if (myKeyStorePasswordField.getPassword().length == 0) {
               myKeyStorePasswordField.setText(password.toString());
             }
-          },
-          // Need to be any modality as it is not guaranteed that dialog is already opened, but we need to run anyway.
-          ModalityState.any()));
+          }));
 
         retrievePassword(passwordSafe, Arrays.asList(
           credentialAttributesForKey(keyPasswordKey),
           createKeyDeprecatedAttributesPre_2021_1_1_3(keyPasswordKey),
           createDeprecatedAttributesPre_3_2(keyPasswordKey)
         )).map(Credentials::getPassword).ifPresent(password -> ModalityUiUtil.invokeLaterIfNeeded(
+          // Need to be any modality as it is not guaranteed that dialog is already opened, but we need to run anyway.
+          ModalityState.any(),
           () -> {
             if (myKeyPasswordField.getPassword().length == 0) {
               myKeyPasswordField.setText(password.toString());
             }
-          },
-          // Need to be any modality as it is not guaranteed that dialog is already opened, but we need to run anyway.
-          ModalityState.any()));
+          }));
       }
       catch (Throwable t) {
         Logger.getInstance(KeystoreStep.class).error("Unable to use password safe", t);

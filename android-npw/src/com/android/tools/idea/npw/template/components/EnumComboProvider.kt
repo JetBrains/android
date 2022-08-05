@@ -16,10 +16,8 @@
 package com.android.tools.idea.npw.template.components
 
 import com.android.tools.idea.observable.AbstractProperty
-import com.android.tools.idea.ui.ApiComboBoxItem
 import com.android.tools.idea.wizard.template.EnumParameter
 import com.android.tools.idea.wizard.template.Parameter
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -28,42 +26,37 @@ import javax.swing.DefaultComboBoxModel
 /**
  * Provides a [ComboBox] well suited for handling [EnumParameter] parameters.
  */
-class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvider<ComboBox<*>>(parameter) {
-  private val log: Logger = Logger.getInstance(EnumComboProvider::class.java)
+class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvider<ComboBox<String>>(parameter) {
 
-  // TODO add support for min api, or better yet custom availability condition
-  private fun createItemForOption(parameter: EnumParameter<*>, value: Enum<*>): ApiComboBoxItem<String> =
-    ApiComboBoxItem(value.name, value.name, 1, 1)
-
-  override fun createComponent(parameter: Parameter<*>): ComboBox<*> {
-    val options = (parameter as EnumParameter<*>).options // FIXME EnumParameterComponentProvider?
-    val comboBoxModel = DefaultComboBoxModel<Any>()
+  override fun createComponent(parameter: Parameter<*>): ComboBox<String> {
+    val options = (parameter as EnumParameter<*>).options
+    val comboBoxModel = DefaultComboBoxModel<String>()
 
     assert(options.isNotEmpty())
     options.forEach {
-      comboBoxModel.addElement(createItemForOption(parameter, it))
+      comboBoxModel.addElement(it.name)
     }
     return ComboBox(comboBoxModel)
   }
 
-  override fun createProperty(component: ComboBox<*>): AbstractProperty<*> = ApiComboBoxTextProperty(component)
+  override fun createProperty(component: ComboBox<String>): AbstractProperty<*> = ApiComboBoxTextProperty(component)
 
   /**
    * Swing property which interacts with [ApiComboBoxItem]s.
    *
-   * NOTE: This is currently only needed here but we can promote it to ui.wizard.properties if it's ever needed in more places.
+   * NOTE: This is currently only needed here but, we can promote it to ui.wizard.properties if it's ever needed in more places.
    */
-  private class ApiComboBoxTextProperty(private val comboBox: ComboBox<*>) : AbstractProperty<String>(), ActionListener {
+  private class ApiComboBoxTextProperty(private val comboBox: ComboBox<String>) : AbstractProperty<String>(), ActionListener {
     init {
       comboBox.addActionListener(this)
     }
 
     override fun setDirectly(value: String) {
-      val model = comboBox.model as DefaultComboBoxModel<*>
+      val model = comboBox.model
 
       for (i in 0 until model.size) {
-        val item = model.getElementAt(i) as ApiComboBoxItem<*>
-        if (value == item.data) {
+        val item = model.getElementAt(i)
+        if (value == item) {
           comboBox.selectedIndex = i
           return
         }
@@ -73,8 +66,7 @@ class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvide
     }
 
     override fun get(): String {
-      val item = comboBox.selectedItem as? ApiComboBoxItem<*> ?: return ""
-      return item.data as String
+      return comboBox.selectedItem as? String ?: return ""
     }
 
     override fun actionPerformed(e: ActionEvent) {

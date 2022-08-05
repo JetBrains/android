@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
@@ -26,7 +27,6 @@ import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -40,7 +40,6 @@ import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.nullable
 import org.mockito.Mock
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 private const val TARGET_APP_ID = "target.application.packagename"
@@ -70,11 +69,9 @@ class AndroidRunStateTest {
   fun setup() {
     MockitoAnnotations.initMocks(this)
 
-    Disposer.register(disposableRule.disposable, DeploymentApplicationService.getInstance())
-
-    `when`(mockEnv.project).thenReturn(projectRule.project)
-    `when`(mockEnv.executionTarget).thenReturn(mockAndroidExecutionTarget)
-    `when`(mockApplicationIdProvider.packageName).thenReturn(TARGET_APP_ID)
+    whenever(mockEnv.project).thenReturn(projectRule.project)
+    whenever(mockEnv.executionTarget).thenReturn(mockAndroidExecutionTarget)
+    whenever(mockApplicationIdProvider.packageName).thenReturn(TARGET_APP_ID)
   }
 
   @Test
@@ -119,9 +116,9 @@ class AndroidRunStateTest {
   private fun runAndroidApplication(): ExecutionResult {
     val mockTestRunConfiguration = mock(AndroidRunConfiguration::class.java)
     val mockRunnerAndConfigurationSettings = mock(RunnerAndConfigurationSettings::class.java)
-    `when`(mockEnv.runProfile).thenReturn(mockTestRunConfiguration)
-    `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(mockRunnerAndConfigurationSettings)
-    `when`(mockRunnerAndConfigurationSettings.type).thenReturn(AndroidRunConfigurationType.getInstance())
+    whenever(mockEnv.runProfile).thenReturn(mockTestRunConfiguration)
+    whenever(mockEnv.runnerAndConfigurationSettings).thenReturn(mockRunnerAndConfigurationSettings)
+    whenever(mockRunnerAndConfigurationSettings.type).thenReturn(AndroidRunConfigurationType.getInstance())
 
     val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
                                    mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)
@@ -131,10 +128,10 @@ class AndroidRunStateTest {
   private fun runAndroidTestApplication(execution: TestExecutionOption = TestExecutionOption.HOST): ExecutionResult {
     val mockTestRunConfiguration = mock(AndroidTestRunConfiguration::class.java)
     val mockRunnerAndConfigurationSettings = mock(RunnerAndConfigurationSettings::class.java)
-    `when`(mockEnv.runProfile).thenReturn(mockTestRunConfiguration)
-    `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(mockRunnerAndConfigurationSettings)
-    `when`(mockRunnerAndConfigurationSettings.type).thenReturn(AndroidTestRunConfigurationType.getInstance())
-    `when`(mockTestRunConfiguration.getTestExecutionOption(nullable(AndroidFacet::class.java))).thenReturn(execution)
+    whenever(mockEnv.runProfile).thenReturn(mockTestRunConfiguration)
+    whenever(mockEnv.runnerAndConfigurationSettings).thenReturn(mockRunnerAndConfigurationSettings)
+    whenever(mockRunnerAndConfigurationSettings.type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+    whenever(mockTestRunConfiguration.getTestExecutionOption(nullable(AndroidFacet::class.java))).thenReturn(execution)
 
     val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
                                    mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)
@@ -142,8 +139,8 @@ class AndroidRunStateTest {
   }
 
   private fun runUnknownRunConfiguration(): ExecutionResult {
-    `when`(mockEnv.runProfile).thenReturn(mock(RunProfile::class.java))
-    `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(null)
+    whenever(mockEnv.runProfile).thenReturn(mock(RunProfile::class.java))
+    whenever(mockEnv.runnerAndConfigurationSettings).thenReturn(null)
 
     val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
                                    mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)

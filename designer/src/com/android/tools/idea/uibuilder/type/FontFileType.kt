@@ -28,5 +28,5 @@ object FontFileType : DesignerEditorFileType {
   override fun isResourceTypeOf(file: PsiFile) =
     file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.FONT, setOf(SdkConstants.TAG_FONT_FAMILY))
 
-  override fun getToolbarActionGroups(surface: DesignSurface) = ToolbarActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>) = ToolbarActionGroups(surface)
 }

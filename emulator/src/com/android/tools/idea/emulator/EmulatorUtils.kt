@@ -18,7 +18,6 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
-import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.ThemingStyle
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.Disposable
@@ -29,7 +28,9 @@ import com.intellij.openapi.project.ex.ProjectEx
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
+import kotlin.math.abs
 import kotlin.math.ceil
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -108,22 +109,64 @@ internal fun Point.scaled(scale: Double): Point {
 }
 
 /**
- * Returns this [Dimension] rotated according to [rotation].
+ * Returns this integer scaled by multiplying by [numerator] and then dividing by [denominator].
  */
-internal fun Dimension.rotated(rotation: SkinRotation): Dimension {
-  return if (rotation == SkinRotation.LANDSCAPE || rotation == SkinRotation.REVERSE_LANDSCAPE) Dimension(height, width) else this
+internal fun Int.scaledDown(numerator: Int, denominator: Int): Int =
+  ((this.toLong() * numerator) / denominator).toInt()
+
+/**
+ * Converts the given [value] from the `[0, fromRange-1]` interval to the `[0, toRange - 1]`
+ * interval by scaling by the [toRange]/[fromRange] factor while maintaining symmetry with
+ * respect to the centers of the two intervals.
+ */
+internal fun Int.scaledUnbiased(fromRange: Int, toRange: Int): Int {
+  if (fromRange <= 1) {
+    return toRange / 2
+  }
+  val shift = (toRange + fromRange / 2) / (2 * fromRange)
+  return (shift + toLong() * (toRange - 2 * shift) / (fromRange - 1)).toInt()
+}
+
+/**
+ * Checks if the ratio between [width1] and [height1] is the same as the ratio between
+ * [width2] and [height2] within the given relative [tolerance].
+ */
+internal fun isSameAspectRatio(width1: Int, height1: Int, width2: Int, height2: Int, tolerance: Double): Boolean {
+  val a = width1.toDouble() * height2
+  val b = width2.toDouble() * height1
+  val d = a - b
+  return abs(d) <= tolerance * abs(a + b) / 2
+}
+
+/**
+ * Returns this [Dimension] rotated by [numQuadrants] quadrants.
+ */
+internal fun Dimension.rotatedByQuadrants(numQuadrants: Int): Dimension {
+  return if (numQuadrants % 2 == 0) this else Dimension(height, width)
 }
 
 /**
  * Returns this [Point] rotated according to [rotation].
  */
-internal fun Point.rotated(rotation: SkinRotation): Point {
+internal fun Point.rotatedByQuadrants(rotation: Int): Point {
   return when (rotation) {
-    SkinRotation.LANDSCAPE -> Point(y, -x)
-    SkinRotation.REVERSE_PORTRAIT -> Point(-x, -y)
-    SkinRotation.REVERSE_LANDSCAPE -> Point(-y, x)
+    1 -> Point(y, -x)
+    2 -> Point(-x, -y)
+    3 -> Point(-y, x)
     else -> this
   }
+}
+
+/**
+ * Returns this Dimension if both its components are not greater than the [maximumValue], otherwise
+ * returns this Dimension scaled down to satisfy this requirement while preserving the aspect ratio.
+ */
+internal fun Dimension.coerceAtMost(maximumValue: Dimension): Dimension {
+  if (width <= maximumValue.width && height <= maximumValue.height) {
+    return this
+  }
+  val scale = min(maximumValue.width.toDouble() / width, maximumValue.height.toDouble() / height).coerceAtMost(1.0)
+  return Dimension(width.scaled(scale).coerceAtMost(maximumValue.width), height.scaled(scale).coerceAtMost(maximumValue.height))
 }
 
 internal val Container.sizeWithoutInsets: Dimension

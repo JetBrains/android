@@ -129,8 +129,8 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
       .all { it.selectedIndex != -1 }
 
   private fun populateAvailableQualifiers(comboBox: ComboBox<*>) {
-    var availableQualifiers = viewModel.getAvailableQualifiers()
-    val selectedItem = comboBox.selectedItem as ResourceQualifier?
+    var availableQualifiers = viewModel.getAvailableQualifiers().map { ResourceQualifierWrapper(it) }
+    val selectedItem = comboBox.selectedItem as ResourceQualifierWrapper?
     if (selectedItem != null) {
       // Prepend the selected element which is not in the available qualifiers.
       availableQualifiers = listOf(selectedItem) + availableQualifiers
@@ -153,8 +153,8 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
 
     private val valuePanel = JPanel(FlowLayout(FlowLayout.LEFT, FLOW_LAYOUT_GAP, 0))
 
-    val qualifierCombo = ComboBox<ResourceQualifier>(arrayOf(qualifier)).apply {
-      renderer = getRenderer("Select a type", ResourceQualifier::getName)
+    val qualifierCombo = ComboBox(arrayOf(ResourceQualifierWrapper(qualifier))).apply {
+      renderer = getRenderer("Select a type", ResourceQualifierWrapper::toString)
       preferredSize = QUALIFIER_TYPE_COMBO_SIZE
 
       addPopupMenuListener(object : PopupMenuListenerAdapter() {
@@ -168,8 +168,8 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
 
       addItemListener { itemEvent ->
         when (itemEvent.stateChange) {
-          ItemEvent.DESELECTED -> viewModel.deselectQualifier(itemEvent.item as ResourceQualifier)
-          ItemEvent.SELECTED -> updateValuePanel(viewModel.selectQualifier(itemEvent.item as ResourceQualifier))
+          ItemEvent.DESELECTED -> (itemEvent.item as ResourceQualifierWrapper).qualifier?.let { viewModel.deselectQualifier(it) }
+          ItemEvent.SELECTED -> (itemEvent.item as ResourceQualifierWrapper).qualifier?.let { updateValuePanel(viewModel.selectQualifier(it)) }
         }
         addQualifierButton.isEnabled = canAddConfigurationRow()
       }
@@ -190,7 +190,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
       val action = object : DumbAwareAction(CLEAR_QUALIFIER_DESC, CLEAR_QUALIFIER_DESC, StudioIcons.Common.CLOSE) {
 
         override fun actionPerformed(e: AnActionEvent) {
-          (qualifierCombo.selectedItem as? ResourceQualifier)?.let { viewModel.deselectQualifier(it) }
+          (qualifierCombo.selectedItem as? ResourceQualifierWrapper)?.qualifier?.let { viewModel.deselectQualifier(it) }
           if (parent.componentCount > 1) deleteRow() else reset()
           addQualifierButton.isEnabled = canAddConfigurationRow()
         }
@@ -301,5 +301,14 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
         else -> append(textRenderer?.let { it(value) } ?: value.toString())
       }
     }
+  }
+
+  /**
+   * Class to wrap [ResourceQualifier] in order to override the [toString] method to return the qualifier name.
+   * The [toString] method is what is used for keyboard navigation in the combo box, so it is important that it
+   * matches the combo box renderer.
+   */
+  data class ResourceQualifierWrapper(val qualifier: ResourceQualifier?) {
+    override fun toString() = qualifier?.name ?: ""
   }
 }

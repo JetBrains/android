@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.projectsystem
 
+import com.android.AndroidProjectTypes
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
@@ -24,11 +25,12 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.CommonAndroidUtil
+import com.android.tools.idea.util.androidFacet
+import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import java.nio.file.Path
 
@@ -37,6 +39,32 @@ import java.nio.file.Path
  * contain methods that apply to a specific [Module].
  */
 interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvider {
+
+  enum class Type {
+    TYPE_NON_ANDROID,
+    TYPE_APP,
+    TYPE_LIBRARY,
+    TYPE_TEST,
+    TYPE_ATOM,
+    TYPE_INSTANTAPP,
+    TYPE_FEATURE,
+    TYPE_DYNAMIC_FEATURE
+
+  }
+
+  @JvmDefault
+  val type: Type
+    get() = when (module.androidFacet?.properties?.PROJECT_TYPE) {
+      AndroidProjectTypes.PROJECT_TYPE_APP -> Type.TYPE_APP
+      AndroidProjectTypes.PROJECT_TYPE_LIBRARY -> Type.TYPE_LIBRARY
+      AndroidProjectTypes.PROJECT_TYPE_TEST -> Type.TYPE_TEST
+      AndroidProjectTypes.PROJECT_TYPE_ATOM -> Type.TYPE_ATOM
+      AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP -> Type.TYPE_INSTANTAPP
+      AndroidProjectTypes.PROJECT_TYPE_FEATURE -> Type.TYPE_FEATURE
+      AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE -> Type.TYPE_DYNAMIC_FEATURE
+      null -> Type.TYPE_NON_ANDROID
+      else -> Type.TYPE_NON_ANDROID
+    }
 
   /** [Module] that this [AndroidModuleSystem] handles. */
   val module: Module
@@ -165,8 +193,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * <p>
    * **Note**: This function will not acquire read/write locks during it's operation.
    */
-  @JvmDefault
-  fun getAndroidLibraryDependencies(): Collection<ExternalAndroidLibrary> = getAndroidLibraryDependencies(DependencyScopeType.MAIN)
   fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary>
 
   /**
@@ -181,6 +207,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * be determined from order entries for all supported build systems.
    */
   fun getResourceModuleDependencies(): List<Module>
+
+  /**
+   * Returns the Android modules that this module's `androidTest` module depends on for resources.
+   */
+  @JvmDefault
+  fun getAndroidTestDirectResourceModuleDependencies(): List<Module> = emptyList()
 
   /**
    * Returns the Android modules that directly depend on this module for resources.
@@ -300,8 +332,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /**
    * Returns a list of dynamic feature modules for this module
    */
-  @JvmDefault
   fun getDynamicFeatureModules(): List<Module> = emptyList()
+
+  /**
+   * Returns the base feature module for this module, if it is a dynamic feature module.
+   */
+  fun getBaseFeatureModule(): Module? = null
 
   /** Whether the ML model binding feature is enabled for this module. */
   @JvmDefault
@@ -310,6 +346,15 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Whether the view binding feature is enabled for this module. */
   @JvmDefault
   val isViewBindingEnabled: Boolean get() = false
+
+  /** Whether KAPT is enabled for this module. */
+  @JvmDefault
+  val isKaptEnabled: Boolean get() = false
+
+  /**
+   * Whether the application is debuggable.
+   */
+  val isDebuggable:Boolean get() = AndroidModel.get(module)?.isDebuggable ?: false
 
   /**
    * Whether the R class in applications and dynamic features are constant.
@@ -328,6 +373,9 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    */
   @JvmDefault
   val testRClassConstantIds: Boolean get() = true
+
+  @JvmDefault
+  fun getTestLibrariesInUse(): TestLibraries? = null
 }
 
 /**
@@ -384,16 +432,6 @@ enum class ScopeType {
     }
 }
 
-fun AndroidModuleSystem.getResolveScope(file: VirtualFile): GlobalSearchScope {
-  val scopeType = getScopeType(file, module.project)
-  return getResolveScope(scopeType)
-}
-
-fun AndroidModuleSystem.getResolveScope(element: PsiElement): GlobalSearchScope {
-  val scopeType = element.containingFile?.virtualFile?.let { getScopeType(it, module.project) } ?: ScopeType.MAIN
-  return getResolveScope(scopeType)
-}
-
 fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): ScopeType {
   if (!TestSourcesFilter.isTestSources(file, project)) return ScopeType.MAIN
   val testScopes = getTestArtifactSearchScopes() ?: return ScopeType.ANDROID_TEST
@@ -408,25 +446,34 @@ fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): Scope
   }
 }
 
-fun Module.getAllLinkedModules() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.getModules() ?: listOf(this)
+fun Module.getAllLinkedModules() : List<Module> = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.getModules() ?: listOf(this)
 
-fun Module.getHolderModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
+fun Module.getHolderModule() : Module = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
 
-fun Module.isHolderModule() = getHolderModule() == this
+fun Module.isHolderModule() : Boolean = getHolderModule() == this
 
-fun Module.getMainModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.main ?: this
+fun Module.getMainModule() : Module = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.main ?: this
 
-fun Module.isMainModule() = getMainModule() == this
+fun Module.isMainModule() : Boolean = getMainModule() == this
 
-fun Module.getUnitTestModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.unitTest ?: this
+fun Module.getUnitTestModule() : Module?  {
+  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this
+  return linkedGroup.unitTest
+}
 
-fun Module.isUnitTestModule() = getUnitTestModule() == this
+fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
 
-fun Module.getAndroidTestModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.androidTest ?: this
+fun Module.getAndroidTestModule() : Module? {
+  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this
+  return linkedGroup.androidTest
+}
 
-fun Module.isAndroidTestModule() = getAndroidTestModule() == this
+fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
 
-fun Module.getTestFixturesModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.testFixtures
+fun Module.getTestFixturesModule() : Module? {
+  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return null
+  return linkedGroup.testFixtures
+}
 
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true
@@ -434,3 +481,8 @@ fun Module.getTestFixturesModule() = getUserData(CommonAndroidUtil.LINKED_ANDROI
  * holder module used as the parent of these source set modules.
  */
 fun Module.isLinkedAndroidModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) != null
+
+/**
+ * Returns the type of Android project this module represents.
+ */
+fun Module.androidProjectType(): AndroidModuleSystem.Type = getModuleSystem().type

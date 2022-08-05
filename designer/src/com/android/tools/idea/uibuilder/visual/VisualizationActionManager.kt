@@ -18,15 +18,22 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.Color
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -69,4 +76,21 @@ class VisualizationActionManager(surface: NlDesignSurface,
       null
     }
   }
+
+  override fun getSceneViewRightBar(sceneView: SceneView): JComponent {
+    return object: JBLabel(ColoredIconGenerator.generateColoredIcon(StudioIcons.Common.WARNING, JBColor.background())) {
+      init {
+        isOpaque = true
+        background = Color.ORANGE
+      }
+
+      override fun isVisible() = sceneView.visualLintWarning() != null
+    }
+  }
+}
+
+fun SceneView.visualLintWarning(): Issue? {
+  val issue = IssuePanelService.getInstance(surface.project).getSelectedIssues()
+    .filterIsInstance<VisualLintHighlightingIssue>().firstOrNull { it.shouldHighlight(sceneManager.model) }
+  return issue as? Issue
 }

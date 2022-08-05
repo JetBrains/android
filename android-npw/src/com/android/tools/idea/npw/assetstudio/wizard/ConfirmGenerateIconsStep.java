@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.orderTemplates;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 
 import com.android.resources.Density;
+import com.android.tools.adtui.common.ProposedFileTreeCellRenderer;
+import com.android.tools.adtui.common.ProposedFileTreeModel;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
@@ -31,22 +33,20 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeModel;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
@@ -55,29 +55,29 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultTreeModel;
+import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
+import org.jetbrains.android.actions.widgets.SourceSetItem;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
-public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIconsModel>
-    implements PersistentStateComponent<PersistentState> {
+public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIconsModel> {
   /** Limit the size of icons in the preview tree so that the tree doesn't look unnatural. */
   private static final int MAX_ICON_HEIGHT = 24;
-
-  private static final String CONFIRMATION_STEP_PROPERTY = "confirmationStep";
-  private static final String RESOURCE_DIRECTORY_PROPERTY = "resourceDirectory";
 
   private final List<NamedModuleTemplate> myTemplates;
   private final ValidatorPanel myValidatorPanel;
   private final ListenerManager myListeners = new ListenerManager();
 
   private JPanel myRootPanel;
-  private JComboBox<NamedModuleTemplate> myPathsComboBox;
+  private JComboBox<SourceSetItem> myPathsComboBox;
   private Tree myOutputPreviewTree;
 
-  private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
+  private ObjectProperty<SourceSetItem> mySelectedSourceSetItem;
+  private final SourceSetItem myInitialSelectedItem;
   private final BoolProperty myFilesAlreadyExist = new BoolValueProperty();
   private ProposedFileTreeModel myProposedFileTreeModel;
 
@@ -86,13 +86,19 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     Preconditions.checkArgument(!templates.isEmpty());
     myTemplates = templates;
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    SourceSetItem[] resDirs = orderTemplates(templates).stream()
+      .flatMap(template -> template.getPaths().getResDirectories().stream()
+        .map(folder -> SourceSetItem.create(template, folder)))
+      .filter(Objects::nonNull)
+      .toArray(SourceSetItem[]::new);
+    myInitialSelectedItem = Arrays.stream(resDirs)
+      .filter(item -> item.getSourceSetName().equals(model.getTemplate().getName()) &&
+                      item.getResDirUrl().equals(model.getResFolder().getAbsolutePath()))
+      .findFirst().orElse(null);
 
-    DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
-    for (NamedModuleTemplate template : templates) {
-      moduleTemplatesModel.addElement(template);
-    }
-    myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
+    DefaultComboBoxModel<SourceSetItem> moduleTemplatesModel = new DefaultComboBoxModel<>(resDirs);
     myPathsComboBox.setModel(moduleTemplatesModel);
+    myPathsComboBox.setRenderer(new SourceSetCellRenderer());
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
     myOutputPreviewTree.setModel(emptyModel);
@@ -114,35 +120,9 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedTemplate = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
-
-    PersistentStateUtil.load(this, getModel().getPersistentState().getChild(CONFIRMATION_STEP_PROPERTY));
-  }
-
-  @Override
-  public void onWizardFinished() {
-    getModel().getPersistentState().setChild(CONFIRMATION_STEP_PROPERTY, getState());
-  }
-
-  @Override
-  @NotNull
-  public PersistentState getState() {
-    PersistentState state = new PersistentState();
-    NamedModuleTemplate moduleTemplate = mySelectedTemplate.get();
-    state.set(RESOURCE_DIRECTORY_PROPERTY, moduleTemplate.getName(), myTemplates.get(0).getName());
-    return state;
-  }
-
-  @Override
-  public void loadState(@NotNull PersistentState state) {
-    String templateName = state.get(RESOURCE_DIRECTORY_PROPERTY);
-    if (templateName != null) {
-      for (NamedModuleTemplate template : myTemplates) {
-        if (template.getName().equals(templateName)) {
-          mySelectedTemplate.set(template);
-          break;
-        }
-      }
+    mySelectedSourceSetItem = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
+    if (myInitialSelectedItem != null) {
+      mySelectedSourceSetItem.set(myInitialSelectedItem);
     }
   }
 
@@ -154,17 +134,24 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
   @Override
   protected void onProceeding() {
-    getModel().setPaths(mySelectedTemplate.get().getPaths());
-    getModel().setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
+    SourceSetItem item = mySelectedSourceSetItem.get();
+    NamedModuleTemplate template = findTemplateByName(item.getSourceSetName());
+    if (template == null) {
+      return;
+    }
+    GenerateIconsModel model = getModel();
+    model.setTemplate(template);
+    model.setResFolder(new File(item.getResDirUrl()));
+    model.setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
   }
 
   @Override
   protected void onEntering() {
-    myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time
-    myListeners.listenAndFire(mySelectedTemplate, template -> {
+    myListeners.release(mySelectedSourceSetItem); // Just in case we're entering this step a second time
+    myListeners.listenAndFire(mySelectedSourceSetItem, sourceSetItem -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDirectory = getResDirectory(template.getPaths());
-      if (iconGenerator == null || resDirectory == null || resDirectory.getParentFile() == null) {
+      File resDirectory = new File(sourceSetItem.getResDirUrl());
+      if (iconGenerator == null || resDirectory.getParentFile() == null) {
         return;
       }
 
@@ -217,5 +204,10 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   @Override
   public void dispose() {
     myListeners.releaseAll();
+  }
+
+  @Nullable
+  private NamedModuleTemplate findTemplateByName(@NotNull String name) {
+    return myTemplates.stream().filter(template -> name.equals(template.getName())).findFirst().orElse(null);
   }
 }

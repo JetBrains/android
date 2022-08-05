@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
-import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service
@@ -29,21 +29,9 @@ import com.intellij.openapi.project.ProjectManager
 @Service
 class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeExperimentalConfiguration.State>(State()) {
   class State: BaseState() {
-    var isAnimationPreviewEnabled by property(true)
     var isPreviewPickerEnabled by property(true)
-    var isBuildOnSaveEnabled by property(true)
+    var isFastPreviewEnabled by property(StudioFlags.COMPOSE_FAST_PREVIEW.get())
   }
-
-  /**
-   * True if animation preview is enabled.
-   */
-  var isAnimationPreviewEnabled
-    get() = state.isAnimationPreviewEnabled
-    set(value) {
-      state.isAnimationPreviewEnabled = value
-      // Force update of the actions to hide/show start animation preview icons
-      ActivityTracker.getInstance().inc()
-    }
 
   /**
    * True if the @Preview picker from the Gutter is enabled.
@@ -56,12 +44,12 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
     }
 
   /**
-   * True if the @Preview build on save is enabled. This settings only applies when Live Edit is enabled.
+   * True if the @Preview Live Edit is enabled.
    */
-  var isBuildOnSaveEnabled
-    get() = state.isBuildOnSaveEnabled
+  var isFastPreviewEnabled
+    get() = state.isFastPreviewEnabled
     set(value) {
-      state.isBuildOnSaveEnabled = value
+      state.isFastPreviewEnabled = value
     }
 
   companion object {

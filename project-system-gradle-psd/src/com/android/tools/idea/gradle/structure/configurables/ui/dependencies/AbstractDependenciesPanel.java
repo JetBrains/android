@@ -201,7 +201,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
                           IconUtil.getAddIcon()) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
-        JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<>(null, getPopupActions()) {
+        JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<AbstractPopupAction>(null, getPopupActions()) {
           @Override
           public Icon getIconFor(AbstractPopupAction action) {
             return action.icon;

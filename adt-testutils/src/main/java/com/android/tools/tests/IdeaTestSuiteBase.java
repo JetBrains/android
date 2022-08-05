@@ -47,10 +47,17 @@ public class IdeaTestSuiteBase {
   private static void setProperties() throws IOException {
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
+    System.setProperty("idea.force.use.core.classloader", "true");
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
     System.setProperty("idea.log.config.file", TestUtils.resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.xml").toString());
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
     System.setProperty("user.home", TMP_DIR);
+
+    // Run in headless mode by default. This property is set by the IntelliJ test framework too,
+    // but we want to set it sooner before any test initializers have run.
+    if (System.getProperty("java.awt.headless") == null) {
+      System.setProperty("java.awt.headless", "true");
+    }
 
     // Set roots for java.util.prefs API.
     System.setProperty("java.util.prefs.userRoot", createTmpDir("userRoot").toString());
@@ -62,6 +69,9 @@ public class IdeaTestSuiteBase {
     // When running tests from the IDE, IntelliJ allows plugin descriptors to be anywhere if a plugin.xml is found in a directory.
     // On bazel we pack each directory in a jar, so we have to tell IJ explicitely that we are still "in directory mode"
     System.setProperty("resolve.descriptors.in.resources", "true");
+
+    // TODO(b/213385827): Fix Kotlin script classpath calculation during tests
+    System.setProperty("kotlin.script.classpath", "");
 
     setRealJdkPathForGradle();
   }

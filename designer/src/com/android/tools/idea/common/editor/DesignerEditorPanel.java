@@ -25,6 +25,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
+import com.android.tools.idea.common.lint.ModelLintIssueAnnotator;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -36,6 +37,8 @@ import com.android.tools.idea.editors.notifications.NotificationPanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider;
@@ -63,7 +66,10 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
@@ -98,12 +104,15 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final DesignerEditor myEditor;
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myFile;
-  @NotNull private final DesignSurface mySurface;
+  @NotNull private final DesignSurface<?> mySurface;
+  @NotNull private final Map<LayoutlibSceneManager, RenderListener> mySceneManagerToRenderListeners = new HashMap<>();
+
+  @NotNull private final ModelLintIssueAnnotator myModelLintIssueAnnotator;
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
   @NotNull private final ModelProvider myModelProvider;
   @NotNull private final MyContentPanel myContentPanel;
-  @NotNull private final WorkBench<DesignSurface> myWorkBench;
-  private JBSplitter mySplitter;
+  @NotNull private final WorkBench<DesignSurface<?>> myWorkBench;
+  private final JBSplitter mySplitter;
   @Nullable private final JPanel myAccessoryPanel;
   @Nullable private JComponent myBottomComponent;
   /**
@@ -116,7 +125,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   /**
    * Which {@link ToolWindowDefinition} should be added to {@link #myWorkBench}.
    */
-  @NotNull private final Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> myToolWindowDefinitions;
+  @NotNull private final Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface<?>>>> myToolWindowDefinitions;
 
   /**
    * Current {@link State} of the panel.
@@ -150,11 +159,12 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
    * @param defaultEditorPanelState default {@link State] to initialize the panel to.
    */
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
-                             @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
+                             @NotNull WorkBench<DesignSurface<?>> workBench,
+                             @NotNull Function<DesignerEditorPanel, DesignSurface<?>> surface,
                              @NotNull Consumer<NlComponent> componentConsumer,
                              @NotNull ModelProvider modelProvider,
-                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
-                             @Nullable BiFunction<? super DesignSurface, ? super NlModel, JComponent> bottomModelComponent,
+                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface<?>>>> toolWindowDefinitions,
+                             @Nullable BiFunction<? super DesignSurface<?>, ? super NlModel, JComponent> bottomModelComponent,
                              @NotNull State defaultEditorPanelState) {
     super(new BorderLayout());
     myEditor = editor;
@@ -165,6 +175,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myContentPanel = new MyContentPanel();
     mySurface = surface.apply(this);
     Disposer.register(this, mySurface);
+    myModelLintIssueAnnotator = new ModelLintIssueAnnotator(mySurface);
     myComponentRegistrar = componentConsumer;
     myModelProvider = modelProvider;
 
@@ -186,7 +197,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     // The rest of the initialization is done once the state of the surface is set to a visible state. This allows to defer the heavy
     // initialization of the model to when the user actually needs it.
 
-    mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
+    mySplitter = new IssuePanelSplitter(file, mySurface, myWorkBench);
     add(mySplitter);
 
     myToolWindowDefinitions = toolWindowDefinitions;
@@ -194,7 +205,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     if (bottomModelComponent != null) {
       mySurface.addListener(new DesignSurfaceListener() {
         @Override
-        public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+        public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
           if (myBottomComponent != null) {
             myContentPanel.remove(myBottomComponent);
           }
@@ -240,9 +251,9 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   }
 
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
-                             @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
+                             @NotNull WorkBench<DesignSurface<?>> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface<?>> surface,
                              @NotNull Consumer<NlComponent> componentRegistrar,
-                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
+                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface<?>>>> toolWindowDefinitions,
                              @NotNull State defaultState) {
     this(editor, project, file, workBench, surface, componentRegistrar,
          ModelProvider.defaultModelProvider, toolWindowDefinitions, null, defaultState);
@@ -256,7 +267,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   }
 
   @NotNull
-  private static JComponent createSurfaceToolbar(@NotNull DesignSurface surface) {
+  private static JComponent createSurfaceToolbar(@NotNull DesignSurface<?> surface) {
     return surface.getActionManager().createToolbar();
   }
 
@@ -368,7 +379,36 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       return;
     }
 
+    mySurface.getModels().stream().map(mySurface::getSceneManager).filter(it -> it instanceof LayoutlibSceneManager)
+      .forEach(it -> {
+        LayoutlibSceneManager manager = (LayoutlibSceneManager)it;
+        RenderListener listener = mySceneManagerToRenderListeners.remove(manager);
+        if (listener != null) {
+          manager.removeRenderListener(listener);
+        }
+      });
     CompletableFuture<Void> modelSetFuture = mySurface.setModel(model);
+    modelSetFuture.whenComplete((result, ex) -> {
+      LayoutlibSceneManager manager = (LayoutlibSceneManager)mySurface.getSceneManager(model);
+      assert manager != null;
+      RenderListener listener = new RenderListener() {
+        @Override
+        public void onRenderCompleted() {
+          annotateRenderInformation();
+        }
+
+        @Override
+        public void onRenderFailed(@NotNull Throwable e) {
+          annotateRenderInformation();
+        }
+
+        private void annotateRenderInformation() {
+          myModelLintIssueAnnotator.annotateRenderInformationToLint(model);
+        }
+      };
+      mySceneManagerToRenderListeners.put(manager, listener);
+      manager.addRenderListener(listener);
+    });
 
     if (myAccessoryPanel != null) {
       boolean verticalSplitter = StudioFlags.NELE_MOTION_HORIZONTAL.get();
@@ -416,7 +456,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   }
 
   @NotNull
-  public DesignSurface getSurface() {
+  public DesignSurface<?> getSurface() {
     return mySurface;
   }
 
@@ -434,10 +474,17 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
+    Set<LayoutlibSceneManager> keys = mySceneManagerToRenderListeners.keySet();
+    for (LayoutlibSceneManager manager : keys) {
+      RenderListener listener = mySceneManagerToRenderListeners.remove(manager);
+      if (listener != null) {
+        manager.removeRenderListener(listener);
+      }
+    }
   }
 
   @NotNull
-  public WorkBench<DesignSurface> getWorkBench() {
+  public WorkBench<DesignSurface<?>> getWorkBench() {
     return myWorkBench;
   }
 
@@ -498,7 +545,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
         return getSurface();
       }
       else if (NlActionManager.LAYOUT_EDITOR.is(dataId)) {
-        DesignSurface surface = getSurface();
+        DesignSurface<?> surface = getSurface();
         if (surface instanceof NlDesignSurface) {
           ScreenViewProvider mode = ((NlDesignSurface)surface).getScreenViewProvider();
           if (mode == NlScreenViewProvider.RENDER ||

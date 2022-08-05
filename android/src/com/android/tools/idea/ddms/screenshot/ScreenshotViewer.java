@@ -20,6 +20,7 @@ import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FIL
 
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.pixelprobe.color.Colors;
+import com.android.utils.HashCodes;
 import com.google.common.base.Preconditions;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -28,11 +29,11 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -54,6 +55,7 @@ import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.datatransfer.DataFlavor;
@@ -70,6 +72,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.Deflater;
@@ -84,7 +87,6 @@ import javax.imageio.stream.ImageOutputStream;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -105,7 +107,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private final @NotNull Project myProject;
   private final @Nullable ScreenshotSupplier myScreenshotSupplier;
   private final @Nullable ScreenshotPostprocessor myScreenshotPostprocessor;
-  private final @NotNull List<? extends @NotNull FramingOption> myFramingOptions;
 
   private final @NotNull VirtualFile myBackingFile;
   private final @NotNull ImageFileEditor myImageFileEditor;
@@ -117,9 +118,48 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private @NotNull JButton myRotateRightButton;
   private @NotNull JButton myRotateLeftButton;
   private @NotNull JPanel myContentPane;
-  private @NotNull JCheckBox myFrameScreenshotCheckBox;
-  private @NotNull JComboBox<String> myFramingOptionsCombo;
+  private @NotNull JComboBox<DecorationOption> myDecorationComboBox;
   private @NotNull JButton myCopyButton;
+
+  private static final class DecorationOption {
+    private static final DecorationOption RECTANGULAR = new DecorationOption("Rectangular");
+    private static final DecorationOption DISPLAY_SHAPE_CLIP = new DecorationOption("Display Shape");
+
+    private final @Nullable String myClipAction;
+    private final @Nullable FramingOption myFramingOption;
+
+    public DecorationOption(@NotNull FramingOption framingOption) {
+      myClipAction = null;
+      myFramingOption = framingOption;
+    }
+
+    private DecorationOption(@NotNull String clipAction) {
+      myClipAction = clipAction;
+      myFramingOption = null;
+    }
+
+    public @Nullable FramingOption getFramingOption() {
+      return myFramingOption;
+    }
+
+    @Override
+    public @NotNull String toString() {
+      return myFramingOption != null ? myFramingOption.getDisplayName() : myClipAction;
+    }
+
+    @Override
+    public int hashCode() {
+      return HashCodes.mix(Objects.hashCode(myClipAction), Objects.hashCode(myFramingOption));
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+      if (obj == null || getClass() != obj.getClass()) return false;
+      DecorationOption other = (DecorationOption)obj;
+      return Objects.equals(myClipAction, other.myClipAction) && Objects.equals(myFramingOption, other.myFramingOption);
+    }
+  }
 
   /**
    * Number of quadrants by which the screenshot from the device has been rotated. One of 0, 1, 2 or 3.
@@ -197,36 +237,42 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myContentPane.setLayout(new BorderLayout());
     myContentPane.add(myImageFileEditor.getComponent(), BorderLayout.CENTER);
 
-    myFramingOptions = framingOptions;
     myPersistentStorage = PersistentState.getInstance(myProject);
 
     if (screenshotPostprocessor == null) {
-      hideComponent(myFrameScreenshotCheckBox);
-      hideComponent(myFramingOptionsCombo);
+      hideComponent(myDecorationComboBox);
     }
     else {
-      myFrameScreenshotCheckBox.setSelected(myPersistentStorage.frameScreenshot);
-
-      ActionListener frameListener = event -> {
-        myPersistentStorage.frameScreenshot = myFrameScreenshotCheckBox.isSelected();
-        updateImageFrame();
-      };
-      myFrameScreenshotCheckBox.addActionListener(frameListener);
-
-      String[] titles = new String[myFramingOptions.size()];
-      for (int i = 0; i < myFramingOptions.size(); i++) {
-        titles[i] = myFramingOptions.get(i).getDisplayName();
+      boolean canClipDeviceMask = true;
+      if (screenshotImage instanceof DeviceScreenshotImage) {
+        // Clipping is only available for round device screenshots.
+        canClipDeviceMask = ((DeviceScreenshotImage)screenshotImage).isRoundScreen();
       }
-      DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(titles);
-      myFramingOptionsCombo.setModel(model);
-      myFramingOptionsCombo.setSelectedIndex(defaultFramingOption); // Select the default framing option.
+      DefaultComboBoxModel<DecorationOption> decorationOptions = new DefaultComboBoxModel<>();
+      decorationOptions.addElement(DecorationOption.RECTANGULAR);
+      if (canClipDeviceMask) {
+        decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
+      }
+      int frameOptionStartIndex = decorationOptions.getSize();
+      for (FramingOption framingOption : framingOptions) {
+        decorationOptions.addElement(new DecorationOption(framingOption));
+      }
+      myDecorationComboBox.setModel(decorationOptions);
 
-      if (framingOptions.size() <= 1) {
-        hideComponent(myFramingOptionsCombo);
+      if (myPersistentStorage.frameScreenshot) {
+        myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
       }
       else {
-        myFramingOptionsCombo.addActionListener(frameListener);
+        // DEVICE_SHAPED or RECTANGULAR (if DEVICE_SHAPED is not available).
+        myDecorationComboBox.setSelectedItem(
+          canClipDeviceMask ? DecorationOption.DISPLAY_SHAPE_CLIP : DecorationOption.RECTANGULAR);
       }
+
+      ActionListener decorationListener = event -> {
+        myPersistentStorage.frameScreenshot = ((DecorationOption)decorationOptions.getSelectedItem()).getFramingOption() != null;
+        updateImageFrame();
+      };
+      myDecorationComboBox.addActionListener(decorationListener);
     }
 
     myRefreshButton.addActionListener(event -> doRefreshScreenshot());
@@ -300,7 +346,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
         ScreenshotImage screenshotImage = getScreenshot();
         mySourceImageRef.set(screenshotImage);
-        processScreenshot(myFrameScreenshotCheckBox.isSelected(), myRotationQuadrants);
+        processScreenshot(myRotationQuadrants);
       }
     }.queue();
   }
@@ -308,19 +354,26 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private void updateImageRotation(int numQuadrants) {
     assert numQuadrants >= 0;
     myRotationQuadrants = (myRotationQuadrants + numQuadrants) % 4;
-    processScreenshot(myFrameScreenshotCheckBox.isSelected(), numQuadrants);
+    processScreenshot(numQuadrants);
   }
 
   private void updateImageFrame() {
-    boolean shouldFrame = myFrameScreenshotCheckBox.isSelected();
-    myFramingOptionsCombo.setEnabled(shouldFrame);
-    processScreenshot(shouldFrame, 0);
+    processScreenshot(0);
   }
 
-  private void processScreenshot(boolean addFrame, int rotateByQuadrants) {
-    FramingOption framingOption = addFrame ? myFramingOptions.get(myFramingOptionsCombo.getSelectedIndex()) : null;
+  private void processScreenshot(int rotateByQuadrants) {
+    FramingOption framingOption = null;
+    Color backgroundColor = null;
+    if (myScreenshotPostprocessor != null) {
+      framingOption = ((DecorationOption)myDecorationComboBox.getSelectedItem()).getFramingOption();
+      if (myDecorationComboBox.getSelectedItem().equals(DecorationOption.RECTANGULAR)) {
+        backgroundColor = Color.BLACK;
+      }
+    }
 
-    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants, myScreenshotPostprocessor, framingOption, myBackingFile) {
+    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants,
+                           myScreenshotPostprocessor, framingOption,
+                           myBackingFile, backgroundColor) {
       @Override
       public void onSuccess() {
         mySourceImageRef.set(getRotatedImage());
@@ -336,6 +389,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     private final @Nullable ScreenshotPostprocessor myScreenshotPostprocessor;
     private final @Nullable FramingOption myFramingOption;
     private final @Nullable VirtualFile myDestinationFile;
+    private final @Nullable Color myBackgroundColor;
 
     private ScreenshotImage myRotatedImage;
     private BufferedImage myProcessedImage;
@@ -345,7 +399,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                               int rotateByQuadrants,
                               @Nullable ScreenshotPostprocessor screenshotPostprocessor,
                               @Nullable FramingOption framingOption,
-                              @Nullable VirtualFile writeToFile) {
+                              @Nullable VirtualFile writeToFile,
+                              @Nullable Color backgroundColor) {
       super(project, AndroidBundle.message("android.ddms.screenshot.image.processor.task.title"), false);
 
       mySrcImage = srcImage;
@@ -353,6 +408,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       myScreenshotPostprocessor = screenshotPostprocessor;
       myFramingOption = framingOption;
       myDestinationFile = writeToFile;
+      myBackgroundColor = backgroundColor;
     }
 
     @Override
@@ -363,7 +419,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         myProcessedImage = myRotatedImage.getImage();
       }
       else {
-        myProcessedImage = myScreenshotPostprocessor.addFrame(myRotatedImage, myFramingOption);
+        myProcessedImage = myScreenshotPostprocessor.addFrame(myRotatedImage, myFramingOption, myBackgroundColor);
       }
 
       // Update the backing file, this is necessary for operations that read the backing file from the editor,
@@ -403,7 +459,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     assert providers.size() > 0;
 
     // Note: In case there are multiple providers for image files, we'd prefer to get the bundled
-    // image editor, but we don't have access to any of its implementation details so we rely
+    // image editor, but we don't have access to any of its implementation details, so we rely
     // on the editor type id being "images" as defined by ImageFileEditorProvider#EDITOR_TYPE_ID.
     for (FileEditorProvider p : providers) {
       if (p.getEditorTypeId().equals("images")) {

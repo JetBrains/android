@@ -53,7 +53,7 @@ public class ModuleDownloadConditions {
     myDeviceFeaturesContainer.setName("ModuleDownloadConditions.myDeviceFeaturesContainer");
 
     // Handle the "+ device-feature" button
-    myAddDeviceFeatureLinkLabel.setListener(new LinkListener<>() {
+    myAddDeviceFeatureLinkLabel.setListener(new LinkListener<Void>() {
       @Override
       public void linkSelected(LinkLabel<Void> aSource, Void aLinkData) {
         addDeviceFeatureRow();

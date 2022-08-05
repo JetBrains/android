@@ -200,7 +200,7 @@ public class MTagImp implements MTag, MTag.TagWriter {
     }
     ret += "\n" + space + "<" + name;
     Attribute[] attr = mAttrList.values().toArray(new Attribute[0]);
-    Arrays.sort(attr, new Comparator<>() {
+    Arrays.sort(attr, new Comparator<Attribute>() {
       @Override
       public int compare(Attribute o1, Attribute o2) {
         return o1.mAttribute.compareTo(o2.mAttribute);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.resource
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
@@ -56,6 +57,9 @@ class ResourceLookup(private val project: Project) {
   var resolver: ResourceLookupResolver? = null
     private set
 
+  val hasResolver: Boolean
+    get() = resolver != null
+
   /**
    * The dpi of the device we are currently inspecting or -1 if unknown.
    */
@@ -67,8 +71,9 @@ class ResourceLookup(private val project: Project) {
   var fontScale: Float = DEFAULT_FONT_SCALE
 
   /**
-   * Update the configuration after a possible configuration change detected on the device.
+   * Updates the configuration after a possible configuration change detected on the device.
    */
+  @Slow
   fun updateConfiguration(
     folderConfig: FolderConfiguration,
     fontScaleFromConfig: Float,
@@ -81,6 +86,7 @@ class ResourceLookup(private val project: Project) {
     resolver = createResolver(folderConfig, appContext, stringTable, process)
   }
 
+  @Slow
   private fun createResolver(
     folderConfig: FolderConfiguration,
     appContext: AppContext,
@@ -139,6 +145,7 @@ class ResourceLookup(private val project: Project) {
   /**
    * Find the source navigatable of a composable function.
    */
+  @Slow
   fun findComposableNavigatable(composable: ComposeViewNode): Navigatable? =
     composeResolver.findComposableNavigatable(composable)
 
@@ -165,6 +172,7 @@ class ResourceLookup(private val project: Project) {
   /**
    * Is this attribute a dimension according to the resource manager.
    */
+  @Slow
   fun isDimension(view: ViewNode, attributeName: String): Boolean =
     ReadAction.compute<Boolean, Nothing> { resolver?.isDimension(view, attributeName) ?: false }
 }

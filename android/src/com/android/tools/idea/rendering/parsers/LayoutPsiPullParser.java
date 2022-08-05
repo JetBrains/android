@@ -963,9 +963,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
       // the databinding code does in the layouts.
       // For all the children of the root tag, it adds a tag that identifies. The tag is "layout/layout_name_<number>"
       final String layoutRootName = tag.getContainingFile().getVirtualFile().getNameWithoutExtension();
-      tagDecorator = tagDecorator.andThen(new Consumer<>() {
+      tagDecorator = tagDecorator.andThen(new Consumer<TagSnapshot>() {
         int counter = 0;
-
         @Override
         public void accept(TagSnapshot snapshot) {
           if (snapshot.tag == null) {

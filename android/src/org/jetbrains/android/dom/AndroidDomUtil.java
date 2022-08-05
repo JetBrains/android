@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.AndroidXConstants.COORDINATOR_LAYOUT;
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_AFTER;
 import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE;
@@ -70,9 +72,7 @@ import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.ATTR_THEME;
 import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
-import static com.android.SdkConstants.COORDINATOR_LAYOUT;
 import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
-import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VIEW_FRAGMENT;

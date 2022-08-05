@@ -36,14 +36,14 @@ import org.xml.sax.helpers.DefaultHandler
 import java.io.File
 import javax.xml.parsers.SAXParserFactory
 
-private val log: Logger get() = logger<RecipeUtils>()
+private val log: Logger
+  get() = logger<RecipeUtils>()
 
-/**
- * A collection of utility methods for interacting with an `Recipe`.
- */
+/** A collection of utility methods for interacting with an `Recipe`. */
 object RecipeUtils {
   // TODO(qumeric): remove this cache. It is not needed anymore, everything is fast without it.
-  private val recipeMetadataCache: MutableMap<Pair<Recipe, Project>, List<RecipeMetadata>> = hashMapOf()
+  private val recipeMetadataCache: MutableMap<Pair<Recipe, Project>, List<RecipeMetadata>> =
+    hashMapOf()
 
   private fun getRecipeMetadata(recipe: Recipe, module: Module): RecipeMetadata {
     val key = Pair(recipe, module.project)
@@ -60,16 +60,17 @@ object RecipeUtils {
     val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
     rootPath.deleteOnExit()
 
-    val context = RenderingContext(
-      project = module.project,
-      module = module,
-      commandName = "Unnamed",
-      templateData = getExistingModuleTemplateDataBuilder(module).build(),
-      outputRoot = rootPath,
-      moduleRoot = moduleRoot,
-      dryRun = false,
-      showErrors = true
-    )
+    val context =
+      RenderingContext(
+        project = module.project,
+        module = module,
+        commandName = "Unnamed",
+        templateData = getExistingModuleTemplateDataBuilder(module).build(),
+        outputRoot = rootPath,
+        moduleRoot = moduleRoot,
+        dryRun = false,
+        showErrors = true
+      )
 
     // TODO(b/149085696): create logging events for Firebase?
     recipe.findReferences(context)
@@ -80,7 +81,9 @@ object RecipeUtils {
       // FIXME(qumeric): sourceFiles.filter { it.name == SdkConstants.FN_ANDROID_MANIFEST_XML }
 
       // Ignore test configurations here.
-      dependencies[SdkConstants.GRADLE_COMPILE_CONFIGURATION].forEach { metadata.dependencies.add(it!!) }
+      dependencies[SdkConstants.GRADLE_COMPILE_CONFIGURATION].forEach {
+        metadata.dependencies.add(it!!)
+      }
       classpathEntries.forEach { metadata.classpathEntries.add(it) }
       manifests.forEach { parseManifestForPermissions(it, metadata) }
       plugins.forEach { metadata.plugins.add(it) }
@@ -107,16 +110,17 @@ object RecipeUtils {
     val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module)!!
     val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
 
-    val context = RenderingContext(
-      project = module.project,
-      module = module,
-      commandName = "Unnamed",
-      templateData = getExistingModuleTemplateDataBuilder(module).build(),
-      outputRoot = rootPath,
-      moduleRoot = moduleRoot,
-      dryRun = false,
-      showErrors = true
-    )
+    val context =
+      RenderingContext(
+        project = module.project,
+        module = module,
+        commandName = "Unnamed",
+        templateData = getExistingModuleTemplateDataBuilder(module).build(),
+        outputRoot = rootPath,
+        moduleRoot = moduleRoot,
+        dryRun = false,
+        showErrors = true
+      )
 
     writeCommandAction(module.project).withName("Executing recipe instructions").run<Exception> {
       // TODO(b/149085696): create logging events for Firebase?
@@ -126,24 +130,38 @@ object RecipeUtils {
     openEditors(module.project, context.filesToOpen, true)
   }
 
-  private fun parseManifestForPermissions(f: File, metadata: RecipeMetadata) = try {
-    val factory = SAXParserFactory.newDefaultInstance()
-    val saxParser = factory.newSAXParser()
-    saxParser.parse(f, object : DefaultHandler() {
-      override fun startElement(uri: String, localName: String, tagName: String, attributes: Attributes) {
-        if (tagName == SdkConstants.TAG_USES_PERMISSION || tagName == SdkConstants.TAG_USES_PERMISSION_SDK_23 || tagName == SdkConstants.TAG_USES_PERMISSION_SDK_M) {
-          // Most permissions are "android.permission.XXX", so for readability, just remove the prefix if present
-          val permission = attributes.getValue(SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_NAME)
-            .replace(SdkConstants.ANDROID_PKG_PREFIX + SdkConstants.ATTR_PERMISSION + ".", "")
-          metadata.permissions.add(permission)
+  private fun parseManifestForPermissions(f: File, metadata: RecipeMetadata) =
+    try {
+      val factory = SAXParserFactory.newDefaultInstance()
+      val saxParser = factory.newSAXParser()
+      saxParser.parse(
+        f,
+        object : DefaultHandler() {
+          override fun startElement(
+            uri: String,
+            localName: String,
+            tagName: String,
+            attributes: Attributes
+          ) {
+            if (tagName == SdkConstants.TAG_USES_PERMISSION ||
+                tagName == SdkConstants.TAG_USES_PERMISSION_SDK_23 ||
+                tagName == SdkConstants.TAG_USES_PERMISSION_SDK_M
+            ) {
+              // Most permissions are "android.permission.XXX", so for readability, just remove the
+              // prefix if present
+              val permission =
+                attributes
+                  .getValue(SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_NAME)
+                  .replace(SdkConstants.ANDROID_PKG_PREFIX + SdkConstants.ATTR_PERMISSION + ".", "")
+              metadata.permissions.add(permission)
+            }
+          }
         }
-      }
-    })
-  }
-  catch (e: Exception) {
-    // This method shouldn't crash the user for any reason, as showing permissions is just informational,
-    // but log a warning so developers can see if they make a mistake when creating their service.
-    log.warn("Failed to read permissions from AndroidManifest.xml", e)
-  }
+      )
+    } catch (e: Exception) {
+      // This method shouldn't crash the user for any reason, as showing permissions is just
+      // informational,
+      // but log a warning so developers can see if they make a mistake when creating their service.
+      log.warn("Failed to read permissions from AndroidManifest.xml", e)
+    }
 }
-

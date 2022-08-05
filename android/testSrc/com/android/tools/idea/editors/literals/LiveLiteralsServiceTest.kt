@@ -1,11 +1,15 @@
 package com.android.tools.idea.editors.literals
 
 import com.android.flags.junit.SetFlagRule
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
@@ -13,10 +17,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.ui.UIUtil
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -27,9 +33,7 @@ internal class LiveLiteralsServiceTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, false)
-  @get:Rule
-  val liveLiteralsFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS, true)
+  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
 
   private val project: Project
     get() = projectRule.project
@@ -37,11 +41,13 @@ internal class LiveLiteralsServiceTest {
   lateinit var file2: PsiFile
 
   private fun getTestLiveLiteralsService(): LiveLiteralsService =
-    LiveLiteralsService.getInstance(project)
+    LiveLiteralsService(project).also {
+      Disposer.register(projectRule.testRootDisposable, it)
+    }
 
   @Before
   fun setup() {
-    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = true
+    LiveEditApplicationConfiguration.getInstance().mode = LIVE_LITERALS
     file1 = projectRule.fixture.addFileToProject("src/main/java/com/literals/test/Test.kt", """
       package com.literals.test
 
@@ -73,6 +79,11 @@ internal class LiveLiteralsServiceTest {
         val a = 3.0
       }
     """.trimIndent())
+  }
+
+  @After
+  fun tearDown() {
+    LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 
   /**
@@ -204,14 +215,14 @@ internal class LiveLiteralsServiceTest {
       projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
     }
 
-    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = false
+    LiveEditApplicationConfiguration.getInstance().mode = DISABLED
     assertFalse(liveLiteralsService.isAvailable)
     assertEquals(0, changeListenerCalls)
     projectRule.fixture.editor.executeAndSave {
       replaceText("999", "555")
     }
 
-    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = true
+    LiveEditApplicationConfiguration.getInstance().mode = LIVE_LITERALS
     projectRule.fixture.editor.executeAndSave {
       replaceText("555", "333")
     }
@@ -230,5 +241,19 @@ internal class LiveLiteralsServiceTest {
     assertTrue(liveLiteralsService.isAvailable)
     val psiElementWithoutContainingFile = runReadAction { file1.containingDirectory }
     liveLiteralsService.isElementManaged(psiElementWithoutContainingFile)
+  }
+
+  @Test
+  fun `check highlight trackers are disposed if the editor is closed`() {
+    projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+    val liveLiteralsService = getTestLiveLiteralsService()
+    runAndWaitForDocumentAdded(liveLiteralsService) {
+      liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
+    assertTrue(liveLiteralsService.isAvailable)
+    invokeAndWaitIfNeeded {
+      FileEditorManager.getInstance(project).closeFile(file1.virtualFile)
+    }
+    assertEquals(0, liveLiteralsService.allTrackers())
   }
 }

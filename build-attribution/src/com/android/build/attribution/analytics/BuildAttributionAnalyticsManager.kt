@@ -22,6 +22,7 @@ import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTe
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOff
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierNotUsed
@@ -31,6 +32,7 @@ import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
+import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginData
@@ -48,6 +50,7 @@ import com.google.wireless.android.sdk.stats.BuildAttributionAnalyzersData
 import com.google.wireless.android.sdk.stats.BuildAttributionPerformanceStats
 import com.google.wireless.android.sdk.stats.BuildAttributionPluginIdentifier
 import com.google.wireless.android.sdk.stats.BuildAttributionStats
+import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData
 import com.google.wireless.android.sdk.stats.ConfigurationCacheCompatibilityData
 import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
 import com.google.wireless.android.sdk.stats.JetifierUsageData
@@ -68,15 +71,14 @@ class BuildAttributionAnalyticsManager(
 
   private val attributionStatsBuilder = BuildAttributionStats.newBuilder().setBuildAttributionReportSessionId(buildSessionId)
 
-  fun <T> logBuildAttributionPerformanceStats(toolingApiLatencyMs: Long, postBuildAnalysis: () -> T): T {
+  fun runLoggingPerformanceStats(toolingApiLatencyMs: Long, postBuildAnalysis: () -> Unit) {
     val watch = Stopwatch.createStarted()
-    return postBuildAnalysis().also {
-      attributionStatsBuilder.setBuildAttributionPerformanceStats(
-        BuildAttributionPerformanceStats.newBuilder()
-          .setPostBuildAnalysisDurationMs(watch.stop().elapsed(TimeUnit.MILLISECONDS))
-          .setToolingApiBuildFinishedEventLatencyMs(toolingApiLatencyMs)
-      )
-    }
+    postBuildAnalysis()
+    attributionStatsBuilder.setBuildAttributionPerformanceStats(
+      BuildAttributionPerformanceStats.newBuilder()
+        .setPostBuildAnalysisDurationMs(watch.stop().elapsed(TimeUnit.MILLISECONDS))
+        .setToolingApiBuildFinishedEventLatencyMs(toolingApiLatencyMs)
+    )
   }
 
   fun logAnalyzersData(analysisResult: BuildEventsAnalysisResult) {
@@ -101,6 +103,11 @@ class BuildAttributionAnalyticsManager(
     analyzersDataBuilder.configurationCacheCompatibilityData =
       transformConfigurationCacheCompatibilityData(analysisResult.getConfigurationCachingCompatibility())
     analyzersDataBuilder.jetifierUsageData = transformJetifierUsageData(analysisResult.getJetifierUsageResult())
+    analysisResult.getDownloadsAnalyzerResult().let {
+      if (it is DownloadsAnalyzer.ActiveResult) {
+        analyzersDataBuilder.downloadsAnalysisData = transformDownloadsAnalyzerData(it)
+      }
+    }
     attributionStatsBuilder.setBuildAttributionAnalyzersData(analyzersDataBuilder)
   }
 
@@ -180,8 +187,6 @@ class BuildAttributionAnalyticsManager(
 
   private fun transformAlwaysRunTaskReason(reason: AlwaysRunTaskData.Reason) =
     when (reason) {
-      AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS ->
-        AlwaysRunTasksAnalyzerData.AlwaysRunTask.AlwaysRunReason.NO_OUTPUTS_WITHOUT_ACTIONS
       AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS ->
         AlwaysRunTasksAnalyzerData.AlwaysRunTask.AlwaysRunReason.NO_OUTPUTS_WITH_ACTIONS
       AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE ->
@@ -255,7 +260,6 @@ class BuildAttributionAnalyticsManager(
     }
       .build()
 
-
   private fun transformJetifierUsageData(jetifierUsageResult: JetifierUsageAnalyzerResult) =
     JetifierUsageData.newBuilder().apply {
       checkJetifierTaskBuild = jetifierUsageResult.checkJetifierBuild
@@ -272,5 +276,39 @@ class BuildAttributionAnalyticsManager(
       }
     }
       .build()
+
+  private fun transformDownloadsAnalyzerData(downloadsAnalyzerResult: DownloadsAnalyzer.ActiveResult): BuildDownloadsAnalysisData =
+    BuildDownloadsAnalysisData.newBuilder().apply {
+      addAllRepositories(downloadsAnalyzerResult.repositoryResults.map { repoResult ->
+        BuildDownloadsAnalysisData.RepositoryStats.newBuilder().apply {
+          repositoryType = repoResult.repository.analyticsType
+          successRequestsCount = repoResult.successRequestsCount
+          successRequestsTotalTimeMs = repoResult.successRequestsTimeMs
+          successRequestsTotalBytesDownloaded = repoResult.successRequestsBytesDownloaded
+          failedRequestsCount = repoResult.failedRequestsCount
+          failedRequestsTotalTimeMs = repoResult.failedRequestsTimeMs
+          failedRequestsTotalBytesDownloaded = repoResult.failedRequestsBytesDownloaded
+          missedRequestsCount = repoResult.missedRequestsCount
+          missedRequestsTotalTimeMs = repoResult.missedRequestsTimeMs
+        }
+          .build()
+      })
+    }
+      .build()
+
+  fun logBuildSuccess(buildInvocationType: BuildInvocationType) {
+    attributionStatsBuilder.buildType = buildInvocationType.metricsType
+    attributionStatsBuilder.buildAnalysisStatus = BuildAttributionStats.BuildAnalysisStatus.SUCCESS
+  }
+
+  fun logBuildFailure(buildInvocationType: BuildInvocationType) {
+    attributionStatsBuilder.buildType = buildInvocationType.metricsType
+    attributionStatsBuilder.buildAnalysisStatus = BuildAttributionStats.BuildAnalysisStatus.BUILD_FAILURE
+  }
+
+  fun logAnalysisFailure(buildInvocationType: BuildInvocationType) {
+    attributionStatsBuilder.buildType = buildInvocationType.metricsType
+    attributionStatsBuilder.buildAnalysisStatus = BuildAttributionStats.BuildAnalysisStatus.ANALYSIS_FAILURE
+  }
 
 }

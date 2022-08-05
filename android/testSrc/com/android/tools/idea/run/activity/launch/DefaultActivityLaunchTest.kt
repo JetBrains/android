@@ -17,12 +17,9 @@ package com.android.tools.idea.run.activity.launch
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
-import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.execution.createApp
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers
@@ -34,18 +31,14 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
   fun testLaunch() {
     val state = DefaultActivityLaunch.State()
     val device = Mockito.mock(IDevice::class.java)
-    val config = Mockito.spy(
-      AndroidRunConfigurationType.getInstance().factory.createTemplateConfiguration(project) as AndroidRunConfiguration)
 
     /**
      * apkWithDefaultActivity.apk contains simple project with basic activity `com.example.myapplication.MainActivity`.
      */
     val apk = "${myFixture.testDataPath}/configurations/activity/apkWithDefaultActivity.apk"
 
-    Mockito.doReturn(TestApksProvider(apk, "com.example.myapplication")).`when`(config).apkProvider
-
     val app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
-    state.launch(device, app, config, false, "", EmptyTestConsoleView())
+    state.launch(device, app, TestApksProvider(apk, "com.example.myapplication"), false, "", EmptyTestConsoleView())
     Mockito.verify(device).executeShellCommand(
       ArgumentMatchers.eq(
         "am start -n com.example.myapplication/com.example.myapplication.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
@@ -58,10 +51,6 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
     @Throws(ApkProvisionException::class)
     override fun getApks(device: IDevice): Collection<ApkInfo> {
       return listOf(ApkInfo(File(apkFile), appId))
-    }
-
-    override fun validate(): List<ValidationError> {
-      return ArrayList()
     }
   }
 }

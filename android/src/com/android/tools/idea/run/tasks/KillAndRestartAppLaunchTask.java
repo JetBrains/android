@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.ApplicationTerminator;
 import com.android.tools.idea.run.ui.DeployAction;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
@@ -85,8 +86,13 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
 
     // Ensure the app is killed (otherwise launch won't work).
     ApplicationTerminator appTerminator = new ApplicationTerminator(device, myPackageName);
-    if (!appTerminator.killApp(launchContext.getLaunchStatus())) {
-      return LaunchResult.error("", "trying to terminate app prior to restarting.");
+    try {
+      if (!appTerminator.killApp(launchContext.getLaunchStatus())) {
+        return LaunchResult.error("", "trying to terminate app prior to restarting.");
+      }
+    }
+    catch (ExecutionException e) {
+      return LaunchResult.error("", e.getMessage());
     }
     if (device.isOnline() && handler instanceof AndroidProcessHandler) {
       // Add the device back to the existing process handler.
@@ -94,10 +100,10 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
     }
     else {
       LaunchResult result = new LaunchResult();
-      result.setSuccess(false);
+      result.setResult(LaunchResult.Result.ERROR);
       result.setErrorId("");
-      result.setError("Swap failed, need to rerun.");
-      result.setConsoleError("Swap failed, need to rerun.");
+      result.setMessage("Swap failed, need to rerun.");
+      result.setConsoleMessage("Swap failed, need to rerun.");
       result.addOnFinishedCallback(() -> {
         ActionManager manager = ActionManager.getInstance();
         String id;

@@ -24,7 +24,7 @@ class FakeLegacyAllocationTracker() : LegacyAllocationTracker {
    * Auxiliary static test data used for verifying legacy allocation tracking workflow
    */
   companion object {
-    val RAW_DATA = byteArrayOf('a'.toByte())
+    val RAW_DATA = byteArrayOf('a'.code.toByte())
   }
 
   val parsingWaitLatch = CountDownLatch(1)

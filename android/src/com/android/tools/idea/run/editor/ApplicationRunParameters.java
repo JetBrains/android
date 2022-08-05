@@ -72,6 +72,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private JBCheckBox myInstantAppDeployCheckBox;
   private JBCheckBox myAllUsersCheckbox;
   private JBCheckBox myAlwaysInstallWithPmCheckbox;
+  private JBCheckBox myClearAppStorageCheckbox;
 
 
   private final Project myProject;
@@ -222,6 +223,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myPmOptionsLabeledComponent.getComponent().setText(configuration.PM_INSTALL_OPTIONS);
     myAllUsersCheckbox.setSelected(configuration.ALL_USERS);
     myAlwaysInstallWithPmCheckbox.setSelected(configuration.ALWAYS_INSTALL_WITH_PM);
+    myClearAppStorageCheckbox.setSelected(configuration.CLEAR_APP_STORAGE);
 
     for (ActivityLaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       ActivityLaunchOptionState state = configuration.getLaunchOptionState(option.getId());
@@ -266,6 +268,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     configuration.PM_INSTALL_OPTIONS = StringUtil.notNullize(myPmOptionsLabeledComponent.getComponent().getText());
     configuration.ALL_USERS = myAllUsersCheckbox.isSelected();
     configuration.ALWAYS_INSTALL_WITH_PM = myAlwaysInstallWithPmCheckbox.isSelected();
+    configuration.CLEAR_APP_STORAGE = myClearAppStorageCheckbox.isSelected();
 
     for (ActivityLaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       ActivityLaunchOptionState state = configuration.getLaunchOptionState(option.getId());
@@ -276,6 +279,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     ActivityLaunchOption activityLaunchOption = (ActivityLaunchOption)myLaunchOptionCombo.getSelectedItem();
     configuration.MODE = activityLaunchOption.getId();
     configuration.ACTIVITY_EXTRA_FLAGS = StringUtil.notNullize(myAmOptionsLabeledComponent.getComponent().getText());
+    configuration.getLaunchOptionState(configuration.MODE).setAmFlags(configuration.ACTIVITY_EXTRA_FLAGS);
     configuration.setDisabledDynamicFeatures(myDynamicFeaturesParameters.getDisabledDynamicFeatures());
   }
 

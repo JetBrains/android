@@ -33,16 +33,12 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.res.getFolderType
-import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild.Companion.getInstance
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler.updateVisualLintIssues
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -50,13 +46,7 @@ import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.ConfigurationSetProvider.getConfigurationSets
 import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
-import com.android.tools.idea.uibuilder.visual.visuallint.ToggleOnlyShowLayoutWithIssuesAction
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsManager
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzeAfterModelUpdate
-import com.android.tools.idea.util.listenUntilNextSync
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.intellij.CommonBundle
@@ -76,9 +66,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.update.MergingUpdateQueue
+import com.intellij.util.ui.update.Update
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
@@ -99,11 +92,10 @@ import javax.swing.JPanel
  * Form of layout visualization which offers multiple previews for different devices in the same time. It provides a
  * convenient way to user to preview the layout in different devices.
  */
-class VisualizationForm(project: Project, parentDisposable: Disposable) : VisualizationContent, ConfigurationSetListener,
-                                                                          ResourceChangeListener, PanZoomListener {
-  private val myProject: Project
+class VisualizationForm(private val project: Project, parentDisposable: Disposable, private val initializer: ContentInitializer)
+  : VisualizationContent, ConfigurationSetListener, ResourceChangeListener, PanZoomListener {
   val surface: NlDesignSurface
-  private val myWorkBench: WorkBench<DesignSurface>
+  private val myWorkBench: WorkBench<DesignSurface<*>>
   private val myRoot = JPanel(BorderLayout())
   private var myFile: VirtualFile? = null
   private val myResourceNotifyingFilesLock = ReentrantLock()
@@ -134,17 +126,15 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     VERTICAL_SCREEN_DELTA,
     false
   )
+  private val myUpdateQueue: MergingUpdateQueue
 
   /**
    * [CompletableFuture] of the next model load. This is kept so the load can be cancelled.
    */
   private var myCancelPendingModelLoad = AtomicBoolean(false)
   private val myProgressIndicator = EmptyProgressIndicator()
-  private val myBaseConfigIssues = VisualLintBaseConfigIssues()
-  private val myLintIssueProvider = VisualLintIssueProvider()
   private val analyticsManager: NlAnalyticsManager
     get() = surface.analyticsManager
-  private val myVisualLintAnalyticsManager: VisualLintAnalyticsManager
   var editor: FileEditor?
     get() = myEditor
     private set(editor) {
@@ -156,17 +146,17 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     }
   val component: JComponent = myRoot
 
+  private val visualLintHandler: VisualizationFormVisualLintHandler
+
   init {
     Disposer.register(parentDisposable, this)
-    myProject = project
     myCurrentConfigurationSet = VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet
     myCurrentModelsProvider = myCurrentConfigurationSet.createModelsProvider(this)
     val surfaceLayoutManager = myGridSurfaceLayoutManager
     val config = if (StudioFlags.NELE_VISUAL_LINT.get() && StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) LayoutScannerEnabled() else DISABLED
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
-    surface = NlDesignSurface.builder(myProject, this@VisualizationForm)
-      .showModelNames()
+    surface = NlDesignSurface.builder(project, this@VisualizationForm)
       .setIsPreview(false)
       .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
         val sceneManager = LayoutlibSceneManager(model, surface, config)
@@ -182,26 +172,26 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
         }
         sceneManager
       }
-      .setActionManagerProvider { surface: DesignSurface ->
+      .setActionManagerProvider { surface: DesignSurface<*> ->
         VisualizationActionManager((surface as NlDesignSurface?)!!) { myCurrentModelsProvider }
       }
-      .setInteractionHandlerProvider { surface: DesignSurface ->
+      .setInteractionHandlerProvider { surface: DesignSurface<*> ->
         VisualizationInteractionHandler(surface) { myCurrentModelsProvider }
       }
       .setLayoutManager(surfaceLayoutManager)
-      .setMinScale(0.10)
+      .setMinScale(0.01)
       .setMaxScale(4.0)
       .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
       .build()
     surface.setSceneViewAlignment(DesignSurface.SceneViewAlignment.LEFT)
     surface.addPanZoomListener(this)
     updateScreenMode()
-    surface.name = VISUALIZATION_DESIGN_SURFACE
-    myWorkBench = WorkBench(myProject, "Visualization", null, this)
+    surface.name = VISUALIZATION_DESIGN_SURFACE_NAME
+    myWorkBench = WorkBench(project, "Visualization", null, this)
     myWorkBench.setLoadingText(CommonBundle.getLoadingTreeNodeText())
     myWorkBench.setToolContext(surface)
     val mainComponent: JComponent = if (StudioFlags.NELE_VISUAL_LINT.get()) {
-      IssuePanelSplitter(surface, myWorkBench)
+      IssuePanelSplitter(null, surface, myWorkBench)
     }
     else {
       myWorkBench
@@ -212,25 +202,27 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     myRoot.add(mainComponent, BorderLayout.CENTER)
     myRoot.isFocusCycleRoot = true
     myRoot.focusTraversalPolicy = VisualizationTraversalPolicy(surface)
-    myVisualLintAnalyticsManager = VisualLintAnalyticsManager(surface)
     surface.issuePanel.addEventListener(object : IssuePanel.EventListener {
       override fun onPanelExpanded(isExpanded: Boolean) {}
 
       override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) {
         if (isExpanded && issue != null) {
-          myVisualLintAnalyticsManager.trackIssueExpanded(issue)
+          val facet = surface.models.first().facet
+          VisualLintUsageTracker.getInstance().trackIssueExpanded(issue, facet)
         }
       }
 
     })
+    myUpdateQueue = MergingUpdateQueue("visualization.form.update", NlModel.DELAY_AFTER_TYPING_MS, true,
+                                       null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
+    myUpdateQueue.setRestartTimerOnAdd(true)
+
+    visualLintHandler = VisualizationFormVisualLintHandler(project, surface.issueModel)
   }
 
   private fun createToolbarPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    panel.border = BorderFactory.createCompoundBorder(
-      BorderFactory.createMatteBorder(0, 0, 1, 0, border),
-      BorderFactory.createEmptyBorder(0, 6, 0, 0)
-    )
+    panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, border)
     updateActionToolbar(panel)
     return panel
   }
@@ -245,7 +237,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     group.addSeparator()
     group.add(DefaultActionGroup(ConfigurationSetMenuAction(this, myCurrentConfigurationSet)))
     if (virtualFile != null) {
-      PsiManager.getInstance(myProject).findFile(virtualFile)?.let { psiFile ->
+      PsiManager.getInstance(project).findFile(virtualFile)?.let { psiFile ->
         AndroidFacet.getInstance(psiFile)?.let { facet ->
           group.addAll(myCurrentModelsProvider.createActions(psiFile, facet))
         }
@@ -274,10 +266,11 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     val actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true)
     actionToolbar.setTargetComponent(surface)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
-    toolbarPanel.add(actionToolbar.component, BorderLayout.CENTER)
+    val toolbarComponent = actionToolbar.component
+    toolbarComponent.border = BorderFactory.createEmptyBorder(0, 6, 0, 0)
+    toolbarPanel.add(toolbarComponent, BorderLayout.CENTER)
     if (StudioFlags.NELE_VISUAL_LINT.get()) {
       val lintGroup = DefaultActionGroup()
-      lintGroup.add(ToggleOnlyShowLayoutWithIssuesAction(surface))
       lintGroup.add(IssuePanelToggleAction(surface))
       val lintToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true)
       lintToolbar.setTargetComponent(surface)
@@ -303,7 +296,8 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     try {
       registeredFiles = HashSet(myResourceNotifyingFiles)
       myResourceNotifyingFiles.clear()
-    } finally {
+    }
+    finally {
       myResourceNotifyingFilesLock.unlock()
     }
     for (file in registeredFiles) {
@@ -313,7 +307,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
   }
 
   private fun removeAndDisposeModels(models: List<NlModel>) {
-    myLintIssueProvider.clear()
+    visualLintHandler.clearIssueProvider()
     for (model in models) {
       surface.removeModel(model)
       Disposer.dispose(model)
@@ -334,45 +328,20 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     myFile = editor.file
     myCancelPendingModelLoad.set(true)
     if (isActive) {
-      initPreviewForm()
+      if (myContentPanel == null) {
+        initializer.initContent(project, this) { initModel() }
+      }
+      else {
+        initModel()
+      }
     }
     return true
   }
 
-  private fun initPreviewForm() {
-    if (myContentPanel == null) {
-      // First time: Make sure we have compiled the project at least once...
-      getInstance(myProject).runWhenResourceCacheClean({ initPreviewFormAfterInitialBuild() }) { buildError() }
-    }
-    else {
-      // Subsequent times: Setups a Nele model in preparation for creating a preview image
-      initNeleModel()
-    }
-  }
-
-  private fun initPreviewFormAfterInitialBuild() {
-    myWorkBench.setLoadingText("Waiting for build to finish...")
-    myProject.runWhenSmartAndSyncedOnEdt(this, { result: ProjectSystemSyncManager.SyncResult ->
-      if (result.isSuccessful) {
-        initPreviewFormAfterBuildOnEventDispatchThread()
-      }
-      else {
-        buildError()
-        myProject.listenUntilNextSync(this, object : ProjectSystemSyncManager.SyncResultListener {
-          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-            initPreviewFormAfterBuildOnEventDispatchThread()
-          }
-        })
-      }
-    })
-  }
-
-  // Build was either cancelled or there was an error
-  private fun buildError() {
-    myWorkBench.loadingStopped("Previews are unavailable until after a successful project sync")
-  }
-
-  private fun initPreviewFormAfterBuildOnEventDispatchThread() {
+  /**
+   * Called by [VisualizationForm.ContentInitializer] to initialize the content panel.
+   */
+  fun createContentPanel() {
     if (Disposer.isDisposed(this)) {
       return
     }
@@ -384,11 +353,24 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
       // The toolbar is in the root panel which contains myWorkBench. To traverse to toolbar we need to traverse out from myWorkBench.
       myWorkBench.isFocusCycleRoot = false
     }
-    initNeleModel()
   }
 
-  private fun initNeleModel() {
-    DumbService.getInstance(myProject).smartInvokeLater { initNeleModelWhenSmart() }
+  /**
+   * Called by [VisualizationForm.ContentInitializer] when content is still loading.
+   */
+  fun showLoadingMessage() {
+    myWorkBench.setLoadingText("Waiting for build to finish...")
+  }
+
+  /**
+   * Called by [VisualizationForm.ContentInitializer] when build was either cancelled or there was an error.
+   */
+  fun showErrorMessage() {
+    myWorkBench.loadingStopped("Previews are unavailable until after a successful project sync")
+  }
+
+  private fun initModel() {
+    DumbService.getInstance(project).smartInvokeLater { initNeleModelWhenSmart() }
   }
 
   @UiThread
@@ -398,7 +380,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     if (myFile == null) {
       return
     }
-    val file = PsiManager.getInstance(myProject).findFile(myFile!!)
+    val file = PsiManager.getInstance(project).findFile(myFile!!)
     val facet = (if (file != null) AndroidFacet.getInstance(file) else null) ?: return
     updateActionToolbar(myActionToolbarPanel)
 
@@ -435,7 +417,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
           ApplicationManager.getApplication().invokeLater {
             surface.invalidate()
             val lastScaling =
-              VisualizationToolProjectSettings.getInstance(myProject).projectState.scale
+              VisualizationToolProjectSettings.getInstance(project).projectState.scale
             if (!surface.setScale(lastScaling)) {
               // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
               // configuration set.
@@ -475,6 +457,13 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     }
   }
 
+  override fun getConfigurationSet(): ConfigurationSet = myCurrentConfigurationSet
+
+  override fun setConfigurationSet(configurationSet: ConfigurationSet) {
+    // TODO: We should avoid calling the callback function actively. ConfigurationSetListener needs to be refactored.
+    onSelectedConfigurationSetChanged(configurationSet)
+  }
+
   private fun setNoActiveModel() {
     myCancelPendingModelLoad.set(true)
     editor = null
@@ -500,7 +489,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     if (file == null) {
       return
     }
-    val facet = AndroidFacet.getInstance(file, myProject)
+    val facet = AndroidFacet.getInstance(file, project)
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
@@ -508,10 +497,11 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
           // File is registered already.
           return
         }
-      } finally {
+      }
+      finally {
         myResourceNotifyingFilesLock.unlock()
       }
-      val manager = ResourceNotificationManager.getInstance(myProject)
+      val manager = ResourceNotificationManager.getInstance(project)
       manager.addListener(this, facet, file, null)
     }
   }
@@ -520,7 +510,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     if (file == null) {
       return
     }
-    val facet = AndroidFacet.getInstance(file, myProject)
+    val facet = AndroidFacet.getInstance(file, project)
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
@@ -528,10 +518,11 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
           // File is not registered.
           return
         }
-      } finally {
+      }
+      finally {
         myResourceNotifyingFilesLock.unlock()
       }
-      val manager = ResourceNotificationManager.getInstance(myProject)
+      val manager = ResourceNotificationManager.getInstance(project)
       manager.removeListener(this, facet, myFile, null)
     }
   }
@@ -554,9 +545,23 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
       }
     }
     if (needsRenderModels) {
-      // Show and hide progress indicator during rendering.
-      ApplicationManager.getApplication().invokeLater { surface.registerIndicator(myProgressIndicator) }
-      renderCurrentModels().thenRun { ApplicationManager.getApplication().invokeLater { surface.unregisterIndicator(myProgressIndicator) } }
+      myUpdateQueue.queue(
+        object : Update("update") {
+          override fun run() {
+            // Show and hide progress indicator during rendering.
+            ApplicationManager.getApplication().invokeLater { surface.registerIndicator(myProgressIndicator) }
+            renderCurrentModels().thenRun {
+              ApplicationManager.getApplication().invokeLater {
+                surface.unregisterIndicator(myProgressIndicator)
+              }
+            }
+          }
+
+          override fun canEat(update: Update): Boolean {
+            return true
+          }
+        }
+      )
     }
   }
 
@@ -567,36 +572,17 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     myCancelRenderingTaskLock.lock()
     myCancelRenderingTask = try {
       cancelTask
-    } finally {
+    }
+    finally {
       myCancelRenderingTaskLock.unlock()
     }
     var renderFuture = CompletableFuture.completedFuture<Void?>(null)
-    myLintIssueProvider.clear()
-    myBaseConfigIssues.clear()
+    visualLintHandler.clearIssueProviderAndBaseConfigurationIssue()
+
     // This render the added components.
     for (manager in surface.sceneManagers) {
       if (StudioFlags.NELE_VISUAL_LINT.get() && manager is LayoutlibSceneManager) {
-        val renderListener: RenderListener = object : RenderListener {
-          override fun onRenderCompleted() {
-            val model = manager.model
-            val result = manager.renderResult
-            if (result != null) {
-              analyzeAfterModelUpdate(result, model, myLintIssueProvider, myBaseConfigIssues, myVisualLintAnalyticsManager)
-              if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
-                updateVisualLintIssues(model.file, myLintIssueProvider)
-              }
-            }
-
-            // Remove self. This will not cause ConcurrentModificationException.
-            // Callback iteration creates copy of a list. (see {@link ListenerCollection.kt#foreach})
-            manager.removeRenderListener(this)
-          }
-
-          override fun onRenderFailed(e: Throwable) {
-            manager.removeRenderListener(this)
-          }
-        }
-        manager.addRenderListener(renderListener)
+        visualLintHandler.setupForLayoutlibSceneManager(manager)
       }
       renderFuture = renderFuture.thenCompose {
         if (isRenderingCanceled.get()) {
@@ -636,10 +622,15 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     }
     registerResourceNotification(myFile)
     isActive = true
-    initPreviewForm()
+    if (myContentPanel == null) {
+      initializer.initContent(project, this) { initModel() }
+    }
+    else {
+      initModel()
+    }
     surface.activate()
     analyticsManager.trackVisualizationToolWindow(true)
-    surface.issueModel.addIssueProvider(myLintIssueProvider)
+    visualLintHandler.onActivate()
   }
 
   /**
@@ -659,7 +650,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
       setNoActiveModel()
     }
     analyticsManager.trackVisualizationToolWindow(false)
-    surface.issueModel.removeIssueProvider(myLintIssueProvider)
+    visualLintHandler.onDeactivate()
   }
 
   override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) {
@@ -684,11 +675,11 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     updateScreenMode()
     updateActionToolbar(myActionToolbarPanel)
     // Dispose old models and create new models with new configuration set.
-    initNeleModel()
+    initModel()
   }
 
   override fun zoomChanged(previousScale: Double, newScale: Double) {
-    VisualizationToolProjectSettings.getInstance(myProject).projectState.scale = surface.scale
+    VisualizationToolProjectSettings.getInstance(project).projectState.scale = surface.scale
   }
 
   override fun panningChanged(adjustmentEvent: AdjustmentEvent) = Unit
@@ -696,16 +687,12 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
   /**
    * A disabled action for displaying text in action toolbar. It does nothing.
    */
-  private class TextLabelAction(text: String) : AnAction(null as String?) {
-
-    init {
-      templatePresentation.setText(text, false)
-      templatePresentation.isEnabled = false
-    }
+  private class TextLabelAction(private val text: String) : AnAction(null as String?) {
 
     override fun actionPerformed(e: AnActionEvent) = Unit
 
     override fun update(e: AnActionEvent) {
+      e.presentation.setText(text, false)
       e.presentation.isEnabled = false
     }
 
@@ -728,7 +715,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     }
   }
 
-  private class VisualizationTraversalPolicy(private val mySurface: DesignSurface) : DefaultFocusTraversalPolicy() {
+  private class VisualizationTraversalPolicy(private val mySurface: DesignSurface<*>) : DefaultFocusTraversalPolicy() {
     override fun getDefaultComponent(aContainer: Container): Component {
       return mySurface.layeredPane
     }
@@ -738,9 +725,14 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     override fun isRunning(): Boolean = true
   }
 
+
+  interface ContentInitializer {
+    fun initContent(project: Project, form: VisualizationForm, onComplete: () -> Unit)
+  }
+
   companion object {
     @VisibleForTesting
-    const val VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface"
+    const val VISUALIZATION_DESIGN_SURFACE_NAME = "Layout Validation"
     private val VISUALIZATION_SUPPORTED_ACTIONS: Set<NlSupportedActions> =
       if (StudioFlags.NELE_VISUAL_LINT.get()) ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL) else ImmutableSet.of()
 

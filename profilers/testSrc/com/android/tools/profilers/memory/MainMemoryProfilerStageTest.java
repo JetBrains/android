@@ -672,7 +672,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE,
                                                                  () -> samplingAspectChange[0]++);
 
-    // Ensure that the default is none.
+    // Ensure that the sampling mode is none if it's never set.
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
@@ -681,6 +681,10 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
+    Memory.AllocationsInfo info = Memory.AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).build();
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID,
+      ProfilersTestData.generateMemoryAllocationInfoData(0, FAKE_PROCESS.getPid(), info).setIsEnded(false).build());
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, 1).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -697,6 +701,10 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testAllocationSamplingRateCorrectlyInitialized() {
     // If the sampling mode is already available from the memory service, make sure the memory stage is correctly initialized to that value.
+    Memory.AllocationsInfo info = Memory.AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).build();
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID,
+      ProfilersTestData.generateMemoryAllocationInfoData(0, FAKE_PROCESS.getPid(), info).setIsEnded(false).build());
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 1).build());
     MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);

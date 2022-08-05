@@ -17,24 +17,29 @@ package com.android.tools.property.panel.impl.model
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.adtui.model.stdui.PooledThreadExecution
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
-import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -42,8 +47,11 @@ import javax.swing.event.ListDataListener
 @RunsInEdt
 class ComboBoxPropertyEditorModelTest {
 
-  @get:Rule
-  val appRule = PropertyAppRule()
+  companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+  }
 
   @get:Rule
   val edtRule = EdtRule()
@@ -174,6 +182,37 @@ class ComboBoxPropertyEditorModelTest {
   }
 
   @Test
+  fun testFocusLossWithErrorWillNotUpdateValue() {
+    val (model, listener) = createModelWithListener(createEnumSupport())
+    model.focusGained()
+    model.text = "error"
+
+    model.focusLost()
+    assertThat(model.property.value).isEqualTo("visible")
+    verify(listener, never()).valueChanged()
+  }
+
+  @Test
+  fun testEnterUpdatesValue() {
+    val (model, listener) = createModelWithListener(createEnumSupport())
+    model.text = "invisible"
+    model.enterKeyPressed()
+
+    assertThat(model.property.value).isEqualTo("invisible")
+    verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testEnterWithErrorWillNotUpdateValue() {
+    val (model, listener) = createModelWithListener(createEnumSupport())
+    model.text = "error"
+    model.enterKeyPressed()
+
+    assertThat(model.property.value).isEqualTo("visible")
+    verify(listener, never()).valueChanged()
+  }
+
+  @Test
   fun testListenersAreConcurrentModificationSafe() {
     // Make sure that ConcurrentModificationException is NOT generated from the code below:
     val model = createModel()
@@ -240,5 +279,14 @@ class ComboBoxPropertyEditorModelTest {
 private class MyEditingSupport : EditingSupport {
   override val execution: PooledThreadExecution
     get() = { ApplicationManager.getApplication().executeOnPooledThread(it) }
+
+  override val validation: EditingValidation = { text ->
+    if (text?.toLowerCase(Locale.US) == "error") {
+      Pair(EditingErrorCategory.ERROR, "")
+    }
+    else {
+      EDITOR_NO_ERROR
+    }
+  }
 }
 

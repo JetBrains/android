@@ -22,11 +22,11 @@ import com.android.adblib.DeviceInfo
 import com.android.adblib.DeviceList
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
+import com.android.adblib.deviceProperties
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.adblib.utils.getprop
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.intellij.openapi.project.Project
 import com.intellij.util.LineSeparator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -41,7 +41,7 @@ private const val ADB_FAILED_COMMAND_ERROR_CODE = 5
 class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrapper {
 
   override suspend fun executeCommand(args: List<String>, stdin: String): AdbCommandResult {
-    return withContext(ioThread) {
+    return withContext(Dispatchers.IO) {
       if (args == listOf("mdns", "check")) {
         mdnsCheck()
       }
@@ -78,7 +78,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
       // and
       // https://cs.android.com/android/platform/superproject/+/3a52886262ae22477a7d8ffb12adba64daf6aafa:packages/modules/adb/client/transport_mdns.cpp;l=302;drc=3a52886262ae22477a7d8ffb12adba64daf6aafa
       val stdout = listOf("List of discovered mdns services") +
-                   result.services.map { "${it.instanceName}\t${it.serviceName}\t${it.deviceAddress}" }
+                   result.map { "${it.instanceName}\t${it.serviceName}\t${it.deviceAddress}" }
       AdbCommandResult(0, stdout, listOf())
     }
     catch (e: AdbFailResponseException) {
@@ -101,7 +101,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
 
   override suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice {
     return withTimeoutOrNull(ADB_DEVICE_CONNECT_MILLIS) {
-      withContext(ioThread) {
+      withContext(Dispatchers.IO) {
         // Track device changes
         val hostServices = AdbLibService.getSession(project).hostServices
         val deviceListFlow = hostServices.trackDevices(AdbHostServices.DeviceInfoFormat.LONG_FORMAT)
@@ -114,7 +114,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
   }
 
   private fun DeviceList.getPairedDevice(pairingResult: PairingResult): DeviceInfo? {
-    return devices.firstOrNull {
+    return firstOrNull {
       it.deviceState == DeviceState.ONLINE &&
       sameDevice(it, pairingResult)
     }
@@ -127,7 +127,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
 
   private suspend fun getDeviceProperties(device: DeviceInfo): Map<String, String> {
     val deviceServices = AdbLibService.getSession(project).deviceServices
-    val props = deviceServices.getprop(DeviceSelector.fromSerialNumber(device.serialNumber))
+    val props = deviceServices.deviceProperties(DeviceSelector.fromSerialNumber(device.serialNumber)).all()
     return props.associate { it.name to it.value }
   }
 

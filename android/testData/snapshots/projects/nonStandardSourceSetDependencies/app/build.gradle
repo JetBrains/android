@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    compileSdkVersion 30
+
+    defaultConfig {
+        applicationId "me.monori.gradleprojectpathissue"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation project(':feature-a')
+    implementation project(path: ":javaLibrary")
+    implementation project(path: ":javaLibrary", configuration: "testEnv")
+    implementation project(':aarWrapperLib')
+    androidTestImplementation project(':lib')
+    androidTestImplementation project(path: ":lib", configuration: "manualTestFixtures")
+    testImplementation project(':lib')
+    implementation project(':jarWrapperLib')
+}

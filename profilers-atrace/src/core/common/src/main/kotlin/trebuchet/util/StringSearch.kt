@@ -78,7 +78,7 @@ class StringSearch(val lookFor: String) {
             // Search the overlapping region slowly
             while (reader.windowFor(index) !== reader.windowFor(index - lookFor.length + 1)) {
                 var lookForIndex = lookFor.length - 1
-                while (lookForIndex >= 0 && reader[index] == lookFor[lookForIndex].toByte()) {
+                while (lookForIndex >= 0 && reader[index] == lookFor[lookForIndex].code.toByte()) {
                     index--
                     lookForIndex--
                 }
@@ -111,7 +111,7 @@ class StringSearch(val lookFor: String) {
             // Search the overlapping region slowly
             while (reader.windowFor(index) !== reader.windowFor(index - lookFor.length + 1)) {
                 var lookForIndex = lookFor.length - 1
-                while (lookForIndex >= 0 && reader[index] == lookFor[lookForIndex].toByte()) {
+                while (lookForIndex >= 0 && reader[index] == lookFor[lookForIndex].code.toByte()) {
                     index--
                     lookForIndex--
                 }
@@ -135,7 +135,7 @@ class StringSearch(val lookFor: String) {
         var index = startIndex + lookFor.length - 1
         while (index < endIndex) {
             var lookForIndex = lookFor.length - 1
-            while (lookForIndex >= 0 && buffer[index] == lookFor[lookForIndex].toByte()) {
+            while (lookForIndex >= 0 && buffer[index] == lookFor[lookForIndex].code.toByte()) {
                 index--
                 lookForIndex--
             }
@@ -152,7 +152,7 @@ class StringSearch(val lookFor: String) {
         var index = startIndex + lookFor.length - 1
         while (index < endIndex) {
             var lookForIndex = lookFor.length - 1
-            while (lookForIndex >= 0 && buffer[index] == lookFor[lookForIndex].toByte()) {
+            while (lookForIndex >= 0 && buffer[index] == lookFor[lookForIndex].code.toByte()) {
                 index--
                 lookForIndex--
             }
@@ -171,7 +171,7 @@ class StringSearch(val lookFor: String) {
         val endIndex = minOf(window.globalEndIndex, globalEndIndex) - window.globalStartIndex
         while (index <= endIndex) {
             var lookForIndex = lookFor.length - 1
-            while (lookForIndex >= 0 && buffer[index] == lookFor[lookForIndex].toByte()) {
+            while (lookForIndex >= 0 && buffer[index] == lookFor[lookForIndex].code.toByte()) {
                 index--
                 lookForIndex--
             }

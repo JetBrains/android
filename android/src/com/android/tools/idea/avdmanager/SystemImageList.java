@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager;
 import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DESKTOP_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
@@ -64,7 +65,7 @@ import org.jetbrains.annotations.Nullable;
  * Displays a list of system images currently installed and allows selection of one
  */
 public class SystemImageList extends JPanel implements ListSelectionListener {
-  private final TableView<SystemImageDescription> myTable = new TableView<>();
+  private final TableView<SystemImageDescription> myTable = new TableView<SystemImageDescription>();
   private final Set<SystemImageSelectionListener> myListeners = new HashSet<>();
   private SystemImageListModel myModel;
   private SystemImageDescription myLastSelectedImage;
@@ -223,7 +224,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     SystemImageDescription toFind = myLastSelectedImage != null ? myLastSelectedImage : defaultSystemImage;
     for (int index = 0; index < myTable.getRowCount(); index++) {
       SystemImageDescription desc = myModel.getRowValue(myTable.convertRowIndexToModel(index));
-      if (desc.equals(toFind)) {
+      if (desc.equals(toFind) || (toFind != null && desc.downloadedFrom(toFind))) {
         best = desc;
         break;
       }
@@ -240,6 +241,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     List<String> requestedPackages = Lists.newArrayListWithCapacity(3);
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), DEFAULT_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), WEAR_TAG, Abi.X86.toString()));
+    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(
+        SdkVersionInfo.HIGHEST_KNOWN_API_DESKTOP, null), DESKTOP_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), ANDROID_TV_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), GOOGLE_TV_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), AUTOMOTIVE_TAG, Abi.X86.toString()));

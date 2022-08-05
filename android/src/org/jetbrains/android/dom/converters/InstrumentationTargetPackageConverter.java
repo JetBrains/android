@@ -74,7 +74,7 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
       }
       final Ref<PsiElement> result = Ref.create();
 
-      processApkPackageAttrs(new Processor<>() {
+      processApkPackageAttrs(new Processor<GenericAttributeValue<String>>() {
         @Override
         public boolean process(GenericAttributeValue<String> domValue) {
           if (value.equals(domValue.getValue())) {
@@ -96,7 +96,7 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
     public Object[] getVariants() {
       final Set<String> result = new HashSet<>();
 
-      processApkPackageAttrs(new Processor<>() {
+      processApkPackageAttrs(new Processor<GenericAttributeValue<String>>() {
         @Override
         public boolean process(GenericAttributeValue<String> domValue) {
           final String value = domValue.getValue();

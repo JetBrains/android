@@ -18,13 +18,11 @@ package com.android.build.attribution
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.BuildAttributionStateReporter.State
 import com.android.build.attribution.BuildAttributionStateReporter.State.AGP_VERSION_LOW
-import com.android.build.attribution.BuildAttributionStateReporter.State.FEATURE_TURNED_OFF
 import com.android.build.attribution.BuildAttributionStateReporter.State.NO_DATA
 import com.android.build.attribution.BuildAttributionStateReporter.State.NO_DATA_BUILD_FAILED_TO_FINISH
 import com.android.build.attribution.BuildAttributionStateReporter.State.NO_DATA_BUILD_RUNNING
 import com.android.build.attribution.BuildAttributionStateReporter.State.REPORT_DATA_READY
 import com.android.build.attribution.ui.BuildAttributionUiManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -102,7 +100,6 @@ class BuildAttributionStateReporterImpl(
   override fun dispose() = Unit
 
   private fun calculateInitState(): State = when {
-    !StudioFlags.BUILD_ATTRIBUTION_ENABLED.get() -> FEATURE_TURNED_OFF
     !isAgpVersionHigherOrEqualToMinimal(project) -> AGP_VERSION_LOW
     uiManager.hasDataToShow() -> REPORT_DATA_READY
     else -> NO_DATA

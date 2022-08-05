@@ -26,7 +26,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
@@ -34,9 +36,11 @@ import com.intellij.ui.content.Content
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.KeyStroke
 import kotlin.test.fail
 
 
@@ -62,7 +66,7 @@ class SplittingTabsToolWindowFactoryTest {
 
     splittingTabsToolWindowFactory.init(toolWindow)
 
-    assertThat(toolWindow.hideOnEmpty).isTrue()
+    assertThat(toolWindow.hideOnEmpty).isFalse()
   }
 
   @Test
@@ -77,6 +81,29 @@ class SplittingTabsToolWindowFactoryTest {
     assertThat(content.displayName).isEqualTo("TabName")
     assertThat((content.component as SplittingPanel).component).isSameAs(component)
     assertThat(content.isSplittingTab()).isTrue()
+  }
+
+  @Test
+  fun toolWindowShown_empty_createsNewTab() {
+    val component = JLabel("TabContents")
+    val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
+    splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
+    toolWindow.contentManager.removeAllContents(true)
+
+    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowShown(toolWindow)
+
+    assertThat(toolWindow.contentManager.contents.map { it.displayName }).containsExactly("TabName")
+  }
+
+  @Test
+  fun toolWindowShown_notEmpty_doesNotCreateNewTab() {
+    val component = JLabel("TabContents")
+    val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
+    splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
+
+    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowShown(toolWindow)
+
+    assertThat(toolWindow.contentManager.contents.map { it.displayName }).containsExactly("TabName")
   }
 
   /**
@@ -111,6 +138,8 @@ class SplittingTabsToolWindowFactoryTest {
     assertThat(toolWindow.tabActionList).hasSize(1)
     assertThat(toolWindow.tabActionList[0]).isInstanceOf(NewTabAction::class.java)
     assertThat(toolWindow.tabActionList[0].templatePresentation.text).isEqualTo("New Tab")
+    assertThat(toolWindow.tabActionList[0].shortcutSet.shortcuts).asList()
+      .containsExactly(KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK), null))
   }
 
   @Test
@@ -164,6 +193,8 @@ class SplittingTabsToolWindowFactoryTest {
     override fun setToHideOnEmptyContent(hideOnEmpty: Boolean) {
       this.hideOnEmpty = hideOnEmpty
     }
+
+    override fun isVisible(): Boolean = true
 
     override fun setTabActions(vararg actions: AnAction) {
       tabActionList.clear()

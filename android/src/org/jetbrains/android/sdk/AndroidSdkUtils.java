@@ -22,7 +22,7 @@ import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.setModuleSdk;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.android.facet.AndroidRootUtil.getProjectPropertyValue;
 import static org.jetbrains.android.facet.AndroidRootUtil.getPropertyValue;

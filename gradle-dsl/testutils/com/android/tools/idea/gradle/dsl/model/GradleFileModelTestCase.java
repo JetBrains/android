@@ -35,7 +35,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.Pa
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
 import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
@@ -75,7 +75,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectKt;
-import com.intellij.testFramework.OpenProjectTaskBuilder;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.io.PathKt;
 import java.io.File;
@@ -129,6 +128,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected VirtualFile mySubModuleBuildFile;
   protected VirtualFile mySubModulePropertiesFile;
   protected VirtualFile myBuildSrcBuildFile;
+  protected VirtualFile myVersionCatalogFile;
 
   protected VirtualFile myProjectBasePath;
 
@@ -200,12 +200,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     });
   }
 
-  @Override
-  @NotNull
-  public OpenProjectTaskBuilder getOpenProjectOptions() {
-    return super.getOpenProjectOptions().runPostStartUpActivities(false);
-  }
-
   @Before
   public void before() throws Exception {
     IdeSdks.removeJdksOn(getTestRootDisposable());
@@ -237,9 +231,14 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       assertTrue(mySubModulePropertiesFile.isWritable());
 
       VirtualFile buildSrcDirPath = myProjectBasePath.createChildDirectory(this, "buildSrc");
-      assertTrue(myProjectBasePath.isDirectory());
+      assertTrue(buildSrcDirPath.isDirectory());
       myBuildSrcBuildFile = buildSrcDirPath.createChildData(this, getBuildFileName());
       assertTrue(myBuildSrcBuildFile.isWritable());
+
+      VirtualFile gradlePath = myProjectBasePath.createChildDirectory(this, "gradle");
+      assertTrue(gradlePath.isDirectory());
+      myVersionCatalogFile = gradlePath.createChildData(this, "libs.versions.toml");
+      assertTrue(myVersionCatalogFile.isWritable());
 
       // Setup the project and the module as a Gradle project system so that their build files could be found.
       ExternalSystemModulePropertyManager
@@ -309,6 +308,17 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void writeToBuildSrcBuildFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, myBuildSrcBuildFile);
+  }
+
+  protected void writeToVersionCatalogFile(@NotNull TestFileName filename) throws IOException {
+    final File testFile = filename.toFile(myTestDataResolvedPath, "");
+    VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
+
+    saveFileUnderWrite(myVersionCatalogFile, loadText(virtualTestFile));
+  }
+
+  protected void writeToVersionCatalogFile(@NotNull String text) throws IOException {
+    saveFileUnderWrite(myVersionCatalogFile, text);
   }
 
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
@@ -451,6 +461,14 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
     verifyFileContents(file, loadFile(expected.toFile(myTestDataResolvedPath, myTestDataExtension)));
+  }
+
+  protected void verifyVersionCatalogFileContents(@NotNull VirtualFile file, @NotNull String expected) throws IOException {
+    verifyFileContents(file, expected);
+  }
+
+  protected void verifyVersionCatalogFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
+    verifyFileContents(file, loadFile(expected.toFile(myTestDataResolvedPath, "")));
   }
 
   protected void applyChangesAndReparse(@NotNull final ProjectBuildModel buildModel) {

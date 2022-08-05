@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
@@ -26,17 +27,18 @@ import com.intellij.openapi.util.Key
 import org.jetbrains.annotations.VisibleForTesting
 import kotlin.math.max
 
-internal val LOGCAT_HINT_KEY = Key.create<String>("LogcatHint")
+internal val LOGCAT_FILTER_HINT_KEY = Key.create<TextAccumulator.FilterHint>("LogcatHint")
+internal val LOGCAT_MESSAGE_KEY = Key.create<LogcatMessage>("LogcatMessage")
 
-internal class DocumentAppender(project: Project, private val document: DocumentEx, private val maxDocumentSize: Int) {
-  private val markupModel = DocumentMarkupModel.forDocument(document, project, /* create= */ true)
+internal class DocumentAppender(project: Project, private val document: DocumentEx, private var maxDocumentSize: Int) {
+  private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
 
   /**
    * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
    * they are valid.
    */
   @VisibleForTesting
-  internal val hintRanges = ArrayDeque<RangeMarker>()
+  internal val ranges = ArrayDeque<RangeMarker>()
 
   @UiThread
   fun appendToDocument(buffer: TextAccumulator) {
@@ -52,22 +54,40 @@ internal class DocumentAppender(project: Project, private val document: Document
 
     // Document has a cyclic buffer, so we need to get document.textLength again after inserting text.
     val offset = document.textLength - text.length
-    for (range in buffer.highlightRanges) {
+    for (range in buffer.textAttributesRanges) {
       range.applyRange(offset) { start, end, textAttributes ->
         markupModel.addRangeHighlighter(start, end, HighlighterLayer.SYNTAX, textAttributes, HighlighterTargetArea.EXACT_RANGE)
       }
     }
-    for (range in buffer.hintRanges) {
+    for (range in buffer.textAttributesKeyRanges) {
+      range.applyRange(offset) { start, end, textAttributesKey ->
+        markupModel.addRangeHighlighter(textAttributesKey, start, end, HighlighterLayer.SYNTAX, HighlighterTargetArea.EXACT_RANGE)
+      }
+    }
+    for (range in buffer.filterHintRanges) {
       range.applyRange(offset) { start, end, hint ->
-        hintRanges.add(document.createRangeMarker(start, end).apply {
-          putUserData(LOGCAT_HINT_KEY, hint)
+        ranges.add(document.createRangeMarker(start, end).apply {
+          putUserData(LOGCAT_FILTER_HINT_KEY, hint)
         })
       }
     }
 
-    while (!hintRanges.isEmpty() && !hintRanges.first().isReallyValid()) {
-      hintRanges.removeFirst()
+    for (range in buffer.messageRanges) {
+      range.applyRange(offset) { start, end, message ->
+        ranges.add(document.createRangeMarker(start, end).apply {
+          putUserData(LOGCAT_MESSAGE_KEY, message)
+        })
+      }
     }
+
+    while (!ranges.isEmpty() && !ranges.first().isReallyValid()) {
+      ranges.removeFirst()
+    }
+  }
+
+  fun setMaxDocumentSize(size: Int) {
+    maxDocumentSize = size
+    trimToSize()
   }
 
   /**
