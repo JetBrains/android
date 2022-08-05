@@ -71,6 +71,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private BrowserLink myLogcatLearnMoreBrowserLink;
 
   private JCheckBox myEnableDeviceMirroringCheckBox;
+  private BrowserLink myDeviceMirroringLearnMoreLink;
 
   private JCheckBox myEnableParallelSync;
 
@@ -345,6 +346,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   private void createUIComponents() {
     myLogcatLearnMoreBrowserLink = new BrowserLink("Learn more", "https://d.android.com/r/studio-ui/logcat/help");
+    myDeviceMirroringLearnMoreLink = new BrowserLink("Learn more", "https://d.android.com/r/studio-ui/device-mirroring/help");
   }
 
   public enum TraceProfileItem {
