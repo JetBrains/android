@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.data
 
+import com.android.ide.common.attribution.TaskCategory
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
 import java.util.Objects
@@ -62,6 +63,17 @@ class TaskData(val taskName: String,
   var taskType: String = UNKNOWN_TASK_TYPE
     private set
 
+  /**
+   * Primary execution function of the task.
+   */
+  var primaryTaskCategory: TaskCategory = TaskCategory.UNKNOWN
+    private set
+
+  /**
+   * All other execution functions of the task.
+   */
+  var secondaryTaskCategories: List<TaskCategory> = mutableListOf()
+
   fun setTaskType(taskType: String?) {
     if (taskType != null) {
       this.taskType = taskType
@@ -70,6 +82,37 @@ class TaskData(val taskName: String,
 
   fun getTaskPath(): String {
     return "$projectPath:$taskName"
+  }
+
+  fun setTaskCategories(primaryTaskCategory: TaskCategory, secondaryTaskCategories: List<TaskCategory>) {
+    setPrimaryTaskCategory(primaryTaskCategory)
+    setSecondaryTaskCategory(secondaryTaskCategories)
+  }
+
+  private fun setPrimaryTaskCategory(primaryTaskCategory: TaskCategory) {
+    this.primaryTaskCategory = when {
+      isKotlinCompilationTask() -> TaskCategory.KOTLIN
+      isJavaCompilationTask() || originPlugin.isJavaPlugin() -> TaskCategory.JAVA
+      primaryTaskCategory != TaskCategory.UNKNOWN -> primaryTaskCategory
+      originPlugin.isAndroidPlugin() -> TaskCategory.MISC
+      originPlugin.isKotlinPlugin() -> TaskCategory.KOTLIN
+      originPlugin.isGradlePlugin() -> TaskCategory.GRADLE
+      else -> primaryTaskCategory
+    }
+  }
+
+  private fun setSecondaryTaskCategory(secondaryTaskCategories: List<TaskCategory>) {
+    this.secondaryTaskCategories = when {
+      isJavaCompilationTask() || isKotlinCompilationTask() -> listOf(TaskCategory.COMPILATION)
+      else -> secondaryTaskCategories
+    }
+  }
+
+  fun isJavaCompilationTask(): Boolean {
+    return taskType == "org.gradle.api.tasks.compile.JavaCompile"
+  }
+  fun isKotlinCompilationTask(): Boolean {
+    return isKaptTask() || taskType == "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"
   }
 
   override fun equals(other: Any?): Boolean {
