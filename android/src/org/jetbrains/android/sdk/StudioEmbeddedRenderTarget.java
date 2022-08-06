@@ -121,7 +121,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     notFoundPaths.add(path);
 
     AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace();
-    File dir = AndroidLayoutlibDownloader.getInstance().getHostDir("plugins/android/lib/layoutlib/");
+    File dir = AndroidLayoutlibDownloader.getInstance().getHostDir("plugins/android/resources/layoutlib/");
     if (dir.exists()) {
       return dir.getAbsolutePath() + File.separator;
     }
