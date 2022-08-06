@@ -4,16 +4,7 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="junit" type="repository">
-        <properties include-transitive-deps="false" maven-id="junit:junit:4.12" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/junit/junit/4.12/junit-4.12.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library name="hamcrest-core" type="repository">
         <properties include-transitive-deps="false" maven-id="org.hamcrest:hamcrest-core:1.3" />

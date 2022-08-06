@@ -7,16 +7,7 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="junit" type="repository">
-        <properties include-transitive-deps="false" maven-id="junit:junit:4.12" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/junit/junit/4.12/junit-4.12.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-manifest-parser" type="repository">

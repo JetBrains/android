@@ -7,9 +7,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="truth" level="project" />
-    <orderEntry type="module" module-name="intellij.android.testFramework" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-ide-plugin" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
@@ -22,7 +22,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />

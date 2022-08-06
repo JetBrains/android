@@ -18,7 +18,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module-library">
-      <library>
+      <library name="spantable">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/spantable.jar!/" />
         </CLASSES>
