@@ -23,6 +23,7 @@ import com.android.tools.idea.testartifacts.createAndroidGradleTestConfiguration
 import com.android.tools.idea.testartifacts.createGradleConfigurationFromPsiElement
 import com.android.tools.idea.testartifacts.getPsiElement
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_WITH_DUPLICATES
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM
@@ -44,6 +45,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.PsiMethodImpl
 import com.intellij.psi.search.GlobalSearchScope
+import junit.framework.Assert
 import junit.framework.TestCase
 import org.jetbrains.kotlin.daemon.common.trimQuotes
 import org.jetbrains.plugins.gradle.GradleManager
@@ -189,6 +191,15 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     assertThat(directoryConfiguration).isNotNull()
     val directoryConfigTask = ExternalSystemExecuteTaskTask(project, directoryConfiguration!!.settings, null, directoryConfiguration)
     assertThat(ExternalSystemUtil.getConsoleManagerFor(directoryConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
+  }
+
+  @Throws(Exception::class)
+  fun testCompositeProjectTestConfiguration() {
+    loadProject(TestProjectPaths.BASIC_COMPOSITE_BUILD)
+    val configuration = createAndroidGradleConfigurationFromDirectory(project, "TestCompositeLib1/app/src/test/java/")
+    Assert.assertNotNull(configuration)
+    assertThat(configuration!!.settings.taskNames.size).isEqualTo(1)
+    assertThat(configuration.settings.taskNames[0]).isEqualTo(":includedLib1:app:testDebugUnitTest")
   }
 
   private fun createConfigurationFromContext(psiFile: PsiElement): ConfigurationFromContextImpl? {

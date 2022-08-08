@@ -1,0 +1,5 @@
+include ':app', ':lib'
+
+includeBuild('TestCompositeLib1') {
+  name = "includedLib1"
+}
