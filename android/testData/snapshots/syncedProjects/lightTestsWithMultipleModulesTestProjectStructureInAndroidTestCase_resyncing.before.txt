@@ -68,7 +68,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -159,7 +159,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.main
             Scope                         : Test
@@ -254,7 +254,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
         BUILD_TASKS
@@ -331,7 +331,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.main
             Scope                         : Test
@@ -420,7 +420,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -511,7 +511,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
             Scope                         : Test
@@ -604,7 +604,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -680,7 +680,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main
             Scope                         : Test
