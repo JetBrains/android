@@ -17,6 +17,7 @@ package com.android.build.attribution.ui
 
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.ide.common.attribution.TaskCategory
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.util.text.StringUtil
@@ -26,7 +27,6 @@ import javax.swing.Icon
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
-
 
 fun TimeWithPercentage.durationString() = durationString(timeMs)
 
@@ -39,6 +39,10 @@ fun TimeWithPercentage.percentageString() = when {
 }
 
 fun TimeWithPercentage.percentageStringHtml() = StringUtil.escapeXmlEntities(percentageString())
+
+fun TaskCategory.displayName() = toString().split("_").joinToString(separator = " ") { word ->
+  word.lowercase().replaceFirstChar { it.uppercase() }
+}
 
 fun durationString(timeMs: Long) = when {
   timeMs == 0L -> "0.0s"

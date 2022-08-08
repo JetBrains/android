@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.ide.common.attribution.TaskCategory
 
 /**
  * This class holds [TaskUiData] representations for [TaskData] objects provided from build analyzers.
@@ -65,6 +66,9 @@ class TaskUiDataContainer(
       override val reasonsToRun: List<String> = task.executionReasons
       override val issues: List<TaskIssueUiData>
         get() = issuesContainer.issuesForTask(task)
+      override val primaryTaskCategory: TaskCategory = task.primaryTaskCategory
+      override val secondaryTaskCategories: List<TaskCategory> = task.secondaryTaskCategories
+
     }
   }
 }

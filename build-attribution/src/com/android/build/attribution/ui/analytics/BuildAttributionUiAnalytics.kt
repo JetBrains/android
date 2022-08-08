@@ -280,6 +280,7 @@ class BuildAttributionUiAnalytics(
               pageType = when (model.tasksPageModel.selectedGrouping) {
                 TasksDataPageModel.Grouping.UNGROUPED -> BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
                 TasksDataPageModel.Grouping.BY_PLUGIN -> BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT
+                TasksDataPageModel.Grouping.BY_TASK_CATEGORY -> BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASKS_ROOT
               },
               pageId = ""
             )

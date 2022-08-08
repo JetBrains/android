@@ -310,7 +310,7 @@ class BuildAnalyzerViewControllerTest {
   @RunsInEdt
   fun testTasksDetailsLinkClickedOnPlugin() {
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
-    val pluginPageId = TasksPageId.plugin(model.reportUiData.criticalPathPlugins.plugins[0])
+    val pluginPageId = TasksPageId.plugin(model.reportUiData.criticalPathPlugins.entries[0])
 
     // Act
     controller.tasksDetailsLinkClicked(pluginPageId)

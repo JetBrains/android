@@ -19,9 +19,8 @@ import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
-import com.android.build.attribution.ui.data.CriticalPathPluginTasksUiData
-import com.android.build.attribution.ui.data.CriticalPathPluginUiData
-import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
+import com.android.build.attribution.ui.data.CriticalPathEntriesUiData
+import com.android.build.attribution.ui.data.CriticalPathEntryUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueType.ALWAYS_RUN_TASKS
 import com.android.build.attribution.ui.data.TaskIssueType.TASK_SETUP_ISSUE
@@ -107,17 +106,15 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
     report.criticalPathPlugins.verify(expectedSize = 2, expectedWarnings = 5, expectedInfos = 0)
     // Only one taskA is on critical path but there is another issue for pluginA for the task not on critical path.
     // 2 warnings and 1 info from taskA and 2 warnings from nonCritPathTask
-    report.criticalPathPlugins.plugins[0].verify(expectedTasksSize = 1, expectedWarnings = 4, expectedInfos = 0)
-    report.criticalPathPlugins.plugins[0].criticalPathTasks.verify(expectedSize = 1, expectedWarnings = 2, expectedInfos = 0)
-    assertThat(report.criticalPathPlugins.plugins[0].issues.size).isEqualTo(2)
-    report.criticalPathPlugins.plugins[0].issues[0].verify(expectedType = ALWAYS_RUN_TASKS, expectedSize = 2, expectedWarnings = 2,
+    report.criticalPathPlugins.entries[0].verify(expectedTasksSize = 1, expectedWarnings = 4, expectedInfos = 0)
+    assertThat(report.criticalPathPlugins.entries[0].issues.size).isEqualTo(2)
+    report.criticalPathPlugins.entries[0].issues[0].verify(expectedType = ALWAYS_RUN_TASKS, expectedSize = 2, expectedWarnings = 2,
                                                            expectedInfos = 0)
-    report.criticalPathPlugins.plugins[0].issues[1].verify(expectedType = TASK_SETUP_ISSUE, expectedSize = 2, expectedWarnings = 2,
+    report.criticalPathPlugins.entries[0].issues[1].verify(expectedType = TASK_SETUP_ISSUE, expectedSize = 2, expectedWarnings = 2,
                                                            expectedInfos = 0)
 
-    report.criticalPathPlugins.plugins[1].verify(expectedTasksSize = 1, expectedWarnings = 1, expectedInfos = 0)
-    report.criticalPathPlugins.plugins[1].criticalPathTasks.verify(expectedSize = 1, expectedWarnings = 1, expectedInfos = 0)
-    assertThat(report.criticalPathPlugins.plugins[1].issues.map { it.type }).isEqualTo(listOf(ALWAYS_RUN_TASKS))
+    report.criticalPathPlugins.entries[1].verify(expectedTasksSize = 1, expectedWarnings = 1, expectedInfos = 0)
+    assertThat(report.criticalPathPlugins.entries[1].issues.map { it.type }).isEqualTo(listOf(ALWAYS_RUN_TASKS))
   }
 
   @Test
@@ -154,28 +151,17 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
     report.issues[1].verify(TASK_SETUP_ISSUE, 2, 2, 0)
   }
 
-  private fun CriticalPathPluginTasksUiData.verify(
+  private fun CriticalPathEntriesUiData.verify(
     expectedSize: Int,
     expectedWarnings: Int,
     expectedInfos: Int
   ) {
-    assertThat(size).isEqualTo(expectedSize)
-    assertThat(tasks.size).isEqualTo(expectedSize)
+    assertThat(entries.size).isEqualTo(expectedSize)
     assertThat(warningCount).isEqualTo(expectedWarnings)
     assertThat(infoCount).isEqualTo(expectedInfos)
   }
 
-  private fun CriticalPathPluginsUiData.verify(
-    expectedSize: Int,
-    expectedWarnings: Int,
-    expectedInfos: Int
-  ) {
-    assertThat(plugins.size).isEqualTo(expectedSize)
-    assertThat(warningCount).isEqualTo(expectedWarnings)
-    assertThat(infoCount).isEqualTo(expectedInfos)
-  }
-
-  private fun CriticalPathPluginUiData.verify(
+  private fun CriticalPathEntryUiData.verify(
     expectedTasksSize: Int,
     expectedWarnings: Int,
     expectedInfos: Int

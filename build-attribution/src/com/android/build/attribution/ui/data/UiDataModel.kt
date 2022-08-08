@@ -19,6 +19,8 @@ import com.android.build.attribution.analyzers.ConfigurationCachingCompatibility
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.ide.common.attribution.TaskCategory
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
 /*
@@ -36,6 +38,7 @@ interface BuildAttributionReportUiData {
   val buildSummary: BuildSummary
   val criticalPathTasks: CriticalPathTasksUiData
   val criticalPathPlugins: CriticalPathPluginsUiData
+  val criticalPathTaskCategories: CriticalPathTaskCategoriesUiData
   /**
    * All detected issues grouped by issue type
    */
@@ -72,10 +75,19 @@ interface CriticalPathTasksUiData {
   val infoCount: Int
 }
 
-interface CriticalPathPluginsUiData {
+interface CriticalPathPluginsUiData: CriticalPathEntriesUiData {
+  override val entries: List<CriticalPathPluginUiData>
+}
+
+interface CriticalPathTaskCategoriesUiData: CriticalPathEntriesUiData{
+  override val entries: List<CriticalPathTaskCategoryUiData>
+}
+
+// Model UI object that represents a list of plugins/ task labels
+interface CriticalPathEntriesUiData {
   val criticalPathDuration: TimeWithPercentage
   val miscStepsTime: TimeWithPercentage
-  val plugins: List<CriticalPathPluginUiData>
+  val entries: List<CriticalPathEntryUiData>
   val warningCount: Int
   val infoCount: Int
 }
@@ -102,30 +114,38 @@ interface TaskUiData {
     get() = issues.any { it.type.level == IssueLevel.WARNING }
   val hasInfo: Boolean
     get() = issues.any { it.type.level == IssueLevel.INFO }
+  val primaryTaskCategory: TaskCategory
+  val secondaryTaskCategories: List<TaskCategory>
 }
 
 enum class PluginSourceType {
   ANDROID_PLUGIN, BUILD_SRC, THIRD_PARTY
 }
 
-interface CriticalPathPluginUiData {
+interface CriticalPathPluginUiData : CriticalPathEntryUiData {
+  override val modelGrouping: TasksDataPageModel.Grouping
+    get() = TasksDataPageModel.Grouping.BY_PLUGIN
+}
+
+interface CriticalPathTaskCategoryUiData : CriticalPathEntryUiData {
+  // TODO: Add taskCategoryInformation field
+  override val modelGrouping: TasksDataPageModel.Grouping
+    get() = TasksDataPageModel.Grouping.BY_TASK_CATEGORY
+}
+
+// Model UI object that represents a plugin / task label
+interface CriticalPathEntryUiData {
   val name: String
   /** Total time of this plugin tasks on critical path. */
   val criticalPathDuration: TimeWithPercentage
   /** This plugin tasks on critical path. */
-  val criticalPathTasks: CriticalPathPluginTasksUiData
+  val criticalPathTasks: List<TaskUiData>
+  val size: Int
+    get() = criticalPathTasks.size
   val issues: List<TaskIssuesGroup>
   val warningCount: Int
   val infoCount: Int
-}
-
-interface CriticalPathPluginTasksUiData {
-  val criticalPathDuration: TimeWithPercentage
-  val tasks: List<TaskUiData>
-  val size: Int
-    get() = tasks.size
-  val warningCount: Int
-  val infoCount: Int
+  val modelGrouping: TasksDataPageModel.Grouping
 }
 
 /**

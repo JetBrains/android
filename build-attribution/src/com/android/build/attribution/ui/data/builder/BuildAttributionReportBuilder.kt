@@ -19,18 +19,21 @@ import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.TaskData
+import com.android.build.attribution.data.TaskCategoryBuildData
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.BuildSummary
 import com.android.build.attribution.ui.data.ConfigurationUiData
-import com.android.build.attribution.ui.data.CriticalPathPluginTasksUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
+import com.android.build.attribution.ui.data.CriticalPathTaskCategoryUiData
+import com.android.build.attribution.ui.data.CriticalPathTaskCategoriesUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.IssueLevel
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.build.attribution.ui.displayName
+import com.android.ide.common.attribution.TaskCategory
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
-
 
 /**
  * A Builder class for a data structure holding the data gathered by Gradle build analyzers.
@@ -57,6 +60,7 @@ class BuildAttributionReportBuilder(
       override val buildSummary: BuildSummary = buildSummary
       override val criticalPathTasks = createCriticalPathTasks(buildSummary.criticalPathDuration)
       override val criticalPathPlugins = createCriticalPathPlugins(buildSummary.criticalPathDuration)
+      override val criticalPathTaskCategories = createCriticalPathTaskCategories(buildSummary.criticalPathDuration)
       override val issues = issueUiDataContainer.allIssueGroups()
       override val configurationTime = pluginConfigurationTimeReport
       override val annotationProcessors = AnnotationProcessorsReportBuilder(buildAnalysisResult).build()
@@ -92,13 +96,13 @@ class BuildAttributionReportBuilder(
     return object : CriticalPathPluginsUiData {
       override val criticalPathDuration = criticalPathDuration
       override val miscStepsTime = criticalPathDuration.supplement()
-      override val plugins = buildAnalysisResult.getPluginsDeterminingBuildDuration()
+      override val entries = buildAnalysisResult.getPluginsDeterminingBuildDuration()
         .map {
           createCriticalPathPluginUiData(taskByPlugin[it.plugin].orEmpty(), it, criticalPathDuration)
         }
         .sortedByDescending { it.criticalPathDuration }
-      override val warningCount = plugins.sumOf { it.warningCount }
-      override val infoCount = plugins.sumOf { it.infoCount }
+      override val warningCount = entries.sumOf { it.warningCount }
+      override val infoCount = entries.sumOf { it.infoCount }
     }
   }
 
@@ -109,20 +113,50 @@ class BuildAttributionReportBuilder(
   ) = object : CriticalPathPluginUiData {
     override val name = pluginCriticalPathBuildData.plugin.displayName
     override val criticalPathDuration = TimeWithPercentage(pluginCriticalPathBuildData.buildDuration, totalCriticalPathDuration.timeMs)
-    override val criticalPathTasks = createPluginTasksCriticalPath(criticalPathTasks, criticalPathDuration)
+    override val criticalPathTasks = criticalPathTasks
+      .map { taskUiDataContainer.getByTaskData(it) }
+      .sortedByDescending { it.executionTime }
     override val issues = issueUiDataContainer.pluginIssueGroups(pluginCriticalPathBuildData.plugin)
     override val warningCount = issues.sumBy { it.warningCount }
     override val infoCount = issues.sumBy { it.infoCount }
   }
 
-  private fun createPluginTasksCriticalPath(criticalPathTasks: List<TaskData>, criticalPathDuration: TimeWithPercentage) =
-    object : CriticalPathPluginTasksUiData {
-      override val criticalPathDuration = criticalPathDuration
-      override val tasks = criticalPathTasks
-        .map { taskUiDataContainer.getByTaskData(it) }
-        .sortedByDescending { it.executionTime }
-      override val warningCount = tasks.flatMap { it.issues }.count { it.type.level == IssueLevel.WARNING }
-      override val infoCount = tasks.flatMap { it.issues }.count { it.type.level == IssueLevel.INFO }
+  private fun createCriticalPathTaskCategories(criticalPathDuration: TimeWithPercentage): CriticalPathTaskCategoriesUiData {
+    val taskCategoryBuildDurationMap = HashMap<TaskCategory, Long>()
+    buildAnalysisResult.getTasksDeterminingBuildDuration().forEach { taskData ->
+      val taskCategory = taskData.primaryTaskCategory
+      val currentDurationLabel = taskCategoryBuildDurationMap.getOrDefault(taskCategory, 0L)
+      taskCategoryBuildDurationMap[taskCategory] = currentDurationLabel + taskData.executionTime
     }
+    val taskCategoriesDeterminingBuildDuration = mutableListOf<TaskCategoryBuildData>()
+    taskCategoryBuildDurationMap.forEach { (taskCategory, duration) ->
+      taskCategoriesDeterminingBuildDuration.add(TaskCategoryBuildData(taskCategory, duration))
+    }
+    val taskByTaskCategory = buildAnalysisResult.getTasksDeterminingBuildDuration().groupBy { it.primaryTaskCategory }
+    return object : CriticalPathTaskCategoriesUiData {
+      override val criticalPathDuration = criticalPathDuration
+      override val miscStepsTime = criticalPathDuration.supplement()
+      override val entries = taskCategoriesDeterminingBuildDuration.map {
+        createCriticalPathTaskCategoryUiData(taskByTaskCategory[it.taskCategory].orEmpty(), it, criticalPathDuration)
+      }.sortedByDescending { it.criticalPathDuration }
+      override val warningCount = entries.sumOf { it.warningCount }
+      override val infoCount = entries.sumOf { it.infoCount }
+    }
+  }
+
+  private fun createCriticalPathTaskCategoryUiData(
+    criticalPathTasks: List<TaskData>,
+    taskCategoryCriticalPathBuildData: TaskCategoryBuildData,
+    totalCriticalPathDuration: TimeWithPercentage
+  ) = object : CriticalPathTaskCategoryUiData {
+    override val name = taskCategoryCriticalPathBuildData.taskCategory.displayName()
+    override val criticalPathDuration = TimeWithPercentage(taskCategoryCriticalPathBuildData.buildDuration, totalCriticalPathDuration.timeMs)
+    override val criticalPathTasks = criticalPathTasks
+      .map { taskUiDataContainer.getByTaskData(it) }
+      .sortedByDescending { it.executionTime }
+    override val issues = issueUiDataContainer.taskCategoryIssueGroups(taskCategoryCriticalPathBuildData.taskCategory)
+    override val warningCount = issues.sumBy { it.warningCount }
+    override val infoCount = issues.sumBy { it.infoCount }
+  }
 
 }

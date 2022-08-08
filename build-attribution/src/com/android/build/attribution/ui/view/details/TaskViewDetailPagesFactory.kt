@@ -16,9 +16,10 @@
 package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.ui.HtmlLinksHandler
+import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
-import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
+import com.android.build.attribution.ui.model.EntryDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsPageType
 import com.android.build.attribution.ui.model.TasksDataPageModel
@@ -29,7 +30,6 @@ import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warnIconHtml
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.components.panels.VerticalBox
 import java.awt.BorderLayout
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -67,49 +67,50 @@ class TaskViewDetailPagesFactory(
 
   fun createDetailsPage(nodeDescriptor: TasksTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
     is TaskDetailsNodeDescriptor -> createTaskDetailsPage(nodeDescriptor)
-    is PluginDetailsNodeDescriptor -> createPluginDetailsPage(nodeDescriptor)
+    is EntryDetailsNodeDescriptor -> createEntryDetailsPage(nodeDescriptor)
   }.apply {
     name = nodeDescriptor.pageId.id
   }
 
   private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = taskDetailsPage(descriptor.taskData, actionHandlers)
 
-  private fun createPluginDetailsPage(descriptor: PluginDetailsNodeDescriptor): JComponent {
+  private fun createEntryDetailsPage(descriptor: EntryDetailsNodeDescriptor): JComponent {
     return JPanel().apply {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
       val linksHandler = HtmlLinksHandler(actionHandlers)
-      val detailsPanelHtml = pluginDetailsHtml(descriptor, linksHandler)
+      val detailsPanelHtml = entryDetailsHtml(descriptor, linksHandler)
       val htmlLabel = htmlTextLabelWithFixedLines(detailsPanelHtml, linksHandler)
       htmlLabel.alignmentX = 0f
       add(htmlLabel)
     }
   }
 
-  fun pluginDetailsHtml(
-    descriptor: PluginDetailsNodeDescriptor,
+  fun entryDetailsHtml(
+    descriptor: EntryDetailsNodeDescriptor,
     linksHandler: HtmlLinksHandler
   ): String {
     return HtmlBuilder().apply {
+      val entryTypeString = if (descriptor.entryData is CriticalPathPluginUiData) "plugin" else "task label"
       val filteredTasksNumber = descriptor.filteredTaskNodes.size
       val filteredTasksWithWarnings = descriptor.filteredTaskNodes.filter { it.hasWarning }
-      addBold(descriptor.pluginData.name).newline()
-      add("Total duration: ").addHtml(descriptor.filteredPluginTime.toTimeWithPercentage().durationStringHtml()).newline()
+      addBold(descriptor.entryData.name).newline()
+      add("Total duration: ").addHtml(descriptor.filteredEntryTime.toTimeWithPercentage().durationStringHtml()).newline()
       //TODO (b/240926892): these are filtered tasks, should make it clear for the user.
       add("Number of tasks: ${filteredTasksNumber.withPluralization("task")}").newline()
       newline()
       addBold("Warnings").newline()
       if (filteredTasksWithWarnings.isEmpty()) {
         //TODO (b/240926892): same here, these are filtered, need to make it clear on UI
-        add("No warnings detected for this plugin.")
+        add("No warnings detected for this ${entryTypeString}.")
       }
       else {
-        add("${filteredTasksWithWarnings.size.withPluralization("task")} with warnings associated with this plugin.").newline()
+        add("${filteredTasksWithWarnings.size.withPluralization("task")} with warnings associated with this ${entryTypeString}.").newline()
         if (filteredTasksWithWarnings.size > 10) {
           add("Top 10 tasks shown below, you can find the full list in the tree on the left.").newline()
         }
         filteredTasksWithWarnings.take(10).forEach { task ->
           val linkToTask = linksHandler.actionLink(task.taskPath, task.taskPath) {
-            actionHandlers.tasksDetailsLinkClicked(TasksPageId.task(task, TasksDataPageModel.Grouping.BY_PLUGIN))
+            actionHandlers.tasksDetailsLinkClicked(TasksPageId.task(task, descriptor.entryData.modelGrouping))
           }
           beginTable()
           addTableRow(warnIconHtml, linkToTask)

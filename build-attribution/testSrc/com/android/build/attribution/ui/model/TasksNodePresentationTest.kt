@@ -70,7 +70,7 @@ class TasksNodePresentationTest {
     val task = mockUiData.mockTask(":app", "resources", "resources.plugin", 855)
     val plugin = mockUiData.createPluginData("resources.plugin", listOf(task))
 
-    val descriptor = PluginDetailsNodeDescriptor(plugin, listOf(task), timeDistributionBuilder)
+    val descriptor = EntryDetailsNodeDescriptor(plugin, listOf(task), timeDistributionBuilder)
 
     timeDistributionBuilder.registerTimeEntry(plugin.criticalPathDuration.supplement().timeMs)
     timeDistributionBuilder.seal()
@@ -91,7 +91,7 @@ class TasksNodePresentationTest {
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
     val plugin = mockUiData.createPluginData("resources.plugin", listOf(task))
 
-    val descriptor = PluginDetailsNodeDescriptor(plugin, listOf(task), timeDistributionBuilder)
+    val descriptor = EntryDetailsNodeDescriptor(plugin, listOf(task), timeDistributionBuilder)
 
     timeDistributionBuilder.registerTimeEntry(plugin.criticalPathDuration.supplement().timeMs)
     timeDistributionBuilder.seal()

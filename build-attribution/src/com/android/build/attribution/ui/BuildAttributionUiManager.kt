@@ -32,6 +32,7 @@ import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.BuildSummary
 import com.android.build.attribution.ui.data.ConfigurationUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
+import com.android.build.attribution.ui.data.CriticalPathTaskCategoriesUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
@@ -163,6 +164,8 @@ class BuildAttributionUiManagerImpl(
       override val criticalPathTasks: CriticalPathTasksUiData
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val criticalPathPlugins: CriticalPathPluginsUiData
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val criticalPathTaskCategories: CriticalPathTaskCategoriesUiData
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val issues: List<TaskIssuesGroup>
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")

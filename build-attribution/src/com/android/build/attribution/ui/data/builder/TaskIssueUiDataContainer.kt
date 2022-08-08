@@ -27,6 +27,7 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.ide.common.attribution.TaskCategory
 import java.util.EnumMap
 
 
@@ -42,6 +43,7 @@ class TaskIssueUiDataContainer(
   private val issuesByTask: MutableMap<TaskData, MutableList<TaskIssueUiData>> = HashMap()
   private val issuesByType: MutableMap<TaskIssueType, MutableList<TaskIssueUiData>> = EnumMap(TaskIssueType::class.java)
   private val issuesByPlugin: MutableMap<PluginData, MutableList<TaskIssueUiData>> = HashMap()
+  private val issuesByTaskCategory: MutableMap<TaskCategory, MutableList<TaskIssueUiData>> = EnumMap(TaskCategory::class.java)
 
   fun populate(tasksUiDataContainer: TaskUiDataContainer) {
     buildAnalysisResult.getAlwaysRunTasks().forEach {
@@ -98,6 +100,12 @@ class TaskIssueUiDataContainer(
   fun pluginIssueGroups(pluginData: PluginData): List<TaskIssuesGroup> = issuesByPlugin
     .getOrDefault(pluginData, emptyList<TaskIssueUiData>())
     .groupBy { it.type }
+    .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
+    .sortedBy { it.type.ordinal }
+
+  fun taskCategoryIssueGroups(taskCategoryData: TaskCategory): List<TaskIssuesGroup> = issuesByTaskCategory
+    .getOrDefault(taskCategoryData, emptyList<TaskIssueUiData>())
+    .groupBy{ it.type }
     .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
     .sortedBy { it.type.ordinal }
 

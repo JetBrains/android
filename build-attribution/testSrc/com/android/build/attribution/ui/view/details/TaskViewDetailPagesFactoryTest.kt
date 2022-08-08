@@ -20,7 +20,7 @@ import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
-import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
+import com.android.build.attribution.ui.model.EntryDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.build.attribution.ui.model.TasksPageId
@@ -64,10 +64,10 @@ class TaskViewDetailPagesFactoryTest {
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
-    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as PluginDetailsNodeDescriptor
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as EntryDetailsNodeDescriptor
 
-    val htmlBody = factory.pluginDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
     assertThat(htmlBody).isEqualTo("""
       <B>myPlugin</B><BR/>
       Total duration: 0.1s<BR/>
@@ -90,10 +90,10 @@ class TaskViewDetailPagesFactoryTest {
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
-    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as PluginDetailsNodeDescriptor
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as EntryDetailsNodeDescriptor
 
-    val htmlBody = factory.pluginDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
 
     assertThat(htmlBody).isEqualTo("""
 <B>myPlugin</B><BR/>
@@ -122,10 +122,10 @@ ${expectedTaskSection(":module3:task1")}
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
-    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as PluginDetailsNodeDescriptor
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as EntryDetailsNodeDescriptor
 
-    val htmlBody = factory.pluginDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
     assertThat(htmlBody).isEqualTo("""
 <B>myPlugin</B><BR/>
 Total duration: 2.0s<BR/>
@@ -178,7 +178,7 @@ which it must do in order to support incremental builds.<BR/>
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
     val page = factory.createDetailsPage(TasksPageId.plugin(pluginData))
     val pane = TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single()
 
@@ -211,7 +211,7 @@ which it must do in order to support incremental builds.<BR/>
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
     val page = factory.createDetailsPage(TasksPageId.plugin(pluginData))
     val pane = TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single()
 

@@ -85,17 +85,17 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
     assertThat(report.criticalPathPlugins.criticalPathDuration).isEqualTo(TimeWithPercentage(1000, 1500))
     assertThat(report.criticalPathPlugins.miscStepsTime).isEqualTo(TimeWithPercentage(500, 1500))
-    assertThat(report.criticalPathPlugins.plugins.size).isEqualTo(2)
-    assertThat(report.criticalPathPlugins.plugins[0].name).isEqualTo("pluginB")
-    assertThat(report.criticalPathPlugins.plugins[0].criticalPathTasks.size).isEqualTo(2)
-    report.criticalPathPlugins.plugins[0].criticalPathTasks.tasks[0].verifyValues(":app", "taskB", pluginB, TimeWithPercentage(400, 1000))
-    report.criticalPathPlugins.plugins[0].criticalPathTasks.tasks[1].verifyValues(":app", "taskD", pluginB, TimeWithPercentage(200, 1000))
-    assertThat(report.criticalPathPlugins.plugins[0].criticalPathDuration).isEqualTo(TimeWithPercentage(600, 1000))
-    assertThat(report.criticalPathPlugins.plugins[1].name).isEqualTo("pluginA")
-    assertThat(report.criticalPathPlugins.plugins[1].criticalPathTasks.size).isEqualTo(2)
-    report.criticalPathPlugins.plugins[1].criticalPathTasks.tasks[0].verifyValues(":lib", "taskC", pluginA, TimeWithPercentage(300, 1000))
-    report.criticalPathPlugins.plugins[1].criticalPathTasks.tasks[1].verifyValues(":app", "taskA", pluginA, TimeWithPercentage(100, 1000))
-    assertThat(report.criticalPathPlugins.plugins[1].criticalPathDuration).isEqualTo(TimeWithPercentage(400, 1000))
+    assertThat(report.criticalPathPlugins.entries.size).isEqualTo(2)
+    assertThat(report.criticalPathPlugins.entries[0].name).isEqualTo("pluginB")
+    assertThat(report.criticalPathPlugins.entries[0].criticalPathTasks.size).isEqualTo(2)
+    report.criticalPathPlugins.entries[0].criticalPathTasks[0].verifyValues(":app", "taskB", pluginB, TimeWithPercentage(400, 1000))
+    report.criticalPathPlugins.entries[0].criticalPathTasks[1].verifyValues(":app", "taskD", pluginB, TimeWithPercentage(200, 1000))
+    assertThat(report.criticalPathPlugins.entries[0].criticalPathDuration).isEqualTo(TimeWithPercentage(600, 1000))
+    assertThat(report.criticalPathPlugins.entries[1].name).isEqualTo("pluginA")
+    assertThat(report.criticalPathPlugins.entries[1].criticalPathTasks.size).isEqualTo(2)
+    report.criticalPathPlugins.entries[1].criticalPathTasks[0].verifyValues(":lib", "taskC", pluginA, TimeWithPercentage(300, 1000))
+    report.criticalPathPlugins.entries[1].criticalPathTasks[1].verifyValues(":app", "taskA", pluginA, TimeWithPercentage(100, 1000))
+    assertThat(report.criticalPathPlugins.entries[1].criticalPathDuration).isEqualTo(TimeWithPercentage(400, 1000))
   }
 
   @Test
