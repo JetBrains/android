@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.editors;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
+
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.codeEditor.JavaEditorFileSwapper;
 import com.intellij.ide.highlighter.JavaClassFileType;
@@ -31,16 +34,17 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.HyperlinkLabel;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
 
 /**
  * Notifies users that the android SDK class they opened doesn't have a source file associated with it, and provide two links: one to
@@ -92,22 +96,27 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
       if (platform == null) {
         return null;
       }
-      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+      MyEditorNotificationPanel panel = new MyEditorNotificationPanel(fileEditor);
 
       panel.setText("Sources for '" + jdkOrderEntry.getJdkName() + "' not found.");
-      panel.createActionLabel("Download", () -> {
+      panel.createAndAddLink("Download", () -> {
         List<String> requested = Lists.newArrayList();
         requested.add(DetailsTypes.getSourcesPath(platform.getApiVersion()));
 
-        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
+        ModelWizardDialog dialog = createSdkDownloadDialog(requested);
         if (dialog != null && dialog.showAndGet()) {
           updateSdkSourceRoot(sdk);
         }
       });
-      panel.createActionLabel("Refresh (if already downloaded)", () -> updateSdkSourceRoot(sdk));
+      panel.createAndAddLink("Refresh (if already downloaded)", () -> updateSdkSourceRoot(sdk));
       return panel;
     }
     return null;
+  }
+
+  @VisibleForTesting
+  protected ModelWizardDialog createSdkDownloadDialog(List<String> requestedPaths) {
+    return SdkQuickfixUtils.createDialogForPaths(myProject, requestedPaths);
   }
 
   @Nullable
@@ -123,5 +132,27 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
       }
     }
     return null;
+  }
+
+  @VisibleForTesting
+  static class MyEditorNotificationPanel extends EditorNotificationPanel {
+    private final Map<String, Runnable> myLinks = new HashMap<>();
+
+    private MyEditorNotificationPanel(@Nullable FileEditor fileEditor) {
+      super(fileEditor);
+    }
+
+    private void createAndAddLink(@NlsContexts.LinkLabel String text, @NotNull Runnable action) {
+      // Despite the name, `createActionLabel` both creates the label and adds it to the panel.
+      HyperlinkLabel label = createActionLabel(text, action);
+
+      // This collection is just for tracking for test purposes.
+      myLinks.put(label.getText(), action);
+    }
+
+    @VisibleForTesting
+    Map<String, Runnable> getLinks() {
+      return myLinks;
+    }
   }
 }
