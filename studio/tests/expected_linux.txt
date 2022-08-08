@@ -524,6 +524,7 @@ android-studio/license/eclipse_license.txt
 android-studio/license/eclipse_license2.txt
 android-studio/license/fest-NOTICE
 android-studio/license/fetchasgoogle.jar-NOTICE
+android-studio/license/ffmpeg-NOTICE
 android-studio/license/freemarker-NOTICE
 android-studio/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
 android-studio/license/google-api-services-debugger.jar-NOTICE
@@ -542,6 +543,7 @@ android-studio/license/gson_license.txt
 android-studio/license/hdrhistogram_license.txt
 android-studio/license/imgscalr_license.txt
 android-studio/license/instantapps-api-NOTICE
+android-studio/license/javacpp-NOTICE
 android-studio/license/javahelp_license.txt
 android-studio/license/javolution_license.txt
 android-studio/license/jaxb_license.txt

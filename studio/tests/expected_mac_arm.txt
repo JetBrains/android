@@ -501,6 +501,7 @@ Android Studio Preview.app/Contents/license/eclipse_license.txt
 Android Studio Preview.app/Contents/license/eclipse_license2.txt
 Android Studio Preview.app/Contents/license/fest-NOTICE
 Android Studio Preview.app/Contents/license/fetchasgoogle.jar-NOTICE
+Android Studio Preview.app/Contents/license/ffmpeg-NOTICE
 Android Studio Preview.app/Contents/license/freemarker-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-debugger.jar-NOTICE
@@ -519,6 +520,7 @@ Android Studio Preview.app/Contents/license/gson_license.txt
 Android Studio Preview.app/Contents/license/hdrhistogram_license.txt
 Android Studio Preview.app/Contents/license/imgscalr_license.txt
 Android Studio Preview.app/Contents/license/instantapps-api-NOTICE
+Android Studio Preview.app/Contents/license/javacpp-NOTICE
 Android Studio Preview.app/Contents/license/javahelp_license.txt
 Android Studio Preview.app/Contents/license/javolution_license.txt
 Android Studio Preview.app/Contents/license/jaxb_license.txt
