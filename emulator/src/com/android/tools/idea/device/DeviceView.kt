@@ -181,13 +181,7 @@ class DeviceView(
       val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
       deviceClient.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener(), object : AgentTerminationListener {
         override fun agentTerminated(exitCode: Int) {
-          UIUtil.invokeLaterIfNeeded {
-            when (state) {
-              State.CONNECTING -> failedToConnect(initialDisplayOrientation, null)
-              State.CONNECTED -> lostConnection()
-              else -> {}
-            }
-          }
+          disconnected(initialDisplayOrientation)
         }
       })
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
@@ -205,7 +199,7 @@ class DeviceView(
       // The view has been closed.
     }
     catch (e: Throwable) {
-      failedToConnect(initialDisplayOrientation, e)
+      disconnected(initialDisplayOrientation, e)
     }
   }
 
@@ -218,25 +212,32 @@ class DeviceView(
     }
   }
 
-  private fun failedToConnect(initialDisplayOrientation: Int, e: Throwable?) {
-    thisLogger().error("Failed to initialize the screen sharing agent", e)
-    disconnected("Failed to initialize the device agent. See the error log.",
-                 Reconnector("Retry", "Connecting to the device") { initializeAgentAsync(initialDisplayOrientation) })
-  }
-
-  private fun lostConnection() {
-    disconnected("Lost connection to the device. See the error log.",
-                 Reconnector("Reconnect", "Attempting to reconnect") { initializeAgentAsync(UNKNOWN_ORIENTATION) })
-  }
-
-  private fun disconnected(message: String, reconnector: Reconnector) {
-    EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-      if (!disposed) {
-        deviceClient?.let { Disposer.dispose(it) }
-        deviceClient = null
-        state = State.DISCONNECTED
-        showDisconnectedStateMessage(message, reconnector)
+  private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
+    UIUtil.invokeLaterIfNeeded {
+      if (disposed) {
+        return@invokeLaterIfNeeded
       }
+      val message: String
+      val reconnector: Reconnector
+      when (state) {
+        State.CONNECTING -> {
+          thisLogger().error("Failed to initialize the screen sharing agent", exception)
+          message = "Failed to initialize the device agent. See the error log."
+          reconnector = Reconnector("Retry", "Connecting to the device") { initializeAgentAsync(initialDisplayOrientation) }
+        }
+
+        State.CONNECTED -> {
+          message = "Lost connection to the device. See the error log."
+          reconnector = Reconnector("Reconnect", "Attempting to reconnect") { initializeAgentAsync(UNKNOWN_ORIENTATION) }
+        }
+
+        else -> return@invokeLaterIfNeeded
+      }
+
+      deviceClient?.let { Disposer.dispose(it) }
+      deviceClient = null
+      state = State.DISCONNECTED
+      showDisconnectedStateMessage(message, reconnector)
     }
   }
 
@@ -429,7 +430,7 @@ class DeviceView(
     }
 
     override fun onEndOfVideoStream() {
-      lostConnection()
+      disconnected(initialDisplayOrientation)
     }
   }
 
