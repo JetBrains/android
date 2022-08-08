@@ -25,16 +25,19 @@ import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warnIconHtml
 import com.android.utils.HtmlBuilder
-import com.intellij.ui.components.panels.VerticalBox
+import javax.swing.BoxLayout
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 fun taskDetailsPage(
   taskData: TaskUiData,
   actionHandlers: ViewActionHandlers
-): JComponent = VerticalBox().apply {
+): JComponent = JPanel().apply {
+  layout = BoxLayout(this, BoxLayout.Y_AXIS)
   val linksHandler = HtmlLinksHandler(actionHandlers)
   val detailsPanelHtml = taskDetailsPanelHtml(taskData, actionHandlers, linksHandler)
   val htmlLabel = htmlTextLabelWithFixedLines(detailsPanelHtml, linksHandler)
+  htmlLabel.alignmentX = 0f
   add(htmlLabel)
 }
 

@@ -31,6 +31,7 @@ import com.android.utils.HtmlBuilder
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.panels.VerticalBox
 import java.awt.BorderLayout
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -74,10 +75,12 @@ class TaskViewDetailPagesFactory(
   private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = taskDetailsPage(descriptor.taskData, actionHandlers)
 
   private fun createPluginDetailsPage(descriptor: PluginDetailsNodeDescriptor): JComponent {
-    return VerticalBox().apply {
+    return JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
       val linksHandler = HtmlLinksHandler(actionHandlers)
       val detailsPanelHtml = pluginDetailsHtml(descriptor, linksHandler)
       val htmlLabel = htmlTextLabelWithFixedLines(detailsPanelHtml, linksHandler)
+      htmlLabel.alignmentX = 0f
       add(htmlLabel)
     }
   }

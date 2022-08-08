@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +56,14 @@ public class JTextComponentWithHtmlFixture extends JTextComponentFixture {
     }
     Rectangle bounds = target().modelToView(position);
     Point pos = new Point(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    scrollRectToVisible(bounds);
     robot().waitForIdle();
     robot().click(target(), pos, MouseButton.LEFT_BUTTON, 1);
+  }
+
+  private void scrollRectToVisible(Rectangle bounds) {
+    GuiTask.execute(() -> {
+      target().scrollRectToVisible(bounds);
+    });
   }
 }
