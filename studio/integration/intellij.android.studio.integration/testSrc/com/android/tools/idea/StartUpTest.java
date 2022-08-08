@@ -58,6 +58,7 @@ public class StartUpTest {
       List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
         "Android",
         "Android APK Support",
+        "Android Design Tools",
         "Android SDK Upgrade Assistant",
         "Android NDK Support",
         "App Links Assistant",
@@ -71,7 +72,6 @@ public class StartUpTest {
         "Configuration Script",
         "Copyright",
         "Core of CIDR Test Framework",
-        "Design Tools",
         "Eclipse Keymap",
         "EditorConfig",
         "Firebase App Indexing",

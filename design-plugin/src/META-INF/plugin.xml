@@ -15,8 +15,9 @@
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.android.tools.design</id>
-  <name>Design Tools</name>
+  <name>Android Design Tools</name>
   <version>1.0</version>
+  <category>Android</category>
   <vendor>Google</vendor>
 
   <description>Provides a suite of design tools for Android Studio</description>
