@@ -90,32 +90,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     fireTableDataChanged();
   }
 
-  void setNameOverride(@NotNull Key key, @NotNull String nameOverride) {
-    for (int i = 0, size = myDevices.size(); i < size; i++) {
-      PhysicalDevice device = myDevices.get(i);
-      Key k = device.getKey();
-
-      if (!(k.equals(key) || k.getSerialNumber().equals(key))) {
-        continue;
-      }
-
-      PhysicalDevice newDevice = new PhysicalDevice.Builder()
-        .setKey(k)
-        .setType(device.getType())
-        .setName(device.getName())
-        .setNameOverride(nameOverride)
-        .setTarget(device.getTarget())
-        .setAndroidVersion(device.getAndroidVersion())
-        .addAllConnectionTypes(device.getConnectionTypes())
-        .build();
-
-      myDevices.set(i, newDevice);
-    }
-
-    combineDevices();
-    fireTableDataChanged();
-  }
-
   void remove(@NotNull Key key) {
     myDevices.removeIf(device -> {
       Key k = device.getKey();

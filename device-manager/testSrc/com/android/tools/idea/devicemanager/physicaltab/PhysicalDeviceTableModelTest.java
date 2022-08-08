@@ -18,8 +18,6 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.devicemanager.Key;
-import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.collect.Lists;
 import java.util.Arrays;
@@ -107,54 +105,6 @@ public final class PhysicalDeviceTableModelTest {
 
     // Assert
     assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5), model.getCombinedDevices());
-    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
-  }
-
-  @Test
-  public void setNameOverride() {
-    // Arrange
-    Key domainName = new DomainName("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp");
-
-    PhysicalDevice googlePixel3WithDomainName = new PhysicalDevice.Builder()
-      .setKey(domainName)
-      .setName("Google Pixel 3")
-      .setTarget("Android 12.0")
-      .setAndroidVersion(new AndroidVersion(31))
-      .build();
-
-    TableModelListener listener = Mockito.mock(TableModelListener.class);
-
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3,
-                                                                                googlePixel3WithDomainName,
-                                                                                TestPhysicalDevices.GOOGLE_PIXEL_5));
-
-    model.addTableModelListener(listener);
-
-    Key serialNumber = new SerialNumber("86UX00F4R");
-
-    // Act
-    model.setNameOverride(serialNumber, "Name Override");
-
-    // Assert
-    Object expectedDevice1 = new PhysicalDevice.Builder()
-      .setKey(serialNumber)
-      .setName("Google Pixel 3")
-      .setNameOverride("Name Override")
-      .setTarget("Android 12.0")
-      .setAndroidVersion(new AndroidVersion(31))
-      .build();
-
-    Object expectedDevice2 = new PhysicalDevice.Builder()
-      .setKey(domainName)
-      .setName("Google Pixel 3")
-      .setNameOverride("Name Override")
-      .setTarget("Android 12.0")
-      .setAndroidVersion(new AndroidVersion(31))
-      .build();
-
-    assertEquals(Arrays.asList(expectedDevice1, expectedDevice2, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getDevices());
-    assertEquals(Arrays.asList(expectedDevice1, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getCombinedDevices());
-
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
