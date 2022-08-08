@@ -61,14 +61,7 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
                                                         int viewRowIndex,
                                                         int viewColumnIndex) {
     super.getTableCellEditorComponent(table, value, selected, viewRowIndex, viewColumnIndex);
-
-    if (myProject == null) {
-      myButton.setEnabled(false);
-    }
-    else {
-      myDevice = myTable.getDeviceAt(viewRowIndex);
-      myButton.setEnabled(myDevice.isOnline());
-    }
+    myDevice = myTable.getDeviceAt(viewRowIndex);
 
     return myButton;
   }

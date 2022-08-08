@@ -16,6 +16,8 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
@@ -175,6 +177,30 @@ public final class PhysicalDeviceTableModelTest {
 
     // Assert
     assertEquals(1, count);
+  }
+
+  @Test
+  public void isCellEditableCaseActivateDeviceFileExplorerWindowModelColumnIndexDeviceIsOnline() {
+    // Arrange
+    TableModel model = new PhysicalDeviceTableModel(List.of(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5));
+
+    // Act
+    boolean editable = model.isCellEditable(0, PhysicalDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertTrue(editable);
+  }
+
+  @Test
+  public void isCellEditableCaseActivateDeviceFileExplorerWindowModelColumnIndex() {
+    // Arrange
+    TableModel model = new PhysicalDeviceTableModel(List.of(TestPhysicalDevices.GOOGLE_PIXEL_5));
+
+    // Act
+    boolean editable = model.isCellEditable(0, PhysicalDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertFalse(editable);
   }
 
   @Test

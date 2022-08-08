@@ -36,10 +36,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
-import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.ArrayList;
@@ -90,8 +88,13 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   }
 
   VirtualDeviceTableModel(@Nullable Project project) {
+    this(project, List.of());
+  }
+
+  @VisibleForTesting
+  VirtualDeviceTableModel(@Nullable Project project, @NotNull Collection<@NotNull VirtualDevice> devices) {
     this(project,
-         List.of(),
+         devices,
          VirtualDeviceTableModel::newSetOnline,
          AvdManagerConnection::getDefaultAvdManagerConnection,
          SetAllOnline::new,
@@ -269,6 +272,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         VirtualDevice device = myDevices.get(modelRowIndex);
         return device.getState().isEnabled(device);
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+        return myProject != null && myDevices.get(modelRowIndex).isOnline();
       case EDIT_MODEL_COLUMN_INDEX:
       case POP_UP_MENU_MODEL_COLUMN_INDEX:
         return true;

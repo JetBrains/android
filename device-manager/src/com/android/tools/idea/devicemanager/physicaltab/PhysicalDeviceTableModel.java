@@ -210,6 +210,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case TYPE_MODEL_COLUMN_INDEX:
         return false;
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+        return myCombinedDevices.get(modelRowIndex).isOnline();
       case REMOVE_MODEL_COLUMN_INDEX:
       case POP_UP_MENU_MODEL_COLUMN_INDEX:
         return true;

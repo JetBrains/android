@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
@@ -90,7 +91,7 @@ public final class VirtualDeviceTableModelTest {
   }
 
   @Test
-  public void isCellEditable() {
+  public void isCellEditableCaseLaunchOrStopModelColumnIndex() {
     // Arrange
     VirtualDevice device = new VirtualDevice.Builder()
       .setKey(TestVirtualDevices.newKey("Pixel_5_API_31"))
@@ -101,17 +102,46 @@ public final class VirtualDeviceTableModelTest {
       .setAvdInfo(myAvd)
       .build();
 
-    TableModel model = new VirtualDeviceTableModel(null,
-                                                   List.of(device),
-                                                   VirtualDeviceTableModel::newSetOnline,
-                                                   AvdManagerConnection::getDefaultAvdManagerConnection,
-                                                   SetAllOnline::new,
-                                                   new DeviceManagerAndroidDebugBridge(),
-                                                   EmulatorConsole::getConsole,
-                                                   VirtualTabMessages::showErrorDialog);
+    TableModel model = new VirtualDeviceTableModel(null, List.of(device));
 
     // Act
     boolean editable = model.isCellEditable(0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertFalse(editable);
+  }
+
+  @Test
+  public void isCellEditableCaseActivateDeviceFileExplorerWindowModelColumnIndexProjectIsNull() {
+    // Arrange
+    TableModel model = new VirtualDeviceTableModel(null);
+
+    // Act
+    boolean editable = model.isCellEditable(0, VirtualDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertFalse(editable);
+  }
+
+  @Test
+  public void isCellEditableCaseActivateDeviceFileExplorerWindowModelColumnIndexDeviceIsOnline() {
+    // Arrange
+    TableModel model = new VirtualDeviceTableModel(Mockito.mock(Project.class), List.of(TestVirtualDevices.onlinePixel5Api31(myAvd)));
+
+    // Act
+    boolean editable = model.isCellEditable(0, VirtualDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertTrue(editable);
+  }
+
+  @Test
+  public void isCellEditableCaseActivateDeviceFileExplorerWindowModelColumnIndex() {
+    // Arrange
+    TableModel model = new VirtualDeviceTableModel(Mockito.mock(Project.class), List.of(TestVirtualDevices.pixel5Api31(myAvd)));
+
+    // Act
+    boolean editable = model.isCellEditable(0, VirtualDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX);
 
     // Assert
     assertFalse(editable);
