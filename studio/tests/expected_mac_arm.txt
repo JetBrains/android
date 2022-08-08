@@ -737,6 +737,9 @@ Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/compi
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/android-ndk.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190621-0852.jar
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/Frameworks/Breakpad.framework/Resources/Info.plist
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/Frameworks/Breakpad.framework/Resources/breakpadUtilities.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/Frameworks/Breakpad.framework/Versions/A/Breakpad
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/LICENSE.TXT
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/android/arm64-v8a/lldb-server
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/android/armeabi/lldb-server
@@ -1781,12 +1784,6 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/urllib/robotparser.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/uu.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/uuid.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/venv/__init__.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/venv/__main__.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/venv/scripts/common/Activate.ps1
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/venv/scripts/common/activate
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/venv/scripts/posix/activate.csh
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/venv/scripts/posix/activate.fish
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/warnings.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/wave.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/weakref.py
@@ -1834,11 +1831,11 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/lib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libc++abi.1.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libedit.0.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libform.6.dylib
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/liblldb.15.0.1git.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/liblldb.14.0.0git.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libncurses.6.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libpanel.6.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libpython3.9.dylib
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libxml2.2.9.13.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libxml2.2.9.12.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/diagnose/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/diagnose/diagnose_nsstring.py
@@ -1855,7 +1852,6 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/pyt
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/formatters/synth.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/crashlog.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/crashlog_scripted_process.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/heap.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/heap/Makefile
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/heap/heap_find.cpp

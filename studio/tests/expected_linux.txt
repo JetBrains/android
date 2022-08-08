@@ -1137,6 +1137,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_sha
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_sha3.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_sha512.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_socket.cpython-39-x86_64-linux-gnu.so
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_sqlite3.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_statistics.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_struct.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_testbuffer.cpython-39-x86_64-linux-gnu.so
@@ -1818,12 +1819,6 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/urllib/response.
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/urllib/robotparser.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/uu.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/uuid.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/venv/__init__.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/venv/__main__.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/venv/scripts/common/Activate.ps1
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/venv/scripts/common/activate
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/venv/scripts/posix/activate.csh
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/venv/scripts/posix/activate.fish
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/warnings.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/wave.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/weakref.py
@@ -1871,11 +1866,11 @@ android-studio/plugins/android-ndk/resources/lldb/lib64/libc++.so.1
 android-studio/plugins/android-ndk/resources/lldb/lib64/libc++abi.so.1
 android-studio/plugins/android-ndk/resources/lldb/lib64/libedit.so.0
 android-studio/plugins/android-ndk/resources/lldb/lib64/libform.so.6
-android-studio/plugins/android-ndk/resources/lldb/lib64/liblldb.so.15git
+android-studio/plugins/android-ndk/resources/lldb/lib64/liblldb.so.14git
 android-studio/plugins/android-ndk/resources/lldb/lib64/libncurses.so.6
 android-studio/plugins/android-ndk/resources/lldb/lib64/libpanel.so.6
 android-studio/plugins/android-ndk/resources/lldb/lib64/libpython3.9.so.1.0
-android-studio/plugins/android-ndk/resources/lldb/lib64/libxml2.so.2.9.13
+android-studio/plugins/android-ndk/resources/lldb/lib64/libxml2.so.2.9.12
 android-studio/plugins/android-ndk/resources/lldb/shared/jobject_printers/jstring_reader.py
 android-studio/plugins/android/lib/HdrHistogram-2.1.12.jar
 android-studio/plugins/android/lib/aapt2-proto-0.3.1.jar
