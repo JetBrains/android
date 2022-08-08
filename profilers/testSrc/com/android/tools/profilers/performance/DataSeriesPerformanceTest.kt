@@ -35,7 +35,6 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.LegacyCpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.LegacyCpuThreadStateDataSeries
-import com.android.tools.profilers.cpu.LegacyCpuUsageDataSeries
 import com.android.tools.profilers.energy.EnergyDuration
 import com.android.tools.profilers.energy.EnergyUsageDataSeries
 import com.android.tools.profilers.energy.LegacyEnergyEventsDataSeries
@@ -109,8 +108,6 @@ class DataSeriesPerformanceTest {
                                       LegacyMergedEnergyEventsDataSeries(
                                         LegacyEnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
                                         EnergyDuration.Kind.JOB)),
-                                 Pair("Cpu-Usage",
-                                      LegacyCpuUsageDataSeries(client.cpuClient, session, false)),
                                  Pair("Cpu-Thread-Count",
                                       LegacyCpuThreadCountDataSeries(client.cpuClient, session)),
                                  Pair("Cpu-Thread-State",

@@ -21,12 +21,10 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -36,15 +34,10 @@ class CpuUsageTest {
   private val transportService = FakeTransportService(timer, true)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuUsageTest", FakeCpuService(), FakeProfilerService(timer), transportService)
+  var grpcChannel = FakeGrpcChannel("CpuUsageTest", transportService)
 
   private val services = FakeIdeProfilerServices()
   private val profilers by lazy { StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer) }
-
-  @Before
-  fun setup() {
-    services.enableEventsPipeline(true)
-  }
 
   @Test
   fun atraceCaptureCreatesMergedDataSeries() {

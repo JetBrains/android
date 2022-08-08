@@ -51,22 +51,16 @@ public class CpuUsage extends LineChartModel {
    */
   public CpuUsage(@NotNull StudioProfilers profilers, @NotNull Range viewRange, @NotNull Range dataRange, @Nullable CpuCapture cpuCapture) {
     myCpuRange = new Range(0, 100);
-    DataSeries<Long> series;
-    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      series = new UnifiedEventDataSeries<>(
-        profilers.getClient().getTransportClient(),
-        profilers.getSession().getStreamId(),
-        profilers.getSession().getPid(),
-        Common.Event.Kind.CPU_USAGE,
-        profilers.getSession().getPid(),
-        events -> extractData(events, false));
-      if (cpuCapture != null && cpuCapture.getSystemTraceData() != null) {
-        series = new MergeCaptureDataSeries<>(cpuCapture, series,
-                                              new LazyDataSeries<>(() -> cpuCapture.getSystemTraceData().getCpuUtilizationSeries()));
-      }
-    }
-    else {
-      series = new LegacyCpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), false);
+    DataSeries<Long> series = new UnifiedEventDataSeries<>(
+      profilers.getClient().getTransportClient(),
+      profilers.getSession().getStreamId(),
+      profilers.getSession().getPid(),
+      Common.Event.Kind.CPU_USAGE,
+      profilers.getSession().getPid(),
+      events -> extractData(events, false));
+    if (cpuCapture != null && cpuCapture.getSystemTraceData() != null) {
+      series = new MergeCaptureDataSeries<>(cpuCapture, series,
+                                            new LazyDataSeries<>(() -> cpuCapture.getSystemTraceData().getCpuUtilizationSeries()));
     }
     myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), viewRange, myCpuRange, series, dataRange);
     add(myCpuSeries);
