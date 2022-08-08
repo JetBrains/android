@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import com.intellij.util.ReflectionUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -245,8 +246,11 @@ public class DisposerExplorer {
     return getFieldValue(Disposer.getTree(), "myObject2ParentNode");
   }
 
+  @Nullable
   private static Object getObjectNode(@NotNull Disposable disposable) {
-    return Arrays.stream(getObjectNodeChildren(getObjectToNodeMap().get(disposable))).filter(n-> getObjectNodeDisposable(n) == disposable).findFirst().get();
+    Object node = getObjectToNodeMap().get(disposable);
+    if (node == null) return null;
+    return ContainerUtil.find(getObjectNodeChildren(node), n -> getObjectNodeDisposable(n) == disposable);
   }
 
   @Nullable
