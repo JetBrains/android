@@ -34,6 +34,7 @@ import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import kotlinx.coroutines.runBlocking
@@ -387,11 +388,14 @@ internal class DeviceViewTest {
     assertThat(button.text).isEqualTo("Reconnect")
     // Check handling of the agent crash on startup.
     agent.crashOnStart = true
+    errorMessage.text = ""
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Let all ongoing activity finish before attempting to reconnect.
     val loggedErrors = executeCapturingLoggedErrors {
       fakeUi.clickOn(button)
-      waitForCondition(5, TimeUnit.SECONDS) { errorMessage.text == "Failed to initialize the device agent. See the error log." }
-      assertThat(button.text).isEqualTo("Retry")
+      waitForCondition(5, TimeUnit.SECONDS) { errorMessage.text.isNotEmpty() }
     }
+    assertThat(errorMessage.text).isEqualTo("Failed to initialize the device agent. See the error log.")
+    assertThat(button.text).isEqualTo("Retry")
     assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
 
     // Check reconnection.
