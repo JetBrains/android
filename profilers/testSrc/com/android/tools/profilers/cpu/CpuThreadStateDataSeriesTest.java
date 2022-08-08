@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
-import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -48,13 +46,8 @@ public class CpuThreadStateDataSeriesTest {
 
   @Before
   public void setUp() {
-    FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
-    ideProfilerServices.enableEventsPipeline(true);
     ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
-    myStudioProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), ideProfilerServices, myTimer);
-    // One second must be enough for new devices (and processes) to be picked up
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myStudioProfilers.setProcess(FAKE_DEVICE, FAKE_PROCESS);
+    myStudioProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
   }
 
   @Test

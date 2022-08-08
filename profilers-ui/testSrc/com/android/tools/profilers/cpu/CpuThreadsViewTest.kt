@@ -21,25 +21,21 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.ListSelectionModel
 
@@ -47,13 +43,12 @@ import javax.swing.ListSelectionModel
 class CpuThreadsViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
-  private val cpuService = FakeCpuService()
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", cpuService,
-                                    transportService, FakeProfilerService(timer),
-                                    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
-  @get:Rule val myEdtRule = EdtRule()
+  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", transportService)
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   private lateinit var stage: CpuProfilerStage
   private lateinit var ideServices: FakeIdeProfilerServices
@@ -62,7 +57,6 @@ class CpuThreadsViewTest {
   fun setUp() {
     ideServices = FakeIdeProfilerServices()
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
-    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     stage = CpuProfilerStage(profilers)
@@ -72,8 +66,10 @@ class CpuThreadsViewTest {
   @Test
   fun selectedThreadReflectOnTheModel() {
     val threadsView = CpuThreadsView(stage)
-    // Make a selection that includes all threads in the model.
-    stage.timeline.viewRange.set(-Double.MAX_VALUE, Double.MAX_VALUE)
+    populateThreads()
+    // Update the view range triggering an aspect change in CpuThreadsModel.
+    stage.timeline.viewRange.set(stage.timeline.dataRange)
+
     val threadsList = getThreadsList(threadsView)
     val tracker = ideServices.featureTracker as FakeFeatureTracker
     assertThat(threadsList.selectedValue).isNull()
@@ -103,14 +99,10 @@ class CpuThreadsViewTest {
     val hideablePanel = TreeWalker(threadsView.component).ancestors().filterIsInstance<HideablePanel>().first()
     val panelTitle = TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first()
     assertThat(panelTitle.text).contains("THREADS (0)")
-    // Add a thread
-    cpuService.addThreads(1, "Test", mutableListOf(
-      CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder().setTimestamp(0).setNewState(
-        Cpu.CpuThreadData.State.SLEEPING).build()))
+
+    populateThreads()
     // Update the view range triggering an aspect change in CpuThreadsModel.
     stage.timeline.viewRange.set(stage.timeline.dataRange)
-    // Tick to trigger
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(panelTitle.text).contains("THREADS (1)")
   }
 
@@ -152,4 +144,17 @@ class CpuThreadsViewTest {
     .descendants()
     .filterIsInstance<DragAndDropList<CpuThreadsModel.RangedCpuThread>>()
     .first()
+
+  private fun populateThreads() {
+    transportService.addEventToStream(
+      ProfilersTestData.SESSION_DATA.streamId,
+      Common.Event.newBuilder()
+        .setPid(ProfilersTestData.SESSION_DATA.pid)
+        .setTimestamp(TimeUnit.MILLISECONDS.toNanos(0))
+        .setKind(Common.Event.Kind.CPU_THREAD)
+        .setGroupId(1)
+        .setIsEnded(false)
+        .setCpuThread(Cpu.CpuThreadData.newBuilder().setTid(1).setName("Test").setState(Cpu.CpuThreadData.State.SLEEPING))
+        .build())
+  }
 }
