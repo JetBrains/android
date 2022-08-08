@@ -26,7 +26,6 @@ import com.android.tools.idea.devicemanager.SerialNumber;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,13 +53,13 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   PhysicalDeviceTableModel() {
-    this(Collections.emptyList());
+    this(List.of());
   }
 
   @VisibleForTesting
-  PhysicalDeviceTableModel(@NotNull List<@NotNull PhysicalDevice> devices) {
-    myDevices = devices;
-    myCombinedDevices = Collections.emptyList();
+  PhysicalDeviceTableModel(@NotNull Collection<@NotNull PhysicalDevice> devices) {
+    myDevices = new ArrayList<>(devices);
+    myCombinedDevices = List.of();
 
     combineDevices();
   }
