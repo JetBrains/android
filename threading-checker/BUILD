@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.threading-checker",
     srcs = ["src"],
     iml_files = ["intellij.android.threading-checker.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
