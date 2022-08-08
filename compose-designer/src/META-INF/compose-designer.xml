@@ -65,7 +65,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewFontScaleMustBeGreaterThanZero"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.preview.font.scale.name"
                      level="ERROR"/>
@@ -113,7 +113,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNotSupportedInUnitTestFiles"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.unit.test.files"
                      level="ERROR"/>
