@@ -340,7 +340,6 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
           val buffer = DataBufferInt(imagePixels, imagePixels.size)
           val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageSize.width, imageSize.height, SAMPLE_MODEL_BIT_MASKS)
           val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
-          @Suppress("UndesirableClassUsage")
           image = BufferedImage(COLOR_MODEL, raster, false, null)
         }
 
