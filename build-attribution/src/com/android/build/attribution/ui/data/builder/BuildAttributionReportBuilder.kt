@@ -31,6 +31,7 @@ import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.IssueLevel
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.displayName
+import com.android.build.attribution.ui.getTaskCategoryInfo
 import com.android.ide.common.attribution.TaskCategory
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
@@ -157,6 +158,8 @@ class BuildAttributionReportBuilder(
     override val issues = issueUiDataContainer.taskCategoryIssueGroups(taskCategoryCriticalPathBuildData.taskCategory)
     override val warningCount = issues.sumBy { it.warningCount }
     override val infoCount = issues.sumBy { it.infoCount }
+    override val taskCategoryInfo: String
+      get() = taskCategoryCriticalPathBuildData.taskCategory.getTaskCategoryInfo()
   }
 
 }

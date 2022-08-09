@@ -24,12 +24,14 @@ import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.tree.TreePathUtil
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -65,11 +67,17 @@ class TasksPageViewTest {
     }
   }
 
+  @After
+  fun clearOverride() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.clearOverride()
+  }
+
   @Test
   @RunsInEdt
   fun testCreateView() {
     assertThat(view.component.name).isEqualTo("tasks-view")
     assertThat(view.groupingCheckBox.isSelected).isFalse()
+    assertThat(view.tasksGroupingComboBox.selectedItem).isEqualTo(TasksDataPageModel.Grouping.UNGROUPED)
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
     assertThat(view.tree.selectionPath).isNull()
@@ -151,6 +159,23 @@ class TasksPageViewTest {
     // Act / assert links handling
     links[0].doClick()
     Mockito.verify(mockHandlers).changeViewToWarningsLinkClicked()
+  }
+
+  @Test
+  @RunsInEdt
+  fun testModelUpdatedWithTaskCategoryFlag() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
+    // Act - update model by opening Plugin page
+    model.selectPageById(TasksPageId(TasksDataPageModel.Grouping.BY_PLUGIN, TaskDetailsPageType.PLUGIN_DETAILS, "resources.plugin"))
+
+    // Assert view updated values from model
+    assertThat(view.tasksGroupingComboBox.selectedItem).isEqualTo(TasksDataPageModel.Grouping.BY_PLUGIN)
+    assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
+
+    val selectedNode = view.tree.selectionPath?.lastPathComponent as TasksTreeNode
+    assertThat(selectedNode).isEqualTo(model.selectedNode)
+    assertThat(findVisibleDetailsPageNames(view.detailsPanel)).isEqualTo("details-${selectedNode.descriptor.pageId}")
+    Mockito.verifyZeroInteractions(mockHandlers)
   }
 
   private fun findVisibleDetailsPageNames(parent: Component): String {

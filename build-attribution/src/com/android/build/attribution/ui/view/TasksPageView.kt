@@ -22,9 +22,13 @@ import com.android.build.attribution.ui.model.tasksFilterComponent
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.view.chart.TimeDistributionTreeChart
 import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
+import com.android.tools.idea.flags.StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
+import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBLabel
@@ -42,6 +46,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Font
+import java.awt.event.ItemEvent
 import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -71,6 +76,16 @@ class TasksPageView(
       if (fireActionHandlerEvents) {
         val grouping = if (isSelected) TasksDataPageModel.Grouping.BY_PLUGIN else TasksDataPageModel.Grouping.UNGROUPED
         actionHandlers.tasksGroupingSelectionUpdated(grouping)
+      }
+    }
+  }
+
+  val tasksGroupingComboBox = ComboBox(CollectionComboBoxModel(model.availableGroupings)).apply {
+    name = "tasksGroupingComboBox"
+    renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = value.uiName }
+    addItemListener { event ->
+      if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {
+        actionHandlers.tasksGroupingSelectionUpdated(event.item as TasksDataPageModel.Grouping)
       }
     }
   }
@@ -157,7 +172,12 @@ class TasksPageView(
     layout = HorizontalLayout(10)
     name = "tasks-view-additional-controls"
 
-    add(groupingCheckBox)
+    if (BUILD_ANALYZER_CATEGORY_ANALYSIS.get()) {
+      add(JLabel("Group by:"))
+      add(tasksGroupingComboBox)
+    } else {
+      add(groupingCheckBox)
+    }
     add(tasksFilterComponent(model, actionHandlers))
   }
 
@@ -168,7 +188,11 @@ class TasksPageView(
 
   private fun updateViewFromModel(treeStructureChanged: Boolean) {
     fireActionHandlerEvents = false
-    groupingCheckBox.isSelected = model.selectedGrouping == TasksDataPageModel.Grouping.BY_PLUGIN
+    if (BUILD_ANALYZER_CATEGORY_ANALYSIS.get()) {
+      tasksGroupingComboBox.selectedItem = model.selectedGrouping
+    } else {
+      groupingCheckBox.isSelected = model.selectedGrouping == TasksDataPageModel.Grouping.BY_PLUGIN
+    }
     treeHeaderLabel.text = model.treeHeaderText
     tasksLegendPanel.isVisible = model.selectedGrouping == TasksDataPageModel.Grouping.UNGROUPED
     if (treeStructureChanged) {

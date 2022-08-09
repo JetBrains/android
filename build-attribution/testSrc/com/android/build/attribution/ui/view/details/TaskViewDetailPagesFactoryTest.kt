@@ -27,9 +27,11 @@ import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -45,6 +47,11 @@ class TaskViewDetailPagesFactoryTest {
   val edtRule = EdtRule()
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
+
+  @After
+  fun clearOverride() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.clearOverride()
+  }
 
   @Test
   fun testCreateTaskPageWithoutWarning() {
@@ -241,6 +248,30 @@ which it must do in order to support incremental builds.<BR/>
 
     assertThat(detailsPage.name).isEqualTo("empty-details")
     assertThat((detailsPage.components.single() as JLabel).text).isEqualTo("Select page for details")
+  }
+
+  @Test
+  fun testCreateTaskCategoryPageWithoutWarnings() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
+    val data = MockUiData(tasksList = listOf(mockTask(":module1", "task1", "myPlugin", 100)))
+    val model = TasksDataPageModelImpl(data)
+    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
+    model.selectGrouping(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
+    print(data.criticalPathTaskCategories.entries.joinToString { it.name })
+    val taskCategoryData = data.criticalPathTaskCategories.entries.first{ it.name == "Android Resources" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData)) as EntryDetailsNodeDescriptor
+
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    assertThat(htmlBody).isEqualTo("""
+      <B>Android Resources</B><BR/>
+      Tasks related to Android resources compilation, processing, linking and merging.<BR/>
+      <BR/>
+      Total duration: 0.1s<BR/>
+      Number of tasks: 1 task<BR/>
+      <BR/>
+      <B>Warnings</B><BR/>
+      No warnings detected for this task category.
+    """.trimIndent())
   }
 
   private fun String.clearHtml(): String = trimIndent()

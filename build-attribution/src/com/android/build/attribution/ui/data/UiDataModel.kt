@@ -128,7 +128,7 @@ interface CriticalPathPluginUiData : CriticalPathEntryUiData {
 }
 
 interface CriticalPathTaskCategoryUiData : CriticalPathEntryUiData {
-  // TODO: Add taskCategoryInformation field
+  val taskCategoryInfo: String
   override val modelGrouping: TasksDataPageModel.Grouping
     get() = TasksDataPageModel.Grouping.BY_TASK_CATEGORY
 }

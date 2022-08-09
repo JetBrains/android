@@ -25,9 +25,11 @@ import com.android.build.attribution.ui.panels.taskDetailsPanelHtml
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -42,6 +44,11 @@ class TaskDetailsPageTest {
   val edtRule = EdtRule()
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
+
+  @After
+  fun clearOverride() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.clearOverride()
+  }
 
   @Test
   fun testTaskPageOnLogicalCriticalPathWithReasons() {
@@ -272,6 +279,32 @@ class TaskDetailsPageTest {
 
     ui.clickOnLink("Learn more")
     Mockito.verify(mockHandlers).helpLinkClicked(BuildAnalyzerBrowserLinks.NO_OUTPUTS_DECLARED_ISSUE)
+  }
+
+  @Test
+  fun testTaskPageShowsTaskCategoryWhenFlagEnabled() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
+    val taskData = mockTask(":module1", "task1", "myPlugin", 50, criticalPathDurationMs = 1000).apply {
+      onLogicalCriticalPath = false
+      onExtendedCriticalPath = false
+    }
+
+    val htmlBody = taskDetailsPanelHtml(taskData, mockHandlers, HtmlLinksHandler(mockHandlers)).clearHtml()
+    assertThat(htmlBody).isEqualTo("""
+      <B>:module1:task1</B><BR/>
+      <BR/>
+      <B>Duration:</B>  &lt;0.1s / 5.0%<BR/>
+      Sub-project: :module1<BR/>
+      Plugin: myPlugin<BR/>
+      Type: CompilationType<BR/>
+      Task Execution Categories: Android Resources, Compilation<BR/>
+      <BR/>
+      <B>Warnings</B><BR/>
+      No warnings found<BR/>
+      <BR/>
+      <B>Reason task ran</B><BR/>
+      No info
+      """.trimIndent())
   }
 
   private fun String.clearHtml(): String = trimIndent()

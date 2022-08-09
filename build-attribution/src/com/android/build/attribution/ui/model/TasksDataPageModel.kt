@@ -85,10 +85,13 @@ interface TasksDataPageModel {
   enum class Grouping(
     val uiName: String
   ) {
-    UNGROUPED("Ungrouped"),
-    BY_PLUGIN("By Plugin"),
-    BY_TASK_CATEGORY("By Task Category")
+    UNGROUPED("No Grouping"),
+    BY_PLUGIN("Plugin"),
+    BY_TASK_CATEGORY("Task Category")
   }
+
+  val availableGroupings: List<Grouping>
+    get() = Grouping.values().asList()
 
   fun applyFilter(newFilter: TasksFilter)
 }

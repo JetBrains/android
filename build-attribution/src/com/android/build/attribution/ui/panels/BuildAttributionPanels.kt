@@ -18,12 +18,14 @@ package com.android.build.attribution.ui.panels
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskUiData
+import com.android.build.attribution.ui.displayName
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.helpIcon
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warnIconHtml
+import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.HtmlBuilder
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -69,6 +71,10 @@ fun taskDetailsPanelHtml(
     add("Sub-project: ${taskData.module}").newline()
     addHtml("Plugin: ${pluginNameHtml(taskData)}").newline()
     add("Type: ${taskData.taskType}").newline()
+    if (StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.get()) {
+      val taskCategories = listOf(taskData.primaryTaskCategory) + taskData.secondaryTaskCategories
+      add("Task Execution Categories: ${taskCategories.joinToString { it.displayName() }}").newline()
+    }
     newline()
     createWarningsSection(taskData, actionHandlers, linksHandler)
     createReasonsSection(taskData.reasonsToRun)

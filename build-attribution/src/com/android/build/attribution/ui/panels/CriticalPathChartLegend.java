@@ -88,7 +88,7 @@ public interface CriticalPathChartLegend {
     @NotNull
     public ChartColor getColor(@NotNull String name) {
       return pluginToColorMapping
-        .computeIfAbsent(name, key -> categoricalGooglePalette[Math.min(paletteCursor++, categoricalGooglePalette.length)]);
+        .computeIfAbsent(name, key -> categoricalGooglePalette[Math.min(paletteCursor++, categoricalGooglePalette.length - 1)]);
     }
 
     @NotNull

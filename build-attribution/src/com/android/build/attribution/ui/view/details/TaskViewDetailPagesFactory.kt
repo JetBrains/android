@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
+import com.android.build.attribution.ui.data.CriticalPathTaskCategoryUiData
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.EntryDetailsNodeDescriptor
@@ -90,10 +91,11 @@ class TaskViewDetailPagesFactory(
     linksHandler: HtmlLinksHandler
   ): String {
     return HtmlBuilder().apply {
-      val entryTypeString = if (descriptor.entryData is CriticalPathPluginUiData) "plugin" else "task label"
+      val entryTypeString = if (descriptor.entryData is CriticalPathPluginUiData) "plugin" else "task category"
       val filteredTasksNumber = descriptor.filteredTaskNodes.size
       val filteredTasksWithWarnings = descriptor.filteredTaskNodes.filter { it.hasWarning }
       addBold(descriptor.entryData.name).newline()
+      if (descriptor.entryData is CriticalPathTaskCategoryUiData) add(descriptor.entryData.taskCategoryInfo).newline().newline()
       add("Total duration: ").addHtml(descriptor.filteredEntryTime.toTimeWithPercentage().durationStringHtml()).newline()
       //TODO (b/240926892): these are filtered tasks, should make it clear for the user.
       add("Number of tasks: ${filteredTasksNumber.withPluralization("task")}").newline()
