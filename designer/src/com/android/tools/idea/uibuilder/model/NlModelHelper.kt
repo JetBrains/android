@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.model
 
 import com.android.AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY
 import com.android.resources.Density
+import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
@@ -28,6 +29,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
+import kotlin.math.hypot
 
 /*
  * Layout editor-specific helper methods and data for NlModel
@@ -53,7 +55,7 @@ fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordina
     val dpi = screen.pixelDensity.dpiValue.toDouble()
     val width = xDimension / dpi
     val height = yDimension / dpi
-    val diagonalLength = Math.sqrt(width * width + height * height)
+    val diagonalLength = hypot(width, height)
 
     screen.diagonalLength = diagonalLength
     screen.size = ScreenSize.getScreenSize(diagonalLength)
@@ -66,8 +68,8 @@ fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordina
 
   //Change the orientation of the device depending on the shape of the canvas
   val newState: State? =
-    if (xDimension > yDimension) device.getState("Landscape")
-    else device.getState("Portrait")
+    if (xDimension > yDimension) device.allStates.singleOrNull { it.orientation == ScreenOrientation.LANDSCAPE }
+    else device.allStates.singleOrNull { it.orientation == ScreenOrientation.PORTRAIT }
   configuration.setEffectiveDevice(device, newState)
 }
 
