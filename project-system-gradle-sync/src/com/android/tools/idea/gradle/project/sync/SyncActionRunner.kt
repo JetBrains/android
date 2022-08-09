@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeVariantAbi
-import com.android.builder.model.v2.ide.Variant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
@@ -88,7 +87,6 @@ data class ActionToRun<T>(
       Versions::class.java -> fetchesV2Models
       BasicAndroidProject::class.java -> fetchesV2Models
       AndroidProject::class.java -> fetchesV2Models
-      Variant::class.java -> fetchesV2Models
       VariantDependencies::class.java -> fetchesV2Models
       AndroidDsl::class.java -> fetchesV2Models
       ProjectSyncIssues::class.java -> fetchesV2Models
