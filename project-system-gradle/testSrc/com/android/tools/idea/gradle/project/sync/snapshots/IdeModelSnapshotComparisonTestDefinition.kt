@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectRe
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest.TestDef
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_32
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
@@ -158,6 +159,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       AGP_70 -> Unit
       AGP_71 -> Unit
       AGP_72_V1 -> Unit
+      AGP_73 -> Unit
       AGP_CURRENT_V1 -> Unit
     }
   }

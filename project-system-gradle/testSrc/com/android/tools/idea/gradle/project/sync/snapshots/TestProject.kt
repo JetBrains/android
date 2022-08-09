@@ -410,6 +410,7 @@ fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
   AgpVersionSoftwareEnvironmentDescriptor.AGP_71 -> "_Agp_7.1_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1 -> "_Agp_7.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_72 -> "_Agp_7.2_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_73 -> "_Agp_7.3_"
 }
 
 fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {

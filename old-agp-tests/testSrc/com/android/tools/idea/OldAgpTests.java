@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_70Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_71Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_72Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_72_V1Test;
+import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_73Test;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
@@ -51,7 +52,8 @@ import org.junit.runner.RunWith;
   SyncProject_AGP_70Test.class,
   SyncProject_AGP_71Test.class,
   SyncProject_AGP_72_V1Test.class,
-  SyncProject_AGP_72Test.class
+  SyncProject_AGP_72Test.class,
+  SyncProject_AGP_73Test.class
 })
 public class OldAgpTests extends IdeaTestSuiteBase {
 

@@ -188,4 +188,4 @@ data class GradleSyncLoggedEventsTestDef(
 }
 
 private fun GradleSyncLoggedEventsTestDef.shouldSupportParallelSync() =
-  agpVersion > AgpVersionSoftwareEnvironmentDescriptor.AGP_72 && agpVersion.modelVersion == ModelVersion.V2
+  agpVersion > AgpVersionSoftwareEnvironmentDescriptor.AGP_73 && agpVersion.modelVersion == ModelVersion.V2
