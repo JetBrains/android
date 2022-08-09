@@ -546,7 +546,7 @@ internal class EmulatorToolWindowManager private constructor(
     override fun update(event: AnActionEvent) {
       super.update(event)
       val panel = selectedPanel
-      event.presentation.isEnabled = panel is EmulatorToolWindowPanel && panel.emulator.emulatorConfig.skinFolder != null
+      event.presentation.isEnabledAndVisible = panel is EmulatorToolWindowPanel && panel.emulator.emulatorConfig.skinFolder != null
     }
 
     override fun isSelected(event: AnActionEvent): Boolean {
