@@ -61,5 +61,6 @@ data class GradleSyncStudioFlags(
   val studioFlagParallelSyncPrefetchVariantsEnabled: Boolean,
   val studioFlagUseV2BuilderModels: Boolean,
   val studioFlagDisableForcedUpgrades: Boolean,
+  val studioFlagOutputSyncStats: Boolean
 ) : Serializable
 

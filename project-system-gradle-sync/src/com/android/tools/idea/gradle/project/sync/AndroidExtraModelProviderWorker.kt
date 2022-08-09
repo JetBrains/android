@@ -60,18 +60,20 @@ internal class BuildInfo(
  */
 internal class AndroidExtraModelProviderWorker(
   controller: BuildController, // NOTE: Do not make it a property. [controller] should be accessed via [SyncActionRunner]'s only.
+  private val syncCounters: SyncCounters,
   private val syncOptions: SyncActionOptions,
   private val buildInfo: BuildInfo,
   private val consumer: ProjectImportModelProvider.BuildModelConsumer
 ) {
-  private val safeActionRunner = SyncActionRunner.create(controller, syncOptions.flags.studioFlagParallelSyncEnabled)
+  private val safeActionRunner =
+    SyncActionRunner.create(controller, syncCounters, syncOptions.flags.studioFlagParallelSyncEnabled)
 
   fun populateBuildModels() {
     try {
       val modelCollections: List<GradleModelCollection> =
         when (syncOptions) {
           is SyncProjectActionOptions -> {
-            val modules: List<BasicIncompleteGradleModule> = getBasicIncompleteGradleModules()
+            val modules: List<BasicIncompleteGradleModule> = syncCounters.projectListPhase { getBasicIncompleteGradleModules() }
             val v2AndroidGradleModules = modules.filterIsInstance<BasicV2AndroidModuleGradleProject>()
 
             modules.filterIsInstance<BasicIncompleteAndroidModule>().forEach { checkAgpVersionCompatibility(it.agpVersion, syncOptions) }
@@ -85,7 +87,7 @@ internal class AndroidExtraModelProviderWorker(
             val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(v2ModelBuildersSupportParallelSync)
 
             val models =
-              SyncProjectActionWorker(buildInfo, syncOptions, configuredSyncActionRunner)
+              SyncProjectActionWorker(buildInfo, syncCounters, syncOptions, configuredSyncActionRunner)
                 .populateAndroidModels(modules)
 
             val syncExecutionReport = IdeSyncExecutionReport(

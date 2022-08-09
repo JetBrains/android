@@ -24,6 +24,7 @@ import java.util.concurrent.locks.ReentrantLock
 
 internal class SyncProjectActionWorker(
   private val buildInfo: BuildInfo,
+  private val syncCounters: SyncCounters,
   private val syncOptions: SyncProjectActionOptions,
   private val actionRunner: SyncActionRunner
 ) {
@@ -49,7 +50,7 @@ internal class SyncProjectActionWorker(
    * [ProjectImportModelProvider.BuildModelConsumer] callback.
    */
   fun populateAndroidModels(basicIncompleteModules: List<BasicIncompleteGradleModule>): List<GradleModelCollection> {
-    val modules = fetchGradleModulesAction(basicIncompleteModules)
+    val modules = syncCounters.projectInfoPhase { fetchGradleModulesAction(basicIncompleteModules) }
 
     val androidModules = modules.filterIsInstance<AndroidModule>()
     androidModules.forEach { androidModulesById[it.id] = it }
@@ -60,26 +61,31 @@ internal class SyncProjectActionWorker(
     fun resolveAndroidProjectPath(buildId: BuildId, projectPath: String): AndroidModule? =
       androidModulesByProjectPath[buildId to projectPath]
 
-    when (syncOptions) {
-      is SingleVariantSyncActionOptions -> {
-        // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
-        // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
-        // e.g the ones that should be selected by the IDE.
-        chooseSelectedVariants(androidModules, syncOptions, ::resolveAndroidProjectPath)
-      }
-      is AllVariantsSyncActionOptions -> {
-        syncAllVariants(androidModules, ::resolveAndroidProjectPath)
+    syncCounters.variantAndDependencyResolutionPhase {
+      when (syncOptions) {
+        is SingleVariantSyncActionOptions -> {
+          // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
+          // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
+          // e.g the ones that should be selected by the IDE.
+          chooseSelectedVariants(androidModules, syncOptions, ::resolveAndroidProjectPath)
+        }
+
+        is AllVariantsSyncActionOptions -> {
+          syncAllVariants(androidModules, ::resolveAndroidProjectPath)
+        }
       }
     }
 
-    // AdditionalClassifierArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
-    getAdditionalClassifierArtifactsModel(
-      actionRunner,
-      androidModules,
-      internedModels::resolve,
-      syncOptions.additionalClassifierArtifactsAction.cachedLibraries,
-      syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources
-    )
+    syncCounters.additionalArtifactsPhase {
+      // AdditionalClassifierArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
+      getAdditionalClassifierArtifactsModel(
+        actionRunner,
+        androidModules,
+        internedModels::resolve,
+        syncOptions.additionalClassifierArtifactsAction.cachedLibraries,
+        syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources
+      )
+    }
 
 
     // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.

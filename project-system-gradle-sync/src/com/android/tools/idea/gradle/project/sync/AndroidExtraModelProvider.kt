@@ -67,6 +67,8 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
   private var buildModelsAndMap: BuildModelsAndMap? = null
   private val seenBuildModels: MutableSet<GradleBuild> = mutableSetOf()
 
+  private val syncCounters = SyncCounters()
+
   fun populateBuildModels(
     controller: BuildController,
     buildModel: GradleBuild,
@@ -75,7 +77,7 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     // Flatten the platform's handling of included builds. We need all models together to resolve cross `includeBuild` dependencies
     // correctly. This, unfortunately, makes assumptions about the order in which these methods are invoked. If broken it will be caught
     // by any test attempting to sync a composite build.
-    val buildModelsAndMap = this.buildModelsAndMap ?: let {
+    val buildModelsAndMap = this.buildModelsAndMap ?: syncCounters.buildInfoPhase {
       val buildModelsAndMap = buildModelsAndMap(buildModel, controller)
       consumer.consume(buildModel, buildModelsAndMap.map, IdeCompositeBuildMap::class.java)
       this.buildModelsAndMap = buildModelsAndMap
@@ -91,6 +93,7 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     if (buildModelsAndMap.models.size == seenBuildModels.size) {
       AndroidExtraModelProviderWorker(
         controller,
+        syncCounters,
         syncOptions,
         BuildInfo(
           buildModelsAndMap.models.toList(),
@@ -102,7 +105,10 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
         ),
         consumer
       ).populateBuildModels()
-    }
+      if (syncOptions.flags.studioFlagOutputSyncStats) {
+        println(syncCounters)
+      }
+   }
   }
 
   fun populateProjectModels(
