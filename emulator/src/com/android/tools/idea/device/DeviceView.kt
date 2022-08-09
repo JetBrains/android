@@ -296,6 +296,7 @@ class DeviceView(
       displayOrientationQuadrants = displayFrame.orientation
       displayOrientationCorrectionQuadrants = displayFrame.orientationCorrection
       frameNumber = displayFrame.frameNumber
+      notifyFrameListeners(displayRect, displayFrame.image)
 
       deviceClient?.apply {
         if (startTime != 0L) {

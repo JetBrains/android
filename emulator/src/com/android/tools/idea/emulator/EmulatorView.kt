@@ -414,6 +414,7 @@ class EmulatorView(
     }
 
     frameNumber = screenshotShape.frameNumber
+    notifyFrameListeners(displayRect, screenshot.image)
 
     if (multiTouchMode) {
       drawMultiTouchFeedback(g, displayRect, (buttons and BUTTON1_BIT) != 0)

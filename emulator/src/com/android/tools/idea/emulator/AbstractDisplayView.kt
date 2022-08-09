@@ -36,6 +36,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
+import java.awt.image.BufferedImage
 import javax.swing.AbstractAction
 import javax.swing.Box
 import javax.swing.JButton
@@ -47,7 +48,6 @@ import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToInt
-
 
 /**
  * Common base class for [EmulatorView] and [com.android.tools.idea.device.DeviceView].
@@ -77,6 +77,8 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     add(reconnectButton)
     add(Box.createVerticalGlue())
   }
+
+  private val frameListeners = mutableListOf<FrameListener>()
 
   init {
     background = primaryPanelBackground
@@ -239,6 +241,32 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     val logScale = -log2(value).roundToInt() + 7
     val multiplier = 2 shl logScale + 7
     return round(value * multiplier) / multiplier
+  }
+
+  protected fun notifyFrameListeners(displayRectangle: Rectangle, frame: BufferedImage) {
+    for (listener in frameListeners) {
+      listener.frameRendered(frameNumber, displayRectangle, displayOrientationQuadrants, frame)
+    }
+  }
+
+  /**
+   * Adds a [listener] to receive callbacks when the display view has a new frame rendered.
+   *
+   * The [listener] must return very quickly as it is invoked on the UI thread inside the painting method
+   * of the view. The listener is not allowed to call [addFrameListener] or [removeFrameListener] from its
+   * [FrameListener.frameRendered] method.
+   */
+  internal fun addFrameListener(listener: FrameListener) {
+    frameListeners.add(listener)
+  }
+
+  /** Removes a [listener] so it no longer receives callbacks when the display view has a new frame rendered. */
+  internal fun removeFrameListener(listener: FrameListener) {
+    frameListeners.remove(listener)
+  }
+
+  internal interface FrameListener {
+    fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
   }
 
   /** Attempts to restore a lost device connection. */
