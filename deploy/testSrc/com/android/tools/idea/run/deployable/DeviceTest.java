@@ -50,7 +50,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-@org.junit.Ignore("b/152354637, b/192559588, b/240467082")
 public class DeviceTest {
   private static final String PROCESS_NAME = "com.example.android.notdisplayingbitmaps";
   private static final String APP_ID = "com.example.android.displayingbitmaps";
