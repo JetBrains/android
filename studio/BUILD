@@ -594,6 +594,7 @@ android_studio(
     # TODO(b/240707039): automate this.
     version_release_number = 10,
     version_type = "Canary",
+    # version_update_message = "<html>this is optional</html>",
     visibility = ["//visibility:public"],
 )
 

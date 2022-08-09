@@ -524,6 +524,12 @@ def _produce_manifest(ctx, platform):
         mnemonic = "stamper",
     )
 
+def _produce_update_message_html(ctx):
+    ctx.actions.write(
+        output = ctx.outputs.update_message,
+        content = ctx.attr.version_update_message,
+    )
+
 def _stamp_platform(ctx, platform, zip, out):
     args = ["--stamp_platform", out.path]
     _stamp(ctx, platform, zip, args, [], out)
@@ -668,6 +674,7 @@ def _android_studio_impl(ctx):
     _android_studio_os(ctx, WIN, ctx.outputs.win)
 
     _produce_manifest(ctx, LINUX)
+    _produce_update_message_html(ctx)
 
     vmoptions = ctx.actions.declare_file("%s-debug.vmoption" % ctx.label.name)
     ctx.actions.write(vmoptions, "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005")
@@ -683,7 +690,7 @@ def _android_studio_impl(ctx):
     # Leave everything that is not the main zips as implicit outputs
     return DefaultInfo(
         executable = script,
-        files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.mac_arm, ctx.outputs.win, ctx.outputs.manifest]),
+        files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.mac_arm, ctx.outputs.win, ctx.outputs.manifest, ctx.outputs.update_message]),
         runfiles = runfiles,
     )
 
@@ -700,6 +707,7 @@ _android_studio = rule(
         "version_micro_patch": attr.string(),
         "version_release_number": attr.int(),
         "version_type": attr.string(),
+        "version_update_message": attr.string(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -738,6 +746,7 @@ _android_studio = rule(
         "win": "%{name}.win.zip",
         "plugins": "%{name}.plugin.lst",
         "manifest": "%{name}_build_manifest.textproto",
+        "update_message": "%{name}_update_message.html",
     },
     executable = True,
     implementation = _android_studio_impl,
