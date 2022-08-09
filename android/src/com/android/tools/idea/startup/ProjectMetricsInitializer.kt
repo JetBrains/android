@@ -21,15 +21,17 @@ import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
+import com.intellij.openapi.startup.ProjectPostStartupActivity
 
-internal class ProjectMetricsInitializer : ProjectManagerListener {
-  override fun projectOpened(project: Project) {
-    // don't include current project to be consistent with projectClosed
-    val projectsOpen = ProjectManager.getInstance().openProjects.size - 1
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
-                       .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen)))
-
+private class ProjectMetricsInitializer : ProjectManagerListener {
+  class MyStartupActivity : ProjectPostStartupActivity {
+    override suspend fun execute(project: Project) {
+      // don't include current project to be consistent with projectClosed
+      val projectsOpen = ProjectManager.getInstance().openProjects.size - 1
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
+                         .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen)))
+    }
   }
 
   override fun projectClosed(project: Project) {

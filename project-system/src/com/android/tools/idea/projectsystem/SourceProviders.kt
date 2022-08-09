@@ -24,7 +24,6 @@ import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
@@ -267,7 +266,7 @@ private fun onChanged(facet: AndroidFacet) {
   facet.putUserData(KEY, createSourceProviderFor(facet))
 }
 
-private class SourceProviderManagerComponent(val project: Project) : ProjectComponent {
+private class SourceProviderManagerComponent(val project: Project) : Disposable {
   private val connection = project.messageBus.connect()
 
   init {
@@ -308,7 +307,7 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
     }
   }
 
-  override fun projectClosed() {
+  override fun dispose() {
     connection.disconnect()
   }
 }

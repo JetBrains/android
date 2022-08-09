@@ -750,10 +750,11 @@
     <usageGroupingRuleProvider implementation="com.android.tools.idea.gradle.project.upgrade.ComponentGroupingRuleProvider"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AssistantInvoker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.ContentManager"/>
-    <applicationInitializedListener implementation="com.android.tools.idea.stats.AndroidStudioStatisticsJobScheduler"/>
     <statistics.projectUsagesCollector implementation="com.intellij.internal.statistic.collectors.fus.fileTypes.FileTypeUsagesCollector"/>
 
     <runningApplicationUpdaterProvider implementation="com.android.tools.idea.run.ui.ApplyChangesAction$UpdaterProvider"/>
+
+    <postStartupActivity implementation="com.android.tools.idea.startup.ProjectMetricsInitializer$MyStartupActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">

@@ -4,7 +4,7 @@
     <facet type="kotlin-language" name="Kotlin">
       <configuration version="3" platform="JVM 11" allPlatforms="JVM [11]" useProjectSettings="false">
         <compilerSettings>
-          <option name="additionalArguments" value="-version -Xopt-in=org.jetbrains.kotlin.extensions.internal.InternalNonStableExtensionPoints" />
+          <option name="additionalArguments" value="-version -opt-in=org.jetbrains.kotlin.extensions.internal.InternalNonStableExtensionPoints" />
         </compilerSettings>
         <compilerArguments>
           <option name="jvmTarget" value="11" />
@@ -83,6 +83,7 @@
     <orderEntry type="module" module-name="intellij.platform.refactoring" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.core-fe10" />
+    <orderEntry type="module" module-name="kotlin.jvm-debugger.core" />
     <orderEntry type="module" module-name="kotlin.base.code-insight" />
     <orderEntry type="module" module-name="kotlin.base.fe10.kdoc" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" />

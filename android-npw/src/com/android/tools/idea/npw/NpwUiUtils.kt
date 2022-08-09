@@ -21,10 +21,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ContextHelpLabel
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.layout.Cell
 import com.intellij.ui.layout.LayoutBuilder
-import java.awt.Component
 import java.net.MalformedURLException
 import java.net.URL
 import javax.swing.JLabel
@@ -34,27 +31,14 @@ import javax.swing.SwingConstants
 internal fun invokeLater(modalityState: ModalityState = ModalityState.any(), f: () -> Unit) =
   ApplicationManager.getApplication().invokeLater(f, modalityState)
 
-/**
- * Creates a [JLabel], sets [JLabel.labelFor] and an optional [ContextHelpLabel].
- * It is recommended to create it inside of a cell if context help is used.
- */
-internal fun Cell.labelFor(text: String, forComponent: Component, contextHelpText: String? = null): JLabel {
-  val label = if (contextHelpText == null) {
-    JBLabel(text)
+internal fun contextLabel(text: String, contextHelpText: String): JLabel {
+  return ContextHelpLabel.create(contextHelpText).apply {
+    setText(text)
+    horizontalTextPosition = SwingConstants.LEFT
   }
-  else {
-    ContextHelpLabel.create(contextHelpText).apply {
-      setText(text)
-      horizontalTextPosition = SwingConstants.LEFT
-    }
-  }.apply {
-    labelFor = forComponent
-  }
-
-  label()
-  return label
 }
 
+@Deprecated("Use Kotlin UI DSL Version 2")
 internal fun LayoutBuilder.verticalGap() {
   row {
     label("")

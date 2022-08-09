@@ -17,12 +17,13 @@ package com.android.tools.idea.npw.benchmark
 
 import com.android.tools.adtui.device.FormFactor.MOBILE
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.labelFor
+import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.ConfigureModuleStep
-import com.android.tools.idea.npw.verticalGap
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 
@@ -35,32 +36,26 @@ class ConfigureMicroBenchmarkModuleStep(
   model, MOBILE, minSdkLevel, getSuggestedProjectPackage(), title
 ) {
   override fun createMainPanel(): DialogPanel = panel {
-    row {
-      labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
-      moduleName(pushX)
+    row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
+      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Package name", packageName)
-      packageName(pushX)
+    row("Package name") {
+      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Language", languageCombo)
-      languageCombo(growX)
+    row("Language") {
+      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
-    row {
-      labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo(growX)
+    row("Minimum SDK") {
+      cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
-      verticalGap()
-
       row {
-        gradleKtsCheck()
-      }
+        cell(gradleKtsCheck)
+      }.topGap(TopGap.SMALL)
     }
   }.withBorder(empty(6))
 

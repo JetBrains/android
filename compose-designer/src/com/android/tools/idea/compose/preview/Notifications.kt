@@ -25,10 +25,12 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
@@ -95,8 +97,10 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
 /**
  * [ProjectComponent] that listens for Kotlin file additions or removals and triggers a notification update
  */
-internal class ComposeNewPreviewNotificationManager(private val project: Project) : ProjectComponent {
-  private val LOG = Logger.getInstance(ComposeNewPreviewNotificationManager::class.java)
+internal class ComposeNewPreviewNotificationManager(project: Project) {
+  companion object {
+    private val LOG = logger<ComposeNewPreviewNotificationManager>()
+  }
 
   private val updateNotificationQueue: MergingUpdateQueue by lazy {
     MergingUpdateQueue("Update notifications",
@@ -106,7 +110,13 @@ internal class ComposeNewPreviewNotificationManager(private val project: Project
                        project)
   }
 
-  override fun projectOpened() {
+  init {
+    StartupManager.getInstance(project).runAfterOpened {
+      projectOpened(project)
+    }
+  }
+
+  private fun projectOpened(project: Project) {
     LOG.debug("projectOpened")
 
     PsiManager.getInstance(project).addPsiTreeChangeListener(object : PsiTreeChangeAdapter() {
