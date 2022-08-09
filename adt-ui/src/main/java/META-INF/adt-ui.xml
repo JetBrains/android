@@ -28,10 +28,10 @@
               class="com.android.tools.adtui.actions.ZoomInAction"
               text="Zoom In"
               description="Zoom in preview" >
-        <keyboard-shortcut keymap="$default" first-keystroke="control EQUALS" />
         <keyboard-shortcut keymap="$default" first-keystroke="control ADD" />
-        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta EQUALS" replace-all="true"/>
-        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta ADD" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control EQUALS" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta ADD" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta EQUALS" />
       </action>
       <action id="Adtui.ZoomOutAction"
               icon="AllIcons.General.ZoomOut"
