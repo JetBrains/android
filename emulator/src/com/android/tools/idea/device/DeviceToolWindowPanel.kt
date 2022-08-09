@@ -19,6 +19,8 @@ import com.android.adblib.DevicePropertyNames
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
+import com.android.tools.idea.device.DeviceView.ConnectionState
+import com.android.tools.idea.device.DeviceView.ConnectionStateListener
 import com.android.tools.idea.device.screenshot.DeviceScreenshotOptions
 import com.android.tools.idea.emulator.AbstractDisplayPanel
 import com.android.tools.idea.emulator.DeviceId
@@ -40,6 +42,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
+import java.awt.EventQueue
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 
@@ -126,6 +129,13 @@ internal class DeviceToolWindowPanel(
     primaryDeviceView = deviceView
     mainToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
+    deviceView.addConnectionStateListener(object : ConnectionStateListener {
+      override fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState) {
+        EventQueue.invokeLater {
+          mainToolbar.updateActionsImmediately()
+        }
+      }
+    })
 
     installFileDropHandler(this, id.serialNumber, deviceView, project)
   }

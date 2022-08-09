@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
@@ -92,20 +93,29 @@ class DeviceView(
 ) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable, DeviceMirroringSettingsListener {
 
   val isConnected: Boolean
-    get() = state == State.CONNECTED
+    get() = connectionState == ConnectionState.CONNECTED
   /** The difference between [displayOrientationQuadrants] and the orientation according to the DisplayInfo Android data structure. */
   override var displayOrientationQuadrants: Int = 0
     private set
   internal var displayOrientationCorrectionQuadrants: Int = 0
     private set
 
-  private var state = State.INITIAL
+  private var connectionState = ConnectionState.INITIAL
+    set(value) {
+      if (field != value) {
+        field = value
+        for (listener in connectionStateListeners) {
+          listener.connectionStateChanged(deviceSerialNumber, connectionState)
+        }
+      }
+    }
   private var deviceClient: DeviceClient? = null
   internal val deviceController: DeviceController?
     get() = deviceClient?.deviceController
   private val videoDecoder: VideoDecoder?
     get() = deviceClient?.videoDecoder
   private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
+  private val connectionStateListeners = mutableListOf<ConnectionStateListener>()
 
   /** Size of the device display in device pixels. */
   private val deviceDisplaySize = Dimension()
@@ -140,7 +150,7 @@ class DeviceView(
 
     addComponentListener(object : ComponentAdapter() {
       override fun componentShown(event: ComponentEvent) {
-        if (realWidth > 0 && realHeight > 0 && state == State.INITIAL) {
+        if (realWidth > 0 && realHeight > 0 && connectionState == ConnectionState.INITIAL) {
           initializeAgentAsync(initialDisplayOrientation)
         }
       }
@@ -160,7 +170,7 @@ class DeviceView(
     val resized = width != this.width || height != this.height
     super.setBounds(x, y, width, height)
     if (resized && realWidth > 0 && realHeight > 0) {
-      if (state == State.INITIAL) {
+      if (connectionState == ConnectionState.INITIAL) {
         initializeAgentAsync(initialDisplayOrientation)
       }
       else {
@@ -171,7 +181,7 @@ class DeviceView(
 
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun initializeAgentAsync(initialDisplayOrientation: Int) {
-    state = State.CONNECTING
+    connectionState = ConnectionState.CONNECTING
     val maxOutputSize = realSize
     AndroidCoroutineScope(this@DeviceView).launch { initializeAgent(maxOutputSize, initialDisplayOrientation) }
   }
@@ -219,14 +229,14 @@ class DeviceView(
       }
       val message: String
       val reconnector: Reconnector
-      when (state) {
-        State.CONNECTING -> {
+      when (connectionState) {
+        ConnectionState.CONNECTING -> {
           thisLogger().error("Failed to initialize the screen sharing agent", exception)
           message = "Failed to initialize the device agent. See the error log."
           reconnector = Reconnector("Retry", "Connecting to the device") { initializeAgentAsync(initialDisplayOrientation) }
         }
 
-        State.CONNECTED -> {
+        ConnectionState.CONNECTED -> {
           message = "Lost connection to the device. See the error log."
           reconnector = Reconnector("Reconnect", "Attempting to reconnect") { initializeAgentAsync(UNKNOWN_ORIENTATION) }
         }
@@ -236,7 +246,7 @@ class DeviceView(
 
       deviceClient?.let { Disposer.dispose(it) }
       deviceClient = null
-      state = State.DISCONNECTED
+      connectionState = ConnectionState.DISCONNECTED
       showDisconnectedStateMessage(message, reconnector)
     }
   }
@@ -246,7 +256,7 @@ class DeviceView(
   }
 
   override fun canZoom(): Boolean =
-    state == State.CONNECTED
+    connectionState == ConnectionState.CONNECTED
 
   override fun computeActualSize(): Dimension =
     computeActualSize(displayOrientationQuadrants)
@@ -417,15 +427,38 @@ class DeviceView(
   private fun isInsideDisplay(event: MouseEvent) =
     displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
 
-  enum class State { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
+  /** Adds a [listener] to receive callbacks when the state of the agent's connection changes. */
+  @UiThread
+  fun addConnectionStateListener(listener: ConnectionStateListener) {
+    connectionStateListeners.add(listener)
+  }
 
-  inner class MyFrameListener : VideoDecoder.FrameListener {
+  /** Removes a connection state listener. */
+  @UiThread
+  fun removeConnectionStateListener(listener: ConnectionStateListener) {
+    connectionStateListeners.remove(listener)
+  }
+
+  enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
+
+  /**
+   * Listener of connection state changes.
+   */
+  interface ConnectionStateListener {
+    /**
+     * Called when the state of the device agent's connection changes.
+     */
+    @UiThread
+    fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState)
+  }
+
+  private inner class MyFrameListener : VideoDecoder.FrameListener {
 
     override fun onNewFrameAvailable() {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        if (state == State.CONNECTING) {
+        if (connectionState == ConnectionState.CONNECTING) {
           hideDisconnectedStateMessage()
-          state = State.CONNECTED
+          connectionState = ConnectionState.CONNECTED
         }
         if (width != 0 && height != 0 && deviceClient != null) {
           repaint()

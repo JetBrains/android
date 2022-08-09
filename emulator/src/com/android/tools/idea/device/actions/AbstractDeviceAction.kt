@@ -48,4 +48,4 @@ internal fun getDeviceView(event: AnActionEvent): DeviceView? =
   event.dataContext.getData(DEVICE_VIEW_KEY)
 
 internal fun isDeviceConnected(event: AnActionEvent) =
-  getDeviceController(event) != null
+  getDeviceView(event)?.isConnected == true
