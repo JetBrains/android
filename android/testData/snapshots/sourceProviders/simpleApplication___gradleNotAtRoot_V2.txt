@@ -699,4 +699,4 @@ Build configuration files:
     file://./gradle_project/build.gradle : Project: project [0]
     file://./gradle_project/settings.gradle : Project: project [0]
     file://./gradle_project/app/build.gradle : Module :app [2000004]
-    file://./gradle_project/app/proguard-rules.pro : ProGuard Rules for ":app" [2000004]
+    file://./gradle_project/app/proguard-rules.pro : ProGuard Rules for ":app" [2500004]

@@ -31,9 +31,10 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.utils.yieldIfNotNull
 import java.util.Comparator
 
-private const val BUILD_ORDER_BASE = 1000_000
-private const val MODULE_ORDER_BASE = 2000_000
-private const val BUILD_WIDE_ORDER_BASE = 3000_000
+private const val BUILD_ORDER_BASE = 1_000_000
+private const val MODULE_ORDER_BASE = 2_000_000
+private const val MODULE_SECONDARY_OFFSET = 500_000
+private const val BUILD_WIDE_ORDER_BASE = 3_000_000
 
 class GradleBuildConfigurationSourceProvider(private val project: Project) : BuildConfigurationSourceProvider {
 
@@ -116,7 +117,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
             } else {
               module.projectDisplayName
             },
-            (if (file.fileType === proguardFileType) MODULE_ORDER_BASE else module.orderBase) + index
+            (module.orderBase + index) + if (file.fileType === proguardFileType) MODULE_SECONDARY_OFFSET else 0
           )
         )
       }
