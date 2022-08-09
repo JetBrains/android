@@ -45,7 +45,6 @@ import org.jetbrains.annotations.NotNull;
 public class CpuProfilerTestUtils {
 
   private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
-  public static final String ATRACE_MISSING_DATA_FILE = CPU_TRACES_DIR + "atrace_processid_1.ctrace";
   public static final String ATRACE_DATA_FILE = CPU_TRACES_DIR + "atrace.ctrace";
 
   private CpuProfilerTestUtils() {
@@ -152,12 +151,11 @@ public class CpuProfilerTestUtils {
    * @return the capture's trace ID.
    */
   static long captureSuccessfully(CpuProfilerStage stage,
-                                  FakeCpuService cpuService,
                                   FakeTransportService transportService,
                                   ByteString traceContent) throws InterruptedException {
     // Start a successful capture
-    startCapturing(stage, cpuService, transportService, true);
-    return stopCapturing(stage, cpuService, transportService, true, traceContent);
+    startCapturing(stage, transportService, true);
+    return stopCapturing(stage, transportService, true, traceContent);
   }
 
   /**
@@ -168,20 +166,13 @@ public class CpuProfilerTestUtils {
    * is called repeatedly in a single test, it is up to the caller to make sure to update the timestamp to not override the previously added
    * trace info.
    */
-  static void startCapturing(CpuProfilerStage stage, FakeCpuService cpuService, FakeTransportService transportService, boolean success)
+  static void startCapturing(CpuProfilerStage stage, FakeTransportService transportService, boolean success)
     throws InterruptedException {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      ((StartCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_CPU_TRACE))
-        .setStartStatus(Cpu.TraceStartStatus.newBuilder()
-                          .setStatus(success ? Cpu.TraceStartStatus.Status.SUCCESS : Cpu.TraceStartStatus.Status.FAILURE)
-                          .build());
-    }
-    else {
-      cpuService.setStartProfilingStatus(success
-                                         ? Cpu.TraceStartStatus.Status.SUCCESS
-                                         : Cpu.TraceStartStatus.Status.FAILURE);
-    }
+    ((StartCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_CPU_TRACE))
+      .setStartStatus(Cpu.TraceStartStatus.newBuilder()
+                        .setStatus(success ? Cpu.TraceStartStatus.Status.SUCCESS : Cpu.TraceStartStatus.Status.FAILURE)
+                        .build());
 
     CountDownLatch latch;
     AspectObserver observer = new AspectObserver();
@@ -193,8 +184,6 @@ public class CpuProfilerTestUtils {
       latch =
         waitForProfilingStateChangeSequence(stage, observer, CpuProfilerStage.CaptureState.STARTING, CpuProfilerStage.CaptureState.IDLE);
     }
-    long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
-    cpuService.setTraceId(traceId);
     stage.startCapturing();
     // Trigger the TransportEventPoller to run and the CpuProfilerStage to pick up the in-progress trace.
     stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -213,7 +202,6 @@ public class CpuProfilerTestUtils {
    * @return the capture's trace ID.
    */
   static long stopCapturing(CpuProfilerStage stage,
-                            FakeCpuService cpuService,
                             FakeTransportService transportService,
                             boolean success,
                             ByteString traceContent,
@@ -221,21 +209,13 @@ public class CpuProfilerTestUtils {
     throws InterruptedException {
     // Trace id is needed for the stop response.
     long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
-    if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      StopCpuTrace stopTraceCommand = (StopCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
-      stopTraceCommand.setStopStatus(
-        Cpu.TraceStopStatus.newBuilder()
-          .setStatus(success ? Cpu.TraceStopStatus.Status.SUCCESS : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED)
-          .setStoppingTimeNs(TimeUnit.MILLISECONDS.toNanos(FAKE_STOPPING_TIME_MS))
-          .build());
-      stopTraceCommand.setTraceDurationNs(traceDurationNs);
-    }
-    else {
-      cpuService.setStopProfilingStatus(success
-                                        ? Cpu.TraceStopStatus.Status.SUCCESS
-                                        : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED);
-      cpuService.setTraceDurationNs(traceDurationNs);
-    }
+    StopCpuTrace stopTraceCommand = (StopCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+    stopTraceCommand.setStopStatus(
+      Cpu.TraceStopStatus.newBuilder()
+        .setStatus(success ? Cpu.TraceStopStatus.Status.SUCCESS : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED)
+        .setStoppingTimeNs(TimeUnit.MILLISECONDS.toNanos(FAKE_STOPPING_TIME_MS))
+        .build());
+    stopTraceCommand.setTraceDurationNs(traceDurationNs);
 
     CountDownLatch stopLatch;
     AspectObserver stopObserver = new AspectObserver();
@@ -256,17 +236,16 @@ public class CpuProfilerTestUtils {
   }
 
   /**
-   * Identical to {@link #stopCapturing(CpuProfilerStage, FakeCpuService, FakeTransportService, boolean, ByteString, long)} but defaults
+   * Identical to {@link #stopCapturing(CpuProfilerStage, FakeTransportService, boolean, ByteString, long)} but defaults
    * to a 1-nanosecond capture for convenience.
    *
    * @return the capture's trace ID.
    */
   static long stopCapturing(CpuProfilerStage stage,
-                            FakeCpuService cpuService,
                             FakeTransportService transportService,
                             boolean success,
                             ByteString traceContent) throws InterruptedException {
     // Defaults to a 1-second capture.
-    return stopCapturing(stage, cpuService, transportService, success, traceContent, 1);
+    return stopCapturing(stage, transportService, success, traceContent, 1);
   }
 }
