@@ -52,6 +52,8 @@ interface ViewActionHandlers {
    */
   fun changeViewToWarningsLinkClicked()
 
+  fun changeViewToDownloadsLinkClicked()
+
   /** Called when selection in tasks grouping control is changed by the user. */
   fun tasksGroupingSelectionUpdated(grouping: TasksDataPageModel.Grouping)
 

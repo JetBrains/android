@@ -56,5 +56,10 @@ enum class BuildAnalyzerBrowserLinks(
   JETIIFER_MIGRATE(
     "https://d.android.com/r/tools/build-attribution/migrate-to-androidx",
     BuildAttributionUiEvent.OutgoingLinkTarget.JETIFIER_MIGRATION
+  ),
+  DOWNLOADS(
+    "https://d.android.com/r/tools/build-attribution/downloads",
+    // TODO(b/241262777): update to proper values
+    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
   )
 }

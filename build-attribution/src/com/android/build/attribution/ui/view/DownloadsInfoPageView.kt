@@ -15,11 +15,13 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+import com.android.build.attribution.ui.HtmlLinksHandler
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.DownloadsInfoPageModel
 import com.intellij.openapi.ui.setEmptyState
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -54,11 +56,24 @@ class DownloadsInfoPageView(
     border = JBUI.Borders.empty(20)
     layout = BorderLayout(0, JBUI.scale(10))
 
-    val pageHeaderText = "Time required for Grade to download artifacts from repositories"
-    add(JBLabel(pageHeaderText), BorderLayout.NORTH)
+    val linksHandler = HtmlLinksHandler(actionHandlers)
+    val learnMoreLink = linksHandler.externalLink("Learn more", BuildAnalyzerBrowserLinks.DOWNLOADS)
+
+    val pageHeaderText = """
+      Incremental builds should not consistently download artifacts. This could indicate use of<BR/>
+      dynamic versions of dependencies or other issues in your configuration. $learnMoreLink.<BR/>
+      <BR/>
+      Time required for Grade to download artifacts from repositories<BR/>
+    """.trimIndent()
+    // Need to wrap in another panel here otherwise some BorderLayout layout magic makes text label be of 0px height.
+    val header = JPanel(BorderLayout()).apply {
+      add(htmlTextLabelWithFixedLines(pageHeaderText, linksHandler), BorderLayout.CENTER)
+    }
     val splitter = OnePixelSplitter(0.4f)
     splitter.firstComponent = createScrollPane(resultsTable)
     splitter.secondComponent = createScrollPane(requestsList)
+
+    add(header, BorderLayout.NORTH)
     add(splitter, BorderLayout.CENTER)
   }
 
