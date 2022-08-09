@@ -204,6 +204,30 @@ public final class PhysicalDeviceTableModelTest {
   }
 
   @Test
+  public void isCellEditableCaseRemoveModelColumnIndexDeviceIsOnline() {
+    // Arrange
+    TableModel model = new PhysicalDeviceTableModel(List.of(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5));
+
+    // Act
+    boolean editable = model.isCellEditable(0, PhysicalDeviceTableModel.REMOVE_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertFalse(editable);
+  }
+
+  @Test
+  public void isCellEditableCaseRemoveModelColumnIndex() {
+    // Arrange
+    TableModel model = new PhysicalDeviceTableModel(List.of(TestPhysicalDevices.GOOGLE_PIXEL_5));
+
+    // Act
+    boolean editable = model.isCellEditable(0, PhysicalDeviceTableModel.REMOVE_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertTrue(editable);
+  }
+
+  @Test
   public void getValueAtDeviceModelColumnIndex() {
     // Arrange
     TableModel model = new PhysicalDeviceTableModel(List.of(TestPhysicalDevices.GOOGLE_PIXEL_3));
