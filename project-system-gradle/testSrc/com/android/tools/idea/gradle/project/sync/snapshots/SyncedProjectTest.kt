@@ -263,15 +263,16 @@ abstract class SyncedProjectTest(
     if (!testProject.isCompatibleWith(agpVersion)) skipTest("Project ${testProject.name} is incompatible with $agpVersion")
     val tests = testDefinitions.entries.singleOrNull()?.value.orEmpty()
 
-    val preparedProject = prepareTestProject(
-      testProject,
-      agpVersion = agpVersion
-    )
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
     if (agpVersion.modelVersion == ModelVersion.V1) {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     try {
+      val preparedProject = prepareTestProject(
+        testProject,
+        agpVersion = agpVersion
+      )
+
       fun setup(): List<Throwable> {
         return tests.mapNotNull {
           kotlin.runCatching { it.setup(preparedProject.root) }.exceptionOrNull()
@@ -297,13 +298,7 @@ abstract class SyncedProjectTest(
         }
       }
 
-      val tearDown = testProject.setup()
-      val exceptions = try {
-        setup() + run() + verify()
-      }
-      finally {
-        tearDown()
-      }
+      val exceptions = setup() + run() + verify()
 
       when {
         exceptions.isEmpty() -> Unit

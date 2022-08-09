@@ -449,12 +449,17 @@ fun GradleIntegrationTest.prepareTestProject(
   return object: PreparedTestProject {
     override val root: File = root
     override fun <T> open(options: OpenPreparedProjectOptions, body: (Project) -> T): T {
-      return openPreparedProject(
-        name = "$name${testProject.pathToOpen}",
-        options = options
-      ) { project ->
-        AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-        body(project)
+      val tearDown = testProject.setup()
+      try {
+        return openPreparedProject(
+          name = "$name${testProject.pathToOpen}",
+          options = options
+        ) { project ->
+          AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+          body(project)
+        }
+      } finally {
+        tearDown()
       }
     }
   }
