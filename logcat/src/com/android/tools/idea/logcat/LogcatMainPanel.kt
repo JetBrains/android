@@ -197,6 +197,7 @@ internal class LogcatMainPanel(
   internal val editor: EditorEx = createLogcatEditor(project)
   private val pausedBanner = EditorNotificationPanel()
   private val noApplicationIdsBanner = EditorNotificationPanel()
+  private val noLogsBanner = EditorNotificationPanel()
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
   private val coroutineScope = AndroidCoroutineScope(this)
@@ -287,16 +288,26 @@ internal class LogcatMainPanel(
       border = BANNER_BORDER
       isVisible = isMissingApplicationIds()
     }
+    noLogsBanner.apply {
+      noLogsBanner.text = LogcatBundle.message("logcat.main.panel.no.logs.banner.text")
+      createActionLabel(LogcatBundle.message("logcat.main.panel.no.logs.banner.clear.filter")) {
+        setFilter("")
+      }
+      border = BANNER_BORDER
+      isVisible = isLogsMissing()
+    }
     val centerPanel = JPanel(null).apply {
       layout = GroupLayout(this).apply {
         val height = pausedBanner.preferredSize.height
         setVerticalGroup(
           createSequentialGroup()
+            .addComponent(noLogsBanner, height, height, height)
             .addComponent(noApplicationIdsBanner, height, height, height)
             .addComponent(pausedBanner, height, height, height)
             .addComponent(editor.component))
         setHorizontalGroup(
           createParallelGroup(GroupLayout.Alignment.CENTER)
+            .addComponent(noLogsBanner)
             .addComponent(noApplicationIdsBanner)
             .addComponent(pausedBanner)
             .addComponent(editor.component))
@@ -436,6 +447,7 @@ internal class LogcatMainPanel(
     val endMarker: RangeMarker = document.createRangeMarker(document.textLength, document.textLength)
 
     documentAppender.appendToDocument(textAccumulator)
+    noLogsBanner.isVisible = isLogsMissing()
 
     val startLine = if (endMarker.isValid) document.getLineNumber(endMarker.endOffset) else 0
     endMarker.dispose()
@@ -476,11 +488,20 @@ internal class LogcatMainPanel(
     }
   }
 
+  private fun isLogsMissing(): Boolean {
+    return document.immutableCharSequence.isEmpty()
+           && !isMissingApplicationIds()
+           && headerPanel.filter.isNotEmpty()
+  }
+
   @UiThread
   override fun reloadMessages() {
     document.setText("")
     coroutineScope.launch(workerThread) {
-      messageProcessor.appendMessages(messageBacklog.get().messages)
+      val filteredMessages = messageProcessor.appendMessages(messageBacklog.get().messages)
+      withContext(uiThread) {
+        noLogsBanner.isVisible = filteredMessages.isEmpty()
+      }
     }
   }
 
@@ -559,6 +580,7 @@ internal class LogcatMainPanel(
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
       withContext(uiThread) {
         document.setText("")
+        noLogsBanner.isVisible = isLogsMissing()
         if (connectedDevice.get()?.sdk == 26) {
           processMessages(listOf(LogcatMessage(
             SYSTEM_HEADER,

@@ -253,7 +253,7 @@ class LogcatMainPanelTest {
   }
 
   @Test
-  fun appendMessages_disposedEditor() = runBlocking {
+  fun appendMessages_disposedEditor(): Unit = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel().also {
         Disposer.dispose(it)
@@ -1026,6 +1026,50 @@ class LogcatMainPanelTest {
       fakePackageNamesProvider.setApplicationIds()
     }
     assertThat(banner.isVisible).isTrue()
+  }
+
+  @Test
+  fun noLogsBanner_appearsAndDisappearsWhenAddingLogs(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(::logcatMainPanel)
+    val noLogsBanner = logcatMainPanel.findBanner("All logs entries are hidden by the filter")
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
+    waitForCondition {
+      logcatMainPanel.editor.document.text.trim() == """
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+      """.trimIndent()
+    }
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("no-match")
+    }
+    waitForCondition { noLogsBanner.isVisible }
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "no-match"),
+    ))
+    waitForCondition { !noLogsBanner.isVisible }
+  }
+
+  @Test
+  fun noLogsBanner_appearsAndDisappearsWhenChangingFilter(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(::logcatMainPanel)
+    val noLogsBanner = logcatMainPanel.findBanner("All logs entries are hidden by the filter")
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
+    waitForCondition {
+      logcatMainPanel.editor.document.text.trim() == """
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+      """.trimIndent()
+    }
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("no-match")
+    }
+    waitForCondition { noLogsBanner.isVisible }
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("tag:tag1")
+    }
+    waitForCondition { !noLogsBanner.isVisible }
   }
 
   @Test
