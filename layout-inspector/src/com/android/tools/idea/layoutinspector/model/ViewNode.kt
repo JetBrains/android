@@ -171,55 +171,46 @@ open class ViewNode(
   }
 
   /**
-   * For reading from a [ViewNode] with a read lock. See [readAccess].
+   * Interface used for traversing the [ViewNode] tree with a read lock. See [readAccess].
+   * This interface provides a limited access view of a [ViewNode],
+   * so that users of [readAccess] are limited in what methods of [ViewNode] they can invoke.
    */
   interface ReadAccess {
-    val ViewNode.children: List<ViewNode>
-    val ViewNode.drawChildren: List<DrawViewNode>
-    val ViewNode.parent: ViewNode?
-    val ViewNode.parentSequence: Sequence<ViewNode>
-    fun ViewNode.flatten(): Sequence<ViewNode>
-    fun ViewNode.preOrderFlatten(): Sequence<ViewNode>
+    val ViewNode.children: MutableList<ViewNode> get() = children
+    val ViewNode.parent: ViewNode? get() = parent
+    val ViewNode.drawChildren: MutableList<DrawViewNode> get() = drawChildren
+    val ViewNode.parentSequence: Sequence<ViewNode> get() = parentSequence
+    fun ViewNode.flatten(): Sequence<ViewNode> = flatten()
+    fun ViewNode.preOrderFlatten(): Sequence<ViewNode> = preOrderFlatten()
   }
 
   /**
-   * For modifying a [ViewNode] with a write lock. See [writeAccess].
+   * Interface used for modifying a [ViewNode] with a write lock. See [writeAccess].
    */
-  interface WriteAccess {
-    val ViewNode.children: MutableList<ViewNode>
-    val ViewNode.drawChildren: MutableList<DrawViewNode>
-    var ViewNode.parent: ViewNode?
-    val ViewNode.parentSequence: Sequence<ViewNode>
-    fun ViewNode.flatten(): Sequence<ViewNode>
-    fun ViewNode.preOrderFlatten(): Sequence<ViewNode>
+  interface WriteAccess : ReadAccess {
+    override var ViewNode.parent: ViewNode?
+      get() = parent
+      set(value) { parent = value }
   }
 
   companion object {
     private val lock = ReentrantReadWriteLock()
-    private val reader = object : ReadAccess {
-      override val ViewNode.children get() = children
-      override val ViewNode.drawChildren get() = drawChildren
-      override val ViewNode.parent get() = parent
-      override val ViewNode.parentSequence get() = parentSequence
-      override fun ViewNode.flatten() = flatten()
-      override fun ViewNode.preOrderFlatten() = preOrderFlatten()
-    }
-    private val writer = object : WriteAccess {
-      override val ViewNode.children get() = children
-      override val ViewNode.drawChildren get() = drawChildren
-      override var ViewNode.parent
-        get() = parent
-        set(value) { this.parent = value }
-      override val ViewNode.parentSequence get() = parentSequence
-      override fun ViewNode.flatten() = flatten()
-      override fun ViewNode.preOrderFlatten() = preOrderFlatten()
-    }
+    private val reader = object : ReadAccess {}
+    private val writer = object : WriteAccess {}
 
+    /**
+     * Allows to safely perform read actions on the [ViewNode].
+     * Preventing other threads to change the tree structure while we are reading it.
+     */
     fun <T> readAccess(operation: ReadAccess.() -> T): T =
       lock.read {
         reader.operation()
       }
 
+    /**
+     * Allows to safely perform write actions on the [ViewNode].
+     * Preventing multiple threads to change the tree structure at the same time.
+     */
     fun <T> writeAccess(operation: WriteAccess.() -> T) =
       lock.write {
         writer.operation()
