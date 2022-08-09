@@ -384,10 +384,11 @@ class DeviceView(
     }
     else if (action == MotionEventMessage.ACTION_MOVE) {
       // Crossed the device display boundary while dragging.
+      lastTouchCoordinates = null
       val adjustedX = displayX.coerceIn(0, deviceDisplaySize.width - 1)
       val adjustedY = displayY.coerceIn(0, deviceDisplaySize.height - 1)
       sendMotionEventDisplayCoordinates(adjustedX, adjustedY, action)
-      sendMotionEventDisplayCoordinates(adjustedX, adjustedY, MotionEventMessage.ACTION_OUTSIDE)
+      sendMotionEventDisplayCoordinates(adjustedX, adjustedY, MotionEventMessage.ACTION_UP)
     }
   }
 
@@ -412,6 +413,9 @@ class DeviceView(
     return listOf(MotionEventMessage.Pointer(displayX, displayY, 0),
                   MotionEventMessage.Pointer(deviceDisplaySize.width - displayX, deviceDisplaySize.height - displayY, 1))
   }
+
+  private fun isInsideDisplay(event: MouseEvent) =
+    displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
 
   enum class State { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 
@@ -499,7 +503,7 @@ class DeviceView(
 
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
-      if (event.button == BUTTON1) {
+      if (isInsideDisplay(event) && event.button == BUTTON1) {
         lastTouchCoordinates = Point(event.x, event.y)
         updateMultiTouchMode(event)
         sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_DOWN)
@@ -519,16 +523,17 @@ class DeviceView(
     }
 
     override fun mouseExited(event: MouseEvent) {
-      if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0) {
+      if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0 && lastTouchCoordinates != null) {
         // Moving over the edge of the display view will terminate the ongoing dragging.
         sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_MOVE)
       }
+      lastTouchCoordinates = null
       multiTouchMode = false
     }
 
     override fun mouseDragged(event: MouseEvent) {
       updateMultiTouchMode(event)
-      if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0) {
+      if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0 && lastTouchCoordinates != null) {
         sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_MOVE)
       }
     }
@@ -539,7 +544,7 @@ class DeviceView(
 
     private fun updateMultiTouchMode(event: MouseEvent) {
       val oldMultiTouchMode = multiTouchMode
-      multiTouchMode = (event.modifiersEx and CTRL_DOWN_MASK) != 0
+      multiTouchMode = isInsideDisplay(event) && (event.modifiersEx and CTRL_DOWN_MASK) != 0
       if (multiTouchMode && oldMultiTouchMode) {
         repaint() // If multi-touch mode changed above, the repaint method was already called.
       }
