@@ -129,7 +129,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
   var isRunning = false
     private set
   @Volatile
-  var frameNumber: Long = 0
+  var frameNumber: Int = 0
     private set
   var crashOnStart = false
 
@@ -508,7 +508,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
         }
         packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
         packetHeader.displayOrientation = displayOrientation
-        packetHeader.frameNumber = ++frameNumber
+        packetHeader.frameNumber = (++frameNumber).toLong()
         val packetSize = packet.size()
         val packetData = packet.data().asByteBufferOfSize(packetSize)
         packetHeader.packetSize = packetSize

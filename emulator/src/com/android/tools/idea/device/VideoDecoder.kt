@@ -150,7 +150,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       val displaySize: Dimension,
       val orientation: Int,
       val orientationCorrection: Int,
-      val frameNumber: Long,
+      val frameNumber: Int,
       val originationTime: Long)
 
   private inner class DecodingContext(codecName: String) : AutoCloseable {
@@ -343,8 +343,8 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
           image = BufferedImage(COLOR_MODEL, raster, false, null)
         }
 
-        displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection, header.frameNumber,
-                                  header.originationTimestampUs / 1000)
+        displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection,
+                                  header.frameNumber.toInt(), header.originationTimestampUs / 1000)
       }
 
       onNewFrameAvailable()

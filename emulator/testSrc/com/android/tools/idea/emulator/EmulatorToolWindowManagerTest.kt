@@ -277,7 +277,7 @@ class EmulatorToolWindowManagerTest {
     panel.setSize(250, 500)
     val ui = FakeUi(panel)
     val emulatorView = ui.getComponent<EmulatorView>()
-    waitForCondition(2, TimeUnit.SECONDS) { emulatorView.frameNumber > 0 }
+    waitForCondition(2, TimeUnit.SECONDS) { renderAndGetFrameNumber(ui, emulatorView) > 0 }
 
     // Zoom in.
     emulatorView.zoom(ZoomType.IN)
@@ -359,6 +359,11 @@ class EmulatorToolWindowManagerTest {
     val windowManager = TestToolWindowManager(project)
     project.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
     return windowManager.toolWindow
+  }
+
+  private fun renderAndGetFrameNumber(fakeUi: FakeUi, emulatorView: EmulatorView): Int {
+    fakeUi.render() // The frame number may get updated as a result of rendering.
+    return emulatorView.frameNumber
   }
 
   private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {

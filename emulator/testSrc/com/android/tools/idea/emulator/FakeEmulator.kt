@@ -49,17 +49,6 @@ import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
-import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.protobuf.CodedOutputStream
-import com.android.tools.idea.protobuf.Empty
-import com.android.tools.idea.protobuf.MessageOrBuilder
-import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.google.common.util.concurrent.SettableFuture
-import com.intellij.openapi.util.text.StringUtil
-import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.containers.ContainerUtil
-import com.intellij.util.io.createDirectories
-import com.intellij.util.ui.UIUtil
 import com.android.tools.idea.io.grpc.ForwardingServerCall.SimpleForwardingServerCall
 import com.android.tools.idea.io.grpc.ForwardingServerCallListener.SimpleForwardingServerCallListener
 import com.android.tools.idea.io.grpc.Metadata
@@ -72,6 +61,17 @@ import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder
 import com.android.tools.idea.io.grpc.stub.StreamObserver
+import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.protobuf.CodedOutputStream
+import com.android.tools.idea.protobuf.Empty
+import com.android.tools.idea.protobuf.MessageOrBuilder
+import com.android.tools.idea.protobuf.TextFormat.shortDebugString
+import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.io.createDirectories
+import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
 import java.awt.Color
 import java.awt.Dimension
@@ -160,6 +160,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
   @Volatile var extendedControlsVisible = false
 
+  private var frameNumber = 0
   /** Ids of snapshots that were created by calling the [createIncompatibleSnapshot] method. */
   private val incompatibleSnapshots = ContainerUtil.newConcurrentSet<String>()
 
@@ -447,6 +448,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val response = Image.newBuilder()
       .setImage(ByteString.copyFrom(imageBytes))
       .setFormat(imageFormat)
+      .setSeq(++frameNumber)
     sendStreamingResponse(responseObserver, response.build())
   }
 

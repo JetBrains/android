@@ -237,7 +237,7 @@ class DeviceToolWindowPanelTest {
     waitForCondition(5, TimeUnit.SECONDS) { panel.isConnected && agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
   }
 
-  private fun renderAndGetFrameNumber(): Long {
+  private fun renderAndGetFrameNumber(): Int {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return panel.frameNumber
   }

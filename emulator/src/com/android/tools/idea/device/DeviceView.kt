@@ -35,7 +35,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.EventQueue
@@ -119,11 +118,6 @@ class DeviceView(
 
   /** Size of the device display in device pixels. */
   private val deviceDisplaySize = Dimension()
-
-  /** Count of received display frames. */
-  @get:VisibleForTesting
-  var frameNumber: Long = 0
-    private set
 
   private val displayTransform = AffineTransform()
   private var disposed = false

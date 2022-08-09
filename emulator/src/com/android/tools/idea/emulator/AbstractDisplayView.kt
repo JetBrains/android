@@ -22,6 +22,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -58,6 +59,10 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     protected set
   /** Orientation of the device display in quadrants counterclockwise. */
   abstract val displayOrientationQuadrants: Int
+  /** The number of the last rendered display frame. */
+  @get:VisibleForTesting
+  var frameNumber: Int = 0
+    protected set
 
   private val disconnectedStateMessage = JBLabel("", SwingConstants.CENTER)
   private val reconnectButton = JButton("Reconnect")
