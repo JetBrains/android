@@ -627,7 +627,6 @@ class EmulatorViewTest {
   }
 
   private fun createScrollPane(view: Component): JScrollPane {
-    @Suppress("UndesirableClassUsage")
     return JScrollPane(view).apply {
       border = null
       isFocusable = true
