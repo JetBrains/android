@@ -41,6 +41,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
+import java.io.File
 import java.util.UUID
 
 class BuildAttributionManagerImpl(
@@ -102,7 +103,7 @@ class BuildAttributionManagerImpl(
           BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
         }
         finally {
-          FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
+          cleanup(attributionFileDir)
         }
       }
     }
@@ -111,17 +112,23 @@ class BuildAttributionManagerImpl(
   }
 
   override fun onBuildFailure(request: GradleBuildInvoker.Request) {
-    val buildSessionId = UUID.randomUUID().toString()
-    val attributionFileDir = getAgpAttributionFileDir(request)
-    FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
+    cleanup(getAgpAttributionFileDir(request))
     project.invokeLaterIfNotDisposed {
+      val buildSessionId = UUID.randomUUID().toString()
       BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
         analyticsManager.logBuildFailure(myCurrentBuildInvocationType)
         analyzersWrapper.onBuildFailure()
         BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
       }
     }
+  }
 
+  private fun cleanup(attributionFileDir: File) {
+    try {
+      FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
+    } catch (t: Throwable) {
+      log.error("Error during build attribution files cleanup", t)
+    }
   }
 
   override fun statusChanged(event: ProgressEvent?) {
