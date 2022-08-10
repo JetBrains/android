@@ -213,7 +213,7 @@ class TreeTableImpl(
         // Note: This is called when a tree node is expanded/collapsed.
         // Delay the table update to avoid paint problems during tree node expansions and closures.
         // The problem seem to be caused by this being called from the selection update of the table.
-        invokeLater { super.fireTableDataChanged() }
+        invokeLater { treeTableSelectionModel.update { super.fireTableDataChanged() } }
       }
     }
 
