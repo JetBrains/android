@@ -71,7 +71,9 @@ class DownloadsInfoPageView(
     }
     val splitter = OnePixelSplitter(0.4f)
     splitter.firstComponent = createScrollPane(resultsTable)
-    splitter.secondComponent = createScrollPane(requestsList)
+    if (pageModel.repositoriesTableModel.rowCount > 0) {
+      splitter.secondComponent = createScrollPane(requestsList)
+    }
 
     add(header, BorderLayout.NORTH)
     add(splitter, BorderLayout.CENTER)
