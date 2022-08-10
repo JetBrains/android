@@ -19,13 +19,14 @@ import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.adtui.stdui.CommonTextField
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
-import org.jetbrains.annotations.Nullable
-import org.jetbrains.kotlin.ir.interpreter.contractsDslAnnotation
+import kotlinx.collections.immutable.toImmutableList
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -38,12 +39,11 @@ import java.nio.file.Path
 import javax.swing.Action
 import javax.swing.DefaultListModel
 import javax.swing.JButton
-import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
-import javax.swing.JTextField
+import kotlin.io.path.name
 
 private const val REPRO_TEXT = "Please enter the series of steps necessary to reproduce this bug."
 private const val EXPECTED_TEXT = "What was the expected behavior?"
@@ -88,23 +88,34 @@ class SendFeedbackDialog(project: Project?, file: Path, user: String) : DialogWr
 
   private val grid = JPanel(GridBagLayout())
 
-  public val issueTitle: String
+  // Set of all existing paths, to prevent duplicates
+  private val pathSet = mutableSetOf<Path>()
+
+  // List of paths sorted by file name, so that they match the order in the list control
+  private val pathList = mutableListOf<Path>()
+
+  val issueTitle: String
     get() = titleText.text
 
-  public val reproSteps: String
+  val reproSteps: String
     get() = reproText.text
-  public val actual: String
+  val actual: String
     get() = actualText.text
-  public val expected: String
+  val expected: String
     get() = expectedText.text
-  public val component: String
+  val component: String
     get() = feedbackComponents.text
+  val paths: List<Path>
+    get() = pathList.toImmutableList()
 
   init {
     title = "Create New Bug"
     isResizable = false
     isModal = true
-    listModel.addElement(file.fileName.toString())
+
+    pathSet.add(file)
+    pathList.add(file)
+    listModel.addElement(file.name)
 
     val titleLabel = JLabel().apply {
       text = "Title:"
@@ -222,6 +233,7 @@ class SendFeedbackDialog(project: Project?, file: Path, user: String) : DialogWr
 
       val addButton = JButton().apply {
         text = "Add"
+        addActionListener { onAddButtonPressed() }
       }
 
       constraints.apply {
@@ -235,6 +247,7 @@ class SendFeedbackDialog(project: Project?, file: Path, user: String) : DialogWr
 
       val removeButton = JButton().apply {
         text = "Remove"
+        addActionListener { onRemoveButtonPressed() }
       }
 
       constraints.apply {
@@ -245,6 +258,33 @@ class SendFeedbackDialog(project: Project?, file: Path, user: String) : DialogWr
     }
 
     init()
+  }
+
+  private fun onAddButtonPressed() {
+    val descriptor = FileChooserDescriptor(true, false, false, false, false, true)
+    val fileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
+    val files = fileChooserDialog.choose(null)
+
+    for (path in files.map { it.toNioPath() }) {
+      if (!pathSet.add(path)) {
+        continue
+      }
+
+      // Insert the new element in the proper place to maintain sorting by file name
+      val index = -(pathList.binarySearch(path, compareBy { it.name }) + 1)
+      pathList.add(index, path)
+      listModel.insertElementAt(path.name, index)
+    }
+  }
+
+  private fun onRemoveButtonPressed() {
+    val indices = listFiles.selectedIndices.reversed()
+    for (index in indices) {
+      val path = pathList[index]
+      pathSet.remove(path)
+      pathList.removeAt(index)
+      listModel.removeElementAt(index)
+    }
   }
 
   override fun createActions(): Array<Action> {

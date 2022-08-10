@@ -83,6 +83,8 @@ class SendFeedbackDialogTest {
         Truth.assertThat(expected).isEqualTo("This is the expected behavior.")
         Truth.assertThat(actual).isEqualTo("This is the actual behavior.")
         Truth.assertThat(component).isEqualTo("component")
+        Truth.assertThat(paths.size).isEqualTo(1)
+        Truth.assertThat(paths[0]).isEqualTo(Paths.get("DiagnosticsFile2022-06-16-04-00-00.zip"))
       }
     }
   }
