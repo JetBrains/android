@@ -62,6 +62,7 @@ android-studio/bin/studio.ico
 android-studio/bin/studio.svg
 android-studio/bin/studio64.exe
 android-studio/bin/studio64.exe.vmoptions
+android-studio/bin/studio_safe.bat
 android-studio/bin/wslhash
 android-studio/bin/wslproxy
 android-studio/build.txt

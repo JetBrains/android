@@ -569,6 +569,9 @@ android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
     codesign_filelist = "codesign/filelist",
+    files_win = {
+        "safemode/win/studio_safe.bat": "bin/studio_safe.bat",
+    },
     jre = "//prebuilts/studio/jdk:jdk-bundle",
     platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [

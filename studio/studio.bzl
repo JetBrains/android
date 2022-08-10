@@ -621,6 +621,18 @@ def _android_studio_os(ctx, platform, out):
     ctx.actions.write(dev01, "")
     files += [(platform.base_path + "license/dev01_license.txt", dev01)]
 
+    # Add safe mode batch file based on the current platform
+    source_map = {
+        LINUX: ctx.attr.files_linux,
+        MAC: ctx.attr.files_mac,
+        MAC_ARM: ctx.attr.files_mac_arm,
+        WIN: ctx.attr.files_win,
+    }[platform]
+
+    if source_map != None:
+        for key in source_map:
+            files += [(platform.base_path + source_map[key], key.files.to_list()[0])]
+
     so_jars = [("%s%s" % (platform.base_path, jar), f) for (jar, f) in ctx.attr.searchable_options.searchable_options]
     so_extras = ctx.actions.declare_file(ctx.attr.name + ".so.%s.zip" % platform.name)
     _zipper(ctx, "%s searchable options" % platform.name, so_jars, so_extras)
@@ -699,6 +711,10 @@ _android_studio = rule(
         "codesign_entitlements": attr.label(allow_single_file = True),
         "codesign_filelist": attr.label(allow_single_file = True),
         "compress": attr.bool(),
+        "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
+        "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
+        "files_mac_arm": attr.label_keyed_string_dict(allow_files = True, default = {}),
+        "files_win": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "jre": attr.label(),
         "platform": attr.label(),
         "plugins": attr.label_list(providers = [PluginInfo]),
