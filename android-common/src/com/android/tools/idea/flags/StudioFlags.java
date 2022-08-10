@@ -1387,6 +1387,15 @@ public final class StudioFlags {
       "Direct Access",
       "Enable FTL DirectAccess",
       false);
+
+  public static final Flag<String> DIRECT_ACCESS_PROJECT =
+    Flag.create(
+      FIREBASE_TEST_LAB,
+      "direct.access.project",
+      "GCP Project for Direct Access authentication",
+      "The project to use for FTL Direct Access",
+      "cloud-test-external1"
+    );
   // endregion Firebase Test Lab
 
   // region App Insights
