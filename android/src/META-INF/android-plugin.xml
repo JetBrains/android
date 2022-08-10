@@ -792,6 +792,10 @@
     <wizardTemplateProvider implementation="com.android.tools.idea.wizard.template.impl.WizardTemplateProviderImpl" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <deviceProvisioner implementation="com.android.tools.idea.avdmanager.LocalEmulatorProvisionerFactory"/>
+  </extensions>
+
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
