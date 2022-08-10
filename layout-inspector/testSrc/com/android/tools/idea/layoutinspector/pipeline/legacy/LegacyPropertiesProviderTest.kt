@@ -103,7 +103,7 @@ class LegacyPropertiesProviderTest {
   fun testExample() {
     val lookup = Mockito.mock(ViewNodeAndResourceLookup::class.java)
     whenever(lookup.resourceLookup).thenReturn(Mockito.mock(ResourceLookup::class.java))
-    val root = ViewNode(1234, "TextView", null, Rectangle(), null, null, "", 0)
+    val root = ViewNode(1234, "TextView", null, Rectangle(), null, "", 0)
     val provider = LegacyPropertiesProvider()
     val propertyLoader = LegacyPropertiesProvider.Updater(lookup)
     propertyLoader.parseProperties(root, example)

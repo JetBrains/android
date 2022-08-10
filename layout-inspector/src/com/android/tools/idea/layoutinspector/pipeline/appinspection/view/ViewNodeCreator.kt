@@ -70,9 +70,9 @@ class ViewNodeCreator(
     val layoutResource = view.layoutResource.convert().createReference(strings)
     val textValue = strings[view.textValue]
     val layoutBounds = view.bounds.layout.let { Rectangle(it.x, it.y, it.w, it.h) }
-    val renderBounds = view.bounds.render.takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }
+    val renderBounds = view.bounds.render.takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
 
-    val node = ViewNode(view.id, qualifiedName, layoutResource, layoutBounds, renderBounds?.toShape(), resource,
+    val node = ViewNode(view.id, qualifiedName, layoutResource, layoutBounds, renderBounds, resource,
                         textValue, view.layoutFlags)
 
     val children = view.childrenList.map { it.convert(shouldInterrupt, access) }.toMutableList()

@@ -77,7 +77,7 @@ class ResourceLookupTest {
 
   @Test
   fun testSingleColorIcon() {
-    val title = ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, null, "Hello Folks", 0)
+    val title = ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, "Hello Folks", 0)
     val context = object : ViewNodeAndResourceLookup {
       override val resourceLookup = ResourceLookup(projectRule.project)
       override fun get(id: Long): ViewNode = title

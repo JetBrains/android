@@ -75,7 +75,7 @@ sealed class DrawViewNode(owner: ViewNode) {
     unfilteredOwner.findClosestUnfilteredNode(treeSettings)
 
   val bounds: Shape
-    get() = unfilteredOwner.transformedBounds
+    get() = unfilteredOwner.renderBounds
 
   // Children at the start of the child list that have canCollapse = true will be drawn as part of the parent rather than as separate nodes.
   abstract fun canCollapse(treeSettings: TreeSettings): Boolean

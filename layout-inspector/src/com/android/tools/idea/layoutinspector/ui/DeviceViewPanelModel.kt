@@ -187,7 +187,7 @@ class DeviceViewPanelModel(
           return if (model.isVisible(node)) sequenceOf(node) else node.children.asSequence().flatMap { lowestVisible(it) }
         }
 
-        rootBounds = model.root.children.flatMap { lowestVisible(it) }.map { it.transformedBounds.bounds }
+        rootBounds = model.root.children.flatMap { lowestVisible(it) }.map { it.renderBounds.bounds }
           .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
       }
 
@@ -325,7 +325,7 @@ class DeviceViewPanelModel(
         viewTransform.rotate(-angle)
         viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-        val rect = viewTransform.createTransformedShape(view.unfilteredOwner.transformedBounds)
+        val rect = viewTransform.createTransformedShape(view.unfilteredOwner.renderBounds)
         newHitRects.add(ViewDrawInfo(rect, viewTransform, view, hitLevel, isCollapsed))
       }
     }

@@ -283,8 +283,8 @@ class AppInspectionTreeLoaderTest {
       assertThat(node4.qualifiedName).isEqualTo("com.example.MyViewClass2")
       assertThat((node4.drawChildren[0] as DrawViewImage).image).isEqualTo(image4)
       assertThat(node4.children).isEmpty()
-      assertThat((node4.transformedBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 23, 78))
-      assertThat((node4.transformedBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 250, 253))
+      assertThat((node4.renderBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 23, 78))
+      assertThat((node4.renderBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 250, 253))
 
       val node5 = tree.children[2]
       assertThat(node5.drawId).isEqualTo(5)

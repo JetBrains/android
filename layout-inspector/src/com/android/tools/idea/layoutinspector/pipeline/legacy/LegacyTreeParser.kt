@@ -77,7 +77,7 @@ object LegacyTreeParser {
     val (name, dataWithoutName) = data.split('@', limit = 2)
     val (hash, properties) = dataWithoutName.split(' ', limit = 2)
     val hashId = hash.toLongOrNull(16) ?: 0
-    val view = ViewNode(hashId, name, null, Rectangle(), null, null, "", 0)
+    val view = ViewNode(hashId, name, null, Rectangle(), Rectangle(), null, "", 0)
     ViewNode.writeAccess {
       view.parent = parent
       parent?.children?.add(view)

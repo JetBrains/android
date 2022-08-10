@@ -54,13 +54,22 @@ open class ViewNode(
   var qualifiedName: String,
   var layout: ResourceReference?,
   var layoutBounds: Rectangle,
-  private var renderBounds: Shape?,
+  var renderBounds: Shape,
   var viewId: ResourceReference?,
   var textValue: String,
   var layoutFlags: Int
 ) {
+  @TestOnly
+  constructor(drawId: Long,
+              qualifiedName: String,
+              layout: ResourceReference?,
+              layoutBounds: Rectangle,
+              viewId: ResourceReference?,
+              textValue: String,
+              layoutFlags: Int) : this(drawId, qualifiedName, layout, layoutBounds, layoutBounds, viewId, textValue, layoutFlags)
+
   /** constructor for synthetic nodes */
-  constructor(qualifiedName: String): this(-1, qualifiedName, null, Rectangle(), null, null, "", 0)
+  constructor(qualifiedName: String): this(-1, qualifiedName, null, Rectangle(), Rectangle(), null, "", 0)
 
   @Suppress("LeakingThis")
   val treeNode = TreeViewNode(this)
@@ -97,13 +106,6 @@ open class ViewNode(
 
   /** Returns true if the node represents a call from a parent node with a single call and it itself is making a single call */
   open fun isSingleCall(treeSettings: TreeSettings): Boolean = false
-
-  val transformedBounds: Shape
-    get() = renderBounds ?: layoutBounds
-
-  fun setTransformedBounds(bounds: Shape?) {
-    renderBounds = bounds
-  }
 
   /**
    *  The rectangular bounds of this node's transformed bounds plus the transitive bounds of all children.
@@ -164,7 +166,7 @@ open class ViewNode(
   fun calculateTransitiveBounds() {
     readAccess {
       flatten().forEach {
-        it.transitiveBounds = it.children.map(ViewNode::transitiveBounds).plus(it.transformedBounds.bounds)
+        it.transitiveBounds = it.children.map(ViewNode::transitiveBounds).plus(it.renderBounds.bounds)
           .reduce { r1, r2 -> r1.union(r2) }
       }
     }

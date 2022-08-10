@@ -394,7 +394,7 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
       oldNode.layoutBounds = newNode.layoutBounds
       oldNode.qualifiedName = newNode.qualifiedName
       oldNode.layout = newNode.layout
-      oldNode.setTransformedBounds(newNode.transformedBounds)
+      oldNode.renderBounds = newNode.renderBounds
       oldNode.layoutFlags = newNode.layoutFlags
       oldNode.parent = parent
       if (oldNode is ComposeViewNode && newNode is ComposeViewNode) {

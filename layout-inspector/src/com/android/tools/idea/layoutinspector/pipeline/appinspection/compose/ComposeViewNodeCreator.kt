@@ -91,12 +91,14 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
       throw InterruptedException()
     }
 
+    val layoutBounds = Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h)
+    val renderBounds = bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
     val node = ComposeViewNode(
       id,
       stringTable[name],
       null,
-      Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h),
-      bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape(),
+      layoutBounds,
+      renderBounds,
       null,
       "",
       0,
