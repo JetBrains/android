@@ -363,6 +363,9 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
 
   fun hasHiddenNodes() = hiddenNodes.isNotEmpty()
 
+  /**
+   * Used to update the model when the view changes on the device.
+   */
   private class Updater(
     private val oldRoot: ViewNode,
     private val newRoot: ViewNode,
@@ -380,6 +383,10 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
       }
     }
 
+    /**
+     * Called when the view has changed on the device.
+     * All the information from the [newNode] is copied into the [oldNode].
+     */
     private fun ViewNode.WriteAccess.update(oldNode: ViewNode, parent: ViewNode?, newNode: ViewNode): Boolean {
       var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
       // TODO: should changes below cause modified to be set to true?
