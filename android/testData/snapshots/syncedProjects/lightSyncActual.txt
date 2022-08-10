@@ -113,7 +113,7 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/androidlibrary
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/androidlibrary/reference.androidlibrary.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -200,7 +200,7 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/androidlibrary
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/androidlibrary/reference.androidlibrary.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -284,7 +284,7 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/androidlibrary
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/androidlibrary/reference.androidlibrary.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -443,7 +443,7 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/reference.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -538,7 +538,7 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/reference.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -630,7 +630,7 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/reference.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE

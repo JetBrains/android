@@ -94,7 +94,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         LinkedProjectPath             : <TEMP>
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -178,7 +178,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         LinkedProjectPath             : <TEMP>
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -266,7 +266,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         LinkedProjectPath             : <TEMP>
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE

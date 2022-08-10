@@ -33,14 +33,13 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null, i
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
   val selectedVariant = variant ?: androidModel.selectedVariantCore
 
-  data.useExternalCompilerOutput(isDelegatedBuildUsed)
-  data.isInheritProjectCompileOutputPath = false
-
   // TODO(b/232780259): Look for the compilation output folder. We can have both java and kotlin compilation outputs in classesFolder(IDEA-235250).
   val sourceCompilerOutput = selectedVariant.mainArtifact.classesFolder.first().absolutePath
   val testCompilerOutput = selectedVariant.unitTestArtifact?.classesFolder?.first()?.absolutePath
 
 
+  data.useExternalCompilerOutput(isDelegatedBuildUsed)
+  data.isInheritProjectCompileOutputPath = false
   // MPSS: Set compilation data for Gradle sourceSets too.
   for (sourceSet in ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY)) {
     val sourceSetData = sourceSet.data
@@ -48,7 +47,10 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null, i
       // Ignore any non-Android source sets e.g in a KMP project
       continue
     }
-
+    // The compiler output paths are not inherited here as every moduleData can have its own path.
+    // In order for CompilerModuleExtension to use the compiler paths of each module, we need to make sure that
+    // isInheritProjectCompileOutputPath is set to false.
+    sourceSetData.isInheritProjectCompileOutputPath = false
     sourceSetData.useExternalCompilerOutput(isDelegatedBuildUsed)
     sourceSetData.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
     sourceSetData.setCompileOutputPath(ExternalSystemSourceType.TEST, null)

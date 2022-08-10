@@ -125,9 +125,9 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.androidTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
@@ -300,9 +300,9 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -432,9 +432,9 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.app.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.app.unitTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
@@ -913,9 +913,9 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.lib.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.lib.androidTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.lib.main
@@ -1070,9 +1070,9 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.lib.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.lib.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/project.lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -1189,9 +1189,9 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project.lib.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.lib.unitTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.lib.main

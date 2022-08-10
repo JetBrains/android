@@ -117,7 +117,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -212,7 +212,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -304,7 +304,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -469,7 +469,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -562,7 +562,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -653,7 +653,7 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
