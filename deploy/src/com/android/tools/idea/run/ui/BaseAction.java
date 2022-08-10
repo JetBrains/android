@@ -161,7 +161,7 @@ public abstract class BaseAction extends AnAction {
     ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.create(executor, settings.getConfiguration());
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
-    env.putUserData(SWAP_INFO_KEY, new SwapInfo(mySwapType, handler));
+    env.putUserData(SWAP_INFO_KEY, new SwapInfo(mySwapType));
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 

@@ -15,38 +15,25 @@
  */
 package com.android.tools.idea.run.util;
 
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SwapInfo {
   public static final Key<SwapInfo> SWAP_INFO_KEY = Key.create("android.deploy.SwapInfo");
 
   @NotNull private final SwapType myType;
-  @Nullable private final ProcessHandler myHandler;
 
   public enum SwapType {
     APPLY_CHANGES,
     APPLY_CODE_CHANGES
   }
 
-  /**
-   * @param existingHandler An already-attached {@link ProcessHandler} that is responsible for the {@link com.android.ddmlib.Client}
-   *                        that is being swapped into. Or {@code null} if it is running on the device but not monitored by Android Studio.
-   */
-  public SwapInfo(@NotNull SwapType swapType, @Nullable ProcessHandler existingHandler) {
+  public SwapInfo(@NotNull SwapType swapType) {
     myType = swapType;
-    myHandler = existingHandler;
   }
 
   @NotNull
   public SwapType getType() {
     return myType;
-  }
-
-  @Nullable
-  public ProcessHandler getHandler() {
-    return myHandler;
   }
 }

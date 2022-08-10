@@ -118,7 +118,7 @@ class LaunchTaskRunnerTest {
   }
 
   private fun setSwapInfo() {
-    whenever(mockExecutionEnvironment.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(SwapInfo(SwapInfo.SwapType.APPLY_CHANGES, null))
+    whenever(mockExecutionEnvironment.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(SwapInfo(SwapInfo.SwapType.APPLY_CHANGES))
   }
 
   private fun createLaunchTaskRunner(deviceFutures: DeviceFutures): LaunchTaskRunner {
