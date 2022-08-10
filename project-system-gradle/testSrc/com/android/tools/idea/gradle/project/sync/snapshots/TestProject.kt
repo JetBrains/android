@@ -35,6 +35,7 @@ import com.android.utils.FileUtils.writeToFile
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -455,7 +456,9 @@ fun GradleIntegrationTest.prepareTestProject(
           name = "$name${testProject.pathToOpen}",
           options = options
         ) { project ->
-          AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+          invokeAndWaitIfNeeded {
+            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+          }
           body(project)
         }
       } finally {
