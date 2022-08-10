@@ -106,7 +106,12 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
 
   private fun findConfigurationFiles() = sequence {
     holderModules.forEachIndexed { index, module ->
-      yieldIfNotNull(GradleUtil.getGradleBuildFile(module.module)?.describe(module.projectDisplayName, module.orderBase + index))
+      yieldIfNotNull(
+        GradleUtil.getGradleModuleModel(module.module)
+          ?.buildFilePath
+          ?.let { VfsUtil.findFileByIoFile(it, false) }
+          ?.describe(module.projectDisplayName, module.orderBase + index)
+      )
 
       // include all .gradle and ProGuard files from each module
       for (file in findAllGradleScriptsInModule(module.module)) {
