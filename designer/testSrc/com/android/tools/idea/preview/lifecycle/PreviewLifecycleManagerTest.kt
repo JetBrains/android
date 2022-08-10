@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.util
+package com.android.tools.idea.preview.lifecycle
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
