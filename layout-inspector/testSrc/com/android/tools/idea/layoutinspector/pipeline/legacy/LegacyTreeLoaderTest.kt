@@ -147,10 +147,10 @@ DONE.
     provider.requestProperties(root)
     assertThat(hash).isEqualTo("com.android.internal.policy.DecorView@41673e3")
     assertThat(root.drawId).isEqualTo(0x41673e3)
-    assertThat(root.x).isEqualTo(0)
-    assertThat(root.y).isEqualTo(0)
-    assertThat(root.width).isEqualTo(1080)
-    assertThat(root.height).isEqualTo(1920)
+    assertThat(root.layoutBounds.x).isEqualTo(0)
+    assertThat(root.layoutBounds.y).isEqualTo(0)
+    assertThat(root.layoutBounds.width).isEqualTo(1080)
+    assertThat(root.layoutBounds.height).isEqualTo(1920)
     assertThat(root.viewId).isNull()
     assertThat(printTree(root).trim()).isEqualTo("""
           0x41673e3
@@ -169,10 +169,10 @@ DONE.
            """.trimIndent())
     val actionMenuView = findView(listOf(root), 0x29668e4)
     assertThat(actionMenuView.drawId).isEqualTo(0x29668e4)
-    assertThat(actionMenuView.x).isEqualTo(932)
-    assertThat(actionMenuView.y).isEqualTo(63)
-    assertThat(actionMenuView.width).isEqualTo(148)
-    assertThat(actionMenuView.height).isEqualTo(147)
+    assertThat(actionMenuView.layoutBounds.x).isEqualTo(932)
+    assertThat(actionMenuView.layoutBounds.y).isEqualTo(63)
+    assertThat(actionMenuView.layoutBounds.width).isEqualTo(148)
+    assertThat(actionMenuView.layoutBounds.height).isEqualTo(147)
     assertThat(actionMenuView.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
   }
 

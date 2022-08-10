@@ -40,6 +40,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
+import java.awt.Rectangle
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 class ResourceLookupTest {
@@ -76,7 +77,7 @@ class ResourceLookupTest {
 
   @Test
   fun testSingleColorIcon() {
-    val title = ViewNode(1, "TextView", null, 30, 60, 300, 100, null, null, "Hello Folks", 0)
+    val title = ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, null, "Hello Folks", 0)
     val context = object : ViewNodeAndResourceLookup {
       override val resourceLookup = ResourceLookup(projectRule.project)
       override fun get(id: Long): ViewNode = title

@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import java.awt.Rectangle
 import java.awt.Shape
 import kotlin.math.absoluteValue
 
@@ -102,10 +103,7 @@ class ComposeViewNode(
   drawId: Long,
   qualifiedName: String,
   layout: ResourceReference?,
-  x: Int,
-  y: Int,
-  width: Int,
-  height: Int,
+  layoutBounds: Rectangle,
   transformedBounds: Shape?,
   viewId: ResourceReference?,
   textValue: String,
@@ -134,7 +132,7 @@ class ComposeViewNode(
 
   /** The hash of an anchor which can identify the composable after a recomposition. */
   var anchorHash: Int
-): ViewNode(drawId, qualifiedName, layout, x, y, width, height, transformedBounds, viewId, textValue, layoutFlags) {
+): ViewNode(drawId, qualifiedName, layout, layoutBounds, transformedBounds, viewId, textValue, layoutFlags) {
 
   val recompositions = RecompositionData(recomposeCount, recomposeSkips)
 

@@ -181,8 +181,8 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
       root.drawChildren.clear()
       val maxWidth = windows.values.map { it.width }.maxOrNull() ?: 0
       val maxHeight = windows.values.map { it.height }.maxOrNull() ?: 0
-      root.width = maxWidth
-      root.height = maxHeight
+      root.layoutBounds.width = maxWidth
+      root.layoutBounds.height = maxHeight
       for (id in allIds) {
         val window = windows[id] ?: continue
         if (window.isDimBehind) {
@@ -384,12 +384,9 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
       var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
       // TODO: should changes below cause modified to be set to true?
       // Maybe each view should have its own modification listener that can listen for such changes?
-      oldNode.width = newNode.width
-      oldNode.height = newNode.height
+      oldNode.layoutBounds = newNode.layoutBounds
       oldNode.qualifiedName = newNode.qualifiedName
       oldNode.layout = newNode.layout
-      oldNode.x = newNode.x
-      oldNode.y = newNode.y
       oldNode.setTransformedBounds(newNode.transformedBounds)
       oldNode.layoutFlags = newNode.layoutFlags
       oldNode.parent = parent

@@ -61,10 +61,10 @@ abstract class AndroidWindow(
     get() = root.isDimBehind
 
   val width: Int
-    get() = root.width
+    get() = root.layoutBounds.width
 
   val height: Int
-    get() = root.height
+    get() = root.layoutBounds.height
 
   open val deviceClip: Shape? = null
 

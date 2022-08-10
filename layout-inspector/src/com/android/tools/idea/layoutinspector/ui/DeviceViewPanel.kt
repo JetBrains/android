@@ -556,7 +556,7 @@ class DeviceViewPanel(
     }
     // For the legacy inspector and for snapshots loaded from file, we do not have the screen size, but we know that all windows are loaded.
     val root = layoutInspector.layoutInspectorModel.root
-    return Dimension(root.width, root.height)
+    return Dimension(root.layoutBounds.width, root.layoutBounds.height)
   }
 
   override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty

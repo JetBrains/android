@@ -42,10 +42,8 @@ private val systemPackagePrefixes = setOf("android.", "androidx.", "com.android.
  * @param drawId the View.getUniqueDrawingId which is also the id found in the skia image
  * @param qualifiedName the qualified class name of the view
  * @param layout reference to the layout xml containing this view
- * @param x the left edge of the view from the device left edge, ignoring any post-layout transformations
- * @param y the top edge of the view from the device top edge, ignoring any post-layout transformations
- * @param width the width of this view, ignoring any post-layout transformations
- * @param height the height of this view, ignoring any post-layout transformations
+ * @param layoutBounds the bounds used by android for layout. Always a rectangle.
+ * x and y are the left and top edges of the view from the device left and top edge, ignoring post-layout transformations
  * @param bounds the actual bounds of this view as shown on the screen, including any post-layout transformations.
  * @param viewId the id set by the developer in the View.id attribute
  * @param textValue the text value if present
@@ -55,21 +53,14 @@ open class ViewNode(
   var drawId: Long,
   var qualifiedName: String,
   var layout: ResourceReference?,
-  var x: Int,
-  var y: Int,
-  var width: Int,
-  var height: Int,
+  var layoutBounds: Rectangle,
   bounds: Shape?,
   var viewId: ResourceReference?,
   var textValue: String,
   var layoutFlags: Int
 ) {
   /** constructor for synthetic nodes */
-  constructor(qualifiedName: String): this(-1, qualifiedName, null, 0, 0, 0, 0, null, null, "", 0)
-
-  /** The bounds used by android for layout. Always a rectangle. */
-  val layoutBounds: Rectangle
-    get() = Rectangle(x, y, width, height)
+  constructor(qualifiedName: String): this(-1, qualifiedName, null, Rectangle(), null, null, "", 0)
 
   @Suppress("LeakingThis")
   val treeNode = TreeViewNode(this)

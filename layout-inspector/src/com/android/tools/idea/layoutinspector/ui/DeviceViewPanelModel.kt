@@ -191,10 +191,10 @@ class DeviceViewPanelModel(
           .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
       }
 
-      root.x = rootBounds.x
-      root.y = rootBounds.y
-      root.width = rootBounds.width
-      root.height = rootBounds.height
+      root.layoutBounds.x = rootBounds.x
+      root.layoutBounds.y = rootBounds.y
+      root.layoutBounds.width = rootBounds.width
+      root.layoutBounds.height = rootBounds.height
 
       // Don't allow rotation to completely edge-on, since some rendering can have problems in that situation. See issue 158452416.
       // You might say that this is ( •_•)>⌐■-■ / (⌐■_■) an edge-case.

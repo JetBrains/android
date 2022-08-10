@@ -296,10 +296,10 @@ class DeviceViewPanelModelTest {
     model.hideSubtree(model[VIEW1]!!)
     panelModel.refresh()
 
-    assertThat(model.root.x).isEqualTo(0)
-    assertThat(model.root.y).isEqualTo(0)
-    assertThat(model.root.width).isEqualTo(0)
-    assertThat(model.root.height).isEqualTo(0)
+    assertThat(model.root.layoutBounds.x).isEqualTo(0)
+    assertThat(model.root.layoutBounds.y).isEqualTo(0)
+    assertThat(model.root.layoutBounds.width).isEqualTo(0)
+    assertThat(model.root.layoutBounds.height).isEqualTo(0)
     assertThat(panelModel.maxWidth)
   }
 

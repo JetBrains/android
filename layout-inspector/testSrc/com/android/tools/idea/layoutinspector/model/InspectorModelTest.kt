@@ -85,8 +85,8 @@ class InspectorModelTest {
     for ((id, orig) in origNodes) {
       assertSame(orig, model[id])
     }
-    assertEquals(2, model[ROOT]?.x)
-    assertEquals(6, model[VIEW3]?.height)
+    assertEquals(2, model[ROOT]?.layoutBounds?.x)
+    assertEquals(6, model[VIEW3]?.layoutBounds?.height)
     assertSame(origRoot, newRootReported)
     assertSingleRoot(model, FakeTreeSettings())
   }
@@ -209,7 +209,7 @@ class InspectorModelTest {
     assertSameElements(children(model[ROOT]!!).map { it.drawId }, VIEW4, VIEW2)
     assertEquals("v4Type", model[VIEW4]?.qualifiedName)
     assertEquals("v3Type", model[VIEW3]?.qualifiedName)
-    assertEquals(8, model[VIEW3]?.y)
+    assertEquals(8, model[VIEW3]?.layoutBounds?.y)
     assertSingleRoot(model, FakeTreeSettings())
   }
 

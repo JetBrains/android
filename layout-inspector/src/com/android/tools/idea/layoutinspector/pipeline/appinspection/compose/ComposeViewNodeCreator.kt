@@ -24,6 +24,7 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
+import java.awt.Rectangle
 import java.util.EnumSet
 
 private val composeSupport = EnumSet.of(Capability.SUPPORTS_COMPOSE)
@@ -94,10 +95,7 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
       id,
       stringTable[name],
       null,
-      bounds.layout.x,
-      bounds.layout.y,
-      bounds.layout.w,
-      bounds.layout.h,
+      Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h),
       bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape(),
       null,
       "",
