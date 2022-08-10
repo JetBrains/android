@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.lifecycle
+package com.android.tools.idea.compose.preview.util
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.compose.preview.PreviewDeactivationProjectService
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -52,12 +53,12 @@ class PreviewLifecycleManager(
   private val scheduleDelayed: (Disposable, () -> Unit) -> Unit = project
     .getService(PreviewDeactivationProjectService::class.java)
     .deactivationQueue
-  ::addDelayedAction
+    ::addDelayedAction
 ) {
   /**
-   * [CoroutineScope] that is valid while this is active. The scope will be cancelled as soon as this becomes inactive. This scope is used to
-   * launch the tasks that only make sense while in the active mode.
-   */
+  * [CoroutineScope] that is valid while this is active. The scope will be cancelled as soon as this becomes inactive. This scope is used to
+  * launch the tasks that only make sense while in the active mode.
+  */
   @get:Synchronized
   @set:Synchronized
   private var activationScope: CoroutineScope? = null
