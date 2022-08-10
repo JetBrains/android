@@ -101,6 +101,7 @@ import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.ExceptionUtil
 import com.intellij.util.PathUtil
 import com.intellij.util.SystemProperties
+import com.jetbrains.rd.util.put
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
@@ -496,22 +497,39 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     ideProject: DataNode<ProjectData>,
     ideLibraryTable: IdeUnresolvedLibraryTable
   ): IdeResolvedLibraryTable {
-    val kmpArtifactToModuleIdMap =
-      ideProject
-        .getUserData(KotlinMPPGradleProjectResolver.MPP_CONFIGURATION_ARTIFACTS)
-        .orEmpty()
-    val artifactToModuleIdMap =
-      ideProject
-        .getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS)
-        ?.mapValues { listOf(it.value) }
-        .orEmpty()
-
-    val allArtifactModuleIdMap = artifactToModuleIdMap.plus(kmpArtifactToModuleIdMap)
+    val artifactModuleIdMap = buildArtifactsModuleIdMap(ideProject)
     return ResolvedLibraryTableBuilder(
       { key: Any? -> myGradlePathByModuleId[key] },
       { key: Any? -> myModuleDataByGradlePath[key] },
-      { artifact: File -> resolveArtifact(allArtifactModuleIdMap, artifact) }
+      { artifact: File -> resolveArtifact(artifactModuleIdMap, artifact) }
     ).buildResolvedLibraryTable(ideLibraryTable)
+  }
+
+  private fun buildArtifactsModuleIdMap(ideProject: DataNode<ProjectData>): Map<String, List<String>> =
+    mergeProjectResolvedArtifacts(
+      kmpArtifactToModuleIdMap = ideProject
+        .getUserData(KotlinMPPGradleProjectResolver.MPP_CONFIGURATION_ARTIFACTS)
+        .orEmpty(),
+      artifactToModuleIdMap = ideProject
+        .getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS)
+        ?.mapValues { listOf(it.value) }
+        .orEmpty()
+    )
+
+  private fun mergeProjectResolvedArtifacts(
+    kmpArtifactToModuleIdMap: Map<String, List<String>>,
+    artifactToModuleIdMap: Map<String, List<String>>
+  ): Map<String, List<String>> {
+    val mergedArtifactModuleIdMap = artifactToModuleIdMap.toMutableMap()
+    kmpArtifactToModuleIdMap.forEach {
+      if (mergedArtifactModuleIdMap.getOrDefault(it.key, it.value) != it.value) {
+        error("Both artifact maps contains same key: ${it.key} with different values " +
+              "for kmp: ${it.value} and platform: ${artifactToModuleIdMap[it.key]}"
+        )
+      }
+      mergedArtifactModuleIdMap.put(it)
+    }
+    return mergedArtifactModuleIdMap
   }
 
   private fun resolveArtifact(artifactToModuleIdMap: Map<String, List<String>>, artifact: File) =
