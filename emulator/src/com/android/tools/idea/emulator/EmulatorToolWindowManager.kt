@@ -73,6 +73,7 @@ import kotlinx.coroutines.launch
 import java.awt.EventQueue
 import java.text.Collator
 import java.time.Duration
+import java.util.concurrent.CancellationException
 
 /**
  * Manages contents of the Emulator tool window. Listens to changes in [RunningEmulatorCatalog]
@@ -442,6 +443,9 @@ internal class EmulatorToolWindowManager private constructor(
       UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
         addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, title, properties)
       }
+    }
+    catch (e: CancellationException) {
+      throw e
     }
     catch (e: Exception) {
       thisLogger().warn(e)
