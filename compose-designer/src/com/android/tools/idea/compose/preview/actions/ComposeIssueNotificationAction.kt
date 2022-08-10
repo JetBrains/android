@@ -87,8 +87,8 @@ internal val Project.needsBuild: Boolean
            lastBuildResult.mode == ProjectSystemBuildManager.BuildMode.CLEAN
   }
 
-private const val ACTION_BACKGROUND_ALPHA = 0x30
-private const val ACTION_BORDER_ALPHA = 0xC8
+private const val ACTION_BACKGROUND_ALPHA = 0x1A
+private const val ACTION_BORDER_ALPHA = 0xBF
 private const val ACTION_BORDER_ARC_SIZE = 5
 private const val ACTION_BORDER_THICKNESS = 1
 
@@ -122,8 +122,8 @@ internal sealed class ComposePreviewStatusNotification(
    * Enum representing the different UI color states that the action might have for the border and background.
    */
   enum class Presentation(baseColorLight: Int, baseColorDark: Int = baseColorLight) {
-    Error(0xFF0000),
-    Warning(0xFDFF00);
+    Error(0xE53E4D),
+    Warning(0xEDA200);
 
     val color = JBColor(UIUtil.toAlpha(Color(baseColorLight), ACTION_BACKGROUND_ALPHA),
                         UIUtil.toAlpha(Color(baseColorDark), ACTION_BACKGROUND_ALPHA))
@@ -135,7 +135,7 @@ internal sealed class ComposePreviewStatusNotification(
    * The Preview found a syntax error and paused the updates.
    */
   object SyntaxError : ComposePreviewStatusNotification(
-    AllIcons.Process.ProgressPauseSmall,
+    AllIcons.General.InspectionsPause,
     message("notification.syntax.errors.title"),
     message("notification.syntax.errors.description"),
     false)
@@ -148,7 +148,7 @@ internal sealed class ComposePreviewStatusNotification(
     message("notification.needs.build.broken.title"),
     message("notification.needs.build.broken.description"),
     true,
-    Presentation.Warning)
+    Presentation.Error)
 
   /**
    * The Preview is refreshing.
@@ -400,11 +400,19 @@ class ComposeIssueNotificationAction(
       val textAlignment: Int
         get() = myPresentation.getClientProperty(ComposePreviewStatusNotification.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
 
+      private val font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
+
+      private val textColor = JBColor(Gray._110, Gray._187)
+
       override fun isBackgroundSet(): Boolean =
         actionPresentation != null || super.isBackgroundSet()
 
       override fun getBackground(): Color? =
         actionPresentation?.color ?: super.getBackground()
+
+      override fun getFont() = font
+
+      override fun getForeground() = textColor
 
       override fun getBorder(): Border =
         if (popState == POPPED)
@@ -417,6 +425,7 @@ class ComposeIssueNotificationAction(
       override fun addNotify() {
         super.addNotify()
         addMouseListener(mouseListener)
+        setHorizontalTextPosition(textAlignment)
       }
 
       override fun removeNotify() {
@@ -429,12 +438,6 @@ class ComposeIssueNotificationAction(
       // Do not display the regular tooltip
       override fun updateToolTipText() {}
 
-      override fun updateUI() {
-        super.updateUI()
-
-        font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
-        foreground = JBColor(Gray._110, Gray._187)
-      }
     }.apply {
       setHorizontalTextPosition(textAlignment)
     }
@@ -450,8 +453,9 @@ class ComposeIssueNotificationAction(
       presentation.text = it.title
       presentation.description = it.description
       presentation.putClientProperty(ComposePreviewStatusNotification.PRESENTATION, it.presentation)
+      val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
       presentation.putClientProperty(ComposePreviewStatusNotification.TEXT_ALIGNMENT,
-                                     if (it.hasRefreshIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
+                                     if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
     }
   }
 
