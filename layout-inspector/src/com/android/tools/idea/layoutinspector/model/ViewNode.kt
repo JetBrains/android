@@ -44,7 +44,7 @@ private val systemPackagePrefixes = setOf("android.", "androidx.", "com.android.
  * @param layout reference to the layout xml containing this view
  * @param layoutBounds the bounds used by android for layout. Always a rectangle.
  * x and y are the left and top edges of the view from the device left and top edge, ignoring post-layout transformations
- * @param bounds the actual bounds of this view as shown on the screen, including any post-layout transformations.
+ * @param renderBounds the actual bounds of this view as shown on the screen, including any post-layout transformations.
  * @param viewId the id set by the developer in the View.id attribute
  * @param textValue the text value if present
  * @param layoutFlags flags from WindowManager.LayoutParams
@@ -54,7 +54,7 @@ open class ViewNode(
   var qualifiedName: String,
   var layout: ResourceReference?,
   var layoutBounds: Rectangle,
-  bounds: Shape?,
+  private var renderBounds: Shape?,
   var viewId: ResourceReference?,
   var textValue: String,
   var layoutFlags: Int
@@ -98,13 +98,11 @@ open class ViewNode(
   /** Returns true if the node represents a call from a parent node with a single call and it itself is making a single call */
   open fun isSingleCall(treeSettings: TreeSettings): Boolean = false
 
-  private var _transformedBounds = bounds
-
   val transformedBounds: Shape
-    get() = _transformedBounds ?: layoutBounds
+    get() = renderBounds ?: layoutBounds
 
   fun setTransformedBounds(bounds: Shape?) {
-    _transformedBounds = bounds
+    renderBounds = bounds
   }
 
   /**
