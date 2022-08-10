@@ -67,23 +67,6 @@ abstract class AbstractGradleSyncSmokeTestCase {
     verifyBuild()
   }
 
-  /**
-   * Verify that the test project is able to open and sync without errors using JDK8.
-   * @throws Exception
-   */
-  @Throws(java.lang.Exception::class)
-  @Ignore("See http://b/172934015")
-  open fun testSyncsAndBuildsJdk8() {
-    overrideJdkTo8()
-    try {
-      verifySync()
-      verifyBuild()
-    }
-    finally {
-      restoreJdk()
-    }
-  }
-
   private fun verifySync() {
     // Load also syncs, this should be enough to confirm sync is successful
     projectRule.loadProject(relativePath)
