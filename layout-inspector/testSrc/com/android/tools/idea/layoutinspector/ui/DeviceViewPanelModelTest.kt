@@ -34,28 +34,24 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
-import com.google.common.base.Objects
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
-import kotlin.math.abs
 
 private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+private const val EPSILON = 0.001
 
 class DeviceViewPanelModelTest {
 
   @Test
   fun testFlatRects() {
     val expectedTransforms = mapOf(
-      ROOT to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      VIEW1 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      VIEW2 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      VIEW3 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0))
+      ROOT to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
+      VIEW1 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
+      VIEW2 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
+      VIEW3 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0))
 
     checkRects(expectedTransforms, 0.0, 0.0)
   }
@@ -63,8 +59,8 @@ class DeviceViewPanelModelTest {
   @Test
   fun testFlatRectsWithHiddenSystemNodes() {
     val expectedTransforms = mapOf(
-      VIEW2 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      VIEW3 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0))
+      VIEW2 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
+      VIEW3 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0))
 
     checkRects(expectedTransforms, 0.0, 0.0, hideSystemNodes = true)
   }
@@ -72,10 +68,10 @@ class DeviceViewPanelModelTest {
   @Test
   fun test1dRects() {
     val expectedTransforms = mapOf(
-      ROOT to ComparingTransform(0.995, 0.0, 0.0, 1.0, -64.749, -100.0),
-      VIEW1 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
-      VIEW3 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -34.749, -100.0),
-      VIEW2 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0))
+      ROOT to AffineTransform(0.995, 0.0, 0.0, 1.0, -64.749, -100.0),
+      VIEW1 to AffineTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
+      VIEW3 to AffineTransform(0.995, 0.0, 0.0, 1.0, -34.749, -100.0),
+      VIEW2 to AffineTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0))
 
     checkRects(expectedTransforms, 0.1, 0.0)
   }
@@ -83,8 +79,8 @@ class DeviceViewPanelModelTest {
   @Test
   fun test1dRectsWithHiddenSystemNodes() {
     val expectedTransforms = mapOf(
-      VIEW2 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
-      VIEW3 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0))
+      VIEW2 to AffineTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
+      VIEW3 to AffineTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0))
 
     checkRects(expectedTransforms, 0.1, 0.0, hideSystemNodes = true)
   }
@@ -92,10 +88,10 @@ class DeviceViewPanelModelTest {
   @Test
   fun test2dRects() {
     val expectedTransforms = mapOf(
-      ROOT to ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
-      VIEW1 to ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
-      VIEW2 to ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
-      VIEW3 to ComparingTransform(0.995, -0.010, -0.010, 0.980, -33.734, -67.468))
+      ROOT to AffineTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
+      VIEW1 to AffineTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
+      VIEW2 to AffineTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
+      VIEW3 to AffineTransform(0.995, -0.010, -0.010, 0.980, -33.734, -67.468))
 
     checkRects(expectedTransforms, 0.1, 0.2)
   }
@@ -122,11 +118,11 @@ class DeviceViewPanelModelTest {
     }
 
     val expectedTransforms = mapOf(
-      ROOT to ComparingTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
-      VIEW1 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
-      VIEW2 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
-      VIEW3 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
-      VIEW4 to ComparingTransform(0.866, 0.0, 0.0, 1.0, 31.698, -50.0)
+      ROOT to AffineTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
+      VIEW1 to AffineTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
+      VIEW2 to AffineTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
+      VIEW3 to AffineTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
+      VIEW4 to AffineTransform(0.866, 0.0, 0.0, 1.0, 31.698, -50.0)
     )
 
     checkModel(model, 0.5, 0.0, expectedTransforms, rectMap)
@@ -155,11 +151,11 @@ class DeviceViewPanelModelTest {
     }
 
     val expectedTransforms = mapOf(
-      ROOT to ComparingTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
-      VIEW1 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
-      VIEW2 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
-      VIEW3 to ComparingTransform(0.866, 0.0, 0.0, 1.0, 31.699, -50.0),
-      VIEW4 to ComparingTransform(0.866, 0.0, 0.0, 1.0, 106.699, -50.0)
+      ROOT to AffineTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
+      VIEW1 to AffineTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
+      VIEW2 to AffineTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
+      VIEW3 to AffineTransform(0.866, 0.0, 0.0, 1.0, 31.699, -50.0),
+      VIEW4 to AffineTransform(0.866, 0.0, 0.0, 1.0, 106.699, -50.0)
     )
 
     checkModel(model, 0.5, 0.0, expectedTransforms, rectMap)
@@ -178,12 +174,10 @@ class DeviceViewPanelModelTest {
     treeSettings.hideSystemNodes = false
     val panelModel = DeviceViewPanelModel(model, treeSettings)
     panelModel.rotate(0.1, 0.2)
-    assertEquals(ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
-                 panelModel.hitRects[0].transform)
+    assertEqualAffineTransform(AffineTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468), panelModel.hitRects[0].transform)
 
     panelModel.resetRotation()
-    assertEquals(ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-                 panelModel.hitRects[0].transform)
+    assertEqualAffineTransform(AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0), panelModel.hitRects[0].transform)
   }
 
   @Test
@@ -263,9 +257,9 @@ class DeviceViewPanelModelTest {
     val treeSettings = FakeTreeSettings()
     var panelModel = DeviceViewPanelModel(model, treeSettings)
     // Note that coordinates are transformed to center the view, so (-45, -45) below corresponds to (5, 5)
-    assertEquals(listOf(VIEW2, VIEW1, ROOT), panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList())
-    assertEquals(listOf(ROOT), panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList())
-    assertEquals(listOf(VIEW3, ROOT), panelModel.findViewsAt(10.0, 10.0).map { it.drawId }.toList())
+    assertThat(panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList()).containsExactly(VIEW2, VIEW1, ROOT)
+    assertThat(panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList()).containsExactly(ROOT)
+    assertThat(panelModel.findViewsAt(10.0, 10.0).map { it.drawId }.toList()).containsExactly(VIEW3, ROOT)
 
     model = model {
       view(ROOT, 0, 0, 100, 100) {
@@ -276,7 +270,7 @@ class DeviceViewPanelModelTest {
       }
     }
     panelModel = DeviceViewPanelModel(model, treeSettings)
-    assertEquals(listOf(VIEW3, VIEW2, VIEW1, ROOT), panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
+    assertThat(panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList()).containsExactly(VIEW3, VIEW2, VIEW1, ROOT)
   }
 
   @Test
@@ -303,7 +297,7 @@ class DeviceViewPanelModelTest {
     assertThat(panelModel.maxWidth)
   }
 
-  private fun checkRects(expectedTransforms: Map<Long, ComparingTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
+  private fun checkRects(expectedTransforms: Map<Long, AffineTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
     val rectMap = mapOf(
       ROOT to Rectangle(0, 0, 100, 200),
       VIEW1 to Rectangle(0, 0, 50, 60),
@@ -329,7 +323,7 @@ class DeviceViewPanelModelTest {
     model: InspectorModel,
     xOff: Double,
     yOff: Double,
-    expectedTransforms: Map<Long, ComparingTransform>,
+    expectedTransforms: Map<Long, AffineTransform>,
     rectMap: Map<Long, Rectangle>,
     hideSystemNodes: Boolean = false
   ) {
@@ -339,7 +333,8 @@ class DeviceViewPanelModelTest {
     panelModel.rotate(xOff, yOff)
 
     val actualTransforms = panelModel.hitRects.associate { it.node.findFilteredOwner(treeSettings)?.drawId to it.transform }
-    assertEquals(expectedTransforms, actualTransforms)
+    assertThat(expectedTransforms.keys).containsExactlyElementsIn(expectedTransforms.keys)
+    expectedTransforms.keys.forEach { assertEqualAffineTransform(expectedTransforms[it]!!, actualTransforms[it]!!) }
 
     panelModel.hitRects.associateBy { it.node.findFilteredOwner(treeSettings)?.drawId }.forEach { (drawId, info) ->
       assertPathEqual(actualTransforms[drawId]?.createTransformedShape(rectMap[drawId])!!, info.bounds)
@@ -352,31 +347,21 @@ class DeviceViewPanelModelTest {
     val expectedIter = expected.getPathIterator(AffineTransform())
     val actualIter = actual.getPathIterator(AffineTransform())
     while (!expectedIter.isDone && !actualIter.isDone) {
-      assertEquals(expectedIter.currentSegment(expectedVals), actualIter.currentSegment(actualVals))
-      assertArrayEquals(expectedVals, actualVals, EPSILON)
+      assertThat(actualIter.currentSegment(actualVals)).isEqualTo(expectedIter.currentSegment(expectedVals))
+      assertThat(actualVals).usingTolerance(EPSILON).containsExactly(expectedVals)
       expectedIter.next()
       actualIter.next()
     }
-    assertTrue(expectedIter.isDone)
-    assertTrue(actualIter.isDone)
-  }
-}
-
-
-private const val EPSILON = 0.001
-
-private class ComparingTransform(m00: Double, m10: Double,
-                                 m01: Double, m11: Double,
-                                 m02: Double, m12: Double) : AffineTransform(m00, m10, m01, m11, m02, m12) {
-  override fun equals(other: Any?): Boolean {
-    return other is AffineTransform &&
-           abs(other.translateX - translateX) < EPSILON &&
-           abs(other.translateY - translateY) < EPSILON &&
-           abs(other.shearX - shearX) < EPSILON &&
-           abs(other.shearY - shearY) < EPSILON &&
-           abs(other.scaleX - scaleX) < EPSILON &&
-           abs(other.scaleY - scaleY) < EPSILON
+    assertThat(expectedIter.isDone).isTrue()
+    assertThat(actualIter.isDone).isTrue()
   }
 
-  override fun hashCode() = Objects.hashCode(translateX, translateY, shearX, shearY, scaleX, scaleY)
+  private fun assertEqualAffineTransform(expected: AffineTransform, actual: AffineTransform) {
+    assertThat(actual.translateX).isWithin(EPSILON).of(expected.translateX)
+    assertThat(actual.translateY).isWithin(EPSILON).of(expected.translateY)
+    assertThat(actual.shearX).isWithin(EPSILON).of(expected.shearX)
+    assertThat(actual.shearY).isWithin(EPSILON).of(expected.shearY)
+    assertThat(actual.scaleX).isWithin(EPSILON).of(expected.scaleX)
+    assertThat(actual.scaleX).isWithin(EPSILON).of(expected.scaleX)
+  }
 }

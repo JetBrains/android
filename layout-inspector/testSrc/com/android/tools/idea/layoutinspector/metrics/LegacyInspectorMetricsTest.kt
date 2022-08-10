@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.util.ListenerCollection
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.LEGACY_CLIENT
@@ -37,7 +38,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.DisposableRule
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -90,31 +90,31 @@ class LegacyInspectorMetricsTest {
     var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial), deviceInfo.anonymizedSerialNumber)
-    Assert.assertEquals(LEGACY_DEVICE.model, deviceInfo.model)
-    Assert.assertEquals(LEGACY_DEVICE.manufacturer, deviceInfo.manufacturer)
-    Assert.assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
+    assertThat(deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial))
+    assertThat(deviceInfo.model).isEqualTo(LEGACY_DEVICE.model)
+    assertThat(deviceInfo.manufacturer).isEqualTo(LEGACY_DEVICE.manufacturer)
+    assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
 
     var inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
-    Assert.assertEquals(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, inspectorEvent.type)
+    assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST)
 
     studioEvent = usages[1].studioEvent
-    Assert.assertEquals(deviceInfo, studioEvent.deviceInfo)
-    Assert.assertEquals(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS, studioEvent.dynamicLayoutInspectorEvent.type)
-    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!), studioEvent.projectId)
+    assertThat(studioEvent.deviceInfo).isEqualTo(deviceInfo)
+    assertThat(studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
+    assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
 
     studioEvent = usages[2].studioEvent
     inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
-    Assert.assertEquals(deviceInfo, studioEvent.deviceInfo)
-    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!), studioEvent.projectId)
-    Assert.assertEquals(DynamicLayoutInspectorEventType.SESSION_DATA, studioEvent.dynamicLayoutInspectorEvent.type)
-    Assert.assertEquals(LEGACY_CLIENT, inspectorEvent.session.attach.clientType)
-    Assert.assertTrue(inspectorEvent.session.attach.success)
+    assertThat(studioEvent.deviceInfo).isEqualTo(deviceInfo)
+    assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
+    assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
+    assertThat(inspectorEvent.session.attach.clientType).isEqualTo(LEGACY_CLIENT)
+    assertThat(inspectorEvent.session.attach.success).isTrue()
   }
 
   @Test
   fun testAttachFailAfterProcessConnected() {
-    Assert.assertTrue(windowIds.isEmpty()) // No window IDs will cause attaching to fail
+    assertThat(windowIds.isEmpty()).isTrue() // No window IDs will cause attaching to fail
     val connectThread = Thread {
       inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     }
@@ -127,29 +127,29 @@ class LegacyInspectorMetricsTest {
     var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial), deviceInfo.anonymizedSerialNumber)
-    Assert.assertEquals(LEGACY_DEVICE.model, deviceInfo.model)
-    Assert.assertEquals(LEGACY_DEVICE.manufacturer, deviceInfo.manufacturer)
-    Assert.assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
+    assertThat(deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial))
+    assertThat(deviceInfo.model).isEqualTo(LEGACY_DEVICE.model)
+    assertThat(deviceInfo.manufacturer).isEqualTo(LEGACY_DEVICE.manufacturer)
+    assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
 
     var inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
-    Assert.assertEquals(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, inspectorEvent.type)
+    assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST)
 
     studioEvent = usages[1].studioEvent
     inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
-    Assert.assertEquals(deviceInfo, studioEvent.deviceInfo)
-    Assert.assertEquals(DynamicLayoutInspectorEventType.ATTACH_ERROR, studioEvent.dynamicLayoutInspectorEvent.type)
-    Assert.assertEquals(AttachErrorState.ADB_PING, inspectorEvent.errorInfo.attachErrorState)
-    Assert.assertEquals(AttachErrorCode.CONNECT_TIMEOUT, inspectorEvent.errorInfo.attachErrorCode)
+    assertThat(studioEvent.deviceInfo).isEqualTo(deviceInfo)
+    assertThat(studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_ERROR)
+    assertThat(inspectorEvent.errorInfo.attachErrorState).isEqualTo(AttachErrorState.ADB_PING)
+    assertThat(inspectorEvent.errorInfo.attachErrorCode).isEqualTo(AttachErrorCode.CONNECT_TIMEOUT)
 
     studioEvent = usages[2].studioEvent
     inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
-    Assert.assertEquals(deviceInfo, studioEvent.deviceInfo)
-    Assert.assertEquals(DynamicLayoutInspectorEventType.SESSION_DATA, studioEvent.dynamicLayoutInspectorEvent.type)
-    Assert.assertEquals(LEGACY_CLIENT, inspectorEvent.session.attach.clientType)
-    Assert.assertFalse(inspectorEvent.session.attach.success)
-    Assert.assertEquals(AttachErrorState.ADB_PING, inspectorEvent.session.attach.errorInfo.attachErrorState)
-    Assert.assertEquals(AttachErrorCode.CONNECT_TIMEOUT, inspectorEvent.session.attach.errorInfo.attachErrorCode)
+    assertThat(studioEvent.deviceInfo).isEqualTo(deviceInfo)
+    assertThat(studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
+    assertThat(inspectorEvent.session.attach.clientType).isEqualTo(LEGACY_CLIENT)
+    assertThat(inspectorEvent.session.attach.success).isFalse()
+    assertThat(inspectorEvent.session.attach.errorInfo.attachErrorState).isEqualTo(AttachErrorState.ADB_PING)
+    assertThat(inspectorEvent.session.attach.errorInfo.attachErrorCode).isEqualTo(AttachErrorCode.CONNECT_TIMEOUT)
   }
 
   private fun waitFor3Events(): List<LoggedUsage> {
