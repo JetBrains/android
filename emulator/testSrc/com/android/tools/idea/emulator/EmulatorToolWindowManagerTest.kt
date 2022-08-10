@@ -30,6 +30,7 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.utils.TraceUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.ui.LafManager
@@ -47,6 +48,7 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -316,11 +318,33 @@ class EmulatorToolWindowManagerTest {
     val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
     toolWindow.show()
 
-    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
 
     agentRule.disconnectDevice(device)
     waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+  }
+
+  @Test
+  fun testUnsupportedPhysicalDevice() {
+    if (SystemInfo.isWindows) {
+      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
+      return // FFmpeg library requires Mac OS 10.15+.
+    }
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val device = agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), "armeabi-v7a")
+    toolWindow.show()
+
+    dispatchAllEventsInIdeEventQueue()
+    assertThat(contentManager.contents.size == 1).isTrue()
+    assertThat(contentManager.contents[0].displayName).isNull()
+    agentRule.disconnectDevice(device)
   }
 
   @Test
