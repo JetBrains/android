@@ -236,6 +236,7 @@ iml_module(
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
+        "//tools/adt/idea/compose-ide-plugin/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
@@ -350,6 +351,7 @@ iml_module(
         "//tools/adt/idea/android-navigator:intellij.android.navigator[module, test]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator.testutils[module, test]",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module, test]",
+        "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
     ],
 )
 
