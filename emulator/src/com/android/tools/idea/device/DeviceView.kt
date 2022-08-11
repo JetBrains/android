@@ -175,24 +175,25 @@ class DeviceView(
 
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun initializeAgentAsync(initialDisplayOrientation: Int) {
+    check(deviceClient == null)
+    val client = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
+    deviceClient = client
     connectionState = ConnectionState.CONNECTING
     val maxOutputSize = realSize
-    AndroidCoroutineScope(this@DeviceView).launch { initializeAgent(maxOutputSize, initialDisplayOrientation) }
+    AndroidCoroutineScope(this@DeviceView).launch { initializeAgent(client, maxOutputSize, initialDisplayOrientation) }
   }
 
-  private suspend fun initializeAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
+  private suspend fun initializeAgent(client: DeviceClient, maxOutputSize: Dimension, initialDisplayOrientation: Int) {
     try {
-      val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
-      deviceClient.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener(), object : AgentTerminationListener {
+      client.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener(client), object : AgentTerminationListener {
         override fun agentTerminated(exitCode: Int) {
-          disconnected(initialDisplayOrientation)
+          disconnected(client, initialDisplayOrientation)
         }
       })
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (!disposed) {
-          this.deviceClient = deviceClient
           if (DeviceMirroringSettings.getInstance().synchronizeClipboard) {
-            clipboardSynchronizer = DeviceClipboardSynchronizer(deviceClient.deviceController)
+            clipboardSynchronizer = DeviceClipboardSynchronizer(client.deviceController)
           }
           repaint()
           updateVideoSize() // Update video size in case the view was resized during agent initialization.
@@ -203,22 +204,24 @@ class DeviceView(
       // The view has been closed.
     }
     catch (e: Throwable) {
-      disconnected(initialDisplayOrientation, e)
+      disconnected(client, initialDisplayOrientation, e)
     }
   }
 
   private fun updateVideoSize() {
-    val deviceClient = deviceClient ?: return
-    val videoDecoder = deviceClient.videoDecoder
-    if (videoDecoder.maxOutputSize != realSize) {
-      videoDecoder.maxOutputSize = realSize
-      deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
+    if (connectionState == ConnectionState.CONNECTED) {
+      val deviceClient = deviceClient ?: return
+      val videoDecoder = deviceClient.videoDecoder
+      if (videoDecoder.maxOutputSize != realSize) {
+        videoDecoder.maxOutputSize = realSize
+        deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
+      }
     }
   }
 
-  private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
+  private fun disconnected(client: DeviceClient, initialDisplayOrientation: Int, exception: Throwable? = null) {
     UIUtil.invokeLaterIfNeeded {
-      if (disposed) {
+      if (disposed || client != deviceClient) {
         return@invokeLaterIfNeeded
       }
       val message: String
@@ -261,7 +264,7 @@ class DeviceView(
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
 
-    if (width == 0 || height == 0) {
+    if (width == 0 || height == 0 || connectionState != ConnectionState.CONNECTED) {
       return
     }
 
@@ -321,6 +324,9 @@ class DeviceView(
   }
 
   override fun settingsChanged(settings: DeviceMirroringSettings) {
+    if (connectionState != ConnectionState.CONNECTED) {
+      return
+    }
     val controller = deviceClient?.deviceController ?: return
     if (settings.synchronizeClipboard) {
       val synchronizer = clipboardSynchronizer
@@ -447,22 +453,24 @@ class DeviceView(
     fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState)
   }
 
-  private inner class MyFrameListener : VideoDecoder.FrameListener {
+  private inner class MyFrameListener(val client: DeviceClient) : VideoDecoder.FrameListener {
 
     override fun onNewFrameAvailable() {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        if (connectionState == ConnectionState.CONNECTING) {
-          hideDisconnectedStateMessage()
-          connectionState = ConnectionState.CONNECTED
-        }
-        if (width != 0 && height != 0 && deviceClient != null) {
-          repaint()
+        if (client == deviceClient) {
+          if (connectionState == ConnectionState.CONNECTING) {
+            hideDisconnectedStateMessage()
+            connectionState = ConnectionState.CONNECTED
+          }
+          if (width != 0 && height != 0) {
+            repaint()
+          }
         }
       }
     }
 
     override fun onEndOfVideoStream() {
-      disconnected(initialDisplayOrientation)
+      disconnected(client, initialDisplayOrientation)
     }
   }
 
