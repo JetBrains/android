@@ -183,6 +183,7 @@ public class CodeStyleTest {
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
 
+    mySettingsDialog.clickTab("Tabs and Indents");
 
     mySettingsDialog.changeTextFieldContent("Tab size:", oldTabSize, newTabSize);
     mySettingsDialog.changeTextFieldContent("Indent:", oldIndent, newIndent);
