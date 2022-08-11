@@ -52,6 +52,8 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.impl.CoreProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.task.ProjectTaskManager
 import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
@@ -89,6 +91,22 @@ class PlatformIntegrationTest : GradleIntegrationTest {
           }
         }
       }
+    }
+  }
+
+  @Test
+  fun testBuildOutputFoldersAreRefreshed() {
+    val root = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    openPreparedProject("project") {project ->
+      val expectedOutputDir = root.resolve("app/build/intermediates/javac/debug")
+      assertThat(expectedOutputDir.exists()).isFalse()  // Verify test assumptions.
+      ProjectTaskManager.getInstance(project).buildAllModules().blockingGet(1, TimeUnit.MINUTES)
+      assertThat(expectedOutputDir.exists()).isTrue()  // Verify test assumptions.
+
+      // TODO(b/241686649): Remove the following assertion, which is wrong and simply illustrates the problem.
+      assertThat(VfsUtil.findFileByIoFile(expectedOutputDir, false)).isNull()
+      // TODO(b/241686649): assertThat(VfsUtil.findFileByIoFile(expectedOutputDir, false)).isNotNull()
+      // TODO(b/241686649): assertThat(VfsUtil.findFileByIoFile(expectedOutputDir, false)?.isValid).isTrue()
     }
   }
 
