@@ -239,8 +239,13 @@ public class StudioInteractionService {
 
     int numComponentsFound = componentsFound.size();
     if (numComponentsFound > 1) {
-      throw new IllegalStateException(String.format("Found %s component(s) but expected exactly one. Please construct more specific match criteria.",
-                                                    numComponentsFound));
+      StringBuilder sb = new StringBuilder();
+      int index = 1;
+      for (Component component : componentsFound) {
+        sb.append(String.format("\t#%d: %s%n", index++, component));
+      }
+      throw new IllegalStateException(String.format("Found %s component(s) but expected exactly one:%n%s%n\tPlease construct more specific match criteria.",
+                                                    numComponentsFound, sb));
     }
 
     return componentsFound.stream().findFirst();
