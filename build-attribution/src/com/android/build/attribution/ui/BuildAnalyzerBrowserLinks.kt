@@ -59,7 +59,6 @@ enum class BuildAnalyzerBrowserLinks(
   ),
   DOWNLOADS(
     "https://d.android.com/r/tools/build-attribution/downloads",
-    // TODO(b/241262777): update to proper values
-    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
+    BuildAttributionUiEvent.OutgoingLinkTarget.DOWNLOADS_INFO
   )
 }
