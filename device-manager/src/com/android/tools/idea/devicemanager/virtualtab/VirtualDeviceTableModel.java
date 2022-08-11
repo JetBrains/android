@@ -185,9 +185,17 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       return;
     }
 
-    int modelRowIndex = myDevices.indexOf(device);
-    myDevices.remove(modelRowIndex);
+    remove(device.getKey());
+  }
 
+  void remove(@NotNull Key key) {
+    int modelRowIndex = Devices.indexOf(myDevices, key);
+
+    if (modelRowIndex == -1) {
+      return;
+    }
+
+    myDevices.remove(modelRowIndex);
     fireTableRowsDeleted(modelRowIndex, modelRowIndex);
   }
 

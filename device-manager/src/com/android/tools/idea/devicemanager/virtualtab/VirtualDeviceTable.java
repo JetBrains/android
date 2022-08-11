@@ -37,6 +37,7 @@ import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.E
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
@@ -65,7 +66,7 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements Disposable {
+public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements VirtualDeviceWatcherListener, Disposable {
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
   private final @NotNull NewSetDevices myNewSetDevices;
   private @Nullable IDeviceChangeListener myListener;
@@ -181,22 +182,39 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     AndroidDebugBridge.removeDeviceChangeListener(myListener);
   }
 
-  void addDevice(@NotNull Key key) {
-    FutureCallback<VirtualDevice> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, device -> {
-      getModel().add(device);
-      setSelectedDevice(key);
-    });
-
-    Futures.addCallback(myAsyncSupplier.get(key), callback, EdtExecutorService.getInstance());
+  @Override
+  public void virtualDeviceAdded(@NotNull VirtualDeviceWatcherEvent event) {
+    addDevice(event.getKey());
   }
 
-  void reloadDevice(@NotNull Key key) {
-    FutureCallback<VirtualDevice> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, device -> {
-      getModel().set(device);
-      setSelectedDevice(key);
-    });
+  @NotNull ListenableFuture<@NotNull Key> addDevice(@NotNull Key key) {
+    // noinspection UnstableApiUsage
+    return Futures.transform(myAsyncSupplier.get(key), this::add, EdtExecutorService.getInstance());
+  }
 
-    Futures.addCallback(myAsyncSupplier.get(key), callback, EdtExecutorService.getInstance());
+  private @NotNull Key add(@NotNull VirtualDevice device) {
+    getModel().add(device);
+    return device.getKey();
+  }
+
+  @Override
+  public void virtualDeviceChanged(@NotNull VirtualDeviceWatcherEvent event) {
+    reloadDevice(event.getKey());
+  }
+
+  @NotNull ListenableFuture<@NotNull Key> reloadDevice(@NotNull Key key) {
+    // noinspection UnstableApiUsage
+    return Futures.transform(myAsyncSupplier.get(key), this::set, EdtExecutorService.getInstance());
+  }
+
+  private @NotNull Key set(@NotNull VirtualDevice device) {
+    getModel().set(device);
+    return device.getKey();
+  }
+
+  @Override
+  public void virtualDeviceRemoved(@NotNull VirtualDeviceWatcherEvent event) {
+    getModel().remove(event.getKey());
   }
 
   @Override
@@ -214,7 +232,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return Optional.of(getDeviceAt(viewRowIndex));
   }
 
-  private void setSelectedDevice(@NotNull Key key) {
+  void setSelectedDevice(@NotNull Key key) {
     int modelRowIndex = Devices.indexOf(getModel().getDevices(), key);
 
     if (modelRowIndex == -1) {

@@ -17,7 +17,10 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -41,8 +44,13 @@ final class BuildVirtualDeviceConfigurationWizardActionListener implements Actio
   public void actionPerformed(@NotNull ActionEvent event) {
     AvdOptionsModel model = new AvdOptionsModel(null);
 
-    if (AvdWizardUtils.createAvdWizard(myParent, myProject, model).showAndGet()) {
-      myTable.addDevice(new VirtualDevicePath(model.getCreatedAvd().getId()));
+    if (!AvdWizardUtils.createAvdWizard(myParent, myProject, model).showAndGet()) {
+      return;
     }
+
+    Futures.addCallback(myTable.addDevice(new VirtualDevicePath(model.getCreatedAvd().getId())),
+                        new DeviceManagerFutureCallback<>(BuildVirtualDeviceConfigurationWizardActionListener.class,
+                                                          myTable::setSelectedDevice),
+                        EdtExecutorService.getInstance());
   }
 }

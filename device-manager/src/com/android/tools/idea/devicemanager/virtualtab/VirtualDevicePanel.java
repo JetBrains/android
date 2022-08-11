@@ -78,6 +78,7 @@ public final class VirtualDevicePanel extends DevicePanel {
     initDetailsPanelPanel();
     layOut();
 
+    myWatcher.addVirtualDeviceWatcherListener(getTable());
     Disposer.register(parent, this);
   }
 
@@ -128,5 +129,10 @@ public final class VirtualDevicePanel extends DevicePanel {
     layout.setVerticalGroup(verticalGroup);
 
     setLayout(layout);
+  }
+
+  @Override
+  public void dispose() {
+    myWatcher.removeVirtualDeviceWatcherListener(getTable());
   }
 }

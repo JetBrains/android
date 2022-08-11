@@ -69,7 +69,7 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
   }
 
   @Override
-  public final void dispose() {
+  public void dispose() {
   }
 
   public final @Nullable Project getProject() {

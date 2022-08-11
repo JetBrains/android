@@ -16,12 +16,17 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
+import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.EditValue;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +46,8 @@ final class EditButtonTableCellEditor extends IconButtonTableCellEditor {
       VirtualDeviceTable table = panel.getTable();
 
       if (AvdWizardUtils.createAvdWizard(table, panel.getProject(), myDevice.getAvdInfo()).showAndGet()) {
-        table.reloadDevice(myDevice.getKey());
+        FutureCallback<Key> callback = new DeviceManagerFutureCallback<>(EditButtonTableCellEditor.class, table::setSelectedDevice);
+        Futures.addCallback(table.reloadDevice(myDevice.getKey()), callback, EdtExecutorService.getInstance());
       }
 
       fireEditingCanceled();
