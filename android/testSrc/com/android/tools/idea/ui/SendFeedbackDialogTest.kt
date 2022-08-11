@@ -34,7 +34,7 @@ import java.awt.Component
 import java.nio.file.Path
 import java.nio.file.Paths
 
-private val PATH = Paths.get("DiagnosticsFile2022-06-16-04-00-00.zip")
+private val PATH = Paths.get("DiagnosticsFile20220616-040000.zip")
 private const val USER = "someuser@gmail.com"
 
 @RunsInEdt
@@ -84,7 +84,7 @@ class SendFeedbackDialogTest {
         Truth.assertThat(actual).isEqualTo("This is the actual behavior.")
         Truth.assertThat(component).isEqualTo("component")
         Truth.assertThat(paths.size).isEqualTo(1)
-        Truth.assertThat(paths[0]).isEqualTo(Paths.get("DiagnosticsFile2022-06-16-04-00-00.zip"))
+        Truth.assertThat(paths[0]).isEqualTo(Paths.get("DiagnosticsFile20220616-040000.zip"))
       }
     }
   }

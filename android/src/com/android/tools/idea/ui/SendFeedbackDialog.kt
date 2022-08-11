@@ -23,6 +23,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
@@ -34,7 +35,6 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Insets
 import java.awt.RenderingHints
-import java.awt.event.ActionEvent
 import java.nio.file.Path
 import javax.swing.Action
 import javax.swing.DefaultListModel
@@ -49,7 +49,7 @@ private const val REPRO_TEXT = "Please enter the series of steps necessary to re
 private const val EXPECTED_TEXT = "What was the expected behavior?"
 private const val ACTUAL_TEXT = "What was the actual behavior?"
 
-class SendFeedbackDialog(project: Project?, file: Path, user: String) : DialogWrapper(project) {
+class SendFeedbackDialog(project: Project?, file: Path?, user: String) : DialogWrapper(project) {
   private val titleText = JBTextField().apply {
     name = "titleText"
     preferredSize = Dimension(800, 40)
@@ -112,10 +112,13 @@ class SendFeedbackDialog(project: Project?, file: Path, user: String) : DialogWr
     title = "Create New Bug"
     isResizable = false
     isModal = true
+    myOKAction.putValue(Action.NAME, "Submit")
 
-    pathSet.add(file)
-    pathList.add(file)
-    listModel.addElement(file.name)
+    file?.let {
+      pathSet.add(file)
+      pathList.add(file)
+      listModel.addElement(file.name)
+    }
 
     val titleLabel = JLabel().apply {
       text = "Title:"
@@ -287,23 +290,20 @@ class SendFeedbackDialog(project: Project?, file: Path, user: String) : DialogWr
     }
   }
 
-  override fun createActions(): Array<Action> {
-    val submit = object : DialogWrapperAction("Submit") {
-      override fun doAction(e: ActionEvent) {
-        close(OK_EXIT_CODE)
-      }
-    }
-
-    val cancel = object : DialogWrapperAction("Cancel") {
-      override fun doAction(e: ActionEvent) {
-        close(NEXT_USER_EXIT_CODE)
-      }
-    }
-
-    return arrayOf(submit, cancel)
-  }
-
   override fun createCenterPanel(): JComponent = grid
+
+  override fun doValidate(): ValidationInfo? {
+    if (titleText.text.isNullOrBlank()) {
+      return ValidationInfo("The title field cannot be empty.", titleText)
+    }
+    if (reproText.text.isNullOrBlank()) {
+      return ValidationInfo("The repro steps field cannot be empty.", reproText)
+    }
+    if (actualText.text.isNullOrBlank()) {
+      return ValidationInfo("The actual behavior field cannot be empty.", actualText)
+    }
+    return null
+  }
 }
 
 private class PlaceholderTextArea(private val placeHolderText: String?) : JBTextArea() {

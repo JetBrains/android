@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.tools.idea.diagnostics.report.DiagnosticsSummaryFileProvider;
+import com.android.tools.idea.diagnostics.report.DiagnosticSummaryAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.SendFeedbackDialog;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
@@ -29,6 +29,7 @@ import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,7 +50,15 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     if (StudioFlags.ENABLE_NEW_SEND_FEEDBACK_DIALOG.get()) {
-      Path path = Paths.get("DiagnosticsFile2022-06-16-04-00-00.zip");
+      Path path = null;
+      try {
+        String destination = DiagnosticSummaryAction.createSummaryFile(e.getProject());
+        path = Paths.get(destination);
+      }
+      catch (Exception ex) {
+        String message = "Error creating diagnostics report: " + ex.getMessage();
+        Messages.showErrorDialog(e.getProject(), message, "Diagnostics Summary File");
+      }
       String user = "someuser@gmail.com";
       new SendFeedbackDialog(null, path, user).show();
     }
