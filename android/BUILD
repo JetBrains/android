@@ -455,6 +455,7 @@ filegroup(
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/base/tracer:trace_agent",
         "//tools/adt/idea/as-driver:as_driver_deploy.jar",
+        "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto",
         "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:libstudio.android-test-plugin-result-listener-gradle-proto",
