@@ -59,6 +59,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -327,6 +328,7 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
   }
 
+  @Ignore // Disabled temporarily due to https://fusion2.corp.google.com/invocations/96d1bc05-3ee1-4ce1-9466-6250dd8858c2/targets/%2F%2Ftools%2Fadt%2Fidea%2Femulator:intellij.android.emulator.tests_tests;config=2eb6899a097f80644d58ccdb9b1755101042f93a5902b2841d0b8424ae8270a6/tests
   @Test
   fun testUnsupportedPhysicalDevices() {
     if (SystemInfo.isWindows) {
