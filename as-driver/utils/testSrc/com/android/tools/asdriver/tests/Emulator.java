@@ -104,7 +104,7 @@ public class Emulator implements AutoCloseable {
     Process process = pb.start();
 
     String portString =
-      logFile.waitForMatchingLine("emulator: control console listening on port (\\d+), ADB on port \\d+", 2, TimeUnit.MINUTES).group(1);
+      logFile.waitForMatchingLine(".*control console listening on port (\\d+), ADB on port \\d+", 2, TimeUnit.MINUTES).group(1);
 
     return new Emulator(fileSystem, sdk, logFile, portString, process);
   }
@@ -121,7 +121,7 @@ public class Emulator implements AutoCloseable {
     if (process == null) {
       throw new IllegalStateException("Emulator not running yet.");
     }
-    logFile.waitForMatchingLine("emulator: INFO: boot completed", 4, TimeUnit.MINUTES);
+    logFile.waitForMatchingLine(".*boot completed", 4, TimeUnit.MINUTES);
   }
 
   public Path getHome() {
