@@ -280,13 +280,13 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
         }
       }
       root.calculateTransitiveBounds()
-
-      notifyUpdateCompleted()
-      modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
     }
     finally {
       updating = false
     }
+
+    notifyUpdateCompleted()
+    modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
   }
 
   private fun decreaseHighlights() {

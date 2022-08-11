@@ -60,8 +60,8 @@ class SessionStatisticsTest {
     }
     val stats = SessionStatisticsImpl(model)
     val compose1 = model[COMPOSE1]
-    model.notifyModified(structuralChange = true)
     stats.start()
+    model.notifyModified(structuralChange = true)
     stats.hideSystemNodes = true
     stats.gotoSourceFromDoubleClick()
     stats.selectionMadeFromComponentTree(compose1)
