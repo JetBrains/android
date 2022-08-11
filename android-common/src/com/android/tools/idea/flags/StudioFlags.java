@@ -637,6 +637,13 @@ public final class StudioFlags {
     "Note: Changing the value of this flag requires restarting Android Studio.",
     false);
 
+  public static final Flag<Boolean> JDWP_TRACER = Flag.create(
+    RUNDEBUG,
+    "adb.jdwp.tracer.enabled",
+    "Enable JDWP Traces",
+    "Enables capture of JDWP traffic and generate a perfetto report",
+    false);
+
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,
     "feature.on.feature",

@@ -25,6 +25,8 @@ import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.AdbVersion;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
+import com.android.ddmlib.DDMLibJdwpTracer;
+import com.android.ddmlib.JdwpTracerFactory;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
 import com.android.ddmlib.clientmanager.ClientManager;
@@ -328,6 +330,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
 
     AdbOptionsService.getInstance().addListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
+
+    // TODO Also connect to adblib
+    AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
 
     // Ensure ADB is terminated when there are no more open projects.
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {

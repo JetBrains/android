@@ -30,6 +30,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/common/android.sdktools.common.iml" filepath="$PROJECT_DIR$/../../base/common/android.sdktools.common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/common/android.sdktools.common.testfixtures.iml" filepath="$PROJECT_DIR$/../../base/common/android.sdktools.common.testfixtures.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/common/android.sdktools.common.tests.iml" filepath="$PROJECT_DIR$/../../base/common/android.sdktools.common.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/jdwp-tracer/android.sdktools.jdwptracer.iml" filepath="$PROJECT_DIR$/../../base/jdwp-tracer/android.sdktools.jdwptracer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.iml" filepath="$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.integration.tests.iml" filepath="$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.integration.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/deploy/deployer/android.sdktools.deployer.iml" filepath="$PROJECT_DIR$/../../base/deploy/deployer/android.sdktools.deployer.iml" />

@@ -24,6 +24,7 @@ iml_module(
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
         "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility[module]",
+        "//tools/base/jdwp-tracer:studio.android.sdktools.jdwptracer[module]",
     ],
 )
 
