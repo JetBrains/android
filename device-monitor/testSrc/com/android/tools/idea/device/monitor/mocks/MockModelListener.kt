@@ -24,7 +24,6 @@ import javax.swing.tree.DefaultTreeSelectionModel
 class MockModelListener : DeviceMonitorModelListener {
   val deviceAddedTracker: FutureValuesTracker<Device> = FutureValuesTracker<Device>()
   val deviceRemovedTracker: FutureValuesTracker<Device> = FutureValuesTracker<Device>()
-  val treeModelChangedTracker = FutureValuesTracker<DefaultTreeModel>()
 
   override fun allDevicesRemoved() {}
 
@@ -40,7 +39,5 @@ class MockModelListener : DeviceMonitorModelListener {
 
   override fun activeDeviceChanged(newActiveDevice: Device?) {}
 
-  override fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?) {
-    treeModelChangedTracker.produce(newTreeModel)
-  }
+  override fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?) {}
 }

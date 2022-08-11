@@ -43,7 +43,6 @@ class MockDeviceMonitorView(
 
   val startRefreshTracker = FutureValuesTracker<String>()
   private val stopRefreshTracker = FutureValuesTracker<String>()
-  val treeNodeExpandingTracker = FutureValuesTracker<ProcessTreeNode>()
   private val reportErrorRelatedToServiceTracker = FutureValuesTracker<String>()
   val reportErrorRelatedToDeviceTracker = FutureValuesTracker<String>()
 
@@ -97,9 +96,7 @@ class MockDeviceMonitorView(
     viewImpl.reportMessageRelatedToDevice(fileSystem, message)
   }
 
-  override fun expandNode(treeNode: ProcessTreeNode) {
-    treeNodeExpandingTracker.produce(treeNode)
-  }
+  override fun expandNode(treeNode: ProcessTreeNode) {}
 
   fun killNodes(processList: List<ProcessTreeNode>) {
     val menuItem = ForceStopMenuItem(viewImpl, MenuContext.Popup)

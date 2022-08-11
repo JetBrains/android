@@ -27,13 +27,15 @@ import com.android.tools.idea.device.monitor.adbimpl.AdbDeviceNameRendererFactor
 import com.android.tools.idea.device.monitor.mocks.MockDeviceMonitorView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 class DeviceMonitorControllerTest {
 
@@ -149,9 +151,12 @@ class DeviceMonitorControllerTest {
     controller.setup()
     pumpEventsAndWaitForFuture(mockView.startRefreshTracker.consume())
     addClient(testDevice1, 5)
+    addClient(testDevice1, 20)
+    addClient(testDevice1, 200)
     checkMockViewInitialState(controller)
     val rootEntry = DeviceTreeNode.fromNode(mockView.tree.model.root)
     checkNotNull(rootEntry)
+    waitForCondition { rootEntry.childCount == 3 }
 
     // Act
     val processList = getListOfChildNodes(rootEntry)
@@ -165,8 +170,8 @@ class DeviceMonitorControllerTest {
     mockView.killNodes(removeProcessList)
 
     // Assert
-    pumpEventsAndWaitForFuture(mockView.treeNodeExpandingTracker.consume())
-    Assert.assertEquals(0, rootEntry.childCount)
+    waitForCondition { rootEntry.childCount == 2 }
+    Assert.assertEquals(2, rootEntry.childCount)
     assertPidIsNotInChildNodes(rootEntry, clientStopped.processInfo.pid)
   }
 
@@ -174,7 +179,7 @@ class DeviceMonitorControllerTest {
     return DeviceMonitorController(project, model, mockView, service)
   }
 
-  private fun checkMockViewInitialState(controller: DeviceMonitorController) {
+  private suspend fun checkMockViewInitialState(controller: DeviceMonitorController) {
     checkMockViewComboBox(controller)
     checkMockViewActiveDevice(testDevice1)
   }
@@ -193,15 +198,11 @@ class DeviceMonitorControllerTest {
     Assert.assertTrue(controller.hasActiveDevice())
   }
 
-  private fun checkMockViewActiveDevice(activeDevice: DeviceState) {
-    // The root node should have been expanded to show the list of processes
-    pumpEventsAndWaitForFutures(mockView.treeNodeExpandingTracker.consumeMany(3))
-
+  private suspend fun checkMockViewActiveDevice(activeDevice: DeviceState) {
     // Check the file system tree is displaying the file system of the first device
-    val rootEntry = DeviceTreeNode.fromNode(mockView.tree.model.root)
-    checkNotNull(rootEntry)
+    waitForCondition { DeviceTreeNode.fromNode(mockView.tree.model.root) != null }
+    val rootEntry = checkNotNull(DeviceTreeNode.fromNode(mockView.tree.model.root))
     Assert.assertEquals(rootEntry.device.serialNumber, activeDevice.deviceId)
-    pumpEventsAndWaitForFuture(mockView.modelListener.treeModelChangedTracker.consume())
   }
 
   private fun addClient(fakeDevice: DeviceState, pid: Int): ClientState {
@@ -224,4 +225,21 @@ class DeviceMonitorControllerTest {
     }
   }
 
+  private suspend fun waitForCondition(condition: () -> Boolean) {
+    val nano = TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLISECONDS)
+    val startNano = System.nanoTime()
+    val endNano = startNano + nano
+
+    while (System.nanoTime() <= endNano) {
+      if (condition.invoke()) {
+        return
+      }
+
+      delay(50L)
+    }
+
+    throw TimeoutException()
+  }
+
+  private val TIMEOUT_MILLISECONDS: Long = 30_000
 }
