@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="directaccess_client_proto">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/vendor/google/directaccess-client/proto/ftl_client_java_proto.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

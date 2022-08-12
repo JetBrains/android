@@ -289,3 +289,10 @@ jvm_import(
     jars = ["//tools/base/bazel:utp-core-proto-jarjar.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "directaccess_client_proto",
+    jars = ["//tools/vendor/google/directaccess-client/proto:ftl_client_java_proto.jar"],
+    visibility = ["//visibility:public"],
+)

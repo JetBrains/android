@@ -424,7 +424,7 @@ filegroup(
 filegroup(
     name = "directaccess-artifacts",
     srcs = [
-        "//tools/vendor/google/directaccess-client:ftl_client_java_proto",
+        "//tools/adt/idea/.idea/libraries:directaccess_client_proto",
         "//tools/vendor/google/directaccess-client/reverse-daemon:daemon",
     ],
 )

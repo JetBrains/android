@@ -402,7 +402,7 @@ studio_plugin(
     name = "com.google.gct.directaccess",
     directory = "directaccess",
     libs = [
-        "//tools/vendor/google/directaccess-client:ftl_client_java_proto",
+        "//tools/adt/idea/.idea/libraries:directaccess_client_proto",
     ],
     modules = {
         "directaccess.jar": ["//tools/studio/google/cloud/testing/directaccess:directaccess"],
