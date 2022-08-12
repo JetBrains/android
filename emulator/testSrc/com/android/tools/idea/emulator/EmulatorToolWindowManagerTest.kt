@@ -27,11 +27,12 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
-import com.android.utils.TraceUtils
+import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.ui.LafManager
@@ -48,22 +49,22 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.ContentManager
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
 import java.awt.Point
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.JViewport
 import javax.swing.UIManager
@@ -75,8 +76,9 @@ import javax.swing.UIManager
 class EmulatorToolWindowManagerTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val emulatorRule = FakeEmulatorRule()
+  private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   @get:Rule
-  val ruleChain = RuleChain(agentRule, emulatorRule, SetPortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(agentRule, emulatorRule, androidExecutorsRule, SetPortableUiFontRule(), EdtRule())
 
   private val windowFactory: EmulatorToolWindowFactory by lazy { EmulatorToolWindowFactory() }
   private val toolWindow: ToolWindow by lazy { createToolWindow() }
@@ -328,9 +330,8 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
   }
 
-  @Ignore // Disabled temporarily due to https://fusion2.corp.google.com/invocations/96d1bc05-3ee1-4ce1-9466-6250dd8858c2/targets/%2F%2Ftools%2Fadt%2Fidea%2Femulator:intellij.android.emulator.tests_tests;config=2eb6899a097f80644d58ccdb9b1755101042f93a5902b2841d0b8424ae8270a6/tests
   @Test
-  fun testUnsupportedPhysicalDevices() {
+  fun testUnsupportedPhysicalPhone() {
     if (SystemInfo.isWindows) {
       return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
     }
@@ -342,20 +343,40 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    val device1 = agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), "armeabi-v7a")
+    val device = agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), "armeabi-v7a")
     toolWindow.show()
 
     dispatchAllEventsInIdeEventQueue()
-    assertThat(contentManager.contents.size == 1).isTrue()
-    assertThat(contentManager.contents[0].displayName).isNull()
-    agentRule.disconnectDevice(device1)
-
-    val device2 = agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), "armeabi-v7a",
-                                     mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
     dispatchAllEventsInIdeEventQueue()
     assertThat(contentManager.contents.size == 1).isTrue()
     assertThat(contentManager.contents[0].displayName).isNull()
-    agentRule.disconnectDevice(device2)
+    agentRule.disconnectDevice(device)
+  }
+
+  @Test
+  fun testUnsupportedPhysicalWatch() {
+    if (SystemInfo.isWindows) {
+      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
+      return // FFmpeg library requires Mac OS 10.15+.
+    }
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val device = agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), "armeabi-v7a",
+                                         mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    toolWindow.show()
+
+    dispatchAllEventsInIdeEventQueue()
+    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    dispatchAllEventsInIdeEventQueue()
+    assertThat(contentManager.contents.size == 1).isTrue()
+    assertThat(contentManager.contents[0].displayName).isNull()
+    agentRule.disconnectDevice(device)
   }
 
   @Test
