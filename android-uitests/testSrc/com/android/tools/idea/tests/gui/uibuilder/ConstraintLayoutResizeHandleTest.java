@@ -62,6 +62,7 @@ public class ConstraintLayoutResizeHandleTest {
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor()
+      .waitForSurfaceToLoad()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 
