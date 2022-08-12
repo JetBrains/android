@@ -51,6 +51,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.impl.CoreProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.task.ProjectTaskManager
@@ -91,6 +92,51 @@ class PlatformIntegrationTest : GradleIntegrationTest {
           }
         }
       }
+    }
+  }
+
+  @Test
+  fun `importing an already built project does not add all files to the VFS - existing idea project`() {
+    val root = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+
+    openPreparedProject("project") { project ->
+      expect.that(root.resolve("app/build").exists())
+      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build"), false)).isNull()
+      ProjectTaskManager.getInstance(project).rebuildAllModules().blockingGet(1, TimeUnit.MINUTES)
+      expect.that(root.resolve("app/build/intermediates/dex/debug").exists())
+      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build"), false)).isNull()
+      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build/intermediates/dex/debug"), false)).isNull()
+    }
+
+    val copy = root.parentFile.resolve("copy")
+    FileUtil.copyDir(root, copy)
+    openPreparedProject("copy") { project ->
+      expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
+      // TODO(b/200820556): Most file sin `build` dir should not be added to the VFS.
+      // expect.that(VfsUtil.findFileByIoFile(copy.resolve("app/build/intermediates/dex/debug"), false)).isNull()
+    }
+  }
+
+  @Test
+  fun `importing an already built project does not add all files to the VFS - new idea project`() {
+    val root = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+
+    openPreparedProject("project") { project ->
+      expect.that(root.resolve("app/build").exists())
+      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build"), false)).isNull()
+      ProjectTaskManager.getInstance(project).rebuildAllModules().blockingGet(1, TimeUnit.MINUTES)
+      expect.that(root.resolve("app/build/intermediates/dex/debug").exists())
+      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build"), false)).isNull()
+      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build/intermediates/dex/debug"), false)).isNull()
+    }
+
+    val copy = root.parentFile.resolve("copy")
+    FileUtil.copyDir(root, copy)
+    FileUtil.delete(copy.resolve(".idea"))
+    openPreparedProject("copy") { project ->
+      expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
+      // TODO(b/200820556): Most file sin `build` dir should not be added to the VFS.
+      // expect.that(VfsUtil.findFileByIoFile(copy.resolve("app/build/intermediates/dex/debug"), false)).isNull()
     }
   }
 
