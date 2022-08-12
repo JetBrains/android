@@ -54,6 +54,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.newvfs.NewVirtualFile
 import com.intellij.task.ProjectTaskManager
 import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
@@ -95,25 +97,34 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     }
   }
 
+  private fun File.resolveVirtualIfCached(relativePath: String): VirtualFile? {
+    val baseVirtual = VfsUtil.findFileByIoFile(this, false)
+    val relativeTarget = resolve(relativePath).relativeTo(this).toPath()
+    return relativeTarget.fold(baseVirtual) { acc, path ->
+      (acc as? NewVirtualFile)?.findChildIfCached(path.toString())
+    }
+  }
+
   @Test
   fun `importing an already built project does not add all files to the VFS - existing idea project`() {
     val root = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
 
     openPreparedProject("project") { project ->
       expect.that(root.resolve("app/build").exists())
-      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build"), false)).isNull()
+      expect.that(root.resolveVirtualIfCached("app/build")).isNull()
       ProjectTaskManager.getInstance(project).rebuildAllModules().blockingGet(1, TimeUnit.MINUTES)
       expect.that(root.resolve("app/build/intermediates/dex/debug").exists())
-      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build"), false)).isNull()
-      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build/intermediates/dex/debug"), false)).isNull()
+      expect.that(root.resolveVirtualIfCached("app/build")).isNull()
+      expect.that(root.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
     }
 
     val copy = root.parentFile.resolve("copy")
     FileUtil.copyDir(root, copy)
     openPreparedProject("copy") { project ->
       expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
-      // TODO(b/200820556): Most file sin `build` dir should not be added to the VFS.
-      // expect.that(VfsUtil.findFileByIoFile(copy.resolve("app/build/intermediates/dex/debug"), false)).isNull()
+      expect.that(copy.resolveVirtualIfCached("app/build")).isNotNull()
+      // TODO(b/200820556): Most files in `build` dir should not be added to the VFS.
+      // TODO(b/200820556): expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
     }
   }
 
@@ -123,11 +134,11 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     openPreparedProject("project") { project ->
       expect.that(root.resolve("app/build").exists())
-      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build"), false)).isNull()
+      expect.that(root.resolveVirtualIfCached("app/build")).isNull()
       ProjectTaskManager.getInstance(project).rebuildAllModules().blockingGet(1, TimeUnit.MINUTES)
       expect.that(root.resolve("app/build/intermediates/dex/debug").exists())
-      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build"), false)).isNull()
-      expect.that(VfsUtil.findFileByIoFile(root.resolve("app/build/intermediates/dex/debug"), false)).isNull()
+      expect.that(root.resolveVirtualIfCached("app/build")).isNull()
+      expect.that(root.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
     }
 
     val copy = root.parentFile.resolve("copy")
@@ -135,8 +146,9 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     FileUtil.delete(copy.resolve(".idea"))
     openPreparedProject("copy") { project ->
       expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
-      // TODO(b/200820556): Most file sin `build` dir should not be added to the VFS.
-      // expect.that(VfsUtil.findFileByIoFile(copy.resolve("app/build/intermediates/dex/debug"), false)).isNull()
+      expect.that(copy.resolveVirtualIfCached("app/build")).isNotNull()
+      // TODO(b/200820556): Most files in `build` dir should not be added to the VFS.
+      // TODO(b/200820556): expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
     }
   }
 
