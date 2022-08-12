@@ -44,11 +44,12 @@ internal class FakePopupChooserBuilder<T>(
 
   private var isMovable: Boolean? = null
   private var isRequestFocus: Boolean? = null
+  private var title: String? = null
   private var callback: Consumer<in T>? = null
   private var renderer: ListCellRenderer<in T>? = null
 
   override fun createPopup(): JBPopup =
-      FakeJBPopup(list, isMovable, isRequestFocus, renderer, callback).also(factory::addPopup)
+    FakeJBPopup(list, isMovable, isRequestFocus, title, renderer, callback).also(factory::addPopup)
 
   override fun setMovable(forceMovable: Boolean): IPopupChooserBuilder<T> {
     isMovable = forceMovable
@@ -57,6 +58,11 @@ internal class FakePopupChooserBuilder<T>(
 
   override fun setRequestFocus(requestFocus: Boolean): IPopupChooserBuilder<T> {
     isRequestFocus = requestFocus
+    return this
+  }
+
+  override fun setTitle(title: String): IPopupChooserBuilder<T> {
+    this.title = title
     return this
   }
 
@@ -79,10 +85,6 @@ internal class FakePopupChooserBuilder<T>(
   }
 
   override fun setCancelOnClickOutside(cancelOnClickOutside: Boolean): IPopupChooserBuilder<T> {
-    TODO("Not yet implemented")
-  }
-
-  override fun setTitle(title: String): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 

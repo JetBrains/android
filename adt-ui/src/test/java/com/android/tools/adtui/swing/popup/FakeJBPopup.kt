@@ -37,6 +37,7 @@ open class FakeJBPopup<T>(
     val items: List<T>,
     val isMovable: Boolean? = false,
     val isRequestFocus: Boolean? = false,
+    val title: String? = null,
     val renderer: ListCellRenderer<in T>? = null,
     private val callback: Consumer<in T>? = null,
 ) : JBPopup {

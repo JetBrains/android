@@ -399,6 +399,14 @@
     <option name="open" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="studio" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="to" path="ActionManager" hit="Open Asset Studio to create an image asset" />
+    <option name="a" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
+    <option name="analyzer" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
+    <option name="build" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
+    <option name="on" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
+    <option name="open" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
+    <option name="past" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
+    <option name="results" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
+    <option name="s" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
     <option name="device" path="ActionManager" hit="Open Device Explorer help" />
     <option name="explorer" path="ActionManager" hit="Open Device Explorer help" />
     <option name="help" path="ActionManager" hit="Open Device Explorer help" />
@@ -590,6 +598,12 @@
     <option name="manager" path="ActionManager" hit="Show In Resource Manager" />
     <option name="resource" path="ActionManager" hit="Show In Resource Manager" />
     <option name="show" path="ActionManager" hit="Show In Resource Manager" />
+    <option name="analysis" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
+    <option name="builds" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
+    <option name="of" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
+    <option name="previous" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
+    <option name="results" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
+    <option name="show" path="ActionManager" hit="Show Results Analysis of Previous Builds" />
     <option name="controls" path="ActionManager" hit="Show extended controls" />
     <option name="extended" path="ActionManager" hit="Show extended controls" />
     <option name="show" path="ActionManager" hit="Show extended controls" />

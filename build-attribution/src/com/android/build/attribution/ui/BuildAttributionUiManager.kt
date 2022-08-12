@@ -46,6 +46,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentContainer
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
@@ -65,6 +66,7 @@ interface BuildAttributionUiManager : Disposable {
   fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
   fun hasDataToShow(): Boolean
   fun showNewReport()
+  fun showBuildAnalysisReportById(buildID : String)
 
   companion object {
     fun getInstance(project: Project): BuildAttributionUiManager {
@@ -127,6 +129,10 @@ class BuildAttributionUiManagerImpl(
     val reportUiData = BuildAttributionReportBuilder(buildResults).build()
     val buildSessionId = buildResults.getBuildSessionID()
     showNewReport(reportUiData, buildSessionId)
+  }
+
+  override fun showBuildAnalysisReportById(buildID: String) {
+    Messages.showInfoMessage("Build report id: $buildID", "Build Report")
   }
 
   override fun onBuildFailure(buildSessionId: String) {
