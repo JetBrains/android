@@ -5,7 +5,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidProfilerDownloader extends AndroidComponentDownloader {
-  private static final Logger LOG = Logger.getInstance(AndroidProfilerDownloader.class);
 
   private static class Holder {
     private static final AndroidProfilerDownloader INSTANCE = new AndroidProfilerDownloader();
@@ -25,9 +24,4 @@ public class AndroidProfilerDownloader extends AndroidComponentDownloader {
     return Holder.INSTANCE;
   }
 
-  @Override
-  protected @NotNull String getVersion() {
-    LOG.assertTrue(super.getVersion().startsWith("27.3.0."), "Obsolete version override.");
-    return "27.3.0.1";
-  }
 }
