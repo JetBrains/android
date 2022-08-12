@@ -10,7 +10,7 @@ import org.jetbrains.intellij.build.dependencies.BuildDependenciesDownloader;
 import org.jetbrains.intellij.build.dependencies.BuildDependenciesManualRunOnly;
 
 public class AndroidSdkDownloader {
-  private static final String ANDROID_SDK_VERSION = "4.2.0.0";
+  private static final String ANDROID_SDK_VERSION = "30.2.0.0";
 
   public static Path downloadSdk(BuildDependenciesCommunityRoot communityRoot) {
     Path androidSdkRoot = communityRoot.getCommunityRoot().resolve("build/dependencies/build/android-sdk");
