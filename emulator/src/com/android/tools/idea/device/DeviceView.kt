@@ -301,9 +301,9 @@ class DeviceView(
       deviceClient?.apply {
         if (startTime != 0L) {
           val delay = System.currentTimeMillis() - startTime
-          val pushDelay = pushTime - startTime
+          val pushDelay = pushEndTime - startTime
           val agentStartDelay = startAgentTime - startTime
-          val connectionDelay = connectionTime - startTime
+          val connectionDelay = videoChannelConnectedTime - startTime
           val firstPacketDelay = firstPacketArrival - startTime
           println("Initialization took $delay ms, push took $pushDelay ms, agent was started after $agentStartDelay ms," +
                   " connected after $connectionDelay ms, first video packet arrived after $firstPacketDelay ms")

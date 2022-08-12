@@ -69,10 +69,10 @@ internal class DeviceClient(
   lateinit var videoDecoder: VideoDecoder
   lateinit var deviceController: DeviceController
     private set
-  internal var startTime = 0L
-  internal var pushTime = 0L
-  internal var startAgentTime = 0L
-  internal var connectionTime = 0L
+  internal var startTime = 0L // Time when startAgentAndConnect was called.
+  internal var pushEndTime = 0L // Time when the agent push completed.
+  internal var startAgentTime = 0L // Time when the command to start the agent was issued.
+  internal var videoChannelConnectedTime = 0L // Time when the video channel was connected.
   private val logger = thisLogger()
 
   init {
@@ -92,7 +92,6 @@ internal class DeviceClient(
         pushAgent(deviceSelector, adb)
       }
     }
-    pushTime = System.currentTimeMillis()
     val deviceSocket = SocketSpec.LocalAbstract("screen-sharing-agent")
 
     @Suppress("BlockingMethodInNonBlockingContext")
@@ -105,7 +104,7 @@ internal class DeviceClient(
         agentPushed.await()
         startAgent(deviceSelector, adb, maxVideoSize, initialDisplayOrientation, agentTerminationListener)
         videoChannel = serverSocketChannel.accept()
-        connectionTime = System.currentTimeMillis()
+        videoChannelConnectedTime = System.currentTimeMillis()
         controlChannel = serverSocketChannel.accept()
         controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
         // Port forwarding can be removed since the already established connections will continue to work without it.
@@ -192,6 +191,7 @@ internal class DeviceClient(
       adb.syncSend(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
       nativeLibraryPushed.await()
     }
+    pushEndTime = System.currentTimeMillis()
   }
 
   private suspend fun startAgent(
