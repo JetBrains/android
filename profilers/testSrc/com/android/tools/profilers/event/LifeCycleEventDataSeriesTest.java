@@ -27,52 +27,32 @@ import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.Interaction;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public class LifeCycleEventDataSeriesTest {
-
   private static final long TEST_START_TIME_NS = TimeUnit.SECONDS.toNanos(10);
   private static final long TEST_END_TIME_NS = TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1);
   private static final String ACTIVITY_NAME = "TestActivity";
   private static final String FRAGMENT_NAME = "TestFragment";
   private static final String ACTIVITY_NAME_2 = "TestActivity2";
 
-  @Parameterized.Parameters
-  public static Collection<Boolean> useNewEventPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
-
-  private FakeTimer myTimer = new FakeTimer();
-  private FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  private FakeEventService myEventService = new FakeEventService();
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel(getClass().getName(), myTransportService, myEventService);
-
-  private FakeIdeProfilerServices myIdeProfilerServices;
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel(getClass().getName(), myTransportService);
   private LifecycleEventDataSeries myActivitySeries;
   private LifecycleEventDataSeries myFragmentSeries;
 
-  public LifeCycleEventDataSeriesTest(boolean useNewEventPipeline) {
-    myIdeProfilerServices = new FakeIdeProfilerServices();
-    myIdeProfilerServices.enableEventsPipeline(useNewEventPipeline);
-  }
-
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
     myActivitySeries = new LifecycleEventDataSeries(profilers, false);
     myFragmentSeries = new LifecycleEventDataSeries(profilers, true);
   }
@@ -293,33 +273,20 @@ public class LifeCycleEventDataSeriesTest {
   }
 
   private void buildActivityEvent(String name, ActivityStateData[] states, long contextHash) {
-    if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      for (ActivityStateData state : states) {
-        myTransportService.addEventToStream(FAKE_DEVICE_ID,
-                                            Common.Event.newBuilder()
-                                                  .setKind(Common.Event.Kind.VIEW)
-                                                  .setTimestamp(state.activityStateTime)
-                                                  .setGroupId(name.hashCode())
-                                                  .setIsEnded(state.isEndState())
-                                                  .setView(
-                                                    Interaction.ViewData.newBuilder()
-                                                      .setName(name)
-                                                      .setState(state.activityState)
-                                                      .setParentActivityId(contextHash)
-                                                  )
-                                                  .build());
-      }
-    }
-    else {
-      EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
-      builder.setName(name).setHash(name.hashCode()).setActivityContextHash(contextHash);
-      for (ActivityStateData state : states) {
-        builder.addStateChanges(EventProfiler.ActivityStateData.newBuilder()
-                                  .setState(state.activityState)
-                                  .setTimestamp(state.activityStateTime)
-                                  .build());
-      }
-      myEventService.addActivityEvent(builder.build());
+    for (ActivityStateData state : states) {
+      myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                          Common.Event.newBuilder()
+                                            .setKind(Common.Event.Kind.VIEW)
+                                            .setTimestamp(state.activityStateTime)
+                                            .setGroupId(name.hashCode())
+                                            .setIsEnded(state.isEndState())
+                                            .setView(
+                                              Interaction.ViewData.newBuilder()
+                                                .setName(name)
+                                                .setState(state.activityState)
+                                                .setParentActivityId(contextHash)
+                                            )
+                                            .build());
     }
   }
 

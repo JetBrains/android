@@ -23,8 +23,6 @@ import com.android.tools.adtui.model.event.KeyboardAction;
 import com.android.tools.adtui.model.event.KeyboardData;
 import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.EventProfiler;
-import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
@@ -40,8 +38,7 @@ import org.jetbrains.annotations.NotNull;
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
 public class UserEventDataSeries implements DataSeries<EventAction<UserEvent>> {
-
-  @NotNull private StudioProfilers myProfilers;
+  @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
 
   public UserEventDataSeries(@NotNull StudioProfilers profilers) {
@@ -51,12 +48,7 @@ public class UserEventDataSeries implements DataSeries<EventAction<UserEvent>> {
 
   @Override
   public List<SeriesData<EventAction<UserEvent>>> getDataForRange(@NotNull Range timeCurrentRangeUs) {
-    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      return getTransportData(timeCurrentRangeUs);
-    }
-    else {
-      return getLegacyData(timeCurrentRangeUs);
-    }
+    return getTransportData(timeCurrentRangeUs);
   }
 
   @NotNull
@@ -96,37 +88,5 @@ public class UserEventDataSeries implements DataSeries<EventAction<UserEvent>> {
     }
     Collections.sort(series, Comparator.comparingLong(data -> data.x));
     return series;
-  }
-
-  @NotNull
-  private List<SeriesData<EventAction<UserEvent>>> getLegacyData(@NotNull Range rangeUs) {
-    List<SeriesData<EventAction<UserEvent>>> seriesData = new ArrayList<>();
-    EventServiceGrpc.EventServiceBlockingStub eventService = myProfilers.getClient().getEventClient();
-    EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()));
-    EventProfiler.SystemDataResponse response = eventService.getSystemData(dataRequestBuilder.build());
-    for (EventProfiler.SystemData data : response.getDataList()) {
-      long actionStart = TimeUnit.NANOSECONDS.toMicros(data.getStartTimestamp());
-      long actionEnd = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
-      switch (data.getType()) {
-        case ROTATION:
-          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, UserEvent.ROTATION)));
-          break;
-        case UNSPECIFIED:
-          break;
-        case TOUCH:
-          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, UserEvent.TOUCH)));
-          break;
-        case KEY:
-          seriesData.add(
-            new SeriesData<>(actionStart, new KeyboardAction(actionStart, actionEnd, new KeyboardData(data.getEventData()))));
-          break;
-        case UNRECOGNIZED:
-          break;
-      }
-    }
-    return seriesData;
   }
 }
