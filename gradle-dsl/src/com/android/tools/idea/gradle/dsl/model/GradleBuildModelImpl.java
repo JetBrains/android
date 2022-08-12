@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
+import com.android.tools.idea.gradle.dsl.api.GradlePropertiesModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -388,6 +389,13 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   public Map<String, List<BuildModelNotification>> getNotifications() {
     return getAllInvolvedFiles().stream().filter(e -> !e.getPublicNotifications().isEmpty())
       .collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
+  }
+
+  @Override
+  public @Nullable GradlePropertiesModel getPropertiesModel() {
+    GradlePropertiesFile propertiesFile = myGradleBuildFile.getPropertiesFile();
+    if (propertiesFile == null) return null;
+    return new GradlePropertiesModelImpl(propertiesFile);
   }
 
   /**
