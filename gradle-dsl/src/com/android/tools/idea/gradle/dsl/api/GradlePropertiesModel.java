@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model;
-
-import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
-import org.jetbrains.annotations.NotNull;
+package com.android.tools.idea.gradle.dsl.api;
 
 /**
- * Represents a gradle.properties file.
+ * Represents a read-only view on a gradle.properties file.
  */
-public class GradlePropertiesModel extends GradleFileModelImpl {
-  @NotNull protected GradlePropertiesFile myGradlePropertiesFile;
-
-  public GradlePropertiesModel(@NotNull GradlePropertiesFile gradlePropertiesFile) {
-    super(gradlePropertiesFile);
-    myGradlePropertiesFile = gradlePropertiesFile;
-  }
+public interface GradlePropertiesModel extends GradleFileModel {
 }

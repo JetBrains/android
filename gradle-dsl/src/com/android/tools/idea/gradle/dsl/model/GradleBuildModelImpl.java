@@ -408,7 +408,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       return new GradleSettingsModelImpl((GradleSettingsFile)file);
     }
     else if (file instanceof GradlePropertiesFile) {
-      return new GradlePropertiesModel((GradlePropertiesFile)file);
+      return new GradlePropertiesModelImpl((GradlePropertiesFile)file);
     }
     throw new IllegalStateException("Unknown GradleDslFile type found!");
   }
