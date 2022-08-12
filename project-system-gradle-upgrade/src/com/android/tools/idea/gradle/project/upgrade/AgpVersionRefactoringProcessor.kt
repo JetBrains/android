@@ -53,10 +53,15 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     helpLinkUrl = "https://developer.android.com/studio/build/agp-upgrade-assistant#project-structure"
   )
 
-  override fun blockProcessorReasons(): List<BlockReason> = when {
-    isAlwaysNoOpForProject && current != new -> listOf(AgpVersionNotFound)
-    else -> listOf()
-  }
+  object Pre80MavenPublish: BlockReason(
+    shortDescription = "Use of implicitly-created components in maven-publish.",
+    description = "Starting with version 8.0, Android Gradle Plugin will no longer implicitly create \n" +
+                  "components for the maven-publish plugin.  You will have to adapt the publishing \n" +
+                  "blocks to use the new API (and mark the project as migrated by adding \n" +
+                  "<tt>android.disableAutomaticComponentCreation=true</tt> to the project's gradle.properties \n" +
+                  "file.",
+    helpLinkUrl = "https://developer.android.com/studio/publish-library"
+  )
 
   private var _isPre80MavenPublish: Boolean? = null
   val isPre80MavenPublish: Boolean
@@ -93,6 +98,12 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   override fun initializeComponentExtraCaches() {
     _isPre80MavenPublish = computeIsPre80MavenPublish()
   }
+
+  override fun blockProcessorReasons(): List<BlockReason> =
+    listOfNotNull(
+      AgpVersionNotFound.takeIf { isAlwaysNoOpForProject && current != new },
+      Pre80MavenPublish.takeIf { isPre80MavenPublish && current < GradleVersion.parse("8.0.0-alpha01") && new >= GradleVersion.parse("8.0.0-alpha01") },
+    )
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
