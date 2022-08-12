@@ -15,44 +15,77 @@
  */
 package com.android.tools.idea.debug;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.android.SdkConstants;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.testing.Sdks;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.debug.AndroidPositionManager.MyXDebugSessionListener;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.run.AndroidSessionInfo;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.debugger.NoDataException;
 import com.intellij.debugger.SourcePosition;
-import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessImpl;
+import com.intellij.debugger.engine.PositionManagerImpl;
 import com.intellij.debugger.engine.requests.RequestManagerImpl;
+import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
 import com.intellij.debugger.requests.ClassPrepareRequestor;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.psi.JavaPsiFacade;
+import com.intellij.openapi.fileTypes.UnknownFileType;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.xdebugger.XDebugProcess;
+import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XDebuggerManager;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.request.ClassPrepareRequest;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.ComponentStack;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-public class AndroidPositionManagerTest extends AndroidTestCase {
+public class AndroidPositionManagerTest {
+  @Rule public final AndroidProjectRule myAndroidProjectRule = AndroidProjectRule.withSdk();
+  @Rule public final MockitoRule myMockitoRule = MockitoJUnit.rule();
 
   // The name of the top class or interface.
   private static final String TOP_CLASS_NAME = "p1.p2.Foo";
@@ -66,69 +99,56 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
   // Note: the name of the synthesized class does not matter. But it has to be an inner class.
   private static final String SYNTHESIZED_CLASS_NAME = TOP_CLASS_NAME + "$DesugaringCompanion";
 
-  private DebugProcess mockProcess;
+  @Mock private DebugProcessImpl mockDebugProcessImpl;
+  @Mock private DebuggerSession mockDebuggerSession;
+  @Mock private XDebugSession mockXDebugSession;
+
+  private AndroidVersion targetDeviceAndroidVersion = new AndroidVersion(30);
+
   private AndroidPositionManager myPositionManager;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  private Collection<LocalPackage> myOriginalLocalPackages;
 
-    mockProcess = mock(DebugProcessImpl.class);
-    myPositionManager = new AndroidPositionManager((DebugProcessImpl)mockProcess);
+  @Before
+  public void setUp() {
+    when(mockDebugProcessImpl.getSession()).thenReturn(mockDebuggerSession);
+    when(mockDebugProcessImpl.getProject()).thenReturn(myAndroidProjectRule.getProject());
+    when(mockDebugProcessImpl.getSearchScope()).thenReturn(GlobalSearchScope.allScope(myAndroidProjectRule.getProject()));
+    when(mockDebuggerSession.getXDebugSession()).thenReturn(mockXDebugSession);
+
+    XDebuggerManager mockXDebuggerManager = myAndroidProjectRule.mockProjectService(XDebuggerManager.class);
+    XDebugSession mockXDebugSession = mock(XDebugSession.class);
+    XDebugProcess mockXDebugProcess = mock(XDebugProcess.class);
+    ProcessHandler mockProcessHandler = mock(ProcessHandler.class);
+
+    when(mockXDebuggerManager.getCurrentSession()).thenReturn(mockXDebugSession);
+    when(mockXDebugSession.getDebugProcess()).thenReturn(mockXDebugProcess);
+    when(mockXDebugProcess.getProcessHandler()).thenReturn(mockProcessHandler);
+    when(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer(invocation -> targetDeviceAndroidVersion);
+
+    myPositionManager = new AndroidPositionManager(mockDebugProcessImpl);
   }
 
-  public void testGetPsiByLocationWithNull() {
-    assertNull(myPositionManager.getPsiFileByLocation(null, null));
+  @After
+  public void tearDown() {
+    if (myOriginalLocalPackages != null) {
+      AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+      RepoManager sdkManager = sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(AndroidPositionManager.class));
+      RepositoryPackages packages = sdkManager.getPackages();
+      packages.setLocalPkgInfos(myOriginalLocalPackages);
+    }
   }
 
-  public void testGetSourceForPsiFileWithNonAndroid() {
-    Project project = getProject();
-
-    @Language("JAVA")
-    String text = "package p1.p2;\n" +
-                  "\n" +
-                  "class Foo {\n" +
-                  "  \n" +
-                  "  private void Bar() {\n" +
-                  "    int test = 2;\n" +
-                  "  }\n" +
-                  "}";
-
-    PsiFile file = myFixture.addFileToProject("src/p1/Foo.java", text);
-    //Not an android sdk file so it returns null
-    assertNull(myPositionManager.getApiSpecificPsi(project, file, new AndroidVersion(24, null)));
-  }
-
-  public void testGetSourceForPsiFileWithAndroidFile() {
-    Project project = getProject();
-
-    // need to add the sdk to JdkTable for getSourceFolder(version) to return the source folder
-    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(Sdks.createLatestAndroidSdk()));
-
-    // get reference to the file through the class
-    PsiClass cls = JavaPsiFacade.getInstance(project).findClass("android.view.View", GlobalSearchScope.allScope(project));
-    PsiElement element = cls.getNavigationElement();
-    PsiFile file = element.getContainingFile();
-
-    // call the method and should get source
-    checkSourceForApiVersion(project, file, 24);
-    checkSourceForApiVersion(project, file, 25);
-  }
-
-  private void checkSourceForApiVersion(Project project, PsiFile file, int version) {
-    PsiFile sourceFile = myPositionManager.getApiSpecificPsi(project, file, new AndroidVersion(version, null));
-    assertNotNull(sourceFile);
-    assertTrue(sourceFile.getVirtualFile().getPath().endsWith(String.format("sources/android-%1$d/android/view/View.java", version)));
-  }
-
-  /** Create a SourcePosition from a one-based line number. */
+  /**
+   * Create a SourcePosition from a one-based line number.
+   */
   private SourcePosition createSourcePositionForOneBasedLineNumber(PsiFile psiFile, int line) {
     assert line > 0;
     // SourcePositions are zero-based. Therefore, we need to adjust the line number accordingly.
     return SourcePosition.createFromLine(psiFile, line - 1);
   }
 
-
+  @Test
   public void testDesugaringSupport_SimpleClass() throws NoDataException {
     @Language("JAVA")
     String text = "package p1.p2;\n" +
@@ -144,12 +164,13 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
                   "  }\n" +
                   "}";
 
-    PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
-    assertNotNull(file);
+    PsiFile file = myAndroidProjectRule.getFixture().addFileToProject("src/p1/p2/Foo.java", text);
+    assertThat(file).isNotNull();
     SourcePosition position = createSourcePositionForOneBasedLineNumber(file, 5);
     runTestDesugaringSupportWhenDesugaringIsRequired(position, false);
   }
 
+  @Test
   public void testDesugaringSupport_InterfaceWithStaticInitializer() throws NoDataException {
     @Language("JAVA")
     String text = "package p1.p2;\n" +
@@ -164,12 +185,13 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
                   "  }\n" +
                   "}";
 
-    PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
-    assertNotNull(file);
+    PsiFile file = myAndroidProjectRule.getFixture().addFileToProject("src/p1/p2/Foo.java", text);
+    assertThat(file).isNotNull();
     SourcePosition position = createSourcePositionForOneBasedLineNumber(file, 5);
     runTestDesugaringSupportWhenDesugaringIsRequired(position, false);
   }
 
+  @Test
   public void testDesugaringSupport_InterfaceWithDefaultMethod() throws NoDataException {
     @Language("JAVA")
     String text = "package p1.p2;\n" +
@@ -185,12 +207,13 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
                   "  }\n" +
                   "}";
 
-    PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
-    assertNotNull(file);
+    PsiFile file = myAndroidProjectRule.getFixture().addFileToProject("src/p1/p2/Foo.java", text);
+    assertThat(file).isNotNull();
     SourcePosition position = createSourcePositionForOneBasedLineNumber(file, 5);
     runTestDesugaringSupportWhenDesugaringIsRequired(position, true);
   }
 
+  @Test
   public void testDesugaringSupport_InterfaceWithStaticMethod() throws NoDataException {
     @Language("JAVA")
     String text = "package p1.p2;\n" +
@@ -206,32 +229,25 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
                   "  }\n" +
                   "}";
 
-    PsiFile file = myFixture.addFileToProject("src/p1/p2/Foo.java", text);
-    assertNotNull(file);
+    PsiFile file = myAndroidProjectRule.getFixture().addFileToProject("src/p1/p2/Foo.java", text);
+    assertThat(file).isNotNull();
     SourcePosition position = createSourcePositionForOneBasedLineNumber(file, 5);
     runTestDesugaringSupportWhenDesugaringIsRequired(position, true);
-  }
-
-  public void testGetAcceptedFileTypes_acceptsJavaFiles() {
-    Set<? extends FileType> acceptedFileTypes = myPositionManager.getAcceptedFileTypes();
-
-    assertEquals(1, acceptedFileTypes.size());
-    assertTrue(acceptedFileTypes.contains(JavaFileType.INSTANCE));
   }
 
   private void runTestDesugaringSupportWhenDesugaringIsRequired(@NotNull SourcePosition position, boolean isDesugaringRequired)
     throws NoDataException {
     // Mock the VirtualMachine proxy to manage tested types.
     VirtualMachineProxyImpl vmProxy = mock(VirtualMachineProxyImpl.class);
-    when(mockProcess.getVirtualMachineProxy()).thenReturn(vmProxy);
+    when(mockDebugProcessImpl.getVirtualMachineProxy()).thenReturn(vmProxy);
     Map<String, ReferenceType> typesMap = mockReferenceTypes(vmProxy, TOP_CLASS_NAME, INNER_CLASS_NAME, SYNTHESIZED_CLASS_NAME);
 
     // Mock the RequestManager for the class prepare requests.
     RequestManagerImpl mockRequestManager = mock(RequestManagerImpl.class);
-    when(mockProcess.getRequestsManager()).thenReturn(mockRequestManager);
+    when(mockDebugProcessImpl.getRequestsManager()).thenReturn(mockRequestManager);
 
     // Attach current project to the mocked debug process.
-    when(mockProcess.getProject()).thenReturn(getProject());
+    when(mockDebugProcessImpl.getProject()).thenReturn(myAndroidProjectRule.getProject());
 
     // Mock locationsOfLine to reflect which class contains the source position.
     ReferenceType topClass = typesMap.get(TOP_CLASS_NAME);
@@ -253,17 +269,16 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
 
     // Check that the list of types contains both the top class and the potential synthesized class.
     List<ReferenceType> typesWithPosition = myPositionManager.getAllClasses(position);
-    assertNotNull(typesWithPosition);
+    assertThat(typesWithPosition).isNotNull();
     if (isDesugaringRequired) {
       // If desugaring may happen, both interface and its companion class should be returned.
-      assertEquals(2, typesWithPosition.size());
-      assertTrue(typesWithPosition.contains(topClass));
-      assertTrue(typesWithPosition.contains(desugarCompanionClass));
+      assertThat(typesWithPosition).hasSize(2);
+      assertThat(typesWithPosition).containsExactly(topClass, desugarCompanionClass);
     }
     else {
       // Without desugaring, the interface is the only class that contains the source position.
-      assertEquals(1, typesWithPosition.size());
-      assertTrue(typesWithPosition.contains(topClass));
+      assertThat(typesWithPosition).hasSize(1);
+      assertThat(typesWithPosition).containsExactly(topClass);
     }
 
     // Mock class prepare requests.
@@ -273,17 +288,16 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
     when(mockRequestManager.createClassPrepareRequest(notNull(), eq(TOP_CLASS_NAME + "$*"))).thenReturn(allInnerClassesPrepareRequest);
     ClassPrepareRequestor mockRequestor = mock(ClassPrepareRequestor.class);
     List<ClassPrepareRequest> classPrepareRequests = myPositionManager.createPrepareRequests(mockRequestor, position);
-    assertNotNull(classPrepareRequests);
+    assertThat(classPrepareRequests).isNotNull();
     if (isDesugaringRequired) {
       // If desugaring is required, we also create a class prepare request for all inner types of the interface so that we can find
       // the source position in the companion class (which is one of the inner classes).
-      assertEquals(2, classPrepareRequests.size());
-      assertTrue(classPrepareRequests.contains(topClassPrepareRequest));
-      assertTrue(classPrepareRequests.contains(allInnerClassesPrepareRequest));
+      assertThat(classPrepareRequests).hasSize(2);
+      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest, allInnerClassesPrepareRequest);
     }
     else {
-      assertEquals(1, classPrepareRequests.size());
-      assertTrue(classPrepareRequests.contains(topClassPrepareRequest));
+      assertThat(classPrepareRequests).hasSize(1);
+      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest);
     }
   }
 
@@ -297,5 +311,219 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
     }
     when(mockVmProxy.allClasses()).thenReturn(ImmutableList.copyOf(map.values()));
     return map;
+  }
+
+  @Test
+  public void testGetAcceptedFileTypes_acceptsJavaFiles() {
+    Set<? extends FileType> acceptedFileTypes = myPositionManager.getAcceptedFileTypes();
+
+    assertThat(acceptedFileTypes).hasSize(1);
+    assertThat(acceptedFileTypes).containsExactly(JavaFileType.INSTANCE);
+  }
+
+  @Test
+  public void getSourcePosition_nullLocation() {
+    assertThrows(NoDataException.class, () -> myPositionManager.getSourcePosition(null));
+  }
+
+  @Test
+  public void getSourcePosition_androidVersionNotAvailable() {
+    Location location = mock(Location.class);
+    targetDeviceAndroidVersion = null;
+
+    assertThrows(NoDataException.class, () -> myPositionManager.getSourcePosition(location));
+
+    // getSourcePosition should have exited before `location` was used.
+    verifyNoInteractions(location);
+  }
+
+  @Test
+  public void getSourcePosition_locationHasNoDeclaringType() {
+    // No declaring type results in `PositionManagerImpl.getPsiFileByLocation()` return a null PsiFile, so this tests a branch of
+    // `AndroidPositionManager.getSourcePosition`.
+    Location location = mock(Location.class);
+    when(location.declaringType()).thenReturn(null);
+
+    assertThrows(NoDataException.class, () -> myPositionManager.getSourcePosition(location));
+  }
+
+  @Test
+  public void getSourcePosition_locationIsNonAndroidFile() {
+    ReferenceType type = mock(ReferenceType.class);
+    when(type.name()).thenReturn(TOP_CLASS_NAME);
+
+    Location location = mock(Location.class);
+    when(location.declaringType()).thenReturn(type);
+
+    @Language("JAVA")
+    String text = "package p1.p2;\n" +
+                  "\n" +
+                  "class Foo {\n" +
+                  "  \n" +
+                  "  private void Bar() {\n" +
+                  "    int test = 2;\n" +
+                  "  }\n" +
+                  "}";
+
+    PsiFile file = myAndroidProjectRule.getFixture().addFileToProject("src/p1/Foo.java", text);
+
+    ApplicationManager.getApplication().runReadAction(
+      () -> {
+        // Ensure that the super class is actually finding this class.
+        assertThat(myPositionManager.getPsiFileByLocation(myAndroidProjectRule.getProject(), location)).isSameAs(file);
+
+        // Now that it's found, NoDataException should be thrown since it's not in the Android SDK.
+        assertThrows(NoDataException.class, () -> myPositionManager.getSourcePosition(location));
+      });
+  }
+
+  @Test
+  public void getSourcePosition_targetSourcesAvailable() throws Exception {
+    Location location = getAndroidSdkClassLocation();
+
+    SourcePosition sourcePosition = ApplicationManager.getApplication()
+      .runReadAction((ThrowableComputable<SourcePosition, NoDataException>)() -> myPositionManager.getSourcePosition(location));
+
+    assertThat(sourcePosition).isNotNull();
+
+    PsiFile file = sourcePosition.getFile();
+    assertThat(file.getFileType()).isEqualTo(JavaFileType.INSTANCE);
+    assertThat(file.getVirtualFile().getPath()).contains("/android-" + targetDeviceAndroidVersion.getApiLevel() + "/");
+  }
+
+  @Test
+  public void getSourcePosition_targetSourcesNotAvailable() throws Exception {
+    removeLocalTargetSdkPackages();
+
+    Location location = getAndroidSdkClassLocation();
+
+    SourcePosition sourcePosition = ApplicationManager.getApplication()
+      .runReadAction((ThrowableComputable<SourcePosition, NoDataException>)() -> myPositionManager.getSourcePosition(location));
+
+    assertThat(sourcePosition).isNotNull();
+
+    PsiFile file = sourcePosition.getFile();
+    assertThat(file.getFileType()).isEqualTo(JavaFileType.INSTANCE);
+    assertThat(file.getVirtualFile().getPath()).doesNotContain("/android-" + targetDeviceAndroidVersion.getApiLevel() + "/");
+    assertThat(file.getVirtualFile()).isInstanceOf(LightVirtualFile.class);
+    String fileContent = ((LightVirtualFile)file.getVirtualFile()).getContent().toString();
+    assertThat(fileContent).contains(
+      "device under debug has API level " + targetDeviceAndroidVersion.getApiLevel() + ".");
+    assertThat(file.getName()).isEqualTo("Unavailable Source");
+  }
+
+  private static Location getAndroidSdkClassLocation() throws Exception {
+    ReferenceType type = mock(ReferenceType.class);
+    when(type.name()).thenReturn("android.view.View");
+    when(type.sourceName()).thenReturn("View.java");
+
+    Location location = mock(Location.class);
+    when(location.declaringType()).thenReturn(type);
+
+    return location;
+  }
+
+  private void removeLocalTargetSdkPackages() {
+    Set<String> packagesToRemove = ImmutableSet.of(
+      SdkConstants.FD_ANDROID_SOURCES + RepoPackage.PATH_SEPARATOR + "android-" + targetDeviceAndroidVersion.getApiLevel(),
+      SdkConstants.FD_PLATFORMS + RepoPackage.PATH_SEPARATOR + "android-" + targetDeviceAndroidVersion.getApiLevel()
+    );
+
+    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+    RepoManager sdkManager = sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(AndroidPositionManager.class));
+    RepositoryPackages packages = sdkManager.getPackages();
+
+    Map<String, LocalPackage> localPackages = packages.getLocalPackages();
+
+    if (myOriginalLocalPackages == null) {
+      // This won't get reset at the end of each test automatically. Store original list to restore it later.
+      myOriginalLocalPackages = localPackages.values();
+    }
+
+    List<LocalPackage> updatedPackages = localPackages.values().stream()
+      .filter(localPackage -> !packagesToRemove.contains(localPackage.getPath()))
+      .collect(Collectors.toList());
+
+    packages.setLocalPkgInfos(updatedPackages);
+  }
+
+  @Test
+  public void getAndroidVersionFromDebugSession_nullSession() {
+    XDebuggerManager mockXDebuggerManager = myAndroidProjectRule.mockProjectService(XDebuggerManager.class);
+
+    when(mockXDebuggerManager.getCurrentSession()).thenReturn(null);
+
+    assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.getProject())).isNull();
+  }
+
+  @Test
+  public void getAndroidVersionFromDebugSession_nullAndroidVersion() {
+    targetDeviceAndroidVersion = null;
+
+    assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.getProject())).isNull();
+  }
+
+  @Test
+  public void getAndroidVersionFromDebugSession_androidVersionExists() {
+    targetDeviceAndroidVersion = new AndroidVersion(32);
+
+    assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.getProject()))
+      .isSameAs(targetDeviceAndroidVersion);
+  }
+
+  @Test
+  public void changeClassExtensionToJava_null() {
+    assertThat(AndroidPositionManager.changeClassExtensionToJava(null)).isNull();
+  }
+
+  @Test
+  public void changeClassExtensionToJava_notClassFile() {
+    assertThat(AndroidPositionManager.changeClassExtensionToJava("foo.bar")).isEqualTo("foo.bar");
+    assertThat(AndroidPositionManager.changeClassExtensionToJava("foo.java")).isEqualTo("foo.java");
+  }
+
+  @Test
+  public void changeClassExtensionToJava_classFileChangedToJava() {
+    assertThat(AndroidPositionManager.changeClassExtensionToJava("foo.class")).isEqualTo("foo.java");
+  }
+
+  @Test
+  public void getRelPathForJavaSource_fileIsJavaClass() {
+    // The case where the file is a java file is covered by above test cases; but the java class file case is not, due to difficulties in
+    // mocking super class logic. Instead, we can test resolution here directly.
+    PsiClass viewClass = ApplicationManager.getApplication().runReadAction((Computable<PsiClass>)() ->
+      PositionManagerImpl.findClass(
+        myAndroidProjectRule.getProject(),
+        "android.view.View",
+        mockDebugProcessImpl.getSearchScope(),
+        true));
+    assertThat(viewClass).isNotNull();
+
+    assertThat(myPositionManager.getRelPathForJavaSource(myAndroidProjectRule.getProject(), viewClass.getContainingFile())).isEqualTo(
+      "android/view/View.java");
+  }
+
+  @Test
+  public void getRelPathForJavaSource_unknownFileType() {
+    PsiFile file = mock(PsiFile.class);
+    when(file.getFileType()).thenReturn(UnknownFileType.INSTANCE);
+
+    assertThat(myPositionManager.getRelPathForJavaSource(myAndroidProjectRule.getProject(), file)).isNull();
+  }
+
+  @Test
+  public void myXDebugSessionListener_sessionStopped() {
+    VirtualFile mockVirtualFile = mock(VirtualFile.class);
+
+    FileEditorManager mockFileEditorManager = mock(FileEditorManager.class);
+    ComponentStack componentStack = new ComponentStack(myAndroidProjectRule.getProject());
+    componentStack.registerComponentInstance(FileEditorManager.class, mockFileEditorManager);
+
+    MyXDebugSessionListener listener = new MyXDebugSessionListener(mockVirtualFile, myAndroidProjectRule.getProject());
+    listener.sessionStopped();
+
+    verify(mockFileEditorManager).closeFile(mockVirtualFile);
+
+    componentStack.restore();
   }
 }
