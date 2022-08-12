@@ -80,6 +80,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightClassForDecompiledDeclarationBase
 import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightFieldForDecompiledDeclaration
 import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightMethodForDecompiledDeclaration
 import org.jetbrains.kotlin.asJava.unwrapped
@@ -735,8 +736,8 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
           return clz.startsWith("kotlin.") || clz.startsWith("java.") || clz.startsWith("android.") ||
             clz.contains(".math.") || clz.contains(".Math")
         }
-        //is KtLightMethodForDecompiledDeclaration -> return clsDelegate.isGeneralCode() // FIXME
-        //is KtLightFieldForDecompiledDeclaration -> return clsDelegate.isGeneralCode()  // FIXME
+        is KtLightMethodForDecompiledDeclaration -> return (containingClass as KtLightClassForDecompiledDeclarationBase).clsDelegate.isGeneralCode()
+        is KtLightFieldForDecompiledDeclaration -> return (containingClass as KtLightClassForDecompiledDeclarationBase).clsDelegate.isGeneralCode()
         else -> return false
       }
     }
