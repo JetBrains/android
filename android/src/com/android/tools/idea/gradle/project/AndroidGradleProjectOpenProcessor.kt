@@ -93,6 +93,4 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
 
   private fun canOpenAsExistingProject(file: VirtualFile): Boolean =
       file.toPathString().resolve(Project.DIRECTORY_STORE_FOLDER).toVirtualFile(true) != null
-
-  override fun isStrongProjectInfoHolder(): Boolean = ApplicationManager.getApplication().isHeadlessEnvironment
 }
