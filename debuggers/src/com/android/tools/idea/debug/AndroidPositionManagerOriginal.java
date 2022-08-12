@@ -57,23 +57,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * AndroidPositionManager provides android java specific position manager augmentations on top of
+ * AndroidPositionManagerOriginal provides android java specific position manager augmentations on top of
  * {@link PositionManagerImpl} such as:
  * <ul>
  * <li>Providing synthesized classes during android build.</li>
  * <li>Locating SDK sources that match the user's current target device.</li>
  * </ul>
- * Unlike {@link PositionManagerImpl}, {@link AndroidPositionManager} is not a cover-all position
+ * Unlike {@link PositionManagerImpl}, {@link AndroidPositionManagerOriginal} is not a cover-all position
  * manager and should fallback to other position managers if it encounters a situation it cannot
  * handle.
+ * <br/>
+ * This class is a copy of {@link AndroidPositionManager}, maintaining stable behavior while new logic is
+ * implemented in that class. This copy will eventually be deleted once the new logic is ready to ship.
  */
-public class AndroidPositionManager extends PositionManagerImpl {
+public class AndroidPositionManagerOriginal extends PositionManagerImpl {
   private static Logger LOG = Logger.getInstance(AndroidPositionManager.class);
 
   private Map<AndroidVersion, VirtualFile> mySourceFoldersByApiLevel;
   private final DebugProcessImpl myDebugProcess;
 
-  public AndroidPositionManager(DebugProcessImpl debugProcess) {
+  public AndroidPositionManagerOriginal(DebugProcessImpl debugProcess) {
     super(debugProcess);
     this.myDebugProcess = debugProcess;
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.debug;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.debugger.PositionManager;
 import com.intellij.debugger.PositionManagerFactory;
 import com.intellij.debugger.engine.DebugProcess;
@@ -25,6 +26,10 @@ public class AndroidPositionManagerFactory extends PositionManagerFactory {
 
   @Override
   public PositionManager createPositionManager(@NotNull DebugProcess process) {
-    return new AndroidPositionManager((DebugProcessImpl)process);
+    if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {
+      return new AndroidPositionManager((DebugProcessImpl)process);
+    } else {
+      return new AndroidPositionManagerOriginal((DebugProcessImpl)process);
+    }
   }
 }

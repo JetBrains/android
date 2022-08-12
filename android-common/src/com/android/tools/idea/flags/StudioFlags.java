@@ -635,6 +635,14 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> DEBUG_DEVICE_SDK_SOURCES_ENABLE = Flag.create(
+    RUNDEBUG,
+    "debug.device.sdk.sources.enable",
+    "Enable SDK source resolution using debug device API level.",
+    "Enable SDK source resolution using debug device API level and related fallbacks.",
+    false
+  );
+
   //endregion
 
   //region Logcat

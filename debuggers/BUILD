@@ -42,10 +42,13 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],
 )
 

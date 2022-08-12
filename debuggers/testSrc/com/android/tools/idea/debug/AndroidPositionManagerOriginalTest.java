@@ -52,7 +52,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidPositionManagerTest extends AndroidTestCase {
+public class AndroidPositionManagerOriginalTest extends AndroidTestCase {
 
   // The name of the top class or interface.
   private static final String TOP_CLASS_NAME = "p1.p2.Foo";
@@ -67,15 +67,14 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
   private static final String SYNTHESIZED_CLASS_NAME = TOP_CLASS_NAME + "$DesugaringCompanion";
 
   private DebugProcess mockProcess;
-  private AndroidPositionManager myPositionManager;
+  private AndroidPositionManagerOriginal myPositionManager;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
     mockProcess = mock(DebugProcessImpl.class);
-    AndroidPositionManagerFactory factory = new AndroidPositionManagerFactory();
-    myPositionManager = (AndroidPositionManager)factory.createPositionManager(mockProcess);
+    myPositionManager = new AndroidPositionManagerOriginal((DebugProcessImpl)mockProcess);
   }
 
   public void testGetPsiByLocationWithNull() {

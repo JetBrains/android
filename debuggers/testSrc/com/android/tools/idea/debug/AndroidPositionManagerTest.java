@@ -74,8 +74,7 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
     super.setUp();
 
     mockProcess = mock(DebugProcessImpl.class);
-    AndroidPositionManagerFactory factory = new AndroidPositionManagerFactory();
-    myPositionManager = (AndroidPositionManager)factory.createPositionManager(mockProcess);
+    myPositionManager = new AndroidPositionManager((DebugProcessImpl)mockProcess);
   }
 
   public void testGetPsiByLocationWithNull() {
