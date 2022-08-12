@@ -42,7 +42,6 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListene
 import com.android.tools.idea.emulator.RunningDevicePanel.UiState
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
-import com.android.utils.TraceUtils
 import com.google.common.cache.CacheBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.ExecutionUtil
