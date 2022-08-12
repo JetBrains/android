@@ -145,6 +145,25 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
     return new JCheckBoxFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(JCheckBox.class, text)));
   }
 
+  @NotNull
+  public List<JCheckBoxFixture> findAllCheckBoxes(@NotNull String text) {
+    List<JCheckBoxFixture> checkBoxFixtures = Lists.newArrayList();
+
+    Collection<JCheckBox> allFound = robot()
+      .finder()
+      .findAll(Matchers.byText(JCheckBox.class, text));
+
+    if (allFound == null || allFound.size() == 0) {
+      throw new ComponentLookupException("'" + text + "' checkbox not found");
+    }
+
+    for (JCheckBox jCheckBox : allFound) {
+      checkBoxFixtures.add(new JCheckBoxFixture(robot(), jCheckBox));
+    }
+    return checkBoxFixtures;
+  }
+
+
   private IdeSettingsDialogFixture selectPage(@NotNull String path) {
     JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
     List<JComponent> trees = findComponentsOfType(optionsEditor, "com.intellij.openapi.options.newEditor.SettingsTreeView");
