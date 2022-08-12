@@ -113,6 +113,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
+    ResourceUpdateTracer.logDirect(() -> "Created " + TraceUtils.getSimpleId(this) + " " + displayName);
   }
 
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
