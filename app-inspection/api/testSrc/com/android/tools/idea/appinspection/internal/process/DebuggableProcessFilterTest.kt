@@ -33,7 +33,7 @@ class DebuggableProcessFilterTest {
 
   @Test
   fun testIsProcessDebuggable() {
-    adbRule.attachDevice("emulator-123", "Google", "Pixel", "29", "29", "arm64-v8a", USB, "MyAvd", "/path")
+    adbRule.attachDevice("emulator-123", "Google", "Pixel", "29", "29", "arm64-v8a", emptyMap(), USB, "MyAvd", "/path")
     val device: IDevice = adbRule.bridge.devices.single()
     assertThat(device.isPackageDebuggable("com.google.android.webview")).isFalse()
     assertThat(device.isPackageDebuggable("androidx.compose.ui.test")).isTrue()

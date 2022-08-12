@@ -55,11 +55,11 @@ class ShellTest {
     val expected = """# This is some build info
 # This is more build info
 
+[ro.build.version.release]: [versionX]
+[ro.build.version.sdk]: [29]
 [ro.product.cpu.abi]: [arm64-v8a]
 [ro.product.manufacturer]: [Google]
 [ro.product.model]: [Pix3l]
-[ro.build.version.release]: [versionX]
-[ro.build.version.sdk]: [29]
 """
     assertThat(receiver.lines.joinToString("\n")).isEqualTo(expected)
     TestLoggerFactory.dumpLogToStdout("foo")

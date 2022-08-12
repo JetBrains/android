@@ -78,7 +78,7 @@ class ComposeLayoutInspectorClientTest {
   fun testClientCreation() = runBlocking {
     adbRule.attachDevice(processDescriptor.device.serial, processDescriptor.device.manufacturer, processDescriptor.device.model,
                          processDescriptor.device.version, processDescriptor.device.apiLevel.toString(),
-                         "arm64-v8a", DeviceState.HostConnectionType.LOCAL, "myAvd", "/android/avds/myAvd")
+                         "arm64-v8a", emptyMap(), DeviceState.HostConnectionType.LOCAL, "myAvd", "/android/avds/myAvd")
 
     val artifactService = mock<InspectorArtifactService>()
     val messenger = mock<AppInspectorMessenger>()
@@ -103,7 +103,7 @@ class ComposeLayoutInspectorClientTest {
   fun inspectorArtifactNotFound_showUseSnapshotBanner() = runBlocking {
     adbRule.attachDevice(processDescriptor.device.serial, processDescriptor.device.manufacturer, processDescriptor.device.model,
                          processDescriptor.device.version, processDescriptor.device.apiLevel.toString(),
-                         "arm64-v8a", DeviceState.HostConnectionType.LOCAL, "myAvd", "/android/avds/myAvd")
+                         "arm64-v8a", emptyMap(), DeviceState.HostConnectionType.LOCAL, "myAvd", "/android/avds/myAvd")
 
     val artifactService = object : InspectorArtifactService {
       override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
@@ -130,7 +130,7 @@ class ComposeLayoutInspectorClientTest {
   fun inspectorArtifactNotFound_showComposeInspectionNotAvailableBanner() = runBlocking {
     adbRule.attachDevice(processDescriptor.device.serial, processDescriptor.device.manufacturer, processDescriptor.device.model,
                          processDescriptor.device.version, processDescriptor.device.apiLevel.toString(),
-                         "arm64-v8a", DeviceState.HostConnectionType.LOCAL, "myAvd", "/android/avds/myAvd")
+                         "arm64-v8a", emptyMap(), DeviceState.HostConnectionType.LOCAL, "myAvd", "/android/avds/myAvd")
 
     val artifactService = object : InspectorArtifactService {
       override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {

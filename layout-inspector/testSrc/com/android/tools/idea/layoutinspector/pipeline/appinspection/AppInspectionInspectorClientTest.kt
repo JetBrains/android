@@ -1036,7 +1036,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
 
     inspectorRule.adbRule.attachDevice(
       processDescriptor.device.serial, processDescriptor.device.manufacturer, processDescriptor.device.model,
-      processDescriptor.device.version, processDescriptor.device.apiLevel.toString(), processDescriptor.abiCpuArch,
+      processDescriptor.device.version, processDescriptor.device.apiLevel.toString(), processDescriptor.abiCpuArch, emptyMap(),
       DeviceState.HostConnectionType.LOCAL, "myAvd-$apiLevel", "/android/avds/myAvd-$apiLevel"
     )
 

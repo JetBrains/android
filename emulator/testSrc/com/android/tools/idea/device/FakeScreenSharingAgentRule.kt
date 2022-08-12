@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.device
 
-import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_RELEASE
-import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_CPU_ABI
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
@@ -133,15 +128,9 @@ internal class FakeScreenSharingAgentRule : TestRule {
                     hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB): FakeDevice {
     val serialNumber = (++deviceCounter).toString()
     val release = "Sweet dessert"
-    val deviceState = fakeAdbRule.attachDevice(serialNumber, manufacturer, model, release, apiLevel.toString(), abi, hostConnectionType)
-    val deviceProperties = mapOf(
-      RO_BUILD_VERSION_RELEASE to release,
-      RO_BUILD_VERSION_SDK to apiLevel.toString(),
-      RO_PRODUCT_CPU_ABI to abi,
-      RO_PRODUCT_MANUFACTURER to manufacturer,
-      RO_PRODUCT_MODEL to model,
-    )
-    val device = FakeDevice(serialNumber, displaySize, deviceState, deviceProperties + additionalDeviceProperties)
+    val deviceState = fakeAdbRule.attachDevice(serialNumber, manufacturer, model, release, apiLevel.toString(), abi,
+                                               additionalDeviceProperties, hostConnectionType)
+    val device = FakeDevice(serialNumber, displaySize, deviceState)
     devices.add(device)
     return device
   }
@@ -165,9 +154,10 @@ internal class FakeScreenSharingAgentRule : TestRule {
     val serialNumber: String,
     val displaySize: Dimension,
     val deviceState: DeviceState,
-    val deviceProperties: Map<String, String>,
   ) {
     val agent: FakeScreenSharingAgent = FakeScreenSharingAgent(displaySize, deviceState)
     var hostPort: Int? = null
+    val properties: Map<String, String>
+      get() = deviceState.properties
   }
 }
