@@ -21,11 +21,13 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTERPOLATED_TEXT_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.util.toVirtualFile
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
@@ -54,6 +56,42 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   override fun blockProcessorReasons(): List<BlockReason> = when {
     isAlwaysNoOpForProject && current != new -> listOf(AgpVersionNotFound)
     else -> listOf()
+  }
+
+  private var _isPre80MavenPublish: Boolean? = null
+  val isPre80MavenPublish: Boolean
+    get() {
+      if (_isPre80MavenPublish == null) {
+        _isPre80MavenPublish = runReadAction { computeIsPre80MavenPublish() }
+      }
+      return _isPre80MavenPublish!!
+    }
+
+  private fun computeIsPre80MavenPublish(): Boolean {
+    var mavenPublishUsed = false
+    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
+      model.plugins().forEach { plugin ->
+        when (plugin.name().toString()) {
+          "maven-publish" -> { mavenPublishUsed = true; return@model }
+        }
+      }
+    }
+    var disableAutomaticComponentCreation = false
+    projectBuildModel.projectBuildModel?.propertiesModel?.let { propertiesModel ->
+      val properties = propertiesModel.declaredProperties
+      // TODO(b/242298332): the fullyQualifiedName should really have `android.` preceding it, but (probably because of a mismatch between
+      //  Dsl block structure and properties files) it doesn't.
+      properties.firstOrNull { it.fullyQualifiedName == "disableAutomaticComponentCreation" }?.let { property ->
+        when (property.getValue(STRING_TYPE)) {
+          "true" -> disableAutomaticComponentCreation = true
+        }
+      }
+     }
+    return mavenPublishUsed && !disableAutomaticComponentCreation
+  }
+
+  override fun initializeComponentExtraCaches() {
+    _isPre80MavenPublish = computeIsPre80MavenPublish()
   }
 
   override fun findComponentUsages(): Array<UsageInfo> {
