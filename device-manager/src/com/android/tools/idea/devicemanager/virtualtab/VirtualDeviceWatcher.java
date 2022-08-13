@@ -44,6 +44,7 @@ import javax.swing.event.EventListenerList;
 import org.jetbrains.android.AndroidPluginDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * The purpose of this class is to watch for changes to AVDs. Most operations within Studio on the AVDs are already tracked by Device
@@ -65,7 +66,8 @@ public final class VirtualDeviceWatcher implements ApplicationActivationListener
   }
 
   @UiThread
-  private VirtualDeviceWatcher(@NotNull AvdManager avdManager) {
+  @VisibleForTesting
+  VirtualDeviceWatcher(@NotNull AvdManager avdManager) {
     myAvds = new HashMap<>();
     myAvdManager = avdManager;
     myListeners = new EventListenerList();
