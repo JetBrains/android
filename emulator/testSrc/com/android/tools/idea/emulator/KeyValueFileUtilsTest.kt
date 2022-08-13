@@ -20,20 +20,36 @@ import com.android.testutils.file.createInMemoryFileSystem
 import com.android.testutils.file.getExistingFiles
 import com.android.testutils.file.someRoot
 import com.android.testutils.truth.PathSubject.assertThat
+import com.android.tools.idea.executeCapturingLoggedErrors
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.testFramework.TestLoggerFactory
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import java.io.IOException
 import java.nio.file.CopyOption
 import java.nio.file.FileSystem
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.test.fail
 
 /**
  * Test for functions defined in `KeyValueFileUtils.kt`.
  */
 class KeyValueFileUtilsTest {
   private var exception: IOException? = null
+  private lateinit var originalLoggerFactory: Logger.Factory
+
+  @Before
+  fun setUp() {
+    originalLoggerFactory = Logger.getFactory()
+    Logger.setFactory(TestLoggerFactory::class.java)
+  }
+
+  @After
+  fun tearDown() {
+    Logger.setFactory(originalLoggerFactory)
+  }
 
   @Test
   fun testUpdateKeyValueFile() {
@@ -60,13 +76,10 @@ class KeyValueFileUtilsTest {
 
     // Check with I/O errors.
     exception = IOException("simulated I/O error")
-    try {
+    val errors = executeCapturingLoggedErrors {
       updateKeyValueFile(file, mapOf("PlayStore.enabled" to "false"))
-      fail("Expected an exception to be logged")
     }
-    catch (e: AssertionError) {
-      assertThat(e.message).isEqualTo("Error writing $file - simulated I/O error")
-    }
+    assertThat(errors).containsExactly("Error writing $file - simulated I/O error")
     assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
   }
 
