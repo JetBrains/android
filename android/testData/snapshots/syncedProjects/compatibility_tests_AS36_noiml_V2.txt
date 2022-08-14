@@ -12,7 +12,7 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/AS36_noiml.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/AS36_noiml.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle

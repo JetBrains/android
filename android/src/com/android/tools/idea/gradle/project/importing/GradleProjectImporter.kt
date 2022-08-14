@@ -165,7 +165,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
 
       // This allows to customize UI when android project is opened inside IDEA with android plugin.
       ProjectTypeService.setProjectType(newProject, ANDROID_PROJECT_TYPE)
-      myTopLevelModuleFactory.createTopLevelModule(newProject)
+      myTopLevelModuleFactory.createOrConfigureTopLevelModule(newProject)
     }
     ExternalSystemUtil.invokeLater(newProject) { ToolWindows.activateProjectView(newProject) }
   }

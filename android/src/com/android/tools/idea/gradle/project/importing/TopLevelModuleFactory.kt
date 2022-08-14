@@ -27,6 +27,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists
 import com.intellij.openapi.module.StdModuleTypes
@@ -34,6 +35,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.PathUtil
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
@@ -61,73 +63,83 @@ class TopLevelModuleFactory() {
    *
    * (5) The support for Groovy based `build.gradle` requires the module holding them to have a JDK.
    */
-  fun createTopLevelModule(project: Project) {
+  fun createOrConfigureTopLevelModule(project: Project): Module? {
+    // TODO(b/242440055): Support multiple roots correctly.
+    val gradleRoot = GradleSettings.getInstance(project).linkedProjectsSettings.singleOrNull()?.let { File(it.externalProjectPath) }
+      ?: return null
+    return createOrConfigureTopLevelModule(project, gradleRoot)
+  }
+
+  private fun createOrConfigureTopLevelModule(project: Project, gradleRoot: File): Module? {
+    val gradleRootPath = PathUtil.toSystemIndependentName(gradleRoot.path)
     val moduleManager = ModuleManager.getInstance(project)
-    val projectRootDir = Projects.getBaseDirPath(project)
-    val contentRoot = VfsUtil.findFileByIoFile(projectRootDir, true)
-    if (contentRoot != null) {
-      val moduleFile = File(
-        File(File(projectRootDir, Project.DIRECTORY_STORE_FOLDER), "modules"),  // "modules" is private in GradleManager.
-        projectRootDir.name + ".iml"
-      )
-      val projectModifieableModel = moduleManager.modifiableModel
-      val module = projectModifieableModel.newModule(moduleFile.path, StdModuleTypes.JAVA.id)
-      try {
-        // A top level module name is usually the same as the name of the project it is contained in. If the caller of this method sets
-        // up the project name correctly, we can prevent the root mdule from being disposed by sync if we configure its name correctly.
-        // NOTE: We do not expect the project name to always be correct (i.e. match the name configured by Gradle at this point) and
-        //       therefore it is still possible that the module created here will be disposed and re-created by sync.
-        if (module.name != project.name) {
-          projectModifieableModel.renameModule(module, project.name)
-        }
+    val contentRoot = VfsUtil.findFileByIoFile(gradleRoot, true) ?: return null
+    val moduleFile = File(
+      File(File(gradleRoot, Project.DIRECTORY_STORE_FOLDER), "modules"),  // "modules" is private in GradleManager.
+      gradleRoot.name + ".iml"
+    )
+    val projectModifieableModel = moduleManager.modifiableModel
+    // Find or create the top level module. Normally, when invoked from `AndroidGradleProjectConfigurator` it already exists as it is
+    // created by `PlatformProjectConfigurator`, which runs first.
+    val module = projectModifieableModel.modules.singleOrNull()
+      ?: projectModifieableModel.newModule(moduleFile.path, StdModuleTypes.JAVA.id)
+    try {
+      // A top level module name is usually the same as the name of the project it is contained in. If the caller of this method sets
+      // up the project name correctly, we can prevent the root mdule from being disposed by sync if we configure its name correctly.
+      // NOTE: We do not expect the project name to always be correct (i.e. match the name configured by Gradle at this point) and
+      //       therefore it is still possible that the module created here will be disposed and re-created by sync.
+      if (module.name != project.name) {
+        projectModifieableModel.renameModule(module, project.name)
       }
-      catch (ex: ModuleWithNameAlreadyExists) {
-        // The top module only plays a temporary role while project is not properly synced. Ignore any errors and let sync corrent
-        // the problem.
-        LOG.warn("Failed to rename module '${module.name}' to '${project.name}'", ex)
-      }
-      projectModifieableModel.commit()
-      val projectRootDirPath = PathUtil.toSystemIndependentName(projectRootDir.path)
-      getInstance(module)
-        .setExternalOptions(
-          GradleUtil.GRADLE_SYSTEM_ID,
-          ModuleData(":",
-                     GradleUtil.GRADLE_SYSTEM_ID,
-                     StdModuleTypes.JAVA.id, projectRootDir.name,
-                     projectRootDirPath!!,
-                     projectRootDirPath),
-          ProjectData(
-            /* owner = */ GradleUtil.GRADLE_SYSTEM_ID,
-            /* externalName = */ project.name,
-            /* ideProjectFileDirectoryPath = */ project.basePath!!,
-            /* linkedExternalProjectPath = */ toCanonicalPath(File(project.basePath!!).canonicalPath)
-          )
-        )
-      val model = ModuleRootManager.getInstance(module).modifiableModel
-      model.addContentEntry(contentRoot)
-      if (IdeInfo.getInstance().isAndroidStudio) {
-        // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
-        // users will update build.gradle files to fix Gradle sync.)
-        // See: https://code.google.com/p/android/issues/detail?id=194621
-        model.inheritSdk()
-      }
-      model.commit()
-      val facetManager = FacetManager.getInstance(module)
-      val facetModel = facetManager.createModifiableModel()
-      try {
-        var gradleFacet = GradleFacet.getInstance(module)
-        if (gradleFacet == null) {
-          // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
-          gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null)
-          @Suppress("UnstableApiUsage")
-          facetModel.addFacet(gradleFacet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
-        }
-        gradleFacet.configuration.GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR
-      }
-      finally {
-        facetModel.commit()
-      }
+    } catch (ex: ModuleWithNameAlreadyExists) {
+      // The top module only plays a temporary role while project is not properly synced. Ignore any errors and let sync corrent
+      // the problem.
+      LOG.warn("Failed to rename module '${module.name}' to '${project.name}'", ex)
     }
+    projectModifieableModel.commit()
+    val projectRootDirPath = PathUtil.toSystemIndependentName(gradleRoot.path)
+    getInstance(module)
+      .setExternalOptions(
+        GradleUtil.GRADLE_SYSTEM_ID,
+        ModuleData(
+          ":",
+          GradleUtil.GRADLE_SYSTEM_ID,
+          StdModuleTypes.JAVA.id, gradleRoot.name,
+          projectRootDirPath!!,
+          projectRootDirPath
+        ),
+        ProjectData(
+          /* owner = */ GradleUtil.GRADLE_SYSTEM_ID,
+          /* externalName = */ project.name,
+          /* ideProjectFileDirectoryPath = */ gradleRootPath,
+          /* linkedExternalProjectPath = */ toCanonicalPath(gradleRoot.canonicalPath)
+        )
+      )
+    val model = ModuleRootManager.getInstance(module).modifiableModel
+
+    (model.contentEntries.singleOrNull() ?: model.addContentEntry(contentRoot))
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
+      // users will update build.gradle files to fix Gradle sync.)
+      // See: https://code.google.com/p/android/issues/detail?id=194621
+      model.inheritSdk()
+    }
+    model.commit()
+    val facetManager = FacetManager.getInstance(module)
+    val facetModel = facetManager.createModifiableModel()
+    try {
+      var gradleFacet = GradleFacet.getInstance(module)
+      if (gradleFacet == null) {
+        // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
+        gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null)
+        @Suppress("UnstableApiUsage")
+        facetModel.addFacet(gradleFacet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
+      }
+      gradleFacet.configuration.GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR
+    } finally {
+      facetModel.commit()
+    }
+    return module
   }
 }
 

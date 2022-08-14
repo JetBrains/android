@@ -18,12 +18,8 @@ package com.android.tools.idea.gradle.project.importing;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
@@ -54,11 +50,12 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     File projectRootFolderPath = prepareProjectForImport(SIMPLE_APPLICATION);
 
     Project project = getProject();
+    GradleProjectImporter.Companion.configureNewProject(project);
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     Module[] modules = moduleManager.getModules();
     assertThat(modules).isEmpty(); // Just make sure we start with a project with no modules.
 
-    ApplicationManager.getApplication().runWriteAction(() -> myTopLevelModuleFactory.createTopLevelModule(project));
+    ApplicationManager.getApplication().runWriteAction(() -> { myTopLevelModuleFactory.createOrConfigureTopLevelModule(project); });
 
     modules = moduleManager.getModules();
 
