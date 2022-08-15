@@ -84,7 +84,8 @@ class DdmlibTestRunListenerAdapterTest {
 
   private fun device(id: String = "mockDeviceSerialNumber",
                      name: String = "mockDeviceAvdName"): AndroidDevice {
-    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29),
+                         mutableMapOf("SerialNumber" to "mockDeviceSerialNumber"))
   }
 
   @Test

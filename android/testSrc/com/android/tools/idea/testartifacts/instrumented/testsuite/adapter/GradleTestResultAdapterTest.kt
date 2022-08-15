@@ -84,7 +84,8 @@ class GradleTestResultAdapterTest {
       "mockDevice1AvdName",
       "mockDevice1AvdName",
       AndroidDeviceType.LOCAL_EMULATOR,
-      AndroidVersion(29))
+      AndroidVersion(29),
+      mutableMapOf ("SerialNumber" to "mockDevice1SerialNumber"))
 
     val adapter = createAdapter()
 
