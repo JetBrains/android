@@ -36,6 +36,7 @@ import java.util.function.Function
  * Returns client with appId in [appIds] and [ClientData.DebuggerStatus.WAITING], otherwise throws [ExecutionException].
  */
 @WorkerThread
+@Throws(ExecutionException::class)
 internal fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<String>, pollTimeoutSeconds: Int = 15): Client {
   val timeUnit = TimeUnit.SECONDS
 
@@ -51,11 +52,16 @@ internal fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<Stri
         if (clients.size > 1) {
           Logger.getInstance("waitForClient").info("Multiple clients with same application ID: $appId")
         }
+        // Even though multiple processes may be related to a particular application ID, we'll only connect to the first one
+        // in the list since the debugger is set up to only connect to at most one process.
+        // TODO b/122613825: improve support for connecting to multiple processes with the same application ID.
+        // This requires this task to wait for potentially multiple Clients before returning.
         val client = clients[0]
         when (client.clientData.debuggerConnectionStatus) {
           ClientData.DebuggerStatus.WAITING -> {
             return client
           }
+
           ClientData.DebuggerStatus.ERROR -> {
             val message = String.format(Locale.US,
                                         "Debug port (%1\$d) is busy, make sure there is no other active debug connection to the same application",

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import static com.android.tools.idea.run.debug.UtilsKt.waitForClientReadyForDebug;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -27,11 +29,12 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.project.Project;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -57,8 +60,6 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
   private static final int TEST_UID = 2222;
 
   private IDevice myDevice;
-  private LaunchStatus myLaunchStatus;
-  private ConsolePrinter myConsolePrinter;
   private FakeAdbServer myServer;
   private DeviceState myDeviceState;
   private final ApplicationIdProvider myApplicationIdProvider = new ApplicationIdProvider() {
@@ -116,8 +117,6 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
     AndroidProcessHandler processHandler = new AndroidProcessHandler(DummyProject.getInstance(), TEST_APP_ID);
 
     processHandler.addTargetDevice(myDevice);
-    myConsolePrinter = new ProcessHandlerConsolePrinter(processHandler);
-    myLaunchStatus = new ProcessHandlerLaunchStatus(processHandler);
   }
 
   @Override
@@ -148,26 +147,30 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
     }
   }
 
-  public void testWaitForClientCancelled() {
-    myLaunchStatus.terminateLaunch("Cancelled", true);
-    assertNull(getConnectDebuggerTask(false).waitForClient());
+  private Client waitForClient() {
+    try {
+      return waitForClientReadyForDebug(myDevice, Collections.singleton(TEST_APP_ID), 100);
+    }
+    catch (ExecutionException e) {
+      return null;
+    }
   }
 
   public void testWaitForClientOffline() {
     myDeviceState.setDeviceStatus(DeviceState.DeviceStatus.OFFLINE);
-    assertNull(getConnectDebuggerTask(false).waitForClient());
+    assertNull(waitForClient());
   }
 
   // Test timeout waiting for client to appear
   public void testWaitForClientNormalAppTimeoutProcess() {
-    assertNull(getConnectDebuggerTask(false).waitForClient());
+    assertNull(waitForClient());
   }
 
   // Test timeout when client is there but not ready for debugging
   public void testWaitForClientNormalAppTimeoutDebugger() throws Exception {
     startClient(false);
 
-    assertNull(getConnectDebuggerTask(false).waitForClient());
+    assertNull(waitForClient());
   }
 
   public void testWaitForClientNormalAppNotReadyToDebug() throws Exception {
@@ -176,25 +179,26 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
     TestConnectDebuggerTask testTask = getConnectDebuggerTask(false);
     testTask.setNotReadyToDebug();
 
-    assertNull(testTask.waitForClient());
+    assertNull(waitForClient());
   }
 
   public void testWaitForClientNormalAppSuccess() throws Exception {
     startClient(true);
-    assertNotNull(getConnectDebuggerTask(false).waitForClient());
+    assertNotNull(waitForClient());
   }
 
   public void testWaitForClientNormalAppSuccessAfterDelay() {
-    assertNotNull(getConnectDebuggerTask(false, (count) -> {
+    getConnectDebuggerTask(false, (count) -> {
       if (count == 3) {
         startClient(true);
       }
-    }).waitForClient());
+    });
+    assertNotNull(waitForClient());
   }
 
   // Test timeout waiting for client to appear
   public void testWaitForClientInstantAppTimeoutProcess() {
-    assertNull(getConnectDebuggerTask(true).waitForClient());
+    assertNull(waitForClient());
   }
 
   public void testWaitForClientInstantAppNotReadyToDebug() throws Exception {
@@ -202,20 +206,12 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
     TestConnectDebuggerTask testTask = getConnectDebuggerTask(true);
     testTask.setNotReadyToDebug();
 
-    assertNull(testTask.waitForClient());
+    assertNull(waitForClient());
   }
 
   public void testWaitForClientInstantAppSuccess() throws Exception {
     startClient(false);
-    assertNotNull(getConnectDebuggerTask(true).waitForClient());
-  }
-
-  public void testWaitForClientInstantAppSuccessAfterDelay() throws Exception {
-    assertNotNull(getConnectDebuggerTask(true, (count) -> {
-      if (count == 3) {
-        startClient(false);
-      }
-    }).waitForClient());
+    assertNotNull(waitForClient());
   }
 
   private void startClient(boolean isWaiting) throws InterruptedException {
@@ -262,11 +258,6 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
                                @NotNull ProcessHandlerLaunchStatus state,
                                @NotNull ProcessHandlerConsolePrinter printer) {
       return;
-    }
-
-    @Nullable
-    public Client waitForClient() {
-      return waitForClient(myDevice, myLaunchStatus, myConsolePrinter);
     }
 
     public void setNotReadyToDebug() {
