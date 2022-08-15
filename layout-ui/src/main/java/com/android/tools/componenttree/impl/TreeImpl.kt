@@ -268,7 +268,7 @@ class TreeImpl(
       badge.showPopup(item, this, x, y)
     }
     else {
-      contextPopup.invoke(this, x, y)
+      contextPopup.invoke(item, this, x, y)
     }
   }
 

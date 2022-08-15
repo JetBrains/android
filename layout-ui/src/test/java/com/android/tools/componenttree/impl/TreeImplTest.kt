@@ -77,7 +77,7 @@ class TreeImplTest {
     var popupInvokeCount = 0
       private set
 
-    override fun invoke(component: JComponent, x: Int, y: Int) {
+    override fun invoke(item: Any, component: JComponent, x: Int, y: Int) {
       popupInvokeCount++
     }
   }

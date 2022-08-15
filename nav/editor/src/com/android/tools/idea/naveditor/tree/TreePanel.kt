@@ -50,7 +50,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
     val builder = ComponentTreeBuilder()
       .withNodeType(NlComponentNodeType())
       .withMultipleSelection()
-      .withContextMenu { _, x: Int, y: Int -> showContextMenu(x, y) }
+      .withContextMenu { _, _, x: Int, y: Int -> showContextMenu(x, y) }
       .withDoubleClick { activateComponent() }
       .withExpandableRoot()
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }

@@ -64,7 +64,7 @@ class ViewTreeCellRendererTest {
   fun setUp() {
     table = TreeTableImpl(
       model,
-      contextPopup = { _, _, _ -> },
+      contextPopup = { _, _, _, _ -> },
       doubleClick = {},
       painter = null,
       installKeyboardActions = {},

@@ -98,9 +98,11 @@ class TreeTableImplTest {
   private val contextPopup = object : ContextPopupHandler {
     var popupInvokeCount = 0
       private set
+    var lastItem: Any? = null
 
-    override fun invoke(component: JComponent, x: Int, y: Int) {
+    override fun invoke(item: Any, component: JComponent, x: Int, y: Int) {
       popupInvokeCount++
+      lastItem = item
     }
   }
   private val doubleClickHandler = object : DoubleClickHandler {
@@ -197,6 +199,7 @@ class TreeTableImplTest {
     val ui = FakeUi(table)
     ui.mouse.rightClick(10, 10)
     assertThat(contextPopup.popupInvokeCount).isEqualTo(1)
+    assertThat(contextPopup.lastItem).isSameAs(item1)
     assertThat(badgeItem.lastPopupItem).isNull()
   }
 

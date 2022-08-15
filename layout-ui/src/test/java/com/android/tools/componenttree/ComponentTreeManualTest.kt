@@ -168,7 +168,8 @@ private class ComponentTreeTest {
 
   private fun getSelectedItem() = selectionModel.currentSelection.singleOrNull() as? Item
 
-  private fun showPopup(component: JComponent, x: Int, y: Int) {
+  @Suppress("UNUSED_PARAMETER")
+  private fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {
     displayPopup(popup, component, x, y)
   }
 

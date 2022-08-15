@@ -42,7 +42,7 @@ import javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION
 /**
  * A Handler which will display a context popup menu.
  */
-typealias ContextPopupHandler = (component: JComponent, x: Int, y: Int) -> Unit
+typealias ContextPopupHandler = (item: Any, component: JComponent, x: Int, y: Int) -> Unit
 typealias DoubleClickHandler = (Any) -> Unit
 
 /**
@@ -54,7 +54,7 @@ typealias DoubleClickHandler = (Any) -> Unit
 class ComponentTreeBuilder {
   private val nodeTypeMap = mutableMapOf<Class<*>, NodeType<*>>()
   private var headerRenderer: TableCellRenderer? = null
-  private var contextPopup: ContextPopupHandler = { _, _, _ -> }
+  private var contextPopup: ContextPopupHandler = { _, _, _, _ -> }
   private var doubleClick: DoubleClickHandler = { }
   private val badges = mutableListOf<BadgeItem>()
   private val columns = mutableListOf<ColumnInfo>()

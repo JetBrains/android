@@ -234,7 +234,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     focusedComponent.actionMap.put(up, TreeAction(::previousMatch))
   }
 
-  private fun showPopup(component: JComponent, x: Int, y: Int) {
+  @Suppress("UNUSED_PARAMETER")
+  private fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {
     val node = componentTreeSelectionModel.currentSelection.singleOrNull() as TreeViewNode?
     if (node != null) {
       inspectorModel?.let { showViewContextMenu(listOf(node.view), it, component, x, y) }

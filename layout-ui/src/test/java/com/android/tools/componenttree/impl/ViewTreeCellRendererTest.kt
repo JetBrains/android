@@ -56,7 +56,7 @@ class ViewTreeCellRendererTest {
   }
 
   private val type = ItemNodeType()
-  private val contextPopupHandler: ContextPopupHandler = { _, _, _ -> }
+  private val contextPopupHandler: ContextPopupHandler = { _, _, _, _ -> }
   private val doubleClickHandler: DoubleClickHandler = { }
   private val renderer = ViewTreeCellRenderer(type)
 

@@ -327,8 +327,8 @@ class TreeTableImpl(
     override fun invokePopup(comp: Component, x: Int, y: Int) {
       val cell = position(x, y) ?: return
       val item = getValueAt(cell.row, cell.column)
-      when {
-        cell.column == 0 -> contextPopup(this@TreeTableImpl, x, y)
+      when (cell.column) {
+        0 -> contextPopup(item, this@TreeTableImpl, x, y)
         else -> extraColumns[cell.column - 1].showPopup(item, this@TreeTableImpl, x, y)
       }
     }

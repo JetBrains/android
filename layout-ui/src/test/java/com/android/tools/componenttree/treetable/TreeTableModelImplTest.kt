@@ -60,7 +60,7 @@ class TreeTableModelImplTest {
                                                          Pair(Style::class.java, StyleNodeType())), SwingUtilities::invokeLater)
   private val table = TreeTableImpl(
     model,
-    contextPopup = { _, _, _ -> },
+    contextPopup = { _, _, _, _ -> },
     doubleClick = {},
     painter = null,
     installKeyboardActions = {},
