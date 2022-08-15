@@ -18,15 +18,34 @@ package com.android.tools.idea.npw.validator
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.intellij.openapi.Disposable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle
 import java.util.Optional
 
 // TODO(qumeric): search for "select.target.dialog.text", find usages and refactor
 class ApiVersionValidator(
-  private val isAndroidX: Boolean,
-  private val formFactor: FormFactor
+  parentDisposable: Disposable,
+  private val formFactor: FormFactor,
+  private val isAndroidXFun: () -> Boolean
 ): Validator<Optional<AndroidVersionsInfo.VersionItem>> {
+
+  /**
+   * We assume `true` until we get the actual answer to prevent a validation error. It would be better
+   * to have a "tri-state" value ("computing", "true", "false") and make the validator smarter.
+   */
+  private var isAndroidX: Boolean = true
+
+  init {
+    // Compute isAndroidX on the IO dispatcher, and store the result in our [isAndroidX] field
+    AndroidCoroutineScope(parentDisposable).launch(Dispatchers.IO) {
+      isAndroidX = isAndroidXFun()
+    }
+  }
   override fun validate(value: Optional<AndroidVersionsInfo.VersionItem>): Validator.Result = when {
     !value.isPresent ->
       Validator.Result(Validator.Severity.ERROR, AndroidBundle.message("select.target.dialog.text"))
