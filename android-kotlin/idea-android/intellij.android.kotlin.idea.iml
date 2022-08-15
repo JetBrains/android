@@ -18,10 +18,10 @@
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module-library">
-      <library name="r8" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:r8:221.0.9.0" />
+      <library name="jb-r8" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:221.0.9.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/r8/221.0.9.0/r8-221.0.9.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/221.0.9.0/jb-r8-221.0.9.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
