@@ -37,6 +37,7 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
@@ -79,6 +80,11 @@ abstract class AndroidConfigurationExecutorBase(
     val applicationInstaller = getApplicationInstaller(console)
 
     val onDevice = { device: IDevice ->
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        throw AssertionError("processHandler.addTargetDevice(device) will leak the project. In tests and prod. " +
+                             "Let it be failure instead of leak in tests")
+      }
+
       processHandler.addTargetDevice(device)
       terminatePreviousAppInstance(device)
 
@@ -96,6 +102,7 @@ abstract class AndroidConfigurationExecutorBase(
     val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("AndroidConfigurationExecutorBase", 5)
 
     val futures = devices.map {
+      // project leak in test and prod in the following line
       CompletableFuture.supplyAsync({ onDevice(it) }, executor)
     }.toTypedArray()
 
