@@ -129,8 +129,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    */
   private final Map<String, Consumer<File>> myImportHandlers = new HashMap<>();
 
-  private int importedSessionCount = 0;
-
   /**
    * A list of functions that should be called for each {@link Common.Session} for retrieving its data artifacts.
    */
