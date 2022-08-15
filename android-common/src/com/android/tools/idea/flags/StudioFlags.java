@@ -1439,6 +1439,14 @@ public final class StudioFlags {
       "Use transport security",
       "Set Crashlytics gRpc channel to use transport security",
       true);
+
+  public static final Flag<Boolean> OPEN_CLOSE_ISSUES_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enable.open.close.issues",
+      "Enable open/close issue functionality.",
+      "Add open/close button to App Quality Insights panel.",
+      false);
   // endregion App Insights
 
   // region App Links Assistant
