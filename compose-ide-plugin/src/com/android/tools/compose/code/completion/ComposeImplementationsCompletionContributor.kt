@@ -23,6 +23,7 @@ import com.android.tools.compose.COMPOSE_ARRANGEMENT_HORIZONTAL
 import com.android.tools.compose.COMPOSE_ARRANGEMENT_VERTICAL
 import com.android.tools.compose.isClassOrExtendsClass
 import com.android.tools.compose.isComposeEnabled
+import com.android.tools.compose.returnTypeClassifierFqName
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -42,12 +43,12 @@ import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.base.util.allScope
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -108,7 +109,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
       val alignmentTopLevelClass = getKotlinClass(project, COMPOSE_ALIGNMENT)!!
       val companionObject = alignmentTopLevelClass.companionObjects.firstOrNull()
       val alignments = companionObject?.declarations?.filter {
-        it is KtProperty && it.type()?.isClassOrExtendsClass(alignmentFqName) == true
+        it is KtProperty && it.resolveToDescriptorIfAny()?.returnType?.isClassOrExtendsClass(alignmentFqName) == true
       }
       CachedValueProvider.Result.create(alignments, ProjectRootModificationTracker.getInstance(project))
     }
@@ -119,7 +120,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
     return CachedValuesManager.getManager(project).getCachedValue(arrangementClass) {
       val arrangementTopLevelClass = getKotlinClass(project, COMPOSE_ARRANGEMENT)!!
       val arrangements = arrangementTopLevelClass.declarations.filter {
-        it is KtProperty && it.type()?.isClassOrExtendsClass(arrangementFqName) == true
+        it is KtProperty && it.resolveToDescriptorIfAny()?.returnType?.isClassOrExtendsClass(arrangementFqName) == true
       }
       CachedValueProvider.Result.create(arrangements, ProjectRootModificationTracker.getInstance(project))
     }
@@ -154,7 +155,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
   private val PsiElement.propertyTypeFqName: String?
     get() {
       val property = contextOfType<KtProperty>() ?: return null
-      return property.type()?.fqName?.asString()
+      return property.resolveToDescriptorIfAny()?.returnType?.fqName?.asString()
     }
 
   private val PsiElement.argumentTypeFqName: String?
@@ -166,11 +167,11 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
 
       val argumentTypeFqName = if (argument.isNamed()) {
         val argumentName = argument.getArgumentName()!!.asName.asString()
-        callee.valueParameters.find { it.name == argumentName }?.type()?.fqName
+        callee.valueParameters.find { it.name == argumentName }?.returnTypeClassifierFqName()
       }
       else {
         val argumentIndex = (argument.parent as KtValueArgumentList).arguments.indexOf(argument)
-        callee.valueParameters.getOrNull(argumentIndex)?.type()?.fqName
+        callee.valueParameters.getOrNull(argumentIndex)?.returnTypeClassifierFqName()
       }
 
       return argumentTypeFqName?.asString()

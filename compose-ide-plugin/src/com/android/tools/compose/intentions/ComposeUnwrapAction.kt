@@ -23,7 +23,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.nj2k.postProcessing.resolve
+import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -59,7 +59,7 @@ class ComposeUnwrapAction : IntentionAction {
 
   private fun isCaretAtWrapper(editor: Editor, file: PsiFile): Boolean {
     val elementAtCaret = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>() ?: return false
-    val name = elementAtCaret.resolve().safeAs<KtNamedFunction>()?.fqName?.asString() ?: return false
+    val name = elementAtCaret.mainReference.resolve().safeAs<KtNamedFunction>()?.fqName?.asString() ?: return false
     return WRAPPERS_FQ_NAMES.contains(name)
   }
 
