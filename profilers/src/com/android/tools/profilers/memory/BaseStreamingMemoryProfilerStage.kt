@@ -83,15 +83,20 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   val tooltipLegends = MemoryStageLegends(this, timeline.tooltipRange, true)
   val eventMonitor = EventMonitor(profilers)
 
-  private val allocationSamplingRateUpdatable = Updatable {
-    if (isLiveAllocationTrackingReady) {
-      getLiveAllocationSamplingModeFromData()?.let { liveAllocationSamplingMode = it }
+  private val allocationSamplingRateUpdatable = object: Updatable {
+    override fun update(elapsedNs: Long) {
+      if (isLiveAllocationTrackingReady) {
+        getLiveAllocationSamplingModeFromData()?.let { liveAllocationSamplingMode = it }
+      }
     }
   }
 
-  private val captureElapsedTimeUpdatable = Updatable {
-    if (isTrackingAllocations)
-      captureSelection.aspect.changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME)
+  private val captureElapsedTimeUpdatable = object: Updatable {
+    override fun update(elapsedNs: Long) {
+      if (isTrackingAllocations) {
+        captureSelection.aspect.changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME)
+      }
+    }
   }
 
   val rangeSelectionModel = RangeSelectionModel(timeline.selectionRange, timeline.viewRange).apply {

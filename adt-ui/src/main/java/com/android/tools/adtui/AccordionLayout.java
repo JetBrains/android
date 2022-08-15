@@ -110,28 +110,11 @@ public class AccordionLayout implements LayoutManager2, Updatable {
    */
   private float mPreoccupiedSpace;
 
-  private float mLerpFraction;
-
-  private float mLerpThreshold;
-
   public AccordionLayout(@NotNull Container parent, @NotNull Orientation orientation) {
     mParent = parent;
     mOrientation = orientation;
     mComponentInfoMap = new HashMap<>();
     mComponentInfoSet = new TreeSet<>();
-
-    mLerpFraction = DEFAULT_LERP_FRACTION;
-    mLerpThreshold = DEFAULT_LERP_THRESHOLD_PIXEL;
-  }
-
-  @Override
-  public void setLerpFraction(float fraction) {
-    mLerpFraction = fraction;
-  }
-
-  @Override
-  public void setLerpThreshold(float threshold) {
-    mLerpThreshold = threshold;
   }
 
   public AccordionState getState(@NotNull Component comp) {
@@ -425,11 +408,11 @@ public class AccordionLayout implements LayoutManager2, Updatable {
       }
 
       if (info.currentSize != targetSize) {
-        info.currentSize = Updater.lerp(info.currentSize, targetSize, mLerpFraction, elapsedNs, mLerpThreshold);
+        info.currentSize = Updater.lerp(info.currentSize, targetSize, DEFAULT_LERP_FRACTION, elapsedNs, DEFAULT_LERP_THRESHOLD_PIXEL);
       }
 
       if (currentSize != minSize) {
-        currentSize = Updater.lerp(currentSize, minSize, mLerpFraction, elapsedNs, mLerpThreshold);
+        currentSize = Updater.lerp(currentSize, minSize, DEFAULT_LERP_FRACTION, elapsedNs, DEFAULT_LERP_THRESHOLD_PIXEL);
       }
 
       switch (info.state) {
