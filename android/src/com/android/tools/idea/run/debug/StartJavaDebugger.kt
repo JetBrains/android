@@ -117,9 +117,7 @@ private fun getDebugProcessStarter(
   onDebugProcessDestroyed: (IDevice) -> Unit,
   detachIsDefault: Boolean,
 ): Promise<XDebugProcessStarter> {
-  val sessionName = "Android Java Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})"
-
-  return startAndroidJavaDebuggerSession(project, client, sessionName, consoleViewToReuse, onDebugProcessStarted,
+  return startAndroidJavaDebuggerSession(project, client, consoleViewToReuse, onDebugProcessStarted,
                                          onDebugProcessDestroyed, detachIsDefault)
     .then { debuggerSession ->
       return@then object : XDebugProcessStarter() {
@@ -133,13 +131,14 @@ private fun getDebugProcessStarter(
 fun startAndroidJavaDebuggerSession(
   project: Project,
   client: Client,
-  sessionName: String,
   consoleViewToReuse: ConsoleView?,
   onDebugProcessStarted: (() -> Unit)?,
   onDebugProcessDestroyed: (IDevice) -> Unit,
   detachIsDefault: Boolean
 ): AsyncPromise<DebuggerSession> {
   val promise = AsyncPromise<DebuggerSession>()
+
+  val sessionName = "Android Java Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})"
 
   runInEdt {
     promise.catchError {
