@@ -7,7 +7,6 @@ import com.intellij.internal.statistic.utils.StatisticsUploadAssistant
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.extensions.InternalIgnoreDependencyViolation
-import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectPostStartupActivity
@@ -36,7 +35,7 @@ private class AndroidStudioStatisticsJobScheduler : ApplicationInitializedListen
 
       delay(10.minutes)
       while (true) {
-        FUStateUsagesLogger.create().logApplicationStates()
+        FUStateUsagesLogger.getInstance().logApplicationStates()
         delay((24 * 60).minutes)
       }
     }
@@ -56,7 +55,7 @@ private class AndroidStudioStatisticsJobScheduler : ApplicationInitializedListen
         DumbService.getInstance(project).runWhenSmart {
           launch {
             while (true) {
-              FUStateUsagesLogger.create().logProjectStates(project, EmptyProgressIndicator())
+              FUStateUsagesLogger.getInstance().logProjectStates(project)
               delay((12 * 60).minutes)
             }
           }
