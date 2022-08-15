@@ -73,7 +73,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewApiLevelMustBeValid"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.preview.api.level.name"
                      level="ERROR"/>
