@@ -38,6 +38,7 @@ import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
 import com.intellij.ide.projectView.BaseProjectTreeBuilder;
 import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.ProjectViewSettings;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
@@ -182,21 +183,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   @NotNull
   @Override
   protected ProjectAbstractTreeStructureBase createStructure() {
-    return new ProjectTreeStructure(myProject, ID) {
-      @Override
-      public List<TreeStructureProvider> getProviders() {
-        List<TreeStructureProvider> providers = super.getProviders();
-        if (providers == null) {
-          return null;
-        }
-        return ContainerUtil.map(providers, provider -> new BuildScriptTreeStructureProvider(provider));
-      }
-
-      @Override
-      protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
-        return new AndroidViewProjectNode(project, settings);
-      }
-    };
+    return new AndroidProjectTreeStructure(myProject, ID);
   }
 
   @Nullable
@@ -434,6 +421,35 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     @Override
     public boolean canDeleteElement(@NotNull DataContext dataContext) {
       return false;
+    }
+  }
+
+  private static class AndroidProjectTreeStructure extends ProjectTreeStructure implements ProjectViewSettings {
+
+    private final String panelId;
+
+    AndroidProjectTreeStructure(@NotNull Project project, @NotNull String panelId) {
+      super(project, panelId);
+      this.panelId = panelId;
+    }
+
+    @Override
+    public List<TreeStructureProvider> getProviders() {
+      List<TreeStructureProvider> providers = super.getProviders();
+      if (providers == null) {
+        return null;
+      }
+      return ContainerUtil.map(providers, provider -> new BuildScriptTreeStructureProvider(provider));
+    }
+
+    @Override
+    protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
+      return new AndroidViewProjectNode(project, settings);
+    }
+
+    @Override
+    public boolean isShowVisibilityIcons() {
+      return ProjectView.getInstance(myProject).isShowVisibilityIcons(panelId);
     }
   }
 }
