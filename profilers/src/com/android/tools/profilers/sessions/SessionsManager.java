@@ -277,7 +277,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       }
       final SessionItem item = sessionItem;
       sessionArtifacts.add(item);
-      List<SessionArtifact> artifacts = new ArrayList<>();
+      List<SessionArtifact<?>> artifacts = new ArrayList<>();
       myArtifactsFetchers.forEach(fetcher -> artifacts.addAll(fetcher.fetch(myProfilers, item.getSession(), item.getSessionMetaData())));
       item.setChildArtifacts(artifacts);
       if (item.getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {
@@ -676,7 +676,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     List<SessionArtifact> sessionArtifacts = new ArrayList<>();
     for (SessionItem item : mySessionItems.values()) {
       sessionArtifacts.add(item);
-      List<SessionArtifact> artifacts = new ArrayList<>();
+      List<SessionArtifact<?>> artifacts = new ArrayList<>();
       myArtifactsFetchers.forEach(fetcher -> artifacts.addAll(fetcher.fetch(myProfilers, item.getSession(), item.getSessionMetaData())));
       item.setChildArtifacts(artifacts);
       if (item.getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {

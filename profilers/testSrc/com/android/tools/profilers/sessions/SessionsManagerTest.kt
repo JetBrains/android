@@ -424,10 +424,10 @@ class SessionsManagerTest {
     var sessionItem1 = sessionItems[1] as SessionItem
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.childArtifacts).isEmpty()
+    assertThat(sessionItem0.getChildArtifacts()).isEmpty()
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.childArtifacts).isEmpty()
+    assertThat(sessionItem1.getChildArtifacts()).isEmpty()
 
     val heapDumpTimestamp = 10L
     val cpuTraceTimestamp = 20L
@@ -485,7 +485,7 @@ class SessionsManagerTest {
 
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.childArtifacts).containsExactly(liveAllocationsItem0, legacyAllocationsItem0, cpuCaptureItem0, hprofItem0)
+    assertThat(sessionItem0.getChildArtifacts()).containsExactly(liveAllocationsItem0, legacyAllocationsItem0, cpuCaptureItem0, hprofItem0)
     assertThat(hprofItem0.session).isEqualTo(session2)
     assertThat(hprofItem0.timestampNs).isEqualTo(heapDumpTimestamp - session2Timestamp)
     assertThat(cpuCaptureItem0.session).isEqualTo(session2)
@@ -496,7 +496,7 @@ class SessionsManagerTest {
     assertThat(liveAllocationsItem0.timestampNs).isEqualTo(liveAllocationsInfoTimestamp - session2Timestamp)
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.childArtifacts).containsExactly(liveAllocationsItem1, legacyAllocationsItem1, cpuCaptureItem1, hprofItem1)
+    assertThat(sessionItem1.getChildArtifacts()).containsExactly(liveAllocationsItem1, legacyAllocationsItem1, cpuCaptureItem1, hprofItem1)
     assertThat(hprofItem1.session).isEqualTo(session1)
     assertThat(hprofItem1.timestampNs).isEqualTo(heapDumpTimestamp - session1Timestamp)
     assertThat(cpuCaptureItem1.session).isEqualTo(session1)

@@ -73,8 +73,8 @@ class CpuCaptureSessionArtifactTest {
       .build()
     addTraceInfo(artSampledTraceInfo)
     sessionsManager.update()
-    assertThat(sessionItem.childArtifacts).hasSize(1)
-    assertThat(sessionItem.childArtifacts[0].name).isEqualTo(ProfilingTechnology.ART_SAMPLED.getName())
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.ART_SAMPLED.getName())
   }
 
   @Test
@@ -87,8 +87,8 @@ class CpuCaptureSessionArtifactTest {
       .build()
     addTraceInfo(artInstrumentedTraceInfo)
     sessionsManager.update()
-    assertThat(sessionItem.childArtifacts).hasSize(1)
-    assertThat(sessionItem.childArtifacts[0].name).isEqualTo(ProfilingTechnology.ART_INSTRUMENTED.getName())
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.ART_INSTRUMENTED.getName())
   }
 
   @Test
@@ -100,8 +100,8 @@ class CpuCaptureSessionArtifactTest {
       .build()
     addTraceInfo(artImportedTraceInfo)
     sessionsManager.update()
-    assertThat(sessionItem.childArtifacts).hasSize(1)
-    assertThat(sessionItem.childArtifacts[0].name).isEqualTo(ProfilingTechnology.ART_UNSPECIFIED.getName())
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.ART_UNSPECIFIED.getName())
   }
 
   @Test
@@ -113,8 +113,8 @@ class CpuCaptureSessionArtifactTest {
       .build()
     addTraceInfo(simpleperfTraceInfo)
     sessionsManager.update()
-    assertThat(sessionItem.childArtifacts).hasSize(1)
-    assertThat(sessionItem.childArtifacts[0].name).isEqualTo(ProfilingTechnology.SIMPLEPERF.getName())
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.SIMPLEPERF.getName())
   }
 
   @Test
@@ -126,8 +126,8 @@ class CpuCaptureSessionArtifactTest {
       .build()
     addTraceInfo(atraceInfo)
     sessionsManager.update()
-    assertThat(sessionItem.childArtifacts).hasSize(1)
-    assertThat(sessionItem.childArtifacts[0].name).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
   }
 
   private fun addTraceInfo(cpuTraceInfo: Cpu.CpuTraceInfo) {
