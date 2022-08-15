@@ -23,11 +23,13 @@ import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.executeCapturingLoggedErrors
 import com.android.tools.idea.executeDeviceAction
+import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ClipboardSynchronizer
@@ -35,14 +37,15 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import java.awt.Component
@@ -56,6 +59,8 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyEvent
 import java.nio.file.Path
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -67,8 +72,9 @@ import javax.swing.JScrollPane
 @RunsInEdt
 internal class DeviceViewTest {
   private val agentRule = FakeScreenSharingAgentRule()
+  private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(agentRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain(agentRule, androidExecutorsRule, EdtRule())
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
   private lateinit var fakeUi: FakeUi
@@ -393,6 +399,8 @@ internal class DeviceViewTest {
     val loggedErrors = executeCapturingLoggedErrors {
       fakeUi.clickOn(button)
       waitForCondition(5, TimeUnit.SECONDS) { errorMessage.text.isNotEmpty() }
+      ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     }
     assertThat(errorMessage.text).isEqualTo("Failed to initialize the device agent. See the error log.")
     assertThat(button.text).isEqualTo("Retry")
