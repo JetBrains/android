@@ -35,7 +35,7 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
     assertEquals(8, androidFacets.size());
 
     List<GradleFacet> androidGradleFacets = ProjectFacetManager.getInstance(getProject()).getFacets(GradleFacet.getFacetTypeId());
-    assertEquals(8, androidGradleFacets.size());
+    assertEquals(2, androidGradleFacets.size());
   }
 
   public void testLinkedProjectsDoNotRemoveEachOtherFacetsSequential() throws Exception {
@@ -63,6 +63,6 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
     assertEquals(8, androidFacets.size());
 
     List<GradleFacet> androidGradleFacets = ProjectFacetManager.getInstance(getProject()).getFacets(GradleFacet.getFacetTypeId());
-    assertEquals(8, androidGradleFacets.size());
+    assertEquals(2, androidGradleFacets.size());
   }
 }
