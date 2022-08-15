@@ -63,32 +63,36 @@ class TopLevelModuleFactory() {
    *
    * (5) The support for Groovy based `build.gradle` requires the module holding them to have a JDK.
    */
-  fun createOrConfigureTopLevelModule(project: Project): Module? {
-    // TODO(b/242440055): Support multiple roots correctly.
-    val gradleRoot = GradleSettings.getInstance(project).linkedProjectsSettings.singleOrNull()?.let { File(it.externalProjectPath) }
-      ?: return null
-    return createOrConfigureTopLevelModule(project, gradleRoot)
+  fun createOrConfigureTopLevelModule(project: Project) {
+    GradleSettings.getInstance(project)
+      .linkedProjectsSettings
+      .map { File(it.externalProjectPath) }
+      .forEach { createOrConfigureTopLevelModule(project, it) }
   }
 
-  private fun createOrConfigureTopLevelModule(project: Project, gradleRoot: File): Module? {
+  private fun createOrConfigureTopLevelModule(project: Project, gradleRoot: File) {
+    val projectRoot = Projects.getBaseDirPath(project)
     val gradleRootPath = PathUtil.toSystemIndependentName(gradleRoot.path)
+    val gradleRootVirtualFile = VfsUtil.findFileByIoFile(gradleRoot, true) ?: return
+    val gradleRootUrl = gradleRootVirtualFile.url
     val moduleManager = ModuleManager.getInstance(project)
-    val contentRoot = VfsUtil.findFileByIoFile(gradleRoot, true) ?: return null
     val moduleFile = File(
-      File(File(gradleRoot, Project.DIRECTORY_STORE_FOLDER), "modules"),  // "modules" is private in GradleManager.
+      File(File(projectRoot, Project.DIRECTORY_STORE_FOLDER), "modules"),  // "modules" is private in GradleManager.
       gradleRoot.name + ".iml"
     )
     val projectModifieableModel = moduleManager.modifiableModel
     // Find or create the top level module. Normally, when invoked from `AndroidGradleProjectConfigurator` it already exists as it is
     // created by `PlatformProjectConfigurator`, which runs first.
-    val module = projectModifieableModel.modules.singleOrNull()
+    val module = projectModifieableModel
+      .modules
+      .singleOrNull { ModuleRootManager.getInstance(it).contentEntries.singleOrNull()?.url == gradleRootUrl }
       ?: projectModifieableModel.newModule(moduleFile.path, StdModuleTypes.JAVA.id)
     try {
       // A top level module name is usually the same as the name of the project it is contained in. If the caller of this method sets
       // up the project name correctly, we can prevent the root mdule from being disposed by sync if we configure its name correctly.
       // NOTE: We do not expect the project name to always be correct (i.e. match the name configured by Gradle at this point) and
       //       therefore it is still possible that the module created here will be disposed and re-created by sync.
-      if (module.name != project.name) {
+      if (gradleRootPath == PathUtil.toSystemIndependentName(projectRoot.path) && module.name != project.name) {
         projectModifieableModel.renameModule(module, project.name)
       }
     } catch (ex: ModuleWithNameAlreadyExists) {
@@ -117,7 +121,7 @@ class TopLevelModuleFactory() {
       )
     val model = ModuleRootManager.getInstance(module).modifiableModel
 
-    (model.contentEntries.singleOrNull() ?: model.addContentEntry(contentRoot))
+    (model.contentEntries.singleOrNull() ?: model.addContentEntry(gradleRootVirtualFile))
     if (IdeInfo.getInstance().isAndroidStudio) {
       // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
       // users will update build.gradle files to fix Gradle sync.)
@@ -139,7 +143,6 @@ class TopLevelModuleFactory() {
     } finally {
       facetModel.commit()
     }
-    return module
   }
 }
 

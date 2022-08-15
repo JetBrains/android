@@ -111,11 +111,12 @@ public class GradleSyncExecutor {
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
     // FYI: some info on linked projects: https://www.jetbrains.com/help/idea/gradle.html#link_gradle_project
-    Set<String> androidProjectCandidatesPaths = GradleSettings.getInstance(myProject)
+    Collection<String> androidProjectCandidatesPaths = GradleSettings.getInstance(myProject)
       .getLinkedProjectsSettings()
       .stream()
       .map(ExternalProjectSettings::getExternalProjectPath)
-      .collect(Collectors.toSet());
+      .sorted() // Entries come in a hash-code order. Launch sync in some stable order.
+      .collect(Collectors.toList());
 
     // We have no Gradle project linked, attempt to link one using Intellijs Projects root path.
     if (androidProjectCandidatesPaths.isEmpty()) {

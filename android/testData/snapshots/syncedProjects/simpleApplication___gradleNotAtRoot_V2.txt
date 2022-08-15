@@ -1,4 +1,4 @@
-PROJECT                       : gradle_project
+PROJECT                       : project
     PROJECT_JDK                   : jbr-<JAVA_VERSION>
         Version                       : JetBrains Runtime version <JDK_VERSION>
     MODULE                        : gradle_project
@@ -583,7 +583,22 @@ PROJECT                       : gradle_project
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
-    RUN_CONFIGURATION             : app
+    MODULE                        : project
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/project.iml
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
+    RUN_CONFIGURATION             : gradle_project.app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : gradle_project.app.main
         Module                        : gradle_project.app.main

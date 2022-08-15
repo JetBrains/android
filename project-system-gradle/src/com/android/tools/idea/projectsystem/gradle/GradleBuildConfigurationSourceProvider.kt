@@ -53,14 +53,15 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     val displayPath: String = buildPath.buildNamePrefixedGradleProjectPath()
 
     val projectDisplayName: String = when {
-      projectPath.path == ":" && buildPath.buildName == ":" -> PROJECT_PREFIX + module.project.name
+      projectPath.path == ":" && buildPath.buildName == ":" -> PROJECT_PREFIX + module.name
       projectPath.path == ":" -> BUILD_PREFIX +  buildPath.buildName
       else -> MODULE_PREFIX + displayPath
     }
 
     companion object {
       val CONFIG_FILE_GROUP_COMPARATOR: Comparator<ModuleDesc> =
-        compareBy<ModuleDesc> {it.buildPath.buildName}
+        compareBy<ModuleDesc> { it.buildPath.rootBuildPath() }
+          .thenBy { it.buildPath.buildName }
           .thenBy { it.buildPath.gradleProjectPath }
     }
   }

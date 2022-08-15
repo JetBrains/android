@@ -1,4 +1,4 @@
-gradle_project (icon: toolwindows/toolWindowProject.svg)
+project (icon: toolwindows/toolWindowProject.svg)
     app (icon: /studio/icons/shell/filetree/android-module.svg)
         manifests (icon: modules/sourceRoot.svg)
             AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)

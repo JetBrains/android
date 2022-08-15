@@ -1443,3 +1443,4 @@ MODULE                        : gradle_project.app
 MODULE                        : gradle_project.app.androidTest
 MODULE                        : gradle_project.app.main
 MODULE                        : gradle_project.app.unitTest
+MODULE                        : project

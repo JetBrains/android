@@ -28,7 +28,7 @@ class AndroidGradleProjectConfigurator : DirectoryProjectConfigurator {
     if (isProjectCreatedWithWizard) return
     if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) return
     runWriteAction {
-      moduleRef.set(TopLevelModuleFactory().createOrConfigureTopLevelModule(project))
+      TopLevelModuleFactory().createOrConfigureTopLevelModule(project)
     }
   }
 }

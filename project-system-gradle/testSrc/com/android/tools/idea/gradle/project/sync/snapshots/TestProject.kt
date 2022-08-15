@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.utils.FileUtils
 import com.android.utils.FileUtils.writeToFile
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertAbout
@@ -117,6 +118,12 @@ enum class TestProject(
     testName = "gradleNotAtRoot",
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { moveGradleRootUnderGradleProjectDirectory(it) }
+  ),
+  SIMPLE_APPLICATION_MULTIPLE_ROOTS(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "multipleGradleRoots",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { moveGradleRootUnderGradleProjectDirectory(it, makeSecondCopy = true) }
   ),
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
   BASIC_CMAKE_APP(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
@@ -282,9 +289,10 @@ private fun truncateForV2(settingsFile: File) {
   settingsFile.writeText(patchedText)
 }
 
-private fun moveGradleRootUnderGradleProjectDirectory(root: File) {
+private fun moveGradleRootUnderGradleProjectDirectory(root: File, makeSecondCopy: Boolean = false) {
   val testJdkName = IdeSdks.getInstance().jdk?.name ?: error("No JDK in test")
-  val newRoot = root.resolve("gradle_project")
+  val newRoot = root.resolve(if (makeSecondCopy) "gradle_project_1" else "gradle_project")
+  val newRoot2 = root.resolve("gradle_project_2")
   val tempRoot = File(root.path + "_tmp")
   val ideaDirectory = root.resolve(".idea")
   val gradleXml = ideaDirectory.resolve("gradle.xml")
@@ -292,7 +300,24 @@ private fun moveGradleRootUnderGradleProjectDirectory(root: File) {
   Files.move(root.toPath(), tempRoot.toPath())
   Files.createDirectory(root.toPath())
   Files.move(tempRoot.toPath(), newRoot.toPath())
+  if (makeSecondCopy) {
+    FileUtils.copyDirectory(newRoot, newRoot2)
+    newRoot2
+      .resolve("settings.gradle")
+      .replaceContent { "rootProject.name = 'gradle_project_name'\n$it" } // Give it a name not matching the directory name.
+  }
   Files.createDirectory(ideaDirectory.toPath())
+
+  fun gradleSettingsFor(rootName: String): String {
+    return """
+      <GradleProjectSettings>
+        <option name="testRunner" value="GRADLE" />
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="${'$'}PROJECT_DIR${'$'}/$rootName" />
+      </GradleProjectSettings>
+    """
+  }
+
   gradleXml.writeText(
     """
 <?xml version="1.0" encoding="UTF-8"?>
@@ -300,11 +325,8 @@ private fun moveGradleRootUnderGradleProjectDirectory(root: File) {
   <component name="GradleMigrationSettings" migrationVersion="1" />
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
-      <GradleProjectSettings>
-        <option name="testRunner" value="GRADLE" />
-        <option name="distributionType" value="DEFAULT_WRAPPED" />
-        <option name="externalProjectPath" value="${'$'}PROJECT_DIR${'$'}/gradle_project" />
-      </GradleProjectSettings>
+        ${gradleSettingsFor(newRoot.name)}
+        ${if (makeSecondCopy) gradleSettingsFor(newRoot2.name) else ""}
     </option>
   </component>
 </project>        

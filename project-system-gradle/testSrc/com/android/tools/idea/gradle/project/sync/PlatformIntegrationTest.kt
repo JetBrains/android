@@ -440,6 +440,23 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       """.trimMargin())
   }
 
+  @Test
+  fun testSimpleApplicationMultipleRoots() {
+    val preparedProject = prepareTestProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
+    val log = openProjectWithEventLogging(preparedProject) {project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+    }
+
+    expect.that(log).isEqualTo("""
+      |started(gradle_project_1)
+      |succeeded(gradle_project_1)
+      |ended: SUCCESS
+      |started(gradle_project_2)
+      |succeeded(gradle_project_2)
+      |ended: SUCCESS
+      """.trimMargin())
+  }
+
   private fun openProjectWithEventLogging(
     name: String,
     outputHandler: (Project.(String) -> Unit)? = null,
