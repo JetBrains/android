@@ -574,7 +574,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.XMLCodeStyleTest"],
     tags = COMMON_TAGS + [
-        "qa_fast",
+        "qa_smoke",
         "no_mac",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
