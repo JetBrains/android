@@ -143,9 +143,6 @@ class DeviceViewPanel(
       deviceModel = deviceModel,
       onDeviceSelected = onDeviceSelected,
       onProcessSelected = onProcessSelected,
-      detachPresentation = SelectDeviceAction.DetachPresentation(
-        "Stop Inspector",
-        "Stop running the layout inspector against the current device"),
       onDetachAction = { stopInspectors() },
       customDeviceAttribution = ::deviceAttribution
     )

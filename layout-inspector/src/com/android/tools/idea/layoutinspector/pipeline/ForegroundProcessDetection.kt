@@ -135,7 +135,8 @@ class DeviceModel(private val processesModel: ProcessesModel) {
    * this is to make sure that there is consistency between the [selectedDevice] and the device we are polling on.
    */
   var selectedDevice: DeviceDescriptor? = null
-    internal set
+    @VisibleForTesting
+    set
 
   /**
    * The set of connected devices that support foreground process detection.
