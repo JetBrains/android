@@ -37,9 +37,9 @@ import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 import kotlinx.coroutines.CoroutineDispatcher
@@ -58,12 +58,19 @@ import java.util.concurrent.ConcurrentHashMap
 */
 object ForegroundProcessDetectionInitializer {
 
+  private val logger = Logger.getInstance(ForegroundProcessDetectionInitializer::class.java)
+
   @VisibleForTesting
   fun getDefaultForegroundProcessListener(processModel: ProcessesModel): ForegroundProcessListener {
     return object : ForegroundProcessListener {
       override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
+        val foregroundProcessDescriptor = foregroundProcess.matchToProcessDescriptor(processModel)
+        if (foregroundProcessDescriptor == null) {
+          logger.info("Process descriptor not found for foreground process \"${foregroundProcess.processName}\"")
+        }
+
         // set the foreground process to be the selected process.
-        processModel.selectedProcess = foregroundProcess.matchToProcessDescriptor(processModel)
+        processModel.selectedProcess = foregroundProcessDescriptor
       }
     }
   }
