@@ -64,10 +64,20 @@ class TreeTableDropTargetHandler(
 
   override fun drop(event: DropTargetDropEvent) {
     val receiver = table.getValueAt(receiverRow, 0)
-    val item = table.getValueAt(insertionRow, 0)
-    val insertAfterLastItemInReceiver = insertionRow - receiverRow > table.tableModel.children(receiver).size
-    val before = if (!insertAfterLastItemInReceiver) item else null
     val isMove = event.dropAction == DnDConstants.ACTION_MOVE
+    var beforeIndex = insertionRow
+    var before: Any?
+    // Find the first insertion point, that is not pointing to one of the items being dragged.
+    while (true) {
+      val item = table.getValueAt(beforeIndex, 0)
+      val insertAfterLastItemInReceiver = beforeIndex - receiverRow > table.tableModel.children(receiver).size
+      before = if (!insertAfterLastItemInReceiver) item else null
+      if (!isMove || before == null || draggedItems.none { it === before }) {
+        break
+      }
+      // The before item is in the items being moved. Choose the next item in the tree as the item to insert the dragged items before:
+      beforeIndex++
+    }
     val succeeded = table.tableModel.insert(receiver, event.transferable, before, isMove, draggedItems)
     if (succeeded) {
       if (isMove && !deleteOriginOfInternalMove) {

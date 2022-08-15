@@ -313,6 +313,31 @@ class TreeTableDropTargetHandlerTest {
     verify(dropEvent, never()).dropComplete(any())
   }
 
+  @Test
+  fun testDropMoveItemToItself() {
+    val table = createTreeTable()
+    val depth4 = table.computeLeftOffset(4)
+    val rowHeight = table.rowHeight
+    val draggedItems = mutableListOf<Any>(item5)
+    val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item5 to just before itself
+    val event = createDropTargetDragEvent(table, Point(depth4 + 3, 4 * rowHeight + 2))
+    handler.dragOver(event)
+    checkPaint(table, handler, 3, 4)
+
+    val dropEvent: DropTargetDropEvent = mock()
+    whenever(dropEvent.dropAction).thenReturn(DnDConstants.ACTION_MOVE)
+    whenever(dropEvent.transferable).thenReturn(mock())
+    handler.drop(dropEvent)
+    checkNoPaint(handler)
+    verify(table, times(2)).repaint()
+    // Verify the moved item (item5) was moved into item4 before item6
+    assertThat(item4.insertions).hasSize(1)
+    checkInsertion(item4.insertions[0], item6, DnDConstants.ACTION_MOVE, listOf(item5))
+    verify(dropEvent).acceptDrop(eq(DnDConstants.ACTION_MOVE))
+    verify(dropEvent).dropComplete(eq(true))
+    assertThat(draggedItems).isEmpty()
+  }
+
   private fun checkNoPaint(handler: TreeTableDropTargetHandler) {
     val g: Graphics = mock()
     handler.paintDropTargetPosition(g)
