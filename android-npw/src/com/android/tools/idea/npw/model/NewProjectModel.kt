@@ -120,7 +120,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         }
 
         val openProjectTask = OpenProjectTask {
-          this.project = project
+          project = newProject
           isNewProject = false  // We have already created a new project.
           forceOpenInNewFrame = true
         }
