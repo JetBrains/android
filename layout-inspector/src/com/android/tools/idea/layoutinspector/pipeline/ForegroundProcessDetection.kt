@@ -127,6 +127,13 @@ class DeviceModel(private val processesModel: ProcessesModel) {
     foregroundProcessDetectionSupportedDevices.addAll(foregroundProcessDetectionSupportedDeviceTest)
   }
 
+  /**
+   * The device on which the on-device library is polling for foreground process.
+   * When null, it means that we are not polling on any device.
+   *
+   * [selectedDevice] should only be set by [ForegroundProcessDetection],
+   * this is to make sure that there is consistency between the [selectedDevice] and the device we are polling on.
+   */
   var selectedDevice: DeviceDescriptor? = null
     internal set
 
@@ -381,6 +388,18 @@ class ForegroundProcessDetection(
         deviceModel.selectedDevice = newDevice
       }
     }
+  }
+
+  /**
+   * Stop listening to foreground process events from [DeviceModel.selectedDevice].
+   * Then sets [DeviceModel.selectedDevice] to null.
+   */
+  fun stopPollingSelectedDevice() {
+    val transportStreamChannel = connectedStreams.values.find { it.stream.device.serial == deviceModel.selectedDevice?.serial }
+    if (transportStreamChannel != null) {
+      sendStopOnDevicePollingCommand(transportStreamChannel.stream)
+    }
+    deviceModel.selectedDevice = null
   }
 
   fun startListeningForEvents() {

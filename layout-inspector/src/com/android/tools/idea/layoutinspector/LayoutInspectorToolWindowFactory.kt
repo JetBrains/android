@@ -26,7 +26,6 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -130,6 +129,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           deviceModel = deviceModel,
           onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
           onProcessSelected = { newProcess -> processesModel.selectedProcess = newProcess },
+          onStopInspector = { foregroundProcessDetection?.stopPollingSelectedDevice() },
           layoutInspector = layoutInspector,
           viewSettings = viewSettings,
           disposableParent = workbench

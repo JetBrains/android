@@ -132,7 +132,15 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        deviceModel,
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable))
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
@@ -148,7 +156,15 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        deviceModel,
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable))
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
@@ -167,7 +183,17 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        deviceModel,
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable
+      )
+    )
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
@@ -188,7 +214,17 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        deviceModel,
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable
+      )
+    )
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
@@ -208,7 +244,17 @@ class DeviceViewPanelWithFullInspectorTest {
     stats.currentModeIsLive = true
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        deviceModel,
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable
+      )
+    )
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     val fakeUi = FakeUi(toggle)
@@ -233,7 +279,17 @@ class DeviceViewPanelWithFullInspectorTest {
     stats.currentModeIsLive = false
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        deviceModel,
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable
+      )
+    )
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     toolbar.size = Dimension(800, 200)
@@ -262,7 +318,17 @@ class DeviceViewPanelWithFullInspectorTest {
     latch = CountDownLatch(2)
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        deviceModel,
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable
+      )
+    )
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
 
     val fakeUi = FakeUi(toggle)
@@ -296,7 +362,17 @@ class DeviceViewPanelWithFullInspectorTest {
     latch = CountDownLatch(1)
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        deviceModel,
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable
+      )
+    )
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     toolbar.size = Dimension(800, 200)
     toolbar.doLayout()
@@ -326,8 +402,16 @@ class DeviceViewPanelWithFullInspectorTest {
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
     val settings = EditorDeviceViewSettings()
-    val panel = DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings,
-                                inspectorRule.projectRule.fixture.testRootDisposable)
+    val panel = DeviceViewPanel(
+      deviceModel,
+      inspectorRule.processes,
+      {},
+      {},
+      {},
+      inspectorRule.inspector,
+      settings,
+      inspectorRule.projectRule.fixture.testRootDisposable
+    )
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
     assertThat(loadingPane.isLoading).isFalse()
@@ -356,8 +440,17 @@ class DeviceViewPanelWithFullInspectorTest {
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
     val settings = EditorDeviceViewSettings()
-    val panel = DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings,
-                                inspectorRule.projectRule.fixture.testRootDisposable)
+    val panel = DeviceViewPanel(
+      deviceModel,
+      inspectorRule.processes,
+      {},
+      {},
+      {},
+      inspectorRule.inspector,
+      settings,
+      inspectorRule.projectRule.fixture.testRootDisposable,
+    )
+
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
     assertThat(loadingPane.isLoading).isFalse()
@@ -389,8 +482,17 @@ class DeviceViewPanelWithFullInspectorTest {
   @Test
   fun testSelectProcessDropDown() {
     val settings = EditorDeviceViewSettings()
-    val panel = DeviceViewPanel(deviceModel, inspectorRule.processes, {}, {}, inspectorRule.inspector, settings,
-                                inspectorRule.projectRule.fixture.testRootDisposable)
+    val panel = DeviceViewPanel(
+      deviceModel,
+      inspectorRule.processes,
+      {},
+      {},
+      {},
+      inspectorRule.inspector,
+      settings,
+      inspectorRule.projectRule.fixture.testRootDisposable
+    )
+
     val selectTargetAction = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().selectTargetAction!!
     val selectProcessAction = selectTargetAction.dropDownAction as SelectProcessAction
     installCommandHandlers()
@@ -463,7 +565,16 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {} ,inspector, viewSettings, disposableRule.disposable)
+    val panel = DeviceViewPanel(
+      DeviceModel(processes),
+      processes,
+      {},
+      {},
+      {},
+      inspector,
+      viewSettings,
+      disposableRule.disposable
+    )
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
@@ -505,7 +616,16 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
-    val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, viewSettings, disposableRule.disposable)
+    val panel = DeviceViewPanel(
+      DeviceModel(processes),
+      processes,
+      {},
+      {},
+      {},
+      inspector,
+      viewSettings,
+      disposableRule.disposable
+    )
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
@@ -534,7 +654,16 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
-    val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, viewSettings, disposableRule.disposable)
+    val panel = DeviceViewPanel(
+      DeviceModel(processes),
+      processes,
+      {},
+      {},
+      {},
+      inspector,
+      viewSettings,
+      disposableRule.disposable
+    )
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
@@ -564,7 +693,17 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, viewSettings, disposableRule.disposable, MoreExecutors.directExecutor())
+    val panel = DeviceViewPanel(
+      DeviceModel(processes),
+      processes,
+      {},
+      {},
+      {},
+      inspector,
+      viewSettings,
+      disposableRule.disposable,
+      MoreExecutors.directExecutor()
+    )
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
@@ -602,7 +741,17 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, viewSettings, disposableRule.disposable, MoreExecutors.directExecutor())
+    val panel = DeviceViewPanel(
+      DeviceModel(processes),
+      processes,
+      {},
+      {},
+      {},
+      inspector,
+      viewSettings,
+      disposableRule.disposable,
+      MoreExecutors.directExecutor()
+    )
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     val contentPanelModel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().model
@@ -643,7 +792,16 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val settings = EditorDeviceViewSettings()
-    val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, settings, disposableRule.disposable)
+    val panel = DeviceViewPanel(
+      DeviceModel(processes),
+      processes,
+      {},
+      {},
+      {},
+      inspector,
+      settings,
+      disposableRule.disposable,
+    )
     val toolbar = getToolbar(panel)
 
     toolbar.components.forEach { assertThat(it.isFocusable).isTrue() }
@@ -693,7 +851,16 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val settings = EditorDeviceViewSettings()
-    val panel = DeviceViewPanel(DeviceModel(processes), processes, {}, {}, inspector, settings, disposableRule.disposable)
+    val panel = DeviceViewPanel(
+      DeviceModel(processes),
+      processes,
+      {},
+      {},
+      {},
+      inspector,
+      settings,
+      disposableRule.disposable,
+    )
 
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
     val viewport = flatten(panel).filterIsInstance<JViewport>().first()
@@ -763,7 +930,17 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
 
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(DeviceModel(inspectorRule.processes), inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        DeviceModel(inspectorRule.processes),
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable,
+      )
+    )
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isFalse()
@@ -778,7 +955,17 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
 
     val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
-      DeviceViewPanel(DeviceModel(inspectorRule.processes), inspectorRule.processes, {}, {}, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
+      DeviceViewPanel(
+        DeviceModel(inspectorRule.processes),
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable,
+      )
+    )
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isFalse()
@@ -968,8 +1155,16 @@ class DeviceViewPanelWithNoClientsTest {
     inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
     val settings = EditorDeviceViewSettings()
-    val panel = DeviceViewPanel(DeviceModel(inspectorRule.processes), inspectorRule.processes, {}, {}, inspectorRule.inspector, settings,
-                                inspectorRule.projectRule.fixture.testRootDisposable)
+    val panel = DeviceViewPanel(
+      DeviceModel(inspectorRule.processes),
+      inspectorRule.processes,
+      {},
+      {},
+      {},
+      inspectorRule.inspector,
+      settings,
+      inspectorRule.projectRule.fixture.testRootDisposable,
+    )
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
     assertThat(loadingPane.isLoading).isFalse()
@@ -996,9 +1191,10 @@ class DeviceViewPanelWithNoClientsTest {
       inspectorRule.processes,
       {},
       {},
+      {},
       inspectorRule.inspector,
       EditorDeviceViewSettings(),
-      inspectorRule.projectRule.fixture.testRootDisposable
+      inspectorRule.projectRule.fixture.testRootDisposable,
     )
 
     val deviceViewContentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()

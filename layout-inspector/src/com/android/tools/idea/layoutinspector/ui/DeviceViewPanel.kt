@@ -115,14 +115,15 @@ const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
  * @param onDeviceSelected is only invoked when [deviceModel] is used.
  */
 class DeviceViewPanel(
-  deviceModel: DeviceModel?,
+  val deviceModel: DeviceModel?,
   val processesModel: ProcessesModel?,
   onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
+  val onStopInspector: () -> Unit,
   private val layoutInspector: LayoutInspector,
   private val viewSettings: DeviceViewSettings,
   disposableParent: Disposable,
-  @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
+  @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
   override val scale
@@ -498,6 +499,7 @@ class DeviceViewPanel(
   fun stopInspectors() {
     loadingPane.stopLoading()
     processesModel?.stop()
+    onStopInspector.invoke()
   }
 
   private fun updateLayeredPaneSize() {

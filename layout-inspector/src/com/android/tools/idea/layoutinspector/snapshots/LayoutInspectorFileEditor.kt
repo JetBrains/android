@@ -123,7 +123,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings(client.capabilities)
       val layoutInspector = LayoutInspector(client, model, treeSettings)
-      val deviceViewPanel = DeviceViewPanel(null, null, { }, { }, layoutInspector, viewSettings, workbench)
+      val deviceViewPanel = DeviceViewPanel(null, null, { }, { }, { }, layoutInspector, viewSettings, workbench)
       DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
       workbench.init(deviceViewPanel, layoutInspector, listOf(
         LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)

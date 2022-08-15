@@ -458,6 +458,75 @@ class ForegroundProcessDetectionTest {
     verify(mockMetrics).logConversion(DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion.UNKNOWN_NOT_RESOLVED)
   }
 
+  @Test
+  fun testStopPollingSelectedDevice() {
+    val foregroundProcess1 = ForegroundProcess(1, "process1")
+    val foregroundProcess2 = ForegroundProcess(2, "process2")
+    val foregroundProcess3 = ForegroundProcess(3, "process3")
+
+    val receivedForegroundProcesses = mutableListOf<ForegroundProcess>()
+    val receivedDevices = mutableListOf<DeviceDescriptor>()
+
+    val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor(), stream2.device.toDeviceDescriptor())
+
+    val latch1 = CountDownLatch(1)
+    val latch2 = CountDownLatch(2)
+
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      deviceModel,
+      transportClient,
+      ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(projectRule.project)),
+      CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
+    )
+    foregroundProcessDetection.foregroundProcessListeners.add(object : ForegroundProcessListener {
+      override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
+        receivedForegroundProcesses.add(foregroundProcess)
+        receivedDevices.add(device)
+
+        if (device == stream1.device.toDeviceDescriptor()) {
+          latch1.countDown()
+        }
+        else if (device == stream2.device.toDeviceDescriptor()) {
+          latch2.countDown()
+        }
+      }
+    })
+
+    foregroundProcessDetection.startListeningForEvents()
+
+    connectDevice(stream1.device)
+    connectDevice(stream2.device)
+
+    helper.sendForegroundProcessEvent(stream1, foregroundProcess1)
+
+    // wait for events to be dispatched
+    latch1.await()
+
+    assertThat(receivedForegroundProcesses).isEqualTo(listOf(foregroundProcess1))
+    assertThat(receivedDevices).isEqualTo(listOf(stream1.device.toDeviceDescriptor()))
+
+    foregroundProcessDetection.startPollingDevice(stream2.device.toDeviceDescriptor())
+
+    helper.sendForegroundProcessEvent(stream2, foregroundProcess2)
+    helper.sendForegroundProcessEvent(stream2, foregroundProcess3)
+
+    // wait for events to be dispatched
+    latch2.await()
+
+    assertThat(receivedForegroundProcesses).isEqualTo(listOf(foregroundProcess1, foregroundProcess2, foregroundProcess3))
+    assertThat(receivedDevices).isEqualTo(
+      listOf(stream1.device.toDeviceDescriptor(), stream2.device.toDeviceDescriptor(), stream2.device.toDeviceDescriptor())
+    )
+
+    foregroundProcessDetection.stopPollingSelectedDevice()
+
+    assertThat(helper.startCommandInvocationCount).isEqualTo(2)
+    assertThat(helper.startHandshakeCommandInvocationCount).isEqualTo(2)
+    // todo: refactor helper to have the list of disconnected processes instead of just the count
+    assertThat(helper.stopCommandInvocationCount).isEqualTo(2)
+  }
+
   private fun createDeviceModel(vararg devices: DeviceDescriptor): DeviceModel {
     val testProcessDiscovery = TestProcessDiscovery()
     devices.forEach { testProcessDiscovery.addDevice(it) }
