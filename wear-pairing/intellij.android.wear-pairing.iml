@@ -10,8 +10,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="intellij.android.observable" />
-    <orderEntry type="module" module-name="intellij.android.wizard.model" />
-    <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />

@@ -35,7 +35,6 @@
     <orderEntry type="library" name="layout_inspector_snapshot_java_proto" level="project" />
     <orderEntry type="library" name="layout_inspector_view_java_proto" level="project" />
     <orderEntry type="library" name="layout_inspector_compose_java_proto" level="project" />
-    <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
@@ -43,7 +42,6 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />

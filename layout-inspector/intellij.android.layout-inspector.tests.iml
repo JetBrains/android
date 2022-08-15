@@ -43,16 +43,6 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" scope="TEST" />
-    <orderEntry type="module-library" scope="PROVIDED">
-      <library name="skiaparser_test_support">
-        <CLASSES />
-        <JAVADOC />
-        <NATIVE>
-          <root url="file://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/layout-inspector" />
-        </NATIVE>
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="library" name="layout_inspector_snapshot_java_proto" level="project" />
