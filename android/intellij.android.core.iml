@@ -9,7 +9,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="module" module-name="intellij.android.analytics" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" exported="" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
@@ -50,18 +50,18 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
-    <orderEntry type="module" module-name="db-baseLibrary" />
-    <orderEntry type="module" module-name="db-baseLibrarySupport" />
-    <orderEntry type="module" module-name="db-compilerCommon" />
-    <orderEntry type="module" module-name="db-compiler" />
+    <orderEntry type="module" module-name="android.sdktools.db-baseLibrary" />
+    <orderEntry type="module" module-name="android.sdktools.db-baseLibrarySupport" />
+    <orderEntry type="module" module-name="android.sdktools.db-compilerCommon" />
+    <orderEntry type="module" module-name="android.sdktools.db-compiler" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="analytics-shared" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
@@ -87,7 +87,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="analytics-crash" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-crash" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="library" name="emulator-proto" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
@@ -98,8 +98,8 @@
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
-    <orderEntry type="module" module-name="intellij.lint" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" />
+    <orderEntry type="module" module-name="intellij.android.lint.common" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
@@ -141,7 +141,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="utp" />
+    <orderEntry type="module" module-name="intellij.android.utp" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="module" module-name="android.sdktools.manifest-parser" />

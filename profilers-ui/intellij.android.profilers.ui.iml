@@ -19,7 +19,7 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
-    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
@@ -28,7 +28,7 @@
     <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module" module-name="codenavigation" />
+    <orderEntry type="module" module-name="intellij.android.codenavigation" />
     <orderEntry type="module-library" scope="TEST">
       <library name="traceprocessor-proto" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:traceprocessor_protos:221.0.9.0" />

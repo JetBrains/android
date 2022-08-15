@@ -12,7 +12,7 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions.common" exported="" />
-    <orderEntry type="module" module-name="analytics-crash" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-crash" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="kotlinc.android-extensions-compiler-plugin" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
