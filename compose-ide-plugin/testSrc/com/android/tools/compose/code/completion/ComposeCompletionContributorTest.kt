@@ -689,6 +689,62 @@ class ComposeCompletionContributorTest {
   }
 
   @Test
+  fun testInsertHandler_inKDoc() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun FoobarOne(first: Int, second: String, third: String? = null) {}
+
+      """.trimIndent()
+    )
+
+    val file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      /**
+       * [Foobar${caret}]
+       */
+      @Composable
+      fun HomeScreen() {
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      /**
+       * [FoobarOne]
+       */
+      @Composable
+      fun HomeScreen() {
+      }
+      """.trimIndent()
+    )
+  }
+
+  @Test
   fun testMaterialThemeComposableIsDemotedInCompletion() {
     myFixture.addFileToProject(
       "src/androidx/compose/material/MaterialTheme.kt",
