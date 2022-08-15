@@ -457,9 +457,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     val pbm = projectBuildModel
     val propertiesModel = pbm.projectBuildModel?.propertiesModel!!
     assertSize(1, propertiesModel.declaredProperties)
-    assertEquals("foo", propertiesModel.declaredProperties[0].name)
-    // TODO(b/242298332): support Java .properties property names correctly
-    //assertEquals("abc.foo", propertiesModel.declaredProperties[0].fullyQualifiedName)
+    assertEquals("abc.foo", propertiesModel.declaredProperties[0].name)
+    assertEquals("abc\\.foo", propertiesModel.declaredProperties[0].fullyQualifiedName)
     assertEquals("bar", propertiesModel.declaredProperties[0].getValue(STRING_TYPE))
   }
 

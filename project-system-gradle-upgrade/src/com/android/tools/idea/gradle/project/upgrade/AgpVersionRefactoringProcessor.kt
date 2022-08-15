@@ -84,9 +84,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     var disableAutomaticComponentCreation = false
     projectBuildModel.projectBuildModel?.propertiesModel?.let { propertiesModel ->
       val properties = propertiesModel.declaredProperties
-      // TODO(b/242298332): the fullyQualifiedName should really have `android.` preceding it, but (probably because of a mismatch between
-      //  Dsl block structure and properties files) it doesn't.
-      properties.firstOrNull { it.fullyQualifiedName == "disableAutomaticComponentCreation" }?.let { property ->
+      properties.firstOrNull { it.name == "android.disableAutomaticComponentCreation" }?.let { property ->
         when (property.getValue(STRING_TYPE)) {
           "true" -> disableAutomaticComponentCreation = true
         }

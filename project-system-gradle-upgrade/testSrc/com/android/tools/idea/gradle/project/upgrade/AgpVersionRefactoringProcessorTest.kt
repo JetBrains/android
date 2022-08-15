@@ -207,6 +207,16 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testPre80MavenPublishCollidingPropertyNameBlocks() {
+    writeToBuildFile(TestFileName("AgpVersion/Pre80MavenPublish"))
+    writeToGradlePropertiesFile("notandroid.disableAutomaticComponentCreation=true\n")
+    val processor = AgpVersionRefactoringProcessor(project, GradleVersion.parse("7.1.0"), GradleVersion.parse("8.0.0"))
+    assertTrue(processor.isBlocked)
+    assertSize(1, processor.blockProcessorReasons())
+    assertEquals("Use of implicitly-created components in maven-publish.", processor.blockProcessorReasons()[0].shortDescription)
+  }
+
+  @Test
   fun testVersionInLiteral80() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
     val processor = AgpVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("8.0.0"))
