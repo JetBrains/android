@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.sessions;
+package com.android.tools.profilers.sessions
 
-public enum SessionAspect {
-  // The currently selected session has changed.
-  SELECTED_SESSION,
-  // The currently profiling session has changed.
-  PROFILING_SESSION,
-  // The list of sessions and/or their internal data have changed.
-  SESSIONS,
+enum class SessionAspect {
+  SELECTED_SESSION, // The currently selected session has changed.
+  PROFILING_SESSION, // The currently profiling session has changed.
+  SESSIONS, // The list of sessions and/or their internal data have changed.
 }
