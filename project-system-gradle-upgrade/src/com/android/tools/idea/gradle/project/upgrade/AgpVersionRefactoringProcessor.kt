@@ -73,23 +73,12 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     }
 
   private fun computeIsPre80MavenPublish(): Boolean {
-    var mavenPublishUsed = false
-    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
-      model.plugins().forEach { plugin ->
-        when (plugin.name().toString()) {
-          "maven-publish" -> { mavenPublishUsed = true; return@model }
-        }
-      }
-    }
-    var disableAutomaticComponentCreation = false
-    projectBuildModel.projectBuildModel?.propertiesModel?.let { propertiesModel ->
-      val properties = propertiesModel.declaredProperties
-      properties.firstOrNull { it.name == "android.disableAutomaticComponentCreation" }?.let { property ->
-        when (property.getValue(STRING_TYPE)) {
-          "true" -> disableAutomaticComponentCreation = true
-        }
-      }
-     }
+    val mavenPublishUsed = projectBuildModel.allIncludedBuildModels.flatMap { it.plugins() }.any { it.name().toString() == "maven-publish" }
+    val disableAutomaticComponentCreation =
+      projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
+        ?.firstOrNull { it.name == "android.disableAutomaticComponentCreation" }
+        ?.let { it.getValue(STRING_TYPE) == "true" }
+      ?: false
     return mavenPublishUsed && !disableAutomaticComponentCreation
   }
 
