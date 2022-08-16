@@ -26,6 +26,7 @@
       implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectConfigurator"
       order="after PlatformProjectConfigurator"
     />
+    <directoryIndexExcludePolicy implementation="com.android.tools.idea.gradle.project.importing.InitialImportExcludeDirectoryPolicy" />
   </extensions>
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />

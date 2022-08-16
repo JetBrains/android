@@ -56,7 +56,9 @@ import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
+import com.intellij.platform.DirectoryProjectConfigurator
 import com.intellij.task.ProjectTaskManager
+import com.intellij.util.application
 import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
@@ -123,8 +125,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     openPreparedProject("copy") { project ->
       expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
       expect.that(copy.resolveVirtualIfCached("app/build")).isNotNull()
-      // TODO(b/200820556): Most files in `build` dir should not be added to the VFS.
-      // TODO(b/200820556): expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
+      expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
     }
   }
 
@@ -147,8 +148,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     openPreparedProject("copy") { project ->
       expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
       expect.that(copy.resolveVirtualIfCached("app/build")).isNotNull()
-      // TODO(b/200820556): Most files in `build` dir should not be added to the VFS.
-      // TODO(b/200820556): expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
+      expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
     }
   }
 

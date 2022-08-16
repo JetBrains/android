@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.importing
 import com.android.SdkConstants
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.facet.FacetManager
@@ -25,15 +26,19 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager.Companion.getInstance
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists
 import com.intellij.openapi.module.StdModuleTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.roots.impl.DirectoryIndexExcludePolicy
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.util.PathUtil
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -121,7 +126,9 @@ class TopLevelModuleFactory() {
       )
     val model = ModuleRootManager.getInstance(module).modifiableModel
 
-    (model.contentEntries.singleOrNull() ?: model.addContentEntry(gradleRootVirtualFile))
+    if (model.contentEntries.singleOrNull() == null) {
+      model.addContentEntry(gradleRootVirtualFile)
+    }
     if (IdeInfo.getInstance().isAndroidStudio) {
       // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
       // users will update build.gradle files to fix Gradle sync.)
