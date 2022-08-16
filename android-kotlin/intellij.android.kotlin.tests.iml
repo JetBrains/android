@@ -70,6 +70,5 @@
     <orderEntry type="module" module-name="kotlin.gradle.code-insight-common" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.completion.impl-shared" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.completion.impl-k1" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.junit.rt" scope="TEST" />
   </component>
 </module>
