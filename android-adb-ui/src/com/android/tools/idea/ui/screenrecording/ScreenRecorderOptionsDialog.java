@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording;
 
+import com.android.tools.idea.ddms.screenrecord.ScreenRecorderPersistentOptions;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
 import com.google.common.annotations.VisibleForTesting;
