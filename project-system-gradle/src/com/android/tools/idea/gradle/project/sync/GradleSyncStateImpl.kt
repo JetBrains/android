@@ -112,6 +112,10 @@ class GradleSyncStateImpl constructor(project: Project) : GradleSyncState {
 @VisibleForTesting
 val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListenerWithRoot::class.java)
 
+/**
+ * A real implementation of [GradleSyncStateImpl] service which, unlike [GradleSyncStateImpl], can be accessed by various listeners in this
+ * file as an implementing class type.
+ */
 class GradleSyncStateHolder constructor(private val project: Project)  {
 
   companion object {
@@ -131,8 +135,6 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     }
   }
 
-  var lastSyncedGradleVersion: GradleVersion? = null
-
   /**
    * Indicates whether the last started Gradle sync has failed.
    *
@@ -142,48 +144,58 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
    *    doesn't exist in an old version of the Android plugin)
    *   *An error in the structure of the project after sync (e.g. more than one module with the same path in the file system)
    */
-  fun lastSyncFailed(): Boolean = state.isFailed
+  fun lastSyncFailed(): Boolean = state.get { state.isFailed }
 
-  val isSyncInProgress: Boolean get() = state.isInProgress
-
-  private val lock = ReentrantLock()
-
-  private var state: LastSyncState = LastSyncState.UNKNOWN
-    get() = lock.withLock { return field }
-    set(value) = lock.withLock { field = value }
+  val lastSyncedGradleVersion: GradleVersion? get() = state.get { lastSyncedGradleVersion }
+  val lastSyncFinishedTimeStamp: Long get() = state.get { lastSyncFinishedTimeStamp }
+  val externalSystemTaskId: ExternalSystemTaskId? get() = state.get { externalSystemTaskId }
+  val isSyncInProgress: Boolean get() = state.get { state.isInProgress }
 
   val syncResult: ProjectSystemSyncManager.SyncResult
-    get() = when(state) {
-      LastSyncState.IN_PROGRESS -> stateBeforeSyncStarted.toSyncResult()
-      else -> state.toSyncResult()
+    get() = state.get {
+      when (state) {
+        LastSyncState.IN_PROGRESS -> stateBeforeSyncStarted.toSyncResult()
+        else -> state.toSyncResult()
+      }
     }
 
-  private var stateBeforeSyncStarted: LastSyncState = LastSyncState.UNKNOWN
-    get() = lock.withLock { return field }
-    set(value) = lock.withLock { field = value }
-  var externalSystemTaskId: ExternalSystemTaskId? = null
-    get() = lock.withLock { return field }
-    set(value) = lock.withLock { field = value }
+  private class Holder {
+    private val lock = ReentrantLock()
+    private var state: HolderData = HolderData()
 
-  private val eventLogger = GradleSyncEventLogger()
+    inline fun <T> get(block: HolderData.() -> T): T    {
+      return lock.withLock {
+        state.block()
+      }
+    }
 
-  fun generateSyncEvent(eventKind: AndroidStudioEvent.EventKind, rootProjectPath: @SystemIndependent String): AndroidStudioEvent.Builder {
-    return eventLogger.generateSyncEvent(project, rootProjectPath, eventKind)
+    inline fun set(block: HolderData.() -> HolderData)    {
+      return lock.withLock {
+        state = state.block()
+      }
+    }
   }
 
-  var lastSyncFinishedTimeStamp = -1L; private set
+  private data class HolderData(
+    val lastSyncedGradleVersion: GradleVersion? = null,
+    val state: LastSyncState = LastSyncState.UNKNOWN,
+    val stateBeforeSyncStarted: LastSyncState = LastSyncState.UNKNOWN,
+    val externalSystemTaskId: ExternalSystemTaskId? = null,
+    val lastSyncFinishedTimeStamp: Long = -1L
+  )
+
+  private val state: Holder = Holder()
 
   /**
    * Triggered at the start of a sync.
    */
   private fun syncStarted(trigger: GradleSyncStats.Trigger, rootProjectPath: @SystemIndependent String): Boolean {
-    lock.withLock {
+    state.set {
       if (state.isInProgress) {
         LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
-        return false
+        return@syncStarted false
       }
-      stateBeforeSyncStarted = state
-      state = LastSyncState.IN_PROGRESS
+      copy(stateBeforeSyncStarted = state, state = LastSyncState.IN_PROGRESS)
     }
 
     LOG.info("Started ($trigger) sync with Gradle for project '${project.name}'.")
@@ -274,7 +286,8 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
     // If the initial sync has been cancelled we do not have any models, but we cannot stay in the unknown state forever as it blocks
     // various UI features.
-    val newStateAfterCancellation = stateBeforeSyncStarted.takeUnless { it == LastSyncState.UNKNOWN } ?: LastSyncState.FAILED
+    val newStateAfterCancellation =
+      state.get { stateBeforeSyncStarted.takeUnless { it == LastSyncState.UNKNOWN } ?: LastSyncState.FAILED }
 
     syncFinished(newStateAfterCancellation)
     syncPublisher { syncCancelled(project, rootProjectPath) }
@@ -301,11 +314,9 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
    * Common code to (re)set state once the sync has completed, all successful/failed/skipped syncs should run through this method.
    */
   private fun syncFinished(newState: LastSyncState) {
-    lastSyncFinishedTimeStamp = System.currentTimeMillis()
 
-    lock.withLock {
-      state = newState
-      externalSystemTaskId = null
+    state.set {
+      copy(state = newState, externalSystemTaskId = null, lastSyncFinishedTimeStamp = System.currentTimeMillis())
     }
 
     PropertiesComponent.getInstance().setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
@@ -313,6 +324,12 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
     if (newState != LastSyncState.SKIPPED) {
       ApplicationManager.getApplication().invokeLater { warnIfNotJdkHome() }
+    }
+  }
+
+  fun recordGradleVersion(gradleVersion: GradleVersion) {
+    state.set {
+      copy(lastSyncedGradleVersion = gradleVersion)
     }
   }
 
@@ -340,6 +357,12 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       IdeSdks.getJdkFromJavaHome() ?: "Undefined"
     )
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)
+  }
+
+  private val eventLogger = GradleSyncEventLogger()
+
+  fun generateSyncEvent(eventKind: AndroidStudioEvent.EventKind, rootProjectPath: @SystemIndependent String): AndroidStudioEvent.Builder {
+    return eventLogger.generateSyncEvent(project, rootProjectPath, eventKind)
   }
 
   /**
@@ -381,7 +404,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       with(project.messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) { block() }
       // Publish to the project-system-wide topic after publishing to our internal topic unless it is an in-progress-state. There is no
       // reason for our callers to handle in-progress states and `SyncResultListener` has `syncEnded()` method only.
-      if (!state.isInProgress) {
+      if (state.get { !state.isInProgress }) {
         project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(syncResult)
       }
     }
@@ -485,7 +508,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       if (!id.isGradleResolveProjectTask()) return
       val project = id.findProjectOrLog() ?: return
       val syncStateImpl = getInstance(project)
-      syncStateImpl.externalSystemTaskId = id
+      syncStateImpl.state.set { copy(externalSystemTaskId = id) }
       LOG.info("onStart($id, $workingDir)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       val disposable = syncStateUpdaterService.trackTask(id, workingDir) ?: return

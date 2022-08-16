@@ -46,7 +46,7 @@ public class GradleModuleSetup {
 
     String gradleVersion = model.getGradleVersion();
     if (isNotEmpty(gradleVersion)) {
-        GradleSyncStateHolder.getInstance(module.getProject()).setLastSyncedGradleVersion(GradleVersion.parse(gradleVersion));
+        GradleSyncStateHolder.getInstance(module.getProject()).recordGradleVersion(GradleVersion.parse(gradleVersion));
     }
   }
 }
