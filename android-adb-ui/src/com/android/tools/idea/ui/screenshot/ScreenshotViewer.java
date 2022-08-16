@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.screenshot;
 import static com.android.SdkConstants.EXT_PNG;
 import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE;
 
+import com.android.tools.idea.ddms.screenshot.ScreenshotViewer.PersistentState;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
 import com.android.tools.pixelprobe.color.Colors;
 import com.android.utils.HashCodes;
@@ -653,24 +654,5 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   public enum Option {
     ALLOW_IMAGE_ROTATION // Enables the image rotation buttons.
-  }
-
-  @State(name = "ScreenshotViewer", storages = @Storage(NON_ROAMABLE_FILE))
-  public static class PersistentState implements PersistentStateComponent<PersistentState> {
-    public boolean frameScreenshot;
-
-    @Override
-    public @Nullable ScreenshotViewer.PersistentState getState() {
-      return this;
-    }
-
-    @Override
-    public void loadState(@NotNull ScreenshotViewer.PersistentState state) {
-      XmlSerializerUtil.copyBean(state, this);
-    }
-
-    public static PersistentState getInstance(@NotNull Project project) {
-      return project.getService(PersistentState.class);
-    }
   }
 }
