@@ -153,7 +153,9 @@ fun SupervisorJob(disposable: Disposable): Job {
  */
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
 fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
-  return CoroutineScope(SupervisorJob(disposable) + workerThread + androidCoroutineExceptionHandler + context)
+  return CoroutineScope(SupervisorJob() + workerThread + androidCoroutineExceptionHandler + context).apply {
+    cancelJobOnDispose(disposable, coroutineContext.job)
+  }
 }
 
 /**
