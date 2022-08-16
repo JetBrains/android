@@ -139,7 +139,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
   public AndroidStudio runStudio(AndroidProject project) throws IOException, InterruptedException {
     AndroidStudioInstallation install = getInstallation();
-    return install.run(display, env, project);
+    return install.run(display, env, project, sdk.getSourceDir());
   }
 
   public void runStudio(AndroidProject project, Consumer<AndroidStudio> callback) throws Exception {

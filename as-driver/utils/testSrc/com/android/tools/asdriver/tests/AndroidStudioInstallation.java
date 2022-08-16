@@ -328,8 +328,9 @@ public class AndroidStudioInstallation {
     return run(display, env, new String[] {});
   }
 
-  public AndroidStudio run(Display display, Map<String, String> env, AndroidProject project) throws IOException, InterruptedException {
+  public AndroidStudio run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
     Path projectPath = project.install(fileSystem.getRoot());
+    project.setSdkDir(sdkDir);
     // Mark that project as trusted
     trustPath(projectPath);
     return run(display, env, new String[]{ projectPath.toString() });

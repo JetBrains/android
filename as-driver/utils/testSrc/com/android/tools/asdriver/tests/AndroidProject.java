@@ -17,10 +17,10 @@ package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
 import com.android.utils.FileUtils;
-import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 public class AndroidProject {
   // The path to the existing project to be opened.
@@ -50,5 +50,23 @@ public class AndroidProject {
     content = content.replaceAll("distributionUrl=.*", "distributionUrl=" + replacedDistributionUrl);
     Files.writeString(wrapper, content);
     return targetProject;
+  }
+
+  /**
+   * Sets the SDK directory in local.properties. This prevents a dialog from spawning saying "The
+   * "project and Android Studio point to different Android SDKs", and since that dialog would
+   * require interaction, it's best to avoid it.
+   */
+  public void setSdkDir(Path dir) throws IOException {
+    Path localProperties = targetProject.resolve("local.properties");
+    // Use toUri() so that we don't have to escape backslashes for Windows paths
+    String sdkDirLine = String.format("sdk.dir=%s%n", dir.toUri().toString().replace("file:", ""));
+    String contentToWrite = sdkDirLine;
+    if (Files.exists(localProperties)) {
+      String content = Files.readString(localProperties);
+      Pattern pattern = Pattern.compile("^sdk.dir=.*$", Pattern.MULTILINE);
+      contentToWrite = pattern.matcher(content).replaceAll(sdkDirLine);
+    }
+    Files.writeString(localProperties, contentToWrite);
   }
 }
