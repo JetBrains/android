@@ -29,7 +29,6 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
@@ -43,7 +42,7 @@ class CpuUsageViewTest {
   @JvmField
   var grpcChannel = FakeGrpcChannel("CpuUsageNormalModeViewTest", cpuService,
                                     FakeTransportService(timer), FakeProfilerService(timer),
-                                    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
+                                    FakeMemoryService(), FakeEventService())
 
   private lateinit var stage: CpuProfilerStage
   private lateinit var ideServices: FakeIdeProfilerServices

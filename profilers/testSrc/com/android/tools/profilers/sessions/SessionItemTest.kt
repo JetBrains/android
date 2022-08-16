@@ -31,7 +31,6 @@ import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth
 import org.junit.Ignore
 import org.junit.Rule
@@ -50,8 +49,7 @@ class SessionItemTest {
     FakeProfilerService(myTimer),
     myMemoryService,
     FakeCpuService(),
-    FakeEventService(),
-    FakeNetworkService.newBuilder().build()
+    FakeEventService()
   )
 
   private val myIdeServices = FakeIdeProfilerServices().apply {

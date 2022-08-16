@@ -40,14 +40,12 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-
 import javax.swing.JComponent
 
 class CpuThreadTrackRendererTest {
@@ -58,7 +56,7 @@ class CpuThreadTrackRendererTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("CpuThreadTrackRendererTest", FakeCpuService(), FakeProfilerService(timer), transportService,
-                                    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
+                                    FakeMemoryService(), FakeEventService())
 
   @get:Rule
   val applicationRule = ApplicationRule()

@@ -40,7 +40,6 @@ import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Ignore
@@ -63,8 +62,7 @@ class SessionsManagerTest {
     FakeProfilerService(myTimer),
     myMemoryService,
     myCpuService,
-    FakeEventService(),
-    FakeNetworkService.newBuilder().build()
+    FakeEventService()
   )
 
   private lateinit var myProfilers: StudioProfilers

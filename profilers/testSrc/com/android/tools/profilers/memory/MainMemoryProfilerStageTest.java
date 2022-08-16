@@ -54,7 +54,6 @@ import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
-import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -88,7 +87,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     super();
     myTransportService = new FakeTransportService(myTimer, true, featureLevel);
     myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
-                        new FakeCpuService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
+                        new FakeCpuService(), new FakeEventService());
   }
 
   @Override

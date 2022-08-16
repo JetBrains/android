@@ -44,8 +44,6 @@ import com.android.tools.profilers.memory.LegacyGcStatsDataSeries
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryDataSeries
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
-import com.android.tools.profilers.network.NetworkOpenConnectionsDataSeries
-import com.android.tools.profilers.network.NetworkTrafficDataSeries
 import com.google.common.util.concurrent.MoreExecutors
 import org.junit.After
 import org.junit.Before
@@ -106,9 +104,6 @@ class DataSeriesPerformanceTest {
                                       LegacyMergedEnergyEventsDataSeries(
                                         LegacyEnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
                                         EnergyDuration.Kind.JOB)),
-                                 Pair("Network-Open-Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
-                                 Pair("Network-Traffic", NetworkTrafficDataSeries(client.networkClient, session,
-                                                                                  NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
                                  Pair("Memory-GC-Stats",
                                       LegacyGcStatsDataSeries(client.memoryClient, session)),
                                  Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),

@@ -38,7 +38,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -78,7 +77,7 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
     "CpuCaptureViewTestChannel", myCpuService, myTransportService, FakeProfilerService(myTimer),
-    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
+    FakeMemoryService(), FakeEventService()
   )
 
   @get:Rule

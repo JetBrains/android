@@ -30,7 +30,6 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -46,8 +45,7 @@ class MemoryProfilerHeapDumpTest {
                                     FakeTransportService(timer),
                                     FakeProfilerService(timer),
                                     FakeMemoryService(),
-                                    FakeEventService(),
-                                    FakeNetworkService.newBuilder().build())
+                                    FakeEventService())
 
   @Test
   fun `measure loading of github heap dump`() {

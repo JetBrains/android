@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -27,16 +28,13 @@ import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.network.FakeNetworkService
+import com.android.tools.profilers.memory.CaptureDataSeries.ofHeapDumpSamples
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
-
-import com.android.tools.adtui.model.Range
-import com.android.tools.profilers.memory.CaptureDataSeries.ofHeapDumpSamples
 
 
 class HprofSessionArtifactTest {
@@ -52,8 +50,7 @@ class HprofSessionArtifactTest {
     FakeProfilerService(timer),
     FakeMemoryService(),
     FakeCpuService(),
-    FakeEventService(),
-    FakeNetworkService.newBuilder().build()
+    FakeEventService()
   )
 
   private lateinit var myProfilers: StudioProfilers

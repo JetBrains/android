@@ -27,23 +27,17 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.MemoryAllocStatsData;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
-import com.android.tools.profilers.network.FakeNetworkService;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 public final class AllocStatsDataSeriesTest {
   private final FakeTimer myTimer = new FakeTimer();
@@ -54,8 +48,7 @@ public final class AllocStatsDataSeriesTest {
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myTransportService, myService,
                                                                    new FakeProfilerService(myTimer),
                                                                    new FakeEventService(),
-                                                                   new FakeCpuService(),
-                                                                   new FakeNetworkService.Builder().build());
+                                                                   new FakeCpuService());
 
   public AllocStatsDataSeriesTest() {
     myIdeProfilerServices.enableEventsPipeline(true);

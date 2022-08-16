@@ -25,7 +25,6 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
-import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.truth.Truth;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,7 +36,7 @@ public class MemoryMonitorTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryMonitorTestChannel", myMemoryService, new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
-                        new FakeEventService(), new FakeCpuService(), FakeNetworkService.newBuilder().build());
+                        new FakeEventService(), new FakeCpuService());
 
   @Test
   public void testName() {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.2.0-dev">
+<issues format="5" by="lint 7.4.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -14,15 +14,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuThreadsView.java"
-            line="139"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/profilers/network/details/OverviewTabContent.java"
-            line="123"/>
+            line="138"/>
     </issue>
 
     <issue
@@ -166,7 +158,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/profilers/ProfilerMonitorView.java"
-            line="42"/>
+            line="43"/>
     </issue>
 
     <issue
@@ -178,67 +170,11 @@
     </issue>
 
     <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/profilers/network/details/TabUiUtils.java"
-            line="42"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/profilers/network/details/TabUiUtils.java"
-            line="47"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/profilers/network/details/TabUiUtils.java"
-            line="48"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/profilers/network/details/TabUiUtils.java"
-            line="49"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/profilers/network/ThreadsView.java"
-            line="72"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/profilers/network/ThreadsView.java"
-            line="73"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/profilers/network/ThreadsView.java"
-            line="74"/>
-    </issue>
-
-    <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/profilers/StudioMonitorStageView.java"
-            line="183"/>
+            line="131"/>
     </issue>
 
 </issues>

@@ -31,7 +31,6 @@ import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.config.ImportedConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
@@ -57,7 +56,7 @@ open class CpuProfilerMemoryLoadTestBase {
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
     "CpuProfilerMemoryLoadTestBase", myCpuService, FakeTransportService(myTimer), FakeProfilerService(myTimer),
-    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
+    FakeMemoryService(), FakeEventService()
   )
 
   /**

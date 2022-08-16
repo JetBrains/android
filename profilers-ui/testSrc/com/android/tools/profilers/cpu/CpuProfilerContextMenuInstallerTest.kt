@@ -28,7 +28,6 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -47,7 +46,7 @@ class CpuProfilerContextMenuInstallerTest {
   @Rule
   val myGrpcChannel = FakeGrpcChannel(
     "CpuProfilerContextMenuInstallerTest", FakeCpuService(), FakeTransportService(timer), FakeProfilerService(timer),
-    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
+    FakeMemoryService(), FakeEventService()
   )
 
   private lateinit var stage: CpuProfilerStage
