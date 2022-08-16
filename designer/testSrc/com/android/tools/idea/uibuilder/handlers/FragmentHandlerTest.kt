@@ -27,14 +27,11 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
 import org.jetbrains.android.AndroidTestCase
-import org.junit.Ignore
-import org.junit.Test
 import org.mockito.ArgumentMatchers.eq
 import java.util.*
 
 class FragmentHandlerTest : LayoutTestCase() {
-  // http://b/242129835
-  fun ignore_testActivateNavFragment() {
+  fun testActivateNavFragment() {
     myFixture.addFileToProject("res/navigation/nav.xml", "<navigation/>")
     val model = model(
       "model.xml",
