@@ -45,7 +45,7 @@ class SelectDeviceAction(
   private val onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   private val onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
   private val detachPresentation: DetachPresentation = DetachPresentation(),
-  private val onDetachAction: ((DeviceDescriptor) -> Unit)? = null,
+  private val onDetachAction: (() -> Unit) = { },
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> }
 ) :
   DropDownAction(
@@ -125,7 +125,7 @@ class SelectDeviceAction(
      */
     @VisibleForTesting
     fun isEnabled(): Boolean {
-      return deviceModel.selectedDevice != null
+      return deviceModel.selectedDevice != null || deviceModel.selectedProcess != null
     }
 
     override fun update(e: AnActionEvent) {
@@ -133,7 +133,7 @@ class SelectDeviceAction(
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-      onDetachAction?.invoke(deviceModel.selectedDevice!!)
+      onDetachAction.invoke()
     }
   }
 

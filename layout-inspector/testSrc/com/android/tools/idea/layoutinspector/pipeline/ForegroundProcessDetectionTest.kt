@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.transport.TransportClient
@@ -525,6 +526,35 @@ class ForegroundProcessDetectionTest {
     assertThat(helper.startHandshakeCommandInvocationCount).isEqualTo(2)
     // todo: refactor helper to have the list of disconnected processes instead of just the count
     assertThat(helper.stopCommandInvocationCount).isEqualTo(2)
+    assertThat(deviceModel.selectedDevice).isNull()
+  }
+
+  @Test
+  fun testStopInspector() {
+    val foregroundProcessDetection = mock(ForegroundProcessDetection::class.java)
+
+    val testProcessDiscovery = TestProcessDiscovery()
+    testProcessDiscovery.addDevice(stream1.device.toDeviceDescriptor())
+    val processModel = ProcessesModel(testProcessDiscovery)
+    val deviceModel = DeviceModel(processModel)
+
+    // test has device, no process
+    deviceModel.selectedDevice = stream1.device.toDeviceDescriptor()
+    processModel.selectedProcess = null
+
+    stopInspector(deviceModel, processModel, foregroundProcessDetection)
+
+    verify(foregroundProcessDetection).stopPollingSelectedDevice()
+    assertThat(processModel.selectedProcess).isNull()
+
+    // test no device, has process
+    deviceModel.selectedDevice = null
+    processModel.selectedProcess = stream1.device.toDeviceDescriptor().createProcess("fake_process")
+
+    stopInspector(deviceModel, processModel, foregroundProcessDetection)
+
+    verifyNoMoreInteractions(foregroundProcessDetection)
+    assertThat(processModel.selectedProcess).isNull()
   }
 
   private fun createDeviceModel(vararg devices: DeviceDescriptor): DeviceModel {

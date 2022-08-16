@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectio
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.stopInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -129,7 +130,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           deviceModel = deviceModel,
           onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
           onProcessSelected = { newProcess -> processesModel.selectedProcess = newProcess },
-          onStopInspector = { foregroundProcessDetection?.stopPollingSelectedDevice() },
+          onStopInspector = { stopInspector(deviceModel, processesModel, foregroundProcessDetection) },
           layoutInspector = layoutInspector,
           viewSettings = viewSettings,
           disposableParent = workbench

@@ -189,6 +189,26 @@ class TransportDeviceManagerListenerImpl : TransportDeviceManager.TransportDevic
 }
 
 /**
+ * Stops LayoutInspector.
+ * If a device is selected, stops foreground process detection.
+ * If a device is not selected, stops process inspection by setting the selected process to null.
+ *
+ * A process can be selected when a device does not support foreground process detection.
+ */
+fun stopInspector(
+  deviceModel: DeviceModel,
+  processesModel: ProcessesModel,
+  foregroundProcessDetection: ForegroundProcessDetection?
+) {
+  if (deviceModel.selectedDevice != null) {
+    foregroundProcessDetection?.stopPollingSelectedDevice()
+  }
+  else {
+    processesModel.selectedProcess = null
+  }
+}
+
+/**
  * This class contains information about a foreground process on an Android device.
  */
 data class ForegroundProcess(val pid: Int, val processName: String)

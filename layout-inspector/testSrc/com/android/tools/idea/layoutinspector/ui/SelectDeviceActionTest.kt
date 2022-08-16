@@ -215,22 +215,25 @@ class SelectDeviceActionTest {
   }
 
   @Test
-  fun selectStopInspection_changesStateBasedOnSelectedDevice() {
+  fun selectStopInspection_changesStateBasedOnSelectedDeviceAndSelectedProcess() {
     val testNotifier = TestProcessDiscovery()
-    val model = ProcessesModel(testNotifier) { it.name == "B" }
+    val processesModel = ProcessesModel(testNotifier) { it.name == "B" }
 
     val fakeStream = createFakeStream()
-    val processB = fakeStream.createFakeProcess("B", 101)
-    testNotifier.addDevice(processB.device)
-    testNotifier.fireConnected(processB)
+    val process = fakeStream.createFakeProcess("B", 101)
+    testNotifier.addDevice(process.device)
+    testNotifier.fireConnected(process)
 
-    val deviceModel = DeviceModel(model, setOf(processB.device))
-    deviceModel.selectedDevice = processB.device
+    val deviceModel = DeviceModel(processesModel, setOf(process.device))
     val callbackFiredLatch = CountDownLatch(1)
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, onDetachAction = {
       deviceModel.selectedDevice = null
+      processesModel.selectedProcess = null
       callbackFiredLatch.countDown()
     }, onProcessSelected = {})
+
+    // has selected device, but no selected process
+    deviceModel.selectedDevice = process.device
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectDeviceAction.getChildren(null)
@@ -243,6 +246,7 @@ class SelectDeviceActionTest {
     Truth.assertThat(stop.isEnabled()).isTrue()
     Truth.assertThat(stop.templateText).isEqualTo("Stop Inspector")
 
+    // stop inspector
     stop.actionPerformed(createFakeEvent())
     callbackFiredLatch.await()
 
@@ -252,6 +256,27 @@ class SelectDeviceActionTest {
     stop2 as SelectDeviceAction.DetachInspectorAction
     Truth.assertThat(stop2.templateText).isEqualTo("Stop Inspector")
     Truth.assertThat(stop2.isEnabled()).isFalse()
+
+    // no selected device, but has selected process
+    processesModel.selectedProcess = process
+
+    selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val children3 = selectDeviceAction.getChildren(null)
+    val stop3 = children3[1]
+    stop3 as SelectDeviceAction.DetachInspectorAction
+    Truth.assertThat(stop3.templateText).isEqualTo("Stop Inspector")
+    Truth.assertThat(stop3.isEnabled()).isTrue()
+
+    // stop inspector
+    stop.actionPerformed(createFakeEvent())
+    callbackFiredLatch.await()
+
+    selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val children4 = selectDeviceAction.getChildren(null)
+    val stop4 = children4[1]
+    stop4 as SelectDeviceAction.DetachInspectorAction
+    Truth.assertThat(stop4.templateText).isEqualTo("Stop Inspector")
+    Truth.assertThat(stop4.isEnabled()).isFalse()
   }
 
   @Test
