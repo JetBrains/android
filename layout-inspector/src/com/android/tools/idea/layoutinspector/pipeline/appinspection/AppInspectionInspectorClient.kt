@@ -129,7 +129,7 @@ class AppInspectionInspectorClient(
     )
   }
 
-  private val debugViewAttributes = DebugViewAttributes(model.project, process)
+  private val debugViewAttributes = DebugViewAttributes(model.project)
   private var debugViewAttributesChanged = false
 
   override val capabilities =
@@ -182,7 +182,7 @@ class AppInspectionInspectorClient(
 
       logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-      debugViewAttributesChanged = debugViewAttributes.set()
+      debugViewAttributesChanged = debugViewAttributes.set(process)
       if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
         showActivityRestartedInBanner(model.project, process)
       }
@@ -208,7 +208,7 @@ class AppInspectionInspectorClient(
     // Create a new scope since we might be disconnecting because the original one died.
     model.project.coroutineScope.createChildScope(true).launch(loggingExceptionHandler) {
       if (debugViewAttributesChanged) {
-        debugViewAttributes.clear()
+        debugViewAttributes.clear(process)
       }
       viewInspector?.disconnect()
       composeInspector?.disconnect()

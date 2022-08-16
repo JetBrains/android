@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -32,107 +33,174 @@ class DebugViewAttributesTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
-  private lateinit var debugViewAttributes: DebugViewAttributes
-  private lateinit var processName: String
+  lateinit var process: ProcessDescriptor
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)!!
 
   @Before
   fun before() {
-    val process = MODERN_DEVICE.createProcess()
+    process = MODERN_DEVICE.createProcess()
     val device = process.device
     adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
-
-    debugViewAttributes = DebugViewAttributes(projectRule.project, process)
-    processName = process.name
   }
 
   @Test
-  fun testSetAndClear() {
-    assertThat(debugViewAttributes.set()).isTrue()
+  fun testSetAndClear_perAppSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project)
+
+    assertThat(debugViewAttributes.set(process)).isTrue()
     assertThat(commandHandler.debugViewAttributes).isNull()
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(process.name)
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
-    debugViewAttributes.clear()
+    debugViewAttributes.clear(process)
     assertThat(commandHandler.debugViewAttributes).isNull()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 
   @Test
-  fun testSetAndClearWhenGlobalIsZero() {
+  fun testSetAndClearWhenPerDeviceIsZero_perAppSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project)
     commandHandler.debugViewAttributes = "0"
 
-    assertThat(debugViewAttributes.set()).isTrue()
+    assertThat(debugViewAttributes.set(process)).isTrue()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("0")
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(process.name)
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
-    debugViewAttributes.clear()
+    debugViewAttributes.clear(process)
     assertThat(commandHandler.debugViewAttributes).isEqualTo("0")
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 
   @Test
-  fun testSetAndClearWhenGlobalIsSet() {
+  fun testSetAndClearWhenPerDeviceIsSet_perAppSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project)
     commandHandler.debugViewAttributes = "1"
 
-    assertThat(debugViewAttributes.set()).isFalse()
+    assertThat(debugViewAttributes.set(process)).isFalse()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
 
-    debugViewAttributes.clear()
+    debugViewAttributes.clear(process)
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
   }
 
   @Test
-  fun testSetAndClearWhenAppIsSet() {
-    commandHandler.debugViewAttributesApplicationPackage = processName
+  fun testSetAndClearWhenPerAppIsSet_perAppSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project)
+    commandHandler.debugViewAttributesApplicationPackage = process.name
 
-    assertThat(debugViewAttributes.set()).isFalse()
+    assertThat(debugViewAttributes.set(process)).isFalse()
     assertThat(commandHandler.debugViewAttributes).isNull()
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(process.name)
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
 
-    debugViewAttributes.clear()
+    debugViewAttributes.clear(process)
     assertThat(commandHandler.debugViewAttributes).isNull()
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(process.name)
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
   }
 
   @Test
-  fun testSetAndClearWhenAppIsSetToDifferentProcess() {
+  fun testSetAndClearWhenPerAppIsSetToDifferentProcess_perAppSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project)
     commandHandler.debugViewAttributesApplicationPackage = "com.example.MyOtherApp"
 
-    assertThat(debugViewAttributes.set()).isTrue()
+    assertThat(debugViewAttributes.set(process)).isTrue()
     assertThat(commandHandler.debugViewAttributes).isNull()
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(process.name)
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
-    debugViewAttributes.clear()
+    debugViewAttributes.clear(process)
     assertThat(commandHandler.debugViewAttributes).isNull()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 
   @Test
-  fun testClearWhenAppIsSetToDifferentProcess() {
-    assertThat(debugViewAttributes.set()).isTrue()
+  fun testClearWhenPerAppIsSetToDifferentProcess_perAppSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project)
+
+    assertThat(debugViewAttributes.set(process)).isTrue()
     assertThat(commandHandler.debugViewAttributes).isNull()
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(process.name)
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
     commandHandler.debugViewAttributesApplicationPackage = "com.example.MyOtherApp"
 
-    debugViewAttributes.clear()
+    debugViewAttributes.clear(process)
     assertThat(commandHandler.debugViewAttributes).isNull()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo("com.example.MyOtherApp")
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testSetAndClear_perDeviceSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project, true)
+
+    assertThat(debugViewAttributes.set(process)).isTrue()
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+
+    debugViewAttributes.clear(process)
+    assertThat(commandHandler.debugViewAttributes).isNull()
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
+  }
+
+  @Test
+  fun testSetAndClearWhenPerDeviceIsZero_perDeviceSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project, true)
+    commandHandler.debugViewAttributes = "0"
+
+    assertThat(debugViewAttributes.set(process)).isTrue()
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+
+    debugViewAttributes.clear(process)
+    assertThat(commandHandler.debugViewAttributes).isNull()
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
+  }
+
+  @Test
+  fun testSetAndClearWhenPerDeviceIsSet_perDeviceSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project, true)
+    commandHandler.debugViewAttributes = "1"
+
+    assertThat(debugViewAttributes.set(process)).isFalse()
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
+
+    debugViewAttributes.clear(process)
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
+  }
+
+  @Test
+  fun testSetAndClearWhenPerAppIsSet_perDeviceSetting() {
+    val debugViewAttributes = DebugViewAttributes(projectRule.project, true)
+    commandHandler.debugViewAttributesApplicationPackage = process.name
+
+    assertThat(debugViewAttributes.set(process)).isTrue()
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(process.name)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+
+    debugViewAttributes.clear(process)
+    assertThat(commandHandler.debugViewAttributes).isNull()
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(process.name)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 }

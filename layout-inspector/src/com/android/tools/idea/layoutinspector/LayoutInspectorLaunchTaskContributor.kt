@@ -72,8 +72,8 @@ class LayoutInspectorLaunchTaskContributor : AndroidLaunchTaskContributor {
         override val pid: Int = 0
         override val streamId: Long = 0L
       }
-      val attrs = DebugViewAttributes(project, process)
-      if (attrs.set()) {
+      val attrs = DebugViewAttributes(project)
+      if (attrs.set(process)) {
         launchContext.processHandler.addProcessListener(object : ProcessAdapter() {
           override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
             // TODO(b/195152579) Consider creating a proper API on ProcessListener for debugger attachment
@@ -82,7 +82,7 @@ class LayoutInspectorLaunchTaskContributor : AndroidLaunchTaskContributor {
               launchContext.launchStatus.processHandler.addProcessListener(this)
             }
             else {
-              attrs.clear()
+              attrs.clear(process)
             }
           }
         })
