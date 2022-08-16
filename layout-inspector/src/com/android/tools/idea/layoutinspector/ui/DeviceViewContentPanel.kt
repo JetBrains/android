@@ -124,8 +124,16 @@ class DeviceViewContentPanel(
       emptyText.appendLine("No process connected")
 
       emptyText.appendLine("Deploy your app or ")
+
       @Suppress("DialogTitleCapitalization")
-      emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
+      val text = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
+        "select a device"
+      }
+      else {
+        "select a process"
+      }
+
+      emptyText.appendText(text, SimpleTextAttributes.LINK_ATTRIBUTES) {
         val button = selectTargetAction.getButton()
         val dataContext = DataManager.getInstance().getDataContext(button)
         selectTargetAction.dropDownAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
