@@ -107,10 +107,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
     verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any());
     verify(myProcessor, never()).run();
-    List<SyncMessage> messages = mySyncMessages.getReportedMessages();
-    assertThat(messages).hasSize(1);
-    String message = messages.get(0).getText()[1];
-    assertThat(message).contains("Please update your project to use version 2.0.0.");
   }
 
   // See https://code.google.com/p/android/issues/detail?id=227927
@@ -122,11 +118,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(Messages.CANCEL));
 
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), currentPluginVersion, latestPluginVersion);
-
-    List<SyncMessage> messages = mySyncMessages.getReportedMessages();
-    assertThat(messages).hasSize(1);
-    String message = messages.get(0).getText()[1];
-    assertThat(message).contains("Please update your project to use version 2.0.0.");
 
     verifyNoInteractions(myRefactoringProcessorInstantiator);
     verifyNoInteractions(myProcessor);

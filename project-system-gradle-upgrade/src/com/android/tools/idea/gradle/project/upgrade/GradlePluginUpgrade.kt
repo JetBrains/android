@@ -257,18 +257,6 @@ fun performForcedPluginUpgrade(
       return
     }
   }
-
-  // The user has left the modal upgrade flow without completing an upgrade (maybe through cancel, maybe through preview).
-  val syncMessage = SyncMessage(
-    SyncMessage.DEFAULT_GROUP,
-    ERROR,
-    "The project is using an incompatible version of the ${AndroidPluginInfo.DESCRIPTION}.",
-    "Please update your project to use version $newPluginVersion."
-  )
-  val pluginName = GROUP_ID + GRADLE_PATH_SEPARATOR + ARTIFACT_ID
-  syncMessage.add(SearchInBuildFilesHyperlink(pluginName))
-
-  GradleSyncMessages.getInstance(project).report(syncMessage)
 }
 
 data class GradlePluginUpgradeState(
