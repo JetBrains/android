@@ -651,7 +651,7 @@ internal class EmulatorToolWindowManager private constructor(
         if (!StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
           return null
         }
-        val emulators = RunningEmulatorCatalog.getInstance().emulators
+        val emulators = RunningEmulatorCatalog.getInstance().updateNow().suspendingGet()
         val emulator = emulators.find { "emulator-${it.emulatorId.serialPort}" == deviceSerialNumber }
         if (emulator == null || emulator.emulatorId.isEmbedded) {
           return null
