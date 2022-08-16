@@ -1184,12 +1184,15 @@ public class LayoutlibSceneManager extends SceneManager {
               updateRenderTask(null);
             }
           })
-            .handle((result, exception) ->
-                      result != null ? result : RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception));
+            .handle((result, exception) -> {
+              if (project.isDisposed()) return null;
+              return result != null ? result : RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
+            });
         }
         else {
           updateRenderTask(null);
 
+          if (project.isDisposed()) return CompletableFuture.completedFuture(null);
           return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger));
         }
       })

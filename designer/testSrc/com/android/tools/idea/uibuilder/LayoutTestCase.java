@@ -49,6 +49,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(getTestDataPath());
+    RenderTestUtil.beforeRenderTestCase();
   }
 
   @Override

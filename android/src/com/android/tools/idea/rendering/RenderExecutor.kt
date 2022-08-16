@@ -230,6 +230,8 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
 
   @TestOnly
   fun shutdown(timeoutSeconds: Long) {
+    shutdown()
+
     if (timeoutSeconds > 0) {
       try {
         renderingExecutor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS)
@@ -238,8 +240,6 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
         Logger.getInstance(RenderExecutor::class.java).warn("The RenderExecutor does not shutdown after $timeoutSeconds seconds")
       }
     }
-
-    shutdown()
   }
 
   /**
