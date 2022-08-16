@@ -44,10 +44,6 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
     assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
 
-    long generation = resources.getModificationCount();
-    myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
-    assertEquals(generation, resources.getModificationCount());
-
     VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout3.xml");
     waitForUpdates(resources);
     PsiFile psiFile3 = PsiManager.getInstance(getProject()).findFile(file3);
