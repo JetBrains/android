@@ -77,11 +77,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.isModified());
     mySettings.ENABLE_PARALLEL_SYNC = true;
     assertFalse(myConfigurable.isModified());
-
-    myConfigurable.setEnableVersionCatalogParsing(false);
-    assertTrue(myConfigurable.isModified());
-    myConfigurable.setEnableVersionCatalogParsing(true);
-    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
