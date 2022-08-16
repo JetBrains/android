@@ -69,6 +69,7 @@ import org.HdrHistogram.Histogram
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.EventQueue
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.MouseInfo
@@ -342,7 +343,7 @@ class EmulatorView(
   }
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
-    invokeLaterInAnyModalityState {
+    EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
       updateConnectionState(connectionState)
     }
   }
@@ -601,7 +602,7 @@ class EmulatorView(
         return // This notification feed has already been cancelled.
       }
 
-      invokeLaterInAnyModalityState {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         when (response.event) {
           VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
           VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
@@ -890,7 +891,7 @@ class EmulatorView(
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.
       if (imageRotation != orientationQuadrants) {
-        invokeLaterInAnyModalityState {
+        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
           requestScreenshotFeed(currentDisplaySize, imageRotation)
         }
         expectedFrameNumber++
@@ -901,7 +902,7 @@ class EmulatorView(
       // a fresh feed for the accurate rotation.
       if (imageFormat.displayMode != displayMode?.displayModeId) {
         if (displayMode != null) {
-          invokeLaterInAnyModalityState {
+          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             requestScreenshotFeed(displayMode.displaySize, imageRotation)
           }
           expectedFrameNumber++
@@ -988,7 +989,7 @@ class EmulatorView(
     private fun updateDisplayImageOnUiThread(screenshot: Screenshot) {
       screenshotForDisplay.set(screenshot)
 
-      invokeLaterInAnyModalityState {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         // If the screenshot feed has not been cancelled, update the display image.
         if (screenshotReceiver == this) {
           updateDisplayImage()
