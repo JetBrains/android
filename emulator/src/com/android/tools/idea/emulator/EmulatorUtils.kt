@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.ThemingStyle
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.util.concurrency.SameThreadExecutor
@@ -49,13 +46,6 @@ internal fun getEmulatorUiTheme(lafManager: LafManager): ThemingStyle.Style {
     themeName.contains("Light", ignoreCase = true) -> ThemingStyle.Style.LIGHT
     else -> ThemingStyle.Style.DARK // Darcula and custom themes that are based on Darcula.
   }
-}
-
-/**
- * Invokes given function on the UI thread regardless of the modality state.
- */
-internal fun invokeLaterInAnyModalityState(@UiThread action: () -> Unit) {
-  ApplicationManager.getApplication().invokeLater(action, ModalityState.any())
 }
 
 /**
