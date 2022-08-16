@@ -41,6 +41,8 @@ iml_test(
         "//tools/base/build-system:gradle-distrib-7.3.3",
     ],
     module = ":intellij.android.projectSystem.integration.tests",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexLintTest",
 )
 

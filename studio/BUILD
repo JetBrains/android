@@ -811,6 +811,8 @@ iml_test(
         ],
     }),
     module = ":intellij.android.studio.integration",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.StartUpTest",
 )
 
@@ -831,6 +833,8 @@ iml_test(
         ":updater.jar",
     ],
     module = ":intellij.android.studio.integration",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.UpdateTest",
 )
 

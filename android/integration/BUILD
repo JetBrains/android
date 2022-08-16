@@ -37,9 +37,8 @@ iml_test(
         "//tools/base/build-system:gradle-distrib-7.2",
     ],
     module = ":intellij.android.core.integration",
-    tags = [
-        "block-network",
-    ],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.OpenProjectTest",
 )
 
@@ -51,9 +50,10 @@ iml_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = [
+    tags_linux = ["block-network"],
+    tags_windows = [
         "block-network",
-        "no_windows",  # RBE environment doesn't allow emulation (requires nested virtualization).
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.idea.EmulatorTest",
 )
@@ -66,12 +66,9 @@ iml_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = [
-        "block-network",
-        "manual",  # Adb startup error: "could not install *smartsocket* listener: Address already in use"
-        "no_mac",  # Same issue as Emulator test (path issues)
-        "no_windows",  # Same issue as Emulator test (path issues)
-    ],
+    tags = ["manual"],  # Adb startup error: "could not install *smartsocket* listener: Address already in use"
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.AdbServerConnectionTest",
 )
 
@@ -86,10 +83,11 @@ iml_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = [
+    tags_linux = ["block-network"],
+    tags_mac = ["manual"],  # Untested
+    tags_windows = [
         "block-network",
-        "no_mac",  # Untested
-        "no_windows",  # Untested
+        "manual",  # Untested
     ],
     test_class = "com.android.tools.idea.EmulatorBeforeStudioTest",
 )
@@ -105,11 +103,14 @@ iml_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = [
+    tags_linux = [
         "block-network",
         "manual",  # Test occasionally fails because emulator can't fully boot
-        "no_mac",  # Untested
-        "no_windows",  # Untested
+    ],
+    tags_mac = ["manual"],  # Untested
+    tags_windows = [
+        "block-network",
+        "manual",  # Untested
     ],
     test_class = "com.android.tools.idea.EmulatorAfterStudioTest",
 )
@@ -124,6 +125,7 @@ iml_test(
         "@platforms//os:macos": [
             "//tools/adt/idea/studio:android-studio.mac.zip",
         ],
+        "//conditions:default": [],
     }) + [
         ":buildproject_deps",
         ":minapp",
@@ -134,10 +136,11 @@ iml_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = [
+    tags_linux = ["block-network"],
+    tags_mac = ["manual"],  # Untested
+    tags_windows = [
         "block-network",
-        "no_mac",  # Untested
-        "no_windows",  # Untested
+        "manual",  # Untested
     ],
     test_class = "com.android.tools.idea.BuildAndRunTest",
 )
@@ -174,9 +177,8 @@ iml_test(
         "//tools/base/build-system:gradle-distrib-7.2",
     ],
     module = ":intellij.android.core.integration",
-    tags = [
-        "block-network",
-    ],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.BuildProjectTest",
 )
 

@@ -1,5 +1,4 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
@@ -179,6 +178,7 @@ compose_preview_data = select({
     "@platforms//os:linux": [
         "//tools/adt/idea/studio:android-studio.linux.zip",
     ],
+    "//conditions:default": [],
 }) + [
     ":compose_preview_deps",
     "//prebuilts/studio/sdk:build-tools/latest",
@@ -214,10 +214,11 @@ iml_test(
     timeout = "long",
     data = compose_preview_data,
     module = ":intellij.android.compose-designer.integration",
-    tags = [
+    tags_linux = ["block-network"],
+    tags_mac = ["manual"],  # Untested
+    tags_windows = [
         "block-network",
-        "no_mac",  # Untested.
-        "no_windows",  # Untested.
+        "manual",  # Untested
     ],
     test_class = "com.android.tools.idea.compose.ComposePreviewKotlin",
 )
@@ -227,10 +228,11 @@ iml_test(
     timeout = "long",
     data = compose_preview_data,
     module = ":intellij.android.compose-designer.integration",
-    tags = [
+    tags_linux = ["block-network"],
+    tags_mac = ["manual"],  # Untested
+    tags_windows = [
         "block-network",
-        "no_mac",  # Untested.
-        "no_windows",  # Untested.
+        "manual",  # Untested
     ],
     test_class = "com.android.tools.idea.compose.ComposePreviewXml",
 )
