@@ -19,6 +19,7 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -82,7 +83,7 @@ private val HQ_RENDERING_HINTS = mapOf(
 )
 
 // We use a generic DropDownAction container because actions can be [SelectDeviceAction] or [SelectProcessAction].
-data class DropDownActionWithButton(val dropDownAction: DropDownAction, val button: JComponent?)
+data class DropDownActionWithButton(val dropDownAction: DropDownAction, val getButton: () -> JComponent?)
 
 class DeviceViewContentPanel(
   val inspectorModel: InspectorModel,
@@ -119,18 +120,21 @@ class DeviceViewContentPanel(
     processNotDebuggableText.appendLine("Application not inspectable.")
     processNotDebuggableText.appendLine("Switch to a debuggable application on your device to inspect.")
 
-    selectTargetAction?.let { selectDeviceAction ->
+    selectTargetAction?.let { selectTargetAction ->
       emptyText.appendLine("No process connected")
 
       emptyText.appendLine("Deploy your app or ")
       @Suppress("DialogTitleCapitalization")
       emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
-        val button = selectDeviceAction.button
+        val button = selectTargetAction.getButton()
         val dataContext = DataManager.getInstance().getDataContext(button)
-        selectDeviceAction.dropDownAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
-        val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectDeviceAction.dropDownAction.templatePresentation,
-                                                        dataContext)
-        selectDeviceAction.dropDownAction.actionPerformed(event)
+        selectTargetAction.dropDownAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
+        val event = AnActionEvent.createFromDataContext(
+          ActionPlaces.TOOLWINDOW_CONTENT,
+          selectTargetAction.dropDownAction.templatePresentation,
+          dataContext
+        )
+        selectTargetAction.dropDownAction.actionPerformed(event)
       }
       @Suppress("DialogTitleCapitalization")
       emptyText.appendText(" to begin inspection.")

@@ -613,7 +613,7 @@ class DeviceViewContentPanelTest {
     treeSettings.hideSystemNodes = false
     val selectProcessAction = mock<SelectProcessAction>()
     whenever(selectProcessAction.templatePresentation).thenReturn(mock())
-    val dropDownActionWithButton = DropDownActionWithButton(selectProcessAction, null)
+    val dropDownActionWithButton = DropDownActionWithButton(selectProcessAction) { null }
     val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { client }, mock(), dropDownActionWithButton,
                                        disposable.disposable)
     panel.setSize(200, 200)

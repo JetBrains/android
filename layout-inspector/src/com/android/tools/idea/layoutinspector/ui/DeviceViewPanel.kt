@@ -175,7 +175,7 @@ class DeviceViewPanel(
       null
     }
     else {
-      DropDownActionWithButton(selectDeviceAction, selectDeviceAction.button)
+      DropDownActionWithButton(selectDeviceAction) { selectDeviceAction.button }
     }
   }
   else {
@@ -183,7 +183,7 @@ class DeviceViewPanel(
       null
     }
     else {
-      DropDownActionWithButton(selectProcessAction, selectProcessAction.button)
+      DropDownActionWithButton(selectProcessAction) { selectProcessAction.button }
     }
   }
 
