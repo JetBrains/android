@@ -50,9 +50,8 @@ import org.jetbrains.annotations.NotNull;
 public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
 
   public ConnectJavaDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                 @NotNull Project project,
-                                 boolean attachToRunningProcess) {
-    super(applicationIdProvider, project, attachToRunningProcess);
+                                 @NotNull Project project) {
+    super(applicationIdProvider, project);
   }
 
   @Override

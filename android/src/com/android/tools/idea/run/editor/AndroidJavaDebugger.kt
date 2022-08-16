@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.AndroidProjectTypes
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.tools.idea.model.AndroidModel
@@ -58,8 +57,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
     state: AndroidDebuggerState
   ): ConnectDebuggerTask {
     val baseConnector = ConnectJavaDebuggerTask(
-      applicationIdProvider, env.project,
-      facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
+      applicationIdProvider, env.project
     )
     if (env.runProfile is AndroidRunConfiguration) {
       return baseConnector

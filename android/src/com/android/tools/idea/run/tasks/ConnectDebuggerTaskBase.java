@@ -21,7 +21,6 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
@@ -43,13 +42,10 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
   // The first entry in the list contains the main package name, and an optional second entry contains test package name.
   @NotNull protected final List<String> myApplicationIds;
   @NotNull protected final Project myProject;
-  protected final boolean myAttachToRunningProcess;
 
   protected ConnectDebuggerTaskBase(@NotNull ApplicationIdProvider applicationIdProvider,
-                                    @NotNull Project project,
-                                    boolean attachToRunningProcess) {
+                                    @NotNull Project project) {
     myProject = project;
-    myAttachToRunningProcess = attachToRunningProcess;
 
     myApplicationIds = new LinkedList<>();
 
@@ -129,10 +125,6 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
   @VisibleForTesting // Allow unit tests to avoid actually sleeping.
   protected void sleep(long sleepFor, @NotNull TimeUnit unit) {
     Uninterruptibles.sleepUninterruptibly(sleepFor, unit);
-  }
-
-  public boolean isReadyForDebugging(@NotNull Client client, @NotNull ConsolePrinter printer) {
-    return true;
   }
 
   public abstract void launchDebugger(@NotNull LaunchInfo currentLaunchInfo,

@@ -136,7 +136,7 @@ class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
 }
 
 class TestConnectDebuggerTask(project: Project, applicationIdProvider: ApplicationIdProvider)
-  : ConnectDebuggerTaskBase(applicationIdProvider, project, false) {
+  : ConnectDebuggerTaskBase(applicationIdProvider, project) {
   var launchInvocations = 0
 
   override fun launchDebugger(currentLaunchInfo: LaunchInfo,
