@@ -90,7 +90,11 @@ class CoroutinesUtilsTest {
       job.join()
 
       // Assert
-      Assert.assertNull(result)
+      try {
+        Assert.assertNull(result)
+      } finally {
+        Disposer.dispose(disposable);
+      }
     }
   }
 
@@ -154,7 +158,11 @@ class CoroutinesUtilsTest {
       scope.cancel()
 
       // Assert
-      Assert.assertFalse(disposable.isDisposed)
+      try {
+        Assert.assertFalse(disposable.isDisposed)
+      } finally {
+        Disposer.dispose(disposable)
+      }
     }
   }
 }
