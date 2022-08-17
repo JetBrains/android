@@ -43,6 +43,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -80,6 +81,8 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 
 class ComposePreviewRepresentationGradleTest {
+  private val logger = Logger.getInstance(ComposePreviewRepresentationGradleTest::class.java)
+
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
   @get:Rule
@@ -96,6 +99,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @Before
   fun setUp() {
+    logger.info("setUp")
     psiMainFile = getPsiFile(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)
     previewView = TestComposePreviewView(fixture.testRootDisposable, project)
     composePreviewRepresentation = createComposePreviewRepresentation(psiMainFile, previewView)
@@ -125,14 +129,17 @@ class ComposePreviewRepresentationGradleTest {
     assertTrue(!composePreviewRepresentation.status().isOutOfDate)
 
     validate()
+    logger.info("setUp completed")
   }
 
   /**
    * Wait for any running refreshes to complete.
    */
   private fun waitForRefreshToFinish() = runBlocking {
+    logger.info("waitForRefreshToFinish")
     // Wait for refresh to finish
     while (composePreviewRepresentation.status().isRefreshing) delay(500)
+    logger.info("Refresh completed")
   }
 
   /**
@@ -160,12 +167,16 @@ class ComposePreviewRepresentationGradleTest {
    * happened.
    */
   private fun runAndWaitForRefresh(timeout: Duration = Duration.ofSeconds(40), runnable: () -> Unit) = runBlocking {
+    logger.info("runAndWaitForRefresh")
     // Wait for any on going refreshes to finish
     waitForRefreshToFinish()
     val onRefreshCompletable = previewView.getOnRefreshCompletable()
+    logger.info("runAndWaitForRefresh: Starting runnable")
     runnable()
+    logger.info("runAndWaitForRefresh: Runnable executed")
     withTimeout(timeout.toMillis()) {
       onRefreshCompletable.await()
+      logger.info("runAndWaitForRefresh: Refresh completed")
     }
     waitForRefreshToFinish()
   }
@@ -174,24 +185,32 @@ class ComposePreviewRepresentationGradleTest {
    * Runs the [runnable]. The [runnable] is expected to trigger a fast preview refresh
    */
   private fun runAndWaitForFastRefresh(timeout: Duration = Duration.ofSeconds(40), runnable: () -> Unit) = runBlocking {
+    logger.info("runAndWaitForFastRefresh")
     val fastPreviewManager = FastPreviewManager.getInstance(project)
 
     assertTrue("FastPreviewManager must be enabled", fastPreviewManager.isEnabled)
 
     val compileDeferred = CompletableDeferred<Unit>()
     val fastPreviewManagerListener = object: FastPreviewManager.Companion.FastPreviewManagerListener {
-      override fun onCompilationStarted(files: Collection<PsiFile>) {}
+      override fun onCompilationStarted(files: Collection<PsiFile>) {
+        logger.info("runAndWaitForFastRefresh: onCompilationStarted")
+      }
 
       override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
+        logger.info("runAndWaitForFastRefresh: onCompilationComplete $result")
         if (result == CompilationResult.Success) compileDeferred.complete(Unit)
       }
 
     }
     fastPreviewManager.addListener(fixture.testRootDisposable, fastPreviewManagerListener)
     withTimeout(timeout.toMillis()) {
+      logger.info("runAndWaitForFastRefresh: Waiting for any previous compilations to complete")
       while (FastPreviewManager.getInstance(project).isCompiling) delay(50)
+      logger.info("runAndWaitForFastRefresh: Executing runnable")
       runnable()
+      logger.info("runAndWaitForFastRefresh: Runnable executed")
       compileDeferred.await()
+      logger.info("runAndWaitForFastRefresh: Compilation finished")
     }
   }
 
@@ -199,6 +218,7 @@ class ComposePreviewRepresentationGradleTest {
    * Builds the project and waits for the preview panel to refresh. It also does zoom to fit.
    */
   private fun buildAndRefresh() {
+    logger.info("buildAndRefresh")
     runAndWaitForRefresh {
       projectRule.buildAndAssertIsSuccessful()
     }
