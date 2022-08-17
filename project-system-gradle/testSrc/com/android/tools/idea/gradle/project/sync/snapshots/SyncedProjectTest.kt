@@ -225,7 +225,6 @@ abstract class SyncedProjectTest(
   fun testKotlinGradleDsl() = testProject(TestProject.KOTLIN_GRADLE_DSL)
 
   @Test
-  @Ignore("b/237389151")
   fun testNewSyncKotlinTest() = testProject(TestProject.NEW_SYNC_KOTLIN_TEST)
 
   @Test
