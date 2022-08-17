@@ -399,6 +399,14 @@
     <option name="open" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="studio" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="to" path="ActionManager" hit="Open Asset Studio to create an image asset" />
+    <option name="analyzer" path="ActionManager" hit="Open Build Analyzer (require successful build to show report)." />
+    <option name="build" path="ActionManager" hit="Open Build Analyzer (require successful build to show report)." />
+    <option name="open" path="ActionManager" hit="Open Build Analyzer (require successful build to show report)." />
+    <option name="report" path="ActionManager" hit="Open Build Analyzer (require successful build to show report)." />
+    <option name="require" path="ActionManager" hit="Open Build Analyzer (require successful build to show report)." />
+    <option name="show" path="ActionManager" hit="Open Build Analyzer (require successful build to show report)." />
+    <option name="successful" path="ActionManager" hit="Open Build Analyzer (require successful build to show report)." />
+    <option name="to" path="ActionManager" hit="Open Build Analyzer (require successful build to show report)." />
     <option name="a" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
     <option name="analyzer" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
     <option name="build" path="ActionManager" hit="Open Build Analyzer on a past build's results" />
@@ -443,14 +451,6 @@
     <option name="resource" path="ActionManager" hit="Open the Resource Manager" />
     <option name="the" path="ActionManager" hit="Open the Resource Manager" />
     <option name="open" path="ActionManager" hit="Open..." />
-    <option name="analyzer" path="ActionManager" hit="Opens Build Analyzer (requires successful build to show report)." />
-    <option name="build" path="ActionManager" hit="Opens Build Analyzer (requires successful build to show report)." />
-    <option name="opens" path="ActionManager" hit="Opens Build Analyzer (requires successful build to show report)." />
-    <option name="report" path="ActionManager" hit="Opens Build Analyzer (requires successful build to show report)." />
-    <option name="requires" path="ActionManager" hit="Opens Build Analyzer (requires successful build to show report)." />
-    <option name="show" path="ActionManager" hit="Opens Build Analyzer (requires successful build to show report)." />
-    <option name="successful" path="ActionManager" hit="Opens Build Analyzer (requires successful build to show report)." />
-    <option name="to" path="ActionManager" hit="Opens Build Analyzer (requires successful build to show report)." />
     <option name="assistant" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
     <option name="emulator" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
     <option name="opens" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />

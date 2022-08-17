@@ -33,7 +33,7 @@
     <group text="Build Analyzer" popup="true">
       <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerAction"
               class="com.android.build.attribution.ui.OpenBuildAnalyzerAction"
-              description = "Opens Build Analyzer (requires successful build to show report).">
+              description = "Open Build Analyzer (require successful build to show report).">
       </action>
       <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerResultsAction"
               class="com.android.build.attribution.ui.OpenBuildAnalyzerResultsAction"
