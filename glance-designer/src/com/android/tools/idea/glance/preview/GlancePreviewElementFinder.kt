@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import org.jetbrains.kotlin.idea.caches.resolve.util.isInDumbMode
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
@@ -111,14 +112,18 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       methodsToElements
     )
 
-  override fun hasPreviewElements(project: Project, vFile: VirtualFile) =
-    hasAnnotations(
+  override fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
+    if (project.isInDumbMode()) {
+      return false
+    }
+    return hasAnnotations(
       project,
       vFile,
       setOf(GLANCE_PREVIEW_ANNOTATION_FQN),
       GLANCE_PREVIEW_ANNOTATION_NAME,
       glanceSurfaceKtAnnotationFilter
     )
+  }
 }
 
 /** Object that finds Glance App Widget preview elements in the (Kotlin) file. */
