@@ -31,6 +31,9 @@ import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.dnd.DnDAction
+import com.intellij.ide.dnd.DnDEvent
+import com.intellij.ide.dnd.DnDNativeTarget
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -44,7 +47,6 @@ import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.never
@@ -57,11 +59,6 @@ import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.RenderingHints
-import java.awt.dnd.DnDConstants
-import java.awt.dnd.DropTarget
-import java.awt.dnd.DropTargetContext
-import java.awt.dnd.DropTargetDragEvent
-import java.awt.dnd.DropTargetDropEvent
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
@@ -119,24 +116,29 @@ class TreeTableDropTargetHandlerTest {
   fun testDragEnter() {
     val table = createTreeTable()
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDropTargetDragEvent(table, Point(10, table.rowHeight - 2))
-    handler.dragEnter(event)
+    val event1 = createDnDEvent(Point(10, table.rowHeight - 2))
+    handler.update(event1)
     checkPaint(table, handler, 0, 1)
     verify(table).repaint()
-    verify(event, never()).acceptDrag(anyInt())
+    verify(event1).isDropPossible = true
+
+    // Move the cursor slightly and verify the same markings in the tree:
+    val event2 = createDnDEvent(Point(11, table.rowHeight - 3))
+    handler.update(event2)
+    checkPaint(table, handler, 0, 1)
+    verify(table).repaint()
+    verify(event2).isDropPossible = true
   }
 
   @Test
   fun testDragExitResetsInsertionRow() {
     val table = createTreeTable()
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDropTargetDragEvent(table, Point(10, table.rowHeight - 2))
-    handler.dragEnter(event)
+    val event = createDnDEvent(Point(10, table.rowHeight - 2))
+    handler.update(event)
     checkPaint(table, handler, 0, 1)
     verify(table).repaint()
-    verify(event, never()).acceptDrag(anyInt())
-
-    handler.dragExit(event)
+    handler.reset()
     checkNoPaint(handler)
     verify(table, times(2)).repaint()
   }
@@ -145,18 +147,18 @@ class TreeTableDropTargetHandlerTest {
   fun testDragOverBadgeResetsInsertionRow() {
     val table = createTreeTable()
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDropTargetDragEvent(table, Point(10, table.rowHeight - 2))
-    handler.dragEnter(event)
+    val event1 = createDnDEvent(Point(10, table.rowHeight - 2))
+    handler.update(event1)
     checkPaint(table, handler, 0, 1)
     verify(table).repaint()
-    verify(event, never()).acceptDrag(anyInt())
+    verify(event1).isDropPossible = true
 
     val rect = table.getCellRect(0, 1, true)
-    event.location.x = rect.x + rect.width / 2
-    handler.dragOver(event)
+    val event2 = createDnDEvent(Point(rect.x + rect.width / 2, table.rowHeight - 2))
+    handler.update(event2)
     checkNoPaint(handler)
     verify(table, times(2)).repaint()
-    verify(event).acceptDrag(eq(DnDConstants.ACTION_NONE))
+    verify(event2).isDropPossible = false
   }
 
   @Test
@@ -164,11 +166,11 @@ class TreeTableDropTargetHandlerTest {
     val table = createTreeTable()
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDropTargetDragEvent(table, Point(10, 5 * rowHeight - 3))
-    handler.dragOver(event)
+    val event = createDnDEvent(Point(10, 5 * rowHeight - 3))
+    handler.update(event)
     checkPaint(table, handler, 3, 5)
     verify(table).repaint()
-    verify(event, never()).acceptDrag(anyInt())
+    verify(event).isDropPossible = true
   }
 
   @Test
@@ -179,25 +181,25 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
-    handler.dragOver(event)
+    val event1 = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3))
+    handler.update(event1)
     checkPaint(table, handler, 3, 6)
     verify(table).repaint()
-    verify(event, never()).acceptDrag(anyInt())
+    verify(event1).isDropPossible = true
 
     // Moving the mouse to the left will cause a receiver higher in the hierarchy to be selected as the receiver
-    event.location.x = depth3 + 3
-    handler.dragOver(event)
+    val event2 = createDnDEvent(Point(depth3 + 3, 6 * rowHeight - 3))
+    handler.update(event2)
     checkPaint(table, handler, 1, 6)
     verify(table, times(2)).repaint()
-    verify(event, never()).acceptDrag(anyInt())
+    verify(event2).isDropPossible = true
 
     // Moving the mouse more to the left will cause a receiver even higher in the hierarchy to be selected as the receiver
-    event.location.x = depth2 + 3
-    handler.dragOver(event)
+    val event3 = createDnDEvent(Point(depth2 + 3, 6 * rowHeight - 3))
+    handler.update(event3)
     checkPaint(table, handler, 0, 6)
     verify(table, times(3)).repaint()
-    verify(event, never()).acceptDrag(anyInt())
+    verify(event3).isDropPossible = true
   }
 
   @Test
@@ -209,11 +211,11 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
-    handler.dragOver(event)
+    val event = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3))
+    handler.update(event)
     checkNoPaint(handler)
     verify(table, never()).repaint()
-    verify(event).acceptDrag(eq(DnDConstants.ACTION_NONE))
+    verify(event).isDropPossible = false
   }
 
   @Test
@@ -222,14 +224,14 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf(item2)) // We are dragging item2 to the end
-    val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
+    val event = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3))
 
     // Even though the drag location specify item3,
     // the dragged item2 should not be accepted in item3 or item2, but can be accepted in item1.
-    handler.dragOver(event)
+    handler.update(event)
     checkPaint(table, handler, 0, 6)
     verify(table).repaint()
-    verify(event, never()).acceptDrag(anyInt())
+    verify(event).isDropPossible = true
   }
 
   @Test
@@ -239,14 +241,14 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
-    handler.dragOver(event)
-    checkPaint(table, handler, 3, 6)
+    val event = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3))
+    handler.update(event)
+    verify(event).isDropPossible = true
   }
 
   @Test
   fun testDropOnMove() {
-    val draggedItems = tryNormalDrop(DnDConstants.ACTION_MOVE, deleteOriginOfInternalMove = false)
+    val draggedItems = tryNormalDrop(DnDAction.MOVE, deleteOriginOfInternalMove = false)
 
     // The draggedItems should be reset such that the transferHandler doesn't delete them
     assertThat(draggedItems).isEmpty()
@@ -254,7 +256,7 @@ class TreeTableDropTargetHandlerTest {
 
   @Test
   fun testDropOnMoveWithDeleteOriginOfInternalMove() {
-    val draggedItems = tryNormalDrop(DnDConstants.ACTION_MOVE, deleteOriginOfInternalMove = true)
+    val draggedItems = tryNormalDrop(DnDAction.MOVE, deleteOriginOfInternalMove = true)
 
     // The draggedItems should not be changed, since the transfer handler should delete the moved items
     assertThat(draggedItems).hasSize(2)
@@ -262,27 +264,26 @@ class TreeTableDropTargetHandlerTest {
 
   @Test
   fun testDropOnCopy() {
-    val draggedItems = tryNormalDrop(DnDConstants.ACTION_COPY)
+    val draggedItems = tryNormalDrop(DnDAction.COPY)
 
     // The draggedItems should not be changed, since the transfer handler will not delete on a copy
     assertThat(draggedItems).hasSize(2)
   }
 
-  private fun tryNormalDrop(action: Int, deleteOriginOfInternalMove: Boolean = false): List<Any> {
+  private fun tryNormalDrop(action: DnDAction, deleteOriginOfInternalMove: Boolean = false): List<Any> {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val draggedItems = mutableListOf<Any>(item3, item6)
     val handler = TreeTableDropTargetHandler(table, deleteOriginOfInternalMove, draggedItems)
-    val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
-    handler.dragOver(event)
+    val event = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3), action)
+    handler.update(event)
     checkPaint(table, handler, 3, 6)
+    verify(event).isDropPossible = true
 
     // Move item3 & item6 to the end of item4
-    val dropEvent: DropTargetDropEvent = mock()
-    whenever(dropEvent.dropAction).thenReturn(action)
-    whenever(dropEvent.transferable).thenReturn(mock())
-    handler.drop(dropEvent)
+    handler.tryDrop(event)
+
     checkNoPaint(handler)
     verify(table, times(2)).repaint()
     assertThat(item4.insertions).hasSize(1)
@@ -298,19 +299,15 @@ class TreeTableDropTargetHandlerTest {
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
     val handler = TreeTableDropTargetHandler(table, false, mutableListOf())
-    val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
-    handler.dragOver(event)
-    verify(event, never()).acceptDrag(anyInt())
+    val event = createDnDEvent(Point(depth4 + 3, 6 * rowHeight - 3))
+    handler.update(event)
     checkPaint(table, handler, 3, 6)
+    verify(table).repaint()
+    verify(event).isDropPossible = true
 
-    val dropEvent: DropTargetDropEvent = mock()
-    whenever(dropEvent.dropAction).thenReturn(DnDConstants.ACTION_MOVE)
-    whenever(dropEvent.transferable).thenReturn(mock())
-    handler.drop(dropEvent)
+    handler.tryDrop(event)
     checkNoPaint(handler)
     verify(table, times(2)).repaint()
-    verify(dropEvent, never()).acceptDrop(anyInt())
-    verify(dropEvent, never()).dropComplete(any())
   }
 
   @Test
@@ -320,21 +317,19 @@ class TreeTableDropTargetHandlerTest {
     val rowHeight = table.rowHeight
     val draggedItems = mutableListOf<Any>(item5)
     val handler = TreeTableDropTargetHandler(table, false, draggedItems) // We are dragging item5 to just before itself
-    val event = createDropTargetDragEvent(table, Point(depth4 + 3, 4 * rowHeight + 2))
-    handler.dragOver(event)
+    val event = createDnDEvent(Point(depth4 + 3, 4 * rowHeight + 2))
+    handler.update(event)
     checkPaint(table, handler, 3, 4)
+    verify(table).repaint()
+    verify(event).isDropPossible = true
 
-    val dropEvent: DropTargetDropEvent = mock()
-    whenever(dropEvent.dropAction).thenReturn(DnDConstants.ACTION_MOVE)
-    whenever(dropEvent.transferable).thenReturn(mock())
-    handler.drop(dropEvent)
+    handler.tryDrop(event)
     checkNoPaint(handler)
     verify(table, times(2)).repaint()
+
     // Verify the moved item (item5) was moved into item4 before item6
     assertThat(item4.insertions).hasSize(1)
-    checkInsertion(item4.insertions[0], item6, DnDConstants.ACTION_MOVE, listOf(item5))
-    verify(dropEvent).acceptDrop(eq(DnDConstants.ACTION_MOVE))
-    verify(dropEvent).dropComplete(eq(true))
+    checkInsertion(item4.insertions[0], item6, DnDAction.MOVE, listOf(item5))
     assertThat(draggedItems).isEmpty()
   }
 
@@ -365,10 +360,10 @@ class TreeTableDropTargetHandlerTest {
     }
   }
 
-  private fun checkInsertion(insertion: Item.Insertion, before: Any?, action: Int, dragged: List<Any>) {
-    assertThat(insertion.before).isSameAs(before)
-    assertThat(insertion.isMove).isEqualTo(action == DnDConstants.ACTION_MOVE)
-    assertThat(insertion.draggedFromTree).containsExactlyElementsIn(dragged).inOrder()
+  private fun checkInsertion(insertion: Item.Insertion, before: Any?, action: DnDAction, dragged: List<Any>) {
+   assertThat(insertion.before).isSameAs(before)
+   assertThat(insertion.isMove).isEqualTo(action == DnDAction.MOVE)
+   assertThat(insertion.draggedFromTree).containsExactlyElementsIn(dragged).inOrder()
   }
 
   private fun createTreeTable(): TreeTableImpl {
@@ -391,18 +386,17 @@ class TreeTableDropTargetHandlerTest {
       .withBadgeSupport(badgeItem)
       .withoutTreeSearch()
       .withInvokeLaterOption { it.run() }
+      .withDnD()
       .build()
   }
 
-  private fun createDropTargetDragEvent(component: JComponent, location: Point): DropTargetDragEvent {
-    val dropTarget: DropTarget = mock() // The constructor is throwing HeadlessException
-    val context: DropTargetContext = mock()
-    whenever(dropTarget.component).thenReturn(component)
-    whenever(dropTarget.dropTargetContext).thenReturn(context)
-    whenever(context.dropTarget).thenReturn(dropTarget)
-    whenever(context.component).thenReturn(component)
-    val event = spy(DropTargetDragEvent(dropTarget.dropTargetContext, location, DnDConstants.ACTION_MOVE, DnDConstants.ACTION_COPY_OR_MOVE))
-    whenever(event.transferable).thenReturn(mock())
+  private fun createDnDEvent(location: Point, action: DnDAction = DnDAction.MOVE): DnDEvent {
+    val attachedObject: DnDNativeTarget.EventInfo = mock()
+    whenever(attachedObject.transferable).thenReturn(mock())
+    val event: DnDEvent = mock()
+    whenever(event.action).thenReturn(action)
+    whenever(event.point).thenReturn(location)
+    whenever(event.attachedObject).thenReturn(attachedObject)
     return event
   }
 }

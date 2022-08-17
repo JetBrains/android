@@ -30,7 +30,6 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
-import java.awt.GraphicsEnvironment
 import java.awt.datatransfer.Transferable
 import javax.swing.JComponent
 import javax.swing.ScrollPaneConstants
@@ -221,7 +220,7 @@ class ComponentTreeBuilder {
     val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
                               installTreeSearch, headerRenderer)
     table.name = componentName // For UI tests
-    if (dndSupport && !GraphicsEnvironment.isHeadless()) {
+    if (dndSupport) {
       table.enableDnD(dndMerger, dndDeleteOriginOfInternalMove)
     }
     dataProvider?.let { DataManager.registerDataProvider(table, it) }

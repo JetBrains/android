@@ -15,6 +15,11 @@
  */
 package com.android.tools.componenttree.treetable
 
+import com.intellij.ide.dnd.DnDAction
+import com.intellij.ide.dnd.DnDDropHandler
+import com.intellij.ide.dnd.DnDEvent
+import com.intellij.ide.dnd.DnDNativeTarget
+import com.intellij.ide.dnd.DnDTargetChecker
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
@@ -27,18 +32,13 @@ import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.Stroke
 import java.awt.datatransfer.Transferable
-import java.awt.dnd.DnDConstants
-import java.awt.dnd.DropTargetDragEvent
-import java.awt.dnd.DropTargetDropEvent
-import java.awt.dnd.DropTargetEvent
-import java.awt.dnd.DropTargetListener
 import javax.swing.tree.TreePath
 
 class TreeTableDropTargetHandler(
   private val table: TreeTableImpl,
   private val deleteOriginOfInternalMove: Boolean,
   private val draggedItems: MutableList<Any>
-) : DropTargetListener {
+) : DnDDropHandler.WithResult, DnDTargetChecker {
   private var lineColor = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(true), 10)
   private var dashedStroke = createDashStroke()
   private var insertionRow = -1
@@ -46,25 +46,11 @@ class TreeTableDropTargetHandler(
   private var insertionBounds: Rectangle? = null
   private var receiverRow = -1
   private var receiverBounds: Rectangle? = null
+  private var lastDropWasPossible = false
 
-  override fun dragEnter(event: DropTargetDragEvent) {
-    updateInsertionPoint(event)
-  }
-
-  override fun dragOver(event: DropTargetDragEvent) {
-    updateInsertionPoint(event)
-  }
-
-  override fun dropActionChanged(event: DropTargetDragEvent) {
-  }
-
-  override fun dragExit(event: DropTargetEvent) {
-    clearInsertionPoint()
-  }
-
-  override fun drop(event: DropTargetDropEvent) {
+  override fun tryDrop(event: DnDEvent): Boolean {
     val receiver = table.getValueAt(receiverRow, 0)
-    val isMove = event.dropAction == DnDConstants.ACTION_MOVE
+    val isMove = event.action == DnDAction.MOVE
     var beforeIndex = insertionRow
     var before: Any?
     // Find the first insertion point, that is not pointing to one of the items being dragged.
@@ -78,19 +64,19 @@ class TreeTableDropTargetHandler(
       // The before item is in the items being moved. Choose the next item in the tree as the item to insert the dragged items before:
       beforeIndex++
     }
-    val succeeded = table.tableModel.insert(receiver, event.transferable, before, isMove, draggedItems)
-    if (succeeded) {
-      if (isMove && !deleteOriginOfInternalMove) {
-        // If this is a MOVE we normally want to delete the object being dragged from the origin.
-        // However: some models may prefer to simply move the existing object reference. In that case we do NOT want to delete the original,
-        // since that would delete the object that was just moved to a new position. A model can indicate this by specifying false for
-        // [deleteOriginOfInternalMove].
-        draggedItems.clear()
-      }
-      event.acceptDrop(event.dropAction)
-      event.dropComplete(true)
+    if (!table.tableModel.insert(receiver, event.transferable, before, isMove, draggedItems)) {
+      clearInsertionPoint()
+      return false
+    }
+    if (isMove && !deleteOriginOfInternalMove) {
+      // If this is a MOVE we normally want to delete the object being dragged from the origin.
+      // However: some models may prefer to simply move the existing object reference. In that case we do NOT want to delete the original,
+      // since that would delete the object that was just moved to a new position. A model can indicate this by specifying false for
+      // [deleteOriginOfInternalMove].
+      draggedItems.clear()
     }
     clearInsertionPoint()
+    return true
   }
 
   fun updateUI() {
@@ -157,30 +143,39 @@ class TreeTableDropTargetHandler(
     g.fillPolygon(triangle)
   }
 
-  private fun updateInsertionPoint(event: DropTargetDragEvent) {
-    val point = Point(event.location.x, event.location.y + table.rowHeight / 2)
+  override fun update(event: DnDEvent): Boolean {
+    val point = Point(event.point.x, event.point.y + table.rowHeight / 2)
     val column = table.columnAtPoint(point)
     if (column != 0) {
-      event.acceptDrag(0)
-      clearInsertionPoint()
-      return
+      // Only drops on the tree is supported
+      return dropPossible(event, false)
     }
     val newInsertionDepth = table.findDepthFromOffset(point.x)
     val newInsertionRow = table.rowAtPoint(point).takeIf { it >= 0 } ?: table.rowCount
-    if (insertionRow != newInsertionRow || insertionDepth != newInsertionDepth) {
-      if (findReceiver(event.transferable, newInsertionRow, newInsertionDepth)) {
+    return when {
+      insertionRow == newInsertionRow && insertionDepth == newInsertionDepth ->
+        dropPossible(event, lastDropWasPossible)
+      !findReceiver(event.transferable, newInsertionRow, newInsertionDepth) ->
+        dropPossible(event, false)
+      else -> {
         insertionRow = newInsertionRow
         insertionDepth = newInsertionDepth
         insertionBounds =
           if (!table.isEmpty) table.tree.getRowBounds(maxOf(0, insertionRow - 1))
           else Rectangle(0, 0, table.columnModel.getColumn(0).width, 0)
         table.repaint()
-      }
-      else {
-        event.acceptDrag(0)
-        clearInsertionPoint()
+        dropPossible(event, true)
       }
     }
+  }
+
+  private fun dropPossible(event: DnDEvent, possible: Boolean): Boolean {
+    if (lastDropWasPossible && !possible) {
+      clearInsertionPoint()
+    }
+    lastDropWasPossible = possible
+    event.isDropPossible = possible
+    return !possible
   }
 
   // This allows the user to select the previous ancestor by moving
@@ -224,7 +219,11 @@ class TreeTableDropTargetHandler(
     generateSequence(receiver) { table.tableModel.parent(it) }.none { draggedItems.any { dragged -> dragged === it } } &&
     table.tableModel.canInsert(receiver, data)
 
+  private val DnDEvent.transferable: Transferable
+    get() = (attachedObject as DnDNativeTarget.EventInfo).transferable
+
   private fun clearInsertionPoint() {
+    lastDropWasPossible = false
     val repaint = insertionRow >= 0
     insertionRow = -1
     insertionDepth = -1

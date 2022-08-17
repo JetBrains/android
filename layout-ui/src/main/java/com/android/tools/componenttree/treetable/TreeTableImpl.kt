@@ -24,7 +24,10 @@ import com.android.tools.componenttree.api.DnDMerger
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.api.TableVisibility
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.dnd.DnDSupport
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.DisabledTraversalPolicy
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -35,12 +38,13 @@ import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Point
+import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.dnd.DnDConstants
-import java.awt.dnd.DropTarget
 import java.awt.event.MouseEvent
 import java.lang.Integer.max
 import javax.swing.JComponent
@@ -87,6 +91,8 @@ class TreeTableImpl(
   private val emptyComponent = JLabel()
   private val emptyTreeCellRenderer = TableCellRenderer { _, _, _, _, _, _ -> emptyComponent }
   private var initialHeaderVisibility = false
+  private var enableDrags = false
+  private var dndClient: Disposable? = null
 
   init {
     isFocusTraversalPolicyProvider = true
@@ -155,6 +161,22 @@ class TreeTableImpl(
   override fun addNotify() {
     super.addNotify()
     setHeaderVisibility(initialHeaderVisibility)
+    if (enableDrags) {
+      dndClient = Disposer.newDisposable()
+      DnDSupport.createBuilder(this)
+        .enableAsNativeTarget()
+        .setDropHandler(dropTargetHandler)
+        .setTargetChecker(dropTargetHandler)
+        .setDisposableParent(dndClient)
+        .setCleanUpOnLeaveCallback { dropTargetHandler?.reset() }
+        .install()
+    }
+  }
+
+  override fun removeNotify() {
+    super.removeNotify()
+    dndClient?.let { Disposer.dispose(it) }
+    dndClient = null
   }
 
   override fun setColumnVisibility(columnIndex: Int, visible: Boolean) {
@@ -164,12 +186,19 @@ class TreeTableImpl(
     }
   }
 
+  /**
+   * Override JTable.getDragEnabled() to avoid calling JTable.setDragEnabled(true) in tests,
+   * since that would cause a HeadlessException.
+   */
+  override fun getDragEnabled(): Boolean {
+    return enableDrags
+  }
+
   fun enableDnD(merger: DnDMerger?, deleteOriginOfInternalMove: Boolean) {
-    dragEnabled = true
     val treeTransferHandler = TreeTableTransferHandler(merger)
+    enableDrags = true
     transferHandler = treeTransferHandler
     dropTargetHandler = TreeTableDropTargetHandler(this, deleteOriginOfInternalMove, treeTransferHandler.draggedItems)
-    dropTarget = DropTarget(this, dropTargetHandler)
   }
 
   override fun getTableModel(): TreeTableModelImpl {
@@ -373,7 +402,7 @@ class TreeTableImpl(
     }
   }
 
-  private inner class TreeTableTransferHandler(private val dndMerger: DnDMerger?) : TransferHandler() {
+  inner class TreeTableTransferHandler(private val dndMerger: DnDMerger?) : TransferHandler() {
     val draggedItems = mutableListOf<Any>()
 
     fun resetDraggedItem() {
@@ -381,6 +410,9 @@ class TreeTableImpl(
     }
 
     override fun getSourceActions(component: JComponent): Int = DnDConstants.ACTION_COPY_OR_MOVE
+
+    @TestOnly // Give access to the protected function createTransferable in tests
+    fun createTransferableForTests(component: JComponent): Transferable? = createTransferable(component)
 
     override fun createTransferable(component: JComponent): Transferable? {
       val rows = selectedRows
@@ -402,7 +434,11 @@ class TreeTableImpl(
       return combinedTransferable
     }
 
-    override fun exportDone(source: JComponent, data: Transferable, action: Int) {
+    override fun canImport(comp: JComponent, transferFlavors: Array<out DataFlavor>): Boolean {
+      return true // TODO IMPLEMENT
+    }
+
+    override fun exportDone(source: JComponent, data: Transferable?, action: Int) {
       if (action == DnDConstants.ACTION_MOVE) {
         draggedItems.forEach { tableModel.delete(it) }
       }

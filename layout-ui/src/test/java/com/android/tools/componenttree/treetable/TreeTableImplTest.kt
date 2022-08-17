@@ -48,6 +48,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.EmptyIcon
+import com.intellij.util.ui.TextTransferable
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.After
@@ -62,6 +63,8 @@ import org.mockito.Mockito.verifyNoInteractions
 import java.awt.Color
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.Transferable
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -595,6 +598,20 @@ class TreeTableImplTest {
     assertThat(selections).isEqualTo(1)
   }
 
+  @RunsInEdt
+  @Test
+  fun testCreateTransferable() {
+    val table = createTreeTable()
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    table.setRowSelectionInterval(1, 2) // item2 & style1
+    val transferHandler = table.transferHandler as TreeTableImpl.TreeTableTransferHandler
+    val transferable = transferHandler.createTransferableForTests(table)
+    val str = transferable?.getTransferData(DataFlavor.stringFlavor) as? String
+    assertThat(str).isEqualTo("(${item2.tagName},style:${style1.name})")
+    assertThat(transferHandler.draggedItems).containsExactly(item2, style1)
+  }
+
   private fun foregroundOf(table: JTable, column: Int, isSelected: Boolean, hasFocus: Boolean): Color {
     val renderer = table.getCellRenderer(0, column)
     val component = renderer.getTableCellRendererComponent(table, table.getValueAt(0, 2), isSelected, hasFocus, 0, column)
@@ -646,7 +663,15 @@ class TreeTableImplTest {
       .withDoubleClick(doubleClickHandler)
       .withoutTreeSearch()
       .withInvokeLaterOption { it.run() }
+      .withMultipleSelection()
+      .withDnD(::merge, deleteOriginOfInternalMove = false)
       .build()
+  }
+
+  private fun merge(t1: Transferable, t2: Transferable): Transferable {
+    val s1 = t1.getTransferData(DataFlavor.stringFlavor) as String
+    val s2 = t2.getTransferData(DataFlavor.stringFlavor) as String
+    return TextTransferable(StringBuffer("($s1,$s2)"))
   }
 
   private val Rectangle.bottom
