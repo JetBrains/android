@@ -146,7 +146,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
   protected fun LayoutBuilder.getComponentCompoBox() {
     row {
-      label(configuration.componentLaunchOptions.userVisibleComponentTypeName)
+      label(configuration.componentLaunchOptions.userVisibleComponentTypeName + ":")
       wearComponentFqNameComboBox = comboBox(
         DefaultComboBoxModel(emptyArray<String>()),
         { componentName },

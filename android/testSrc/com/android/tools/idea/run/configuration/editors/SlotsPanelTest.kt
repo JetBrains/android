@@ -15,92 +15,114 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
-import com.android.tools.adtui.TreeWalker
-import com.android.tools.deployer.model.component.Complication
+import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils
+import com.android.tools.deployer.model.component.Complication.ComplicationType
 import com.android.tools.idea.run.configuration.ComplicationSlot
-import com.google.common.truth.Truth.assertThat
+import com.android.tools.adtui.swing.FakeUi;
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.components.ActionLink
+import junit.framework.Assert.assertFalse
+import junit.framework.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import javax.swing.JButton
+import java.awt.Dimension
+import java.awt.event.ActionEvent
+import javax.swing.JCheckBox
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 @RunWith(JUnit4::class)
 class SlotsPanelTest{
   private lateinit var slotsPanel : SlotsPanel
-  private lateinit var addButton : ActionLink
-  private lateinit var model : SlotsPanel.ComplicationsModel
+  private lateinit var topSlot: JPanel
 
-  private fun JPanel.getIdComboBoxForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(1) as ComboBox<*>
-  private fun JPanel.getTypeComboBoxForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(3) as ComboBox<*>
-  private fun JPanel.getDeleteButtonForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(4) as JButton
+  private fun getPanelForSlot(slotNum: Int) =
+    ((slotsPanel.slotsUiPanel.getComponent(1) as JComponent).getComponent(0) as JComponent).getComponent(slotNum) as JPanel
+  private fun JPanel.getComboBox() = getComponent(2) as ComboBox<*>
+  private fun JPanel.getCheckBox() = getComponent(0) as JCheckBox
 
   @Before
   fun setUp() {
     slotsPanel = SlotsPanel()
-    addButton = TreeWalker(slotsPanel).descendants().filterIsInstance<ActionLink>().first()
     val complicationSlots = listOf(
       ComplicationSlot(
         "Top",
         3,
-        arrayOf(Complication.ComplicationType.SHORT_TEXT, Complication.ComplicationType.LONG_TEXT)
+        arrayOf(ComplicationType.SHORT_TEXT, ComplicationType.LONG_TEXT, ComplicationType.ICON)
       )
     )
-    model = SlotsPanel.ComplicationsModel(arrayListOf(), complicationSlots, listOf(Complication.ComplicationType.LONG_TEXT))
-
+    val model = SlotsPanel.ComplicationsModel(arrayListOf(), complicationSlots, listOf(ComplicationType.LONG_TEXT))
+    slotsPanel.setModel(model)
+    topSlot = getPanelForSlot(0)
   }
 
   @Test
-  fun addSlotDisabledByDefault() {
-    assertThat(addButton.isEnabled).isFalse()
+  fun allSlotsDisabledByDefault() {
+    assertFalse(topSlot.getCheckBox().isSelected)
+    assertFalse(topSlot.getComboBox().isEnabled)
   }
 
   @Test
-  fun updateSlotsEnablesAddSlot() {
+  fun selectingSlotEnablesComboBox() {
+    topSlot.getCheckBox().isSelected = true
+    topSlot.getCheckBox().actionListeners.get(0).actionPerformed(ActionEvent(this, 0, ""))
+    assertTrue((topSlot.getComponent(2) as ComboBox<*>).isEnabled)
+  }
+
+  @Test
+  fun noTypeProvidedEverythingDisabled() {
+    val complicationSlots = listOf(
+      ComplicationSlot(
+        "Top",
+        3,
+        arrayOf(ComplicationType.SHORT_TEXT)
+      )
+    )
+    val model = SlotsPanel.ComplicationsModel(arrayListOf(), complicationSlots, listOf(ComplicationType.LONG_TEXT))
+    slotsPanel.setModel(model)
+    topSlot = getPanelForSlot(0)
+
+    assertFalse(topSlot.getCheckBox().isEnabled)
+    assertFalse(topSlot.getCheckBox().isSelected)
+    assertFalse(topSlot.getComboBox().isEnabled)
+  }
+
+  @Test
+  fun switchAllTypes() {
+    val allTypes = arrayOf(ComplicationType.SHORT_TEXT,
+                           ComplicationType.LONG_TEXT,
+                           ComplicationType.ICON,
+                           ComplicationType.RANGED_VALUE,
+                           ComplicationType.LARGE_IMAGE,
+                           ComplicationType.SMALL_IMAGE,
+                           ComplicationType.LARGE_IMAGE)
+    val typesToSet = arrayOf(ComplicationType.SHORT_TEXT,
+                           ComplicationType.ICON,
+                           ComplicationType.LONG_TEXT,
+                           ComplicationType.RANGED_VALUE,
+                           ComplicationType.LARGE_IMAGE)
+    val complicationSlots = listOf(
+      ComplicationSlot("Top", 0, allTypes),
+      ComplicationSlot("Right", 1, allTypes),
+      ComplicationSlot("Bottom", 2, allTypes),
+      ComplicationSlot("Left", 3, allTypes),
+      ComplicationSlot("Background", 4, allTypes)
+    )
+    val model = SlotsPanel.ComplicationsModel(arrayListOf(), complicationSlots, allTypes.toList())
     slotsPanel.setModel(model)
 
-    assertThat(addButton.isEnabled).isTrue()
-  }
+    for (i in complicationSlots.indices) {
+      getPanelForSlot(i).getCheckBox().isSelected = true
+      getPanelForSlot(i).getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
+      getPanelForSlot(i).getComboBox().selectedItem = typesToSet[i]
+    }
+    slotsPanel.size = Dimension(1000, 1000)
+    val myUi = FakeUi(slotsPanel, 1.0)
 
-  @Test
-  fun noComponentDisablesAddSlot() {
-    slotsPanel.setModel(SlotsPanel.ComplicationsModel())
-
-    assertThat(addButton.isEnabled).isFalse()
-  }
-
-  @Test
-  fun allSlotsAddedDisablesAddSlot() {
-    slotsPanel.setModel(model)
-    addButton.doClick()
-
-    assertThat(addButton.isEnabled).isFalse()
-  }
-
-  @Test
-  fun addSlots() {
-    slotsPanel.setModel(model)
-    addButton.doClick()
-    val slotIdComboBox = slotsPanel.slotsComponent.getIdComboBoxForSlot(0)
-    val slotTypeComboBox = slotsPanel.slotsComponent.getTypeComboBoxForSlot(0)
-    assertThat(slotIdComboBox.isEnabled).isTrue()
-    assertThat(slotTypeComboBox.isEnabled).isTrue()
-    slotIdComboBox.item = 3
-    slotTypeComboBox.item = Complication.ComplicationType.LONG_TEXT
-
-    assertThat(model.currentChosenSlots).hasSize(1)
-    assertThat(model.currentChosenSlots.find { it.id == 3 }!!.type).isEqualTo(Complication.ComplicationType.LONG_TEXT)
-  }
-
-  @Test
-  fun addAndRemoveSlot() {
-    slotsPanel.setModel(model)
-    addButton.doClick()
-    slotsPanel.slotsComponent.getDeleteButtonForSlot(0).doClick()
-
-    assertThat(model.currentChosenSlots).isEmpty()
+    ImageDiffUtil.assertImageSimilar(TestUtils.resolveWorkspacePathUnchecked(GOLDEN_IMAGE_PATH), myUi.render(), 1.0)
   }
 }
+
+private const val GOLDEN_IMAGE_PATH = "tools/adt/idea/android/testData/run/golden/goldenComplicationsPanel.png"

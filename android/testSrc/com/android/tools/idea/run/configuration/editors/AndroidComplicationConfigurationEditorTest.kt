@@ -43,7 +43,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.SimpleListCellRenderer
-import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBTextField
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.After
@@ -53,10 +52,13 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.w3c.dom.Element
+import java.awt.event.ActionEvent
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Paths
-import javax.swing.JButton
+import javax.swing.Box
+import javax.swing.JCheckBox
+import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
@@ -81,13 +83,12 @@ class AndroidComplicationConfigurationEditorTest {
   //region editor-utils
   private val componentComboBox get() = TreeWalker(editor).descendants().filterIsInstance<ComboBox<String>>()[1]
   private val modulesComboBox get() = TreeWalker(editor).descendants().filterIsInstance<ModulesComboBox>().first()
-  private val addButton get() = TreeWalker(editor).descendants().filterIsInstance<ActionLink>().first()
-  private val slotsPanel get() = editor.components.firstIsInstance<SlotsPanel>().slotsComponent
+  private val slotsPanel get() = editor.components.firstIsInstance<SlotsPanel>().slotsUiPanel
 
   private val <T> ComboBox<T>.items get() = (0 until itemCount).map { getItemAt(it) }
-  private fun JPanel.getIdComboBoxForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(1) as ComboBox<*>
-  private fun JPanel.getTypeComboBoxForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(3) as ComboBox<*>
-  private fun JPanel.getDeleteButtonForSlot(slotNum: Int) = (getComponent(slotNum) as JPanel).getComponent(4) as JButton
+  private fun getPanelForSlot(slotNum: Int) = ((slotsPanel.getComponent(1) as JComponent).getComponent(0) as JComponent).getComponent(slotNum) as JPanel
+  private fun JPanel.getComboBox() = getComponent(2) as ComboBox<*>
+  private fun JPanel.getCheckBox() = getComponent(0) as JCheckBox
   //endregion editor-utils
 
   @Before
@@ -160,6 +161,16 @@ class AndroidComplicationConfigurationEditorTest {
     module.replaceService(MergedManifestManager::class.java, mockMergedManifestManager, projectRule.project)
   }
 
+  private fun countCheckedSlots(slotsPanel: Box) : Int{
+    var count = 0
+    for (component in ((slotsPanel.getComponent(1) as JComponent).getComponent(0) as JComponent).components) {
+      if ((component as JPanel).getCheckBox().isSelected) {
+        count++
+      }
+    }
+    return count
+  }
+
   @Test
   fun testResetFromEmptyConfiguration() {
     assertThat(runConfiguration.module).isNull()
@@ -196,9 +207,11 @@ class AndroidComplicationConfigurationEditorTest {
     runConfiguration.setModule(module)
 
     configurationConfigurable.reset()
-    assertThat(slotsPanel.components).hasLength(1)
-    assertThat(slotsPanel.getIdComboBoxForSlot(0).item).isEqualTo(3)
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).item).isEqualTo(ComplicationType.ICON)
+
+    val topSlot = getPanelForSlot(0)
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(1)
+    assertThat(topSlot.getCheckBox().isSelected).isTrue()
+    assertThat(topSlot.getComboBox().selectedItem).isEqualTo(ComplicationType.ICON)
   }
 
   @Test
@@ -213,14 +226,12 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(componentComboBox.item).isEqualTo(null)
     configurationConfigurable.apply()
     assertThat(runConfiguration.componentLaunchOptions.componentName).isEqualTo(null)
-    assertThat(addButton.isEnabled).isFalse()
 
     modulesComboBox.selectedItem = module
     componentComboBox.item = "com.example.MyLongShortTextComplication"
     configurationConfigurable.apply()
 
     assertThat(runConfiguration.componentLaunchOptions.componentName).isEqualTo("com.example.MyLongShortTextComplication")
-    assertThat(addButton.isEnabled).isTrue()
   }
 
   @Test
@@ -247,49 +258,40 @@ class AndroidComplicationConfigurationEditorTest {
     //region MyIconComplication
     componentComboBox.item = "com.example.MyIconComplication"
     editor.apply()
-    assertThat(slotsPanel.components).isEmpty()
-    addButton.doClick()
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
-    slotsPanel.getIdComboBoxForSlot(0).item = 0
     // intersect between (SHORT_TEXT, RANGED_VALUE) and (ICON)
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).items).isEmpty()
+    assertThat((getPanelForSlot(0).getComboBox().items)).isEmpty()
 
-    slotsPanel.getIdComboBoxForSlot(0).item = 2
     // intersect between (SHORT_TEXT, ICON) and (ICON)
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).items).containsExactly(ComplicationType.ICON)
+    assertThat((getPanelForSlot(1).getComboBox().items)).containsExactly(ComplicationType.ICON)
     // first available type is chosen.
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).item).isEqualTo(ComplicationType.ICON)
+    assertThat((getPanelForSlot(1).getComboBox().item)).isEqualTo(ComplicationType.ICON)
     //endregion MyIconComplication
 
     //region MyLongShortTextComplication
     componentComboBox.item = "com.example.MyLongShortTextComplication"
     editor.apply()
-    assertThat(slotsPanel.components).isEmpty()
-    addButton.doClick()
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
-    slotsPanel.getIdComboBoxForSlot(0).item = 0
     // intersect between (SHORT_TEXT, RANGED_VALUE) and (SHORT_TEXT, LONG_TEXT)
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).items).containsExactly(ComplicationType.SHORT_TEXT)
+    assertThat((getPanelForSlot(0).getComboBox().items)).containsExactly(ComplicationType.SHORT_TEXT)
 
-    slotsPanel.getIdComboBoxForSlot(0).item = 2
     // intersect between (SHORT_TEXT, ICON) and (SHORT_TEXT, LONG_TEXT)
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).items).containsExactly(ComplicationType.SHORT_TEXT)
+    assertThat((getPanelForSlot(1).getComboBox().items)).containsExactly(ComplicationType.SHORT_TEXT)
     //endregion MyLongShortTextComplication
 
     //region MyNoTypeComplication
     componentComboBox.item = "com.example.MyNoTypeComplication"
     editor.apply()
-    assertThat(slotsPanel.components).isEmpty()
-    addButton.doClick()
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
-    slotsPanel.getIdComboBoxForSlot(0).item = 0
     // intersect between (SHORT_TEXT, RANGED_VALUE) and ()
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).items).isEmpty()
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).isEnabled).isFalse()
+    assertThat((getPanelForSlot(0).getComboBox().items)).isEmpty()
+    assertThat((getPanelForSlot(0).getComboBox().isEnabled)).isFalse()
 
-    slotsPanel.getIdComboBoxForSlot(0).item = 2
     // intersect between (SHORT_TEXT, ICON) and ()
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).items).isEmpty()
+    assertThat((getPanelForSlot(1).getComboBox().items)).isEmpty()
     //endregion MyIconComplication
   }
 
@@ -319,16 +321,17 @@ class AndroidComplicationConfigurationEditorTest {
     //region MyIconComplication
     componentComboBox.item = "com.example.MyIconComplication"
     editor.apply()
-    assertThat(slotsPanel.components).isEmpty()
-    addButton.doClick()
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
-    slotsPanel.getIdComboBoxForSlot(0).item = 0
     // intersect between (SHORT_TEXT, RANGED_VALUE) and (ICON)
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).items).isEmpty()
+    assertThat(((getPanelForSlot(0).getComponent(2) as ComboBox<*>).items)).isEmpty()
 
-    slotsPanel.getIdComboBoxForSlot(0).item = 2
     // first available is ICON
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).item).isEqualTo(ComplicationType.ICON)
+    assertThat(((getPanelForSlot(1).getComponent(2) as ComboBox<*>).item)).isEqualTo(ComplicationType.ICON)
+    // Select the check box
+    getPanelForSlot(1).getCheckBox().isSelected = true
+    getPanelForSlot(1).getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
+
     // Saving configuration.
     configurationConfigurable.apply()
     assertThat(configurationConfigurable.isModified).isFalse()
@@ -359,17 +362,18 @@ class AndroidComplicationConfigurationEditorTest {
     //region MyIconComplication
     componentComboBox.item = "com.example.MyIconComplication"
     editor.apply()
-    assertThat(slotsPanel.components).isEmpty()
-    addButton.doClick()
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
-    slotsPanel.getIdComboBoxForSlot(0).item = 0
     // intersect between (SHORT_TEXT, RANGED_VALUE) and (ICON)
-    assertThat(slotsPanel.getTypeComboBoxForSlot(0).items).isEmpty()
-    val comboBoxRenderer = (slotsPanel.getTypeComboBoxForSlot(0).renderer as ListCellRenderer<ComplicationType>)
-      .getListCellRendererComponent(JList(), slotsPanel.getTypeComboBoxForSlot(0).item as? ComplicationType, -1, false, false)
+    assertThat((getPanelForSlot(0).getComboBox().items)).isEmpty()
+    val comboBoxRenderer = (getPanelForSlot(0).getComboBox().renderer as ListCellRenderer<ComplicationType>)
+      .getListCellRendererComponent(JList(), getPanelForSlot(0).getComboBox().item as? ComplicationType, -1, false, false)
       as SimpleListCellRenderer<*>
+    // Select the check box
+    getPanelForSlot(0).getCheckBox().isSelected = true
+    getPanelForSlot(0).getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
 
-    assertThat(comboBoxRenderer.text).isEqualTo("Complication data source doesn't provide types supported by slot")
+    assertThat(comboBoxRenderer.text).isEqualTo("No type is supported by this slot")
 
     // Saving configuration.
     configurationConfigurable.apply()
@@ -387,17 +391,17 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(modulesComboBox.item).isEqualTo(module)
 
     componentComboBox.item = "com.example.MyIconComplication"
-    assertThat(slotsPanel.components).isEmpty()
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
     // Add slot.
-    addButton.doClick()
-    assertThat(slotsPanel.components).hasLength(1)
+    getPanelForSlot(0).getCheckBox().isSelected = true
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(1)
 
     //Change name
     componentComboBox.item = "com.example.MyLongShortTextComplication"
     editor.apply()
     //Assert that previously added slots are removed.
-    assertThat(slotsPanel.components).isEmpty()
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
   }
 
   @Test
@@ -424,52 +428,31 @@ class AndroidComplicationConfigurationEditorTest {
     configurationConfigurable.reset()
     assertThat(modulesComboBox.item).isEqualTo(module)
 
-    // runConfiguration has available slots, add button should become enabled.
-    assertThat(addButton.isEnabled).isTrue()
     // runConfiguration doesn't have chosen components.
-    assertThat(slotsPanel.components).isEmpty()
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
     // Add slot.
-    addButton.doClick()
-    assertThat(addButton.isEnabled).isTrue()
-    assertThat(slotsPanel.components).hasLength(1)
+    getPanelForSlot(0).getCheckBox().isSelected = true
+    getPanelForSlot(0).getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(1)
 
-    var slotIdComboBox1 = slotsPanel.getIdComboBoxForSlot(0)
-    assertThat(slotIdComboBox1.items).containsExactly(0, 2)
-    assertThat(slotIdComboBox1.item).isEqualTo(0)
-
-    // Selecting between items should not change the list of available items
-    slotIdComboBox1.item = 2
-    slotIdComboBox1 = slotsPanel.getIdComboBoxForSlot(0)
-    assertThat(slotIdComboBox1.items).containsExactly(0, 2)
-
-    slotIdComboBox1.item = 0
-    slotIdComboBox1 = slotsPanel.getIdComboBoxForSlot(0)
-    assertThat(slotIdComboBox1.items).containsExactly(0, 2)
-
-    val slotTypeComboBox1 = slotsPanel.getTypeComboBoxForSlot(0)
+    val slotTypeComboBox1 = (getPanelForSlot(0).getComponent(2) as ComboBox<*>)
     // intersect between (SHORT_TEXT, RANGED_VALUE) and (SHORT_TEXT, LONG_TEXT)
     assertThat(slotTypeComboBox1.items).containsExactly(ComplicationType.SHORT_TEXT)
 
     // Add slot.
-    addButton.doClick()
+    getPanelForSlot(1).getCheckBox().isSelected = true
+    getPanelForSlot(1).getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
     // runConfiguration.watchFaceInfo has only 2 available slots.
-    assertThat(addButton.isEnabled).isFalse()
-    assertThat(slotsPanel.components).hasLength(2)
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(2)
 
-    slotIdComboBox1 = slotsPanel.getIdComboBoxForSlot(0)
-    // After we added second slot, only one option is available in the first slot.
-    assertThat(slotIdComboBox1.items).containsExactly(0)
-
-    val slotIdComboBox2 = slotsPanel.getIdComboBoxForSlot(1)
-    assertThat(slotIdComboBox2.items).containsExactly(2)
-    assertThat(slotIdComboBox2.item).isEqualTo(2)
-
-    val slotTypeComboBox2 = slotsPanel.getTypeComboBoxForSlot(1)
+    val slotTypeComboBox2 = getPanelForSlot(1).getComboBox()
     // intersect between (LONG_TEXT, SHORT_TEXT, RANGED_VALUE) and (SHORT_TEXT, LONG_TEXT)
     assertThat(slotTypeComboBox2.items).containsExactly(ComplicationType.LONG_TEXT, ComplicationType.SHORT_TEXT)
+
     // Choose LONG_TEXT for slot with id 2.
     slotTypeComboBox2.item = ComplicationType.LONG_TEXT
+
     assertThat(configurationConfigurable.isModified).isTrue()
 
     // Saving configuration.
@@ -480,7 +463,7 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(runConfiguration.componentLaunchOptions.chosenSlots.find { it.id == 2 }!!.type).isEqualTo(ComplicationType.LONG_TEXT)
 
     //Changing type.
-    slotsPanel.getTypeComboBoxForSlot(1).item = ComplicationType.SHORT_TEXT
+    slotTypeComboBox2.item = ComplicationType.SHORT_TEXT
     assertThat(configurationConfigurable.isModified).isTrue()
 
     // Saving configuration.
@@ -490,9 +473,10 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(runConfiguration.componentLaunchOptions.chosenSlots).hasSize(2)
     assertThat(runConfiguration.componentLaunchOptions.chosenSlots.find { it.id == 2 }!!.type).isEqualTo(ComplicationType.SHORT_TEXT)
 
-    //Delete slot with id 2.
-    slotsPanel.getDeleteButtonForSlot(1).doClick()
-    assertThat(slotsPanel.components).hasLength(1)
+    //Uncheck the Right slot.
+    getPanelForSlot(1).getCheckBox().isSelected = false
+    getPanelForSlot(1).getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(1)
     assertThat(configurationConfigurable.isModified).isTrue()
 
     // Saving configuration.
