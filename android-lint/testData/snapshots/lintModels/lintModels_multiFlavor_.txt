@@ -29,6 +29,7 @@ MODULE                        : MultiFlavor.app
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
@@ -157,6 +158,7 @@ MODULE                        : MultiFlavor.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar

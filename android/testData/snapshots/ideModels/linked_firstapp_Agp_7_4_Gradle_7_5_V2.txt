@@ -1385,6 +1385,7 @@ MODULE                        : My_First_App.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
@@ -1534,6 +1535,7 @@ MODULE                        : My_First_App.app
                     AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/androidTest/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2381,6 +2383,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
@@ -2554,6 +2557,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     AssembleTaskOutputListingFile : <ROOT>/shared/mysharedlibrary/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/androidTest/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST

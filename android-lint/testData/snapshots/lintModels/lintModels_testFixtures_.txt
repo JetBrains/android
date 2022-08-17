@@ -29,6 +29,7 @@ MODULE                        : project.app
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -227,6 +228,7 @@ MODULE                        : project.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -884,6 +886,7 @@ MODULE                        : project.lib
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     commons-io:commons-io         : null => commons-io:commons-io:2.4
@@ -936,6 +939,7 @@ MODULE                        : project.lib
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::lib                : null => :lib@testFixtures
@@ -997,6 +1001,7 @@ MODULE                        : project.lib
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/testFixtures/debug [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugTestFixtures/out [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     artifacts::lib                : null => :lib@main

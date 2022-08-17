@@ -48,6 +48,7 @@ data class IdeAndroidArtifactCoreImpl(
   override val codeShrinker: CodeShrinker?,
   override val modelSyncFiles: Collection<IdeModelSyncFileImpl>,
   override val privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl?,
+  override val desugaredMethodsFiles: Collection<File>
 ) : IdeAndroidArtifactCore {
   override val resValues: Map<String, IdeClassFieldImpl> get() = emptyMap()
 }

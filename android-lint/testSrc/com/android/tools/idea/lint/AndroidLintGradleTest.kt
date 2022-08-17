@@ -48,7 +48,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     myFixture.allowTreeAccessForAllFiles()
   }
 
-  fun testLintWarningInTests() {
+  fun `test lint warning in tests`() {
     // Test that, in a test project which enables lintOptions.checkTestSources, warnings
     // are flagged in unit test sources. This ensures that we're properly syncing lint options
     // into the driver; b/139490306.
@@ -64,7 +64,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
-  fun testMockLocations() {
+  fun `test mock locations`() {
     // MOCK locations are okay in debug manifests; they're not okay in main manifests.
     // This tests that the Gradle builder model is properly passed through to lint.
     loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
@@ -86,12 +86,49 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
-  fun testLibraryDesugaringInLibrary() {
+  fun `test desugaring in library project`() {
     // Regression test for https://issuetracker.google.com/158189490
     loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
 
     val debug = myFixture.loadFile("lib/src/main/java/com/example/lib/MyClass.kt")
     myFixture.checkLint(debug, AndroidLintNewApiInspection(), "LocalDate.n|ow",
+                        "No warnings."
+    )
+  }
+
+  // app project with global desugaring disabled and android test desugaring enabled
+  fun `test desugaring for instrumentation tests`() {
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT_DESUGARING_ANDROID_TEST)
+
+    val mainFile = myFixture.loadFile("app/src/main/java/google/testartifacts/ExampleMain.java")
+    myFixture.checkLint(mainFile, AndroidLintNewApiInspection(), "LocalDate.n|ow",
+    """
+    Error: Call requires API level 26 (current min is 16): `java.time.LocalDate#now`
+          LocalDate date = LocalDate.now();
+                                     ~~~
+        Fix: Surround with if (VERSION.SDK_INT >= VERSION_CODES.O) { ... }
+        Fix: Add @RequiresApi(O) Annotation
+        Fix: Suppress NewApi with an annotation
+    """
+    )
+
+    val unitTestFile = myFixture.loadFile("app/src/test/java/google/testartifacts/ExampleTest.java")
+    myFixture.checkLint(unitTestFile, AndroidLintNewApiInspection(), "collection.st|ream",
+                        """
+    Error: Call requires API level 24 (current min is 16): `java.util.Collection#stream`
+        java.util.stream.Stream<String> streamOfCollection = collection.stream();
+                                                                        ~~~~~~
+        Fix: Surround with if (VERSION.SDK_INT >= VERSION_CODES.N) { ... }
+        Fix: Add @RequiresApi(N) Annotation
+        Fix: Suppress NewApi with an annotation
+    """
+    )
+
+    val androidTestFile = myFixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
+    myFixture.checkLint(androidTestFile, AndroidLintNewApiInspection(), "LocalDate.n|ow",
+                        "No warnings."
+    )
+    myFixture.checkLint(androidTestFile, AndroidLintNewApiInspection(), "collection.st|ream",
                         "No warnings."
     )
   }

@@ -30,6 +30,7 @@ MODULE                        : project.app
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     artifacts::library            : null => :library@main
@@ -54,6 +55,7 @@ MODULE                        : project.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::app                : null => :app@main
@@ -139,6 +141,7 @@ MODULE                        : project.library
             - GeneratedSourceFolders      : <ROOT>/library/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/library/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/library/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -159,6 +162,7 @@ MODULE                        : project.library
         - GeneratedSourceFolders      : <ROOT>/library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/library/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/library/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::library            : null => :library@main
@@ -236,6 +240,7 @@ MODULE                        : project.library-remote
             - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -256,6 +261,7 @@ MODULE                        : project.library-remote
         - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::library-remote     : null => :library-remote@main

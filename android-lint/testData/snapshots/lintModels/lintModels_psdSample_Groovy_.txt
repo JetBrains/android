@@ -30,6 +30,7 @@ MODULE                        : project.app
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     __local_aars__:<ROOT>/app/libs/lib1-1.0.aar       : null => ./app/libs/lib1-1.0.aar
@@ -189,6 +190,7 @@ MODULE                        : project.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 __local_aars__:<ROOT>/app/libs/lib1-1.0.aar       : null => ./app/libs/lib1-1.0.aar
@@ -835,6 +837,7 @@ MODULE                        : project.dyn_feature
             - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -855,6 +858,7 @@ MODULE                        : project.dyn_feature
         - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::dyn_feature        : null => :dyn_feature@main
@@ -936,6 +940,7 @@ MODULE                        : project.lib
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -1080,6 +1085,7 @@ MODULE                        : project.lib
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -1553,6 +1559,7 @@ MODULE                        : project.nested1
             - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -1573,6 +1580,7 @@ MODULE                        : project.nested1
         - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::nested1            : null => :nested1@main
@@ -1650,6 +1658,7 @@ MODULE                        : project.nested1.deep
             - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -1670,6 +1679,7 @@ MODULE                        : project.nested1.deep
         - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::nested1:deep       : null => :nested1:deep@main
@@ -1753,6 +1763,7 @@ MODULE                        : project.nested2
             - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/renderscript_source_output_dir/basicDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/source/buildConfig/basic/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -1773,6 +1784,7 @@ MODULE                        : project.nested2
         - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::nested2            : null => :nested2@main
@@ -1870,6 +1882,7 @@ MODULE                        : project.nested2.deep
             - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -1890,6 +1903,7 @@ MODULE                        : project.nested2.deep
         - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::nested2:deep       : null => :nested2:deep@main
@@ -1971,6 +1985,7 @@ MODULE                        : project.nested2.trans.deep2
             - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -1991,6 +2006,7 @@ MODULE                        : project.nested2.trans.deep2
         - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::nested2:trans:deep2          : null => :nested2:trans:deep2@main

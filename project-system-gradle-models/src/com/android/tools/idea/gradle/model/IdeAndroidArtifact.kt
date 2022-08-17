@@ -101,6 +101,11 @@ interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
   val modelSyncFiles: Collection<IdeModelSyncFile>
   val compileClasspathCore: IdeDependenciesCore
   val runtimeClasspathCore: IdeDependenciesCore
+
+  /**
+   * Files listing any D8 backported desugared methods or core library desugared methods for this artifact
+   */
+  val desugaredMethodsFiles: Collection<File>
 }
 
 interface IdeAndroidArtifact : IdeAndroidArtifactCore, IdeBaseArtifact

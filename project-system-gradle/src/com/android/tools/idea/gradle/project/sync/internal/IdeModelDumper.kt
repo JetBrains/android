@@ -359,6 +359,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       prop("CodeShrinker") { ideAndroidArtifact.codeShrinker.toString() }
       dump(ideAndroidArtifact.buildInformation)
       ideAndroidArtifact.generatedResourceFolders.forEach { prop("GeneratedResourceFolders") { it.path.toPrintablePath() } }
+      ideAndroidArtifact.desugaredMethodsFiles.forEach { prop("DesugaredMethodFiles") { it.path.toPrintablePath() } }
       ideAndroidArtifact.additionalRuntimeApks.forEach { prop("AdditionalRuntimeApks") { it.path.toPrintablePath() } }
       ideAndroidArtifact.testOptions?.let { dump(it) }
       ideAndroidArtifact.abiFilters.forEach { prop("AbiFilters") { it } }

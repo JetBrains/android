@@ -314,7 +314,8 @@ class LintModelFactory : LintModelModuleLoader {
           dependencies = getDependencies(artifact),
           generatedSourceFolders = artifact.generatedSourceFolders,
           generatedResourceFolders = artifact.generatedResourceFolders,
-          classOutputs = artifact.classesFolder.toList()
+          classOutputs = artifact.classesFolder.toList(),
+          desugaredMethodsFiles = artifact.desugaredMethodsFiles
         )
     }
     private fun getArtifact(

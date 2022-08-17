@@ -571,10 +571,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
           } else {
             NonAndroidAndroidArtifactRef(
               identifier.artifact
-                ?: error(
-                  "Unresolved module dependency ${projectInfo.projectPath} (${projectInfo.buildId}) in $ownerProjectPath ($ownerBuildId). " +
-                    "Neither the source set nor the artifact property was populated by the Android Gradle plugin."
-                )
+              ?: error(
+                "Unresolved module dependency ${projectInfo.projectPath} (${projectInfo.buildId}) in $ownerProjectPath ($ownerBuildId). " +
+                "Neither the source set nor the artifact property was populated by the Android Gradle plugin."
+              )
             )
           }
         createModuleDependency(
@@ -754,11 +754,24 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     )
   }
 
+  /*
+   AGP from 8.0.0-alpha02 provides desugar method files per artifact (so they can diverge between main and test).
+   For older AGPs from 7.3.0-alpha06 which provide desugar method files in the variant that apply to main and test,
+   fall back to that value.
+  */
+  fun getDesugaredMethodsList(artifact: AndroidArtifact, fallback: Collection<File>): Collection<File> {
+    return if (agpVersion.isAtLeast(8, 0, 0, "alpha", 2, false))
+      artifact.desugaredMethodsFiles
+    else
+      fallback
+  }
+
   fun androidArtifactFrom(
     name: IdeArtifactName,
     basicArtifact: BasicArtifact,
     mainVariantName: String,
     legacyApplicationIdModel: LegacyApplicationIdModel?,
+    fallbackDesugaredMethodsFiles: Collection<File>,
     artifact: AndroidArtifact
   ): IdeAndroidArtifactCoreImpl {
     val testInfo = artifact.testInfo
@@ -791,10 +804,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       privacySandboxSdkInfo = if (agpVersion.isAtLeast(7, 4, 0, "alpha", 10, false))
         artifact.privacySandboxSdkInfo?.let { IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile) }
       else
-        null
+        null,
+      desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles)
     )
   }
-
 
   fun androidArtifactFrom(
     ownerBuildId: BuildId,
@@ -916,19 +929,24 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       if (mergedFlavor.versionNameSuffix == null && buildType?.versionNameSuffix == null) null
       else mergedFlavor.versionNameSuffix.orEmpty() + buildType?.versionNameSuffix.orEmpty()
     val variantName = variant.name.deduplicate()
+    val fallbackDesugaredMethodsFiles = if (agpVersion.isAtLeast(7, 3, 0, "alpha", 6, false)) variant.desugaredMethods else emptyList()
+
     return IdeVariantCoreImpl(
       name = variantName,
       displayName = variant.displayName.deduplicate(),
-      mainArtifact = androidArtifactFrom(IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyApplicationIdModel, variant.mainArtifact),
+      mainArtifact = androidArtifactFrom(IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyApplicationIdModel,
+                                         fallbackDesugaredMethodsFiles, variant.mainArtifact),
       // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
       unitTestArtifact = variant.unitTestArtifact?.let { it: JavaArtifact ->
         javaArtifactFrom(IdeArtifactName.UNIT_TEST, basicVariant.unitTestArtifact!!, it)
       },
       androidTestArtifact = variant.androidTestArtifact?.let { it: AndroidArtifact ->
-        androidArtifactFrom(IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, variantName, legacyApplicationIdModel, it)
+        androidArtifactFrom(IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, variantName, legacyApplicationIdModel,
+                            fallbackDesugaredMethodsFiles, it)
       },
       testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
-        androidArtifactFrom(IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyApplicationIdModel, it)
+        androidArtifactFrom(IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyApplicationIdModel,
+                            fallbackDesugaredMethodsFiles, it)
       },
       buildType = basicVariant.buildType?.deduplicate() ?: "",
       productFlavors = ImmutableList.copyOf(basicVariant.productFlavors.deduplicateStrings()),
@@ -950,7 +968,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
       deprecatedPreMergedApplicationId = null,
       deprecatedPreMergedTestApplicationId = null,
-      desugaredMethodsFiles = if (agpVersion.isAtLeast(7, 3, 0, "alpha", 6, false)) variant.desugaredMethods else emptyList()
+      desugaredMethodsFiles = fallbackDesugaredMethodsFiles,
     )
   }
 
@@ -1179,7 +1197,9 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       IdeBasicVariantImpl(
         name = it.name,
         applicationId = getApplicationIdFromArtifact(agpVersion, it.mainArtifact, IdeArtifactName.MAIN, legacyApplicationIdModel, it.name),
-        testApplicationId = it.androidTestArtifact?.let{ androidTestArtifact -> getApplicationIdFromArtifact(agpVersion, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyApplicationIdModel, it.name) }
+        testApplicationId = it.androidTestArtifact?.let { androidTestArtifact ->
+          getApplicationIdFromArtifact(agpVersion, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyApplicationIdModel, it.name)
+        }
       )
     }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()

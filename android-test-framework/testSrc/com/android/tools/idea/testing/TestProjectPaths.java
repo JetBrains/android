@@ -106,6 +106,7 @@ public final class TestProjectPaths {
   public static final String TEST_ARTIFACTS_KOTLIN = "projects/testArtifacts/kotlin";
   public static final String TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM = "projects/testArtifacts/kotlinMultiplatform";
   public static final String TEST_ARTIFACTS_LINT = "projects/testArtifacts/lintTests";
+  public static final String TEST_ARTIFACTS_LINT_DESUGARING_ANDROID_TEST = "projects/testArtifacts/lintTestsDesugaring";
   public static final String TEST_ARTIFACTS_MULTIDEPENDENCIES = "projects/testArtifacts/multidependencies";
   public static final String TEST_ARTIFACTS_MULTIPROJECT = "projects/testArtifacts/multiproject";
   public static final String TEST_ARTIFACTS_OLD_TESTS = "projects/testArtifacts/oldTests";

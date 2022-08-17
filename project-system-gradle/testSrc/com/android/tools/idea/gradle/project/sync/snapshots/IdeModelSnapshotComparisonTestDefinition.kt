@@ -234,12 +234,15 @@ private fun Sequence<String>.nameProperties() = nameProperties(this)
  * [com.android.tools.idea.gradle.model.IdeVariant.deprecatedPreMergedApplicationId] as not present in V2
  * [com.android.tools.idea.gradle.model.IdeVariant.deprecatedPreMergedTestApplicationId] as not present in V2
  * [com.android.builder.model.v2.ModelSyncFile] as these are not present in V1.
+ * [com.android.tools.idea.gradle.model.IdeAndroidArtifact.desugaredMethodsFiles] as not present in V1
  * `runetimeClasspath` as it is not available in V1.
  */
 private val PROPERTIES_TO_SKIP = setOf(
   "/Dependencies/compileClasspath/androidLibraries/target/lintJar",
   "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedApplicationId",
-  "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedTestApplicationId"
+  "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedTestApplicationId",
+  "MODULE/IdeVariants/IdeVariant/MainArtifact/DesugaredMethodFiles",
+  "MODULE/IdeVariants/IdeVariant/AndroidTestArtifact/DesugaredMethodFiles"
 )
 
 private val ENTITIES_TO_SKIP = setOf(

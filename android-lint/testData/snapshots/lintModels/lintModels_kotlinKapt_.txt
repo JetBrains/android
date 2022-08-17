@@ -31,6 +31,7 @@ MODULE                        : MainActivity.app
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/local/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/localDebug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -129,6 +130,7 @@ MODULE                        : MainActivity.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/local/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -480,6 +482,7 @@ MODULE                        : MainActivity.lib
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -646,6 +649,7 @@ MODULE                        : MainActivity.lib
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0

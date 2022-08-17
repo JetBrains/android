@@ -778,6 +778,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     codeShrinker = null,
     modelSyncFiles = listOf(),
     privacySandboxSdkInfo = null,
+    desugaredMethodsFiles = emptyList()
   )
 }
 
@@ -841,6 +842,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     codeShrinker = null,
     modelSyncFiles = listOf(),
     privacySandboxSdkInfo = null,
+    desugaredMethodsFiles = emptyList()
   )
 }
 
@@ -948,6 +950,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     codeShrinker = null,
     modelSyncFiles = listOf(),
     privacySandboxSdkInfo = null,
+    desugaredMethodsFiles = emptyList()
   )
 }
 

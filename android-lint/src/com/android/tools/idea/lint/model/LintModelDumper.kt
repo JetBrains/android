@@ -203,6 +203,7 @@ private fun ProjectDumper.dump(lintModelAndroidArtifact: LintModelAndroidArtifac
     prop("ApplicationId") { applicationId }
     generatedResourceFolders.sorted().forEach { prop("- GeneratedResourceFolders") { it.path.toPrintablePath() } }
     generatedSourceFolders.sorted().forEach { prop("- GeneratedSourceFolders") { it.path.toPrintablePath() } }
+    desugaredMethodsFiles.sorted().forEach { prop("- DesugaredMethodFiles") { it.path.toPrintablePath() } }
   }
   dump(lintModelAndroidArtifact as LintModelArtifact)
 }
