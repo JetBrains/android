@@ -95,6 +95,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntriesPerSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidDependenciesForMpss
 import com.android.tools.idea.gradle.project.sync.idea.setupCompilerOutputPaths
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
@@ -1917,14 +1918,15 @@ fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatc
 }
 
 data class OpenPreparedProjectOptions @JvmOverloads constructor(
-  val verifyOpened: (Project) -> Unit = ::verifySyncedSuccessfully,
+  val expectedSyncIssues: Set<Int> = emptySet(),
+  val verifyOpened: (Project) -> Unit = { verifySyncedSuccessfully(it, expectedSyncIssues) },
   val outputHandler: (Project.(String) -> Unit)? = null,
   val syncExceptionHandler: (Project.(Exception) -> Unit)? = { e ->
     println(e.message)
     e.printStackTrace()
   },
   val subscribe: (MessageBusConnection) -> Unit = {},
-  val disableKtsRelatedIndexing: Boolean = false
+  val disableKtsRelatedIndexing: Boolean = false,
 )
 
 /**
@@ -2047,7 +2049,7 @@ private fun <T> openPreparedProject(
 fun GradleIntegrationTest.nameToPath(name: String) =
   File(toSystemDependentName(getBaseTestPath() + "/" + name))
 
-private fun verifySyncedSuccessfully(project: Project) {
+private fun verifySyncedSuccessfully(project: Project, expectedSyncIssues: Set<Int> = emptySet()) {
   val lastSyncResult = project.getProjectSystem().getSyncManager().getLastSyncResult()
   if (!lastSyncResult.isSuccessful) {
     throw IllegalStateException(lastSyncResult.name)
@@ -2058,6 +2060,7 @@ private fun verifySyncedSuccessfully(project: Project) {
     .modules
     .flatMap { it.syncIssues() }
     .filter { it.severity == SyncIssue.SEVERITY_ERROR }
+    .filter { it.type !in expectedSyncIssues }
   if (errors.isNotEmpty()) {
     throw IllegalStateException(
       errors.joinToString(separator = "\n") {

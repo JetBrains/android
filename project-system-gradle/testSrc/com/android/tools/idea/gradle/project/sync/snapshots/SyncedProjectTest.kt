@@ -288,6 +288,7 @@ abstract class SyncedProjectTest(
       fun run(): List<Throwable> {
         return preparedProject.open(
           options = OpenPreparedProjectOptions(
+            expectedSyncIssues = testProject.expectedSyncIssues,
             disableKtsRelatedIndexing = true
           )
         ) { project ->

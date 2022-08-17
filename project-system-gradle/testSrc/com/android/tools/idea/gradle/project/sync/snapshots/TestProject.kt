@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
+import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.sdk.IdeSdks
@@ -55,7 +56,8 @@ enum class TestProject(
   val testName: String? = null,
   val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
   val setup: () -> () -> Unit = { {} },
-  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {}
+  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
+  val expectedSyncIssues: Set<Int> = emptySet()
 ) {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
   APP_WITH_BUILDSRC(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC),
