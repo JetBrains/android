@@ -37,6 +37,7 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.util.ThreeState
 import org.jetbrains.android.util.AndroidBundle
 import java.io.File
+import java.util.Locale
 
 class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
@@ -77,7 +78,8 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     val disableAutomaticComponentCreation =
       projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
         ?.firstOrNull { it.name == "android.disableAutomaticComponentCreation" }
-        ?.let { it.getValue(STRING_TYPE) == "true" }
+        ?.run { getValue(STRING_TYPE) }
+        ?.run { lowercase(Locale.US) == "true" }
       ?: false
     return mavenPublishUsed && !disableAutomaticComponentCreation
   }

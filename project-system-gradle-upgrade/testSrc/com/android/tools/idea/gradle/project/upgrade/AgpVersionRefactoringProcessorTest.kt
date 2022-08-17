@@ -197,9 +197,29 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testPre80MavenPublishOptOutCaseBlocks() {
+    writeToBuildFile(TestFileName("AgpVersion/Pre80MavenPublish"))
+    writeToGradlePropertiesFile("android.disableAutomaticComponentCreation=FaLsE\n")
+    val processor = AgpVersionRefactoringProcessor(project, GradleVersion.parse("7.1.0"), GradleVersion.parse("8.0.0"))
+    assertTrue(processor.isBlocked)
+    assertSize(1, processor.blockProcessorReasons())
+    assertEquals("Use of implicitly-created components in maven-publish.", processor.blockProcessorReasons()[0].shortDescription)
+  }
+
+  @Test
   fun testPre80MavenPublishOptInDoesNotBlock() {
     writeToBuildFile(TestFileName("AgpVersion/Pre80MavenPublish"))
     writeToGradlePropertiesFile("android.disableAutomaticComponentCreation=true\n")
+    val processor = AgpVersionRefactoringProcessor(project, GradleVersion.parse("7.1.0"), GradleVersion.parse("8.0.0"))
+    assertFalse(processor.isBlocked)
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/Pre80MavenPublish800Expected"))
+  }
+
+  @Test
+  fun testPre80MavenPublishOptInCaseDoesNotBlock() {
+    writeToBuildFile(TestFileName("AgpVersion/Pre80MavenPublish"))
+    writeToGradlePropertiesFile("android.disableAutomaticComponentCreation=TrUe\n")
     val processor = AgpVersionRefactoringProcessor(project, GradleVersion.parse("7.1.0"), GradleVersion.parse("8.0.0"))
     assertFalse(processor.isBlocked)
     processor.run()
