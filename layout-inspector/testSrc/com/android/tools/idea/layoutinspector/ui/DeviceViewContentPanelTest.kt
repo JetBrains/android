@@ -72,6 +72,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
@@ -103,6 +104,7 @@ import java.awt.Polygon
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.nio.file.Path
+import java.util.function.Supplier
 import javax.imageio.ImageIO
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
@@ -1297,6 +1299,7 @@ class DeviceViewContentPanelTest {
     override fun getActionGroup(): ActionGroup = group
     override fun getPlace(): String = error("Not implemented")
     override fun setTargetComponent(component: JComponent) = error("Not implemented")
+    override fun setDataContext(dataProvider: Supplier<out DataContext>) = error("Not implemented")
 
     fun assertSelectViewAction(vararg expected: Long) {
       val event: AnActionEvent = mock()
