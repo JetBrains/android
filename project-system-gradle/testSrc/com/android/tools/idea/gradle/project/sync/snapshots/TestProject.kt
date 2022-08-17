@@ -127,6 +127,22 @@ enum class TestProject(
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { moveGradleRootUnderGradleProjectDirectory(it, makeSecondCopy = true) }
   ),
+  SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "withUnnamedDimension",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { root ->
+      root.resolve("app/build.gradle").replaceContent {
+        it + """
+          android.productFlavors {
+           example {
+           }
+          }
+         """
+      }
+    },
+    expectedSyncIssues = setOf(SyncIssue.TYPE_UNNAMED_FLAVOR_DIMENSION)
+  ),
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
   BASIC_CMAKE_APP(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
   PSD_SAMPLE_GROOVY(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),

@@ -125,6 +125,9 @@ abstract class SyncedProjectTest(
   fun testSimpleApplicationMultipleRoots() = testProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
 
   @Test
+  fun testSimpleApplication_withUnnamedDimension() = testProject(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION)
+
+  @Test
   fun testWithGradleMetadata() = testProject(TestProject.WITH_GRADLE_METADATA)
 
   @Test

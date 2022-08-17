@@ -515,6 +515,16 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
         buildType = projectInfo.buildType,
         productFlavors = { dimension ->
           projectInfo.productFlavors[dimension]
+            ?: run {
+              // See: b/242856048 and b/242289523: Flavors in `FAKE_DIMENSION` are not reported here.
+              if (dimension == FAKE_DIMENSION) {
+                val suffix = projectInfo.buildType.orEmpty()
+                projectInfo
+                  .attributes["com.android.build.gradle.internal.attributes.VariantAttr"]
+                  ?.takeIf { it.endsWith(suffix, ignoreCase = true) }
+                  ?.let { it.substring(0, it.length - suffix.length) }
+              } else null
+            }
             ?: error(
               "$dimension attribute not found in a dependency model " +
                 "of $ownerProjectPath ($ownerBuildId) " +

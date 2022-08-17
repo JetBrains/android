@@ -78,6 +78,10 @@ data class IdeModelSnapshotComparisonTestDefinition(
         skipV1toV2Comparison = true
       ),
       IdeModelSnapshotComparisonTestDefinition(
+        TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION,
+        skipV1toV2Comparison = true
+      ),
+      IdeModelSnapshotComparisonTestDefinition(
         TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS,
           isCompatibleWith = { it >= AGP_35 }
       ),
