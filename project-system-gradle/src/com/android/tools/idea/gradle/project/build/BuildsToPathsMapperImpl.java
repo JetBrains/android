@@ -37,9 +37,9 @@ import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.intellij.openapi.module.Module;
-import com.intellij.util.containers.ImmutableList;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -87,7 +87,7 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
       }
 
       if (!isSigned) {
-        buildVariants = ImmutableList.singleton(androidModel.getSelectedVariant().getName());
+        buildVariants = Collections.singletonList(androidModel.getSelectedVariant().getName());
       }
 
       for (String buildVariant : buildVariants) {
