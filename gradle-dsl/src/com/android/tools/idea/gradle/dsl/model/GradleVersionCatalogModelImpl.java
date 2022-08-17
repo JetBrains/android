@@ -29,36 +29,46 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile.GradleDslVersionLiteral;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implements GradleVersionCatalogModel {
+public class GradleVersionCatalogModelImpl implements GradleVersionCatalogModel {
+  private Collection<GradleVersionCatalogFile> versionCatalogFiles;
 
-  GradleVersionCatalogModelImpl(@NotNull GradleVersionCatalogFile versionCatalogFile) {
-    super(versionCatalogFile);
+  GradleVersionCatalogModelImpl(@NotNull Collection<GradleVersionCatalogFile> versionCatalogFile) {
+    this.versionCatalogFiles = versionCatalogFile;
+  }
+
+  private Map<String, ExtModel> extractByName(String sectionName) {
+    return versionCatalogFiles.stream().collect(Collectors.toMap(GradleVersionCatalogFile::getCatalogName, myGradleDslFile -> {
+      GradleDslExpressionMap librariesDslElement = myGradleDslFile.ensurePropertyElement(
+        new PropertiesElementDescription<>(sectionName, GradleDslExpressionMap.class, GradleDslExpressionMap::new)
+      );
+      return new ExtModelImpl(librariesDslElement, GradleVersionCatalogPropertyModel::new, GradleVersionCatalogPropertyModel::new);
+    }));
   }
 
   @Override
-  public @NotNull ExtModel libraries() {
-    GradleDslExpressionMap librariesDslElement = myGradleDslFile.ensurePropertyElement(
-      new PropertiesElementDescription<>("libraries", GradleDslExpressionMap.class, GradleDslExpressionMap::new)
-    );
-    return new ExtModelImpl(librariesDslElement, GradleVersionCatalogPropertyModel::new, GradleVersionCatalogPropertyModel::new);
+  public ExtModel libraries(String catalogName) {
+    return extractByName("libraries").get(catalogName);
   }
 
   @Override
-  public @NotNull ExtModel plugins() {
-    GradleDslExpressionMap pluginsDslElement = myGradleDslFile.ensurePropertyElement(
-      new PropertiesElementDescription<>("plugins", GradleDslExpressionMap.class, GradleDslExpressionMap::new)
-    );
-    return new ExtModelImpl(pluginsDslElement, GradleVersionCatalogPropertyModel::new, GradleVersionCatalogPropertyModel::new);
+  public ExtModel plugins(String catalogName) {
+    return extractByName("plugins").get(catalogName);
   }
 
   @Override
-  public @NotNull ExtModel versions() {
-    GradleDslExpressionMap versionsDslElement = myGradleDslFile.ensurePropertyElementAt(
-      new PropertiesElementDescription<>("versions", GradleDslExpressionMap.class, GradleDslExpressionMap::new), 0);
-    return new ExtModelImpl(versionsDslElement);
+  public ExtModel versions(String catalogName) {
+    return extractByName("versions").get(catalogName);
+  }
+
+  public Set<String> catalogNames(){
+    return versionCatalogFiles.stream().map(GradleVersionCatalogFile::getCatalogName).collect(Collectors.toSet());
   }
 
   class GradleVersionCatalogPropertyModel extends GradlePropertyModelImpl {
@@ -70,7 +80,6 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
       super(holder, type, name);
     }
 
-    @Override
     public @NotNull GradlePropertyModel getMapValue(@NotNull String key) {
       if (!"version".equals(key)) {
         return super.getMapValue(key);
@@ -80,7 +89,6 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
       return model;
     }
   }
-
   static class VersionTransform extends DefaultTransform {
     @Override
     public @NotNull GradleDslExpression bind(@NotNull GradleDslElement holder,

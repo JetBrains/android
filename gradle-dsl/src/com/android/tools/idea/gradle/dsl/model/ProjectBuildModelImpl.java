@@ -29,6 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -195,13 +196,10 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Override
   public @Nullable GradleVersionCatalogModel getVersionCatalogModel() {
     if (!GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled()) return null;
-    // TODO(b/238981516): actually compute the set of version catalog files to read from the settings model.
-    VirtualFile versionCatalogVirtualFile = myBuildModelContext.getVersionCatalogFile("libs");
-    if (versionCatalogVirtualFile == null) return null;
-    GradleVersionCatalogFile versionCatalogFile = myBuildModelContext.getOrCreateVersionCatalogFile(versionCatalogVirtualFile, "libs");
-    // TODO(b/238981516): when we support multiple files, should we have one Catalog model per file?  One Catalog model?  How should the
-    //  internals be organized?  How does this change when we support multiple catalogs?
-    return new GradleVersionCatalogModelImpl(versionCatalogFile);
+    Collection<GradleVersionCatalogFile> files = myProjectBuildFile.getVersionCatalogFiles();
+
+    if (files.isEmpty()) return null;
+    return new GradleVersionCatalogModelImpl(files);
   }
 
   private void runOverProjectTree(@NotNull Consumer<GradleDslFile> func) {

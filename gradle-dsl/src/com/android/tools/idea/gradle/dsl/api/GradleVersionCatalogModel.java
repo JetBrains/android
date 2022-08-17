@@ -16,14 +16,27 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import java.util.Map;
+import java.util.Set;
 
-public interface GradleVersionCatalogModel extends GradleFileModel {
-  // TODO(b/238982664): these might not make sense as ExtModels, though that is the closest thing we currently have (an
-  //  arbitrary-sized collection of arbitrary named Dsl values).  The ExtModel for versions in particular might be doing double
-  //  duty in order to support exposing its contents as PsVariables.
-  ExtModel libraries();
+/**
+ * Version Catalog Model covers all catalog files that relate to a project.
+ * ExtModel represents single catalog file model.
+ *
+ * Effective model of GradleVersionCatalogModel is a map of maps. VersionCatalogModel -> ExtModel -> name-value properties.
+ */
+public interface GradleVersionCatalogModel {
+  // Having ExtModels, as return value is the closest thing we currently have (an arbitrary-sized collection of
+  // arbitrary named Dsl values).  The ExtModel for versions in particular might be doing double
+  // duty in order to support exposing its contents as PsVariables. (b/238982664)
+  ExtModel libraries(String catalogName);
 
-  ExtModel plugins();
+  ExtModel plugins(String catalogName);
 
-  ExtModel versions();
+  ExtModel versions(String catalogName);
+
+  /**
+   * Get names for all catalogs that are in use for particular project
+   */
+  Set<String> catalogNames();
 }

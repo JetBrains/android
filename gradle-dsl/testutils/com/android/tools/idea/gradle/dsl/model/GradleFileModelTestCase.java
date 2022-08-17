@@ -193,7 +193,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     ApplicationManager.getApplication().runWriteAction(runnable);
   }
 
-  private static void saveFileUnderWrite(@NotNull VirtualFile file, @NotNull String text) throws IOException {
+  protected static void saveFileUnderWrite(@NotNull VirtualFile file, @NotNull String text) throws IOException {
     runWriteAction(() -> {
       saveText(file, text);
       return null;
