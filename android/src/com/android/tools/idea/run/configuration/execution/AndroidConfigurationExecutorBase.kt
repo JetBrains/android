@@ -79,7 +79,6 @@ abstract class AndroidConfigurationExecutorBase(
     val applicationInstaller = getApplicationInstaller(console)
 
     val onDevice = { device: IDevice ->
-      processHandler.addTargetDevice(device)
       terminatePreviousAppInstance(device)
 
       val result = try {
@@ -91,6 +90,7 @@ abstract class AndroidConfigurationExecutorBase(
         throw ExecutionException("Failed to install app '$appId'. ${e.details.orEmpty()}", e)
       }
       launch(device, result.app, console, false)
+      processHandler.addTargetDevice(device)
     }
 
     val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("AndroidConfigurationExecutorBase", 5)

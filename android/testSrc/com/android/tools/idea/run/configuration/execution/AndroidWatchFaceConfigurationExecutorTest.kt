@@ -104,7 +104,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
-    executor.run().blockingGet(10, TimeUnit.SECONDS)
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
 
     // Verify commands sent to device.
 
@@ -175,8 +175,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
-    val runContentDescriptor = executor.debug().blockingGet(10, TimeUnit.SECONDS)
-    assertThat(runContentDescriptor!!.processHandler).isNotNull()
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.debug().blockingGet(10, TimeUnit.SECONDS)!! }
 
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()

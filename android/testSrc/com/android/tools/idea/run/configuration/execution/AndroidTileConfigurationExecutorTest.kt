@@ -111,7 +111,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
-    val runContentDescriptor = executor.run().blockingGet(10, TimeUnit.SECONDS)!!
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
 
     // Verify commands sent to device.
 
@@ -287,8 +287,8 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
-    val runContentDescriptor = executor.debug().blockingGet(10, TimeUnit.SECONDS)
-    assertThat(runContentDescriptor!!.processHandler).instanceOf(AndroidRemoteDebugProcessHandler::class)
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.debug().blockingGet(10, TimeUnit.SECONDS)!! }
+    assertThat(runContentDescriptor.processHandler).instanceOf(AndroidRemoteDebugProcessHandler::class)
 
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()

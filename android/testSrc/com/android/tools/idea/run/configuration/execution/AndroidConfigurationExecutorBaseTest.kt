@@ -21,7 +21,9 @@ import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.xdebugger.XDebuggerManager
 import org.junit.After
@@ -63,5 +65,19 @@ abstract class AndroidConfigurationExecutorBaseTest {
     override fun getPackageName() = appId
 
     override fun getTestPackageName(): String? = null
+  }
+
+  protected fun getRunContentDescriptorForTests(runContentDescriptorProvider: () -> RunContentDescriptor): RunContentDescriptor {
+    val runContentDescriptor = runContentDescriptorProvider.invoke()
+    val processHandler = runContentDescriptor.processHandler!!
+    Disposer.register(project) {
+      processHandler.detachProcess()
+    }
+
+    if (!processHandler.isStartNotified) {
+      processHandler.startNotify()
+    }
+
+    return runContentDescriptor
   }
 }

@@ -135,7 +135,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = executor.run().blockingGet(10, TimeUnit.SECONDS)!!
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
 
     // Verify commands sent to device.
 
@@ -238,8 +238,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = executor.debug().blockingGet(10, TimeUnit.SECONDS)
-    assertThat(runContentDescriptor!!.processHandler).isNotNull()
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.debug().blockingGet(10, TimeUnit.SECONDS)!! }
 
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
@@ -330,7 +329,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = executor.run().blockingGet(10, TimeUnit.SECONDS)!!
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
 
     // Verify that a warning was raised in console.
     val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl

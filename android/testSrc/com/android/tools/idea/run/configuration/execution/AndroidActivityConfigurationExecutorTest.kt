@@ -78,7 +78,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     // Mock app installation.
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
-    executor.run().blockingGet(10, TimeUnit.SECONDS)
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.run().blockingGet(10, TimeUnit.SECONDS)!! }
 
     // Verify commands sent to device.
 
@@ -140,8 +140,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     Mockito.doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
 
 
-    val runContentDescriptor = executor.debug().blockingGet(15, TimeUnit.SECONDS)
-    assertThat(runContentDescriptor!!.processHandler).isNotNull()
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.debug().blockingGet(15, TimeUnit.SECONDS)!! }
 
     // Emulate stopping debug session.
     val processHandler = runContentDescriptor.processHandler!!
