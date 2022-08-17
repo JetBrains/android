@@ -36,10 +36,9 @@ interface AppInspectionIdeServices {
 
   /**
    * Shows the App Inspection tool window.
-   * @param callback A callback executed right after the window shows up. The call is asynchronous since it may require animation.
    */
   @UiThread
-  fun showToolWindow(@UiThread callback: () -> Unit = { })
+  fun showToolWindow()
 
   /**
    * Shows a notification which will be reported by the tool window with UX that is consistent across all inspectors.
@@ -78,7 +77,7 @@ interface AppInspectionIdeServices {
 }
 
 open class AppInspectionIdeServicesAdapter : AppInspectionIdeServices {
-  override fun showToolWindow(callback: () -> Unit) {}
+  override fun showToolWindow() {}
   override fun showNotification(content: String, title: String, severity: AppInspectionIdeServices.Severity, hyperlinkClicked: () -> Unit) {}
   override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
   override fun isTabSelected(inspectorId: String) = false
