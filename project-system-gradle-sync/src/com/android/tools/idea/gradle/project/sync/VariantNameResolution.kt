@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeVariantCore
 
 fun buildVariantNameResolver(androidProject: IdeAndroidProject, v2Variants: Collection<IdeVariantCore>): AndroidVariantResolver {
-  val moduleName = androidProject.projectPath
   val availableDimensions = androidProject.productFlavors.mapNotNull { it.productFlavor.dimension }.toSet()
   val dimensions = androidProject.flavorDimensions.filter { availableDimensions.contains(it) }
   val map = v2Variants
@@ -28,11 +27,10 @@ fun buildVariantNameResolver(androidProject: IdeAndroidProject, v2Variants: Coll
     }
 
   return object : AndroidVariantResolver {
-    override fun resolveVariant(buildType: String?, productFlavors: (dimension: String) -> String): String {
+    override fun resolveVariant(buildType: String?, productFlavors: (dimension: String) -> String): String? {
       val flavors = dimensions.map(productFlavors)
       val key = flavors + listOfNotNull(buildType)
-      return map
-        .getOrElse(key) { error("Cannot find a variant matching build type '$buildType' and product flavors '$flavors' in $moduleName") }
+      return map.get(key)
     }
   }
 }
