@@ -97,6 +97,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_ML_MODELS),
       ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR),
       ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
+      ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND),
       ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_GRADLE_DSL),
       ProjectStructureSnapshotTestDef(TestProject.NEW_SYNC_KOTLIN_TEST),

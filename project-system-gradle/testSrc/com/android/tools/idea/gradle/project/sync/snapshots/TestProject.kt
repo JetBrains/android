@@ -141,6 +141,15 @@ enum class TestProject(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     isCompatibleWith = { it.modelVersion == ModelVersion.V2 }
   ),
+  NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND(
+    TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
+    testName = "manualTestFixturesWorkaround",
+    isCompatibleWith = { it.modelVersion == ModelVersion.V2 },
+    patch = {
+      it.resolve("app/build.gradle")
+        .replaceInContent("androidTestImplementation project(':lib')", "// androidTestImplementation project(':lib')")
+    }
+  ),
   NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     testName = "hierarchical",
