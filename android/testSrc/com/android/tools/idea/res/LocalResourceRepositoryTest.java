@@ -31,7 +31,6 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
   private static final String TEST_FILE = "xmlpull/layout.xml";
 
   public void testLocalResourceRepository() throws Exception {
-    ResourceUpdateTracer.startTracing();
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf");
@@ -47,13 +46,7 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
 
     long generation = resources.getModificationCount();
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
-    try {
-      assertEquals(generation, resources.getModificationCount());
-    }
-    catch (Throwable e) {
-      ResourceUpdateTracer.dumpTrace(e.getMessage());
-      throw e;
-    }
+    assertEquals(generation, resources.getModificationCount());
 
     VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout3.xml");
     waitForUpdates(resources);
