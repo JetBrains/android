@@ -51,6 +51,7 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -195,7 +196,9 @@ class CustomViewPreviewRepresentation(
       name = "Custom View"
     }
 
-  private val actionsToolbar = ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
+  private val actionsToolbar = invokeAndWaitIfNeeded {
+    ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
+  }
 
   private val editorPanel = JPanel(BorderLayout()).apply {
     add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
