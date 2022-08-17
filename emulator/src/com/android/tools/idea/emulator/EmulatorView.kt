@@ -477,7 +477,8 @@ class EmulatorView(
       val maxImageSize = maxSize.rotatedByQuadrants(orientationQuadrants)
 
       val currentReceiver = screenshotReceiver
-      if (currentReceiver != null && currentReceiver.maxImageSize == maxImageSize) {
+      if (currentReceiver != null &&
+          currentReceiver.maxImageSize == maxImageSize && currentReceiver.orientationQuadrants == orientationQuadrants) {
         return // Keep the current screenshot feed because it is identical.
       }
 
