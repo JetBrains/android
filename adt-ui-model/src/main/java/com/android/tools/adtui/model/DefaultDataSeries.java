@@ -15,18 +15,18 @@
  */
 package com.android.tools.adtui.model;
 
+
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collections;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 
-
-public class DefaultDataSeries<E> implements DataSeries<E> {
-  @NotNull protected final List<SeriesData<E>> mSeriesList = new ArrayList<>();
+public final class DefaultDataSeries<E> implements DataSeries<E> {
+  @NotNull
+  private final List<SeriesData<E>> mSeriesList = new ArrayList<>();
 
   @NotNull
   private List<SeriesData<E>> getDataSubList(final int fromIndex, final int toIndex) {
@@ -86,3 +86,4 @@ public class DefaultDataSeries<E> implements DataSeries<E> {
     return Math.max(0, Math.min(index, size() - 1));
   }
 }
+
