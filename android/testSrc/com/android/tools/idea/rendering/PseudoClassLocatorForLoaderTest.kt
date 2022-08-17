@@ -61,7 +61,7 @@ internal class PseudoClassLocatorForLoaderTest(classLoaderWithDescription: Class
     pseudoClassLocator.locatePseudoClass("java.lang.Integer").let {
       assertEquals("java.lang.Integer", it.name)
       assertEquals("java.lang.Number", it.superName)
-      assertEquals("java.lang.Comparable", it.interfaces.single().toString())
+      assertTrue(it.interfaces.contains("java.lang.Comparable"))
     }
     pseudoClassLocator.locatePseudoClass("java.util.ArrayList").let {
       assertEquals("java.util.ArrayList", it.name)
