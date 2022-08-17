@@ -95,6 +95,7 @@ class ForegroundProcessDetectionInitializerTest {
   fun testNewForegroundProcessSetsSelectedProcess() {
     val foregroundProcessListener = ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(processModel)
     ForegroundProcessDetectionInitializer.initialize(
+      project = projectRule.project,
       processModel = processModel,
       deviceModel = deviceModel,
       coroutineScope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
@@ -153,6 +154,7 @@ class ForegroundProcessDetectionInitializerTest {
     connectStream(fakeStream1)
 
     val foregroundProcessDetection = ForegroundProcessDetectionInitializer.initialize(
+      project = projectRule.project,
       processModel = processModel,
       deviceModel = deviceModel,
       coroutineScope = projectRule.project.coroutineScope,

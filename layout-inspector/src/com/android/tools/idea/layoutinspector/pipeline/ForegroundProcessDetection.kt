@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportDeviceManager
@@ -83,6 +84,7 @@ object ForegroundProcessDetectionInitializer {
   }
 
   fun initialize(
+    project: Project,
     processModel: ProcessesModel,
     deviceModel: DeviceModel,
     coroutineScope: CoroutineScope,
@@ -91,6 +93,7 @@ object ForegroundProcessDetectionInitializer {
     metrics: ForegroundProcessDetectionMetrics,
   ): ForegroundProcessDetection {
     val foregroundProcessDetection = ForegroundProcessDetection(
+      project,
       deviceModel,
       transportClient,
       metrics,
@@ -194,13 +197,21 @@ class TransportDeviceManagerListenerImpl : TransportDeviceManager.TransportDevic
  * If a device is not selected, stops process inspection by setting the selected process to null.
  *
  * A process can be selected when a device does not support foreground process detection.
+ *
+ * This method also resets device-level DebugViewAttributes from the device.
  */
 fun stopInspector(
+  project: Project,
   deviceModel: DeviceModel,
   processesModel: ProcessesModel,
-  foregroundProcessDetection: ForegroundProcessDetection?
+  foregroundProcessDetection: ForegroundProcessDetection?,
 ) {
-  if (deviceModel.selectedDevice != null) {
+  val selectedDevice = deviceModel.selectedDevice
+  if (selectedDevice != null) {
+    val debugViewAttributes = DebugViewAttributes.getInstance()
+    if (debugViewAttributes.usePerDeviceSettings()) {
+      debugViewAttributes.clear(project, selectedDevice)
+    }
     foregroundProcessDetection?.stopPollingSelectedDevice()
   }
   else {
@@ -234,6 +245,7 @@ interface ForegroundProcessListener {
  * @param deviceModel At any time reflects on which device we are polling for foreground process.
  */
 class ForegroundProcessDetection(
+  private val project: Project,
   private val deviceModel: DeviceModel,
   private val transportClient: TransportClient,
   private val metrics: ForegroundProcessDetectionMetrics,
@@ -359,6 +371,14 @@ class ForegroundProcessDetection(
             devicesWithUnknownState.clear()
 
             if (streamDevice.serial == deviceModel.selectedDevice?.serial) {
+
+              // when a device is disconnected we still want to call [DebugViewAttributes#clear],
+              // because this updates the state of the class. The flag will be turned off on the
+              // device by the trap command, we want to reflect this state in DebugViewAttributes.
+              val debugViewAttributes = DebugViewAttributes.getInstance()
+              if (debugViewAttributes.usePerDeviceSettings()) {
+                debugViewAttributes.clear(project, streamDevice)
+              }
               deviceModel.selectedDevice = null
             }
           }

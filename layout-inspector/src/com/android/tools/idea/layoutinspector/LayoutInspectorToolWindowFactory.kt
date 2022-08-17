@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectio
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.stopInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
@@ -117,7 +118,14 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         lateinit var launcher: InspectorClientLauncher
         val treeSettings = InspectorTreeSettings { launcher.activeClient }
         val metrics = LayoutInspectorMetrics(project, null)
-        launcher = InspectorClientLauncher.createDefaultLauncher(processesModel, model, metrics, treeSettings, workbench)
+        launcher = InspectorClientLauncher.createDefaultLauncher(
+          project,
+          processesModel,
+          model,
+          metrics,
+          treeSettings,
+          workbench
+        )
         val layoutInspector = LayoutInspector(launcher, model, treeSettings)
 
         val deviceModel = DeviceModel(processesModel)
@@ -130,7 +138,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           deviceModel = deviceModel,
           onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
           onProcessSelected = { newProcess -> processesModel.selectedProcess = newProcess },
-          onStopInspector = { stopInspector(deviceModel, processesModel, foregroundProcessDetection) },
+          onStopInspector = { stopInspector(project, deviceModel, processesModel, foregroundProcessDetection) },
           layoutInspector = layoutInspector,
           viewSettings = viewSettings,
           disposableParent = workbench
@@ -164,6 +172,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   ): ForegroundProcessDetection? {
     return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
       ForegroundProcessDetectionInitializer.initialize(
+        project = project,
         processModel = processesModel,
         deviceModel = deviceModel,
         coroutineScope = project.coroutineScope,

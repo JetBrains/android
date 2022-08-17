@@ -29,6 +29,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -92,6 +93,7 @@ const val MIN_API_29_AOSP_SYSIMG_REV = 8
  *     inspection-based inspectors.
  */
 class AppInspectionInspectorClient(
+  private val project: Project,
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
@@ -129,7 +131,6 @@ class AppInspectionInspectorClient(
     )
   }
 
-  private val debugViewAttributes = DebugViewAttributes(model.project)
   private var debugViewAttributesChanged = false
 
   override val capabilities =
@@ -182,7 +183,7 @@ class AppInspectionInspectorClient(
 
       logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-      debugViewAttributesChanged = debugViewAttributes.set(process)
+      debugViewAttributesChanged = DebugViewAttributes.getInstance().set(model.project, process)
       if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
         showActivityRestartedInBanner(model.project, process)
       }
@@ -207,8 +208,9 @@ class AppInspectionInspectorClient(
     val future = SettableFuture.create<Nothing>()
     // Create a new scope since we might be disconnecting because the original one died.
     model.project.coroutineScope.createChildScope(true).launch(loggingExceptionHandler) {
-      if (debugViewAttributesChanged) {
-        debugViewAttributes.clear(process)
+      val debugViewAttributes = DebugViewAttributes.getInstance()
+      if (debugViewAttributesChanged && !debugViewAttributes.usePerDeviceSettings()) {
+        debugViewAttributes.clear(model.project, process)
       }
       viewInspector?.disconnect()
       composeInspector?.disconnect()

@@ -38,6 +38,7 @@ import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -56,8 +57,8 @@ fun AppInspectionClientProvider(
 ) = InspectorClientProvider { params, inspector ->
   val apiServices = getApiServices()
 
-  AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
-                               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process),
+  AppInspectionInspectorClient(inspector.layoutInspectorModel.project, params.process, params.isInstantlyAutoConnected,
+                               inspector.layoutInspectorModel, LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process),
                                inspector.treeSettings, parentDisposable, apiServices).apply {
     launchMonitor = getMonitor()
   }

@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.adb.AbortAdbCommandRunnable
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
@@ -28,6 +29,8 @@ import com.google.common.html.HtmlEscapers
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Command that will be run on the device through adb shell.
@@ -49,9 +52,12 @@ private sealed class Command(val setting: String) {
 
 private const val PER_DEVICE_SETTING = "debug_view_attributes"
 private const val PER_APP_SETTING = "debug_view_attributes_application_package"
+private val shouldUsePerDeviceSetting get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
 
 /**
  * Helper class that handles setting debug settings on the device via ADB.
+ *
+ * Flags should be set and cleared using the same instance of this class.
  *
  * These debug settings, when set, tell the system to expose some debug data (e.g. Composables)
  * that it normally would hide.
@@ -60,17 +66,33 @@ private const val PER_APP_SETTING = "debug_view_attributes_application_package"
  * The Compose inspector without the flag works in a limited capacity, it can only show images
  * and the bounds of the root views, which on its own is not very useful.
  */
-class DebugViewAttributes(
-  private val project: Project,
-  private val usePerDeviceSettings: Boolean = false
+class DebugViewAttributes @VisibleForTesting constructor(
+  val usePerDeviceSettings: () -> Boolean = { shouldUsePerDeviceSetting }
 ) {
+
+  companion object {
+    private var instance: DebugViewAttributes? = null
+
+    fun getInstance(): DebugViewAttributes {
+      if (instance == null) {
+        instance = DebugViewAttributes()
+      }
+
+      return instance!!
+    }
+
+    @TestOnly
+    fun reset() {
+      instance = null
+    }
+  }
 
   /**
    * The type of debug_view_attributes to be used
    */
   private val setting: String
     get() {
-      return if (usePerDeviceSettings) PER_DEVICE_SETTING else PER_APP_SETTING
+      return if (usePerDeviceSettings()) PER_DEVICE_SETTING else PER_APP_SETTING
     }
 
   private var abortDeleteRunnable: AbortAdbCommandRunnable? = null
@@ -82,14 +104,14 @@ class DebugViewAttributes(
    * @return true if the global attributes were changed.
    */
   @Slow
-  fun set(process: ProcessDescriptor): Boolean {
+  fun set(project: Project, process: ProcessDescriptor): Boolean {
     // flag was already set - no need to set twice
     if (abortDeleteRunnable != null) return false
 
     var errorMessage: String
     var settingsUpdated = false
 
-    val putValue = if (usePerDeviceSettings) "1" else process.name
+    val putValue = if (usePerDeviceSettings()) "1" else process.name
     val putCommand = Command.Put(setting, putValue)
 
     try {
@@ -133,19 +155,29 @@ class DebugViewAttributes(
   }
 
   /**
-   * Disable debug view attributes for the current process that were set when we connected.
-   *
-   * Return true if the debug view attributes were successfully disabled.
+   * Disable debug view attributes for the process passed as argument, if they were previously set using this class.
    */
   @Slow
-  fun clear(process: ProcessDescriptor) {
+  fun clear(project: Project, process: ProcessDescriptor) {
+    doClear(project, process.device, process.name)
+  }
+
+  /**
+   * Disable debug view attributes for the device passed as argument, if they were previously set using this class.
+   */
+  @Slow
+  fun clear(project: Project, device: DeviceDescriptor) {
+    doClear(project, device, null)
+  }
+
+  private fun doClear(project: Project, device: DeviceDescriptor, processName: String?) {
     // the flag was not set using this class, we should not turn it off
     if (abortDeleteRunnable == null) return
 
     try {
       val adb = AdbUtils.getAdbFuture(project).get() ?: return
-      if (shouldExecuteDelete(adb, process.device, process.name)) {
-        executeDelete(adb, process.device)
+      if (shouldExecuteDelete(adb, device, processName)) {
+        executeDelete(adb, device)
       }
     }
     catch (_: Exception) { }
@@ -161,7 +193,7 @@ class DebugViewAttributes(
       return false
     }
 
-    if (!usePerDeviceSettings) {
+    if (!usePerDeviceSettings()) {
       // don't turn on the per-app setting, if it's already on.
       if(isPerAppSettingOn(adb, device, processName)) {
         return false
@@ -171,12 +203,12 @@ class DebugViewAttributes(
     return true
   }
 
-  private fun shouldExecuteDelete(adb: AndroidDebugBridge, device: DeviceDescriptor, processName: String): Boolean {
-    return if (usePerDeviceSettings) {
+  private fun shouldExecuteDelete(adb: AndroidDebugBridge, device: DeviceDescriptor, processName: String?): Boolean {
+    return if (usePerDeviceSettings()) {
       isPerDeviceSettingOn(adb, device)
     }
     else {
-      isPerAppSettingOn(adb, device, processName)
+      isPerAppSettingOn(adb, device, processName!!)
     }
   }
 

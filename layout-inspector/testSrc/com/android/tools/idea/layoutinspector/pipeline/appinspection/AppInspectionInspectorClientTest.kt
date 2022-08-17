@@ -421,6 +421,44 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
+  fun testPerDeviceViewDebugAttributesSetAndNotReset() = runWithFlagState(true) {
+    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isNull()
+    assertThat(inspectorRule.adbProperties.debugViewAttributes).isEqualTo("1")
+
+    // Imitate that the adb server was killed.
+    // We expect the ViewDebugAttributes to be cleared anyway since a new adb bridge should be created.
+    inspectorRule.adbService.killServer()
+
+    // Disconnect directly instead of calling fireDisconnected - otherwise, we don't have an easy way to wait for the disconnect to
+    // happen on a background thread
+    inspectorRule.launcher.disconnectActiveClient()
+    assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isNull()
+    assertThat(inspectorRule.adbProperties.debugViewAttributes).isEqualTo("1")
+    // No other attributes were modified
+    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testPerDeviceViewDebugAttributesUntouchedIfAlreadySet() = runWithFlagState(true) {
+    inspectorRule.adbProperties.debugViewAttributes = "1"
+
+    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(0)
+    assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isNull()
+    assertThat(inspectorRule.adbProperties.debugViewAttributes).isEqualTo("1")
+
+    // Disconnect directly instead of calling fireDisconnected - otherwise, we don't have an easy way to wait for the disconnect to
+    // happen on a background thread
+    inspectorRule.launcher.disconnectActiveClient()
+    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(0)
+    assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isNull()
+    assertThat(inspectorRule.adbProperties.debugViewAttributes).isEqualTo("1")
+  }
+
+  @Test
   fun inspectorSendsStopFetchCommand() = runBlocking {
     val stopFetchReceived = CompletableDeferred<Unit>()
     inspectionRule.viewInspector.listenWhen({ it.hasStopFetchCommand() }) {
@@ -914,8 +952,9 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(processDescriptor2, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
-                                                mock(), mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+      val client = AppInspectionInspectorClient(inspectorRule.project, processDescriptor2,
+                                                isInstantlyAutoConnected = false, model(inspectorRule.project) {}, mock(), mock(),
+                                                disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                                 sdkHandler = sdkHandler)
       // shouldn't get an exception
       client.connect(inspectorRule.project)
@@ -941,8 +980,9 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
-                                                mock(), mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+      val client = AppInspectionInspectorClient(inspectorRule.project, processDescriptor,
+                                                isInstantlyAutoConnected = false, model(inspectorRule.project) {}, mock(), mock(),
+                                                disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                                 sdkHandler = sdkHandler)
       client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
@@ -960,8 +1000,9 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val remotePackage = setUpSdkPackage(sdkRoot, minRevision, 29, tag, true) as RemotePackage
     packages.setRemotePkgInfos(listOf(remotePackage))
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
-                                                mock(), mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+      val client = AppInspectionInspectorClient(inspectorRule.project, processDescriptor,
+                                                isInstantlyAutoConnected = false, model(inspectorRule.project) {}, mock(), mock(),
+                                                disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                                 sdkHandler = sdkHandler)
       client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
@@ -1161,4 +1202,15 @@ class AppInspectionInspectorClientWithFailingClientTest {
     inspectorRule.disconnect()
     usageTrackerRule.testTracker.usages.clear()
   }
+}
+
+private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
+  val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+  val flagPreviousState = flag.get()
+  flag.override(desiredFlagState)
+
+  task()
+
+  // restore flag state
+  flag.override(flagPreviousState)
 }

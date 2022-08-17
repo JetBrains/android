@@ -16,14 +16,22 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -34,6 +42,7 @@ import com.android.tools.profiler.proto.Common.Event
 import com.android.tools.profiler.proto.Common.Stream
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.concurrency.SameThreadExecutor
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +51,7 @@ import layout_inspector.LayoutInspector
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -53,11 +63,17 @@ class ForegroundProcessDetectionTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
+
+  private val monitor = MockitoKt.mock<InspectorClientLaunchMonitor>()
+
+  private val disposableRule = DisposableRule()
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor)))
 
   @get:Rule
-  val projectRule = ProjectRule()
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(grpcServerRule).around(disposableRule)!!
 
   private lateinit var transportClient: TransportClient
 
@@ -96,6 +112,7 @@ class ForegroundProcessDetectionTest {
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
     val foregroundProcessDetection = ForegroundProcessDetection(
+      inspectorRule.project,
       deviceModel,
       transportClient,
       mockMetrics,
@@ -152,9 +169,10 @@ class ForegroundProcessDetectionTest {
     val latch2 = CountDownLatch(2)
 
     val foregroundProcessDetection = ForegroundProcessDetection(
+      inspectorRule.project,
       deviceModel,
       transportClient,
-      ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(projectRule.project)),
+      ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(inspectorRule.project)),
       CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
       SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
     )
@@ -213,6 +231,7 @@ class ForegroundProcessDetectionTest {
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
     val foregroundProcessDetection = ForegroundProcessDetection(
+      inspectorRule.project,
       deviceModel,
       transportClient,
       mockMetrics,
@@ -264,6 +283,7 @@ class ForegroundProcessDetectionTest {
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
     val foregroundProcessDetection = ForegroundProcessDetection(
+      inspectorRule.project,
       deviceModel,
       transportClient,
       mockMetrics,
@@ -313,6 +333,7 @@ class ForegroundProcessDetectionTest {
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
     val foregroundProcessDetection = ForegroundProcessDetection(
+      inspectorRule.project,
       deviceModel,
       transportClient,
       mockMetrics,
@@ -368,6 +389,7 @@ class ForegroundProcessDetectionTest {
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
     val foregroundProcessDetection = ForegroundProcessDetection(
+      inspectorRule.project,
       deviceModel,
       transportClient,
       mockMetrics,
@@ -422,6 +444,7 @@ class ForegroundProcessDetectionTest {
 
     val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
     val foregroundProcessDetection = ForegroundProcessDetection(
+      inspectorRule.project,
       deviceModel,
       transportClient,
       mockMetrics,
@@ -460,6 +483,49 @@ class ForegroundProcessDetectionTest {
   }
 
   @Test
+  fun testDeviceViewAttributeResetAfterDeviceDisconnect() = runWithFlagState(true) {
+    inspectorRule.attachDevice(stream1.device.toDeviceDescriptor())
+    inspectorRule.adbProperties.debugViewAttributes = "null"
+
+    val foregroundProcessLatch1 = CountDownLatch(1)
+    val foregroundProcessLatch2 = CountDownLatch(1)
+    val mockMetrics = mock(ForegroundProcessDetectionMetrics::class.java)
+
+    val deviceModel = createDeviceModel(stream1.device.toDeviceDescriptor())
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      inspectorRule.project,
+      deviceModel,
+      transportClient,
+      mockMetrics,
+      CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
+    )
+
+    foregroundProcessDetection.startListeningForEvents()
+
+    val changed = DebugViewAttributes.getInstance().set(
+      inspectorRule.project, stream1.device.toDeviceDescriptor().createProcess("fakeprocess")
+    )
+    assertThat(changed).isTrue()
+    connectDevice(stream1.device)
+
+    // wait for events to be dispatched
+    // TODO this latch is used as a timeout, write better implementation
+    foregroundProcessLatch1.await(2, TimeUnit.SECONDS)
+
+    // disconnect device
+    disconnectDevice(stream1.device)
+
+    // TODO this latch is used as a timeout, write better implementation
+    foregroundProcessLatch2.await(4, TimeUnit.SECONDS)
+
+    foregroundProcessDetection.stopListeningForEvents()
+
+    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
+    assertThat(inspectorRule.adbProperties.debugViewAttributes).isNull()
+  }
+
+  @Test
   fun testStopPollingSelectedDevice() {
     val foregroundProcess1 = ForegroundProcess(1, "process1")
     val foregroundProcess2 = ForegroundProcess(2, "process2")
@@ -474,9 +540,10 @@ class ForegroundProcessDetectionTest {
     val latch2 = CountDownLatch(2)
 
     val foregroundProcessDetection = ForegroundProcessDetection(
+      inspectorRule.project,
       deviceModel,
       transportClient,
-      ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(projectRule.project)),
+      ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(inspectorRule.project)),
       CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
       SameThreadExecutor.INSTANCE.asCoroutineDispatcher()
     )
@@ -542,7 +609,7 @@ class ForegroundProcessDetectionTest {
     deviceModel.selectedDevice = stream1.device.toDeviceDescriptor()
     processModel.selectedProcess = null
 
-    stopInspector(deviceModel, processModel, foregroundProcessDetection)
+    stopInspector(inspectorRule.project, deviceModel, processModel, foregroundProcessDetection)
 
     verify(foregroundProcessDetection).stopPollingSelectedDevice()
     assertThat(processModel.selectedProcess).isNull()
@@ -551,10 +618,49 @@ class ForegroundProcessDetectionTest {
     deviceModel.selectedDevice = null
     processModel.selectedProcess = stream1.device.toDeviceDescriptor().createProcess("fake_process")
 
-    stopInspector(deviceModel, processModel, foregroundProcessDetection)
+    stopInspector(inspectorRule.project, deviceModel, processModel, foregroundProcessDetection)
 
     verifyNoMoreInteractions(foregroundProcessDetection)
     assertThat(processModel.selectedProcess).isNull()
+  }
+
+  @Test
+  fun testStopInspectorResetsFlag() = runWithFlagState(true) {
+    inspectorRule.attachDevice(stream1.device.toDeviceDescriptor())
+    val foregroundProcessDetection = mock(ForegroundProcessDetection::class.java)
+
+    val fakeProcess = stream1.device.toDeviceDescriptor().createProcess("fake_process")
+
+    val testProcessDiscovery = TestProcessDiscovery()
+    testProcessDiscovery.addDevice(stream1.device.toDeviceDescriptor())
+    val processModel = ProcessesModel(testProcessDiscovery)
+    val deviceModel = DeviceModel(processModel)
+
+    val debugViewAttributes = DebugViewAttributes.getInstance()
+    debugViewAttributes.set(inspectorRule.project, fakeProcess)
+
+    // test has device, no process
+    deviceModel.selectedDevice = stream1.device.toDeviceDescriptor()
+    processModel.selectedProcess = null
+
+    stopInspector(inspectorRule.project, deviceModel, processModel, foregroundProcessDetection)
+
+    verify(foregroundProcessDetection).stopPollingSelectedDevice()
+    assertThat(processModel.selectedProcess).isNull()
+
+    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
+    assertThat(inspectorRule.adbProperties.debugViewAttributes).isNull()
+
+    // test no device, has process
+    deviceModel.selectedDevice = null
+    processModel.selectedProcess = fakeProcess
+
+    stopInspector(inspectorRule.project, deviceModel, processModel, foregroundProcessDetection)
+
+    verifyNoMoreInteractions(foregroundProcessDetection)
+    assertThat(processModel.selectedProcess).isNull()
+    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
+    assertThat(inspectorRule.adbProperties.debugViewAttributes).isNull()
   }
 
   private fun createDeviceModel(vararg devices: DeviceDescriptor): DeviceModel {
@@ -727,3 +833,14 @@ class ForegroundProcessDetectionTest {
 }
 
 private data class ForegroundProcessDetectionStream(val stream: Stream, var supportType: LayoutInspector.TrackingForegroundProcessSupported.SupportType)
+
+private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
+  val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+  val flagPreviousState = flag.get()
+  flag.override(desiredFlagState)
+
+  task()
+
+  // restore flag state
+  flag.override(flagPreviousState)
+}

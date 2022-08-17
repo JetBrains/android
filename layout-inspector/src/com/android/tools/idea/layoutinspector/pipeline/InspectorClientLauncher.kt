@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -62,6 +63,7 @@ class InspectorClientLauncher(
      * Convenience method for creating a launcher with useful client creation rules used in production
      */
     fun createDefaultLauncher(
+      project: Project,
       processes: ProcessesModel,
       model: InspectorModel,
       metrics: LayoutInspectorMetrics,
@@ -73,7 +75,15 @@ class InspectorClientLauncher(
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, model, metrics, treeSettings, parentDisposable)
+              AppInspectionInspectorClient(
+                project,
+                params.process,
+                params.isInstantlyAutoConnected,
+                model,
+                metrics,
+                treeSettings,
+                parentDisposable
+              )
             }
             else {
               null

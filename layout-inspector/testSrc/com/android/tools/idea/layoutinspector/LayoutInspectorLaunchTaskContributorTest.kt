@@ -21,9 +21,11 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.adb.findDevice
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
@@ -43,6 +45,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -58,6 +61,11 @@ class LayoutInspectorLaunchTaskContributorTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)!!
+
+  @Before
+  fun resetAttributes() {
+    DebugViewAttributes.reset()
+  }
 
   @Test
   fun testLaunchWithoutDebugAttributes() {
@@ -178,6 +186,40 @@ class LayoutInspectorLaunchTaskContributorTest {
     debugHandler.destroyProcess()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
+  }
+
+  @Test
+  fun testPerDeviceViewDebugAttributesIsNotCleared() = runWithFlagState(true) {
+    val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
+
+    // Start the process
+    val project = projectRule.project
+    val handler = AndroidProcessHandler(project, PROCESS_NAME)
+    val status = ProcessHandlerLaunchStatus(handler)
+    val launchContext = LaunchContext(project, DefaultRunExecutor(), iDevice, status, mock(), handler, mock())
+    task.run(launchContext)
+    handler.startNotify()
+
+    // Make sure the debug attributes are set.
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+
+    // Kill process p1 and check that the debug attributes are not reset.
+    handler.killProcess()
+
+    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+  }
+
+  private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
+    val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+    val flagPreviousState = flag.get()
+    flag.override(desiredFlagState)
+
+    task()
+
+    // restore flag state
+    flag.override(flagPreviousState)
   }
 
   private fun createLaunchTask(
