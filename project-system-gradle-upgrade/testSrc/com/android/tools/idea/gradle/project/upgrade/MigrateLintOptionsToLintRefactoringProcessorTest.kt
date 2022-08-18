@@ -36,9 +36,9 @@ class MigrateLintOptionsToLintRefactoringProcessorTest: UpgradeGradleFileModelTe
       ("4.1.0" to "4.2.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
       ("4.2.0" to "7.1.0") to AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT,
       ("7.1.0" to "7.2.0") to AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT,
-      ("7.1.0" to "8.0.0") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
-      ("4.2.0" to "8.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
-      ("8.0.0" to "8.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
+      ("7.1.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
+      ("4.2.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
+      ("9.0.0" to "9.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = lintOptionsToLintRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
@@ -49,7 +49,7 @@ class MigrateLintOptionsToLintRefactoringProcessorTest: UpgradeGradleFileModelTe
   @Test
   fun testLintOptionsToLint() {
     writeToBuildFile(TestFileName("MigrateLintOptionsToLint/LintOptionsToLint"))
-    val processor = lintOptionsToLintRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = lintOptionsToLintRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateLintOptionsToLint/LintOptionsToLintExpected"))
   }
@@ -57,7 +57,7 @@ class MigrateLintOptionsToLintRefactoringProcessorTest: UpgradeGradleFileModelTe
   @Test
   fun testLintOptionsToLintExhaustive() {
     writeToBuildFile(TestFileName("MigrateLintOptionsToLint/LintOptionsToLintExhaustive"))
-    val processor = lintOptionsToLintRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = lintOptionsToLintRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateLintOptionsToLint/LintOptionsToLintExhaustiveExpected"))
   }

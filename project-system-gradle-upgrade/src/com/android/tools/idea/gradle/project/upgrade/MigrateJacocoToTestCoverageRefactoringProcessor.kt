@@ -23,7 +23,7 @@ import org.jetbrains.android.util.AndroidBundle
 val MIGRATE_JACOCO_TO_TEST_COVERAGE =
   PropertiesOperationsRefactoringInfo(
     optionalFromVersion = GradleVersion.parse("7.0.1"),
-    requiredFromVersion = GradleVersion.parse("8.0.0"),
+    requiredFromVersion = GradleVersion.parse("9.0.0-alpha01"),
     commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToTestCoverageRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
       Configuration related to test coverage is now performed using

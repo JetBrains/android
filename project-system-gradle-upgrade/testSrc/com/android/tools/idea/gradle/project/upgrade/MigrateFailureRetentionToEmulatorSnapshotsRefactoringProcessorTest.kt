@@ -37,9 +37,9 @@ class MigrateFailureRetentionToEmulatorSnapshotsRefactoringProcessorTest: Upgrad
       ("4.1.0" to "4.2.0") to IRRELEVANT_FUTURE,
       ("4.2.0" to "7.0.0") to OPTIONAL_CODEPENDENT,
       ("7.0.0" to "7.1.0") to OPTIONAL_INDEPENDENT,
-      ("7.1.0" to "8.0.0") to MANDATORY_INDEPENDENT,
-      ("4.2.0" to "8.0.0") to MANDATORY_CODEPENDENT,
-      ("8.0.0" to "8.1.0") to IRRELEVANT_PAST
+      ("7.1.0" to "9.0.0") to MANDATORY_INDEPENDENT,
+      ("4.2.0" to "9.0.0") to MANDATORY_CODEPENDENT,
+      ("9.0.0" to "9.1.0") to IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = failureRetentionToEmulatorSnapshotsRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
@@ -50,7 +50,7 @@ class MigrateFailureRetentionToEmulatorSnapshotsRefactoringProcessorTest: Upgrad
   @Test
   fun testFailureRetentionToEmulatorSnapshots() {
     writeToBuildFile(TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshots"))
-    val processor = failureRetentionToEmulatorSnapshotsRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = failureRetentionToEmulatorSnapshotsRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshotsExpected"))
   }

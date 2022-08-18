@@ -23,7 +23,7 @@ import org.jetbrains.android.util.AndroidBundle
 val MIGRATE_LINT_OPTIONS_TO_LINT =
   PropertiesOperationsRefactoringInfo(
     optionalFromVersion = GradleVersion.parse("7.1.0-alpha06"),
-    requiredFromVersion = GradleVersion.parse("8.0.0"),
+    requiredFromVersion = GradleVersion.parse("9.0.0-alpha01"),
     commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
       Configuration related to lint is now performed using the

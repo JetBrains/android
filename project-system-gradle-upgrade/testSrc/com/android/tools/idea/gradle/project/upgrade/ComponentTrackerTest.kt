@@ -233,15 +233,15 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   fun testAaptOptionsToAndroidResourcesUsageTracker() {
     writeToBuildFile(TestFileName("MigrateAaptOptionsToAndroidResources/AaptOptionsToAndroidResources"))
     val processor =
-      MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+      MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
     processor.run()
 
     checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_ANDROID_RESOURCES).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(6).setFiles(2))
         .build(),
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_ANDROID_RESOURCES).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(6).setFiles(2))
         .build(),
@@ -289,15 +289,15 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   fun testAdbOptionsToInstallationUsageTracker() {
     writeToBuildFile(TestFileName("MigrateAdbOptionsToInstallation/AdbOptionsToInstallation"))
     val processor =
-      MIGRATE_ADB_OPTIONS_TO_INSTALLATION.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+      MIGRATE_ADB_OPTIONS_TO_INSTALLATION.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
     processor.run()
 
     checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_INSTALLATION).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(3).setFiles(2))
         .build(),
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_INSTALLATION).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(3).setFiles(2))
         .build(),
@@ -308,15 +308,15 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   fun testFailureRetentionToEmulatorSnapshotsUsageTracker() {
     writeToBuildFile(TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshots"))
     val processor = MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS
-      .RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+      .RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
     processor.run()
 
     checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_EMULATOR_SNAPSHOTS).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(3).setFiles(2))
         .build(),
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_EMULATOR_SNAPSHOTS).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(3).setFiles(2))
         .build(),
@@ -327,15 +327,15 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   fun testJacocoToTestCoverageUsageTracker() {
     writeToBuildFile(TestFileName("MigrateJacocoToTestCoverage/JacocoToTestCoverage"))
     val processor =
-      MIGRATE_JACOCO_TO_TEST_COVERAGE.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+      MIGRATE_JACOCO_TO_TEST_COVERAGE.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
     processor.run()
 
     checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_TEST_COVERAGE).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2).setFiles(2))
         .build(),
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_TEST_COVERAGE).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2).setFiles(2))
         .build(),
@@ -346,15 +346,15 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   fun testMultipleLiteralPropertiesUsageTracker() {
     writeToBuildFile(TestFileName("MigratePackagingOptions/MultipleLiteralProperties"))
     val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(
-      project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+      project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
     processor.run()
 
     checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_PACKAGING_OPTIONS).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(8).setFiles(2))
         .build(),
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_PACKAGING_OPTIONS).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(8).setFiles(2))
         .build(),
@@ -364,15 +364,15 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testLintOptionsToLintExhaustiveUsageTracker() {
     writeToBuildFile(TestFileName("MigrateLintOptionsToLint/LintOptionsToLintExhaustive"))
-    val processor = MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
     processor.run()
 
     checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_LINT).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(33).setFiles(2))
         .build(),
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_LINT).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(33).setFiles(2))
         .build(),

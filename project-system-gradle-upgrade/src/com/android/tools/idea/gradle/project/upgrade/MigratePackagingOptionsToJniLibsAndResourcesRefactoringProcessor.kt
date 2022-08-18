@@ -31,7 +31,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardRegionNecessity(current, new, GradleVersion.parse("4.2.0-alpha08"), GradleVersion.parse("8.0.0"))
+  override fun necessity() = standardRegionNecessity(current, new, GradleVersion.parse("4.2.0-alpha08"), GradleVersion.parse("9.0.0-alpha01"))
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()

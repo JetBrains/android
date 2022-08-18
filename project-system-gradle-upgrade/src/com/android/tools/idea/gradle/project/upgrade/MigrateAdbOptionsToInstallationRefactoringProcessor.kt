@@ -23,7 +23,7 @@ import org.jetbrains.android.util.AndroidBundle
 val MIGRATE_ADB_OPTIONS_TO_INSTALLATION =
   PropertiesOperationsRefactoringInfo(
     optionalFromVersion = GradleVersion.parse("7.0.1"),
-    requiredFromVersion = GradleVersion.parse("8.0.0"),
+    requiredFromVersion = GradleVersion.parse("9.0.0-alpha01"),
     commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToInstallationRefactoringProcessor.commandName"),
     shortDescriptionSupplier = {
       """

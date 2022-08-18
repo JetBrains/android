@@ -24,7 +24,7 @@ import org.jetbrains.android.util.AndroidBundle
 val MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS =
   PropertiesOperationsRefactoringInfo(
     optionalFromVersion = GradleVersion.parse("7.0.0-alpha13"),
-    requiredFromVersion = GradleVersion.parse("8.0.0"),
+    requiredFromVersion = GradleVersion.parse("9.0.0-alpha01"),
     commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
         Configuration related to retention of snapshots from the emulator is
