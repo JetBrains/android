@@ -52,6 +52,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -261,12 +262,12 @@ class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, de
    * returned [Job] is null.
    */
   suspend fun launch(task: suspend () -> Unit): Job? {
-    taskJob?.cancel()
     var newJob: Job? = null
     coroutineScope.launch(taskDispatcher) {
       jobMutex.withLock {
-        taskJob?.join()
-        newJob = launch(taskDispatcher) {
+        // Cancel any running job and wait for the cancellation to complete
+        taskJob?.cancelAndJoin()
+        newJob = coroutineScope.launch(taskDispatcher) {
           task()
         }
         taskJob = newJob
