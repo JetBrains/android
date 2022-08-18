@@ -160,4 +160,40 @@ class SessionItemTest {
     Truth.assertThat(ongoingSessionItem.getSubtitle()).isEqualTo("2 sec")
     Truth.assertThat(aspectChangeCount2).isEqualTo(1)
   }
+
+  @Test
+  fun `get session name with valid metadata`() {
+    val session = Common.Session.newBuilder().build()
+
+    val sessionItem = SessionItem(myProfilers, session, Common.SessionMetaData.newBuilder().apply {
+      sessionName = "com.google.app (Pixel 3A XL)"
+      type = Common.SessionMetaData.SessionType.FULL
+    }.build())
+
+    Truth.assertThat(sessionItem.name).isEqualTo("app (Pixel 3A XL)")
+  }
+
+  @Test
+  fun `get session name uses raw metadata name when parsing fails`() {
+    val session = Common.Session.newBuilder().build()
+
+    val sessionItem = SessionItem(myProfilers, session, Common.SessionMetaData.newBuilder().apply {
+      sessionName = "com.google.app"  // the name should have the device name at the end, therefore this is invalid
+      type = Common.SessionMetaData.SessionType.FULL
+    }.build())
+
+    Truth.assertThat(sessionItem.name).isEqualTo("com.google.app")
+  }
+
+  @Test
+  fun `get session name uses raw metadata when session type is not FULL`() {
+    val session = Common.Session.newBuilder().build()
+
+    val sessionItem = SessionItem(myProfilers, session, Common.SessionMetaData.newBuilder().apply {
+      sessionName = "com.google.app (Pixel 3A XL)"
+      type = Common.SessionMetaData.SessionType.UNSPECIFIED
+    }.build())
+
+    Truth.assertThat(sessionItem.name).isEqualTo("com.google.app (Pixel 3A XL)")
+  }
 }

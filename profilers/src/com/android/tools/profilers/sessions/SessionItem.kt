@@ -46,6 +46,8 @@ class SessionItem(
    */
   private val childArtifacts = mutableListOf<SessionArtifact<*>>()
 
+  private val name = parseName(sessionMetaData)
+
   init {
     if (!SessionsManager.isSessionAlive(session)) {
       durationNs = session.endTimestamp - session.startTimestamp
@@ -70,23 +72,7 @@ class SessionItem(
     return sessionMetaData
   }
 
-  override fun getName(): String {
-    val name = sessionMetaData.sessionName
-    if (sessionMetaData.type != SessionMetaData.SessionType.FULL) {
-      return name
-    }
-
-    // Everything before the first space is the app's name (the format is {APP_NAME (DEVICE_NAME)})
-    val firstSpace = name.indexOf(' ')
-    assert(firstSpace != -1)
-    var appName = name.substring(0, firstSpace)
-    val lastDot = appName.lastIndexOf('.')
-    if (lastDot != -1) {
-      // Strips the packages from the application name
-      appName = appName.substring(lastDot + 1)
-    }
-    return appName + name.substring(firstSpace)
-  }
+  override fun getName(): String = name
 
   override fun getTimestampNs(): Long {
     return 0
@@ -175,5 +161,23 @@ class SessionItem(
 
     @VisibleForTesting
     const val SESSION_LOADING = "Loading..."
+
+    private fun parseName(metaData: SessionMetaData): String {
+      val nameRegex = "(?<package>.+) \\((?<device>.+)\\)".toRegex()
+
+      if (metaData.type != SessionMetaData.SessionType.FULL) {
+        return metaData.sessionName
+      }
+
+      val match = nameRegex.matchEntire(metaData.sessionName)
+
+      if (match != null) {
+        val appName = match.groups["package"]!!.value.split('.').last()
+        val deviceName = match.groups["device"]!!.value
+        return "$appName ($deviceName)"
+      }
+
+      return metaData.sessionName
+    }
   }
 }
