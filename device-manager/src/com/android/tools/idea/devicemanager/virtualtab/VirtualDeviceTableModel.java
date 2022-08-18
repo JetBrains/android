@@ -27,6 +27,7 @@ import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
@@ -54,13 +55,14 @@ import org.jetbrains.annotations.Nullable;
 
 @UiThread
 final class VirtualDeviceTableModel extends AbstractTableModel {
-  static final int DEVICE_MODEL_COLUMN_INDEX = 0;
-  static final int API_MODEL_COLUMN_INDEX = 1;
-  static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 2;
-  static final int LAUNCH_OR_STOP_MODEL_COLUMN_INDEX = 3;
-  static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 4;
-  static final int EDIT_MODEL_COLUMN_INDEX = 5;
-  static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
+  static final int DEVICE_ICON_MODEL_COLUMN_INDEX = 0;
+  static final int DEVICE_MODEL_COLUMN_INDEX = 1;
+  static final int API_MODEL_COLUMN_INDEX = 2;
+  static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 3;
+  static final int LAUNCH_OR_STOP_MODEL_COLUMN_INDEX = 4;
+  static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 5;
+  static final int EDIT_MODEL_COLUMN_INDEX = 6;
+  static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 7;
 
   private final @Nullable Project myProject;
   private @NotNull List<@NotNull VirtualDevice> myDevices;
@@ -213,12 +215,15 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return 7;
+    return 8;
   }
 
+  @SuppressWarnings("DuplicateBranchesInSwitch")
   @Override
   public @NotNull String getColumnName(int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return "";
       case DEVICE_MODEL_COLUMN_INDEX:
         return "Device";
       case API_MODEL_COLUMN_INDEX:
@@ -238,6 +243,8 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   @Override
   public @NotNull Class<?> getColumnClass(int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return DeviceType.class;
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case API_MODEL_COLUMN_INDEX:
@@ -260,6 +267,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   @Override
   public boolean isCellEditable(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
       case DEVICE_MODEL_COLUMN_INDEX:
       case API_MODEL_COLUMN_INDEX:
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
@@ -280,6 +288,8 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   @Override
   public @NotNull Object getValueAt(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return myDevices.get(modelRowIndex).getType();
       case DEVICE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
@@ -302,6 +312,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   @Override
   public void setValueAt(@NotNull Object value, int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
       case DEVICE_MODEL_COLUMN_INDEX:
       case API_MODEL_COLUMN_INDEX:
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:

@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
@@ -34,12 +35,13 @@ import org.jetbrains.annotations.NotNull;
 
 @UiThread
 final class PhysicalDeviceTableModel extends AbstractTableModel {
-  static final int DEVICE_MODEL_COLUMN_INDEX = 0;
-  static final int API_MODEL_COLUMN_INDEX = 1;
-  static final int TYPE_MODEL_COLUMN_INDEX = 2;
-  static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 3;
-  static final int REMOVE_MODEL_COLUMN_INDEX = 4;
-  static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 5;
+  static final int DEVICE_ICON_MODEL_COLUMN_INDEX = 0;
+  static final int DEVICE_MODEL_COLUMN_INDEX = 1;
+  static final int API_MODEL_COLUMN_INDEX = 2;
+  static final int TYPE_MODEL_COLUMN_INDEX = 3;
+  static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 4;
+  static final int REMOVE_MODEL_COLUMN_INDEX = 5;
+  static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
 
   private @NotNull List<@NotNull PhysicalDevice> myDevices;
   private @NotNull List<@NotNull PhysicalDevice> myCombinedDevices;
@@ -161,12 +163,15 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return 6;
+    return 7;
   }
 
+  @SuppressWarnings("DuplicateBranchesInSwitch")
   @Override
   public @NotNull String getColumnName(int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return "";
       case DEVICE_MODEL_COLUMN_INDEX:
         return "Device";
       case API_MODEL_COLUMN_INDEX:
@@ -185,6 +190,8 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   @Override
   public @NotNull Class<?> getColumnClass(int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return DeviceType.class;
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case API_MODEL_COLUMN_INDEX:
@@ -205,6 +212,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   @Override
   public boolean isCellEditable(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
       case DEVICE_MODEL_COLUMN_INDEX:
       case API_MODEL_COLUMN_INDEX:
       case TYPE_MODEL_COLUMN_INDEX:
@@ -223,6 +231,8 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   @Override
   public @NotNull Object getValueAt(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return myCombinedDevices.get(modelRowIndex).getType();
       case DEVICE_MODEL_COLUMN_INDEX:
         return myCombinedDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:

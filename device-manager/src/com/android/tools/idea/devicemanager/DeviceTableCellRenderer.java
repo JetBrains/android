@@ -50,7 +50,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   private final @NotNull Class<@NotNull D> myValueClass;
   private final @NotNull WearPairingManager myManager;
 
-  private final @NotNull JLabel myIconLabel;
   private final @NotNull JLabel myNameLabel;
   private final @NotNull JLabel myStateLabel;
   private final @NotNull JLabel myLine2Label;
@@ -66,7 +65,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myValueClass = valueClass;
     myManager = manager;
 
-    myIconLabel = new JBLabel();
     myNameLabel = new JBLabel();
     myStateLabel = new JBLabel();
     myLine2Label = new JBLabel();
@@ -76,7 +74,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     GroupLayout layout = new GroupLayout(myPanel);
 
     Group horizontalGroup = layout.createSequentialGroup()
-      .addComponent(myIconLabel)
       .addPreferredGap(ComponentPlacement.RELATED)
       .addGroup(layout.createParallelGroup()
                   .addGroup(layout.createSequentialGroup()
@@ -92,7 +89,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
       .addGroup(layout.createSequentialGroup()
                   .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                   .addGroup(layout.createParallelGroup(Alignment.CENTER)
-                              .addComponent(myIconLabel)
                               .addComponent(myNameLabel)
                               .addComponent(myStateLabel))
                   .addComponent(myLine2Label)
@@ -114,9 +110,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
                                                                 int viewColumnIndex) {
     D device = myValueClass.cast(value);
     Color foreground = Tables.getForeground(table, selected);
-
-    myIconLabel.setForeground(foreground);
-    setIcon(myIconLabel, device.getIcon(), selected);
 
     myNameLabel.setForeground(foreground);
     myNameLabel.setText(getName(device));
@@ -211,11 +204,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     }
 
     return Optional.of(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN);
-  }
-
-  @VisibleForTesting
-  final @NotNull JLabel getIconLabel() {
-    return myIconLabel;
   }
 
   @VisibleForTesting

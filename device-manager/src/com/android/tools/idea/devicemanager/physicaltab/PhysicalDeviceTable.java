@@ -21,7 +21,9 @@ import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButt
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.ApiTableCellRenderer;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceIconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.DeviceTable;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
@@ -70,6 +72,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     setDefaultEditor(RemoveValue.class, new RemoveButtonTableCellEditor(panel));
     setDefaultEditor(PopUpMenuValue.class, new PhysicalDevicePopUpMenuButtonTableCellEditor(panel));
 
+    setDefaultRenderer(DeviceType.class, new DeviceIconButtonTableCellRenderer<>(this));
     setDefaultRenderer(Device.class, new PhysicalDeviceTableCellRenderer());
     setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Collection.class, new TypeTableCellRenderer());
@@ -115,6 +118,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
   protected @NotNull JTableHeader createDefaultTableHeader() {
     TableColumnModel model = new DefaultTableColumnModel();
 
+    model.addColumn(columnModel.getColumn(deviceIconViewColumnIndex()));
     model.addColumn(columnModel.getColumn(deviceViewColumnIndex()));
     model.addColumn(columnModel.getColumn(apiViewColumnIndex()));
     model.addColumn(columnModel.getColumn(typeViewColumnIndex()));
@@ -138,6 +142,9 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
 
   @Override
   public void doLayout() {
+    Tables.setWidths(columnModel.getColumn(deviceIconViewColumnIndex()),
+                     DeviceIconButtonTableCellRenderer.getPreferredWidth(this, DeviceType.class));
+
     columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
 
     Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
@@ -158,6 +165,10 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
                      IconButtonTableCellRenderer.getPreferredWidth(this, PopUpMenuValue.class));
 
     super.doLayout();
+  }
+
+  private int deviceIconViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_ICON_MODEL_COLUMN_INDEX);
   }
 
   @Override

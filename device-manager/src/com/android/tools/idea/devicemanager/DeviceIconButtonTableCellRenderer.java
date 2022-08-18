@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
-final class DeviceIconButtonTableCellRenderer<D extends Device> extends IconButtonTableCellRenderer {
+public final class DeviceIconButtonTableCellRenderer<D extends Device> extends IconButtonTableCellRenderer {
   private final @NotNull DeviceTable<@NotNull D> myTable;
 
-  private DeviceIconButtonTableCellRenderer(@NotNull DeviceTable<@NotNull D> table) {
+  public DeviceIconButtonTableCellRenderer(@NotNull DeviceTable<@NotNull D> table) {
     myTable = table;
+  }
+
+  public static int getPreferredWidth(@NotNull JTable table, @NotNull Class<? extends @NotNull Object> c) {
+    return getPreferredWidth(table, c, JBUIScale.scale(7));
   }
 
   @Override
@@ -33,9 +38,7 @@ final class DeviceIconButtonTableCellRenderer<D extends Device> extends IconButt
                                                           boolean focused,
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
-    super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
     myButton.setDefaultIcon(myTable.getDeviceAt(viewRowIndex).getIcon());
-
-    return myButton;
+    return super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
   }
 }

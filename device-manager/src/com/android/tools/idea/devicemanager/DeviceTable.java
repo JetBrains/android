@@ -19,7 +19,7 @@ import com.intellij.ui.table.JBTable;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class DeviceTable<D> extends JBTable {
+public abstract class DeviceTable<D extends Device> extends JBTable {
   private final @NotNull Class<@NotNull D> myDeviceClass;
 
   protected DeviceTable(@NotNull TableModel model, @NotNull Class<@NotNull D> deviceClass) {

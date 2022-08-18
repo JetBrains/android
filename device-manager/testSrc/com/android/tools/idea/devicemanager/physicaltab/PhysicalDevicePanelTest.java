@@ -27,6 +27,7 @@ import com.android.tools.idea.devicemanager.ConnectionType;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.TestTables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
@@ -35,9 +36,8 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
@@ -88,10 +88,8 @@ public final class PhysicalDevicePanelTest {
 
   @Before
   public void mockSupplier() {
-    List<PhysicalDevice> devices = Collections.singletonList(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
-
     mySupplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
-    Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(devices));
+    Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(List.of(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3)));
   }
 
   @Before
@@ -120,12 +118,13 @@ public final class PhysicalDevicePanelTest {
     // Assert
     CountDownLatchAssert.await(myLatch);
 
-    Object data = Collections.singletonList(Arrays.asList(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
-                                                          new AndroidVersion(31),
-                                                          ConnectionType.USB_SET,
-                                                          ActivateDeviceFileExplorerWindowValue.INSTANCE,
-                                                          RemoveValue.INSTANCE,
-                                                          PopUpMenuValue.INSTANCE));
+    Object data = List.of(List.of(DeviceType.PHONE,
+                                  TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
+                                  new AndroidVersion(31),
+                                  ConnectionType.USB_SET,
+                                  ActivateDeviceFileExplorerWindowValue.INSTANCE,
+                                  RemoveValue.INSTANCE,
+                                  PopUpMenuValue.INSTANCE));
 
     assertEquals(data, TestTables.getData(myPanel.getTable()));
   }
@@ -133,7 +132,7 @@ public final class PhysicalDevicePanelTest {
   @Test
   public void newPhysicalDevicePanelPersistentStateComponentSuppliesDevice() throws InterruptedException {
     // Arrange
-    myComponent.set(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_5));
+    myComponent.set(List.of(TestPhysicalDevices.GOOGLE_PIXEL_5));
 
     // Act
     myPanel = new PhysicalDevicePanel(myProject,
@@ -149,18 +148,20 @@ public final class PhysicalDevicePanelTest {
     // Assert
     CountDownLatchAssert.await(myLatch);
 
-    Object data = Arrays.asList(Arrays.asList(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
-                                              new AndroidVersion(31),
-                                              ConnectionType.USB_SET,
-                                              ActivateDeviceFileExplorerWindowValue.INSTANCE,
-                                              RemoveValue.INSTANCE,
-                                              PopUpMenuValue.INSTANCE),
-                                Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5,
-                                              new AndroidVersion(30),
-                                              Collections.EMPTY_SET,
-                                              ActivateDeviceFileExplorerWindowValue.INSTANCE,
-                                              RemoveValue.INSTANCE,
-                                              PopUpMenuValue.INSTANCE));
+    Object data = List.of(List.of(DeviceType.PHONE,
+                                  TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
+                                  new AndroidVersion(31),
+                                  ConnectionType.USB_SET,
+                                  ActivateDeviceFileExplorerWindowValue.INSTANCE,
+                                  RemoveValue.INSTANCE,
+                                  PopUpMenuValue.INSTANCE),
+                          List.of(DeviceType.PHONE,
+                                  TestPhysicalDevices.GOOGLE_PIXEL_5,
+                                  new AndroidVersion(30),
+                                  Set.of(),
+                                  ActivateDeviceFileExplorerWindowValue.INSTANCE,
+                                  RemoveValue.INSTANCE,
+                                  PopUpMenuValue.INSTANCE));
 
     assertEquals(data, TestTables.getData(myPanel.getTable()));
   }

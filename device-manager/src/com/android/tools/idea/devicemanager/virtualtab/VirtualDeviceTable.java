@@ -23,9 +23,11 @@ import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButt
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.ApiTableCellRenderer;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceIconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceTable;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.Key;
@@ -99,6 +101,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     setDefaultEditor(EditValue.class, new EditButtonTableCellEditor(panel));
     setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor(panel));
 
+    setDefaultRenderer(DeviceType.class, new DeviceIconButtonTableCellRenderer<>(this));
     setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
     setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Long.class, new SizeOnDiskTableCellRenderer());
@@ -223,6 +226,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   protected @NotNull JTableHeader createDefaultTableHeader() {
     TableColumnModel model = new DefaultTableColumnModel();
 
+    model.addColumn(columnModel.getColumn(deviceIconViewColumnIndex()));
     model.addColumn(columnModel.getColumn(deviceViewColumnIndex()));
     model.addColumn(columnModel.getColumn(apiViewColumnIndex()));
     model.addColumn(columnModel.getColumn(sizeOnDiskViewColumnIndex()));
@@ -247,6 +251,9 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @Override
   public void doLayout() {
+    Tables.setWidths(columnModel.getColumn(deviceIconViewColumnIndex()),
+                     DeviceIconButtonTableCellRenderer.getPreferredWidth(this, DeviceType.class));
+
     columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
 
     Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
@@ -269,6 +276,10 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                      IconButtonTableCellRenderer.getPreferredWidth(this, PopUpMenuValue.class));
 
     super.doLayout();
+  }
+
+  private int deviceIconViewColumnIndex() {
+    return convertColumnIndexToView(VirtualDeviceTableModel.DEVICE_ICON_MODEL_COLUMN_INDEX);
   }
 
   @Override
