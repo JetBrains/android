@@ -88,6 +88,7 @@ class WiFiPairingControllerImpl(private val project: Project,
     view.showDialog()
   }
 
+  @UiThread
   inner class MyViewListener(private val parentDisposable: Disposable) : WiFiPairingView.Listener {
     override fun onScanAnotherQrCodeDeviceAction() {
       // Ignore

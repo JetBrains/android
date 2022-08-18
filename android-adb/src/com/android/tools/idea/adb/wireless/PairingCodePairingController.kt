@@ -39,6 +39,7 @@ class PairingCodePairingController(private val scope: CoroutineScope,
     view.showDialog()
   }
 
+  @UiThread
   inner class ViewListener : PairingCodePairingView.Listener {
     override fun onPairInvoked() {
       LOG.info("Starting pairing code pairing process with mDNS service ${view.model.service}")

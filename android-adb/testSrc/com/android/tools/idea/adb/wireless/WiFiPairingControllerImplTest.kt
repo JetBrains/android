@@ -27,6 +27,7 @@ import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.ThreadingCheckRule
 import com.google.common.truth.Truth
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.ui.DialogWrapper
@@ -55,6 +56,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
   @get:Rule
   val portableUiFontRule = SetPortableUiFontRule()
+
+  @get:Rule
+  val threadingCheckRule = ThreadingCheckRule()
 
   private val timeProvider: MockNanoTimeProvider by lazy { MockNanoTimeProvider() }
 

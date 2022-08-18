@@ -31,6 +31,7 @@ iml_module(
 iml_module(
     name = "intellij.android.adb.tests",
     iml_files = ["intellij.android.adb.tests.iml"],
+    test_agents = ["//tools/base/threading-agent:threading_agent.jar"],
     test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platform-tools",
