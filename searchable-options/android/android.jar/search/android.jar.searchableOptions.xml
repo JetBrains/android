@@ -103,14 +103,6 @@
     <option name="s" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="button" path="ActionManager" hit="Button 1" />
     <option name="button" path="ActionManager" hit="Button 2" />
-    <option name="a" path="ActionManager" hit="Change display size to match a typical desktop" />
-    <option name="change" path="ActionManager" hit="Change display size to match a typical desktop" />
-    <option name="desktop" path="ActionManager" hit="Change display size to match a typical desktop" />
-    <option name="display" path="ActionManager" hit="Change display size to match a typical desktop" />
-    <option name="match" path="ActionManager" hit="Change display size to match a typical desktop" />
-    <option name="size" path="ActionManager" hit="Change display size to match a typical desktop" />
-    <option name="to" path="ActionManager" hit="Change display size to match a typical desktop" />
-    <option name="typical" path="ActionManager" hit="Change display size to match a typical desktop" />
     <option name="a" path="ActionManager" hit="Change display size to match a typical foldable" />
     <option name="change" path="ActionManager" hit="Change display size to match a typical foldable" />
     <option name="display" path="ActionManager" hit="Change display size to match a typical foldable" />
@@ -197,7 +189,6 @@
     <option name="runs" path="ActionManager" hit="Deploys and runs the application without building." />
     <option name="the" path="ActionManager" hit="Deploys and runs the application without building." />
     <option name="without" path="ActionManager" hit="Deploys and runs the application without building." />
-    <option name="desktop" path="ActionManager" hit="Desktop" />
     <option name="display" path="ActionManager" hit="Display Mode" />
     <option name="mode" path="ActionManager" hit="Display Mode" />
     <option name="display" path="ActionManager" hit="Display selected file in the Resource Manager" />
