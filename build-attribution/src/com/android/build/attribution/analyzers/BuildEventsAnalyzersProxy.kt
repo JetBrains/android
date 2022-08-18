@@ -19,7 +19,6 @@ import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
-import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
@@ -27,9 +26,7 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.tools.idea.flags.StudioFlags
-import kotlinx.collections.immutable.toImmutableMap
 import org.jetbrains.kotlin.idea.util.ifTrue
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 interface BuildEventsAnalysisResult {
   fun getAnnotationProcessorsData(): List<AnnotationProcessorData>
@@ -92,7 +89,7 @@ class BuildEventsAnalyzersProxy(
   pluginContainer: PluginContainer
 ) {
   val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(taskContainer, pluginContainer)
-  val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer)
+  val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer, pluginContainer)
   val criticalPathAnalyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
   val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(taskContainer)
   val garbageCollectionAnalyzer = GarbageCollectionAnalyzer()

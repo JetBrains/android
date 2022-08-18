@@ -15,10 +15,12 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
+import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils
@@ -37,11 +39,55 @@ class AnnotationProcessorsAnalyzerTest {
   private fun setUpProject() {
     myProjectRule.load(SIMPLE_APPLICATION)
 
-    FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", FN_BUILD_GRADLE), """
+    val projectPath = File(myProjectRule.project.basePath!!)
+
+    FileUtil.writeToFile(
+      FileUtils.join(projectPath, "lib", FN_BUILD_GRADLE).also {
+        it.parentFile.mkdirs()
+      },
+      """
+        apply plugin: 'com.android.library'
+
+        android {
+          compileSdkVersion 32
+        }
+      """.trimIndent()
+    )
+
+    FileUtil.writeToFile(
+      FileUtils.join(projectPath, "lib", "src", "main", "java", "google", "simplelib", "Test.java").also {
+        it.parentFile.mkdirs()
+      },
+      """
+          package google.simplelib;
+
+          class Test { }
+        """.trimIndent()
+    )
+
+    FileUtil.writeToFile(
+      FileUtils.join(projectPath, "lib", "src", "main", FN_ANDROID_MANIFEST_XML).also {
+        it.parentFile.mkdirs()
+      },
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="google.simplelibrary" >
+
+        </manifest>
+      """.trimIndent()
+    )
+
+    FileUtil.appendToFile(FileUtils.join(projectPath, "app", FN_BUILD_GRADLE), """
       dependencies {
+        implementation project(":lib")
         implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
         annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
       }
+    """.trimIndent())
+
+    FileUtil.appendToFile(FileUtils.join(projectPath, FN_SETTINGS_GRADLE), """
+      include ':lib'
     """.trimIndent())
   }
 
@@ -95,13 +141,14 @@ class AnnotationProcessorsAnalyzerTest {
   fun noWarningsWhenApplyingKapt() {
     setUpProject()
 
-    val rootBuildFile = FileUtils.join(File(myProjectRule.project.basePath!!), FN_BUILD_GRADLE)
+    val projectPath = File(myProjectRule.project.basePath!!)
+    val rootBuildFile = FileUtils.join(projectPath, FN_BUILD_GRADLE)
     FileUtil.writeToFile(rootBuildFile,
                          rootBuildFile
                            .readText()
                            .replace("dependencies {",
                                     "dependencies { classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION_FOR_TESTS\""))
-    FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", FN_BUILD_GRADLE), """
+    FileUtil.appendToFile(FileUtils.join(projectPath, "lib", FN_BUILD_GRADLE), """
 
       apply plugin: 'kotlin-android'
       apply plugin: 'kotlin-kapt'
@@ -113,5 +160,47 @@ class AnnotationProcessorsAnalyzerTest {
     val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
 
     assertThat(results.getAnnotationProcessorsData().isEmpty())
+  }
+
+  @Test
+  fun warnWhenApplyingKaptInAppButLibHasNonIncrementalAnnotationProcessors() {
+    setUpProject()
+
+    val projectPath = File(myProjectRule.project.basePath!!)
+    val rootBuildFile = FileUtils.join(projectPath, FN_BUILD_GRADLE)
+    FileUtil.writeToFile(rootBuildFile,
+                         rootBuildFile
+                           .readText()
+                           .replace("dependencies {",
+                                    "dependencies { classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION_FOR_TESTS\""))
+    FileUtil.appendToFile(FileUtils.join(projectPath, "lib", FN_BUILD_GRADLE), """
+
+      apply plugin: 'kotlin-android'
+      apply plugin: 'kotlin-kapt'
+    """.trimIndent())
+
+    FileUtil.appendToFile(FileUtils.join(projectPath, "lib", FN_BUILD_GRADLE), """
+
+      dependencies {
+        implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
+        annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
+      }
+    """.trimIndent())
+
+    myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
+
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+
+    assertThat(
+      results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
+      setOf(
+        "com.google.auto.value.processor.AutoAnnotationProcessor",
+        "com.google.auto.value.processor.AutoValueBuilderProcessor",
+        "com.google.auto.value.processor.AutoOneOfProcessor",
+        "com.google.auto.value.processor.AutoValueProcessor",
+        "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
+      )
+    )
   }
 }
