@@ -43,6 +43,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
@@ -99,6 +100,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @Before
   fun setUp() {
+    Logger.getInstance(FastPreviewManager::class.java).setLevel(LogLevel.ALL)
     logger.info("setUp")
     psiMainFile = getPsiFile(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)
     previewView = TestComposePreviewView(fixture.testRootDisposable, project)
@@ -190,7 +192,7 @@ class ComposePreviewRepresentationGradleTest {
 
     assertTrue("FastPreviewManager must be enabled", fastPreviewManager.isEnabled)
 
-    val compileDeferred = CompletableDeferred<Unit>()
+    val compileDeferred = CompletableDeferred<CompilationResult>()
     val fastPreviewManagerListener = object: FastPreviewManager.Companion.FastPreviewManagerListener {
       override fun onCompilationStarted(files: Collection<PsiFile>) {
         logger.info("runAndWaitForFastRefresh: onCompilationStarted")
@@ -198,7 +200,7 @@ class ComposePreviewRepresentationGradleTest {
 
       override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
         logger.info("runAndWaitForFastRefresh: onCompilationComplete $result")
-        if (result == CompilationResult.Success) compileDeferred.complete(Unit)
+        compileDeferred.complete(result)
       }
 
     }
@@ -209,8 +211,11 @@ class ComposePreviewRepresentationGradleTest {
       logger.info("runAndWaitForFastRefresh: Executing runnable")
       runnable()
       logger.info("runAndWaitForFastRefresh: Runnable executed")
-      compileDeferred.await()
-      logger.info("runAndWaitForFastRefresh: Compilation finished")
+      val result = compileDeferred.await()
+      logger.info("runAndWaitForFastRefresh: Compilation finished $result")
+      (result as? CompilationResult.WithThrowable)?.let {
+        logger.error(it.e)
+      }
     }
   }
 
