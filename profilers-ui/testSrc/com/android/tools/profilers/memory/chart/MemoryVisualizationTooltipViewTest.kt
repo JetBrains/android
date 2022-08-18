@@ -95,6 +95,6 @@ class MemoryVisualizationTooltipViewTest {
     val labels = TreeWalker(tooltip.tooltipComponent).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(2)
     assertThat(labels[0].text).contains(simpleNode.name)
-    assertThat(labels[1].text).contains("Size: " + simpleNode.duration)
+    assertThat(labels[1].text).contains("Size: " + (simpleNode.duration / 1000.0))
   }
 }

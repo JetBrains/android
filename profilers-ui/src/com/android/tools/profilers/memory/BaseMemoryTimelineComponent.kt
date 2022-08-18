@@ -262,7 +262,7 @@ private fun makeAxis(model: AxisComponentModel, orientation: AxisComponent.AxisO
   AxisComponent(model, orientation).apply {
     setShowAxisLine(false)
     setShowMax(true)
-    setShowUnitAtMax(true)
+    setShowUnitAtMax(false)
     setHideTickAtMin(true)
     setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
     setMargins(0, Y_AXIS_TOP_MARGIN)

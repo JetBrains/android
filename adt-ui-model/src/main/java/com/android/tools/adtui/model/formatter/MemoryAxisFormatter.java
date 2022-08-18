@@ -34,6 +34,13 @@ public final class MemoryAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
+  public String getFormattedString(double globalRange, double value, boolean includeUnit) {
+    // Value is passed in as the globalRange so that the value
+    // itself is used to compute the correct unit/conversion factor
+    return super.getFormattedString(value, value, includeUnit);
+  }
+
+  @Override
   protected int getNumUnits() {
     return UNITS.length;
   }

@@ -55,7 +55,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     AxisComponent leftAxis = new AxisComponent(getMonitor().getMemoryAxis(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
-    leftAxis.setShowUnitAtMax(true);
+    leftAxis.setShowUnitAtMax(false);
     leftAxis.setHideTickAtMin(true);
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
