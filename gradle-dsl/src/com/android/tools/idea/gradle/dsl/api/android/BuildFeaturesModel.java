@@ -34,4 +34,7 @@ public interface BuildFeaturesModel extends GradleBlockModel {
 
   @NotNull
   ResolvedPropertyModel prefab();
+
+  @NotNull
+  ResolvedPropertyModel renderScript();
 }

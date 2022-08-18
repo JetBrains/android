@@ -28,6 +28,7 @@ public final class BuildFeaturesModelImpl extends GradleDslBlockModel implements
   @NonNls public static final String ML_MODEL_BINDING = "mMlModelBinding";
   @NonNls public static final String VIEW_BINDING = "mViewBinding";
   @NonNls public static final String PREFAB = "mPrefab";
+  @NonNls public static final String RENDER_SCRIPT = "mRenderScript";
 
   public BuildFeaturesModelImpl(@NotNull BuildFeaturesDslElement dslElement) {
     super(dslElement);
@@ -62,4 +63,8 @@ public final class BuildFeaturesModelImpl extends GradleDslBlockModel implements
   public ResolvedPropertyModel prefab() {
     return getModelForProperty(PREFAB);
   }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel renderScript() { return getModelForProperty(RENDER_SCRIPT); }
 }

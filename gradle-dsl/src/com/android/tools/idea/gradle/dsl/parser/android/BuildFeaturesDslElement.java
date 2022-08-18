@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModel
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.DATA_BINDING;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.ML_MODEL_BINDING;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.PREFAB;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.RENDER_SCRIPT;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.VIEW_BINDING;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
@@ -42,6 +43,7 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"mlModelBinding", property, ML_MODEL_BINDING, VAR},
     {"viewBinding", property, VIEW_BINDING, VAR},
     {"prefab", property, PREFAB, VAR},
+    {"renderScript", property, RENDER_SCRIPT, VAR},
   }).collect(toModelMap());
 
   public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
@@ -54,7 +56,9 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"viewBinding", property, VIEW_BINDING, VAR},
     {"viewBinding", exactly(1), VIEW_BINDING, SET},
     {"prefab", property, PREFAB, VAR},
-    {"prefab", exactly(1), PREFAB, SET}
+    {"prefab", exactly(1), PREFAB, SET},
+    {"renderScript", property, RENDER_SCRIPT, VAR},
+    {"renderScript", exactly(1), RENDER_SCRIPT, SET},
   }).collect(toModelMap());
   public static final PropertiesElementDescription<BuildFeaturesDslElement> BUILD_FEATURES =
     new PropertiesElementDescription<>("buildFeatures", BuildFeaturesDslElement.class, BuildFeaturesDslElement::new);
