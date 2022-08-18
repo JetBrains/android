@@ -79,8 +79,6 @@
                 description="Change display size to match a typical foldable"/>
         <action id="android.emulator.display.mode.tablet" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Tablet"
                 icon="StudioIcons.Emulator.Menu.MODE_TABLET" text="Tablet" description="Change display size to match a typical tablet"/>
-        <action id="android.emulator.display.mode.desktop" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Desktop"
-                icon="StudioIcons.Emulator.Menu.MODE_DESKTOP" text="Desktop" description="Change display size to match a typical desktop"/>
         <separator/>
       </group>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.emulator.actions.EmulatorManageSnapshotsAction"

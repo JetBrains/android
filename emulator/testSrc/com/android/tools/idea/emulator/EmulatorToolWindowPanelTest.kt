@@ -373,13 +373,13 @@ class EmulatorToolWindowPanelTest {
     assertAppearance(ui, "ChangeDisplayMode1", maxPercentDifferentWindows = 0.002, maxPercentDifferentMac = 0.002)
 
     // Set the desktop display mode.
-    executeDeviceAction("android.emulator.display.mode.desktop", emulatorView, project)
+    executeDeviceAction("android.emulator.display.mode.tablet", emulatorView, project)
     val setDisplayModeCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(setDisplayModeCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setDisplayMode")
-    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: DESKTOP")
+    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: TABLET")
 
     streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1200 height: 1080")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1200 height: 1171")
     assertAppearance(ui, "ChangeDisplayMode2", maxPercentDifferentWindows = 0.002, maxPercentDifferentMac = 0.002)
   }
 
