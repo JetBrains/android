@@ -63,6 +63,11 @@ class TestFastPreviewTrackerManager(val showTimes: Boolean = true, val onRequest
         "compilationSucceeded (${parameters.joinToString(", ") { "${it.first}=${it.second}" }})")
       onRequestComplete()
     }
+
+    override fun refreshCancelled(compilationCompleted: Boolean) {
+      outputLog.appendLine("refreshCancelled (compilationCompleted=$compilationCompleted)")
+      onRequestComplete()
+    }
   }
 
   fun logOutput(): String = outputLog.toString().trimEnd()

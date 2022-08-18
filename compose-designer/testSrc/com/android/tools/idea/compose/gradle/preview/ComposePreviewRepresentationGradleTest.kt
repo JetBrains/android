@@ -65,6 +65,7 @@ import java.awt.image.BufferedImage
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.JPanel
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -508,6 +509,60 @@ class ComposePreviewRepresentationGradleTest {
 
     assertEquals(
       "compilationSucceeded (compilationDurationMs=>0, compiledFiles=1, refreshTime=>0)",
+      testTracker.logOutput()
+    )
+  }
+
+  @Test
+  fun `fast preview cancellation`() {
+    // This test only makes sense when fast preview is enabled
+    StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
+    val requestCompleted = CompletableDeferred<Unit>()
+    val completedRequestsCount = AtomicInteger(0)
+    val testTracker = TestFastPreviewTrackerManager {
+      if (completedRequestsCount.incrementAndGet() == 2) requestCompleted.complete(Unit)
+    }
+
+    project.replaceService(
+      FastPreviewTrackerManager::class.java,
+      testTracker,
+      fixture.testRootDisposable
+    )
+
+    runAndWaitForFastRefresh {
+      WriteCommandAction.runWriteCommandAction(project) {
+        projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
+        projectRule.fixture.moveCaret("Text(\"Hello 2\")|")
+        projectRule.fixture.editor.insertText(
+          "\nkotlinx.coroutines.runBlocking { kotlinx.coroutines.delay(5000L) }"
+        )
+        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      }
+    }
+
+    runAndWaitForFastRefresh {
+      WriteCommandAction.runWriteCommandAction(project) {
+        projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
+        projectRule.fixture.moveCaret(
+          "kotlinx.coroutines.runBlocking { kotlinx.coroutines.delay(5000L) }|"
+        )
+        fixture.editor.executeAndSave { fixture.editor.deleteLine() }
+        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      }
+    }
+
+    runBlocking {
+      withTimeout(TimeUnit.SECONDS.toMillis(30)) {
+        // Wait for the 2 tracking request to be submitted
+        requestCompleted.await()
+      }
+    }
+
+    assertEquals(
+      """
+        refreshCancelled (compilationCompleted=true)
+        compilationSucceeded (compilationDurationMs=>0, compiledFiles=1, refreshTime=>0)
+      """.trimIndent(),
       testTracker.logOutput()
     )
   }

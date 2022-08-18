@@ -245,8 +245,8 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     var preview = 1 // next preview to render
     progressIndicator.text = message("refresh.progress.indicator.rendering.preview", preview++, newSceneManagers.size)
     newSceneManagers.forEach {
-      it.render()
       if (progressIndicator.isCanceled) return@forEach
+      it.render()
       if (preview <= newSceneManagers.size) { // Skip the last one, since we log *before* rendering each preview.
         progressIndicator.text = message("refresh.progress.indicator.rendering.preview", preview++, newSceneManagers.size)
       }

@@ -119,6 +119,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -128,6 +129,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
@@ -1287,7 +1289,6 @@ class ComposePreviewRepresentation(
 
   private suspend fun requestFastPreviewRefresh(): CompilationResult? {
     val currentStatus = status()
-    var result: CompilationResult? = null
     val launcher =
       fastPreviewCompilationLauncher
         ?: UniqueTaskCoroutineLauncher(this, "Compilation Launcher").also {
@@ -1343,34 +1344,60 @@ class ComposePreviewRepresentation(
           reportRefresh()
         }
       }
-    launcher
-      .launch {
+
+    // We only want the first result sent through the channel
+    val deferredCompilationResult = CompletableDeferred<CompilationResult?>(null)
+
+    launcher.launch {
+      var refreshJob: Job? = null
+      try {
         if (!currentStatus.hasSyntaxErrors) {
           psiFilePointer.element?.let {
-            result =
+            val result =
               fastCompile(this@ComposePreviewRepresentation, it, requestTracker = requestTracker)
+            deferredCompilationResult.complete(result)
             if (result is CompilationResult.Success) {
               val refreshStartMs = System.currentTimeMillis()
-              val refreshJob = forceRefresh()
+              refreshJob = forceRefresh()
               refreshJob?.invokeOnCompletion { throwable ->
-                if (throwable == null) {
-                  requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
-                } else {
-                  requestTracker.refreshFailed()
+                when (throwable) {
+                  null ->
+                    requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
+                  is CancellationException ->
+                    requestTracker.refreshCancelled(compilationCompleted = true)
+                  else -> requestTracker.refreshFailed()
                 }
                 composeWorkBench.updateVisibilityAndNotifications()
               }
               refreshJob?.join()
             } else {
-              // Compilation failed, report the refresh as failed too
-              requestTracker.refreshFailed()
+              if (result is CompilationResult.CompilationAborted) {
+                requestTracker.refreshCancelled(compilationCompleted = false)
+              } else {
+                // Compilation failed, report the refresh as failed too
+                requestTracker.refreshFailed()
+              }
             }
           }
         }
+        // At this point, the compilation result should have already been sent if any compilation
+        // was done. So, send null result, that will only succeed when fastCompile was not called.
+        deferredCompilationResult.complete(null)
+      } catch (e: CancellationException) {
+        // Any cancellations during the compilation step are handled by fastCompile, so at
+        // this point, the compilation was completed or no compilation was done. Either way,
+        // a compilation result was already sent through the channel. However, the refresh
+        // may still need to be cancelled.
+        // Use runBlocking to make sure to wait until the cancellation is completed.
+        runBlocking {
+          deferredCompilationResult.complete(CompilationResult.CompilationAborted())
+          refreshJob?.cancelAndJoin()
+          throw e
+        }
       }
-      ?.join()
-
-    return result
+    }
+    // wait only for the compilation to finish, not for the whole refresh
+    return deferredCompilationResult.await()
   }
 
   override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult?> =
