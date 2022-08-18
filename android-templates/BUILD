@@ -161,6 +161,7 @@ maven_repository(
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.hamcrest.hamcrest-library_1.3",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.7.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.0",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.7.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.0",

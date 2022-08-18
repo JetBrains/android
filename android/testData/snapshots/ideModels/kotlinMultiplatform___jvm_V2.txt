@@ -2644,61 +2644,63 @@ MODULE                        : kotlinMultiPlatform.module2
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
             25                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            26                            : DefaultFileCollectionDependency
-                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
-            27                            : DefaultFileCollectionDependency
-                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
-            28                            : DefaultFileCollectionDependency
-                - files                       : <ROOT>/module2/build/processedResources/jvm/main [-]
-            29                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            30                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            31                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            32                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            33                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/runner/1.0.2/runner-1.0.2.aar
-            34                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            35                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            36                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-            37                            : DefaultExternalLibraryDependency
-                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            38                            : DefaultExternalLibraryDependency
+            26                            : DefaultExternalLibraryDependency
                 file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
                 source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
-            39                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            40                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            41                            : DefaultExternalLibraryDependency
+            27                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                 source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
-            42                            : DefaultExternalLibraryDependency
+            28                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
+            29                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
+            30                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/module2/build/processedResources/jvm/main [-]
+            31                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            32                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            33                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            34                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            43                            : DefaultExternalLibraryDependency
+            35                            : DefaultExternalLibraryDependency
+                file                          : <M2>/com/android/support/test/runner/1.0.2/runner-1.0.2.aar
+            36                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            37                            : DefaultExternalLibraryDependency
+                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
+            38                            : DefaultExternalLibraryDependency
+                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+            39                            : DefaultExternalLibraryDependency
                 file                          : <M2>/junit/junit/4.12/junit-4.12.jar
                 source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            44                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            45                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            46                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-            47                            : DefaultExternalLibraryDependency
+            40                            : DefaultExternalLibraryDependency
+                file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
+                source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
+            41                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            42                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            43                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                 source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
+            44                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+            45                            : DefaultExternalLibraryDependency
+                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
+                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
+            46                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            47                            : DefaultExternalLibraryDependency
+                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
             48                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
             49                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+                source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
             50                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
             51                            : DefaultExternalLibraryDependency
@@ -2708,6 +2710,10 @@ MODULE                        : kotlinMultiPlatform.module2
             53                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             54                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            55                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            56                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
         extraFeatures                 : ExtraFeaturesImpl
@@ -2897,10 +2903,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependencies                : 2
                 - dependencies                : 3
                 - dependencies                : 17
-                - dependencies                : 29
-                - dependencies                : 30
                 - dependencies                : 31
                 - dependencies                : 32
+                - dependencies                : 33
+                - dependencies                : 34
                 disambiguationClassifier      : android
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
@@ -3059,8 +3065,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependencies                : 13
                 - dependencies                : 14
                 - dependencies                : 18
-                - dependencies                : 33
-                - dependencies                : 34
                 - dependencies                : 35
                 - dependencies                : 36
                 - dependencies                : 37
@@ -3069,6 +3073,8 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependencies                : 40
                 - dependencies                : 41
                 - dependencies                : 42
+                - dependencies                : 43
+                - dependencies                : 44
                 - dependencies                : 1
                 - dependencies                : 2
                 - dependencies                : 3
@@ -3104,15 +3110,10 @@ MODULE                        : kotlinMultiPlatform.module2
                     - dependencies                : 5
                     - dependencies                : 6
                     - dependencies                : 19
-                    - dependencies                : 20
-                    - dependencies                : 21
-                    - dependencies                : 22
-                    - dependencies                : 11
-                    - dependencies                : 23
-                    - dependencies                : 24
-                    - dependencies                : 25
-                    - dependencies                : 15
-                    - dependencies                : 16
+                    - dependencies                : 8
+                    - dependencies                : 9
+                    - dependencies                : 26
+                    - dependencies                : 27
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3130,15 +3131,10 @@ MODULE                        : kotlinMultiPlatform.module2
                     - regularDependencies         : 5
                     - regularDependencies         : 6
                     - regularDependencies         : 19
-                    - regularDependencies         : 20
-                    - regularDependencies         : 21
-                    - regularDependencies         : 22
-                    - regularDependencies         : 11
-                    - regularDependencies         : 23
-                    - regularDependencies         : 24
-                    - regularDependencies         : 25
-                    - regularDependencies         : 15
-                    - regularDependencies         : 16
+                    - regularDependencies         : 8
+                    - regularDependencies         : 9
+                    - regularDependencies         : 26
+                    - regularDependencies         : 27
                     - resourceDirs                : <ROOT>/module2/src/androidTest/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/test/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/androidDebugUnitTest/resources [-]
@@ -3206,16 +3202,16 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependencies                : 24
                 - dependencies                : 25
                 - dependencies                : 18
-                - dependencies                : 33
-                - dependencies                : 43
-                - dependencies                : 44
+                - dependencies                : 35
                 - dependencies                : 45
                 - dependencies                : 46
-                - dependencies                : 38
                 - dependencies                : 47
                 - dependencies                : 48
+                - dependencies                : 40
                 - dependencies                : 49
-                - dependencies                : 42
+                - dependencies                : 50
+                - dependencies                : 51
+                - dependencies                : 44
                 - dependencies                : 1
                 - dependencies                : 2
                 - dependencies                : 3
@@ -3307,10 +3303,10 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependencies                : 2
                 - dependencies                : 3
                 - dependencies                : 17
-                - dependencies                : 29
-                - dependencies                : 30
                 - dependencies                : 31
                 - dependencies                : 32
+                - dependencies                : 33
+                - dependencies                : 34
                 disambiguationClassifier      : jvm
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
@@ -3336,9 +3332,9 @@ MODULE                        : kotlinMultiPlatform.module2
                     - dependencies                : 2
                     - dependencies                : 3
                     - dependencies                : 17
-                    - dependencies                : 26
-                    - dependencies                : 27
                     - dependencies                : 28
+                    - dependencies                : 29
+                    - dependencies                : 30
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3353,9 +3349,9 @@ MODULE                        : kotlinMultiPlatform.module2
                     - regularDependencies         : 2
                     - regularDependencies         : 3
                     - regularDependencies         : 17
-                    - regularDependencies         : 26
-                    - regularDependencies         : 27
                     - regularDependencies         : 28
+                    - regularDependencies         : 29
+                    - regularDependencies         : 30
                     - resourceDirs                : <ROOT>/module2/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/jvmTest/kotlin [-]
                     - dependsOnSourceSets         : commonTest
@@ -3392,17 +3388,17 @@ MODULE                        : kotlinMultiPlatform.module2
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - declaredSourceSets          : jvmTest (KotlinSourceSetImpl) (*seen*)
-                - dependencies                : 26
-                - dependencies                : 7
-                - dependencies                : 50
-                - dependencies                : 51
-                - dependencies                : 5
-                - dependencies                : 27
                 - dependencies                : 28
-                - dependencies                : 44
+                - dependencies                : 7
                 - dependencies                : 52
                 - dependencies                : 53
+                - dependencies                : 5
+                - dependencies                : 29
+                - dependencies                : 30
+                - dependencies                : 46
                 - dependencies                : 54
+                - dependencies                : 55
+                - dependencies                : 56
                 - dependencies                : 1
                 - dependencies                : 2
                 - dependencies                : 3

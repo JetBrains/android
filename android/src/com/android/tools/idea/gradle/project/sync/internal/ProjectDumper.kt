@@ -78,9 +78,9 @@ class ProjectDumper(
   private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length - 3},${gradleLongHashStub.length}}")
   private val gradleVersionPattern = Regex("gradle-[^/]*${SdkConstants.GRADLE_LATEST_VERSION}")
   private val kotlinVersionPattern =
-    // org.jetbrains.kotlin:kotlin-smth-smth-smth:1.3.1-eap-23"
-    // kotlin-something-1.3.1-eap-23
-    Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-z]*)*:)|(?:kotlin(?:-[0-9a-z]+)*)-)(\\d+\\.\\d+.[0-9a-z\\-]+)")
+    // org.jetbrains.kotlin:kotlin-something:<version> or kotlin-something-<version>
+    // where <version> could be 1.7.0, 1.3.1-eap-23, or 1.7.20-Beta
+    Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-zA-Z]*)*:)|(?:kotlin(?:-[0-9a-zA-Z]+)*)-)(\\d+\\.\\d+.[0-9a-zA-Z\\-]+)")
   private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
 
   fun File.normalizeCxxPath(variantName: String?): String {
