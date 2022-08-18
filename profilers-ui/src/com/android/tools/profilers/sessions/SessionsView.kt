@@ -222,7 +222,8 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
         processSelectionAction.addChildrenActions(deviceAction)
         val processes = allProcesses.filter { it.state == Common.Process.State.ALIVE }
         when {
-          processes.isEmpty() -> deviceAction.addChildrenActions(disabledAction(device.unsupportedReason.ifEmpty {NO_DEBUGGABLE_PROCESSES}))
+          processes.isEmpty() -> deviceAction.addChildrenActions(
+            disabledAction(device.unsupportedReason.ifEmpty { NO_DEBUGGABLE_OR_PROFILEABLE_PROCESSES }))
           else -> {
             val processAction = fun (postFix: (Common.Process) -> String) = fun(process: Common.Process) =
               commonAction("${process.name} (${process.pid})${postFix(process)}").apply {
@@ -349,7 +350,7 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
      * String to display in the dropdown when no debuggable processes are detected.
      */
     @VisibleForTesting
-    val NO_DEBUGGABLE_PROCESSES = "No debuggable processes"
+    val NO_DEBUGGABLE_OR_PROFILEABLE_PROCESSES = "No debuggable or profileable processes"
 
     // Collapsed width should essentially look like a toolbar.
     private val sessionsCollapsedMinWidth get() = JBUI.scale(32)

@@ -205,7 +205,7 @@ class SessionsViewTest {
     var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isEnabled).isTrue()
     assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
-    assertThat(deviceAction1.childrenActions[0].text).isEqualTo(SessionsView.NO_DEBUGGABLE_PROCESSES)
+    assertThat(deviceAction1.childrenActions[0].text).isEqualTo(SessionsView.NO_DEBUGGABLE_OR_PROFILEABLE_PROCESSES)
     assertThat(deviceAction1.childrenActions[0].isEnabled).isFalse()
 
     myTransportService.addProcess(device1, process1)
