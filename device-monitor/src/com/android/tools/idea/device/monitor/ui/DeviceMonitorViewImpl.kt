@@ -276,7 +276,14 @@ class DeviceMonitorViewImpl(
       if (treeModel != null) {
         myPanel.showTree()
         val rootNode = ProcessTreeNode.fromNode(treeModel.root)
-        tree.isRootVisible = rootNode == null
+        if (rootNode != null) {
+          tree.isRootVisible = false
+          expandTreeNode(rootNode)
+        }
+        else {
+          // Show root, since it contains an error message (ErrorNode)
+          tree.isRootVisible = true
+        }
       }
     }
   }

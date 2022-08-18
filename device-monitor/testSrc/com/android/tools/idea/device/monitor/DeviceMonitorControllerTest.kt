@@ -175,6 +175,34 @@ class DeviceMonitorControllerTest {
     assertPidIsNotInChildNodes(rootEntry, clientStopped.processInfo.pid)
   }
 
+  @Test
+  fun testExpandingNodesWhenSelectingDevice() = runBlocking(AndroidDispatchers.uiThread) {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(mockView.startRefreshTracker.consume())
+    addClient(testDevice1, 200)
+    checkMockViewInitialState(controller)
+
+    // Act
+    val testDevice2 = adb.attachDevice("test_device_02", "Google", "Pix3l", "versionX", "29")
+    addClient(testDevice2, 300)
+    controller.selectActiveDevice(testDevice2.deviceId)
+
+    // Assert
+    val devices = pumpEventsAndWaitForFutures(mockView.modelListener.deviceAddedTracker.consumeMany(2))
+    Truth.assertThat(devices.map { it.serialNumber }).containsExactlyElementsIn(listOf(testDevice1.deviceId, testDevice2.deviceId))
+    Assert.assertEquals(2, mockView.deviceCombo.itemCount)
+    Assert.assertEquals(1, mockView.deviceCombo.selectedIndex)
+    checkMockViewActiveDevice(testDevice2)
+
+    mockView.viewListener.treeNodeExpandingTracker.clear()
+    controller.selectActiveDevice(testDevice1.deviceId)
+    val oldNode = pumpEventsAndWaitForFuture(mockView.viewListener.treeNodeExpandingTracker.consume())
+    val oldDeviceNode = checkNotNull(DeviceTreeNode.fromNode(oldNode))
+    Assert.assertEquals(testDevice1.deviceId, oldDeviceNode.device.serialNumber)
+  }
+
   private fun createController(): DeviceMonitorController {
     return DeviceMonitorController(project, model, mockView, service)
   }

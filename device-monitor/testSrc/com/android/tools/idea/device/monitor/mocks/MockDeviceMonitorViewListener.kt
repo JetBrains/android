@@ -23,6 +23,7 @@ import com.android.tools.idea.device.monitor.processes.Device
 class MockDeviceMonitorViewListener : DeviceMonitorViewListener {
   val deviceNotSelectedTracker = FutureValuesTracker<Unit>()
   val deviceSelectedTracker = FutureValuesTracker<Device>()
+  val treeNodeExpandingTracker = FutureValuesTracker<ProcessTreeNode>()
 
   override fun noDeviceSelected() {
     deviceNotSelectedTracker.produce(null)
@@ -32,7 +33,9 @@ class MockDeviceMonitorViewListener : DeviceMonitorViewListener {
     deviceSelectedTracker.produce(device)
   }
 
-  override fun treeNodeExpanding(treeNode: ProcessTreeNode) {}
+  override fun treeNodeExpanding(treeNode: ProcessTreeNode) {
+    treeNodeExpandingTracker.produce(treeNode)
+  }
 
   override fun refreshInvoked() {}
 
