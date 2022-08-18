@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeArtifactDependency
-import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeDependency
@@ -65,9 +64,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.DependencyScope
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
@@ -93,13 +90,6 @@ private fun stripExtensionAndClassifier(libraryName: String): String {
   val parts = libraryName.split(':')
   if (parts.size < 3) return libraryName // There is not enough parts to form a group:id:version string.
   return "${parts[0]}:${parts[1]}:${parts[2]}"
-}
-
-private fun IdeArtifactLibrary.isModuleLevel(modulePath: String) = try {
-  FileUtil.isAncestor(modulePath, artifactAddress, false)
-}
-catch (e: UnsupportedMethodException) {
-  false
 }
 
 /**
@@ -151,20 +141,11 @@ private class AndroidDependenciesSetupContext(
 
     final override fun createDependencyData(scope: DependencyScope) {
       // Finally create the LibraryDependencyData
-      val libraryDependencyData = LibraryDependencyData(moduleDataNode.data, libraryData, workOutLibraryLevel())
+      val libraryDependencyData =
+        LibraryDependencyData(moduleDataNode.data, libraryData, maybeLinkLibraryAndWorkOutLibraryLevel(projectDataNode, libraryData))
       libraryDependencyData.scope = scope
       libraryDependencyData.isExported = false
       processedLibraries[libraryName] = libraryDependencyData
-    }
-
-    private fun workOutLibraryLevel(): LibraryLevel {
-      // Work out the level of the library, if the library path is inside the module directory we treat
-      // this as a Module level library. Otherwise we treat it as a Project level one.
-      return when {
-        library.target.isModuleLevel(moduleDataNode.data.moduleFileDirectoryPath) -> LibraryLevel.MODULE
-        !linkProjectLibrary(null, projectDataNode, libraryData) -> LibraryLevel.MODULE
-        else -> LibraryLevel.PROJECT
-      }
     }
   }
 
@@ -464,4 +445,13 @@ private fun IdeUnresolvedLibraryTable.resolve(
       }
     }
   )
+}
+
+private fun maybeLinkLibraryAndWorkOutLibraryLevel(projectDataNode: DataNode<ProjectData>, libraryData: LibraryData): LibraryLevel {
+  // TODO(b/243008075): Work out the level of the library, if the library path is inside the module directory we treat
+  // this as a Module level library. Otherwise we treat it as a Project level one.
+  return when {
+    !linkProjectLibrary(null, projectDataNode, libraryData) -> LibraryLevel.MODULE
+    else -> LibraryLevel.PROJECT
+  }
 }
