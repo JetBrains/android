@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.prefs.AndroidLocationsException;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -50,11 +51,13 @@ class VirtualDeviceWatcher implements Disposable {
 
   private final @NotNull Alarm myAlarm;
 
+  @UiThread
   VirtualDeviceWatcher(@NotNull Disposable parentDisposable) throws AndroidLocationsException {
     this(parentDisposable, Objects.requireNonNull(AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(),
                                                                          new LogWrapper(Logger.getInstance(VirtualDeviceWatcher.class)))));
   }
 
+  @UiThread
   VirtualDeviceWatcher(@NotNull Disposable parentDisposable, @NotNull AvdManager avdManager) {
     Disposer.register(parentDisposable, this);
     myAvdManager = avdManager;
@@ -65,6 +68,7 @@ class VirtualDeviceWatcher implements Disposable {
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(
       ApplicationActivationListener.TOPIC,
       new ApplicationActivationListener() {
+        @UiThread
         @Override
         public void applicationActivated(@NotNull IdeFrame ideFrame) {
           // Use a delay to avoid excessive operations
@@ -80,6 +84,7 @@ class VirtualDeviceWatcher implements Disposable {
           }, 1000);
         }
 
+        @UiThread
         @Override
         public void applicationDeactivated(@NotNull IdeFrame ideFrame) {
           // If there is a delay in progress, we should not overwrite the AVDs because the baseline for the change needs to remain the same
@@ -95,7 +100,7 @@ class VirtualDeviceWatcher implements Disposable {
   }
 
   /**
-   * Checks the differences between the saved AVDs and the current AVDs.
+   * Checks the differences between the saved AVDs and the current AVDs. Called by an application pool thread.
    */
   @WorkerThread
   private synchronized void processAvdInfoChanges() {
@@ -123,11 +128,17 @@ class VirtualDeviceWatcher implements Disposable {
     myAvds = currentAvds;
   }
 
+  /**
+   * Called by an application pool thread
+   */
   @WorkerThread
   private synchronized void snapshotAvds() {
     myAvds = getCurrentAvds();
   }
 
+  /**
+   * Called by an application pool thread
+   */
   @WorkerThread
   private synchronized @NotNull Map<@NotNull String, @NotNull AvdInfo> getCurrentAvds() {
     try {
@@ -147,10 +158,18 @@ class VirtualDeviceWatcher implements Disposable {
   }
 
   private static class FailedFutureCallback implements FutureCallback<Void> {
+    /**
+     * Called by an application pool thread
+     */
+    @WorkerThread
     @Override
     public void onSuccess(@Nullable Void result) {
     }
 
+    /**
+     * Called by an application pool thread
+     */
+    @WorkerThread
     @Override
     public void onFailure(@NotNull Throwable t) {
       Logger.getInstance(VirtualDevice.class).warn(t);
