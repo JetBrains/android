@@ -132,7 +132,7 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/database:app-inspection.inspectors.database",
             "//tools/adt/idea/debuggers:intellij.android.debuggers",
             "//tools/adt/idea/deploy:intellij.android.deploy",
-            "//tools/adt/idea/device-explorer:intellij.android.device-explorer",
+            "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow",
             "//tools/adt/idea/device-monitor:intellij.android.device-monitor",
             "//tools/adt/idea/device-manager:intellij.android.device-manager",
             "//tools/adt/idea/emulator:intellij.android.emulator",

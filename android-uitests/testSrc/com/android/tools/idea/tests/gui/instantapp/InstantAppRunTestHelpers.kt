@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.instantapp
 
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
+import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceCapabilities
+import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbFileOperations
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.plus

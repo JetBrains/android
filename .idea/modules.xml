@@ -113,11 +113,11 @@
       <module fileurl="file://$PROJECT_DIR$/../../data-binding/compilationTests/db-compilationTests.iml" filepath="$PROJECT_DIR$/../../data-binding/compilationTests/db-compilationTests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../data-binding/compiler/db-compiler.iml" filepath="$PROJECT_DIR$/../../data-binding/compiler/db-compiler.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../data-binding/compilerCommon/db-compilerCommon.iml" filepath="$PROJECT_DIR$/../../data-binding/compilerCommon/db-compilerCommon.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess/directaccess.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess/directaccess.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/directaccess-client/directaccess-client.iml" filepath="$PROJECT_DIR$/../../vendor/google/directaccess-client/directaccess-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/dynamic-layout-inspector/common/dynamic-layout-inspector.common.iml" filepath="$PROJECT_DIR$/../../base/dynamic-layout-inspector/common/dynamic-layout-inspector.common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../swing-testing/fest-swing/fest-swing.iml" filepath="$PROJECT_DIR$/../../swing-testing/fest-swing/fest-swing.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/firebase/firebase.iml" filepath="$PROJECT_DIR$/../../vendor/google/firebase/firebase.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess/directaccess.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess/directaccess.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/directaccess-client/directaccess-client.iml" filepath="$PROJECT_DIR$/../../vendor/google/directaccess-client/directaccess-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/firebase-testing/firebase-testing.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/firebase-testing/firebase-testing.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/firebase/integration/firebase.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/firebase/integration/firebase.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/appindexing/google-appindexing.iml" filepath="$PROJECT_DIR$/../../studio/google/appindexing/google-appindexing.iml" />
@@ -166,8 +166,8 @@
       <module fileurl="file://$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.iml" filepath="$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.tests.iml" filepath="$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/intellij.android.designer.tests.iml" filepath="$PROJECT_DIR$/designer/intellij.android.designer.tests.iml" />
-      <module fileurl="file://$PROJECT_DIR$/device-explorer/intellij.android.device-explorer.iml" filepath="$PROJECT_DIR$/device-explorer/intellij.android.device-explorer.iml" />
-      <module fileurl="file://$PROJECT_DIR$/device-explorer/intellij.android.device-explorer.tests.iml" filepath="$PROJECT_DIR$/device-explorer/intellij.android.device-explorer.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/device-file-explorer-toolwindow/intellij.android.device-file-explorer-toolwindow.iml" filepath="$PROJECT_DIR$/device-file-explorer-toolwindow/intellij.android.device-file-explorer-toolwindow.iml" />
+      <module fileurl="file://$PROJECT_DIR$/device-file-explorer-toolwindow/intellij.android.device-file-explorer-toolwindow.tests.iml" filepath="$PROJECT_DIR$/device-file-explorer-toolwindow/intellij.android.device-file-explorer-toolwindow.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/device-manager/intellij.android.device-manager.iml" filepath="$PROJECT_DIR$/device-manager/intellij.android.device-manager.iml" />
       <module fileurl="file://$PROJECT_DIR$/device-manager/intellij.android.device-manager.tests.iml" filepath="$PROJECT_DIR$/device-manager/intellij.android.device-manager.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/device-monitor/intellij.android.device-monitor.iml" filepath="$PROJECT_DIR$/device-monitor/intellij.android.device-monitor.iml" />

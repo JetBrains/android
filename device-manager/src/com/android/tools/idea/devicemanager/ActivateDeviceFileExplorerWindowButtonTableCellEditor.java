@@ -17,7 +17,7 @@ package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice;
-import com.android.tools.idea.explorer.DeviceExplorer;
+import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorer;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
