@@ -40,6 +40,10 @@ import java.util.function.Function
 internal fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<String>, pollTimeoutSeconds: Int = 15): Client {
   val timeUnit = TimeUnit.SECONDS
 
+  val LOG = Logger.getInstance("waitForClient")
+
+  LOG.info("Waiting for clients $appIds for $pollTimeoutSeconds seconds")
+
   for (i in 0 until pollTimeoutSeconds) {
     ProgressManager.checkCanceled()
     if (!device.isOnline) {
@@ -48,9 +52,9 @@ internal fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<Stri
     for (appId in appIds) {
       val clients = DeploymentApplicationService.instance.findClient(device, appId)
       if (clients.isNotEmpty()) {
-        Logger.getInstance("waitForClient").info("Connecting to $appId")
+        LOG.info("Connecting to $appId")
         if (clients.size > 1) {
-          Logger.getInstance("waitForClient").info("Multiple clients with same application ID: $appId")
+          LOG.info("Multiple clients with same application ID: $appId")
         }
         // Even though multiple processes may be related to a particular application ID, we'll only connect to the first one
         // in the list since the debugger is set up to only connect to at most one process.

@@ -20,12 +20,12 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
@@ -39,8 +39,8 @@ import org.jetbrains.concurrency.Promise
 /**
  * Starts JAVA debug session that attaches to new clients, ready for debug, if their app id is in [applicationIds].
  *
- * [masterAndroidProcessName] process name that should be destroyed when the stop button is pressed or
- * execution will be finished when [masterAndroidProcessName] is destroyed. Example: [MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME]
+ * Debugger execution will be finished when [masterAndroidProcessName] is destroyed.
+ * Example of [masterAndroidProcessName] - [MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME]
  */
 @WorkerThread
 fun startJavaReattachingDebugger(
@@ -52,26 +52,49 @@ fun startJavaReattachingDebugger(
   consoleViewToReuse: ConsoleView? = null,
   onDebugProcessStarted: (() -> Unit)? = null,
 ): Promise<XDebugSessionImpl> {
+  val masterProcessHandler = AndroidProcessHandler(project, masterAndroidProcessName)
+  masterProcessHandler.addTargetDevice(device)
+
+  return startJavaReattachingDebugger(project, device, masterProcessHandler, applicationIds, environment, consoleViewToReuse,
+                                      onDebugProcessStarted)
+}
+
+/**
+ * Starts JAVA debug session that attaches to new clients, ready for debug, if their app id is in [applicationIds].
+ *
+ * It terminates [masterProcessHandler] on an error.
+ * It stops re-attaching and listening when [masterProcessHandler] is terminated.
+ */
+@WorkerThread
+fun startJavaReattachingDebugger(
+  project: Project,
+  device: IDevice,
+  masterProcessHandler: ProcessHandler,
+  applicationIds: Set<String>,
+  environment: ExecutionEnvironment,
+  consoleViewToReuse: ConsoleView? = null,
+  onDebugProcessStarted: (() -> Unit)? = null,
+): Promise<XDebugSessionImpl> {
 
   fun startJavaSession(client: Client, onDebugProcessStarted: (() -> Unit)?) =
     attachJavaDebuggerToClient(project, client, environment, consoleViewToReuse, onDebugProcessStarted,
                                onDebugProcessDestroyed = { it.forceStop(client.clientData.clientDescription) })
 
-  return startReattachingDebugger(project, device, masterAndroidProcessName, applicationIds, ::startJavaSession, onDebugProcessStarted)
+  return startReattachingDebugger(project, device, masterProcessHandler, applicationIds, ::startJavaSession, onDebugProcessStarted)
 }
 
 
 /**
  * Starts debug session via [startSession] that attaches to new clients, ready for debug, if their app id is in [applicationIds].
  *
- * Debug session exists until [masterAndroidProcessName] is alive.
+ * Debug session exists until [masterProcessHandler] is alive.
  * Returns [Promise<XDebugSessionImpl>] for the first client, for consecutive clients replaces old debugger tab with a new one.
  */
 @WorkerThread
 private fun startReattachingDebugger(
   project: Project,
   device: IDevice,
-  masterAndroidProcessName: String,
+  masterProcessHandler: ProcessHandler,
   applicationIds: Set<String>,
   startSession: (Client, (() -> Unit)?) -> Promise<XDebugSessionImpl>,
   onDebugProcessStarted: (() -> Unit)? = null
@@ -80,9 +103,6 @@ private fun startReattachingDebugger(
   ApplicationManager.getApplication().assertIsNonDispatchThread()
 
   val LOG = Logger.getInstance("startJavaReattachingDebugger")
-
-  val masterProcessHandler = AndroidProcessHandler(project, masterAndroidProcessName)
-  masterProcessHandler.addTargetDevice(device)
 
   // We wait for the first client outside [reattachingListener] because there is case when client is already waiting for debug before we add
   // [reattachingListener].
@@ -122,7 +142,7 @@ private fun startReattachingDebugger(
  */
 private class ReattachingDebuggerListener(
   private val project: Project,
-  private val masterProcessHandler: AndroidProcessHandler,
+  private val masterProcessHandler: ProcessHandler,
   private val applicationIds: Set<String>,
   private val startSession: (Client, (() -> Unit)?) -> Promise<XDebugSessionImpl>
 ) : AndroidDebugBridge.IClientChangeListener {
@@ -157,7 +177,7 @@ private class ReattachingDebuggerListener(
   private fun handleError(e: Throwable) {
     masterProcessHandler.destroyProcess()
     if (e is ExecutionException) {
-      showError(project, e, "Debugging ${masterProcessHandler.targetApplicationId}")
+      showError(project, e, "Debugging $applicationIds")
     }
     else {
       LOG.error(e)
