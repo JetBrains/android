@@ -141,7 +141,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   private var project: Project? = null
   private val myModuleDataByGradlePath: MutableMap<GradleProjectPath, DataNode<out ModuleData>> = mutableMapOf()
   private val myGradlePathByModuleId: MutableMap<String?, GradleProjectPath> = mutableMapOf()
-  private var myResolvedModuleDependencies: IdeResolvedLibraryTable? = null
+  private var myResolvedLibraryTable: IdeResolvedLibraryTable? = null
   private val myKotlinCacheOriginIdentifiers: MutableSet<Long> = mutableSetOf()
 
   constructor() : this(CommandLineArgs())
@@ -154,7 +154,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY, true)
     // Similarly for KAPT.
     projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY, true)
-    myResolvedModuleDependencies = null
+    myResolvedLibraryTable = null
     myKotlinCacheOriginIdentifiers.clear()
     super.setProjectResolverContext(projectResolverContext)
   }
@@ -466,18 +466,18 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       super.populateModuleDependencies(gradleModule, ideModule, ideProject)
       return
     }
-    if (myResolvedModuleDependencies == null) {
+    if (myResolvedLibraryTable == null) {
       val ideLibraryTable = resolverCtx.models.getModel(
         IdeUnresolvedLibraryTableImpl::class.java
       )
         ?: throw IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present")
-      myResolvedModuleDependencies = buildResolvedLibraryTable(ideProject, ideLibraryTable)
+      myResolvedLibraryTable = buildResolvedLibraryTable(ideProject, ideLibraryTable)
       ideProject.createChild(
         AndroidProjectKeys.IDE_LIBRARY_TABLE,
-        myResolvedModuleDependencies!!
+        myResolvedLibraryTable!!
       )
     }
-    val libraryResolver = fromLibraryTable(myResolvedModuleDependencies!!)
+    val libraryResolver = fromLibraryTable(myResolvedLibraryTable!!)
 
     // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject)
