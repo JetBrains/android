@@ -280,6 +280,7 @@ class AgpUpgradeRefactoringProcessor(
     RedundantPropertiesRefactoringProcessor(this),
     AndroidManifestPackageToNamespaceRefactoringProcessor(this),
     R8FullModeDefaultRefactoringProcessor(this),
+    RenderScriptDefaultRefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()

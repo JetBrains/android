@@ -55,6 +55,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
     ],
 )
 

@@ -42,6 +42,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_BUILD_TYPE_USE_PROGUARD
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_IMPLEMENTATION_PROPERTIES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.RENDER_SCRIPT_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REWRITE_DEPRECATED_OPERATORS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
@@ -453,6 +454,23 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
                                             .setNoPropertyPresentAction(
                                               R8FullModeDefaultProcessorSettings.NoPropertyPresentAction.INSERT_OLD_DEFAULT)))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1).setFiles(2))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testNoRenderScriptUsageTracker() {
+    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(RENDER_SCRIPT_DEFAULT).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(0).setFiles(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(RENDER_SCRIPT_DEFAULT).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(0).setFiles(2))
         .build(),
     )
   }
