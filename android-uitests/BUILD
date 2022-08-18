@@ -565,6 +565,23 @@ java_test(
 )
 
 java_test(
+    name = "VerifyJavaKotlinXmlCodeStyles",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.VerifyJavaKotlinXmlCodeStyles"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "XMLCodeStyleTest",
     size = "large",
     data = COMMON_DATA + [
