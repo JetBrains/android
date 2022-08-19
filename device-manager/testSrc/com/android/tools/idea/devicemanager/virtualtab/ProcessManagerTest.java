@@ -19,11 +19,12 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
-import com.android.tools.idea.devicemanager.virtualtab.ProcessManager.State;
+import com.android.tools.idea.devicemanager.CountDownLatchAssert;
+import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.google.common.util.concurrent.FutureCallback;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
+import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,8 @@ public final class ProcessManagerTest {
 
   private final @NotNull AvdInfo myAvd;
   private final @NotNull AvdManagerConnection myConnection;
+  private final @NotNull CountDownLatch myLatch;
+  private final @NotNull ProcessManagerListener myListener;
   private final @NotNull ProcessManager myManager;
 
   public ProcessManagerTest() {
@@ -45,29 +48,41 @@ public final class ProcessManagerTest {
     myConnection = Mockito.mock(AvdManagerConnection.class);
     Mockito.when(myConnection.getAvds(true)).thenReturn(List.of(myAvd));
 
-    myManager = new ProcessManager(() -> myConnection);
+    myLatch = new CountDownLatch(1);
+    myListener = Mockito.mock(ProcessManagerListener.class);
+
+    myManager = new ProcessManager(() -> myConnection, this::newSetKeyToStateMapFutureCallback);
+    myManager.addProcessManagerListener(myListener);
   }
 
   @Test
-  public void initAsyncOnline() throws Exception {
+  public void initOnline() throws Exception {
     // Arrange
     Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
 
     // Act
-    Future<Void> future = myManager.initAsync();
+    myManager.init();
 
     // Assert
-    TestDeviceManagerFutures.get(future);
-    assertEquals(Map.of(KEY, State.LAUNCHED), myManager.getKeyToStateMap());
+    CountDownLatchAssert.await(myLatch);
+
+    Mockito.verify(myListener).statesChanged(new ProcessManagerEvent(myManager));
+    assertEquals(Map.of(KEY, ProcessManager.State.LAUNCHED), myManager.getKeyToStateMap());
   }
 
   @Test
-  public void initAsync() throws Exception {
+  public void init() throws Exception {
     // Act
-    Future<Void> future = myManager.initAsync();
+    myManager.init();
 
     // Assert
-    TestDeviceManagerFutures.get(future);
-    assertEquals(Map.of(KEY, State.STOPPED), myManager.getKeyToStateMap());
+    CountDownLatchAssert.await(myLatch);
+
+    Mockito.verify(myListener).statesChanged(new ProcessManagerEvent(myManager));
+    assertEquals(Map.of(KEY, ProcessManager.State.STOPPED), myManager.getKeyToStateMap());
+  }
+
+  private @NotNull FutureCallback<@NotNull Object> newSetKeyToStateMapFutureCallback(@NotNull ProcessManager manager) {
+    return new CountDownLatchFutureCallback<>(ProcessManager.newSetKeyToStateMapFutureCallback(manager), myLatch);
   }
 }
