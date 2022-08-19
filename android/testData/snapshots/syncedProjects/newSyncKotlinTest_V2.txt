@@ -1559,11 +1559,11 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main [-]
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/src/main
             JavaSource                    : file://<PROJECT>/contentLib/src/main/java
+            JavaSource                    : file://<PROJECT>/contentLib/src/main/kotlin
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/contentLib/build/generated/source/kapt/main [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/contentLib/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/contentLib/src/main/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
