@@ -28,7 +28,6 @@ import com.android.tools.idea.stats.GcPauseWatcher;
 import com.google.common.base.Predicates;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
-import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
@@ -40,13 +39,8 @@ import com.intellij.openapi.editor.XmlHighlighterColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.ui.AppUIUtil;
 import java.util.concurrent.ScheduledExecutorService;
-import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -60,8 +54,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
   @Override
   public void customize(@NotNull ActionManager actionManager) {
-    disableGroovyLanguageInjection();
-
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
 
@@ -125,24 +117,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     new GcPauseWatcher();
-  }
-
-  // Fix https://code.google.com/p/android/issues/detail?id=201624
-  private static void disableGroovyLanguageInjection() {
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
-      @Override
-      public void projectOpened(@NotNull Project project) {
-        ExtensionPoint<MultiHostInjector> extensionPoint = MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME.getPoint(project);
-        for (MultiHostInjector injector : extensionPoint.getExtensions()) {
-          if (injector instanceof GrConcatenationInjector) {
-            extensionPoint.unregisterExtension(injector.getClass());
-            return;
-          }
-        }
-
-        getLog().info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
-      }
-    });
   }
 
   private static void setupThreadingAgentEventListener() {
