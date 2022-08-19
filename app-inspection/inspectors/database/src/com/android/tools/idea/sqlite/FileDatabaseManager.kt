@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.explorer.fs.DeviceFileDownloaderService
 import com.android.tools.idea.explorer.fs.DownloadProgress
@@ -98,10 +100,18 @@ class FileDatabaseManagerImpl(
   private class DisposableDownloadProgress(private val coroutineJob: Job) : DownloadProgress, Disposable {
     private var isDisposed = false
 
+    @AnyThread
     override fun isCancelled() = isDisposed || coroutineJob.isCancelled
+
+    @UiThread
     override fun onStarting(entryFullPath: String) { }
+
+    @UiThread
     override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) { }
+
+    @UiThread
     override fun onCompleted(entryFullPath: String) { }
+
     override fun dispose() {
       isDisposed = true
     }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
@@ -114,6 +115,7 @@ internal class DefaultAppInspectionTarget(
 ) : AppInspectionTarget() {
   private val scope = parentScope.createChildScope(true)
 
+  @WorkerThread
   override suspend fun launchInspector(
     params: LaunchParameters
   ): AppInspectorMessenger {
@@ -150,10 +152,12 @@ internal class DefaultAppInspectionTarget(
   /**
    * Disposes all inspectors that were launched on this target.
    */
+  @WorkerThread
   override suspend fun dispose() {
     scope.cancel()
   }
 
+  @WorkerThread
   override suspend fun getLibraryVersions(libraryCoordinates: List<ArtifactCoordinate>): List<LibraryCompatbilityInfo> {
     val libraryVersions = libraryCoordinates.map { it.toArtifactCoordinateProto() }
     val getLibraryVersionsCommand = AppInspection.GetLibraryCompatibilityInfoCommand.newBuilder().addAllTargetLibraries(

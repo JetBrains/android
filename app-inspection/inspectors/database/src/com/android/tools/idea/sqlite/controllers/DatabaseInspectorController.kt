@@ -145,6 +145,7 @@ class DatabaseInspectorControllerImpl(
     private var currentOpenDatabaseIds = listOf<SqliteDatabaseId>()
     private var currentCloseDatabaseIds = listOf<SqliteDatabaseId>()
 
+    @UiThread
     override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
       val currentState = currentOpenDatabaseIds.map { ViewDatabase(it, true) } + currentCloseDatabaseIds.map { ViewDatabase(it, false) }
       val newState = openDatabaseIds.map { ViewDatabase(it, true) } + closeDatabaseIds.map { ViewDatabase(it, false) }
@@ -162,6 +163,7 @@ class DatabaseInspectorControllerImpl(
       currentCloseDatabaseIds = closeDatabaseIds
     }
 
+    @UiThread
     override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
       updateExistingDatabaseSchemaView(databaseId, oldSchema, newSchema)
     }
@@ -198,15 +200,18 @@ class DatabaseInspectorControllerImpl(
     view.updateKeepConnectionOpenButton(keepConnectionsOpen)
   }
 
+  @AnyThread
   override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) = withContext(uiDispatcher) {
     val schema = readDatabaseSchema(databaseId) ?: return@withContext
     addNewDatabase(databaseId, schema)
   }
 
+  @AnyThread
   override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) = withContext(uiDispatcher) {
     openNewEvaluatorTab().showAndExecuteSqlStatement(databaseId, sqliteStatement).await()
   }
 
+  @AnyThread
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit = withContext(uiDispatcher) {
     val openDatabases = model.getOpenDatabaseIds()
     val tabsToClose = if (openDatabases.size == 1 && openDatabases.first() == databaseId) {
@@ -238,6 +243,7 @@ class DatabaseInspectorControllerImpl(
     view.reportError(message, throwable)
   }
 
+  @UiThread
   override suspend fun startAppInspectionSession(
     clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices,
@@ -256,6 +262,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   // TODO(161081452): move appPackageName and processDescriptor to OfflineModeManager
+  @UiThread
   override fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor) {
     databaseInspectorClientCommandsChannel = null
     this.processDescriptor = null
@@ -331,6 +338,7 @@ class DatabaseInspectorControllerImpl(
     }
   }
 
+  @AnyThread
   override suspend fun databasePossiblyChanged() = withContext(uiDispatcher) {
     // update schemas
     model.getOpenDatabaseIds().forEach { updateDatabaseSchema(it) }
@@ -671,8 +679,8 @@ class DatabaseInspectorControllerImpl(
   private sealed class TabDescription {
     abstract val databasePath: String?
 
-    class Table(override val databasePath: String, val tableName: String) : TabDescription()
-    class AdHocQuery(override val databasePath: String?, val query: String) : TabDescription()
+    class Table(@get:UiThread override val databasePath: String, val tableName: String) : TabDescription()
+    class AdHocQuery(@get:UiThread override val databasePath: String?, val query: String) : TabDescription()
   }
 }
 

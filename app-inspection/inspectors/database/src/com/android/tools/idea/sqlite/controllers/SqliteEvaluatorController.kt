@@ -76,6 +76,7 @@ class SqliteEvaluatorController(
   private val queryHistory = LinkedList<String>()
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
+    @UiThread
     override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
       openDatabases.clear()
       openDatabases.addAll(openDatabaseIds.sortedBy { it.name })
@@ -91,6 +92,7 @@ class SqliteEvaluatorController(
       updateRunSqliteStatementButtonState()
     }
 
+    @UiThread
     override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
       view.schemaChanged(databaseId)
     }

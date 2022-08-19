@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -52,7 +53,10 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     private val notificationGroup =
       NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID, true, PluginId.getId("org.jetbrains.android"))
 
+    @UiThread
     override fun showToolWindow() = toolWindow.show(null)
+
+    @UiThread
     override fun showNotification(content: String,
                                   title: String,
                                   severity: AppInspectionIdeServices.Severity,
