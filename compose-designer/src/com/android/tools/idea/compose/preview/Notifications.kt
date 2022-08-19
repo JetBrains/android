@@ -180,8 +180,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
     if (previewStatus.isRefreshing) {
       LOG.debug("Refreshing")
       return when (previewStatus.interactiveMode) {
-        ComposePreviewManager.InteractiveMode.STARTING -> EditorNotificationPanel(fileEditor, null, null,
-                                                                                  EditorNotificationPanel.Status.Info).apply {
+        ComposePreviewManager.InteractiveMode.STARTING -> EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
           text = message("notification.interactive.preview.starting")
           icon(AnimatedIcon.Default())
         }
