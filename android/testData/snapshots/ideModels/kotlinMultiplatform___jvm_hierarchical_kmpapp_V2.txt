@@ -21,19 +21,10 @@ MODULE                        : kotlinMultiPlatform
                 tasks
                     jvmTest                       : jvmTest (DefaultExternalTask)
                         qName                         : :app:jvmTest
-                        description                   : Runs the tests of the test test run.
-                        group                         : verification
-                        type                          : org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/app/build/libs/app-metadata.jar [-]
                 - artifacts                   : <ROOT>/app/build/libs/app-jvm.jar [-]
@@ -379,19 +370,10 @@ MODULE                        : kotlinMultiPlatform
                 tasks
                     jvmTest                       : jvmTest (DefaultExternalTask)
                         qName                         : :module2:jvmTest
-                        description                   : Runs the tests of the test test run.
-                        group                         : verification
-                        type                          : org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :module2:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :module2:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                 - artifacts                   : <ROOT>/module2/build/libs/module2-jvm.jar [-]
