@@ -16,23 +16,25 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import org.junit.Test
-import java.nio.file.Path
-import kotlin.io.path.name
 
-class SdkIndexLintTest : SdkIndexTestBase() {
+class SdkIndexPsdTest : SdkIndexTestBase() {
   @Test
-  fun snapshotUsedByLintTest() {
+  fun snapshotUsedByPsdTest() {
     verifySdkIndexIsInitializedAndUsedWhen(
-      showFunction = { studio, project ->
-        // Open build.gradle file in editor
-        val projectName = project.targetProject.name
-        val buildFilePath: Path = project.targetProject.resolve("build.gradle")
-        studio.openFile(projectName, buildFilePath.toString())
+      showFunction = { studio, _ ->
+        // Open PSD using the menu since we can't use executeAction("AndroidShowStructureSettingsAction") here because it would spawn a
+        // modal dialog with nothing to close it.
+        studio.invokeComponent("File")
+        studio.invokeComponent("Project Structure...")
       },
-      closeFunction = null,
+      closeFunction = { studio, _ ->
+        // Close PSD
+        studio.invokeComponent("OK")
+      },
       expectedIssues = setOf(
         "com.mopub:mopub-sdk version 4.16.0 has been marked as outdated by its author",
         "com.startapp:inapp-sdk version 3.9.1 has been marked as outdated by its author",
+        "com.snowplowanalytics:snowplow-android-tracker version 1.4.1 has an associated message from its author",
       )
     )
   }
