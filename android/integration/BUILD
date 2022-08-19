@@ -74,20 +74,28 @@ iml_test(
 
 iml_test(
     name = "EmulatorBeforeStudioTest",
-    data = [
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
+    }) + [
         ":minapp",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/adt/idea/studio:android-studio.linux.zip",
         "//tools/base/build-system:gradle-distrib-7.2",
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
-    tags_mac = ["manual"],  # Untested
     tags_windows = [
         "block-network",
-        "manual",  # Untested
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.idea.EmulatorBeforeStudioTest",
 )
@@ -133,6 +141,9 @@ iml_test(
         "@platforms//os:macos": [
             "//tools/adt/idea/studio:android-studio.mac.zip",
         ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
         "//conditions:default": [],
     }) + [
         ":buildproject_deps",
@@ -145,10 +156,10 @@ iml_test(
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
-    tags_mac = ["manual"],  # Untested
+    tags_mac = [],
     tags_windows = [
         "block-network",
-        "manual",  # Untested
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.idea.BuildAndRunTest",
 )
