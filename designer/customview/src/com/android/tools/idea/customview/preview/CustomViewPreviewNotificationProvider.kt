@@ -48,17 +48,17 @@ internal class CustomViewPreviewNotificationProvider : EditorNotifications.Provi
     val previewManager = fileEditor.getCustomViewPreviewManager() ?: return null
     val module = ModuleUtil.findModuleForFile(file, project) ?: return null
     return when (previewManager.notificationsState) {
-      CustomViewPreviewManager.NotificationsState.CODE_MODIFIED -> EditorNotificationPanel(fileEditor).apply {
+      CustomViewPreviewManager.NotificationsState.CODE_MODIFIED -> EditorNotificationPanel(fileEditor, null, null, EditorNotificationPanel.Status.Info).apply {
         setText(PREVIEW_OUT_OF_DATE)
         createActionLabel("$BUILD_AND_REFRESH${getBuildAndRefreshShortcut().asString()}") {
           requestBuild(project, module)
         }
       }
-      CustomViewPreviewManager.NotificationsState.BUILDING -> EditorNotificationPanel(fileEditor).apply {
+      CustomViewPreviewManager.NotificationsState.BUILDING -> EditorNotificationPanel(fileEditor, null, null, EditorNotificationPanel.Status.Info).apply {
         setText("Building...")
         icon(AnimatedIcon.Default())
       }
-      CustomViewPreviewManager.NotificationsState.BUILD_FAILED -> EditorNotificationPanel(LightColors.RED).apply {
+      CustomViewPreviewManager.NotificationsState.BUILD_FAILED -> EditorNotificationPanel(LightColors.RED, EditorNotificationPanel.Status.Error).apply {
         setText("Correct preview cannot be displayed until after a successful build.")
       }
       else -> null

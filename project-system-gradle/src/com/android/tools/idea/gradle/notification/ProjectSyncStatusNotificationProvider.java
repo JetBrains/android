@@ -218,7 +218,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     @NotNull private final Type type;
 
     NotificationPanel(@NotNull Type type, @NotNull String text) {
-      super(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND);
+      super(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND, Status.Info);
       this.type = type;
       setText(text);
     }

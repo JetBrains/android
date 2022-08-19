@@ -62,7 +62,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
   private class MySdkNotConfiguredNotificationPanel extends EditorNotificationPanel {
 
     MySdkNotConfiguredNotificationPanel(@NotNull FileEditor fileEditor, @NotNull final Module module) {
-      super(fileEditor);
+      super(fileEditor, EditorNotificationPanel.Status.Warning);
 
       setText("Android SDK is not configured for module '" + module.getName() + "' or corrupted");
 

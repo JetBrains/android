@@ -59,7 +59,7 @@ constructor(private val filePreviewElementProvider: () -> FilePreviewElementFind
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
       filePreviewElementProvider().hasPreviewMethods(project, file) ->
-        EditorNotificationPanel(fileEditor).apply {
+        EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
           setText(message("notification.new.preview"))
           createActionLabel(message("notification.new.preview.action")) {
             if (fileEditor.isValid) {

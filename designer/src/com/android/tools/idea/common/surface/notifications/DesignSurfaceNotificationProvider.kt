@@ -35,7 +35,7 @@ class DesignSurfaceNotificationProvider : EditorNotifications.Provider<EditorNot
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
     val surface: DesignSurface<*> = (fileEditor as? NlEditor)?.component?.surface ?: return null
     return if (!surface.isRefreshing && surface.sceneManagers.any { it.isOutOfDate }) {
-      EditorNotificationPanel(fileEditor).apply {
+      EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
         text = "The preview is out of date"
         createActionLabel("Refresh") {
           surface.forceUserRequestedRefresh()
