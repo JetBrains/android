@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.instrumentation.threading.ThreadingChecker;
-import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
@@ -38,7 +34,6 @@ import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -49,9 +44,7 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.AppUIUtil;
-import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +60,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
   @Override
   public void customize(@NotNull ActionManager actionManager) {
-    checkInstallation();
     disableGroovyLanguageInjection();
 
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
@@ -133,38 +125,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     new GcPauseWatcher();
-  }
-
-  private static void checkInstallation() {
-    String studioHome = PathManager.getHomePath();
-    if (isEmpty(studioHome)) {
-      getLog().info("Unable to find Studio home directory");
-      return;
-    }
-    File studioHomePath = FilePaths.stringToFile(studioHome);
-    if (!studioHomePath.isDirectory()) {
-      getLog().info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
-      return;
-    }
-    File androidPluginLibFolderPath = new File(studioHomePath, join("plugins", "android", "lib"));
-    if (!androidPluginLibFolderPath.isDirectory()) {
-      getLog().info(String.format("The path '%1$s' does not belong to an existing directory", androidPluginLibFolderPath.getPath()));
-      return;
-    }
-
-    // Look for signs that the installation is corrupt due to improper updates (typically unzipping on top of previous install)
-    // which doesn't delete files that have been removed or renamed
-    if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
-      String msg = "Your Android Studio installation is corrupt and will not work properly.\n" +
-                   "(Found plugins/android-designer which should not be present.)\n" +
-                   "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
-                   "Please reinstall (and make sure the new installation directory is empty first.)";
-      String title = "Corrupt Installation";
-      int option = Messages.showDialog(msg, title, new String[]{"Quit", "Proceed Anyway"}, 0, Messages.getErrorIcon());
-      if (option == 0) {
-        ApplicationManager.getApplication().exit();
-      }
-    }
   }
 
   // Fix https://code.google.com/p/android/issues/detail?id=201624
