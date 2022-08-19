@@ -18,14 +18,6 @@
 <idea-plugin>
   <application-components>
     <component>
-      <implementation-class>com.android.tools.idea.stats.LowMemoryReporter</implementation-class>
-    </component>
-
-    <component>
-      <implementation-class>com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier</implementation-class>
-    </component>
-
-    <component>
       <implementation-class>com.android.tools.idea.AndroidInitialConfigurator</implementation-class>
     </component>
   </application-components>
@@ -54,6 +46,9 @@
     <statusBarWidgetFactory id="SendFeedbackPanel" implementation="com.android.tools.idea.stats.SendFeedbackWidgetFactory"/>
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
+    <applicationInitializedListener id="Startup.StartLowMemoryReporter"
+                                    implementation="com.android.tools.idea.stats.LowMemoryReporter$OnStartup"/>
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier$Initializer" />
   </extensions>
 
   <actions>
