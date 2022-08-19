@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.layoutInspector;
 
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-
 import com.android.ddmlib.Client;
 import com.android.layoutinspector.model.ClientWindow;
 import com.android.layoutinspector.parser.LayoutFileDataParser;
@@ -37,14 +35,15 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.SearchTextField;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.SwingConstants;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class LayoutInspectorEditor extends UserDataHolderBase implements FileEditor {
   private final VirtualFile myVirtualFile;
@@ -69,7 +68,7 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
                                                            @NotNull FileEditor fileEditor,
                                                            @NotNull Project project) {
       if (fileEditor instanceof LayoutInspectorEditor && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()) {
-        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
         panel.setText("Using API 29? Try out the new Live Layout Inspector.");
 
         if (fileEditor.getUserData(HIDDEN_KEY) != null || PropertiesComponent.getInstance().isTrueValue(DISABLE_KEY)) {

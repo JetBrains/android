@@ -43,14 +43,13 @@ import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
-import java.awt.Component;
-import java.io.IOException;
-import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Notifies users that a model file is not in the correct ml folder in order to use ML Model Binding feature.
@@ -88,7 +87,7 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
       return null;
     }
 
-    EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+    EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
     panel.setText("This TensorFlow Lite model is not in a configured ml-model directory, so ML Model Binding is disabled. To use " +
                   "ML Model Binding consider moving the file.");
     panel.createActionLabel("Move File", () -> {

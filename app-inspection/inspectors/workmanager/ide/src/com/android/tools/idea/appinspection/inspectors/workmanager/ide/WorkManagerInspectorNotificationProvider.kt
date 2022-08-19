@@ -37,7 +37,8 @@ import org.jetbrains.kotlin.psi.KtFile
 
 private const val DISMISSED_PROPERTY_KEY = "WORKMANAGER_INSPECTOR_NOTIFICATION_DISMISSED"
 
-class WorkManagerInspectorNotificationPanel(private val project: Project, appInspectionToolWindow: ToolWindow) : EditorNotificationPanel() {
+class WorkManagerInspectorNotificationPanel(private val project: Project, appInspectionToolWindow: ToolWindow) : EditorNotificationPanel(
+  Status.Info) {
 
   private fun dismissBanner() {
     PropertiesComponent.getInstance(project).setValue(DISMISSED_PROPERTY_KEY, true)

@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.apk.debugging.editor;
 
-import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.smali.psi.SmaliFile;
@@ -34,9 +29,15 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
-import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+
+import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class SmaliFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("apk.smali.file");
@@ -57,7 +58,7 @@ public class SmaliFileNotificationProvider extends EditorNotifications.Provider<
       File filePath = virtualToIoFile(file);
       if (isAncestor(outputFolderPath, filePath, false)) {
         // The smali file is inside the folder where baksmali generated the smali files by disassembling classes.dex.
-        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
         panel.setText("Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.");
 
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);

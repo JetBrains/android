@@ -15,14 +15,6 @@
  */
 package com.android.tools.idea.gradle.notification;
 
-import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
-import static com.android.utils.BuildScriptUtil.isGradleSettingsFile;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
-import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.ThreeState.YES;
-
 import com.android.annotations.concurrency.AnyThread;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
@@ -57,13 +49,22 @@ import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Color;
-import java.io.File;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+
+import java.awt.*;
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
+import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
+import static com.android.utils.BuildScriptUtil.isGradleSettingsFile;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
+import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.ThreeState.YES;
 
 /**
  * Notifies users that a Gradle project "sync" is required (because of changes to build files, or because the last attempt failed) or
@@ -220,7 +221,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     @NotNull private final Type type;
 
     NotificationPanel(@NotNull Type type, @NotNull String text) {
-      super(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND);
+      super(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND, Status.Info);
       this.type = type;
       setText(text);
     }

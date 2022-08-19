@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.intellij.codeInsight.daemon.impl.createActionLabel
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -53,7 +54,8 @@ private fun createBuildNotificationPanel(project: Project,
                                            "notification.action.build")}${getBuildAndRefreshShortcut().asString()}",
                                          color: Color? = null): EditorNotificationPanel? {
   val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-  return EditorNotificationPanel(color).apply {
+  val status = if (color == null) EditorNotificationPanel.Status.Warning else EditorNotificationPanel.Status.Error
+  return EditorNotificationPanel(color, status).apply {
     setText(text)
     isFocusable = false
 
@@ -78,7 +80,8 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
       StudioFlags.NELE_SOURCE_CODE_EDITOR.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
-      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel(fileEditor).apply {
+      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel(fileEditor,
+                                                                                               EditorNotificationPanel.Status.Info).apply {
         setText(message("notification.new.preview"))
         createActionLabel(message("notification.new.preview.action")) {
           if (fileEditor.isValid) {
@@ -177,7 +180,8 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
     if (previewStatus.isRefreshing) {
       LOG.debug("Refreshing")
       return when (previewStatus.interactiveMode) {
-        ComposePreviewManager.InteractiveMode.STARTING -> EditorNotificationPanel(fileEditor).apply {
+        ComposePreviewManager.InteractiveMode.STARTING -> EditorNotificationPanel(fileEditor, null, null,
+                                                                                  EditorNotificationPanel.Status.Info).apply {
           text = message("notification.interactive.preview.starting")
           icon(AnimatedIcon.Default())
         }
@@ -185,7 +189,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
           // Don't show the notification when entering animation preview
           if (previewManager.animationInspectionPreviewElementInstance != null) null
           else
-            EditorNotificationPanel(fileEditor).apply {
+            EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
               text = message("notification.interactive.preview.stopping")
               icon(AnimatedIcon.Default())
             }

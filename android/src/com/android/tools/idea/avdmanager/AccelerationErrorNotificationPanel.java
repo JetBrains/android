@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.HyperlinkLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
 
 /**
  * This {@link EditorNotificationPanel} will display problems described by a {@link AccelerationErrorCode}.
@@ -31,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
  * fixing the problem, and as a popup dialog if (solution ==NONE).
  */
 public class AccelerationErrorNotificationPanel extends EditorNotificationPanel {
-
   public AccelerationErrorNotificationPanel(@NotNull AccelerationErrorCode error, @Nullable Project project, @Nullable Runnable refresh) {
+    super(Status.Error);
     setText(error.getProblem());
     Runnable action = AccelerationErrorSolution.getActionForFix(error, project, refresh, null);
     HyperlinkLabel link = createActionLabel(error.getSolution().getDescription(), action);
