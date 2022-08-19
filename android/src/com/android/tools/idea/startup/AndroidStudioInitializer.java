@@ -34,11 +34,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.HighlighterColors;
-import com.intellij.openapi.editor.XmlHighlighterColors;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
-import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.ui.AppUIUtil;
 import java.util.concurrent.ScheduledExecutorService;
 import org.jetbrains.annotations.NotNull;
@@ -59,9 +54,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     setupAnalytics();
     setupThreadingAgentEventListener();
-    if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
-      tweakDefaultColorScheme();
-    }
 
     // Initialize System Health Monitor after Analytics and ServerFlag.
     // AndroidStudioSystemHealthMonitor requires ActionManager to be ready, but this code is a part
@@ -72,15 +64,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
         new AndroidStudioSystemHealthMonitor().start();
       }
     });
-  }
-
-  private static void tweakDefaultColorScheme() {
-    // Modify built-in "Default" color scheme to remove background from XML tags.
-    // "Darcula" and user schemes will not be touched.
-    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
-    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
-    TextAttributes xmlTagAttributes = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
-    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
   }
 
   /*
