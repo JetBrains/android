@@ -21,14 +21,8 @@ MODULE                        : project
                 tasks
                     testExampleDebugUnitTest      : testExampleDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testExampleDebugUnitTest
-                        description                   : Run unit tests for the exampleDebug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testExampleReleaseUnitTest    : testExampleReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testExampleReleaseUnitTest
-                        description                   : Run unit tests for the exampleRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>

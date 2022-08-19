@@ -21,24 +21,12 @@ MODULE                        : MainActivity
                 tasks
                     testLocalDebugUnitTest        : testLocalDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testLocalDebugUnitTest
-                        description                   : Run unit tests for the localDebug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testLocalReleaseUnitTest      : testLocalReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testLocalReleaseUnitTest
-                        description                   : Run unit tests for the localRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testRemoteDebugUnitTest       : testRemoteDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testRemoteDebugUnitTest
-                        description                   : Run unit tests for the remoteDebug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testRemoteReleaseUnitTest     : testRemoteReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testRemoteReleaseUnitTest
-                        description                   : Run unit tests for the remoteRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     _agp_internal_javaPreCompileLocalDebugAndroidTest_kaptClasspath       : <empty>
@@ -566,9 +554,6 @@ MODULE                        : MainActivity
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :javaLib:test
-                        description                   : Runs the test suite.
-                        group                         : verification
-                        type                          : org.gradle.api.tasks.testing.Test
                 sourceSets
                     main                          : main (DefaultExternalSourceSet)
                         sources
@@ -721,14 +706,8 @@ MODULE                        : MainActivity
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :lib:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :lib:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>

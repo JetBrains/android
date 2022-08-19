@@ -20,14 +20,8 @@ MODULE                        : project
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
@@ -159,14 +153,8 @@ MODULE                        : project
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :library:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :library:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
