@@ -28,21 +28,10 @@ import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeDependency
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeModuleDependency
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
-import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.buildId
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
-import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.sourceSet
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
@@ -53,7 +42,6 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.LibraryData
 import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData
-import com.intellij.openapi.externalSystem.model.project.LibraryLevel
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType.BINARY
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType.DOC
@@ -65,10 +53,8 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
-import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.linkProjectLibrary
 import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
@@ -81,16 +67,6 @@ typealias SampleSourcePath = File?
 typealias ArtifactId = String
 
 data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath, val sampleSources: SampleSourcePath)
-
-/**
- * Removes name extension or qualifier or classifier from the given [libraryName]. If the given [libraryName]
- * can't be parsed as a [GradleCoordinate] this method returns the [libraryName] un-edited.
- */
-private fun stripExtensionAndClassifier(libraryName: String): String {
-  val parts = libraryName.split(':')
-  if (parts.size < 3) return libraryName // There is not enough parts to form a group:id:version string.
-  return "${parts[0]}:${parts[1]}:${parts[2]}"
-}
 
 /**
  * Computes the module ID for the given target of this [library]. We want to be able to reuse the
@@ -340,119 +316,3 @@ fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseAr
 
 internal fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath =
   GradleSourceSetProjectPath(toSystemIndependentName(buildId), projectPath, sourceSet)
-
-class ResolvedLibraryTableBuilder(
-  private val getGradlePathBy: (moduleId: String) -> GradleProjectPath?,
-  private val getModuleDataNode: (GradleProjectPath) -> DataNode<out ModuleData>?,
-  private val resolveArtifact: (File) -> List<GradleSourceSetProjectPath>?
-) {
-  fun buildResolvedLibraryTable(
-    ideLibraryTable: IdeUnresolvedLibraryTable,
-  ): IdeResolvedLibraryTable {
-    return ideLibraryTable.resolve(
-      artifactResolver = { resolveArtifact(it) },
-      moduleDependencyExpander = ::resolveAdditionalKmpSourceSets
-    )
-  }
-
-  private fun resolveAdditionalKmpSourceSets(sourceSet: GradleSourceSetProjectPath): List<GradleSourceSetProjectPath> {
-    return sequence {
-      yield(sourceSet)
-      val targetSourceSetData = getModuleDataNode(sourceSet)
-        ?: let {
-          logError("Resolved source set not found for: $sourceSet")
-          return@sequence
-        }
-      val kmpDependsOn = ExternalSystemApiUtil.find(targetSourceSetData, KotlinSourceSetData.KEY)?.data?.sourceSetInfo?.dependsOn.orEmpty()
-      yieldAll(kmpDependsOn.mapNotNull(getGradlePathBy))
-    }
-      .distinct()
-      .filterIsInstance<GradleSourceSetProjectPath>()
-      .toList()
-  }
-
-  private val logger = Logger.getInstance(this.javaClass)
-
-  private fun logError(message: String) {
-    logger.error(message, Throwable())
-  }
-}
-
-private fun IdeUnresolvedLibraryTable.resolve(
-  artifactResolver: (File) -> List<GradleSourceSetProjectPath>?,
-  moduleDependencyExpander: (GradleSourceSetProjectPath) -> List<GradleSourceSetProjectPath>
-): IdeResolvedLibraryTable {
-
-  fun resolve(preResolved: IdePreResolvedModuleLibrary): List<IdeModuleLibrary> {
-    val expandedSourceSets = moduleDependencyExpander(
-      GradleSourceSetProjectPath(
-        preResolved.buildId,
-        preResolved.projectPath,
-        preResolved.sourceSet
-      )
-    )
-    return expandedSourceSets.map {
-      IdeModuleLibraryImpl(
-        buildId = it.buildRoot,
-        projectPath = it.path,
-        variant = preResolved.variant,
-        lintJar = preResolved.lintJar,
-        sourceSet = it.sourceSet
-      )
-    }
-  }
-
-  fun resolve(unresolved: IdeUnresolvedModuleLibrary): List<IdeLibrary> {
-    val targets = artifactResolver(unresolved.artifact)
-      ?: return listOf(
-        IdeJavaLibraryImpl(
-          unresolved.artifact.path,
-          unresolved.artifact.path,
-          unresolved.artifact
-        )
-      )
-
-    val unresolvedModuleBuilds = targets.filter { it.buildRoot != unresolved.buildId }
-    if (unresolvedModuleBuilds.isNotEmpty()) {
-      error("Unexpected resolved modules build id ${unresolvedModuleBuilds.map { it.buildRoot }.toSet()} != ${unresolved.buildId}")
-    }
-
-    val unresolvedModulePaths = targets.filter { it.path != unresolved.projectPath }
-    if (unresolvedModulePaths.isNotEmpty()) {
-      error("Unexpected resolved modules project path ${unresolvedModulePaths.map { it.path }.toSet()} != ${unresolved.projectPath}")
-    }
-
-    return targets.flatMap {
-      resolve(
-        IdePreResolvedModuleLibraryImpl(
-          buildId = unresolved.buildId,
-          projectPath = unresolved.projectPath,
-          variant = unresolved.variant,
-          lintJar = unresolved.lintJar,
-          sourceSet = it.sourceSet
-        )
-      )
-    }
-  }
-
-  return IdeResolvedLibraryTableImpl(
-    libraries.map {
-      when (it) {
-        is IdeJavaLibrary -> listOf(it)
-        is IdeAndroidLibrary -> listOf(it)
-        is IdeModuleLibrary -> error("Unexpected resolved library: $it")
-        is IdeUnresolvedModuleLibrary -> resolve(it)
-        is IdePreResolvedModuleLibrary -> resolve(it)
-      }
-    }
-  )
-}
-
-private fun maybeLinkLibraryAndWorkOutLibraryLevel(projectDataNode: DataNode<ProjectData>, libraryData: LibraryData): LibraryLevel {
-  // TODO(b/243008075): Work out the level of the library, if the library path is inside the module directory we treat
-  // this as a Module level library. Otherwise we treat it as a Project level one.
-  return when {
-    !linkProjectLibrary(null, projectDataNode, libraryData) -> LibraryLevel.MODULE
-    else -> LibraryLevel.PROJECT
-  }
-}
