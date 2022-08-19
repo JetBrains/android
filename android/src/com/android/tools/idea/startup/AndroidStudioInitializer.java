@@ -20,7 +20,6 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.instrumentation.threading.ThreadingChecker;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
@@ -53,7 +52,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
 
     setupAnalytics();
-    setupThreadingAgentEventListener();
 
     // Initialize System Health Monitor after Analytics and ServerFlag.
     // AndroidStudioSystemHealthMonitor requires ActionManager to be ready, but this code is a part
@@ -100,10 +98,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     new GcPauseWatcher();
-  }
-
-  private static void setupThreadingAgentEventListener() {
-    ThreadingChecker.initialize();
   }
 
   @NotNull
