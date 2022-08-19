@@ -48,10 +48,10 @@ import java.io.IOException
 open class GradleFileModelTestCase {
   @get:Rule
   val nameRule = TestName()
-  protected val projectRule = onDisk()
+  protected open val projectRule = onDisk()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  val ruleChain by lazy { RuleChain.outerRule(projectRule).around(EdtRule()) }
 
   @Parameterized.Parameter(0)
   @JvmField
