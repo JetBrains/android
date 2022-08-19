@@ -118,31 +118,29 @@ private class AndroidDependenciesSetupContext(
   private val gradleProjectPathToModuleData: (GradleSourceSetProjectPath) -> ModuleData?,
   private val additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
   private val processedLibraries: MutableMap<String, LibraryDependencyData>,
-  private val processedModuleDependencies: MutableMap<GradleProjectPath, ModuleDependencyData>,
-  private val project: Project?
+  private val processedModuleDependencies: MutableMap<GradleProjectPath, ModuleDependencyData>
 ) {
 
-  private abstract inner class WorkItem<T : IdeDependency<*>> {
+  private abstract inner class WorkItem<D : IdeDependency<*>, T> {
     abstract fun isAlreadyProcessed(): Boolean
-    protected abstract fun setupTarget()
-    protected abstract fun createDependencyData(scope: DependencyScope)
+    protected abstract fun setupTargetData(): T
+    protected abstract fun createDependencyData(targetData: T, scope: DependencyScope)
 
     fun setup(scope: DependencyScope) {
-      setupTarget()
-      createDependencyData(scope)
+      val targetData: T = setupTargetData()
+      createDependencyData(targetData, scope)
     }
   }
 
-  private abstract inner class LibraryWorkItem<T : IdeArtifactDependency<*>>(protected val library: T) : WorkItem<T>() {
+  private abstract inner class LibraryWorkItem<D : IdeArtifactDependency<*>>(protected val library: D) : WorkItem<D, LibraryData>() {
     protected val libraryName = library.target.name
-    protected val libraryData: LibraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
 
     final override fun isAlreadyProcessed(): Boolean = processedLibraries.containsKey(libraryName)
 
-    final override fun createDependencyData(scope: DependencyScope) {
+    final override fun createDependencyData(targetData: LibraryData, scope: DependencyScope) {
       // Finally create the LibraryDependencyData
       val libraryDependencyData =
-        LibraryDependencyData(moduleDataNode.data, libraryData, maybeLinkLibraryAndWorkOutLibraryLevel(projectDataNode, libraryData))
+        LibraryDependencyData(moduleDataNode.data, targetData, maybeLinkLibraryAndWorkOutLibraryLevel(projectDataNode, targetData))
       libraryDependencyData.scope = scope
       libraryDependencyData.isExported = false
       processedLibraries[libraryName] = libraryDependencyData
@@ -150,7 +148,8 @@ private class AndroidDependenciesSetupContext(
   }
 
   private inner class JavaLibraryWorkItem(library: IdeJavaLibraryDependency) : LibraryWorkItem<IdeJavaLibraryDependency>(library) {
-    override fun setupTarget() {
+    override fun setupTargetData(): LibraryData {
+      val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
       ArtifactDependencySpec.create(library.target.artifactAddress)?.also {
         libraryData.setGroup(it.group)
         libraryData.artifactId = it.name
@@ -159,11 +158,13 @@ private class AndroidDependenciesSetupContext(
 
       libraryData.addPath(BINARY, library.target.artifact.absolutePath)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName)
+      return libraryData
     }
   }
 
   private inner class AndroidLibraryWorkItem(library: IdeAndroidLibraryDependency) : LibraryWorkItem<IdeAndroidLibraryDependency>(library) {
-    override fun setupTarget() {
+    override fun setupTargetData(): LibraryData {
+      val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
       val target = library.target
       target.compileJarFiles.filter { it.exists() }.forEach { compileJar ->
         libraryData.addPath(BINARY, compileJar.path)
@@ -176,20 +177,21 @@ private class AndroidDependenciesSetupContext(
       }
       setupAnnotationsFrom(libraryData, libraryName, target)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName)
+      return libraryData
     }
   }
 
   private inner class ModuleLibraryWorkItem(
     val targetModuleGradlePath: GradleProjectPath,
     val targetData: ModuleData
-  ) : WorkItem<IdeModuleDependency>() {
+  ) : WorkItem<IdeModuleDependency, Unit>() {
     override fun isAlreadyProcessed(): Boolean = processedModuleDependencies.containsKey(targetModuleGradlePath)
 
-    override fun setupTarget() {
+    override fun setupTargetData() {
       // Module has been already set up.
     }
 
-    override fun createDependencyData(scope: DependencyScope) {
+    override fun createDependencyData(target: Unit, scope: DependencyScope) {
       // Skip if the dependency is a dependency on itself, this can be produced by Gradle when the a module
       // dependency on the module in a different scope ie test code depending on the production code.
       // In IDEA this dependency is implicit.
@@ -302,8 +304,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
       gradleProjectPathToModuleData,
       additionalArtifactsMapper,
       processedLibraries,
-      processedModuleDependencies,
-      project
+      processedModuleDependencies
     )
       .setupForArtifact(ideBaseArtifact, dependencyScope)
 
