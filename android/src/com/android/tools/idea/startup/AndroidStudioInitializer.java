@@ -33,6 +33,8 @@ import com.google.common.base.Predicates;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.lang.injection.MultiHostInjector;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -61,12 +63,10 @@ import org.jetbrains.annotations.NotNull;
  * {@link GradleSpecificInitializer} instead.
  * </p>
  */
-public class AndroidStudioInitializer implements Runnable {
+public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
-  // Note: this code runs quite early during Android Studio startup and directly affects app startup performance.
-  // Any heavy work should be moved to a background thread and/or moved to a later phase.
   @Override
-  public void run() {
+  public void customize(@NotNull ActionManager actionManager) {
     checkInstallation();
     disableGroovyLanguageInjection();
 
@@ -80,6 +80,9 @@ public class AndroidStudioInitializer implements Runnable {
     }
 
     // Initialize System Health Monitor after Analytics and ServerFlag.
+    // AndroidStudioSystemHealthMonitor requires ActionManager to be ready, but this code is a part
+    // of its initialization. By pushing initialization to background thread, the thread will
+    // block until ActionManager is ready and use its instance, instead of making another one.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       if (AndroidStudioSystemHealthMonitor.getInstance() == null) {
         new AndroidStudioSystemHealthMonitor().start();
