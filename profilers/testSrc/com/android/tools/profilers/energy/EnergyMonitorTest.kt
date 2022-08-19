@@ -23,9 +23,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Energy
-import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -36,15 +34,7 @@ import org.junit.Test
 
 class EnergyMonitorTest {
   private val timer = FakeTimer()
-  private val service = FakeEnergyService(
-    listOf(
-      EnergyProfiler.EnergySample.newBuilder()
-        .setTimestamp(2000)
-        .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(20).setCpuUsage(30))
-        .build()
-    ))
   private val transportService = FakeTransportService(timer, false)
-  private val profilerService = FakeProfilerService(timer)
   private val deviceNougat = Common.Device.newBuilder()
     .setDeviceId("FakeDeviceNougat".hashCode().toLong())
     .setFeatureLevel(AndroidVersion.VersionCodes.N_MR1)
@@ -59,7 +49,7 @@ class EnergyMonitorTest {
     .build()
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("EnergyMonitorTest", transportService, profilerService, service)
+  val grpcChannel = FakeGrpcChannel("EnergyMonitorTest", transportService)
 
   private lateinit var monitor: EnergyMonitor
 
@@ -67,9 +57,17 @@ class EnergyMonitorTest {
 
   @Before
   fun setUp() {
-    val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
+    val services = FakeIdeProfilerServices().apply {
+      enableEnergyProfiler(true)
+      enableEventsPipeline(true)
+    }
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     monitor = EnergyMonitor(profilers)
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, Common.Event.newBuilder()
+      .setKind(Common.Event.Kind.ENERGY_USAGE)
+      .setTimestamp(2000)
+      .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(20).setCpuUsage(30))
+      .build())
   }
 
   @Test
@@ -89,12 +87,12 @@ class EnergyMonitorTest {
       .setSessionId(1).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build()
     val sessionPreOMetadata = Common.SessionMetaData.newBuilder()
       .setSessionId(1).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(false).setStartTimestampEpochMs(1).build()
-    profilerService.addSession(sessionPreO, sessionPreOMetadata)
+    transportService.addSession(sessionPreO, sessionPreOMetadata)
     val sessionO = Common.Session.newBuilder()
       .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build()
     val sessionOMetadata = Common.SessionMetaData.newBuilder()
       .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build()
-    profilerService.addSession(sessionO, sessionOMetadata)
+    transportService.addSession(sessionO, sessionOMetadata)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     profilers.sessionsManager.setSession(sessionPreO)
@@ -136,16 +134,16 @@ class EnergyMonitorTest {
     val observer = AspectObserver()
     var usageUpdated = false
     monitor.usage.addDependency(observer).onChange(
-      LineChartModel.Aspect.LINE_CHART, { usageUpdated = true })
+      LineChartModel.Aspect.LINE_CHART) { usageUpdated = true }
     var legendUpdated = false
     monitor.legends.addDependency(observer).onChange(
-      LegendComponentModel.Aspect.LEGEND, { legendUpdated = true })
+      LegendComponentModel.Aspect.LEGEND) { legendUpdated = true }
     var tooltipLegendUpated = false
     monitor.tooltipLegends.addDependency(observer).onChange(
-      LegendComponentModel.Aspect.LEGEND, { tooltipLegendUpated = true })
+      LegendComponentModel.Aspect.LEGEND) { tooltipLegendUpated = true }
     var axisUpdated = false
     monitor.axis.addDependency(observer).onChange(
-      AxisComponentModel.Aspect.AXIS, { axisUpdated = true })
+      AxisComponentModel.Aspect.AXIS) { axisUpdated = true }
 
     monitor.enter()
     timer.tick(1)
@@ -168,10 +166,10 @@ class EnergyMonitorTest {
     val observer = AspectObserver()
     var usageUpdated = false
     monitor.usage.addDependency(observer).onChange(
-      LineChartModel.Aspect.LINE_CHART, { usageUpdated = true })
+      LineChartModel.Aspect.LINE_CHART) { usageUpdated = true }
     var axisUpdated = false
     monitor.axis.addDependency(observer).onChange(
-      AxisComponentModel.Aspect.AXIS, { axisUpdated = true })
+      AxisComponentModel.Aspect.AXIS) { axisUpdated = true }
 
     monitor.exit()
     timer.tick(1)

@@ -19,8 +19,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.ProfilersTestData
-import com.android.tools.profilers.ProfilersTestData.SESSION_DATA
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -28,35 +26,21 @@ import org.junit.Rule
 import org.junit.Test
 
 class EnergyProfilerTest {
-
-  private val myService = FakeEnergyService()
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("EnergyProfilerTest", myService)
+  var grpcChannel = FakeGrpcChannel("EnergyProfilerTest")
 
-  private lateinit var myProfiler: EnergyProfiler
+  private lateinit var profiler: EnergyProfiler
 
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
-    myProfiler = EnergyProfiler(StudioProfilers(ProfilerClient(myGrpcChannel.channel), services, FakeTimer()))
+    profiler = EnergyProfiler(StudioProfilers(ProfilerClient(grpcChannel.channel), services, FakeTimer()))
   }
 
   @Test
   fun newMonitor() {
-    val monitor = myProfiler.newMonitor()
+    val monitor = profiler.newMonitor()
     assertThat(monitor).isNotNull()
     assertThat(monitor).isInstanceOf(EnergyMonitor::class.java)
-  }
-
-  @Test
-  fun startMonitoring() {
-    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA)
-    assertThat(myService.session).isEqualTo(SESSION_DATA);
-  }
-
-  @Test
-  fun stopMonitoring() {
-    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA)
-    assertThat(myService.session).isEqualTo(SESSION_DATA);
   }
 }

@@ -16,7 +16,6 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
@@ -30,42 +29,30 @@ public class DetailedEnergyUsage extends EnergyUsage {
   public DetailedEnergyUsage(@NotNull StudioProfilers profilers) {
     super(profilers);
 
-    DataSeries<Long> locationDataSeries;
-    DataSeries<Long> networkDataSeries;
-    DataSeries<Long> cpuDataSeries;
-    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      long streamId = profilers.getSession().getStreamId();
-      int pid = profilers.getSession().getPid();
-      // TODO(b/133430804): investigate ways to not query database multiple times.
-      cpuDataSeries = new UnifiedEventDataSeries<>(
-        profilers.getClient().getTransportClient(),
-        streamId,
-        pid,
-        Common.Event.Kind.ENERGY_USAGE,
-        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-        UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getCpuUsage()));
-      networkDataSeries = new UnifiedEventDataSeries<>(
-        profilers.getClient().getTransportClient(),
-        streamId,
-        pid,
-        Common.Event.Kind.ENERGY_USAGE,
-        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-        UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getNetworkUsage()));
-      locationDataSeries = new UnifiedEventDataSeries<>(
-        profilers.getClient().getTransportClient(),
-        streamId,
-        pid,
-        Common.Event.Kind.ENERGY_USAGE,
-        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-        UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getLocationUsage()));
-    }
-    else {
-      cpuDataSeries =
-        new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), Energy.EnergyUsageData::getCpuUsage);
-      networkDataSeries = new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), Energy.EnergyUsageData::getNetworkUsage);
-      locationDataSeries =
-        new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), Energy.EnergyUsageData::getLocationUsage);
-    }
+    long streamId = profilers.getSession().getStreamId();
+    int pid = profilers.getSession().getPid();
+    // TODO(b/133430804): investigate ways to not query database multiple times.
+    DataSeries<Long> cpuDataSeries = new UnifiedEventDataSeries<>(
+      profilers.getClient().getTransportClient(),
+      streamId,
+      pid,
+      Common.Event.Kind.ENERGY_USAGE,
+      UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+      UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getCpuUsage()));
+    DataSeries<Long> networkDataSeries = new UnifiedEventDataSeries<>(
+      profilers.getClient().getTransportClient(),
+      streamId,
+      pid,
+      Common.Event.Kind.ENERGY_USAGE,
+      UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+      UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getNetworkUsage()));
+    DataSeries<Long> locationDataSeries = new UnifiedEventDataSeries<>(
+      profilers.getClient().getTransportClient(),
+      streamId,
+      pid,
+      Common.Event.Kind.ENERGY_USAGE,
+      UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+      UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getLocationUsage()));
 
     myLocationUsageSeries =
       new RangedContinuousSeries("Location", profilers.getTimeline().getViewRange(), getUsageRange(), locationDataSeries);

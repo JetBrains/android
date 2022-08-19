@@ -18,9 +18,12 @@ import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Energy;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class EnergyUsage extends LineChartModel {
 
@@ -30,20 +33,7 @@ public class EnergyUsage extends LineChartModel {
   public EnergyUsage(@NotNull StudioProfilers profilers) {
     super(profilers.getIdeServices().getPoolExecutor());
     myUsageRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
-    DataSeries<Long> dataSeries;
-    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      dataSeries = new UnifiedEventDataSeries<>(
-        profilers.getClient().getTransportClient(),
-        profilers.getSession().getStreamId(),
-        profilers.getSession().getPid(),
-        Common.Event.Kind.ENERGY_USAGE,
-        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-        UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)EnergyUsageDataSeries.getTotalUsage(event.getEnergyUsage()))
-      );
-    }
-    else {
-      dataSeries = new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession());
-    }
+    DataSeries<Long> dataSeries = buildDataSeries(profilers.getClient().getTransportClient(), profilers.getSession());
     myTotalUsageDataSeries = new RangedContinuousSeries(getSeriesLabel(), profilers.getTimeline().getViewRange(), myUsageRange, dataSeries,
                                                         profilers.getTimeline().getDataRange());
     add(myTotalUsageDataSeries);
@@ -62,5 +52,22 @@ public class EnergyUsage extends LineChartModel {
   @NotNull
   private static String getSeriesLabel() {
     return "";
+  }
+
+  private static long getTotalUsage(@NotNull Energy.EnergyUsageData usage) {
+    return usage.getCpuUsage() + usage.getNetworkUsage() + usage.getLocationUsage();
+  }
+
+  @VisibleForTesting
+  public static DataSeries<Long> buildDataSeries(@NotNull TransportServiceGrpc.TransportServiceBlockingStub client,
+                                                 @NotNull Common.Session session) {
+    return new UnifiedEventDataSeries<>(
+      client,
+      session.getStreamId(),
+      session.getPid(),
+      Common.Event.Kind.ENERGY_USAGE,
+      UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+      UnifiedEventDataSeries.fromFieldToDataExtractor(event -> getTotalUsage(event.getEnergyUsage()))
+    );
   }
 }

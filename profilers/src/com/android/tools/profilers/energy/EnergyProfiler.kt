@@ -15,8 +15,6 @@ package com.android.tools.profilers.energy
 
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyStartRequest
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyStopRequest
 import com.android.tools.profilers.ProfilerMonitor
 import com.android.tools.profilers.StudioProfiler
 import com.android.tools.profilers.StudioProfilers
@@ -30,13 +28,6 @@ class EnergyProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   }
 
   override fun startProfiling(session: Common.Session) {
-    // TODO(b/150503095)
-    val startResponse = profilers.client.energyClient.startMonitoringApp(EnergyStartRequest.newBuilder().setSession(session).build())
-
-    if (!profilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
-      return
-    }
-
     // Issue GetCpuCoreConfig command once so we can calculate CPU energy usage.
     // We need the device ID to run the command, but there has been a report (b/146037091) that 'profilers.device' may
     // be null in release build. Therefore we use if to guard the use of the device to avoid NPE, instead of assert.
@@ -61,8 +52,5 @@ class EnergyProfiler(private val profilers: StudioProfilers) : StudioProfiler {
     )
   }
 
-  override fun stopProfiling(session: Common.Session) {
-    // TODO(b/150503095)
-    val response = profilers.client.energyClient.stopMonitoringApp(EnergyStopRequest.newBuilder().setSession(session).build())
-  }
+  override fun stopProfiling(session: Common.Session) {}
 }

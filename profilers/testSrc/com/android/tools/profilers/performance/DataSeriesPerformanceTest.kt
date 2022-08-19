@@ -33,10 +33,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.energy.EnergyDuration
-import com.android.tools.profilers.energy.EnergyUsageDataSeries
-import com.android.tools.profilers.energy.LegacyEnergyEventsDataSeries
-import com.android.tools.profilers.energy.LegacyMergedEnergyEventsDataSeries
+import com.android.tools.profilers.energy.EnergyUsage
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
@@ -99,11 +96,7 @@ class DataSeriesPerformanceTest {
     studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     val dataSeriesToTest = mapOf(Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
                                  Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
-                                 Pair("Energy-Usage", EnergyUsageDataSeries(client, session)),
-                                 Pair("Energy-Events",
-                                      LegacyMergedEnergyEventsDataSeries(
-                                        LegacyEnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
-                                        EnergyDuration.Kind.JOB)),
+                                 Pair("Energy-Usage", EnergyUsage.buildDataSeries(client.transportClient, session)),
                                  Pair("Memory-GC-Stats",
                                       LegacyGcStatsDataSeries(client.memoryClient, session)),
                                  Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),
