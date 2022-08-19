@@ -89,7 +89,7 @@ class TilePreviewRepresentationProvider(
             .asSequence()
       }
 
-    return TilePreviewRepresentation(psiFile, previewProvider)
+    return GlancePreviewRepresentation(psiFile, previewProvider, WearTilesModelAdapter)
   }
 
   override val displayName = GlancePreviewBundle.message("glance.preview.tile.title")

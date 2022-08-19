@@ -25,10 +25,9 @@ import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvide
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.applyTo
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
-import com.android.tools.idea.preview.PreviewElementDebugLogger
+import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
@@ -41,7 +40,6 @@ import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
@@ -153,46 +151,6 @@ internal fun createPinnedDesignSurfaceBuilder(
 )
 
 /**
- * Returns a number indicating how [el1] [ComposePreviewElementInstance] is to the [el2] [ComposePreviewElementInstance]. 0 meaning they
- * are equal and higher the number the more dissimilar they are. This allows for, when re-using models, the model with the most similar
- * [ComposePreviewElementInstance] is re-used. When the user is just switching groups or selecting a specific model, this allows switching
- * to the existing preview faster.
- */
-fun calcComposeElementsAffinity(el1: ComposePreviewElementInstance, el2: ComposePreviewElementInstance?): Int {
-  if (el2 == null) return 3
-
-  return when {
-    // These are the same
-    el1 == el2 -> 0
-
-    // The method and display settings are the same
-    el1.composableMethodFqn == el2.composableMethodFqn &&
-    el1.displaySettings == el2.displaySettings -> 1
-
-    // The name of the @Composable method matches but other settings might be different
-    el1.composableMethodFqn == el2.composableMethodFqn -> 2
-
-    // No match
-    else -> 4
-  }
-}
-
-/**
- * Class to wrap [ComposePreviewElementInstance]-specific debug logging functionality.
- */
-private class ComposeDebugLogger(log: Logger) : PreviewElementDebugLogger<ComposePreviewElementInstance>(log) {
-
-  override fun logPreviewElement(previewElement: ComposePreviewElementInstance, previewXmlContent: String) {
-    log("""Preview found at ${stopwatch.duration.toMillis()}ms
-        displayName=${previewElement.displaySettings.name}
-        methodName=${previewElement.composableMethodFqn}
-
-        $previewXmlContent
-     """.trimIndent())
-  }
-}
-
-/**
  * Compose-specific implementation of [updatePreviewsAndRefresh].
  *
  * If [quickRefresh] is true, the preview surfaces for the same [PreviewElement]s do not get reinflated, allowing to save time for the
@@ -206,24 +164,17 @@ internal suspend fun NlDesignSurface.updateComposePreviewsAndRefresh(
   parentDisposable: Disposable,
   progressIndicator: ProgressIndicator,
   onRenderCompleted: () -> Unit,
-  previewElementToXml: (ComposePreviewElementInstance) -> String,
-  dataContextProvider: (ComposePreviewElementInstance) -> DataContext,
-  modelToPreview: NlModel.() -> ComposePreviewElementInstance?,
+  previewElementModelAdapter: PreviewElementModelAdapter<ComposePreviewElementInstance, NlModel>,
   configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<ComposePreviewElementInstance> {
-  val debugLogger = if (log.isDebugEnabled) ComposeDebugLogger(log) else null
   return updatePreviewsAndRefresh(
     !quickRefresh,
     previewElementProvider,
-    debugLogger,
+    log,
     psiFile,
     parentDisposable,
     progressIndicator,
     onRenderCompleted,
-    previewElementToXml,
-    dataContextProvider,
-    modelToPreview,
-    ::calcComposeElementsAffinity,
-    ComposePreviewElementInstance::applyTo,
+    previewElementModelAdapter,
     ::ComposeAdapterLightVirtualFile,
     configureLayoutlibSceneManager
   )

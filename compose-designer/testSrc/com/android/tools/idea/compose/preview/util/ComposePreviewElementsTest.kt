@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.tools.idea.compose.preview.calcComposeElementsAffinity
+import com.android.tools.idea.compose.preview.ComposePreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import org.junit.Assert.assertArrayEquals
@@ -119,9 +120,14 @@ $t
                                                           PreviewConfiguration.cleanAndGet()
     )
 
+    val adapter = object : ComposePreviewElementModelAdapter() {
+      override fun toXml(previewElement: ComposePreviewElementInstance) = ""
+      override fun createDataContext(previewElement: ComposePreviewElementInstance) = DataContext { }
+    }
+
     val result = listOf(composable2, composable1, composable0b)
       .shuffled()
-      .sortedBy { calcComposeElementsAffinity(it, composable0) }
+      .sortedBy { adapter.calcAffinity(it, composable0) }
       .toTypedArray()
 
     // The more similar, the lower result of modelAffinity.

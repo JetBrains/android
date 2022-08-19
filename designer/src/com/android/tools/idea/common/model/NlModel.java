@@ -90,7 +90,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Model for an XML file
  */
-public class NlModel implements Disposable, ModificationTracker {
+public class NlModel implements ModificationTracker, DataContextHolder {
 
   /**
    * Responsible for updating {@link NlModel} once results from LayoutLibSceneManager is available as {@link TagSnapshotTreeNode}.
@@ -1056,6 +1056,7 @@ public class NlModel implements Disposable, ModificationTracker {
    * The {@link DataContext} might change at any point so make sure you always call this method to obtain the latest data.
    */
   @NotNull
+  @Override
   public final DataContext getDataContext() {
     return myDataContext;
   }
@@ -1063,6 +1064,7 @@ public class NlModel implements Disposable, ModificationTracker {
   /**
    * Updates the NlModel data context with the given one.
    */
+  @Override
   public final void setDataContext(@NotNull DataContext dataContext) {
     myDataContext = dataContext;
   }

@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
@@ -49,9 +50,9 @@ import org.jetbrains.kotlin.backend.common.pop
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 
 private fun <T : PreviewElement, M> calcAffinityMatrix(
-  elements: List<T>, models: List<M>, modelToPreview: (M) -> T?, calcAffinity: (T, T?) -> Int): List<List<Int>> {
-  val modelElements = models.map { modelToPreview(it) }
-  return elements.map { element -> modelElements.map { calcAffinity(element, it) } }
+  elements: List<T>, models: List<M>, previewElementModelAdapter: PreviewElementModelAdapter<T, M>): List<List<Int>> {
+  val modelElements = models.map { previewElementModelAdapter.modelToElement(it) }
+  return elements.map { element -> modelElements.map { previewElementModelAdapter.calcAffinity(element, it) } }
 }
 
 /**
@@ -60,9 +61,9 @@ private fun <T : PreviewElement, M> calcAffinityMatrix(
  * [elements] then indices for some [PreviewElement]s will be set to -1.
  */
 fun <T : PreviewElement, M> matchElementsToModels(
-  models: List<M>, elements: List<T>, modelToPreview: (M) -> T?, calcAffinity: (T, T?) -> Int
+  models: List<M>, elements: List<T>, previewElementModelAdapter: PreviewElementModelAdapter<T, M>
 ): List<Int> {
-  val affinityMatrix = calcAffinityMatrix(elements, models, modelToPreview, calcAffinity)
+  val affinityMatrix = calcAffinityMatrix(elements, models, previewElementModelAdapter)
   if (affinityMatrix.isEmpty()) {
     return emptyList()
   }
@@ -136,37 +137,34 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
 suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   reinflate: Boolean,
   previewElementProvider: PreviewElementProvider<T>,
-  debugLogger: PreviewElementDebugLogger<T>?,
+  log: Logger,
   psiFile: PsiFile,
   parentDisposable: Disposable,
   progressIndicator: ProgressIndicator,
   onRenderCompleted: () -> Unit,
-  previewElementToXml: (T) -> String,
-  dataContextProvider: (T) -> DataContext,
-  modelToPreview: NlModel.() -> T?,
-  calcAffinity: (el1: T, el2: T?) -> Int,
-  applyToConfiguration: T.(Configuration) -> Unit,
+  previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
   lightVirtualFileFactory: (String, String, () -> VirtualFile?) -> FakeLightVirtualFile,
   configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<T> {
+  val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
   val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
   val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
   val existingModels = models.toMutableList()
   val previewElementsList = previewElementProvider.previewElements().toList().sortByDisplayAndSourcePosition()
-  val modelIndices = matchElementsToModels(existingModels, previewElementsList, modelToPreview, calcAffinity)
+  val modelIndices = matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
   // Now we generate all the models (or reuse) for the PreviewElements.
   val models = previewElementsList
     .mapIndexed { idx, previewElement ->
-      val fileContents = previewElementToXml(previewElement)
+      val fileContents = previewElementModelAdapter.toXml(previewElement)
 
-      debugLogger?.logPreviewElement(previewElement, fileContents)
+      debugLogger?.logPreviewElement(previewElementModelAdapter.toLogString(previewElement), fileContents)
       if (progressIndicator.isCanceled) return@updatePreviewsAndRefresh previewElementsList // Return early if user cancels the refresh
 
       val model = if (modelIndices[idx] >= 0) {
         // If model index for this preview element >= 0 then an existing model that can be reused is found. See matchElementsToModels for
         // more details.
         val reusedModel = existingModels[modelIndices[idx]]
-        val affinity = calcAffinity(previewElement, modelToPreview(reusedModel))
+        val affinity = previewElementModelAdapter.calcAffinity(previewElement, previewElementModelAdapter.modelToElement(reusedModel))
         // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (reinflate=false)
         // we can skip reinflate and therefore refresh much quicker
         val forceReinflate = reinflate || affinity != 0
@@ -175,7 +173,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         reusedModel.updateFileContentBlocking(fileContents)
         // Reconfigure the model by setting the new display name and applying the configuration values
         reusedModel.modelDisplayName = previewElement.displaySettings.name
-        reusedModel.dataContext = dataContextProvider(previewElement)
+        reusedModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
         configureLayoutlibSceneManager(
@@ -198,7 +196,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
             .withModelDisplayName(previewElement.displaySettings.name)
             .withModelUpdater(modelUpdater)
             .withComponentRegistrar(NlComponentRegistrar)
-            .withDataContext(dataContextProvider(previewElement))
+            .withDataContext(previewElementModelAdapter.createDataContext(previewElement))
             .withXmlProvider { project, virtualFile ->
               NlModelBuilder.getDefaultFile(project, virtualFile).also {
                 it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
@@ -223,7 +221,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
       (navigationHandler as? PreviewNavigationHandler)?.setDefaultLocation(model, defaultFile, offset)
 
-      previewElement.applyToConfiguration(model.configuration)
+      previewElementModelAdapter.applyToConfiguration(previewElement, model.configuration)
 
       model to previewElement
     }

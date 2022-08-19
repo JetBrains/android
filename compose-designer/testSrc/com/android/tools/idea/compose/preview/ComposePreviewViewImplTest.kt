@@ -89,14 +89,6 @@ private fun configureLayoutlibSceneManagerForPreviewElement(displaySettings: Pre
     requestPrivateClassLoader = false
   )
 
-private fun previewElementInstanceToString(previewElementInstance: ComposePreviewElementInstance): String =
-  """
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content"
-  android:text="Hello world ${previewElementInstance.displaySettings.name}" />
-"""
-
 /**
  * Convers and [InstructionsPanel] into text that can be easily used in assertions.
  */
@@ -215,6 +207,18 @@ class ComposePreviewViewImplTest {
   private fun updatePreviewAndRefreshWithProvider(previewProvider: PreviewElementProvider<ComposePreviewElementInstance>,
                                                   composePreviewManager: ComposePreviewManager,
                                                   surface: NlDesignSurface = previewView.mainSurface) {
+    val testPreviewElementModelAdapter = object : ComposePreviewElementModelAdapter() {
+      override fun toXml(previewElement: ComposePreviewElementInstance) =
+        """
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:text="Hello world ${previewElement.displaySettings.name}" />
+"""
+
+      override fun createDataContext(previewElement: ComposePreviewElementInstance) =
+        TestPreviewElementDataContext(project, composePreviewManager, previewElement)
+    }
     runBlocking(workerThread) {
       surface.updateComposePreviewsAndRefresh(
         false,
@@ -226,11 +230,7 @@ class ComposePreviewViewImplTest {
           previewView.hasRendered = true
           previewView.hasContent = true
         },
-        ::previewElementInstanceToString,
-        {
-          TestPreviewElementDataContext(project, composePreviewManager, it)
-        },
-        NlModel::toPreviewElement,
+        testPreviewElementModelAdapter,
         ::configureLayoutlibSceneManagerForPreviewElement
       )
     }

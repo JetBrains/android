@@ -27,11 +27,17 @@ import java.util.UUID
  * [PreviewElement] descendant features that might be used for logging. The users are supposed to inherit from the
  * [PreviewElementDebugLogger] and implement [logPreviewElement] for the specified [PreviewElement] descendant.
  */
-abstract class PreviewElementDebugLogger<T : PreviewElement>(private val log: Logger) {
+class PreviewElementDebugLogger(private val log: Logger) {
   private val refreshId = UUID.randomUUID().toString()
-  protected val stopwatch = StopWatch()
+  private val stopwatch = StopWatch()
 
-  abstract fun logPreviewElement(previewElement: T, previewXmlContent: String)
+  fun logPreviewElement(previewElementLogString: String, previewXmlContent: String){
+    log("""Preview found at ${stopwatch.duration.toMillis()}ms
+        $previewElementLogString
+
+        $previewXmlContent
+     """.trimIndent())
+  }
 
   fun log(message: String) {
     log.debug("[$refreshId] $message")

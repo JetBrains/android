@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
 import com.android.tools.idea.log.LoggerWithFixedInfo
+import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -41,6 +42,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -68,9 +71,10 @@ import kotlinx.coroutines.withContext
 private val GLANCE_APPWIDGET_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /** A generic [MethodPreviewElement] [PreviewRepresentation]. */
-internal abstract class GlancePreviewRepresentation<T : MethodPreviewElement>(
+internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
   psiFile: PsiFile,
   previewProvider: PreviewElementProvider<T>,
+  previewElementModelAdapterDelegate: GlancePreviewElementModelAdapter<T, NlModel>
 ) : PreviewRepresentation, AndroidCoroutinesAware, UserDataHolderEx by UserDataHolderBase() {
 
   private val LOG = Logger.getInstance(GlancePreviewRepresentation::class.java)
@@ -140,6 +144,20 @@ internal abstract class GlancePreviewRepresentation<T : MethodPreviewElement>(
 
   private val refreshFlow: MutableStateFlow<RefreshRequest> = MutableStateFlow(RefreshRequest(true))
 
+  private val previewElementModelAdapter =
+    object : DelegatingPreviewElementModelAdapter<T, NlModel>(previewElementModelAdapterDelegate) {
+      override fun createDataContext(previewElement: T) =
+        object : DataContext {
+          private val delegate =
+            previewElementModelAdapterDelegate.createDataContext(previewElement)
+          override fun getData(dataId: String): Any? =
+            when (dataId) {
+              CommonDataKeys.PROJECT.name -> project
+              else -> delegate.getData(dataId)
+            }
+        }
+    }
+
   private fun requestRefresh(invalidate: Boolean = true) =
     launch(workerThread) { refreshFlow.emit(RefreshRequest(invalidate)) }
 
@@ -184,9 +202,7 @@ internal abstract class GlancePreviewRepresentation<T : MethodPreviewElement>(
         this,
         progressIndicator,
         this::onAfterRender,
-        this::toPreviewXmlString,
-        this::getGlancePreviewNlModelDataContext,
-        NlModel::toPreviewElement,
+        previewElementModelAdapter,
         this::configureLayoutlibSceneManager
       )
 
@@ -249,7 +265,7 @@ internal abstract class GlancePreviewRepresentation<T : MethodPreviewElement>(
             message("refresh.progress.indicator.reusing.existing.previews")
           surface.refreshExistingPreviewElements(
             refreshProgressIndicator,
-            NlModel::toPreviewElement,
+            previewElementModelAdapter::modelToElement,
             this@GlancePreviewRepresentation::configureLayoutlibSceneManager
           )
         } else {
@@ -295,11 +311,6 @@ internal abstract class GlancePreviewRepresentation<T : MethodPreviewElement>(
   private fun onAfterRender() {
     previewViewModel.afterPreviewsRefreshed()
   }
-
-  abstract fun toPreviewXmlString(previewElement: T): String
-
-  private fun getGlancePreviewNlModelDataContext(previewElement: T) =
-    GlancePreviewNlModelDataContext(project, previewElement)
 
   private fun configureLayoutlibSceneManager(
     displaySettings: PreviewDisplaySettings,

@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview
+package com.android.tools.idea.common.model
 
-import com.android.tools.idea.preview.PreviewElementDebugLogger
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataContext
 
-/** [PreviewElementDebugLogger] for [MethodPreviewElement]. */
-class GlanceDebugLogger<T : MethodPreviewElement>(log: Logger) : PreviewElementDebugLogger<T>(log) {
-  override fun logPreviewElement(previewElement: T, previewXmlContent: String) {
-    log(
-      """Preview found at ${stopwatch.duration.toMillis()}ms
-      displayName=${previewElement.displaySettings.name}
-
-      $previewXmlContent
-   """.trimIndent()
-    )
-  }
+/**
+ * This interface abstracts out the complexity of [NlModel] and provides sufficient API to associate a model with a [PreviewElement] through
+ * a [DataContext].
+ */
+interface DataContextHolder : Disposable {
+  var dataContext: DataContext
 }

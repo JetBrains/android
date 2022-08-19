@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -60,7 +61,7 @@ class ComposeScreenViewProvidersTest {
       displayName = "displayName",
       showDecorations = true
     )
-    model.setDataContext {
+    model.dataContext = DataContext {
       when (it) {
         COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
         else -> null

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
@@ -32,8 +31,3 @@ class GlancePreviewElement(
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
   override val methodFqcn: String
 ) : MethodPreviewElement
-
-/** Function to apply the related parameters of a Glance preview to the [Configuration] instance. */
-fun MethodPreviewElement.applyTo(renderConfiguration: Configuration) {
-  renderConfiguration.target = renderConfiguration.configurationManager.highestApiTarget
-}

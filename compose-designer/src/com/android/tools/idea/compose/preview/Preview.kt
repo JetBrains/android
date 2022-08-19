@@ -60,6 +60,7 @@ import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.FilteredPreviewElementProvider
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
@@ -161,10 +162,6 @@ private class PreviewElementDataContext(private val project: Project,
     else -> null
   }
 }
-
-internal fun NlModel.toPreviewElement(): ComposePreviewElementInstance? = if (!Disposer.isDisposed(this)) {
-  dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
-} else null
 
 /**
  * Returns true if change of values of any [LayoutlibSceneManager] properties would require necessary re-inflation. Namely, if we change
@@ -334,6 +331,24 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override val interactivePreviewElementInstance: ComposePreviewElementInstance?
     get() = previewElementProvider.instanceFilter
+
+  private val previewElementModelAdapter = object : ComposePreviewElementModelAdapter() {
+      override fun createDataContext(previewElement: ComposePreviewElementInstance) =
+        PreviewElementDataContext(project, this@ComposePreviewRepresentation, previewElement)
+
+      override fun toXml(previewElement: ComposePreviewElementInstance) =
+        previewElement.toPreviewXml()
+          // Whether to paint the debug boundaries or not
+          .toolsAttribute("paintBounds", showDebugBoundaries.toString())
+          .toolsAttribute("findDesignInfoProviders", hasDesignInfoProviders.toString())
+          .apply {
+            if (animationInspection.get()) {
+              // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
+              toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
+            }
+          }
+          .buildString()
+    }
 
   override suspend fun startInteractivePreview(element: ComposePreviewElementInstance) {
     if (interactiveMode.isStartingOrReady()) return
@@ -819,7 +834,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           filePreviewElements.find { element ->
             element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
           }?.let { selectedPreviewElement ->
-            surface.models.find { it.toPreviewElement() == selectedPreviewElement }
+            surface.models.find { previewElementModelAdapter.modelToElement(it) == selectedPreviewElement }
           }?.let {
             surface.scrollToVisible(it, true)
           }
@@ -883,19 +898,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   override fun updateNotifications(parentEditor: FileEditor) = composeWorkBench.updateNotifications(parentEditor)
 
-  private fun toPreviewXmlString(instance: ComposePreviewElementInstance): String =
-    instance.toPreviewXml()
-      // Whether to paint the debug boundaries or not
-      .toolsAttribute("paintBounds", showDebugBoundaries.toString())
-      .toolsAttribute("findDesignInfoProviders", hasDesignInfoProviders.toString())
-      .apply {
-        if (animationInspection.get()) {
-          // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
-          toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
-        }
-      }
-      .buildString()
-
   private fun getPreviewDataContextForPreviewElement(previewElement: ComposePreviewElementInstance) =
     PreviewElementDataContext(project, this@ComposePreviewRepresentation, previewElement)
 
@@ -954,9 +956,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         this,
         progressIndicator,
         this::onAfterRender,
-        this::toPreviewXmlString,
-        this::getPreviewDataContextForPreviewElement,
-        NlModel::toPreviewElement,
+        previewElementModelAdapter,
         this::configureLayoutlibSceneManagerForPreviewElement
       )
     }
@@ -971,9 +971,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       this,
       progressIndicator,
       this::onAfterRender,
-      this::toPreviewXmlString,
-      this::getPreviewDataContextForPreviewElement,
-      NlModel::toPreviewElement,
+      previewElementModelAdapter,
       this::configureLayoutlibSceneManagerForPreviewElement
     )
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
@@ -1064,7 +1062,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           refreshProgressIndicator.text = message("refresh.progress.indicator.reusing.existing.previews")
           surface.refreshExistingPreviewElements(
             refreshProgressIndicator,
-            NlModel::toPreviewElement,
+            previewElementModelAdapter::modelToElement,
             this@ComposePreviewRepresentation::configureLayoutlibSceneManagerForPreviewElement
           )
         }

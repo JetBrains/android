@@ -13,73 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.gradle.preview.util
+package com.android.tools.idea.preview
 
-import com.android.tools.idea.compose.preview.calcComposeElementsAffinity
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.PreviewConfiguration
-import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
-import com.android.tools.idea.preview.PreviewDisplaySettings
-import com.android.tools.idea.preview.matchElementsToModels
+import com.android.tools.idea.configurations.Configuration
+import com.intellij.openapi.actionSystem.DataContext
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class UtilsTest {
-  private val sharedPreviewConfig = PreviewConfiguration(21, null, 100, 100, "", 20.0f, 0, "")
+private class TextAdapter(private val modelsToElements: Map<Any, TestPreviewElement?>) :
+  PreviewElementModelAdapter<TestPreviewElement, Any> {
+  override fun calcAffinity(el1: TestPreviewElement, el2: TestPreviewElement?): Int {
+    if (el1 == el2) {
+      return 0
+    }
+    if (el1.displaySettings == el2?.displaySettings) {
+      return 1
+    }
+    if (el2 == null) {
+      return 2
+    }
+    return 3
+  }
 
+  override fun modelToElement(model: Any) = modelsToElements[model]
+
+  override fun toXml(previewElement: TestPreviewElement) = ""
+  override fun applyToConfiguration(previewElement: TestPreviewElement, configuration: Configuration) { }
+  override fun createDataContext(previewElement: TestPreviewElement) = DataContext { }
+  override fun toLogString(previewElement: TestPreviewElement) = ""
+}
+
+class MatchElementsToModelTest {
   @Test
   fun testMatchElementsToModels() {
     val model1 = Any()
     val model2 = Any()
     val model3 = Any()
 
-    val element1 = SingleComposePreviewElementInstance(
-      "foo.foo",
-      PreviewDisplaySettings("foo", null, false, false, null),
-      null,
-      null,
-      sharedPreviewConfig
-    )
-
-    val element11 = SingleComposePreviewElementInstance(
-      "foo.foo",
-      PreviewDisplaySettings("foo", null, false, false, null),
-      null,
-      null,
-      sharedPreviewConfig
-    )
-
-    val element2 = SingleComposePreviewElementInstance(
-      "foo.bar",
-      PreviewDisplaySettings("bar", null, false, false, null),
-      null,
-      null,
-      sharedPreviewConfig
-    )
-
-    val element3 = SingleComposePreviewElementInstance(
-      "foo.baz",
-      PreviewDisplaySettings("baz", null, false, false, null),
-      null,
-      null,
-      sharedPreviewConfig
-    )
-
-    val element31 = SingleComposePreviewElementInstance(
-      "foo.baz",
-      PreviewDisplaySettings("baz", null, true, false, null),
-      null,
-      null,
-      sharedPreviewConfig
-    )
-
-    val element4 = SingleComposePreviewElementInstance(
-      "foo.qwe",
-      PreviewDisplaySettings("qwe", null, false, false, null),
-      null,
-      null,
-      sharedPreviewConfig
-    )
+    val element1 = TestPreviewElement("foo")
+    val element11 = TestPreviewElement("foo")
+    val element2 = TestPreviewElement("bar")
+    val element3 = TestPreviewElement("baz")
+    val element31 = TestPreviewElement("baz")
+    val element4 = TestPreviewElement("qwe")
 
     run {
       val modelsToElements = mapOf(
@@ -88,11 +64,13 @@ class UtilsTest {
         model3 to element2,
       )
 
+      val adapter = TextAdapter(modelsToElements)
+
       val result = matchElementsToModels(
         listOf(model1, model2, model3),
         listOf(element1, element2, element3),
-        modelsToElements::get,
-        ::calcComposeElementsAffinity)
+        adapter
+      )
 
       assertEquals(listOf(1, 2, 0), result)
     }
@@ -104,11 +82,12 @@ class UtilsTest {
         model3 to element3,
       )
 
-      val result = matchElementsToModels<ComposePreviewElementInstance, Any>(
+      val adapter = TextAdapter(modelsToElements)
+
+      val result = matchElementsToModels(
         listOf(model2, model3),
         listOf(element1, element2, element3),
-        modelsToElements::get,
-        ::calcComposeElementsAffinity
+        adapter
       )
 
       assertEquals(listOf(-1, 0, 1), result)
@@ -121,11 +100,12 @@ class UtilsTest {
         model3 to element3,
       )
 
+      val adapter = TextAdapter(modelsToElements)
+
       val result = matchElementsToModels(
         listOf(model1, model2, model3),
         listOf(element2, element3),
-        modelsToElements::get,
-        ::calcComposeElementsAffinity)
+        adapter)
 
       assertEquals(listOf(1, 2), result)
     }
@@ -137,11 +117,12 @@ class UtilsTest {
         model3 to element11,
       )
 
+      val adapter = TextAdapter(modelsToElements)
+
       val result = matchElementsToModels(
         listOf(model1, model2, model3),
         listOf(element1, element2, element3),
-        modelsToElements::get,
-        ::calcComposeElementsAffinity)
+        adapter)
 
       assertEquals(listOf(2, 0, 1), result)
     }
@@ -152,21 +133,23 @@ class UtilsTest {
         model2 to null
       )
 
+      val adapter = TextAdapter(modelsToElements)
+
       val result = matchElementsToModels(
         listOf(model1, model2),
         listOf(element1, element2),
-        modelsToElements::get,
-        ::calcComposeElementsAffinity)
+        adapter)
 
       assertEquals(listOf(0, 1), result)
     }
 
     run {
+      val adapter = TextAdapter(mapOf())
+
       val result = matchElementsToModels(
-        listOf<Any>(),
+        listOf(),
         listOf(element1),
-        { null },
-        ::calcComposeElementsAffinity)
+        adapter)
 
       assertEquals(listOf(-1), result)
     }

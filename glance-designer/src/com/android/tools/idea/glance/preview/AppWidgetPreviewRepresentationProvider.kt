@@ -91,7 +91,7 @@ class AppWidgetPreviewRepresentationProvider(
             .asSequence()
       }
 
-    return AppWidgetPreviewRepresentation(psiFile, previewProvider)
+    return GlancePreviewRepresentation(psiFile, previewProvider, AppWidgetModelAdapter)
   }
 
   override val displayName = GlancePreviewBundle.message("glance.preview.appwidget.title")
