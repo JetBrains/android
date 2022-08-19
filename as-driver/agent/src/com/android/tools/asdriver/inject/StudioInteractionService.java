@@ -25,8 +25,11 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.actionSystem.impl.ActionMenu;
+import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.components.labels.ActionLink;
@@ -197,6 +200,12 @@ public class StudioInteractionService {
     } else if (component instanceof ActionButton) {
       log("Invoking ActionButton: " + component);
       ((ActionButton)component).click();
+    } else if (component instanceof ActionMenu) {
+      log("Invoking ActionMenu: " + component);
+      ((ActionMenu)component).doClick();
+    } else if (component instanceof ActionMenuItem) {
+      log("Invoking ActionMenuItem: " + component);
+      ((ActionMenuItem)component).doClick();
     } else {
       throw new IllegalArgumentException(String.format("Don't know how to invoke a component of class \"%s\"", component.getClass()));
     }
@@ -235,6 +244,11 @@ public class StudioInteractionService {
       } else {
         throw new IllegalArgumentException("ComponentMatcher doesn't have a recognized matcher");
       }
+    }
+
+    // b/243561571: Filter out ActionMenu components that have height 0 on Windows
+    if (SystemInfo.isWindows) {
+      componentsFound.removeIf((c) -> (c instanceof ActionMenu) && (c.getHeight() == 0));
     }
 
     int numComponentsFound = componentsFound.size();
