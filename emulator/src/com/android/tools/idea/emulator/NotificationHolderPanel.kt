@@ -27,7 +27,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
  * A panel that can display a notification at the top.
  */
 class NotificationHolderPanel : BorderLayoutPanel() {
-  private val notificationPanel = EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
+  private val notificationPanel = EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY, EditorNotificationPanel.Status.Info)
   private val notificationBar = BorderLayoutPanel().apply {
     border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.BOTTOM)
     addToCenter(notificationPanel)

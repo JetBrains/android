@@ -23,7 +23,7 @@
     <defaultLiveTemplates file="liveTemplates/AndroidLogKotlin"/>
     <defaultLiveTemplates file="liveTemplates/AndroidParcelable"/>
     <defaultLiveTemplates file="liveTemplates/AndroidXML"/>
-    <liveTemplateContext implementation="com.android.tools.idea.templates.live.XmlAttributeContextType"/>
+    <liveTemplateContext contextId="XML_ATTRIBUTE" implementation="com.android.tools.idea.templates.live.XmlAttributeContextType"/>
   </extensions>
 
   <extensionPoints>

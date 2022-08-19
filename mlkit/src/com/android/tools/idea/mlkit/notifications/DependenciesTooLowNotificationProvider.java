@@ -28,11 +28,12 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Notifies users that some required dependencies have lower version than required.
@@ -63,7 +64,7 @@ public class DependenciesTooLowNotificationProvider extends EditorNotifications.
 
     List<Pair<GradleCoordinate, GradleCoordinate>> depPairList = MlUtils.getDependenciesLowerThanRequiredVersion(module);
     if (!depPairList.isEmpty()) {
-      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
       panel.setText("ML Model Binding requires updated dependencies");
       panel.createActionLabel("View dependencies", () -> {
         String existingDepString = depPairList.stream()

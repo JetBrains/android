@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.canViewTranslations;
-import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
-
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
@@ -26,9 +23,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+
+import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.canViewTranslations;
+import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
 
 public class StringResourceEditorNotificationProvider extends EditorNotifications.Provider<StringResourceEditorNotificationProvider.InfoPanel> {
   private static final Key<InfoPanel> KEY = Key.create("android.editors.strings");
@@ -59,7 +60,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
 
   public static class InfoPanel extends EditorNotificationPanel {
     public InfoPanel(@NotNull FileEditor fileEditor) {
-      super(fileEditor, null, EditorColors.READONLY_BACKGROUND_COLOR);
+      super(fileEditor, null, EditorColors.READONLY_BACKGROUND_COLOR, Status.Info);
     }
 
     @NotNull

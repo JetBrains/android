@@ -56,7 +56,7 @@ public class LowAgpVersionNotificationProvider extends EditorNotifications.Provi
       return null;
     }
 
-    EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+    EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
     panel.setText("ML Model Binding is not fully supported in the current Android Gradle Plugin, so please update to the latest version.");
     panel.createActionLabel("Hide notification", () -> {
       fileEditor.putUserData(HIDDEN_KEY, "true");

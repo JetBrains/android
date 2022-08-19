@@ -212,7 +212,6 @@
     <orderEntry type="module" module-name="intellij.properties.psi" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle" />
     <orderEntry type="module" module-name="intellij.platform.statistics.uploader" />
-    <orderEntry type="module" module-name="kotlin.j2k.services" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />
     <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.xml.dom" />

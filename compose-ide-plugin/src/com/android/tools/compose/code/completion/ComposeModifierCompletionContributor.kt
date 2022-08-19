@@ -17,6 +17,7 @@ package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.COMPOSE_MODIFIER_FQN
 import com.android.tools.compose.isComposeEnabled
+import com.android.tools.compose.returnTypeClassifierFqName
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionInitializationContext
@@ -57,8 +58,6 @@ import org.jetbrains.kotlin.idea.util.getResolutionScope
 import org.jetbrains.kotlin.idea.util.receiverTypesWithIndex
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.nj2k.postProcessing.resolve
-import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -212,7 +211,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     get() {
       // Case val myModifier:Modifier = <caret>
       val property = parent?.parent?.safeAs<KtProperty>() ?: return false
-      return property.type()?.fqName?.asString() == COMPOSE_MODIFIER_FQN
+      return property.returnTypeClassifierFqName()?.asString() == COMPOSE_MODIFIER_FQN
     }
 
   private val PsiElement.isModifierArgument: Boolean
@@ -224,11 +223,11 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
       val argumentTypeFqName = if (argument.isNamed()) {
         val argumentName = argument.getArgumentName()!!.asName.asString()
-        callee.valueParameters.find { it.name == argumentName }?.type()?.fqName
+        callee.valueParameters.find { it.name == argumentName }?.returnTypeClassifierFqName()
       }
       else {
         val argumentIndex = (argument.parent as KtValueArgumentList).arguments.indexOf(argument)
-        callee.valueParameters.getOrNull(argumentIndex)?.type()?.fqName
+        callee.valueParameters.getOrNull(argumentIndex)?.returnTypeClassifierFqName()
       }
 
       return argumentTypeFqName?.asString() == COMPOSE_MODIFIER_FQN
@@ -244,7 +243,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     // Case Modifier.align().%this%, modifier.%this%
     val fqName = elementOnWhichMethodCalled.resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName ?:
                  // Case Modifier.%this%
-                 elementOnWhichMethodCalled.safeAs<KtNameReferenceExpression>()?.resolve().safeAs<KtClass>()?.fqName
+                 elementOnWhichMethodCalled.safeAs<KtNameReferenceExpression>()?.mainReference?.resolve().safeAs<KtClass>()?.fqName
     return fqName?.asString() == COMPOSE_MODIFIER_FQN
   }
 

@@ -29,7 +29,7 @@ class StaleManifestNotificationProvider : EditorNotifications.Provider<EditorNot
     if (fileEditor !is ManifestEditor || !fileEditor.isShowingStaleManifest) {
       return null
     }
-    return EditorNotificationPanel(fileEditor).also {
+    return EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning).also {
       it.setText(
         if (fileEditor.failedToComputeFreshManifest()) {
           FAILED_TO_RECOMPUTE_MESSAGE

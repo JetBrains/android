@@ -43,7 +43,6 @@ import com.intellij.util.ProcessingContext
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
@@ -86,7 +85,7 @@ class IntDefCompletionContributorKotlin : CompletionContributor() {
 
     val callExpression = argument.parentOfType<KtCallElement>() ?: return null
     val calleeElement = if (callExpression is KtAnnotationEntry) {
-      callExpression.calleeExpression?.constructorReferenceExpression?.resolve()?.navigationElement
+      callExpression.calleeExpression?.constructorReferenceExpression?.mainReference?.resolve()?.navigationElement
     }
     else {
       callExpression.calleeExpression?.mainReference?.resolve()?.navigationElement
@@ -212,7 +211,7 @@ private fun valuesFromKtAnnotationEntry(intDefAnnotation: KtAnnotationEntry): Li
  */
 private val KtAnnotationEntry.intDefValues: List<String>?
   get() {
-    val annotationElement = calleeExpression?.constructorReferenceExpression?.resolve() ?: return null
+    val annotationElement = calleeExpression?.constructorReferenceExpression?.mainReference?.resolve() ?: return null
 
     return CachedValuesManager.getCachedValue(annotationElement) {
       var source = annotationElement.navigationElement

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors;
 
-import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
-
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -35,11 +33,14 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
 
 /**
  * Notifies users that the android SDK class they opened doesn't have a source file associated with it, and provide two links: one to
@@ -91,7 +92,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
       if (platform == null) {
         return null;
       }
-      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
 
       panel.setText("Sources for '" + jdkOrderEntry.getJdkName() + "' not found.");
       panel.createActionLabel("Download", () -> {

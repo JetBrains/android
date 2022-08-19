@@ -30,9 +30,10 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Notifies users that some required dependencies are missing for ML Model Binding feature.
@@ -64,7 +65,7 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
 
     if (MlUtils.isModelFileInMlModelsFolder(module, file)
         && !MlUtils.getMissingRequiredDependencies(module).isEmpty()) {
-      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
       panel.setText("ML Model Binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
         List<GradleCoordinate> depsToAdd = MlUtils.getMissingRequiredDependencies(module);

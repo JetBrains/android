@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.requestBuild
+import com.intellij.codeInsight.daemon.impl.createActionLabel
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -54,7 +55,8 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
       StudioFlags.NELE_SOURCE_CODE_EDITOR.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
-      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel(fileEditor).apply {
+      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel(fileEditor,
+                                                                                               EditorNotificationPanel.Status.Info).apply {
         setText(message("notification.new.preview"))
         createActionLabel(message("notification.new.preview.action")) {
           if (fileEditor.isValid) {
