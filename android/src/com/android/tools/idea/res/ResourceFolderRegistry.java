@@ -170,9 +170,7 @@ public class ResourceFolderRegistry implements Disposable {
 
   void dispatchToRepositories(@NotNull VirtualFile file, @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
     ResourceUpdateTracer.log(() -> "ResourceFolderRegistry.dispatchToRepositories(" +  pathForLogging(file) + ", ...) VFS change");
-/* b/243078720
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-b/243078720 */
     for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
       for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
         ResourceFolderRepository repository = cache.getIfPresent(dir);

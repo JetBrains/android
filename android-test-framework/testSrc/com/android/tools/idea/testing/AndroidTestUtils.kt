@@ -223,7 +223,9 @@ private fun PsiFile.invalidateDocumentCache() = ApplicationManager.getApplicatio
   val cachedDocument = PsiDocumentManager.getInstance(project).getCachedDocument(this) ?: return@invokeAndWait
   // Make sure it is invalidated
   cachedDocument.putUserData(FileDocumentManagerImpl.NOT_RELOADABLE_DOCUMENT_KEY, true)
-  FileDocumentManager.getInstance().reloadFiles(virtualFile)
+  ApplicationManager.getApplication().runWriteAction {
+    FileDocumentManager.getInstance().reloadFiles(virtualFile)
+  }
 }
 
 /**
