@@ -33,6 +33,9 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.CpuThreadCountDataSeries
+import com.android.tools.profilers.cpu.CpuThreadStateDataSeries
+import com.android.tools.profilers.cpu.CpuUsage
 import com.android.tools.profilers.energy.EnergyUsage
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
@@ -94,7 +97,13 @@ class DataSeriesPerformanceTest {
     val timer = FakeTimer()
     val studioProfilers = StudioProfilers(client, FakeIdeProfilerServices(), timer)
     studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-    val dataSeriesToTest = mapOf(Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
+    val dataSeriesToTest = mapOf(Pair("Cpu-Usage",
+                                      CpuUsage.buildDataSeries(client.transportClient, session, null)),
+                                 Pair("Cpu-Thread-Count",
+                                      CpuThreadCountDataSeries(client.transportClient, session.streamId, session.pid)),
+                                 Pair("Cpu-Thread-State",
+                                      CpuThreadStateDataSeries(client.transportClient, session.streamId, session.pid, 1, null)),
+                                 Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
                                  Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
                                  Pair("Energy-Usage", EnergyUsage.buildDataSeries(client.transportClient, session)),
                                  Pair("Memory-GC-Stats",
