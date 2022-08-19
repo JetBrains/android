@@ -17,6 +17,9 @@ package com.android.tools.asdriver.inject;
 
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
+import com.android.tools.idea.io.grpc.Server;
+import com.android.tools.idea.io.grpc.ServerBuilder;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.google.common.base.Objects;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -36,14 +39,16 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
-import com.android.tools.idea.io.grpc.Server;
-import com.android.tools.idea.io.grpc.ServerBuilder;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.io.File;
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import javax.swing.JFrame;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
 
@@ -88,17 +93,77 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     ASDriver.ExecuteActionResponse.Builder builder = ASDriver.ExecuteActionResponse.newBuilder();
     ApplicationManager.getApplication().invokeAndWait(() -> {
       AnAction action = ActionManager.getInstance().getAction(request.getActionId());
-      if (action != null) {
-        DataContext dataContext = DataManager.getInstance().getDataContext();
+      if (action == null) {
+        builder.setResult(ASDriver.ExecuteActionResponse.Result.ACTION_NOT_FOUND);
+        return;
+      }
+
+      String projectName = request.hasProjectName() ? request.getProjectName() : null;
+      DataContext dataContext = getDataContext(projectName);
+      if (dataContext == null) {
+        System.err.println("Could not get a DataContext for executeAction.");
+        builder.setResult(ASDriver.ExecuteActionResponse.Result.ERROR);
+      }
+      else {
         AnActionEvent event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, dataContext);
         ActionUtil.performActionDumbAwareWithCallbacks(action, event);
         builder.setResult(ASDriver.ExecuteActionResponse.Result.OK);
-      } else {
-        builder.setResult(ASDriver.ExecuteActionResponse.Result.ACTION_NOT_FOUND);
       }
     });
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
+  }
+
+  /**
+   * Gets a {@code DataContext} while taking into account that a project may be open.
+   *
+   * This is important for {@link AndroidStudioService#executeAction} in particular; actions that
+   * are project-specific like MakeGradleProject will silently fail if the {@code DataContext} has
+   * no associated project, which is possible in cases where Android Studio never got the focus.
+   *
+   * For more information, see b/238922776.
+   * @param projectName optional project name.
+   */
+  private DataContext getDataContext(String projectName) {
+    Project[] projects = ProjectManager.getInstance().getOpenProjects();
+    int numProjects = projects.length;
+    if (numProjects == 0) {
+      if (projectName != null) {
+        System.err.printf("No projects are open, but a request was received for \"%s\"%n", projectName);
+        return null;
+      }
+      try {
+        return DataManager.getInstance().getDataContextFromFocusAsync().blockingGet(30000);
+      }
+      catch (TimeoutException | ExecutionException e) {
+        e.printStackTrace();
+        return null;
+      }
+    }
+
+    Project projectForContext;
+
+    if (numProjects == 1) {
+      projectForContext = projects[0];
+      // If a projectName was specified, then make sure it matches the project we're about to use.
+      if (projectName != null && !Objects.equal(projectForContext.getName(), projectName)) {
+        System.err.printf("The only project open is one named \"%s\", but a project name of \"%s\" was requested%n",
+                          projectForContext.getName(), projectName);
+        return null;
+      }
+    }
+    else {
+      // There are two or more projects, so we have to use projectName to find the one to use.
+      if (projectName == null) {
+        System.err.printf("%d projects are open, but no project name was specified to be able to determine which to use%n", numProjects);
+        return null;
+      }
+
+      projectForContext = findProjectByName(projectName);
+    }
+
+    JFrame frame = WindowManager.getInstance().getFrame(projectForContext);
+    return DataManager.getInstance().getDataContext(frame);
   }
 
   @Override
@@ -157,6 +222,15 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     responseObserver.onCompleted();
   }
 
+  private Project findProjectByName(String projectName) {
+    Project[] projects = ProjectManager.getInstance().getOpenProjects();
+    Optional<Project> foundProject = Arrays.stream(projects).filter((p) -> Objects.equal(p.getName(), projectName)).findFirst();
+    if (foundProject.isEmpty()) {
+      throw new NoSuchElementException("No project found by this name: " + projectName);
+    }
+    return foundProject.get();
+  }
+
   @Override
   public void openFile(ASDriver.OpenFileRequest request, StreamObserver<ASDriver.OpenFileResponse> responseObserver) {
     ASDriver.OpenFileResponse.Builder builder = ASDriver.OpenFileResponse.newBuilder();
@@ -165,14 +239,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     String fileName = request.getFile();
     ApplicationManager.getApplication().invokeAndWait(() -> {
       try {
-        Project[] projects = ProjectManager.getInstance().getOpenProjects();
-        Optional<Project> foundProject = Arrays.stream(projects).filter((p) -> Objects.equal(p.getName(), projectName)).findFirst();
-        if (foundProject.isEmpty()) {
-          System.err.println("No project found by this name: " + projectName);
-          return;
-        }
-
-        Project project = foundProject.get();
+        Project project = findProjectByName(projectName);
         String basePath = project.getBasePath();
         if (basePath == null) {
           System.err.println("Project has a null base path: " + project);

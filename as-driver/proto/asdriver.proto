@@ -36,12 +36,15 @@ message QuitResponse {}
 
 message ExecuteActionRequest {
   string action_id = 1;
+
+  optional string project_name = 2;
 }
 
 message ExecuteActionResponse {
   enum Result {
     OK = 0;
     ACTION_NOT_FOUND = 1;
+    ERROR = 2;
   }
   ExecuteActionResponse.Result result = 1;
 }
