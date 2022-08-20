@@ -17,12 +17,16 @@ package com.android.tools.idea.stats
 
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.intellij.concurrency.JobScheduler
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import java.lang.management.GarbageCollectorMXBean
 import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
 
-class GcPauseWatcher {
-
+@Service
+private class GcPauseWatcher {
   private class SingleCollectorWatcher(val bean: GarbageCollectorMXBean) {
     private var count = bean.collectionCount
     private var cumulativePauseTime = bean.collectionTime
@@ -37,7 +41,6 @@ class GcPauseWatcher {
       count = newCount
       cumulativePauseTime = newPauseTime
     }
-
   }
 
   init {
@@ -51,5 +54,16 @@ class GcPauseWatcher {
   companion object {
     private val watchers = ManagementFactory.getGarbageCollectorMXBeans().map(::SingleCollectorWatcher)
     private const val SAMPLING_RATE_MS = 50L  // ms. Should be set low enough that getting two pauses between samples is rare
+
+    fun getInstance() : GcPauseWatcher {
+      return ApplicationManager.getApplication().getService(GcPauseWatcher::class.java)
+    }
+  }
+
+  private class Initializer : StartupActivity.Background {
+    override fun runActivity(project: Project) {
+      // Access the application instance to trigger its initialization
+      getInstance()
+    }
   }
 }

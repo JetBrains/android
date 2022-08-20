@@ -23,7 +23,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
-import com.android.tools.idea.stats.GcPauseWatcher;
 import com.google.common.base.Predicates;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
@@ -97,7 +96,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       UsageTracker.setIdeaIsInternal(true);
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
-    new GcPauseWatcher();
   }
 
   @NotNull
