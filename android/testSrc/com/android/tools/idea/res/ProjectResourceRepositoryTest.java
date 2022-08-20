@@ -38,6 +38,7 @@ import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -130,6 +131,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     ModuleRootModificationUtil.addDependency(libraries.get(0).getModule(), libraries.get(1).getModule());
 
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
+    Disposer.register(getTestRootDisposable(), repository);
     assertEquals(3, repository.getChildren().size());
     Collection<String> items = repository.getResources(RES_AUTO, ResourceType.STRING).keySet();
     assertTrue(items.isEmpty());
@@ -151,6 +153,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     List<VirtualFile> flavorDirs = Lists.newArrayList(ResourceFolderManager.getInstance(myFacet).getFolders());
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
+    Disposer.register(getTestRootDisposable(), repository);
     List<LocalResourceRepository> originalChildren = repository.getLocalResources();
     // Should have a bunch repository directories from the various flavors.
     Set<VirtualFile> resourceDirs = repository.getResourceDirs();
