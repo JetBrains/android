@@ -18,7 +18,6 @@ package com.android.tools.idea.startup;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
-import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
 import com.intellij.analytics.AndroidStudioAnalytics;
@@ -27,7 +26,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import java.util.concurrent.ScheduledExecutorService;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,12 +39,9 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
   @Override
   public void customize(@NotNull ActionManager actionManager) {
-    ScheduledExecutorService scheduler = JobScheduler.getScheduler();
-    scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
-
     setupAnalytics();
 
-    // Initialize System Health Monitor after Analytics and ServerFlag.
+    // Initialize System Health Monitor after Analytics.
     // AndroidStudioSystemHealthMonitor requires ActionManager to be ready, but this code is a part
     // of its initialization. By pushing initialization to background thread, the thread will
     // block until ActionManager is ready and use its instance, instead of making another one.

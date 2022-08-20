@@ -51,6 +51,7 @@
                                     implementation="com.android.tools.idea.stats.LowMemoryReporter$OnStartup"/>
     <backgroundPostStartupActivity implementation="com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier$Initializer" />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.stats.GcPauseWatcher$Initializer" />
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.serverflags.ServerFlagDownloader$Initializer" />
   </extensions>
 
   <actions>
