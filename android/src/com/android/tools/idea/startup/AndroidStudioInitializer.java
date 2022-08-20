@@ -15,24 +15,18 @@
  */
 package com.android.tools.idea.startup;
 
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
-import com.google.common.base.Predicates;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.AppUIUtil;
 import java.util.concurrent.ScheduledExecutorService;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,31 +57,11 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     });
   }
 
-  /*
-   * sets up collection of Android Studio specific analytics.
-   */
+  /** Sets up collection of Android Studio specific analytics. */
   private static void setupAnalytics() {
     AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
 
-    if (StudioFlags.NEW_CONSENT_DIALOG.get()) {
-      ConsentDialog.showConsentDialogIfNeeded();
-    }
-    else {
-      // If the user hasn't opted in, we will ask IJ to check if the user has
-      // provided a decision on the statistics consent. If the user hasn't made a
-      // choice, a modal dialog will be shown asking for a decision
-      // before the regular IDE ui components are shown.
-      if (!AnalyticsSettings.getOptedIn()) {
-        Application application = ApplicationManager.getApplication();
-        // If we're running in a test or headless mode, do not show the dialog
-        // as it would block the test & IDE from proceeding.
-        // NOTE: in this case the metrics logic will be left in the opted-out state
-        // and no metrics are ever sent.
-        if (!application.isUnitTestMode() && !application.isHeadlessEnvironment()) {
-          ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog(), Predicates.alwaysTrue()));
-        }
-      }
-    }
+    ConsentDialog.showConsentDialogIfNeeded();
 
     ApplicationInfo application = ApplicationInfo.getInstance();
     UsageTracker.setVersion(application.getStrictVersion());
@@ -96,10 +70,5 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       UsageTracker.setIdeaIsInternal(true);
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
-  }
-
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(AndroidStudioInitializer.class);
   }
 }

@@ -1372,15 +1372,6 @@ public final class StudioFlags {
   );
   // endregion SERVER_FLAGS
 
-  //region METRICS
-  private static final FlagGroup METRICS = new FlagGroup(FLAGS, "metrics", "Metrics");
-  public static final Flag<Boolean> NEW_CONSENT_DIALOG = Flag.create(
-    METRICS, "new.consent.dialog", "New consent dialog",
-    "Enable the new consent dialog for opting into metrics",
-    true
-  );
-  // endregion METRICS
-
   // region Firebase Test Lab
   private static final FlagGroup FIREBASE_TEST_LAB = new FlagGroup(FLAGS, "firebasetestlab", "Firebase Test Lab");
 
