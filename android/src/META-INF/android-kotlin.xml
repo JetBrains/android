@@ -12,6 +12,7 @@
         <completion.contributor language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinCompletionContributor" order="first, before KotlinCompletionContributor"/>
 
         <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.IllegalIdentifierInspection"
+                         language="kotlin"
                          displayName="Illegal Android Identifier"
                          groupName="Kotlin Android"
                          enabledByDefault="true"
@@ -26,36 +27,43 @@
                          language="kotlin" />
 
         <intentionAction>
+            <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.KotlinAndroidAddStringResource</className>
             <category>Kotlin Android</category>
         </intentionAction>
 
-
         <intentionAction>
+            <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.AddActivityToManifest</className>
             <category>Kotlin Android</category>
         </intentionAction>
 
         <intentionAction>
+            <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.AddServiceToManifest</className>
             <category>Kotlin Android</category>
         </intentionAction>
 
         <intentionAction>
+            <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.AddBroadcastReceiverToManifest</className>
             <category>Kotlin Android</category>
         </intentionAction>
+
         <intentionAction>
+            <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.ImplementParcelableAction</className>
             <category>Kotlin Android</category>
         </intentionAction>
 
         <intentionAction>
+            <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.RemoveParcelableAction</className>
             <category>Kotlin Android</category>
         </intentionAction>
 
         <intentionAction>
+            <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.RedoParcelableAction</className>
             <category>Kotlin Android</category>
         </intentionAction>
