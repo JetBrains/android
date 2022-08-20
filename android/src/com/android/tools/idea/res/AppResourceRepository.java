@@ -70,9 +70,9 @@ class AppResourceRepository extends MultiResourceRepository {
     return ImmutableList.of(ResourceRepositoryManager.getProjectResources(facet), SampleDataResourceRepository.getInstance(facet));
   }
 
-  protected AppResourceRepository(@NotNull AndroidFacet facet,
-                                  @NotNull List<LocalResourceRepository> localResources,
-                                  @NotNull Collection<AarResourceRepository> libraryResources) {
+  private AppResourceRepository(@NotNull AndroidFacet facet,
+                                @NotNull List<LocalResourceRepository> localResources,
+                                @NotNull Collection<AarResourceRepository> libraryResources) {
     super(facet.getModule().getName() + " with modules and libraries");
     myFacet = facet;
     setChildren(localResources, libraryResources, ImmutableList.of(PredefinedSampleDataResourceRepository.getInstance()));
