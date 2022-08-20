@@ -40,6 +40,7 @@ import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * @see ResourceRepositoryManager#getModuleResources()
@@ -254,7 +255,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       .toString();
   }
 
-  @VisibleForTesting
+  @TestOnly
   @NotNull
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet,
                                                        @NotNull Collection<VirtualFile> resourceDirectories,
