@@ -26,7 +26,7 @@ class OpenBuildAnalyzerAction : AnAction("Open Build Analyzer") {
       e.presentation.isEnabledAndVisible = false
     }
     else {
-      e.presentation.isEnabled = BuildAttributionUiManager.getInstance(project).hasDataToShow()
+      e.presentation.isEnabled = BuildAttributionUiManager.getInstanceIfCreated(project)?.hasDataToShow() == true
     }
   }
 
