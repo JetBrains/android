@@ -101,8 +101,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                                "    <string name=\"show_all_apps\">Todo</string>\n" +
                                "</resources>\n",});
     LocalResourceRepository resources = new LocalResourceRepositoryDelegate("test", repository);
-    AppResourceRepository appResources = new AppResourceRepository(myFacet, Collections.singletonList(resources),
-                                                                   Collections.emptyList());
+    AppResourceRepository appResources =
+        AppResourceRepository.createForTest(myFacet, Collections.singletonList(resources), Collections.emptyList());
 
     ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
@@ -220,7 +220,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     Path aarPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/my_aar_lib/res");
     AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(aarPath, LIBRARY_NAME);
     AppResourceRepository appResources =
-        new AppResourceRepository(myFacet, ImmutableList.of(resourcesA), ImmutableList.of(libraryRepository));
+        AppResourceRepository.createForTest(myFacet, ImmutableList.of(resourcesA), ImmutableList.of(libraryRepository));
 
     // 3 declared in the library, 3 declared in the "project", 2 of them are duplicated so:
     //
@@ -291,7 +291,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                            "    </declare-styleable>\n" +
                            "</resources>\n"});
     LocalResourceRepository resources = new LocalResourceRepositoryDelegate("resources", repository);
-    AppResourceRepository appResources = new AppResourceRepository(myFacet, ImmutableList.of(resources), Collections.emptyList());
+    AppResourceRepository appResources = AppResourceRepository.createForTest(myFacet, ImmutableList.of(resources), Collections.emptyList());
 
     assertEquals(1, appResources.getResources(RES_AUTO, ResourceType.STYLEABLE).size());
 
