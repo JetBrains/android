@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * @see ResourceRepositoryManager#getProjectResources()
@@ -67,7 +67,7 @@ final class ProjectResourceRepository extends MultiResourceRepository {
     setChildren(repositories, ImmutableList.of(), ImmutableList.of());
   }
 
-  @VisibleForTesting
+  @TestOnly
   @NotNull
   static ProjectResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull List<LocalResourceRepository> modules) {
     ProjectResourceRepository repository = new ProjectResourceRepository(facet, modules);

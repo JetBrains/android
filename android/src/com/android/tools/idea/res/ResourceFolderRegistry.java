@@ -23,7 +23,6 @@ import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.model.Namespacing;
 import com.android.utils.TraceUtils;
 import com.android.utils.concurrency.CacheUtils;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
@@ -56,6 +55,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * A project service that manages {@link ResourceFolderRepository} instances, creating them as necessary and reusing repositories for

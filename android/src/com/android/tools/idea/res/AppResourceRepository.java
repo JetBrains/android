@@ -28,6 +28,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * @see ResourceRepositoryManager#getAppResources()
@@ -98,7 +99,7 @@ class AppResourceRepository extends MultiResourceRepository {
     ModuleClassLoaderManager.get().clearCache(module);
   }
 
-  @VisibleForTesting
+  @TestOnly
   @NotNull
   static AppResourceRepository createForTest(@NotNull AndroidFacet facet,
                                              @NotNull List<LocalResourceRepository> modules,
