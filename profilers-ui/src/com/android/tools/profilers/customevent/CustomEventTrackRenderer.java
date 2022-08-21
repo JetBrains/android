@@ -80,7 +80,7 @@ public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackM
     axisPanel.setOpaque(false);
     AxisComponent leftAxis = new AxisComponent(trackModel.getDataModel().getAxisComponentModel(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
-    leftAxis.setShowUnitAtMax(true);
+    leftAxis.setOnlyShowUnitAtMax(true);
     leftAxis.setHideTickAtMin(true);
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);

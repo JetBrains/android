@@ -146,7 +146,7 @@ public class AxisLineChartVisualTest extends VisualTest {
       new ResizingAxisComponentModel.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT).setLabel(SERIES1_LABEL).build();
     mMemoryAxis1 = new AxisComponent(mMemoryAxisModel1, AxisComponent.AxisOrientation.LEFT);
     mMemoryAxis1.setShowMax(true);
-    mMemoryAxis1.setShowUnitAtMax(true);
+    mMemoryAxis1.setOnlyShowUnitAtMax(true);
     mMemoryAxis1.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     DefaultDataSeries<Long> series1 = new DefaultDataSeries<>();
@@ -160,7 +160,7 @@ public class AxisLineChartVisualTest extends VisualTest {
       new ClampedAxisComponentModel.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT).setLabel(SERIES2_LABEL).build();
     mMemoryAxis2 = new AxisComponent(mMemoryAxisModel2, AxisComponent.AxisOrientation.RIGHT);
     mMemoryAxis2.setShowMax(true);
-    mMemoryAxis2.setShowUnitAtMax(true);
+    mMemoryAxis2.setOnlyShowUnitAtMax(true);
     mMemoryAxis2.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     DefaultDataSeries<Long> series2 = new DefaultDataSeries<>();

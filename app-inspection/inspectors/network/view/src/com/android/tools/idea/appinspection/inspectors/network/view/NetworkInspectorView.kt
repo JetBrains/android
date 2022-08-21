@@ -330,7 +330,7 @@ class NetworkInspectorView(
     val leftAxis = AxisComponent(model.trafficAxis, AxisComponent.AxisOrientation.RIGHT)
     leftAxis.setShowAxisLine(false)
     leftAxis.setShowMax(true)
-    leftAxis.setShowUnitAtMax(true)
+    leftAxis.setOnlyShowUnitAtMax(true)
     leftAxis.setHideTickAtMin(true)
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN)

@@ -107,7 +107,12 @@ public final class AxisComponent extends AnimatedComponent {
   private int myEndMargin;
   private boolean myShowMin;
   private boolean myShowMax;
-  private boolean myShowUnitAtMax;
+
+  /**
+   * Whether to show the unit only on the max label of the y-axis (if true),
+   * or show the unit for all y-axis labels (if false)
+   */
+  private boolean myOnlyShowUnitAtMax;
   private boolean myShowAxisLine = true;
 
   /**
@@ -228,7 +233,7 @@ public final class AxisComponent extends AnimatedComponent {
 
       if (i % numMinorPerMajor == 0) {    // Major Tick.
         myMajorMarkerPositions.add(markerOffset);
-        myMarkerLabels.add(formatter.getFormattedString(labelRange, markerValue, !myShowUnitAtMax));
+        myMarkerLabels.add(formatter.getFormattedString(labelRange, markerValue, !myOnlyShowUnitAtMax));
       }
       else {
         myMinorMarkerPositions.add(markerOffset);
@@ -236,7 +241,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     if (myShowMin && myModel.getMarkerRange().contains(currentMinValueRelative)) {
-      myMinLabel = formatter.getFormattedString(labelRange, currentMinValueRelative, !myShowUnitAtMax);
+      myMinLabel = formatter.getFormattedString(labelRange, currentMinValueRelative, !myOnlyShowUnitAtMax);
     }
     if (myShowMax && myModel.getMarkerRange().contains(currentMaxValueRelative)) {
       myMaxLabel = formatter.getFormattedString(labelRange, currentMaxValueRelative, true);
@@ -458,8 +463,8 @@ public final class AxisComponent extends AnimatedComponent {
     myShowMax = showMax;
   }
 
-  public void setShowUnitAtMax(boolean showUnitAtMax) {
-    myShowUnitAtMax = showUnitAtMax;
+  public void setOnlyShowUnitAtMax(boolean onlyShowUnitAtMax) {
+    myOnlyShowUnitAtMax = onlyShowUnitAtMax;
   }
 
   public void setHideTickAtMin(boolean hideTickAtMin) {
