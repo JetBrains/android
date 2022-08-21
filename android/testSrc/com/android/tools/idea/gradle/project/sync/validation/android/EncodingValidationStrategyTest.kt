@@ -85,8 +85,8 @@ class EncodingValidationStrategyTest : AndroidGradleTestCase() {
     val message = syncMessages.firstReportedMessage
     assertNotNull(message)
     val text = message!!.text
-    Truth.assertThat(text).hasLength(2)
-    Truth.assertThat(text[0]).startsWith("The project encoding (ISO-8859-1) has been reset")
+    Truth.assertThat(text.split('\n')).hasSize(2)
+    Truth.assertThat(text).startsWith("The project encoding (ISO-8859-1) has been reset")
     verify(myEncodings, times(1))?.let { it.defaultCharsetName = mismatchingEncoding }
   }
 

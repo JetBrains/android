@@ -37,7 +37,7 @@ public class SyncMessage {
 
   @NotNull private final String myGroup;
   @NotNull private final MessageType myType;
-  @NotNull private final String[] myText;
+  @NotNull private final String myText;
   @NotNull private final Navigatable myNavigatable;
 
   @Nullable private final PositionInFile myPosition;
@@ -53,17 +53,17 @@ public class SyncMessage {
                      @NotNull MessageType type,
                      @NotNull PositionInFile position,
                      @NotNull String... text) {
-    this(group, type, new OpenFileDescriptor(project, position.file, position.line, position.column), text, position);
+    this(group, type, new OpenFileDescriptor(project, position.file, position.line, position.column), joinText(text), position);
   }
 
   public SyncMessage(@NotNull String group, @NotNull MessageType type, @NotNull Navigatable navigatable, @NotNull String... text) {
-    this(group, type, navigatable, text, null);
+    this(group, type, navigatable, joinText(text), null);
   }
 
   private SyncMessage(@NotNull String group,
                       @NotNull MessageType type,
                       @NotNull Navigatable navigatable,
-                      @NotNull String[] text,
+                      @NotNull String text,
                       @Nullable PositionInFile position) {
     myGroup = group;
     myType = type;
@@ -83,7 +83,7 @@ public class SyncMessage {
   }
 
   @NotNull
-  public String[] getText() {
+  public String getText() {
     return myText;
   }
 
@@ -115,6 +115,11 @@ public class SyncMessage {
   @Override
   @NotNull
   public String toString() {
-    return Joiner.on('\n').join(myText);
+    return myText;
+  }
+
+  @NotNull
+  private static String joinText(@NotNull String[] text) {
+    return String.join("\n", text);
   }
 }

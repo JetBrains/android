@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
-import com.android.tools.idea.project.messages.MessageType;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
+
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotNull;
 
 public class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage> {
   @NotNull
@@ -36,12 +35,6 @@ public class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage>
   }
 
   @NotNull
-  public SyncMessageSubject hasType(@NotNull MessageType expected) {
-    assertThat(getNotNullSubject().getType()).named("type").isEqualTo(expected);
-    return this;
-  }
-
-  @NotNull
   public SyncMessageSubject hasGroup(@NotNull String expected) {
     assertThat(getNotNullSubject().getGroup()).named("group").isEqualTo(expected);
     return this;
@@ -49,17 +42,9 @@ public class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage>
 
   @NotNull
   public SyncMessageSubject hasMessageLine(@NotNull String text, int index) {
-    String[] textLines = getNotNullSubject().getText();
+    String[] textLines = getNotNullSubject().getText().split("\n");
     assertThat(textLines.length).named("message line count").isGreaterThan(index);
     assertThat(textLines[index]).named("message[" + index + "]").isEqualTo(text);
-    return this;
-  }
-
-  @NotNull
-  public SyncMessageSubject hasMessageLineStartingWith(@NotNull String text, int index) {
-    String[] textLines = getNotNullSubject().getText();
-    assertThat(textLines.length).named("message line count").isGreaterThan(index);
-    assertThat(textLines[index]).named("message[" + index + "]").startsWith(text);
     return this;
   }
 

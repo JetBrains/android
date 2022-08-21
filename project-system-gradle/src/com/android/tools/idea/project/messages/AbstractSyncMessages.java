@@ -121,7 +121,7 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   public void report(@NotNull SyncMessage message) {
     String title = message.getGroup();
-    String text = join(message.getText(), "\n");
+    String text = message.getText();
     NotificationCategory category = message.getType().convertToCategory();
     PositionInFile position = message.getPosition();
 

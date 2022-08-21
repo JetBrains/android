@@ -78,7 +78,7 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
-    assertThat(message.getText()).hasLength(1);
+    assertThat(message.getText().split("\n")).hasLength(1);
 
     // @formatter:off
     Truth.assertAbout(SyncMessageSubject.syncMessage()).that(message).hasGroup("Gradle Sync Issues")

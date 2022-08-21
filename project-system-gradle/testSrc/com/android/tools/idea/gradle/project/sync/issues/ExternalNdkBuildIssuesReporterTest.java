@@ -92,7 +92,7 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
-    assertThat(message.getText()).hasLength(1);
+    assertThat(message.getText().split("\n")).hasLength(1);
     Truth.assertAbout(SyncMessageSubject.syncMessage()).that(message).hasMessageLine(nativeToolOutput, 0);
 
     PositionInFile position = message.getPosition();
