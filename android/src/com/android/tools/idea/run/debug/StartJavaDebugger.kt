@@ -25,7 +25,6 @@ import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
@@ -85,31 +84,7 @@ fun attachJavaDebuggerToClient(
     }
 }
 
-/**
- * Starts a new Java debugging session for given [Client] and opens 'Debug' tool window.
- * If debugging is started via standard 'Debug' action i.e. called from [ProgramRunner.execute] method use
- * [attachJavaDebuggerToClient].
- *
- * It's a replacement for AndroidJavaDebugger.attachToClient.
- *
- * This method will be moved inside AndroidJavaDebugger, when all debuggers detached from RunConfigurations.
- */
-@AnyThread
-fun attachJavaDebuggerToClientAndShowTab(
-  project: Project,
-  client: Client
-): AsyncPromise<XDebugSession> {
-  val sessionName = "Android Debugger (${client.clientData.pid})"
-
-  return attachDebuggerToClientAndShowTab(project, sessionName)
-  {
-    getDebugProcessStarter(project, client, null, null,
-                           { device -> device.forceStop(client.clientData.clientDescription) },
-                           true)
-  }
-}
-
-private fun getDebugProcessStarter(
+internal fun getDebugProcessStarter(
   project: Project,
   client: Client,
   consoleViewToReuse: ConsoleView?,

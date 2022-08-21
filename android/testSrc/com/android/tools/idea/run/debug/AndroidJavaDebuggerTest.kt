@@ -154,7 +154,7 @@ class AndroidJavaDebuggerTest {
       ExecutionException("Test execution exception in test testCatchError"))
 
     try {
-      attachJavaDebuggerToClientAndShowTab(project, client).blockingGet(30, TimeUnit.SECONDS)
+      AndroidJavaDebugger().attachToClient(project, client, null).blockingGet(30, TimeUnit.SECONDS)
       fail()
     }
     catch (e: Throwable) {

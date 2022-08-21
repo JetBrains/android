@@ -21,7 +21,8 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.debug.attachJavaDebuggerToClientAndShowTab
+import com.android.tools.idea.run.debug.attachDebuggerToClientAndShowTab
+import com.android.tools.idea.run.debug.getDebugProcessStarter
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.createReattachingConnectDebuggerTask
@@ -91,7 +92,14 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
       activateDebugSessionWindow(project, existingDebugSession.runContentDescriptor)
       return resolvedPromise(existingDebugSession)
     }
-    return attachJavaDebuggerToClientAndShowTab(project, client)
+    val sessionName = "Android Debugger (${client.clientData.pid})"
+
+    return attachDebuggerToClientAndShowTab(project, sessionName)
+    {
+      getDebugProcessStarter(project, client, null, null,
+                             { device -> device.forceStop(client.clientData.clientDescription) },
+                             true)
+    }
   }
 
   companion object {
