@@ -38,7 +38,7 @@ import org.jetbrains.concurrency.catchError
 /**
  * Starts a new Java debugging session for given [Client].
  * Use this method only if debugging is started by using standard 'Debug' action i.e. this method is called from
- * [ProgramRunner.execute](ExecutionEnvironment) method. Otherwise, use [attachDebuggerToClientAndShowTab] method.
+ * [ProgramRunner.execute](ExecutionEnvironment) method. Otherwise, use [attachDebuggerAndShowTab] method.
  * It's a replacement for ConnectJavaDebuggerTask.
  *
  * This method will be moved inside AndroidJavaDebugger, when all debuggers detached from RunConfigurations.
@@ -52,7 +52,7 @@ fun attachJavaDebuggerToClient(
   onDebugProcessStarted: (() -> Unit)? = null,
   onDebugProcessDestroyed: (IDevice) -> Unit,
 ): Promise<XDebugSessionImpl> {
-  return attachDebuggerToClient(project, client, executionEnvironment) {
+  return attachDebugger(project, client, executionEnvironment) {
     getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted, onDebugProcessDestroyed, false)
   }
 }

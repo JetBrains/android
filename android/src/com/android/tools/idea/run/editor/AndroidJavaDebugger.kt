@@ -21,7 +21,7 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.debug.attachDebuggerToClientAndShowTab
+import com.android.tools.idea.run.debug.attachDebuggerAndShowTab
 import com.android.tools.idea.run.debug.getDebugProcessStarter
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
@@ -94,7 +94,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
     }
     val sessionName = "Android Debugger (${client.clientData.pid})"
 
-    return attachDebuggerToClientAndShowTab(project, sessionName)
+    return attachDebuggerAndShowTab(project, sessionName)
     {
       getDebugProcessStarter(project, client, null, null,
                              { device -> device.forceStop(client.clientData.clientDescription) },

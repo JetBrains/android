@@ -38,10 +38,10 @@ import org.jetbrains.concurrency.catchError
 /**
  * Starts a new Debugging session with [getDebugProcessStarter].
  * Use this method only if debugging is started by using standard 'Debug' action i.e. this methods is called from
- * [ProgramRunner.execute] method. Otherwise, use [attachDebuggerToClientAndShowTab] method.
+ * [ProgramRunner.execute] method. Otherwise, use [attachDebuggerAndShowTab] method.
  **/
 @AnyThread
-fun attachDebuggerToClient(
+fun attachDebugger(
   project: Project,
   client: Client,
   executionEnvironment: ExecutionEnvironment,
@@ -81,7 +81,7 @@ fun attachDebuggerToClient(
  * Starts a new Debugging session with [getDebugProcessStarter]  and opens tab with [tabName] in Debug tool window.
  */
 @AnyThread
-fun attachDebuggerToClientAndShowTab(
+fun attachDebuggerAndShowTab(
   project: Project,
   tabName: String,
   getDebugProcessStarter: () -> Promise<XDebugProcessStarter>,
