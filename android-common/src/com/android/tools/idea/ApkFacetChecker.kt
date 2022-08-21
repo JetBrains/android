@@ -13,31 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("ApkFacetChecker")
 package com.android.tools.idea
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 
-/**
- * Helper methods for checking for presence of ApkFacet that don't require a dependency on
- * the intellij.android.core module.
- */
-fun Module.hasApkFacet(): Boolean =
-  ApplicationManager.getApplication().getUserData(APK_FACET_CHECKER_KEY)?.hasApkFacet(this) ?: false
+/** Interface in android-common to check for the presence of ApkFacet w/o depending on android-core. */
+interface ApkFacetChecker {
+  fun hasApkFacet(): Boolean
 
-fun Project.hasApkFacet(): Boolean =
-  ApplicationManager.getApplication().getUserData(APK_FACET_CHECKER_KEY)?.hasApkFacet(this) ?: false
-
-fun initializeApkFacetChecker(checker: ApkFacetCheckerInternal) {
-  ApplicationManager.getApplication().putUserData(APK_FACET_CHECKER_KEY, checker)
+  companion object {
+    fun getInstance(p: Project) : ApkFacetChecker = p.getService(ApkFacetChecker::class.java)
+  }
 }
-
-interface ApkFacetCheckerInternal {
-  fun hasApkFacet(module: Module): Boolean
-  fun hasApkFacet(project: Project): Boolean
-}
-
-private val APK_FACET_CHECKER_KEY: Key<ApkFacetCheckerInternal> = Key.create(ApkFacetCheckerInternal::class.java.name)

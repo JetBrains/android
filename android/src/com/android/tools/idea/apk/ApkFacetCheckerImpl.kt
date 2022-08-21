@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("AndroidEnvironmentUtils")
-package com.android.tools.idea
+package com.android.tools.idea.apk
 
+import com.android.tools.idea.ApkFacetChecker
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Returns true if called in Android Studio or if the project has an Android or an Apk facet.
- */
-fun isAndroidEnvironment(project: Project): Boolean =
-  IdeInfo.getInstance().isAndroidStudio || project.hasAndroidOrApkFacet()
-
-/**
- * Checks if the project contains a module with an Android or an Apk facet.
- */
-fun Project.hasAndroidOrApkFacet(): Boolean =
-  ProjectFacetManager.getInstance(this).hasFacets(AndroidFacet.ID) || ApkFacetChecker.getInstance(this).hasApkFacet()
-
+class ApkFacetCheckerImpl(val p: Project) : ApkFacetChecker {
+  override fun hasApkFacet() = ProjectFacetManager.getInstance(p).hasFacets(ApkFacet.ID)
+}
