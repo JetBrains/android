@@ -19,20 +19,63 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
+import com.intellij.xdebugger.impl.XDebugSessionImpl
 import icons.StudioIcons
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.catchError
 
 /**
- * Starts a new Debugging session with [getDebugProcessStarter  and opens tab with [tabName] in Debug tool window.
+ * Starts a new Debugging session with [getDebugProcessStarter].
+ * Use this method only if debugging is started by using standard 'Debug' action i.e. this methods is called from
+ * [ProgramRunner.execute] method. Otherwise, use [attachDebuggerToClientAndShowTab] method.
+ **/
+@AnyThread
+fun attachDebuggerToClient(
+  project: Project,
+  executionEnvironment: ExecutionEnvironment,
+  getDebugProcessStarter: () -> Promise<XDebugProcessStarter>,
+): Promise<XDebugSessionImpl> {
+  return getDebugProcessStarter()
+    .thenAsync { starter ->
+      val promise = AsyncPromise<XDebugSessionImpl>()
+      runInEdt {
+        promise.catchError {
+          val session = XDebuggerManager.getInstance(project).startSession(executionEnvironment, starter)
+          val debugProcessHandler = session.debugProcess.processHandler
+          debugProcessHandler.startNotify()
+          val executor = executionEnvironment.executor
+          AndroidSessionInfo.create(debugProcessHandler,
+                                    executionEnvironment.runProfile as? RunConfiguration,
+                                    executor.id,
+                                    executionEnvironment.executionTarget)
+          promise.setResult(session as XDebugSessionImpl)
+        }
+      }
+      promise
+    }
+    // TODO: delete error handling when [StudioFlags.NEW_EXECUTION_FLOW_ENABLED] is enabled
+    .onError {
+      if (it is ExecutionException) {
+        showError(project, it, executionEnvironment.runProfile.name)
+      }
+      else {
+        Logger.getInstance("attachJavaDebuggerToClient").error(it)
+      }
+    }
+}
+
+/**
+ * Starts a new Debugging session with [getDebugProcessStarter]  and opens tab with [tabName] in Debug tool window.
  */
 @AnyThread
 fun attachDebuggerToClientAndShowTab(

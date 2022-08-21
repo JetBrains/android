@@ -23,16 +23,13 @@ import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
-import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
@@ -40,8 +37,8 @@ import org.jetbrains.concurrency.catchError
 
 /**
  * Starts a new Java debugging session for given [Client].
- * Use this method only if debugging is started by using standard 'Debug' action i.e. this methods is called from
- * [ProgramRunner.execute](ExecutionEnvironment) method. Otherwise, use [attachJavaDebuggerToClientAndShowTab] method.
+ * Use this method only if debugging is started by using standard 'Debug' action i.e. this method is called from
+ * [ProgramRunner.execute](ExecutionEnvironment) method. Otherwise, use [attachDebuggerToClientAndShowTab] method.
  * It's a replacement for ConnectJavaDebuggerTask.
  *
  * This method will be moved inside AndroidJavaDebugger, when all debuggers detached from RunConfigurations.
@@ -55,33 +52,9 @@ fun attachJavaDebuggerToClient(
   onDebugProcessStarted: (() -> Unit)? = null,
   onDebugProcessDestroyed: (IDevice) -> Unit,
 ): Promise<XDebugSessionImpl> {
-  return getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted, onDebugProcessDestroyed, false)
-    .thenAsync { starter ->
-      val promise = AsyncPromise<XDebugSessionImpl>()
-      runInEdt {
-        promise.catchError {
-          val session = XDebuggerManager.getInstance(project).startSession(executionEnvironment, starter)
-          val debugProcessHandler = session.debugProcess.processHandler
-          debugProcessHandler.startNotify()
-          val executor = executionEnvironment.executor
-          AndroidSessionInfo.create(debugProcessHandler,
-                                    executionEnvironment.runProfile as? RunConfiguration,
-                                    executor.id,
-                                    executionEnvironment.executionTarget)
-          promise.setResult(session as XDebugSessionImpl)
-        }
-      }
-      promise
-    }
-    // TODO: delete error handling when [StudioFlags.NEW_EXECUTION_FLOW_ENABLED] is enabled
-    .onError {
-      if (it is ExecutionException) {
-        showError(project, it, executionEnvironment.runProfile.name)
-      }
-      else {
-        Logger.getInstance("attachJavaDebuggerToClient").error(it)
-      }
-    }
+  return attachDebuggerToClient(project, executionEnvironment) {
+    getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted, onDebugProcessDestroyed, false)
+  }
 }
 
 internal fun getDebugProcessStarter(
