@@ -26,12 +26,11 @@ import com.android.tools.idea.run.debug.attachJavaDebuggerToClientAndShowTab
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.createReattachingConnectDebuggerTask
-import com.intellij.execution.ExecutionHelper
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.xdebugger.XDebugSession
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.Optional
 
@@ -85,10 +84,11 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
   @Slow
   override fun attachToClient(project: Project, client: Client, debugState: AndroidDebuggerState?) {
     val debugPort = getClientDebugPort(client)
-    val runConfigName = getRunConfigurationName(debugPort)
 
     // Try to find existing debug session
-    if (hasExistingDebugSession(project, debugPort, runConfigName)) {
+    val existingDebugSession = getExistingDebugSession(project, debugPort)
+    if (existingDebugSession != null) {
+      activateDebugSessionWindow(project, existingDebugSession.runContentDescriptor)
       return
     }
     attachJavaDebuggerToClientAndShowTab(project, client)
@@ -96,49 +96,19 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
 
   companion object {
     const val ID = "Java"
-    private const val RUN_CONFIGURATION_NAME_PATTERN = "Android Debugger (%s)"
-    fun getRunConfigurationName(debugPort: String): String {
-      return String.format(RUN_CONFIGURATION_NAME_PATTERN, debugPort)
-    }
 
-    fun hasExistingDebugSession(
-      project: Project,
-      debugPort: String,
-      runConfigName: String
-    ): Boolean {
-      var descriptors: Collection<RunContentDescriptor?>? = null
+    private fun getExistingDebugSession(project: Project, debugPort: String): XDebugSession? {
+      val sessions: MutableList<XDebugSession> = ArrayList()
       val openProjects = ProjectManager.getInstance().openProjects
-      var targetProject: Project?
 
       // Scan through open project to find if this port has been opened in any session.
       for (openProject in openProjects) {
-        targetProject = openProject
-
-        // First check the titles of the run configurations.
-        descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject) { title -> runConfigName == title }
-
-        // If it can't find a matching title, check the debugger sessions.
-        if (descriptors.isEmpty()) {
-          val debuggerSession = findJdwpDebuggerSession(targetProject, debugPort)
-          if (debuggerSession != null) {
-            val session = debuggerSession.xDebugSession
-            if (session != null) {
-              descriptors = listOf(session.runContentDescriptor)
-            }
-            else {
-              // Detach existing session.
-              debuggerSession.process.stop(false)
-            }
-          }
-        }
-        if (!descriptors!!.isEmpty()) {
-          break
+        val debuggerSession = findJdwpDebuggerSession(openProject, debugPort)
+        if (debuggerSession != null) {
+          debuggerSession.xDebugSession?.let { sessions.add(it) }
         }
       }
-      return if (descriptors != null && !descriptors.isEmpty()) {
-        activateDebugSessionWindow(project, descriptors.iterator().next()!!)
-      }
-      else false
+      return sessions.firstOrNull()
     }
   }
 }
