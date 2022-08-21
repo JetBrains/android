@@ -52,7 +52,7 @@ fun attachJavaDebuggerToClient(
   onDebugProcessStarted: (() -> Unit)? = null,
   onDebugProcessDestroyed: (IDevice) -> Unit,
 ): Promise<XDebugSessionImpl> {
-  return attachDebuggerToClient(project, executionEnvironment) {
+  return attachDebuggerToClient(project, client, executionEnvironment) {
     getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted, onDebugProcessDestroyed, false)
   }
 }

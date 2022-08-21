@@ -27,6 +27,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.xdebugger.impl.XDebugSessionImpl;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,9 +63,6 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
         device.forceStop(myApplicationIds.get(0));
         return Unit.INSTANCE;
       }
-    ).onSuccess(session -> {
-      UtilsKt.captureLogcatOutputToProcessHandler(client, session.getDebugProcess().getProcessHandler());
-      session.showSessionTab();
-    });
+    ).onSuccess(XDebugSessionImpl::showSessionTab);
   }
 }

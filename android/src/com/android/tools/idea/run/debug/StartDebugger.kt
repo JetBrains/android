@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.debug
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.ddmlib.Client
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager
@@ -42,6 +43,7 @@ import org.jetbrains.concurrency.catchError
 @AnyThread
 fun attachDebuggerToClient(
   project: Project,
+  client: Client,
   executionEnvironment: ExecutionEnvironment,
   getDebugProcessStarter: () -> Promise<XDebugProcessStarter>,
 ): Promise<XDebugSessionImpl> {
@@ -53,6 +55,7 @@ fun attachDebuggerToClient(
           val session = XDebuggerManager.getInstance(project).startSession(executionEnvironment, starter)
           val debugProcessHandler = session.debugProcess.processHandler
           debugProcessHandler.startNotify()
+          captureLogcatOutputToProcessHandler(client, debugProcessHandler)
           val executor = executionEnvironment.executor
           AndroidSessionInfo.create(debugProcessHandler,
                                     executionEnvironment.runProfile as? RunConfiguration,
