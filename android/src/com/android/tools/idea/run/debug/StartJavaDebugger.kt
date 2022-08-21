@@ -23,9 +23,7 @@ import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
@@ -37,7 +35,6 @@ import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
-import icons.StudioIcons.Common.ANDROID_HEAD
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.catchError
@@ -102,33 +99,14 @@ fun attachJavaDebuggerToClientAndShowTab(
   project: Project,
   client: Client
 ): AsyncPromise<XDebugSession> {
-  val sessionName = "Android Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})"
+  val sessionName = "Android Debugger (${client.clientData.pid})"
 
-  return getDebugProcessStarter(project, client, null, null,
-                                { device -> device.forceStop(client.clientData.clientDescription) }, true)
-    .thenAsync { starter ->
-      val promise = AsyncPromise<XDebugSession>()
-      runInEdt {
-        promise.catchError {
-          val session = XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, ANDROID_HEAD, null, false, starter)
-          val debugProcessHandler = session.debugProcess.processHandler
-          AndroidSessionInfo.create(debugProcessHandler,
-                                    null,
-                                    DefaultDebugExecutor.getDebugExecutorInstance().id,
-                                    ExecutionTargetManager.getActiveTarget(project))
-          promise.setResult(session)
-        }
-      }
-      promise
-    }
-    .onError {
-      if (it is ExecutionException) {
-        showError(project, it, sessionName)
-      }
-      else {
-        Logger.getInstance("attachJavaDebuggerToClientAndShowTab").error(it)
-      }
-    } as AsyncPromise
+  return attachDebuggerToClientAndShowTab(project, sessionName)
+  {
+    getDebugProcessStarter(project, client, null, null,
+                           { device -> device.forceStop(client.clientData.clientDescription) },
+                           true)
+  }
 }
 
 private fun getDebugProcessStarter(
