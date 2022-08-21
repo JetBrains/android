@@ -45,6 +45,7 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.replaceService
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -276,6 +277,9 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val mockAndroidDebugBridge = mock(AndroidDebugBridge::class.java)
     whenever(mockAndroidDebugBridge.devices).thenReturn(emptyArray())
     whenever(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(Futures.immediateFuture(mockAndroidDebugBridge))
-    AdbFileProvider(Supplier { createTempFile() }).storeInProject(project)
+
+    val tmpFile = createTempFile()
+    val adbFileProvider = AdbFileProvider { tmpFile }
+    project.replaceService(AdbFileProvider::class.java, adbFileProvider, testRootDisposable)
   }
 }

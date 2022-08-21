@@ -20,56 +20,39 @@ import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
-import java.util.function.Supplier
 
-/**
- * Ensures [AdbFileProvider] is available for each new project
- *
- * Note: The reason this code need to live in the "android-core" module
- * is that it depends on [AndroidSdkUtils] which has many dependencies
- * that have not been factored out. Ideally, this class should be part
- * of the "android-adb" module.
- */
-class AdbFileProviderInitializer : ProjectManagerListener {
-  /**
-   * Sets up the [AdbFileProvider] for each [Project]
-   *
-   * Note: this code runs on the EDT thread, so we need to avoid slow operations.
-   */
-  override fun projectOpened(project: Project) {
-    val supplier = Supplier<File?> { getAdbPathAndReportError(project, project) }
-    AdbFileProvider(supplier).storeInProject(project)
+// Note: The reason this code need to live in the "android-core" module
+// is that it depends on [AndroidSdkUtils] which has many dependencies
+// that have not been factored out. Ideally, this class should be part
+// of the "android-adb" module.
+
+private abstract class AdbFileProviderBase(private val project: Project?, private val userData: UserDataHolder) : AdbFileProvider {
+  companion object {
+    private val LOG_ERROR_KEY: Key<Boolean> = Key.create(::LOG_ERROR_KEY.qualifiedName)
   }
 
-  companion object {
-    @JvmStatic
-    fun initializeApplication() {
-      val supplier = Supplier<File?> { getAdbPathAndReportError(null, ApplicationManager.getApplication()) }
-      AdbFileProvider(supplier).storeInApplication()
-    }
+  override fun get(): File? {
+    val result = AndroidSdkUtils.findAdb(project)
 
-    private val LOG_ERROR_KEY: Key<Boolean> = Key.create(::LOG_ERROR_KEY.qualifiedName)
-
-    private fun getAdbPathAndReportError(project: Project?, userData: UserDataHolder): File? {
-      val result = AndroidSdkUtils.findAdb(project)
-
-      if (result.adbPath == null) {
-        // Log error only once per application or project
-        if (userData.getUserData(LOG_ERROR_KEY) != true) {
-          userData.putUserData(LOG_ERROR_KEY, true)
-          thisLogger().warn("Location of ADB could not be determined for ${project ?: "application"}.\n" +
-                            "The following paths were searched:\n" +
-                            result.searchedPaths.joinToString("\n"))
-        }
+    if (result.adbPath == null) {
+      // Log error only once per application or project
+      if (userData.getUserData(LOG_ERROR_KEY) != true) {
+        userData.putUserData(LOG_ERROR_KEY, true)
+        thisLogger().warn("Location of ADB could not be determined for ${project ?: "application"}.\n" +
+                          "The following paths were searched:\n" +
+                          result.searchedPaths.joinToString("\n"))
       }
-
-      // Return path (it may be null)
-      return result.adbPath
     }
+
+    // Return path (it may be null)
+    return result.adbPath
   }
 }
+
+private class ApplicationAdbFileProvider : AdbFileProviderBase(null, ApplicationManager.getApplication())
+
+private class ProjectAdbFileProvider(project: Project) : AdbFileProviderBase(project, project)

@@ -65,7 +65,7 @@ class SqliteCliProviderImpl(private val project: Project) : SqliteCliProvider {
     if (overrideFile != null) return overrideFile.toPath().also { logFoundSqlite3(it) }
 
     // check adb location - sqlite3 is its sibling in platform-tools
-    val adbFile = AdbFileProvider.fromProject(project)?.adbFile
+    val adbFile = AdbFileProvider.fromProject(project).get()
     if (adbFile == null) {
       logUnableToFind("adb")
       return null

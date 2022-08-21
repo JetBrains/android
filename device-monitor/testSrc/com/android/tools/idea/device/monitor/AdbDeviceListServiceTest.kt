@@ -21,12 +21,12 @@ import com.android.testutils.MockitoKt
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.device.monitor.adbimpl.AdbDeviceListService.Companion.getInstance
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import kotlinx.coroutines.launch
+import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Before
@@ -105,7 +105,8 @@ class AdbDeviceListServiceTest {
   @Test
   fun testStartServiceFailsIfAdbIsNull() {
     // Prepare
-    AdbFileProvider { null }.storeInProject(project)
+    val adbFileProvider = AdbFileProvider { null }
+    project.replaceService(AdbFileProvider::class.java, adbFileProvider, androidProjectRule.testRootDisposable)
     val service = getInstance(project)
 
     // Act // Assert

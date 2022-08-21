@@ -26,11 +26,13 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFailedFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertThrows
+import com.intellij.testFramework.replaceService
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
@@ -111,7 +113,8 @@ class AdbDeviceFileSystemServiceTest {
   @Test
   fun startServiceFailsIfAdbIsNull() {
     // Prepare
-    AdbFileProvider { null }.storeInProject(project)
+    val adbFileProvider = AdbFileProvider { null }
+    project.replaceService(AdbFileProvider::class.java, adbFileProvider, androidProjectRule.testRootDisposable)
     val service = getInstance(project)
 
     // Act

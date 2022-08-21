@@ -250,12 +250,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * @param project A {@link Project} that is used to find the ADB executable file.
    */
   public @NotNull ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull Project project) {
-    AdbFileProvider provider = AdbFileProvider.fromProject(project);
-    if (provider == null) {
-      LOG.warn("AdbFileProvider is not correctly set up (see AdbFileProviderInitializer)");
-      return Futures.immediateFailedFuture(new IllegalStateException("AdbFileProvider is not correctly set up"));
-    }
-    File adbFile = provider.getAdbFile();
+    File adbFile = AdbFileProvider.fromProject(project).get();
     if (adbFile == null) {
       LOG.warn("The path to the ADB command is not available");
       return Futures.immediateFailedFuture(new FileNotFoundException("The path to the ADB command is not available"));

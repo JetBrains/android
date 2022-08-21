@@ -15,36 +15,21 @@
  */
 package com.android.tools.idea.adb
 
-import com.android.utils.reflection.qualifiedName
-import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import java.io.File
-import java.util.function.Supplier
 
 /**
- * Supplier of ADB executable path for a given [Project] instance.
+ * Supplier of ADB executable path. It can be obtained for the application or a project, although the latter should be preferred.
  *
  * Usage:
- *  `val adbFile: File? = AdbFileProvider.fromProject(project)?.adbFile`
+ *  `val adbFile: File? = AdbFileProvider.fromProject(project).get()`
  */
-data class AdbFileProvider(private val supplier: Supplier<File?>) {
+fun interface AdbFileProvider {
+  fun get(): File?
+
   companion object {
-    private val KEY: Key<AdbFileProvider> = Key.create(::KEY.qualifiedName)
-
-    @JvmStatic fun fromProject(project: Project): AdbFileProvider? = project.getUserData(KEY)
-    @JvmStatic fun fromApplication(): AdbFileProvider? = ApplicationManager.getApplication().getUserData(KEY)
-  }
-
-  val adbFile: File?
-    get() = supplier.get()
-
-  fun storeInProject(project: Project) {
-    project.putUserData(KEY, this)
-  }
-
-  fun storeInApplication() {
-    ApplicationManager.getApplication().putUserData(KEY, this)
+    @JvmStatic fun fromProject(project: Project) : AdbFileProvider = project.getService(AdbFileProvider::class.java)
+    @JvmStatic fun fromApplication() : AdbFileProvider = ApplicationManager.getApplication().getService(AdbFileProvider::class.java)
   }
 }

@@ -52,7 +52,7 @@ import java.util.function.Supplier
 class AdbDeviceFileSystemService @NonInjectable constructor (val adbSupplier: Supplier<File?>)
     : Disposable, DeviceFileSystemService<AdbDeviceFileSystem> {
 
-  constructor(project: Project) : this({ AdbFileProvider.fromProject(project)?.adbFile })
+  constructor(project: Project) : this({ AdbFileProvider.fromProject(project).get() })
 
   companion object {
     @JvmStatic

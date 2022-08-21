@@ -70,12 +70,6 @@ public class GetAdbAction extends AnAction {
 
   @Nullable
   private File getAdbFile(@NotNull Project project) {
-    AdbFileProvider provider = AdbFileProvider.fromProject(project);
-    if (provider != null) {
-      return provider.getAdbFile();
-    }
-    else {
-      return null;
-    }
+    return AdbFileProvider.fromProject(project).get();
   }
 }

@@ -6,8 +6,7 @@ WARNING: IntelliJ changes their startup lifecycle often as they try to fix perfo
 * `ApplicationLoadListener.beforeApplicationLoaded`
   * Splash screen shown -- no loading bar yet
   * This is **explicitly listed as not to be used by 3rd party plugins**.
-  * `AndroidPluginInitializer` is invoked to initialize analytics, studio progress manager, `ApkFacetCheckerInitializer` and
-     `AdbFileProviderInitializer` (TODO: everything other than analytics setup can probably be moved further down)
+  * `AndroidPluginInitializer` is invoked to initialize analytics & studio progress manager (which should be moved further down)
 * `ApplicationComponent` constructors are called
   * Splash screen loading bar is moving
   * **ApplicationComponents are deprecated.** Please do not add new ones, or add more functionality into existing ones.

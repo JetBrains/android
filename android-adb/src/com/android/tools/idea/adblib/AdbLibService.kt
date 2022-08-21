@@ -50,7 +50,7 @@ class AdbLibService(val project: Project) : Disposable {
   val session: AdbSession = AdbSession.create(
     host = host,
     channelProvider = channelProvider,
-    connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut ().toLong())
+    connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong())
   )
 
   override fun dispose() {
@@ -62,8 +62,8 @@ class AdbLibService(val project: Project) : Disposable {
       val needToConnect = AndroidDebugBridge.getBridge()?.let { !it.isConnected } ?: true
       if (needToConnect) {
         // Ensure ddmlib is initialized with ADB server path from project context
-        val adbFile = AdbFileProvider.fromProject(project)?.adbFile
-                      ?: throw IllegalStateException("ADB has not been initialized for this project")
+        val adbFile = AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException(
+          "ADB has not been initialized for this project")
         AdbService.getInstance().getDebugBridge(adbFile).await()
       }
       AndroidDebugBridge.getSocketAddress()

@@ -69,11 +69,7 @@ class AdbServiceWrapperImpl(
   private suspend fun getAdbLocation(): File =
     // Use the I/O thread just in case we do I/O in the future (although currently there is none)
     withContext(Dispatchers.IO) {
-      val adbProvider = AdbFileProvider.fromProject(project)
-      if (adbProvider == null) {
-        LOG.warn("AdbFileProvider is not correctly set up (see AdbFileProviderInitializer)")
-      }
-      adbProvider?.adbFile ?: throw IllegalStateException("The path to the ADB command is not available")
+      AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException("The path to the ADB command is not available")
     }
 
 
@@ -87,7 +83,7 @@ class AdbServiceWrapperImpl(
         return createAdbOnlineDevice(device, rem)
       }
 
-      if (rem.remainingNanos<= 0) {
+      if (rem.remainingNanos <= 0) {
         throw AdbCommandException("Device did not connect within specified timeout", -1, emptyList())
       }
 

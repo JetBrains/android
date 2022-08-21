@@ -81,7 +81,7 @@ fun AndroidDebugBridge.startShellCommand(device: DeviceDescriptor,
 
 object AdbUtils {
   fun getAdbFuture(project: Project): ListenableFuture<AndroidDebugBridge?> {
-    return AdbFileProvider.fromProject(project)?.adbFile?.let { AdbService.getInstance()?.getDebugBridge(it) }
+    return AdbFileProvider.fromProject(project).get()?.let { AdbService.getInstance()?.getDebugBridge(it) }
            ?: Futures.immediateFuture(null)
   }
 }

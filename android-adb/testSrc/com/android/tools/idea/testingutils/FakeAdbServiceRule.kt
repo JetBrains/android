@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -49,7 +50,10 @@ class FakeAdbServiceRule(
     val adbFile: File = MockitoKt.mock()
     val bridge: AndroidDebugBridge = Mockito.spy(adbRule.bridge)
     val disposable = Disposer.newDisposable().also { serviceDisposable = it }
-    AdbFileProvider { adbFile }.storeInProject(projectSupplier())
+    val adbFileProvider = object : AdbFileProvider {
+      override fun get(): File = adbFile
+    }
+    projectSupplier().registerServiceInstance(AdbFileProvider::class.java, adbFileProvider, disposable)
     val service: AdbService = MockitoKt.mock()
     ApplicationManager.getApplication().replaceService(AdbService::class.java, service, disposable)
     Mockito.doAnswer {

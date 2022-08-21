@@ -68,8 +68,7 @@ class AdbLibApplicationService : Disposable {
       val needToConnect = AndroidDebugBridge.getBridge()?.let { !it.isConnected } ?: true
       if (needToConnect) {
         // Ensure ddmlib is initialized with ADB server path from application context
-        val adbFile = AdbFileProvider.fromApplication()?.adbFile
-                      ?: throw IllegalStateException("ADB location has not been initialized")
+        val adbFile = AdbFileProvider.fromApplication().get() ?: throw IllegalStateException("ADB location has not been initialized")
         AdbService.getInstance().getDebugBridge(adbFile).await()
       }
       AndroidDebugBridge.getSocketAddress()

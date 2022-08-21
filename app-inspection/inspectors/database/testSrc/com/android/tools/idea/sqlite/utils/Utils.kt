@@ -16,23 +16,18 @@
 package com.android.tools.idea.sqlite.utils
 
 import com.android.SdkConstants
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteValue
-import com.android.tools.idea.testing.IdeComponents
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.android.facet.AndroidFacet
-import org.mockito.Mockito.`when`
+import com.intellij.testFramework.replaceService
+import java.io.File
 import java.sql.DriverManager
 
 internal fun List<Any?>.toSqliteValues() = this.map { SqliteValue.fromAny(it) }
@@ -51,7 +46,6 @@ internal fun getJdbcDatabaseConnection(
 
 /** Sets `adb` location in the project (needed when using `adb` in e.g. [com.intellij.testFramework.LightPlatformTestCase]) */
 internal fun initAdbFileProvider(project: Project) {
-  AdbFileProvider {
-    TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB).toFile()
-  }.storeInProject(project)
+  val adbFileProvider = AdbFileProvider { TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB).toFile() }
+  project.replaceService(AdbFileProvider::class.java, adbFileProvider, project)
 }

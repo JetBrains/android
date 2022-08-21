@@ -59,7 +59,7 @@ class AdbDeviceListService @NonInjectable constructor(private val adbSupplier: S
   : Disposable, DeviceListService {
 
   @Suppress("unused")
-  constructor(project: Project) : this({ AdbFileProvider.fromProject(project)?.adbFile })
+  constructor(project: Project) : this({ AdbFileProvider.fromProject(project).get() })
 
   companion object {
     fun getInstance(project: Project): AdbDeviceListService = project.service()
