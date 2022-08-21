@@ -19,17 +19,34 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.AndroidLogcatFormatter
+import com.android.tools.idea.logcat.AndroidLogcatPreferences
+import com.android.tools.idea.logcat.AndroidLogcatService
+import com.android.tools.idea.logcat.LogcatHeaderFormat
+import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider
+import com.android.tools.idea.logcat.output.LogcatOutputSettings
+import com.android.tools.idea.run.ApplicationLogListener
 import com.android.tools.idea.run.DeploymentApplicationService
+import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
 import com.google.common.util.concurrent.Uninterruptibles
 import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindowId
+import java.time.ZoneId
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Function
 
 /**
@@ -94,4 +111,56 @@ internal fun showError(project: Project, e: ExecutionException, sessionName: Str
   ExecutionUtil.handleExecutionError(project, ToolWindowId.DEBUG, e,
                                      ExecutionBundle.message("error.running.configuration.message", sessionName),
                                      e.message, Function.identity(), null)
+}
+
+internal fun captureLogcatOutputToProcessHandler(client: Client, debugProcessHandler: ProcessHandler) {
+  if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
+    return
+  }
+  if (!LogcatOutputSettings.getInstance().isDebugOutputEnabled) {
+    return
+  }
+  val device = client.device
+  val logListener: AndroidLogcatService.LogcatListener = MyLogcatListener(client, debugProcessHandler)
+  Logger.getInstance(
+    ConnectJavaDebuggerTask::class.java).info(String.format("captureLogcatOutput(\"%s\")", device.name))
+  AndroidLogcatService.getInstance().addListener(device, logListener, true)
+
+  // Remove listener when process is terminated
+  debugProcessHandler.addProcessListener(object : ProcessAdapter() {
+    override fun processTerminated(event: ProcessEvent) {
+      Logger.getInstance(ConnectJavaDebuggerTask::class.java)
+        .info(String.format("captureLogcatOutput(\"%s\"): remove listener", device.name))
+      AndroidLogcatService.getInstance().removeListener(device, logListener)
+    }
+  })
+}
+
+private class MyLogcatListener(client: Client, debugProcessHandler: ProcessHandler) : ApplicationLogListener(
+  client.clientData.clientDescription!!, client.clientData.pid) {
+  private val myFormatter: AndroidLogcatFormatter
+  private val myIsFirstMessage: AtomicBoolean
+  private val myDebugProcessHandler: ProcessHandler
+
+  init {
+    // noinspection ConstantConditions
+    myFormatter = AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences())
+    myIsFirstMessage = AtomicBoolean(true)
+    myDebugProcessHandler = debugProcessHandler
+  }
+
+  override fun formatLogLine(line: LogCatMessage): String {
+    return myFormatter.formatMessage(SIMPLE_FORMAT, line.header, line.message)
+  }
+
+  override fun notifyTextAvailable(message: String, key: Key<*>) {
+    if (myIsFirstMessage.compareAndSet(true, false)) {
+      myDebugProcessHandler.notifyTextAvailable(LogcatOutputConfigurableProvider.BANNER_MESSAGE, ProcessOutputTypes.STDOUT)
+    }
+    myDebugProcessHandler.notifyTextAvailable(message, key)
+  }
+
+  companion object {
+    private val SIMPLE_FORMAT = LogcatHeaderFormat(LogcatHeaderFormat.TimestampFormat.NONE, false, false, true)
+  }
 }
