@@ -31,6 +31,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.xdebugger.XDebugSession
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.concurrency.Promise
+import org.jetbrains.concurrency.resolvedPromise
 import java.util.Optional
 
 class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
@@ -80,16 +82,16 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
   }
 
   @Slow
-  override fun attachToClient(project: Project, client: Client, debugState: AndroidDebuggerState?) {
+  override fun attachToClient(project: Project, client: Client, debugState: AndroidDebuggerState?): Promise<XDebugSession> {
     val debugPort = getClientDebugPort(client)
 
     // Try to find existing debug session
     val existingDebugSession = getExistingDebugSession(project, debugPort)
     if (existingDebugSession != null) {
       activateDebugSessionWindow(project, existingDebugSession.runContentDescriptor)
-      return
+      return resolvedPromise(existingDebugSession)
     }
-    attachJavaDebuggerToClientAndShowTab(project, client)
+    return attachJavaDebuggerToClientAndShowTab(project, client)
   }
 
   companion object {

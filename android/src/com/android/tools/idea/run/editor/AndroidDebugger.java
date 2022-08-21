@@ -23,8 +23,10 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
+import com.intellij.xdebugger.XDebugSession;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.concurrency.Promise;
 
 /**
  * An interface to implement Android debugger.
@@ -116,7 +118,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * running Android processes without associated run configuration and run action. When you attach a debugger
    * through debug run action, {@link #getConnectDebuggerTask} is used instead.
    **/
-  void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable S debugState);
+  Promise<XDebugSession> attachToClient(@NotNull Project project, @NotNull Client client, @Nullable S debugState);
 
   /**
    * Indicates whether this debugger should be the default.

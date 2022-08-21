@@ -140,7 +140,7 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testSessionName() {
-    val session = attachJavaDebuggerToClientAndShowTab(project, client).blockingGet(10, TimeUnit.SECONDS)
+    val session = AndroidJavaDebugger().attachToClient(project, client, null).blockingGet(10, TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)
     assertThat(session!!.sessionName).isEqualTo("Android Debugger (${client.clientData.pid})")

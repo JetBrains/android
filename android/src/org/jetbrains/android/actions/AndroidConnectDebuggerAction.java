@@ -1,6 +1,8 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.actions;
 
+import static com.android.tools.idea.run.debug.UtilsKt.showError;
+
 import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
 import com.android.tools.idea.IdeInfo;
@@ -8,12 +10,14 @@ import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -59,10 +63,19 @@ public class AndroidConnectDebuggerAction extends AnAction {
     AndroidDebuggerState state;
     if (configuration != null) {
       state = configuration.getAndroidDebuggerContext().getAndroidDebuggerState();
-    } else {
+    }
+    else {
       state = androidDebugger.createState();
     }
-    androidDebugger.attachToClient(project, client, state);
+    androidDebugger.attachToClient(project, client, state)
+      .onError(e -> {
+        if (e instanceof ExecutionException) {
+          showError(project, (ExecutionException)e, "Attach debug to process");
+        }
+        else {
+          Logger.getInstance(AndroidConnectDebuggerAction.class).error(e);
+        }
+      });
   }
 
   // Disconnect any active run sessions to the same client
