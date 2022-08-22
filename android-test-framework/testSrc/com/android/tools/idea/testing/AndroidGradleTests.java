@@ -725,21 +725,32 @@ public class AndroidGradleTests {
   }
 
   public static String getEmbeddedJdk8Path() throws IOException {
-    String jdkDevPath = System.getProperty("studio.dev.jdk", StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk").toString());
-    String relativePath = toSystemDependentName(jdkDevPath);
-    File jdkRootPath = new File(toCanonicalPath(relativePath));
+    Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk");
     if (SystemInfo.isWindows) {
       // For JDK8 we have 32 and 64 bits versions on Windows
-      jdkRootPath = new File(jdkRootPath, "win64");
+      jdkRootPath = jdkRootPath.resolve("win64");
     }
     else if (SystemInfo.isLinux) {
-      jdkRootPath = new File(jdkRootPath, "linux");
+      jdkRootPath = jdkRootPath.resolve("linux");
     }
     else if (SystemInfo.isMac) {
-      jdkRootPath = new File(jdkRootPath, "mac");
-      jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
+      jdkRootPath = jdkRootPath.resolve("mac").resolve(MAC_JDK_CONTENT_PATH);
     }
-    return jdkRootPath.getCanonicalPath();
+
+    // Resolve real path
+    //
+    // Gradle prior to 6.9 don't work well with symlinks
+    // see https://discuss.gradle.org/t/gradle-daemon-different-context/2146/3
+    // see https://github.com/gradle/gradle/issues/12840
+    //
+    // [WARNING] This effective escapes Bazel's sandbox. Remove as soon as possible.
+    try {
+      Path wellKnownJdkFile = jdkRootPath.resolve("release");
+      jdkRootPath = wellKnownJdkFile.toRealPath().getParent();
+    }
+    catch (IOException ignore) {
+    }
+    return jdkRootPath.toString();
   }
 
 

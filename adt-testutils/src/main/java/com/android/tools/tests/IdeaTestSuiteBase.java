@@ -76,8 +76,6 @@ public class IdeaTestSuiteBase {
 
     // TODO(b/213385827): Fix Kotlin script classpath calculation during tests
     System.setProperty("kotlin.script.classpath", "");
-
-    setRealJdkPathForGradle();
   }
 
   private static void setupKotlinPlugin() {
@@ -94,25 +92,6 @@ public class IdeaTestSuiteBase {
       throw new RuntimeException(e);
     }
     return path;
-  }
-
-  /**
-   * Gradle cannot handle a JDK set up with symlinks. It gets confused
-   * and in two consecutive executions it thinks that we are calling it
-   * with two different JDKs. See
-   * https://discuss.gradle.org/t/gradle-daemon-different-context/2146/3
-   */
-  private static void setRealJdkPathForGradle() {
-    try {
-      Path jdk = TestUtils.getWorkspaceRoot().resolve("prebuilts/studio/jdk");
-      if (Files.exists(jdk)) {
-        Path file = jdk.resolve("BUILD").toRealPath();
-        System.setProperty("studio.dev.jdk", file.getParent().toString());
-      }
-    }
-    catch (IOException e) {
-      // Ignore if we cannot resolve symlinks.
-    }
   }
 
   /**

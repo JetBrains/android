@@ -179,9 +179,7 @@ public class EmbeddedDistributionPaths {
       }
 
       // Development build.
-      String jdkDevPath = System.getProperty("studio.dev.jdk", StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk").toString());
-      String relativePath = toSystemDependentName(jdkDevPath);
-      Path jdkRootPath = Paths.get(relativePath, "jdk11");
+      Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk/jdk11");
       if (SystemInfo.isWindows) {
         jdkRootPath = jdkRootPath.resolve("win");
       }
@@ -191,7 +189,22 @@ public class EmbeddedDistributionPaths {
       else if (SystemInfo.isMac) {
         jdkRootPath = jdkRootPath.resolve("mac");
       }
-      return getSystemSpecificJdkPath(jdkRootPath);
+      Path jdkDir = getSystemSpecificJdkPath(jdkRootPath);
+
+      // Resolve real path
+      //
+      // Gradle prior to 6.9 don't work well with symlinks
+      // see https://discuss.gradle.org/t/gradle-daemon-different-context/2146/3
+      // see https://github.com/gradle/gradle/issues/12840
+      //
+      // [WARNING] This effective escapes Bazel's sandbox. Remove as soon as possible.
+      try {
+        Path wellKnownJdkFile = jdkDir.resolve("release");
+        jdkDir = wellKnownJdkFile.toRealPath().getParent();
+      }
+      catch (IOException ignore) {
+      }
+      return jdkDir;
     } else {
       // Release build.
       String ideHomePath = getIdeHomePath();

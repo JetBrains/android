@@ -214,17 +214,8 @@ object GuiTestLauncher {
       options += "-D${AbstractAndroidLocations.ANDROID_PREFS_ROOT}=${IdeaTestSuiteBase.createTmpDir(".android")}"
       options += "-Dlayoutlib.thread.timeout=60000"
       options += "-Dresolve.descriptors.in.resources=true"
-      options += "-Dstudio.dev.jdk=${getJdkPathForGradle()}"
     }
     return options
-  }
-
-  private fun getJdkPathForGradle(): String? {
-    val jdk = TestUtils.resolveWorkspacePathUnchecked("prebuilts/studio/jdk")
-    if (Files.exists(jdk)) {
-      return jdk.resolve("BUILD").toRealPath().parent.toString()
-    }
-    return null
   }
 
   private fun getCurrentJavaExec(): String {
