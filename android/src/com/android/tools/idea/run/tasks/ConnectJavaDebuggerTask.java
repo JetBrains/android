@@ -15,21 +15,28 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import static com.android.tools.idea.run.debug.StartDebuggerKt.attachDebugger;
+import static com.android.tools.idea.run.debug.StartJavaDebuggerKt.getDebugProcessStarter;
+
 import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
-import com.android.tools.idea.run.debug.StartJavaDebuggerKt;
-import com.android.tools.idea.run.debug.UtilsKt;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestSuiteConstantsKt;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.impl.XDebugSessionImpl;
 import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.concurrency.Promise;
 
 public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
 
@@ -47,22 +54,29 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
 
     ProcessHandler processHandler = launchStatus.getProcessHandler();
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
-    Object androidTestResultListener = processHandler.getCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY);
+    ConsoleView androidTestResultListener =
+      (ConsoleView)processHandler.getCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY);
 
     logger.info("Attaching Java debugger");
-    StartJavaDebuggerKt.attachJavaDebuggerToClient(
-      myProject,
-      client,
-      currentLaunchInfo.env,
-      (ConsoleView)androidTestResultListener,
-      () -> {
-        processHandler.detachProcess();
-        return null;
-      },
-      (device) -> {
-        device.forceStop(myApplicationIds.get(0));
-        return Unit.INSTANCE;
-      }
-    ).onSuccess(XDebugSessionImpl::showSessionTab);
+
+    Function0<Unit> onDebugProcessStarted = () -> {
+      processHandler.detachProcess();
+      return null;
+    };
+    Function1<IDevice, Unit> onDebugProcessDestroyed = (device) -> {
+      device.forceStop(myApplicationIds.get(0));
+      return Unit.INSTANCE;
+    };
+
+    ExecutionEnvironment env = currentLaunchInfo.env;
+    Function0<Promise<XDebugProcessStarter>> debugProcessStarter = () ->
+      getDebugProcessStarter(env.getProject(),
+                             client,
+                             androidTestResultListener,
+                             onDebugProcessStarted,
+                             onDebugProcessDestroyed,
+                             false
+      );
+    attachDebugger(env.getProject(), client, env, debugProcessStarter).onSuccess(XDebugSessionImpl::showSessionTab);
   }
 }

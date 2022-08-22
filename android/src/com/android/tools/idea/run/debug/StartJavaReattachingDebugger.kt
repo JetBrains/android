@@ -77,8 +77,10 @@ fun startJavaReattachingDebugger(
 ): Promise<XDebugSessionImpl> {
 
   fun startJavaSession(client: Client, onDebugProcessStarted: (() -> Unit)?) =
-    attachJavaDebuggerToClient(project, client, environment, consoleViewToReuse, onDebugProcessStarted,
-                               onDebugProcessDestroyed = { it.forceStop(client.clientData.clientDescription) })
+    attachDebugger(project, client, environment) {
+      getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted,
+                             onDebugProcessDestroyed = { it.forceStop(client.clientData.clientDescription) }, false)
+    }
 
   return startReattachingDebugger(project, device, masterProcessHandler, applicationIds, ::startJavaSession, onDebugProcessStarted)
 }

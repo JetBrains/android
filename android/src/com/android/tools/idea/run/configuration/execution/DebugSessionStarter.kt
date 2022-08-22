@@ -19,7 +19,8 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ApplicationTerminator
-import com.android.tools.idea.run.debug.attachJavaDebuggerToClient
+import com.android.tools.idea.run.debug.attachDebugger
+import com.android.tools.idea.run.debug.getDebugProcessStarter
 import com.android.tools.idea.run.debug.waitForClientReadyForDebug
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
@@ -45,17 +46,11 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment, applica
 
     ProgressManager.checkCanceled()
     indicator?.text = "Attaching debugger"
-    return attachJavaDebuggerToClient(
-      project,
-      client,
-      environment,
-      consoleView,
-      null,
-      destroyRunningProcess
-    )
-      .onError {
-        destroyRunningProcess(device)
-        ApplicationTerminator(device, appId).killApp()  // Terminate the process to make it ready for future debugging.
-      }
+    return attachDebugger(project, client, environment) {
+      getDebugProcessStarter(project, client, consoleView, null, destroyRunningProcess, false)
+    }.onError {
+      destroyRunningProcess(device)
+      ApplicationTerminator(device, appId).killApp()  // Terminate the process to make it ready for future debugging.
+    }
   }
 }

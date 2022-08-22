@@ -43,7 +43,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
- * Tests for [attachJavaDebuggerToClient], method will eventually replace all [AndroidJavaDebugger] code.
+ * Tests for [AndroidJavaDebugger] code.
  */
 class AndroidJavaDebuggerTest {
   @get:Rule
@@ -86,9 +86,11 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testAllInformationForApplyChangesAndPositionManager() {
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment, null,
-                                             onDebugProcessDestroyed = { device -> device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME) }).blockingGet(10,
-                                                                                                                                TimeUnit.SECONDS)
+    val session = attachDebugger(project, client, executionEnvironment) {
+      getDebugProcessStarter(project, client, null, null,
+                             onDebugProcessDestroyed = ({ device -> device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME) }), false)
+    }.blockingGet(10, TimeUnit.SECONDS)
+
     val processHandler = session!!.debugProcess.processHandler
     // For AndroidPositionManager.
     assertThat(processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(26))
@@ -100,11 +102,11 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testSessionCreated() {
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment, null,
-                                             onDebugProcessDestroyed = { device ->
-                                               device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
-                                             }).blockingGet(10,
-                                                            TimeUnit.SECONDS)
+    val session = attachDebugger(project, client, executionEnvironment) {
+      getDebugProcessStarter(project, client, null, null,
+                             onDebugProcessDestroyed = ({ device -> device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME) }), false)
+    }.blockingGet(10,
+                  TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(session!!.sessionName).isEqualTo("myConfiguration")
   }
@@ -116,12 +118,11 @@ class AndroidJavaDebuggerTest {
       callbackCount++
     }
 
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
-                                             onDebugProcessStarted = onDebugProcessStarted,
-                                             onDebugProcessDestroyed = { device ->
-                                               device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
-                                             }).blockingGet(10,
-                                                            TimeUnit.SECONDS)
+    val session = attachDebugger(project, client, executionEnvironment) {
+      getDebugProcessStarter(project, client, null, onDebugProcessStarted,
+                             onDebugProcessDestroyed = ({ device -> device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME) }), false)
+    }.blockingGet(10,
+                  TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(callbackCount).isEqualTo(1)
   }
@@ -129,8 +130,10 @@ class AndroidJavaDebuggerTest {
   @Test
   fun testOnDebugProcessDestroyCallback() {
     val countDownLatch = CountDownLatch(1)
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
-                                             onDebugProcessDestroyed = { countDownLatch.countDown() }).blockingGet(10, TimeUnit.SECONDS)!!
+    val session = attachDebugger(project, client, executionEnvironment) {
+      getDebugProcessStarter(project, client, null, null,
+                             onDebugProcessDestroyed = { countDownLatch.countDown() }, false)
+    }.blockingGet(10, TimeUnit.SECONDS)!!
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
     if (!countDownLatch.await(10, TimeUnit.SECONDS)) {
@@ -165,11 +168,10 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testKillAppOnDestroy() {
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
-                                             onDebugProcessDestroyed = { device ->
-                                               device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
-                                             }).blockingGet(10,
-                                                            TimeUnit.SECONDS)!!
+    val session = attachDebugger(project, client, executionEnvironment) {
+      getDebugProcessStarter(project, client, null, null,
+                             onDebugProcessDestroyed = ({ device -> device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME) }), false)
+    }.blockingGet(10, TimeUnit.SECONDS)!!
 
     val countDownLatch = CountDownLatch(1)
 
@@ -197,11 +199,10 @@ class AndroidJavaDebuggerTest {
   @Test
   fun testVMExitedNotifierIsInvokedOnDetach() {
     val spyClient = Mockito.spy(client)
-    val session = attachJavaDebuggerToClient(project, spyClient, executionEnvironment,
-                                             onDebugProcessDestroyed = { device ->
-                                               device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
-                                             }).blockingGet(10,
-                                                            TimeUnit.SECONDS)!!
+    val session = attachDebugger(project, spyClient, executionEnvironment) {
+      getDebugProcessStarter(project, spyClient, null, null,
+                             onDebugProcessDestroyed = ({ device -> device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME) }), false)
+    }.blockingGet(10, TimeUnit.SECONDS)!!
 
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()
