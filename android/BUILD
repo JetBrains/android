@@ -234,6 +234,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib:apks",
         "//tools/adt/idea/android/lib:sampleData",
+        "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/compose-ide-plugin/testData",
@@ -245,6 +246,7 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
+    test_jvm_flags = ["-Djdk.attach.allowAttachSelf=true"],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_tags = [

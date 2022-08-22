@@ -27,16 +27,16 @@ import org.jetbrains.annotations.NotNull;
 public final class HeapStrongReferenceCountAction extends AnAction {
 
   private static final Logger LOG = Logger.getInstance(HeapStrongReferenceCountAction.class);
-  private static final int MAX_DEPTH = Integer.MAX_VALUE;
+  private static final int MAX_DEPTH = 100_000;
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     WeakList<Object> roots = new WeakList<>();
     roots.addAll(LeakHunter.allRoots().get().keySet());
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.getComponentSet());
-    HeapSnapshotTraverse.ErrorCode errorCode = new HeapSnapshotTraverse().walkObjects(MAX_DEPTH, roots, stats);
-    if (errorCode != HeapSnapshotTraverse.ErrorCode.OK) {
-      LOG.warn("Heap traversing finished with an error: " + errorCode.getDescription());
+    StatusCode statusCode = new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, roots);
+    if (statusCode != StatusCode.NO_ERROR) {
+      LOG.warn("Heap traversing finished with an error: " + statusCode);
     }
     stats.print(new PrintWriter(System.out, true, StandardCharsets.UTF_8));
   }

@@ -276,6 +276,7 @@ studio_plugin(
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/annotations:androidAnnotations",
             "//tools/adt/idea/emulator/native:native_lib",
+            "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:native_lib",
             "//tools/adt/idea/emulator/screen-sharing-agent:bundle",
             "//tools/base/app-inspection/inspectors/backgroundtask:bundle",
             "//tools/base/app-inspection/inspectors/network:bundle",

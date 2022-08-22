@@ -15,13 +15,25 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import com.android.annotations.Nullable;
+import java.lang.ref.WeakReference;
+import org.jetbrains.annotations.NotNull;
+
 class HeapTraverseNode {
   public RefWeight myOwnershipWeight = RefWeight.DEFAULT;
   public int myOwnedByComponentMask = 0;
-  public int myReachableFromComponentMask = 0;
   public int myRetainedMask = 0;
+  @NotNull
+  private final WeakReference<?> myWeakReference;
 
-  HeapTraverseNode() { }
+  HeapTraverseNode(@NotNull final Object obj) {
+    myWeakReference = new WeakReference<>(obj);
+  }
+
+  @Nullable
+  Object getObject() {
+    return myWeakReference.get();
+  }
 
   public enum RefWeight {
     DEFAULT,

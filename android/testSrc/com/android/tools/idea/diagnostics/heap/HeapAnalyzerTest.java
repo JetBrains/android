@@ -41,7 +41,7 @@ public class HeapAnalyzerTest {
                                                         "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B");
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.OK, new HeapSnapshotTraverse().walkObjects(MAX_DEPTH, List.of(new A()), stats));
+    Assert.assertEquals(StatusCode.NO_ERROR, new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A())));
 
     List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
@@ -62,8 +62,8 @@ public class HeapAnalyzerTest {
                                                         "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A");
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.OK,
-                        new HeapSnapshotTraverse().walkObjects(MAX_DEPTH, List.of(new A(), C.class), stats));
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(), C.class)));
 
     List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(1, componentStats.size());
@@ -103,10 +103,10 @@ public class HeapAnalyzerTest {
     // to initialize C class.
     C c = new C();
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.OK,
-                        new HeapSnapshotTraverse(new TestTraverseChildProcessor()).walkObjects(MAX_DEPTH,
-                                                                                               List.of(new A(new B()), c.getClass()),
-                                                                                               stats));
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(new TestTraverseChildProcessor(), stats).walkObjects(MAX_DEPTH,
+                                                                                                      List.of(new A(new B()),
+                                                                                                              c.getClass())));
 
     List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
@@ -128,14 +128,14 @@ public class HeapAnalyzerTest {
 
     B b = new B();
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.OK,
-                        new HeapSnapshotTraverse().walkObjects(MAX_DEPTH, List.of(new D(b), new A(b)), stats));
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(b), new A(b))));
 
     List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(1, componentStats.size());
     Assert.assertEquals("D", componentStats.get(0).getComponentName());
     Assert.assertEquals(3, componentStats.get(0).getOwnedObjectsNumber());
-    Assert.assertEquals(68, componentStats.get(0).getOwnedTotalSizeOfObjects());
+    Assert.assertEquals(56, componentStats.get(0).getOwnedTotalSizeOfObjects());
   }
 
   @Test
@@ -148,8 +148,8 @@ public class HeapAnalyzerTest {
 
     B b = new B();
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.OK,
-                        new HeapSnapshotTraverse().walkObjects(MAX_DEPTH, List.of(new D(b), new A(b)), stats));
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(b), new A(b))));
 
     List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
@@ -158,7 +158,7 @@ public class HeapAnalyzerTest {
     Assert.assertEquals(56, componentStats.get(0).getOwnedTotalSizeOfObjects());
     Assert.assertEquals("D", componentStats.get(1).getComponentName());
     Assert.assertEquals(2, componentStats.get(1).getOwnedObjectsNumber());
-    Assert.assertEquals(52, componentStats.get(1).getOwnedTotalSizeOfObjects());
+    Assert.assertEquals(40, componentStats.get(1).getOwnedTotalSizeOfObjects());
   }
 
   @Test
@@ -168,14 +168,14 @@ public class HeapAnalyzerTest {
                                                         "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$F");
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.OK, new HeapSnapshotTraverse().walkObjects(MAX_DEPTH, List.of(new F()), stats));
+    Assert.assertEquals(StatusCode.NO_ERROR, new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new F())));
 
     List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(1, componentStats.size());
     Assert.assertEquals("F", componentStats.get(0).getComponentName());
     // F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
     Assert.assertEquals(4, componentStats.get(0).getOwnedObjectsNumber());
-    Assert.assertEquals(92, componentStats.get(0).getOwnedTotalSizeOfObjects());
+    Assert.assertEquals(96, componentStats.get(0).getOwnedTotalSizeOfObjects());
   }
 
   @Test
@@ -187,8 +187,8 @@ public class HeapAnalyzerTest {
                                                         "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D");
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.OK,
-                        new HeapSnapshotTraverse().walkObjects(MAX_DEPTH, List.of(new D(new B())), stats));
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(new B()))));
 
     List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
@@ -196,9 +196,9 @@ public class HeapAnalyzerTest {
     Assert.assertEquals("D", componentStats.get(1).getComponentName());
 
     Assert.assertEquals(2, componentStats.get(1).getOwnedObjectsNumber());
-    Assert.assertEquals(52, componentStats.get(1).getOwnedTotalSizeOfObjects());
+    Assert.assertEquals(40, componentStats.get(1).getOwnedTotalSizeOfObjects());
     Assert.assertEquals(3, componentStats.get(1).getRetainedObjectsNumber());
-    Assert.assertEquals(68, componentStats.get(1).getRetainedTotalSizeOfObjects());
+    Assert.assertEquals(56, componentStats.get(1).getRetainedTotalSizeOfObjects());
   }
 
   @org.junit.Ignore("b/243081723")
@@ -214,8 +214,8 @@ public class HeapAnalyzerTest {
     Disposer.register(c, b);
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.OK,
-                        new HeapSnapshotTraverse().walkObjects(MAX_DEPTH, List.of(new A(b), c), stats));
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(b), c)));
     Disposer.dispose(c);
 
     List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
@@ -235,12 +235,12 @@ public class HeapAnalyzerTest {
   public void testTraverseReturnLowMemoryError() {
     ComponentsSet componentsSet = new ComponentsSet();
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    HeapSnapshotTraverse traverse = new HeapSnapshotTraverse();
+    HeapSnapshotTraverse traverse = new HeapSnapshotTraverse(stats);
 
     LowMemoryWatcher.onLowMemorySignalReceived(false);
 
-    Assert.assertEquals(HeapSnapshotTraverse.ErrorCode.LOW_MEMORY,
-                        traverse.walkObjects(MAX_DEPTH, List.of(new A()), stats));
+    Assert.assertEquals(StatusCode.LOW_MEMORY,
+                        traverse.walkObjects(MAX_DEPTH, List.of(new A())));
   }
 
   private static class A {
@@ -251,7 +251,7 @@ public class HeapAnalyzerTest {
       myB = b;
     }
 
-    private A() {}
+    private A() { }
   }
 
   private static class B implements Disposable {

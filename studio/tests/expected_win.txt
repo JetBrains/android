@@ -1682,6 +1682,7 @@ android-studio/plugins/android/resources/installer/armeabi-v7a/installer
 android-studio/plugins/android/resources/installer/x86/installer
 android-studio/plugins/android/resources/installer/x86_64/installer
 android-studio/plugins/android/resources/native/image_converter.dll
+android-studio/plugins/android/resources/native/jni_object_tagger.dll
 android-studio/plugins/android/resources/perfa.jar
 android-studio/plugins/android/resources/perfa_okhttp.dex
 android-studio/plugins/android/resources/perfetto/arm64-v8a/libperfetto.so

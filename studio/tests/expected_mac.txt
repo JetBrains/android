@@ -2243,6 +2243,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/installer/armeabi-
 Android Studio Preview.app/Contents/plugins/android/resources/installer/x86/installer
 Android Studio Preview.app/Contents/plugins/android/resources/installer/x86_64/installer
 Android Studio Preview.app/Contents/plugins/android/resources/native/libimage_converter.dylib
+Android Studio Preview.app/Contents/plugins/android/resources/native/libjni_object_tagger.dylib
 Android Studio Preview.app/Contents/plugins/android/resources/perfa.jar
 Android Studio Preview.app/Contents/plugins/android/resources/perfa_okhttp.dex
 Android Studio Preview.app/Contents/plugins/android/resources/perfetto/arm64-v8a/libperfetto.so
