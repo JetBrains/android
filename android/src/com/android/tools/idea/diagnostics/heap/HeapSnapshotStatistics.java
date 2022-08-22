@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.diagnostic.hprof.util.HeapReportUtils;
@@ -27,15 +28,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 
 final class HeapSnapshotStatistics {
 
   @NotNull
-  private final HeapSnapshotStatistics.ClusterObjectsStatistics myNonComponentStats = new ClusterObjectsStatistics();
+  private final ClusterObjectsStatistics myNonComponentStats = new ClusterObjectsStatistics();
 
   @NotNull
-  private final HeapSnapshotStatistics.ClusterObjectsStatistics myTotalStats = new ClusterObjectsStatistics();
+  private final ClusterObjectsStatistics.MemoryTrafficStatistics
+    myTotalStats = new ClusterObjectsStatistics.MemoryTrafficStatistics();
   @NotNull
   private final List<ComponentClusterObjectsStatistics> myComponentStats = Lists.newArrayList();
   @NotNull
@@ -74,48 +77,59 @@ final class HeapSnapshotStatistics {
     return myCategoryComponentStats;
   }
 
-  public void addObjectSizeToSharedComponent(int sharedMask, long size) {
+  public void addObjectSizeToSharedComponent(int sharedMask, long size, short objectAge) {
     if (!myMaskToSharedComponentStats.containsKey(sharedMask)) {
       List<Integer> components = Lists.newArrayList();
       processMask(sharedMask, (index) -> components.add(myComponentsSet.getComponents().get(index).getId()));
       myMaskToSharedComponentStats.put(sharedMask, new SharedClusterStatistics(components));
     }
-    myMaskToSharedComponentStats.get(sharedMask).getStatistics().addOwnedObject(size);
+    myMaskToSharedComponentStats.get(sharedMask).getStatistics().addObject(size, objectAge);
   }
 
-  public void addOwnedObjectSizeToComponent(int componentId, long size) {
-    myComponentStats.get(componentId).addOwnedObject(size);
+  public void addOwnedObjectSizeToComponent(int componentId, long size, short objectAge) {
+    myComponentStats.get(componentId).addOwnedObject(size, objectAge);
   }
 
-  public void addObjectToTotal(long size) {
-    myTotalStats.addOwnedObject(size);
+  public void addObjectToTotal(long size, short objectAge) {
+    myTotalStats.addObject(size, objectAge);
   }
 
-  public void addRetainedObjectSizeToCategoryComponent(int categoryId, long size) {
-    myCategoryComponentStats.get(categoryId).addRetainedObject(size);
+  public void addRetainedObjectSizeToCategoryComponent(int categoryId, long size, short objectAge) {
+    myCategoryComponentStats.get(categoryId).addRetainedObject(size, objectAge);
   }
 
-  public void addOwnedObjectSizeToCategoryComponent(int categoryId, long size) {
-    myCategoryComponentStats.get(categoryId).addOwnedObject(size);
+  public void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, short objectAge) {
+    myCategoryComponentStats.get(categoryId).addOwnedObject(size, objectAge);
   }
 
-  public void addRetainedObjectSizeToComponent(int componentID, long size) {
-    myComponentStats.get(componentID).addRetainedObject(size);
+  public void addRetainedObjectSizeToComponent(int componentID, long size, short objectAge) {
+    myComponentStats.get(componentID).addRetainedObject(size, objectAge);
   }
 
-  public void addNonComponentObject(long size) {
-    myNonComponentStats.addOwnedObject(size);
+  public void addNonComponentObject(long size, short objectAge) {
+    myNonComponentStats.addOwnedObject(size, objectAge);
   }
 
   private void printClusterStats(@NotNull final PrintWriter out,
-                                 @NotNull final HeapSnapshotStatistics.ClusterObjectsStatistics.ObjectsStatistics statistics) {
-    out.printf("    [%s/%d]\n", HeapReportUtils.INSTANCE.toShortStringAsCount(statistics.getTotalSizeOfObjects()),
-               statistics.getObjectsNumber());
+                                 @NotNull final ClusterObjectsStatistics.MemoryTrafficStatistics statistics) {
+    out.printf("    [%s/%d]\n", HeapReportUtils.INSTANCE.toShortStringAsSize(statistics.myObjectsStat.getTotalSizeInBytes()),
+               statistics.myObjectsStat.getObjectsCount());
+
+    out.printf("    Newly allocated objects [%s/%d]\n",
+               HeapReportUtils.INSTANCE.toShortStringAsSize(statistics.myNewObjectsStat.getTotalSizeInBytes()),
+               statistics.myNewObjectsStat.getObjectsCount());
+
+    for (int i = 0; i < ClusterObjectsStatistics.MAX_TRACKED_OBJECT_AGE; i++) {
+      out.printf("    Objects allocated at least %d iterations before [%s/%d]\n", i + 1,
+                 HeapReportUtils.INSTANCE.toShortStringAsSize(
+                   statistics.myPreviousSnapshotsRemainedObjectsStats.get(i).getTotalSizeInBytes()),
+                 statistics.myPreviousSnapshotsRemainedObjectsStats.get(i).getObjectsCount());
+    }
   }
 
   void print(@NotNull final PrintWriter out) {
     out.print("Total:\n");
-    printClusterStats(out, myTotalStats.myOwnedClusterStat);
+    printClusterStats(out, myTotalStats);
 
     out.printf("Categories:\n");
     for (CategoryClusterObjectsStatistics stat : myCategoryComponentStats) {
@@ -139,9 +153,7 @@ final class HeapSnapshotStatistics {
       out.printf("Shared component %s:\n",
                  entry.getValue().getComponentKinds().stream().map(i -> myComponentsSet.getComponents().get(i).getComponentLabel()).collect(
                    Collectors.toList()));
-      printClusterStats(out, entry.getValue().getStatistics().getOwnedClusterStat());
-      out.printf("  Retained stat:\n");
-      printClusterStats(out, entry.getValue().getStatistics().getRetainedClusterStat());
+      printClusterStats(out, entry.getValue().getStatistics());
     }
   }
 
@@ -182,15 +194,15 @@ final class HeapSnapshotStatistics {
     @NotNull
     private final Collection<Integer> myComponentKinds;
     @NotNull
-    private final ClusterObjectsStatistics myStatistics;
+    private final ClusterObjectsStatistics.MemoryTrafficStatistics myStatistics;
 
     private SharedClusterStatistics(@NotNull final Collection<Integer> components) {
       myComponentKinds = components;
-      myStatistics = new ClusterObjectsStatistics();
+      myStatistics = new ClusterObjectsStatistics.MemoryTrafficStatistics();
     }
 
     @NotNull
-    private ClusterObjectsStatistics getStatistics() {
+    private ClusterObjectsStatistics.MemoryTrafficStatistics getStatistics() {
       return myStatistics;
     }
 
@@ -230,44 +242,82 @@ final class HeapSnapshotStatistics {
 
   static class ClusterObjectsStatistics {
 
+    public static final int MAX_TRACKED_OBJECT_AGE = 4;
     @NotNull
-    private final ObjectsStatistics myRetainedClusterStat = new ObjectsStatistics();
+    private final MemoryTrafficStatistics myRetainedClusterStat = new MemoryTrafficStatistics();
     @NotNull
-    private final ObjectsStatistics myOwnedClusterStat = new ObjectsStatistics();
+    private final MemoryTrafficStatistics myOwnedClusterStat = new MemoryTrafficStatistics();
 
-    public void addOwnedObject(long size) {
-      myOwnedClusterStat.addObject(size);
+    public void addOwnedObject(long size, short objectAge) {
+      myOwnedClusterStat.addObject(size, objectAge);
     }
 
-    public void addRetainedObject(long size) {
-      myRetainedClusterStat.addObject(size);
+    public void addRetainedObject(long size, short objectAge) {
+      myRetainedClusterStat.addObject(size, objectAge);
     }
 
     @NotNull
-    public ObjectsStatistics getOwnedClusterStat() {
+    public MemoryTrafficStatistics getOwnedClusterStat() {
       return myOwnedClusterStat;
     }
 
     @NotNull
-    public ObjectsStatistics getRetainedClusterStat() {
+    public MemoryTrafficStatistics getRetainedClusterStat() {
       return myRetainedClusterStat;
     }
 
-    static class ObjectsStatistics {
-      private int myObjectsNumber = 0;
-      private long myTotalSizeOfObjects = 0;
+    static class MemoryTrafficStatistics {
+      @NotNull
+      private final ObjectsStatistics myObjectsStat = new ObjectsStatistics();
+      @NotNull
+      private final ObjectsStatistics myNewObjectsStat = new ObjectsStatistics();
+      @NotNull
+      private final List<ObjectsStatistics> myPreviousSnapshotsRemainedObjectsStats =
+        IntStream.range(0, MAX_TRACKED_OBJECT_AGE).mapToObj(x -> new ObjectsStatistics()).collect(Collectors.toList());
 
-      private void addObject(long size) {
-        myObjectsNumber++;
-        myTotalSizeOfObjects += size;
+      public void addObject(long size, short objectAge) {
+        myObjectsStat.addObject(size);
+
+        if (objectAge == 0) {
+          myNewObjectsStat.addObject(size);
+          return;
+        }
+        if (StudioFlags.MEMORY_TRAFFIC_TRACK_OLDER_GENERATIONS.get()) {
+          if (objectAge >= MAX_TRACKED_OBJECT_AGE) {
+            objectAge = MAX_TRACKED_OBJECT_AGE;
+          }
+          myPreviousSnapshotsRemainedObjectsStats.get(objectAge - 1).addObject(size);
+        }
       }
 
-      int getObjectsNumber() {
-        return myObjectsNumber;
+      public ObjectsStatistics getObjectsStatistics() {
+        return myObjectsStat;
       }
 
-      long getTotalSizeOfObjects() {
-        return myTotalSizeOfObjects;
+      public ObjectsStatistics getNewObjectsStatistics() {
+        return myNewObjectsStat;
+      }
+
+      public List<ObjectsStatistics> getPreviousSnapshotsRemainedObjectsStatistics() {
+        return myPreviousSnapshotsRemainedObjectsStats;
+      }
+
+      static class ObjectsStatistics {
+        private int myObjectsCount = 0;
+        private long myTotalSizeInBytes = 0;
+
+        private void addObject(long size) {
+          myObjectsCount++;
+          myTotalSizeInBytes += size;
+        }
+
+        int getObjectsCount() {
+          return myObjectsCount;
+        }
+
+        long getTotalSizeInBytes() {
+          return myTotalSizeInBytes;
+        }
       }
     }
   }

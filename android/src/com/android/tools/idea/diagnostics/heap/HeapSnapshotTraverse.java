@@ -63,14 +63,14 @@ public final class HeapSnapshotTraverse {
   private static final int INVALID_OBJECT_ID = -1;
   private static final int MAX_DEPTH = 100_000;
 
-  private static final long OBJECT_CREATION_TIMESTAMP_MASK = 0xFF;
-  private static final long CURRENT_ITERATION_TIMESTAMP_MASK = 0xFF00;
+  private static final long OBJECT_CREATION_ITERATION_ID_MASK = 0xFF;
+  private static final long CURRENT_ITERATION_ID_MASK = 0xFF00;
   private static final long CURRENT_ITERATION_VISITED_MASK = 0x10000;
   private static final long CURRENT_ITERATION_OBJECT_ID_MASK = 0x1FFFFFFFE0000L;
 
   private static final int CURRENT_ITERATION_OBJECT_ID_OFFSET = 17;
-  // 8(creation timestamp mask) + 8(current iteration timestamp mask) + 1(visited mask)
-  private static final int CURRENT_ITERATION_TIMESTAMP_OFFSET = 8; // 8(creation timestamp mask)
+  // 8(creation iteration id mask) + 8(current iteration id mask) + 1(visited mask)
+  private static final int CURRENT_ITERATION_ID_OFFSET = 8;
 
   private static final String DIAGNOSTICS_HEAP_NATIVE_PATH =
     "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native";
@@ -78,7 +78,7 @@ public final class HeapSnapshotTraverse {
   private static final String RESOURCES_NATIVE_PATH = "plugins/android/resources/native";
   private static final Logger LOG = Logger.getInstance(HeapSnapshotTraverse.class);
   static boolean ourAgentWasSuccessfullyLoaded = false;
-  private static short ourTraverseSessionId = 0;
+  private static short ourIterationId = 0;
 
   private volatile boolean myShouldAbortTraversal = false;
 
@@ -94,7 +94,7 @@ public final class HeapSnapshotTraverse {
 
   @NotNull private final LowMemoryWatcher myWatcher;
   @NotNull private final HeapTraverseChildProcessor myHeapTraverseChildProcessor;
-  private final short myTraverseSessionId;
+  private final short myIterationId;
   @NotNull private final HeapSnapshotStatistics myStatistics;
   private int myLastObjectId = 0;
 
@@ -105,7 +105,7 @@ public final class HeapSnapshotTraverse {
   public HeapSnapshotTraverse(@NotNull final HeapTraverseChildProcessor childProcessor, @NotNull final HeapSnapshotStatistics statistics) {
     myWatcher = LowMemoryWatcher.register(this::onLowMemorySignalReceived);
     myHeapTraverseChildProcessor = childProcessor;
-    myTraverseSessionId = getNextTraverseSessionId();
+    myIterationId = getNextIterationId();
     myStatistics = statistics;
   }
 
@@ -137,7 +137,7 @@ public final class HeapSnapshotTraverse {
         depthFirstTraverseHeapObjects(root, maxDepth, fieldCache);
       }
       // By this moment all the reachable heap objects are enumerated in topological order and marked as visited.
-      // Order id, visited and the iteration identification timestamp are stored in objects tags.
+      // Order id, visited and the iteration id are stored in objects tags.
       // We also use this enumeration to kind of "freeze" the state of the heap, and we will ignore all the newly allocated object
       // that were allocated after the enumeration pass.
       final Map<Integer, HeapTraverseNode> objectIdToTraverseNode = new Int2ObjectOpenHashMap<>();
@@ -176,8 +176,10 @@ public final class HeapSnapshotTraverse {
         // Check whether the current object is a root of one of the components
         ComponentsSet.Component currentObjectComponent = myStatistics.getComponentsSet().getComponentOfObject(currentObject);
         long currentObjectSize = getObjectSize(currentObject);
+        short currentObjectCreationIterationId = getObjectCreationIterationId(currentObject);
+        short currentObjectAge = (short)(myIterationId - currentObjectCreationIterationId);
 
-        myStatistics.addObjectToTotal(currentObjectSize);
+        myStatistics.addObjectToTotal(currentObjectSize, currentObjectAge);
 
         // if it's a root of a component
         if (currentObjectComponent != null) {
@@ -188,10 +190,11 @@ public final class HeapSnapshotTraverse {
         }
 
         // If current object is retained by any components - propagate their stats.
-        processMask(node.myRetainedMask, (index) -> myStatistics.addRetainedObjectSizeToComponent(index, currentObjectSize));
+        processMask(node.myRetainedMask,
+                    (index) -> myStatistics.addRetainedObjectSizeToComponent(index, currentObjectSize, currentObjectAge));
         // If current object is retained by any component categories - propagate their stats.
         processMask(node.myRetainedMaskForCategories,
-                    (index) -> myStatistics.addRetainedObjectSizeToCategoryComponent(index, currentObjectSize));
+                    (index) -> myStatistics.addRetainedObjectSizeToCategoryComponent(index, currentObjectSize, currentObjectAge));
 
         AtomicInteger categoricalOwnedMask = new AtomicInteger();
         processMask(node.myOwnedByComponentMask,
@@ -200,19 +203,20 @@ public final class HeapSnapshotTraverse {
                       1 << myStatistics.getComponentsSet().getComponents().get(index).getComponentCategory().getId()));
         if (isPowerOfTwo(categoricalOwnedMask.get())) {
           processMask(categoricalOwnedMask.get(),
-                      (index) -> myStatistics.addOwnedObjectSizeToCategoryComponent(index, currentObjectSize));
+                      (index) -> myStatistics.addOwnedObjectSizeToCategoryComponent(index, currentObjectSize, currentObjectAge));
         }
 
         if (node.myOwnedByComponentMask == 0) {
-          myStatistics.addNonComponentObject(currentObjectSize);
+          myStatistics.addNonComponentObject(currentObjectSize, currentObjectAge);
         }
         else if (isPowerOfTwo(node.myOwnedByComponentMask)) {
           // if only owned by one component
-          processMask(node.myOwnedByComponentMask, (index) -> myStatistics.addOwnedObjectSizeToComponent(index, currentObjectSize));
+          processMask(node.myOwnedByComponentMask,
+                      (index) -> myStatistics.addOwnedObjectSizeToComponent(index, currentObjectSize, currentObjectAge));
         }
         else {
           // if owned by multiple components -> add to shared
-          myStatistics.addObjectSizeToSharedComponent(node.myOwnedByComponentMask, currentObjectSize);
+          myStatistics.addObjectSizeToSharedComponent(node.myOwnedByComponentMask, currentObjectSize, currentObjectAge);
         }
 
         // propagate to referred objects
@@ -243,21 +247,21 @@ public final class HeapSnapshotTraverse {
    */
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   private boolean isTagFromTheCurrentIteration(long tag) {
-    return ((tag & CURRENT_ITERATION_TIMESTAMP_MASK) >> CURRENT_ITERATION_TIMESTAMP_OFFSET) == myTraverseSessionId;
+    return ((tag & CURRENT_ITERATION_ID_MASK) >> CURRENT_ITERATION_ID_OFFSET) == myIterationId;
   }
 
-  private short getObjectCreationTimestamp(@NotNull final Object obj) {
+  private short getObjectCreationIterationId(@NotNull final Object obj) {
     long tag = getObjectTag(obj);
-    return (short)(tag & OBJECT_CREATION_TIMESTAMP_MASK);
+    return (short)(tag & OBJECT_CREATION_ITERATION_ID_MASK);
   }
 
-  private void checkObjectCreationTimestampAndSetIfNot(@NotNull final Object obj) {
+  private void checkObjectCreationIterationIdAndSetIfNot(@NotNull final Object obj) {
     long tag = getObjectTag(obj);
-    int creationTimestamp = (int)(tag & OBJECT_CREATION_TIMESTAMP_MASK);
-    if (creationTimestamp == 0) {
-      tag &= ~myTraverseSessionId;
-      tag |= myTraverseSessionId;
-      setObjectTag(obj, tag | myTraverseSessionId);
+    int creationIterationId = (int)(tag & OBJECT_CREATION_ITERATION_ID_MASK);
+    if (creationIterationId == 0) {
+      tag &= ~myIterationId;
+      tag |= myIterationId;
+      setObjectTag(obj, tag | myIterationId);
     }
   }
 
@@ -282,8 +286,8 @@ public final class HeapSnapshotTraverse {
     long tag = getObjectTag(obj);
     tag &= ~CURRENT_ITERATION_OBJECT_ID_MASK;
     tag |= (long)newObjectId << CURRENT_ITERATION_OBJECT_ID_OFFSET;
-    tag &= ~CURRENT_ITERATION_TIMESTAMP_MASK;
-    tag |= (long)myTraverseSessionId << CURRENT_ITERATION_TIMESTAMP_OFFSET;
+    tag &= ~CURRENT_ITERATION_ID_MASK;
+    tag |= (long)myIterationId << CURRENT_ITERATION_ID_OFFSET;
     setObjectTag(obj, tag);
   }
 
@@ -291,8 +295,8 @@ public final class HeapSnapshotTraverse {
     long tag = getObjectTag(obj);
     tag &= ~CURRENT_ITERATION_VISITED_MASK;
     tag |= CURRENT_ITERATION_VISITED_MASK;
-    tag &= ~CURRENT_ITERATION_TIMESTAMP_MASK;
-    tag |= (long)myTraverseSessionId << CURRENT_ITERATION_TIMESTAMP_OFFSET;
+    tag &= ~CURRENT_ITERATION_ID_MASK;
+    tag |= (long)myIterationId << CURRENT_ITERATION_ID_OFFSET;
     setObjectTag(obj, tag);
   }
 
@@ -332,8 +336,8 @@ public final class HeapSnapshotTraverse {
 
     /*
     Object tags have the following structure (in right-most bit order):
-    8bits - object creation timestamp
-    8bits - current timestamp (used for validation of below fields)
+    8bits - object creation iteration id
+    8bits - current iteration id (used for validation of below fields)
     1bit - visited
     32bits - topological order id
    */
@@ -359,7 +363,7 @@ public final class HeapSnapshotTraverse {
       // add to the topological order when ascending from the recursive subtree.
       if (node.myReferencesProcessed) {
         if (node.getObject() != null) {
-          checkObjectCreationTimestampAndSetIfNot(obj);
+          checkObjectCreationIterationIdAndSetIfNot(obj);
           setObjectId(node.getObject(), getNextObjectId());
         }
         stack.pop();
@@ -515,8 +519,8 @@ public final class HeapSnapshotTraverse {
     throw new HeapSnapshotTraverseException(StatusCode.AGENT_LOAD_FAILED);
   }
 
-  private static short getNextTraverseSessionId() {
-    return ++ourTraverseSessionId;
+  private static short getNextIterationId() {
+    return ++ourIterationId;
   }
 
   private static void loadObjectTaggingAgent() throws HeapSnapshotTraverseException, IOException {
