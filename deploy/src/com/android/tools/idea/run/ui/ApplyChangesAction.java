@@ -18,6 +18,8 @@ package com.android.tools.idea.run.ui;
 import static icons.StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES;
 
 import com.android.tools.idea.run.util.SwapInfo;
+import com.intellij.execution.ExecutionTarget;
+import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -56,11 +58,13 @@ public class ApplyChangesAction extends BaseAction {
 
     Project project = e.getProject();
     if (project == null) {
-        return;
+      return;
     }
 
     // Disable "Apply Changes" for any kind of test project.
     RunnerAndConfigurationSettings runConfig = RunManager.getInstance(project).getSelectedConfiguration();
+    ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
+
     if (runConfig != null) {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();
@@ -70,7 +74,7 @@ public class ApplyChangesAction extends BaseAction {
         return;
       }
 
-      ProcessHandler handler = findRunningProcessHandler(project, runConfig.getConfiguration());
+      ProcessHandler handler = findRunningProcessHandler(project, runConfig.getConfiguration(), selectedExecutionTarget);
       if (handler != null && getExecutor(handler) == DefaultDebugExecutor.getDebugExecutorInstance()) {
         disableAction(e.getPresentation(), new DisableMessage(DisableMessage.DisableMode.DISABLED, "debug execution",
                                                               "it is currently not allowed during debugging"));

@@ -26,6 +26,7 @@ import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.run.util.SwapInfo.SwapType;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
@@ -143,12 +144,14 @@ public abstract class BaseAction extends AnAction {
     }
 
     RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
+    ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
+
     if (settings == null) {
       LOG.warn(myName + " action could not locate current run config settings");
       return;
     }
 
-    ProcessHandler handler = findRunningProcessHandler(project, settings.getConfiguration());
+    ProcessHandler handler = findRunningProcessHandler(project, settings.getConfiguration(), selectedExecutionTarget);
     Executor executor = findRunningExecutor(handler);
     if (executor == null) {
       LOG.warn(myName + " action could not identify executor of existing running application");
@@ -178,12 +181,13 @@ public abstract class BaseAction extends AnAction {
     }
 
     RunConfiguration selectedRunConfig = configSettings.getConfiguration();
+    ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
     if (!isApplyChangesRelevant(selectedRunConfig)) {
       return new DisableMessage(DisableMessage.DisableMode.INVISIBLE, "unsupported configuration",
                                 "the selected configuration is not supported");
     }
 
-    if (!programRunnerAvailable(selectedRunConfig)) {
+    if (!programRunnerAvailable(selectedRunConfig, selectedExecutionTarget)) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no runner available",
                                 "there are no Program Runners available to run the given configuration (perhaps project needs a sync?)");
     }
@@ -259,12 +263,6 @@ public abstract class BaseAction extends AnAction {
     return false;
   }
 
-  private static boolean programRunnerAvailable(@NotNull RunConfiguration config) {
-    ProcessHandler handler = findRunningProcessHandler(config.getProject(), config);
-    Executor executor = findRunningExecutor(handler);
-    return executor != null && ProgramRunner.getRunner(executor.getId(), config) != null;
-  }
-
   /**
    * Check if there are any executors of the current {@link RunConfiguration} that is starting up. We should not swap when this is true.
    */
@@ -282,6 +280,12 @@ public abstract class BaseAction extends AnAction {
     return false;
   }
 
+  private static boolean programRunnerAvailable(@NotNull RunConfiguration config, ExecutionTarget selectedExecutionTarget) {
+    ProcessHandler handler = findRunningProcessHandler(config.getProject(), config, selectedExecutionTarget);
+    Executor executor = findRunningExecutor(handler);
+    return executor != null && ProgramRunner.getRunner(executor.getId(), config) != null;
+  }
+
   private static @Nullable Executor findRunningExecutor(@Nullable ProcessHandler handler) {
     return handler == null
            // If we can't find an existing executor (e.g. app was started directly on device), just use the Run Executor.
@@ -290,14 +294,15 @@ public abstract class BaseAction extends AnAction {
   }
 
   @Nullable
-  protected static ProcessHandler findRunningProcessHandler(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
+  public static ProcessHandler findRunningProcessHandler(@NotNull Project project, @NotNull RunConfiguration runConfiguration, @NotNull
+  ExecutionTarget executionTarget) {
     for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
       SwappableProcessHandler extension = handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY);
       if (extension == null) {
         continue; // We may have a non-swappable process running.
       }
 
-      if (extension.isRunningWith(runConfiguration, ExecutionTargetManager.getActiveTarget(project)) &&
+      if (extension.isRunningWith(runConfiguration, executionTarget) &&
           handler.isStartNotified() &&
           !handler.isProcessTerminating() &&
           !handler.isProcessTerminated()) {
