@@ -44,7 +44,8 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <toolWindow factoryClass="com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory"
+    <library.toolWindow factoryClass="com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory"
+                librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
                 id="Layout Validation" anchor="right" icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW" canCloseContents="false" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" headlessImplementation="" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />

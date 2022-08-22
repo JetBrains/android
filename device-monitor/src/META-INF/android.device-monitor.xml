@@ -21,7 +21,8 @@
     <applicationService serviceImplementation="com.android.tools.idea.device.monitor.options.DeviceMonitorSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.device.monitor.adbimpl.AdbDeviceListService"/>
     <!-- TODO: Custom icon -->
-    <toolWindow id="Device Monitor"
+    <library.toolWindow id="Device Monitor"
+                librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
                 anchor="right"
                 secondary="true"
                 icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"

@@ -486,7 +486,8 @@
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidPropertiesUsageType" order="first" />
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
 
-    <toolWindow id="Logcat"
+    <library.toolWindow id="Logcat"
+                      librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
                       factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>

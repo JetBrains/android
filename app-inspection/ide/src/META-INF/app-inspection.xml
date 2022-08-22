@@ -19,7 +19,8 @@
     <applicationService
         serviceInterface="com.android.tools.idea.appinspection.ide.InspectorArtifactService"
         serviceImplementation="com.android.tools.idea.appinspection.ide.InspectorArtifactServiceImpl"/>
-    <toolWindow id="App Inspection"
+    <library.toolWindow id="App Inspection"
+                      librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.INSPECTION"
                       factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
