@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.annotator.check.device
 
 import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
 import com.android.tools.idea.compose.annotator.check.common.ParameterRule.Companion.simpleParameterRule
+import com.android.tools.idea.compose.pickers.preview.property.DimUnit
+import com.android.tools.idea.compose.pickers.preview.property.Orientation
+import com.android.tools.idea.compose.pickers.preview.property.Shape
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
-import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
-import com.android.tools.idea.compose.preview.pickers.properties.Orientation
-import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.kotlin.enumValueOfOrNull
 
 /**

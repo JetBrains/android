@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.annotator.check.device
 
 import com.android.tools.idea.compose.annotator.check.common.ExpectedValueType
 import com.android.tools.idea.compose.annotator.check.common.ParameterRule
+import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
-import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.util.device.convertToDeviceSpecDimension
 import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.intellij.openapi.actionSystem.DataProvider

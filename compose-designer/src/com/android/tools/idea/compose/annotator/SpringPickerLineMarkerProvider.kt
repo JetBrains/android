@@ -16,12 +16,12 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.SdkConstants
+import com.android.tools.idea.compose.pickers.PsiPickerManager
+import com.android.tools.idea.compose.pickers.spring.model.SpringPickerPropertiesModel
 import com.android.tools.idea.compose.preview.DECLARATION_FLOAT_SPEC
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING_SPEC
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
-import com.android.tools.idea.compose.preview.pickers.properties.SpringPickerPropertyModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
@@ -97,7 +97,7 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       }
     }
     val model =
-      SpringPickerPropertyModel(
+      SpringPickerPropertiesModel(
         project = module.project,
         module = module,
         resolvedCall = resolvedCall

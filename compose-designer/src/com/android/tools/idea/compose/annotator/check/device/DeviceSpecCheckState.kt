@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.annotator.check.device
 
-import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.intellij.openapi.actionSystem.DataKey
 
 internal val DeviceSpecCheckStateKey =

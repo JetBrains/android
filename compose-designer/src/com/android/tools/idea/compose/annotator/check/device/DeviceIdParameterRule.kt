@@ -18,8 +18,8 @@ package com.android.tools.idea.compose.annotator.check.device
 import com.android.tools.idea.compose.annotator.check.common.ExpectedValueType
 import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
 import com.android.tools.idea.compose.annotator.check.common.ParameterRule
-import com.android.tools.idea.compose.preview.pickers.properties.AvailableDevicesKey
-import com.android.tools.idea.compose.preview.pickers.properties.utils.DEFAULT_DEVICE_ID
+import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
+import com.android.tools.idea.compose.pickers.preview.utils.DEFAULT_DEVICE_ID
 import com.intellij.openapi.actionSystem.DataProvider
 
 /** [ParameterRule] that checks that the parameter's value corresponds to an existing Device ID. */

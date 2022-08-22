@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.idea.compose.pickers.PsiPickerManager
+import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
+import com.android.tools.idea.compose.pickers.preview.tracking.PreviewPickerTracker
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
-import com.android.tools.idea.compose.preview.pickers.properties.PreviewPickerPropertyModel
-import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -114,7 +114,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       { message("picker.preview.annotator.tooltip") },
       { mouseEvent, _ ->
         val model =
-          PreviewPickerPropertyModel.fromPreviewElement(
+          PreviewPickerPropertiesModel.fromPreviewElement(
             project,
             module,
             previewElementDefinitionPsi,

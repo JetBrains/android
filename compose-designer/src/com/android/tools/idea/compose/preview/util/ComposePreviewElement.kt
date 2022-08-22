@@ -30,9 +30,9 @@ import com.android.sdklib.devices.Device
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
+import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.preview.hasPreviewElements
-import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
-import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.PreviewDisplaySettings

@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.annotator.check.device
 
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.compose.preview.pickers.properties.AvailableDevicesKey
-import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
-import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
-import com.android.tools.idea.compose.preview.pickers.properties.Shape
-import com.android.tools.idea.compose.preview.pickers.properties.utils.createDeviceInstance
+import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
+import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
+import com.android.tools.idea.compose.pickers.preview.property.DimUnit
+import com.android.tools.idea.compose.pickers.preview.property.Shape
+import com.android.tools.idea.compose.pickers.preview.utils.createDeviceInstance
 import com.intellij.openapi.actionSystem.DataProvider
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

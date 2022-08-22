@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
-import com.android.tools.idea.compose.preview.pickers.properties.Orientation
-import com.android.tools.idea.compose.preview.pickers.properties.Shape
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
+import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferencePhoneConfig
+import com.android.tools.idea.compose.pickers.preview.property.DimUnit
+import com.android.tools.idea.compose.pickers.preview.property.Orientation
+import com.android.tools.idea.compose.pickers.preview.property.Shape
 import kotlin.math.roundToInt
 
 // region Preview

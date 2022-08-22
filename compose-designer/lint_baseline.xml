@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.4.0-dev">
+<issues format="5" by="lint 8.0.0-dev">
 
     <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
-            line="100"/>
+            line="94"/>
     </issue>
 
     <issue
@@ -14,7 +14,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
-            line="106"/>
+            line="101"/>
     </issue>
 
     <issue
@@ -22,7 +22,31 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
-            line="111"/>
+            line="104"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
+            line="107"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
+            line="110"/>
+    </issue>
+
+    <issue
+        id="AvoidByLazy"
+        message="Avoid `by lazy` for simple lazy initialization">
+        <location
+            file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
+            line="113"/>
     </issue>
 
     <issue
@@ -38,14 +62,6 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
-            line="121"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
             line="126"/>
     </issue>
 
@@ -54,23 +70,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
-            line="131"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
-            line="139"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/animation/AnimationClock.kt"
-            line="147"/>
+            line="138"/>
     </issue>
 
     <issue
@@ -78,39 +78,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/ComposePreviewViewImpl.kt"
-            line="255"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/pickers/properties/enumsupport/devices/DeviceClasses.kt"
-            line="49"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/pickers/properties/enumsupport/devices/DeviceClasses.kt"
-            line="54"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/pickers/properties/enumsupport/devices/DeviceClasses.kt"
-            line="59"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/pickers/properties/enumsupport/devices/DeviceClasses.kt"
-            line="64"/>
+            line="246"/>
     </issue>
 
     <issue
@@ -118,7 +86,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/Notifications.kt"
-            line="76"/>
+            line="86"/>
     </issue>
 
     <issue
@@ -126,7 +94,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/PinnedPreviewElementManager.kt"
-            line="91"/>
+            line="107"/>
     </issue>
 
     <issue
@@ -134,15 +102,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/annotator/PreviewAnnotationCheck.kt"
-            line="286"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/pickers/properties/PsiCallModel.kt"
-            line="57"/>
+            line="332"/>
     </issue>
 
     <issue
@@ -150,7 +110,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/scene/ComposeSceneComponentProvider.kt"
-            line="53"/>
+            line="58"/>
     </issue>
 
     <issue
@@ -158,7 +118,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="280"/>
+            line="352"/>
     </issue>
 
     <issue
@@ -166,7 +126,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="282"/>
+            line="355"/>
     </issue>
 
     <issue
@@ -174,7 +134,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="288"/>
+            line="362"/>
     </issue>
 
     <issue
@@ -182,7 +142,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="290"/>
+            line="365"/>
     </issue>
 
     <issue
@@ -190,7 +150,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
-            line="33"/>
+            line="35"/>
     </issue>
 
     <issue
@@ -198,7 +158,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
-            line="44"/>
+            line="46"/>
     </issue>
 
     <issue
@@ -206,7 +166,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
-            line="61"/>
+            line="60"/>
     </issue>
 
     <issue
@@ -214,7 +174,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
-            line="71"/>
+            line="68"/>
     </issue>
 
     <issue
@@ -222,7 +182,15 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
-            line="73"/>
+            line="70"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
+            line="74"/>
     </issue>
 
     <issue
@@ -231,14 +199,6 @@
         <location
             file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
             line="79"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
-            line="84"/>
     </issue>
 
 </issues>
