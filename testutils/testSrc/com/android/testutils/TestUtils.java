@@ -41,8 +41,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Stream;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.UnixStat;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -456,6 +458,24 @@ public class TestUtils {
       }
       else {
         Logger.getInstance(TestUtils.class).warn("Ignore env.JDK_11 because it is not a directory: " + jdkPath);
+      }
+    }
+
+    String userHome = System.getProperty("user.home");
+    Path jdks = Paths.get(userHome, ".jdks");
+    if (Files.isDirectory(jdks)) {
+      try (Stream<Path> stream = Files.list(jdks)) {
+        Optional<Path> jdk11Path = stream
+          .filter(file -> Files.isDirectory(file) && file.getFileName().toString().startsWith("corretto-11"))
+          .findAny();
+
+        if (jdk11Path.isPresent()) {
+          Logger.getInstance(TestUtils.class).info("Found JDK11 at " + jdk11Path);
+          return jdk11Path.get();
+        }
+      }
+      catch (IOException e) {
+        Logger.getInstance(TestUtils.class).warn("Cannot list directory " + jdks, e);
       }
     }
 
