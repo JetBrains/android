@@ -23,6 +23,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.utils.ILogger;
+import com.intellij.internal.statistic.analytics.StudioCrashDetails;
+import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
@@ -34,6 +36,7 @@ import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -112,11 +115,23 @@ public class LayoutLibraryLoader {
     }
     LayoutLibrary library = ourLibraryCache.get(target);
     if (library == null || library.isDisposed()) {
+      List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
+      for (StudioCrashDetails crash : crashes) {
+        if (isCrashCausedByLayoutlib(crash)) {
+          Bridge.setNativeCrash(true);
+          throw new RenderingException("Rendering disabled following a crash");
+        }
+      }
       library = loadImpl(target, enumMap);
       ourLibraryCache.put(target, library);
     }
 
     return library;
+  }
+
+  private static boolean isCrashCausedByLayoutlib(@NotNull StudioCrashDetails crash) {
+    return crash.isJvmCrash() &&
+           (crash.getErrorThread().contains("Layoutlib Render Thread") || crash.getErrorFrame().contains("libandroid_runtime"));
   }
 
   /**
