@@ -1086,9 +1086,7 @@ class AndroidLintTest : AndroidTestCase() {
     val proguardCfgPath = myFixture.copyFileToProject("$globalTestDir/proguard.cfg", "proguard.cfg")
     myFacet.properties.RUN_PROGUARD = true
     myFacet.properties.myProGuardCfgFiles = listOf(proguardCfgPath.url)
-/* b/233921381
     doGlobalInspectionTest(AndroidLintProguardInspection())
-b/233921381 */
   }
 
   fun testManifestOrder() {
