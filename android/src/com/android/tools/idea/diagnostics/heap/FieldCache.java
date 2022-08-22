@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isPrimitive;
+import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 import static org.apache.commons.lang3.ArrayUtils.EMPTY_FIELD_ARRAY;
 
 import com.google.common.collect.Sets;

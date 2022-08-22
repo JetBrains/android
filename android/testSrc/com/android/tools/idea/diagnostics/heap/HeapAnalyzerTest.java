@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;

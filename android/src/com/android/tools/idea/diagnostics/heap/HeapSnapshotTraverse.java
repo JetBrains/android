@@ -18,6 +18,7 @@ package com.android.tools.idea.diagnostics.heap;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources;
 import static com.google.common.math.IntMath.isPowerOfTwo;
+import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.util.StudioPathManager;

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.Alarm;
 import java.time.Duration;

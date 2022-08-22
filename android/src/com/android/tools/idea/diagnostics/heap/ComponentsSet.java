@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.serverflags.ServerFlagService;
+import com.android.tools.idea.serverflags.protos.MemoryUsageComponent;
+import com.android.tools.idea.serverflags.protos.MemoryUsageComponentCategory;
+import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.util.List;
@@ -24,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class ComponentsSet {
+
+  public static final String MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME = "diagnostics/memory_usage_reporting";
 
   @NotNull
   private final List<Component> myComponents;
@@ -80,16 +85,6 @@ public final class ComponentsSet {
     }
   }
 
-  void addComponentWithPackages(@NotNull final String componentLabel,
-                                @NotNull final ComponentCategory componentCategory,
-                                String... packageNames) {
-    Component newComponent = registerComponent(componentLabel, componentCategory);
-
-    for (String name : packageNames) {
-      myPackageNameToComponentCache.put(name, newComponent);
-    }
-  }
-
   @Nullable
   public Component getComponentOfObject(@NotNull final Object obj) {
     return (obj instanceof Class) ? getClassComponent((Class<?>)obj) : getObjectComponent(obj);
@@ -129,122 +124,19 @@ public final class ComponentsSet {
   @NotNull
   public static ComponentsSet getComponentSet() {
     ComponentsSet components = new ComponentsSet();
-    // Android: ResourceManager
-    components.addComponentWithPackages("ANDROID_RESOURCE_MANAGER",
-                                        components.registerCategory("ANDROID_RESOURCE_MANAGER_CATEGORY"),
-                                        "org.jetbrains.android.resourceManagers");
-    // Android: ResourceRepository
-    components.addComponentWithPackages("ANDROID_RESOURCE_REPOSITORY",
-                                        components.registerCategory("ANDROID_RESOURCE_REPOSITORY_CATEGORY"),
-                                        "org.jetbrains.android.facet", "com.android.tools.idea.res");
-    // Android: DesignTools
-    ComponentCategory designToolsCategory = components.registerCategory("ANDROID_DESIGN_TOOLS_CATEGORY");
-    components.addComponentWithPackages("ANDROID_RENDERING",
-                                        designToolsCategory, "android", "androidx");
-    components.addComponentWithPackages("ANDROID_LAYOUT_EDITOR",
-                                        designToolsCategory,
-                                        "com.android.tools.idea.common.surface", "com.android.tools.idea.common.scene",
-                                        "com.android.tools.idea.common.editor", "com.android.tools.idea.uibuilder",
-                                        "com.android.tools.idea.configurations");
-    components.addComponentWithPackages("ANDROID_LAYOUTLIB",
-                                        designToolsCategory, "com.android.layoutlib",
-                                        "com.android.tools.idea.layoutlib");
-    components.addComponentWithPackages("ANDROID_NAVEDITOR",
-                                        designToolsCategory,
-                                        "com.android.tools.idea.naveditor");
-    // Android: Gradle
-    components.addComponentWithPackages("ANDROID_GRADLE",
-                                        components.registerCategory("ANDROID_GRADLE_CATEGORY"), "com.android.tools.idea.gradle",
-                                        "org.jetbrains.plugins.gradle");
-    // Android: Profiler
-    ComponentCategory profilerCategory = components.registerCategory("ANDROID_PROFILER_CATEGORY");
-    components.addComponentWithPackages("ANDROID_PROFILER",
-                                        profilerCategory, "com.android.tools.profilers",
-                                        "com.android.tools.profiler", "com.android.tools.idea.profilers", "com.android.tools.perflib",
-                                        "trebuchet.io");
-    components.addComponentWithPackages("ANDROID_TRANSPORT",
-                                        profilerCategory,
-                                        "com.android.tools.idea.transport", "com.android.tools.datastore");
 
-    // Android: Templates
-    components.addComponentWithPackages("ANDROID_TEMPLATES",
-                                        components.registerCategory("ANDROID_TEMPLATES_CATEGORY"),
-                                        "com.android.tools.idea.templates");
-    // Android: RunDebug
-    ComponentCategory runDebugCategory = components.registerCategory("ANDROID_RUN_DEBUG_CATEGORY");
-    components.addComponentWithPackages("ANDROID_RUN_DEPLOYER",
-                                        runDebugCategory, "com.android.tools.idea.run",
-                                        "com.android.tools.deployer");
-    components.addComponentWithPackages("ANDROID_LOGCAT",
-                                        runDebugCategory,
-                                        "com.android.tools.idea.logcat");
-    components.addComponentWithPackages("ANDROID_DDM",
-                                        runDebugCategory, "com.android.tools.idea.ddms",
-                                        "com.android.ddmlib");
-    components.addComponentWithPackages("ANDROID_DEBUG",
-                                        runDebugCategory,
-                                        "com.android.tools.idea.debug");
-    components.addComponentWithPackages("ANDROID_APK_VIEW",
-                                        runDebugCategory,
-                                        "com.android.tools.idea.apk.viewer");
+    MemoryUsageReportConfiguration
+      memoryUsageReportConfiguration = ServerFlagService.Companion.getInstance()
+      .getProto(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, MemoryUsageReportConfiguration.getDefaultInstance());
 
-    // Android: Lint
-    ComponentCategory lintCategory = components.registerCategory("ANDROID_LINT_CATEGORY");
-    components.addComponentWithPackages("ANDROID_LINT",
-                                        lintCategory, "com.android.tools.lint",
-                                        "com.android.tools.idea.lint", "com.android.tools.idea.common.lint");
-    // Android: C++
-    components.addComponentWithPackages("ANDROID_CPP",
-                                        lintCategory, "com.android.tools.ndk",
-                                        "com.jetbrains.cidr");
-    // Android: AVDManager
-    ComponentCategory avdmanagerCategory = components.registerCategory("ANDROID_AVDMANAGER_CATEGORY");
-    components.addComponentWithPackages("ANDROID_AVDMANAGER",
-                                        avdmanagerCategory,
-                                        "com.android.tools.idea.avdmanager", "com.android.sdklib.internal.avd");
-    // Android: Editor
-    ComponentCategory editorsCategory = components.registerCategory("ANDROID_EDITORS_CATEGORY");
-    components.addComponentWithPackages("ANDROID_EDITORS",
-                                        editorsCategory,
-                                        "com.android.tools.idea.editors");
-    components.addComponentWithPackages("ANDROID_INSPECTIONS",
-                                        editorsCategory,
-                                        "org.jetbrains.android.inspections");
-    // Android: Diagnostics
-    components.addComponentWithPackages("ANDROID_DIAGNOSTICS",
-                                        components.registerCategory("ANDROID_DIAGNOSTICS_CATEGORY"),
-                                        "com.android.tools.idea.diagnostics", "com.android.tools.analytics");
-    // Android: DataBinding
-    components.addComponentWithPackages("ANDROID_DATA_BINDINGS",
-                                        components.registerCategory("ANDROID_DATA_BINDINGS_CATEGORY"),
-                                        "com.android.tools.idea.databinding", "com.android.tools.idea.lang.databinding");
-    // Android: SDK
-    components.addComponentWithPackages("ANDROID_SDK",
-                                        components.registerCategory("ANDROID_SDK_CATEGORY"), "com.android.sdklib",
-                                        "org.jetbrains.android.sdk");
-    // Intellij: Platform
-    ComponentCategory platformCategory = components.registerCategory("ANDROID_SDK_CATEGORY");
-    components.addComponentWithPackages("INTELLIJ_KOTLIN",
-                                        platformCategory, "org.jetbrains.kotlin");
-    components.addComponentWithPackages("INTELLIJ_PROJECT",
-                                        platformCategory,
-                                        "com.intellij.openapi.project");
-    components.addComponentWithPackages("INTELLIJ_APPLICATION",
-                                        platformCategory,
-                                        "com.intellij.openapi.application");
-    components.addComponentWithPackages("INTELLIJ_MODULE",
-                                        platformCategory,
-                                        "com.intellij.workspaceModel.ide.impl.legacyBridge.module", "com.intellij.openapi.module");
-    components.addComponentWithPackagesAndClassNames("INTELLIJ_VFS",
-                                                     platformCategory,
-                                                     ImmutableList.of("com.intellij.openapi.vfs"),
-                                                     ImmutableList.of("com.intellij.workspaceModel.ide.impl.IdeVirtualFileUrlManagerImpl",
-                                                                      "com.intellij.workspaceModel.ide.impl.legacyBridge.watcher.VirtualFileUrlWatcher"));
-    components.addComponentWithPackages("INTELLIJ_EDITOR",
-                                        platformCategory, "com.intellij.openapi.editor",
-                                        "com.intellij.openapi.fileEditor");
-    components.addComponentWithPackages("INTELLIJ_PSI",
-                                        platformCategory, "com.intellij.psi");
+    for (MemoryUsageComponentCategory protoCategory : memoryUsageReportConfiguration.getCategoriesList()) {
+      ComponentCategory category = components.registerCategory(protoCategory.getLabel());
+      for (MemoryUsageComponent component : protoCategory.getComponentsList()) {
+        components.addComponentWithPackagesAndClassNames(component.getLabel(), category, component.getPackageNamesList(),
+                                                         component.getClassNamesList());
+      }
+    }
+
     return components;
   }
 

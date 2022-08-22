@@ -1,0 +1,26 @@
+syntax = "proto2";
+
+package wireless.android.devtools.server_flags.protos;
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+message MemoryUsageComponent {
+  optional string label = 1;
+
+  repeated string package_names = 2;
+  repeated string class_names = 3;
+}
+
+// A high level component category
+message MemoryUsageComponentCategory {
+  optional string label = 1;
+
+  repeated MemoryUsageComponent components = 2;
+}
+
+// Configuration for specifying the list of categories against which a report on
+// memory usage will be built.
+message MemoryUsageReportConfiguration {
+  repeated MemoryUsageComponentCategory categories = 1;
+}
