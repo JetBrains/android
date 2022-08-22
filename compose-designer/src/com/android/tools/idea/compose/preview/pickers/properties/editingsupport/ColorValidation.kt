@@ -37,17 +37,18 @@ internal object ColorValidation : EditingValidation {
       return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.color.format"))
     }
 
-    if (colorHexValue.length == 6) {
-      return Pair(EditingErrorCategory.WARNING, message("picker.preview.input.validation.color.alpha"))
-    }
-
     val colorValue = colorHexValue.toLongOrNull(16) ?: return Pair(EditingErrorCategory.ERROR,
-                                                                  message("picker.preview.input.validation.color.format"))
+                                                                   message("picker.preview.input.validation.color.format"))
     if (colorValue > 0xFFFFFFFFL) {
       return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.color.max"))
     }
     if (colorValue < 0) {
       return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.color.negative"))
+    }
+
+    // Warnings should be checked after all possible errors.
+    if (colorHexValue.length <= 6) {
+      return Pair(EditingErrorCategory.WARNING, message("picker.preview.input.validation.color.alpha"))
     }
     return EDITOR_NO_ERROR
   }

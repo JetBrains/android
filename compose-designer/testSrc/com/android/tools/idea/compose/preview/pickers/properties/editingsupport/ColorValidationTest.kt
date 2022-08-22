@@ -40,11 +40,19 @@ internal class ColorValidationTest {
     val missingAlphaOutput = Pair(EditingErrorCategory.WARNING, "Missing value for alpha channel")
     assertEquals(missingAlphaOutput, validator("0xAABBCC"))
     assertEquals(missingAlphaOutput, validator("AABBCC"))
+    assertEquals(missingAlphaOutput, validator("0xff"))
+    assertEquals(missingAlphaOutput, validator("ff"))
   }
 
   @Test
   fun badFormat() {
     val errorAndMessage = Pair(EditingErrorCategory.ERROR, "Color should be an aRGB hex literal (0xAARRGGBB)")
+    assertEquals(errorAndMessage, validator("0xFF AA BB CC"))
+    assertEquals(errorAndMessage, validator("0 xFFAABBCC"))
+    assertEquals(errorAndMessage, validator("0x FFAABBCC"))
+    assertEquals(errorAndMessage, validator("0xFF FFF"))
+    assertEquals(errorAndMessage, validator("  0xFFF FF "))
+    assertEquals(errorAndMessage, validator("0xFFAABBCC 0"))
     assertEquals(errorAndMessage, validator("Hello, world!"))
     assertEquals(errorAndMessage, validator("FFAABBGG"))
     assertEquals(errorAndMessage, validator("FFAA0011p"))
@@ -55,12 +63,13 @@ internal class ColorValidationTest {
 
   @Test
   fun valueBounds() {
-    // The max color possible (0xFFFFFFFF) corresponds to the maximum unsigned integer value
-    assertEquals(EditingErrorCategory.NONE, validator((UnsignedInteger.MAX_VALUE).toString(16)).first)
+    // The max aRGB color possible (0xFFFFFFFF) corresponds to the maximum unsigned integer value
+    val maxValue = UnsignedInteger.MAX_VALUE
 
+    assertEquals(EditingErrorCategory.NONE, validator(maxValue.toString(16)).first)
     assertEquals(
       Pair(EditingErrorCategory.ERROR, "Value can't be higher than 0xFFFFFFFF"),
-      validator((UnsignedInteger.MAX_VALUE.toLong() + 1).toString(16))
+      validator((maxValue.toLong() + 1).toString(16))
     )
     assertEquals(
       Pair(EditingErrorCategory.ERROR, "Value can't be higher than 0xFFFFFFFF"),
