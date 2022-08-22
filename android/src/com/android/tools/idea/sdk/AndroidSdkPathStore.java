@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
-@Service
+@Service(Service.Level.APP)
 public final class AndroidSdkPathStore {
 
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
