@@ -388,16 +388,19 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintXmlEscapeNeeded" groupName="Android Lint: Correctness" displayName="Missing XML Escape" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintXmlEscapeNeededInspection"/>
 
     <intentionAction>
+      <language>UAST</language>
       <className>com.android.tools.idea.lint.intentions.ImplementParcelableAction</className>
       <category>Android</category>
     </intentionAction>
 
     <intentionAction>
+      <language>UAST</language>
       <className>com.android.tools.idea.lint.intentions.RemoveParcelableAction</className>
       <category>Android</category>
     </intentionAction>
 
     <intentionAction>
+      <language>UAST</language>
       <className>com.android.tools.idea.lint.intentions.RedoParcelableAction</className>
       <category>Android</category>
     </intentionAction>

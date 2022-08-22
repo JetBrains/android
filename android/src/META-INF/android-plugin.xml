@@ -439,16 +439,19 @@
     <java.languageFeatureProvider implementation="org.jetbrains.android.inspections.AndroidLanguageFeatureProvider"/>
 
     <intentionAction>
+      <language>UAST</language>
       <className>org.jetbrains.android.intentions.AddActivityToManifest</className>
       <category>Android</category>
     </intentionAction>
 
     <intentionAction>
+      <language>UAST</language>
       <className>org.jetbrains.android.intentions.AddBroadcastReceiverToManifest</className>
       <category>Android</category>
     </intentionAction>
 
     <intentionAction>
+      <language>UAST</language>
       <className>org.jetbrains.android.intentions.AddServiceToManifest</className>
       <category>Android</category>
     </intentionAction>
@@ -459,21 +462,25 @@
     </intentionAction>
 
     <intentionAction>
+      <language>XML</language>
       <className>org.jetbrains.android.intentions.AndroidExtractDimensionAction</className>
       <category>Android</category>
     </intentionAction>
 
     <intentionAction>
+      <language>XML</language>
       <className>org.jetbrains.android.intentions.AndroidExtractColorAction</className>
       <category>Android</category>
     </intentionAction>
 
     <intentionAction>
+      <language>XML</language>
       <className>org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction</className>
       <category>Android</category>
     </intentionAction>
 
     <intentionAction>
+      <language>XML</language>
       <className>org.jetbrains.android.intentions.OverrideResourceAction</className>
       <category>Android</category>
     </intentionAction>
