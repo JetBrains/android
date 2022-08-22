@@ -166,9 +166,6 @@ public class IdeSdks {
       return null;
     }
 
-    // There is a possible case that android sdk which path was applied previously (setAndroidSdkPath()) didn't have any
-    // platforms downloaded. Hence, no ide android sdk was created and we can't deduce android sdk location from it.
-    // Hence, we fallback to the explicitly stored android sdk path here.
     Path sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
     if (sdkPath != null) {
       File candidate = sdkPath.toFile();
