@@ -57,9 +57,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class BaseAction extends AnAction {
-  private static final Logger LOG = Logger.getInstance(BaseAction.class);
   public static final Key<Boolean> SHOW_APPLY_CHANGES_UI = Key.create("android.deploy.ApplyChanges.ShowUI");
-
+  private static final Logger LOG = Logger.getInstance(BaseAction.class);
   @NotNull
   protected final String myName;
 
@@ -111,7 +110,7 @@ public abstract class BaseAction extends AnAction {
   /**
    * Apply Changes UI is:
    * - Visible if it's relevant to the currently selected run configuration.  E.g. Apply Changes UI is irrelevant
-   *   if the run configuration isn't an android app run configuration or android test configuration.
+   * if the run configuration isn't an android app run configuration or android test configuration.
    * - Visible and enabled if it's applicable to the current run configuration and the project is compatible.
    */
   @Override
@@ -133,6 +132,42 @@ public abstract class BaseAction extends AnAction {
     else {
       disableAction(presentation, disableMessage);
     }
+  }
+
+  @Override
+  public void actionPerformed(@NotNull AnActionEvent e) {
+    Project project = e.getProject();
+    if (project == null) {
+      LOG.warn(myName + " action performed with no project");
+      return;
+    }
+
+    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
+    if (settings == null) {
+      LOG.warn(myName + " action could not locate current run config settings");
+      return;
+    }
+
+    ProcessHandler handler = findRunningProcessHandler(project, settings.getConfiguration());
+    Executor executor = findRunningExecutor(handler);
+    if (executor == null) {
+      LOG.warn(myName + " action could not identify executor of existing running application");
+      return;
+    }
+
+    ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.create(executor, settings.getConfiguration());
+    ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
+
+    env.putUserData(SWAP_INFO_KEY, new SwapInfo(mySwapType, handler));
+    ProgramRunnerUtil.executeConfiguration(env, false, true);
+  }
+
+  protected void disableAction(@NotNull Presentation presentation, @NotNull DisableMessage disableMessage) {
+    if (!presentation.isVisible()) return;
+    presentation.setVisible(disableMessage.myDisableMode != DisableMessage.DisableMode.INVISIBLE);
+    presentation.setEnabled(false);
+    presentation.setText(String.format("%s (disabled: %s)", myName, disableMessage.myTooltip));
+    presentation.setDescription(String.format("%s is disabled for this device because %s.", myName, disableMessage.myDescription));
   }
 
   @Nullable
@@ -209,7 +244,7 @@ public abstract class BaseAction extends AnAction {
     catch (Exception ex) {
       LOG.warn(ex);
       return new DisableMessage(
-        DisableMessage.DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex.toString());
+        DisableMessage.DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex);
     }
 
     return null;
@@ -217,7 +252,7 @@ public abstract class BaseAction extends AnAction {
 
   private static boolean isApplyChangesRelevant(@NotNull RunConfiguration runConfiguration) {
     if (runConfiguration instanceof RunConfigurationBase) {
-      RunConfigurationBase configBase = (RunConfigurationBase) runConfiguration;
+      RunConfigurationBase configBase = (RunConfigurationBase)runConfiguration;
       return configBase.putUserDataIfAbsent(SHOW_APPLY_CHANGES_UI, false); // This is needed to prevent a NPE if the boolean isn't set.
     }
 
@@ -245,34 +280,6 @@ public abstract class BaseAction extends AnAction {
       }
     }
     return false;
-  }
-
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    if (project == null) {
-      LOG.warn(myName + " action performed with no project");
-      return;
-    }
-
-    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
-    if (settings == null) {
-      LOG.warn(myName + " action could not locate current run config settings");
-      return;
-    }
-
-    ProcessHandler handler = findRunningProcessHandler(project, settings.getConfiguration());
-    Executor executor = findRunningExecutor(handler);
-    if (executor == null) {
-      LOG.warn(myName + " action could not identify executor of existing running application");
-      return;
-    }
-
-    ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.create(executor, settings.getConfiguration());
-    ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
-
-    env.putUserData(SWAP_INFO_KEY, new SwapInfo(mySwapType, handler));
-    ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 
   private static @Nullable Executor findRunningExecutor(@Nullable ProcessHandler handler) {
@@ -309,20 +316,7 @@ public abstract class BaseAction extends AnAction {
            : extension.getExecutor();
   }
 
-  protected void disableAction(@NotNull Presentation presentation, @NotNull DisableMessage disableMessage) {
-    if (!presentation.isVisible()) return;
-    presentation.setVisible(disableMessage.myDisableMode != DisableMessage.DisableMode.INVISIBLE);
-    presentation.setEnabled(false);
-    presentation.setText(String.format("%s (disabled: %s)", myName, disableMessage.myTooltip));
-    presentation.setDescription(String.format("%s is disabled for this device because %s.", myName, disableMessage.myDescription));
-  }
-
   public static final class DisableMessage {
-    public enum DisableMode {
-      INVISIBLE,
-      DISABLED
-    }
-
     @NotNull
     private final DisableMode myDisableMode;
     @NotNull
@@ -339,6 +333,11 @@ public abstract class BaseAction extends AnAction {
     @NotNull
     public String getDescription() {
       return myDescription;
+    }
+
+    public enum DisableMode {
+      INVISIBLE,
+      DISABLED
     }
   }
 }
