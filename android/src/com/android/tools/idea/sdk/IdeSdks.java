@@ -161,22 +161,6 @@ public class IdeSdks {
    */
   @Nullable
   public File getAndroidSdkPath() {
-    // We assume that every time new android sdk path is applied, all existing ide android sdks are removed and replaced by newly
-    // created ide android sdks for the platforms downloaded for the new android sdk. So, we bring the first ide android sdk configured
-    // at the moment and deduce android sdk path from it.
-    String sdkHome = null;
-    Sdk sdk = getFirstAndroidSdk();
-    if (sdk != null) {
-      sdkHome = sdk.getHomePath();
-    }
-    if (sdkHome != null) {
-      File candidate = FilePaths.stringToFile(sdkHome);
-      // Check if the sdk home is still valid. See https://code.google.com/p/android/issues/detail?id=197401 for more details.
-      if (isValidAndroidSdkPath(candidate)) {
-        return candidate;
-      }
-    }
-
     // TODO(b/203234375): This line should be removed---but then SdkSyncTest fails.
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return null;
@@ -346,19 +330,6 @@ public class IdeSdks {
    */
   public boolean setUseEnvVariableJdk(boolean useJdkEnvVariable) {
     return myEnvVariableSettings.setUseJdkEnvVariable(useJdkEnvVariable);
-  }
-
-  /**
-   * @return the first SDK it finds that matches our default naming convention. There will be several SDKs so named, one for each build
-   * target installed in the SDK; which of those this method returns is not defined.
-   */
-  @Nullable
-  private Sdk getFirstAndroidSdk() {
-    List<Sdk> allAndroidSdks = getEligibleAndroidSdks();
-    if (!allAndroidSdks.isEmpty()) {
-      return allAndroidSdks.get(0);
-    }
-    return null;
   }
 
   /**
