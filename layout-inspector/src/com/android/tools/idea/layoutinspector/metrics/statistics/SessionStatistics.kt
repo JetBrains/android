@@ -90,19 +90,34 @@ interface SessionStatistics {
   fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode)
 
   /**
+   * A frame was received.
+   */
+  fun frameReceived()
+
+  /**
    * Live mode changed.
    */
-  var currentModeIsLive : Boolean
+  var currentModeIsLive: Boolean
 
   /**
    * 3D mode changed.
    */
-  var currentMode3D : Boolean
+  var currentMode3D: Boolean
 
   /**
    * Whether the system nodes are currently being hidden.
    */
-  var hideSystemNodes : Boolean
+  var hideSystemNodes: Boolean
+
+  /**
+   * Whether recomposition counts are currently being shown.
+   */
+  var showRecompositions: Boolean
+
+  /**
+   * The current recomposition highlight color selected.
+   */
+  var recompositionHighlightColor: Int
 
   /**
    * Number of memory measurements
@@ -186,17 +201,29 @@ class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : Ses
     attach.attachError(errorState, errorCode)
   }
 
+  override fun frameReceived() {
+    compose.frameReceived()
+  }
+
   override var currentModeIsLive : Boolean
     get() = live.currentModeIsLive
     set(value) { live.currentModeIsLive = value }
 
-  override var currentMode3D : Boolean
+  override var currentMode3D: Boolean
     get() = rotation.currentMode3D
     set(value) { rotation.currentMode3D = value }
 
-  override var hideSystemNodes : Boolean
+  override var hideSystemNodes: Boolean
     get() = system.hideSystemNodes
     set(value) { system.hideSystemNodes = value }
+
+  override var showRecompositions: Boolean
+    get() = compose.showRecompositions
+    set(value) { compose.showRecompositions = value }
+
+  override var recompositionHighlightColor: Int
+    get() = compose.recompositionHighlightColor
+    set(value) { compose.recompositionHighlightColor = value }
 
   @get:TestOnly
   override val memoryMeasurements: Int

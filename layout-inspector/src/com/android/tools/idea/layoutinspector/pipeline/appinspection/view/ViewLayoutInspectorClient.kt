@@ -278,6 +278,7 @@ class ViewLayoutInspectorClient(
   private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {
     launchMonitor.updateProgress(AttachErrorState.LAYOUT_EVENT_RECEIVED)
     generation++
+    stats.frameReceived()
     propertiesCache.clearFor(layoutEvent.rootView.id)
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 

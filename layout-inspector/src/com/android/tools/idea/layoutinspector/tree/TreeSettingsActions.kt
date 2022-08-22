@@ -131,6 +131,7 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     val inspector = LayoutInspector.get(event) ?: return
     inspector.treeSettings.showRecompositions = state
+    inspector.currentClient.stats.showRecompositions = state
     val panel = event.treePanel()
     panel?.updateRecompositionColumnVisibility()
     panel?.resetRecompositionCounts()
