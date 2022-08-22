@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 package com.android.tools.idea.run.applychanges
-
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.AndroidSessionInfo
-import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.deployable.SwappableProcessHandler
 import com.android.tools.idea.run.util.SwapInfo
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
@@ -54,18 +52,22 @@ import org.mockito.MockitoAnnotations
 class ApplyChangesUtilsTest {
   @Mock
   lateinit var mockEnv: ExecutionEnvironment
-  @Mock
-  lateinit var mockDevices: DeviceFutures
+
   @Mock
   lateinit var mockProject: Project
+
   @Mock
   lateinit var mockExecutionManager: ExecutionManager
+
   @Mock
   lateinit var mockRunProfile: AndroidRunConfigurationBase
+
   @Mock
   lateinit var mockExecutionTarget: ExecutionTarget
+
   @Mock
   lateinit var mockDebugManager: DebuggerManagerEx
+
   @Mock
   lateinit var mockRunContentManager: RunContentManager
 
@@ -84,8 +86,7 @@ class ApplyChangesUtilsTest {
   @Test
   fun findExistingSessionAndMaybeDetachForColdSwap_noPreviousHandler() {
     whenever(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf())
-    val prevHandler = findExistingSessionAndMaybeDetachForColdSwap(mockEnv, mockDevices)
-
+    val prevHandler = findExistingSessionAndMaybeDetachForColdSwap(mockEnv)
     assertThat(prevHandler.processHandler).isNull()
     assertThat(prevHandler.executionConsole).isNull()
   }
@@ -93,10 +94,10 @@ class ApplyChangesUtilsTest {
   @Test
   fun findExistingSessionAndMaybeDetachForColdSwap_previousHandlerWithSwapInfo() {
     val mockProcessHandler = mock(ProcessHandler::class.java)
-    val mockSessionInfo = mock(AndroidSessionInfo::class.java)
-    whenever(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
-    whenever(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)
-    whenever(mockSessionInfo.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockProcessHandler.isStartNotified).thenReturn(true)
+    val mockSwappableProcessHandlerInfo = mock(SwappableProcessHandler::class.java)
+    whenever(mockProcessHandler.getCopyableUserData(eq(SwappableProcessHandler.EXTENSION_KEY))).thenReturn(mockSwappableProcessHandlerInfo)
+    whenever(mockSwappableProcessHandlerInfo.isRunningWith(eq(mockRunProfile), eq(mockExecutionTarget))).thenReturn(true)
     val mockRunContentDescriptor = mock(RunContentDescriptor::class.java)
     whenever(mockRunContentDescriptor.processHandler).thenReturn(mockProcessHandler)
     val mockConsole = mock(ExecutionConsole::class.java)
@@ -105,9 +106,7 @@ class ApplyChangesUtilsTest {
     val mockSwapInfo = mock(SwapInfo::class.java)
     whenever(mockEnv.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(mockSwapInfo)
     whenever(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
-
-    val prevHandler = findExistingSessionAndMaybeDetachForColdSwap(mockEnv, mockDevices)
-
+    val prevHandler = findExistingSessionAndMaybeDetachForColdSwap(mockEnv)
     assertThat(prevHandler.processHandler).isSameAs(mockProcessHandler)
     assertThat(prevHandler.executionConsole).isSameAs(mockConsole)
     verify(mockProcessHandler, never()).detachProcess()
@@ -116,19 +115,17 @@ class ApplyChangesUtilsTest {
   @Test
   fun findExistingSessionAndMaybeDetachForColdSwap_previousHandlerWithSwapInfo_noPreviousConsole() {
     val mockProcessHandler = mock(ProcessHandler::class.java)
-    val mockSessionInfo = mock(AndroidSessionInfo::class.java)
-    whenever(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
-    whenever(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)
-    whenever(mockSessionInfo.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockProcessHandler.isStartNotified).thenReturn(true)
+    val mockSwappableProcessHandlerInfo = mock(SwappableProcessHandler::class.java)
+    whenever(mockProcessHandler.getCopyableUserData(eq(SwappableProcessHandler.EXTENSION_KEY))).thenReturn(mockSwappableProcessHandlerInfo)
+    whenever(mockSwappableProcessHandlerInfo.isRunningWith(eq(mockRunProfile), eq(mockExecutionTarget))).thenReturn(true)
     val mockRunContentDescriptor = mock(RunContentDescriptor::class.java)
     whenever(mockRunContentDescriptor.processHandler).thenReturn(mockProcessHandler)
     whenever(mockRunContentManager.allDescriptors).thenReturn(listOf(mockRunContentDescriptor))
     val mockSwapInfo = mock(SwapInfo::class.java)
     whenever(mockEnv.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(mockSwapInfo)
     whenever(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
-
-    val prevHandler = findExistingSessionAndMaybeDetachForColdSwap(mockEnv, mockDevices)
-
+    val prevHandler = findExistingSessionAndMaybeDetachForColdSwap(mockEnv)
     assertThat(prevHandler.processHandler).isSameAs(mockProcessHandler)
     assertThat(prevHandler.executionConsole).isNull()
     verify(mockProcessHandler, never()).detachProcess()
@@ -137,10 +134,10 @@ class ApplyChangesUtilsTest {
   @Test
   fun findExistingSessionAndMaybeDetachForColdSwap_previousHandlerWithoutSwapInfo_triggersColdSwap() {
     val mockProcessHandler = mock(ProcessHandler::class.java)
-    val mockSessionInfo = mock(AndroidSessionInfo::class.java)
-    whenever(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
-    whenever(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)
-    whenever(mockSessionInfo.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockProcessHandler.isStartNotified).thenReturn(true)
+    val mockSwappableProcessHandlerInfo = mock(SwappableProcessHandler::class.java)
+    whenever(mockProcessHandler.getCopyableUserData(eq(SwappableProcessHandler.EXTENSION_KEY))).thenReturn(mockSwappableProcessHandlerInfo)
+    whenever(mockSwappableProcessHandlerInfo.isRunningWith(eq(mockRunProfile), eq(mockExecutionTarget))).thenReturn(true)
     val mockExecutor = mock(Executor::class.java)
     val mockContent = mock(Content::class.java)
     doAnswer {
@@ -152,14 +149,10 @@ class ApplyChangesUtilsTest {
     whenever(mockContentDescriptor.attachedContent).thenReturn(mockContent)
     whenever(mockRunContentManager.allDescriptors).thenReturn(listOf(mockContentDescriptor))
     whenever(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
-
-    val prevHandler = findExistingSessionAndMaybeDetachForColdSwap(mockEnv, mockDevices)
-
+    val prevHandler = findExistingSessionAndMaybeDetachForColdSwap(mockEnv)
     assertThat(prevHandler.processHandler).isNull()
     assertThat(prevHandler.executionConsole).isNull()
-
     // Make sure that the previous process handler is detached when the swap info is missing.
     verify(mockProcessHandler).detachProcess()
-    verify(mockRunContentManager).removeRunContent(any(), any())
   }
 }

@@ -24,7 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.RunnerAndConfigurationSettings
-import com.intellij.execution.configurations.RunProfile
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.testFramework.DisposableRule
@@ -139,7 +139,7 @@ class AndroidRunStateTest {
   }
 
   private fun runUnknownRunConfiguration(): ExecutionResult {
-    whenever(mockEnv.runProfile).thenReturn(mock(RunProfile::class.java))
+    whenever(mockEnv.runProfile).thenReturn(mock(RunConfiguration::class.java))
     whenever(mockEnv.runnerAndConfigurationSettings).thenReturn(null)
 
     val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,

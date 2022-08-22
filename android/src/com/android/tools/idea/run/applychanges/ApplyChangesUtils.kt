@@ -16,8 +16,9 @@
 package com.android.tools.idea.run.applychanges
 
 import com.android.tools.idea.run.AndroidRunState
-import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.ui.BaseAction
 import com.android.tools.idea.run.util.SwapInfo
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ExecutionConsole
@@ -33,8 +34,9 @@ import com.intellij.openapi.diagnostic.Logger
  * Otherwise the session needs to cold-swap. In the case of cold-swap and if a matching existing session exists, it will terminate
  * its [ProcessHandler] and detach its [com.intellij.ui.content.Content]
  */
-fun findExistingSessionAndMaybeDetachForColdSwap(env: ExecutionEnvironment, devices: DeviceFutures): ExistingSession {
-  val prevHandler = env.findExistingProcessHandler(devices) ?: return ExistingSession()
+fun findExistingSessionAndMaybeDetachForColdSwap(env: ExecutionEnvironment): ExistingSession {
+  val prevHandler = BaseAction.findRunningProcessHandler(env.project, env.runProfile as RunConfiguration, env.executionTarget)
+                    ?: return ExistingSession()
   val manager = RunContentManager.getInstance(env.project)
   val descriptor = manager.allDescriptors
     .find { descriptor -> descriptor.processHandler === prevHandler }
