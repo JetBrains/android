@@ -161,7 +161,7 @@ public abstract class AbstractSyncMessages implements Disposable {
       for (int i = 0; i < hyperlinkCount; i++) {
         b.append(quickFixes.get(i).toHtml());
         if (i < hyperlinkCount - 1) {
-          b.append("<br>");
+          b.append("\n");
         }
       }
       message += ('\n' + b.toString());
