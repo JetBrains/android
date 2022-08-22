@@ -460,6 +460,7 @@ class DeviceViewPanel(
     // Zoom to fit on initial connect
     model.modificationListeners.add { _, new, _ ->
       if (contentPanel.model.maxWidth == 0) {
+        layoutInspector.currentClient.stats.recompositionHighlightColor = viewSettings.highlightColor
         contentPanel.model.refresh()
         if (!zoom(ZoomType.FIT)) {
           // If we didn't change the zoom, we need to refresh explicitly. Otherwise the zoom listener will do it.

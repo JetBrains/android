@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_RED
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
@@ -277,8 +278,12 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override fun resetRecompositionCountsClick() {}
   override fun attachSuccess() {}
   override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {}
+  override fun frameReceived() {}
+
   override var currentModeIsLive: Boolean = false
   override var currentMode3D: Boolean = false
   override var hideSystemNodes: Boolean = true
+  override var showRecompositions: Boolean = false
+  override var recompositionHighlightColor: Int = HIGHLIGHT_COLOR_RED
   override val memoryMeasurements: Int = 0
 }

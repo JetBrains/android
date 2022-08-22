@@ -90,8 +90,6 @@ class LayoutInspector private constructor(
       client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
       client.registerConnectionTimeoutCallback { state -> layoutInspectorModel.fireAttachStateEvent(state) }
       client.stats.start()
-      client.stats.currentModeIsLive = client.isCapturing
-      client.stats.hideSystemNodes = treeSettings.hideSystemNodes
     }
     else {
       // If disconnected, e.g. stopped, force models to clear their state and, by association, the UI
@@ -106,6 +104,9 @@ class LayoutInspector private constructor(
 
   private fun updateConnection(client: InspectorClient) {
     layoutInspectorModel.updateConnection(client)
+    client.stats.currentModeIsLive = client.isCapturing
+    client.stats.hideSystemNodes = treeSettings.hideSystemNodes
+    client.stats.showRecompositions = treeSettings.showRecompositions
   }
 
   private fun loadComponentTree(event: Any) {

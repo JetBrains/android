@@ -132,9 +132,10 @@ class AppInspectionInspectorClientTest {
   private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
   private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor))) { it == preferredProcess}
+  private val usageRule = MetricsTrackerRule()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(treeRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(treeRule).around(usageRule).around(disposableRule)!!
 
   @Before
   fun before() {
@@ -280,6 +281,53 @@ class AppInspectionInspectorClientTest {
       assertThat(command.updateSettingsCommand.includeRecomposeCounts).isTrue()
       assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
     }
+  }
+
+  @Test
+  fun statsInitializedWhenConnectedA() {
+    inspectorRule.inspector.treeSettings.hideSystemNodes = true
+    inspectorRule.inspector.treeSettings.showRecompositions = false
+
+    val modelUpdatedLatch = ReportingCountDownLatch(1)
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+    inspectorRule.inspectorClient.stats.selectionMadeFromImage(null)
+    inspectorRule.inspectorClient.stats.frameReceived()
+    inspectorRule.launcher.disconnectActiveClient()
+
+    val session1 = usageRule.testTracker.usages
+      .single { it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.SESSION_DATA }
+      .studioEvent.dynamicLayoutInspectorEvent.session
+    assertThat(session1.system.clicksWithVisibleSystemViews).isEqualTo(0)
+    assertThat(session1.system.clicksWithHiddenSystemViews).isEqualTo(1)
+    assertThat(session1.compose.framesWithRecompositionCountsOn).isEqualTo(0)
+  }
+
+  @Test
+  fun statsInitializedWhenConnectedB() {
+    // Make the start settings opposite from statsInitializedWhenConnectedA:
+    inspectorRule.inspector.treeSettings.hideSystemNodes = false
+    inspectorRule.inspector.treeSettings.showRecompositions = true
+
+    val modelUpdatedLatch = ReportingCountDownLatch(1)
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+    inspectorRule.inspectorClient.stats.selectionMadeFromImage(null)
+    inspectorRule.inspectorClient.stats.frameReceived()
+    inspectorRule.launcher.disconnectActiveClient()
+
+    val session2 = usageRule.testTracker.usages
+      .single { it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.SESSION_DATA }
+      .studioEvent.dynamicLayoutInspectorEvent.session
+    assertThat(session2.system.clicksWithVisibleSystemViews).isEqualTo(1)
+    assertThat(session2.system.clicksWithHiddenSystemViews).isEqualTo(0)
+    assertThat(session2.compose.framesWithRecompositionCountsOn).isEqualTo(1)
   }
 
   @Test

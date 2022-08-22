@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_BLUE
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
@@ -40,6 +41,7 @@ class SessionStatisticsTest {
   fun doNotSaveEmptyData() {
     val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model {})
     val data = DynamicLayoutInspectorSession.newBuilder()
+    stats.frameReceived()
     stats.save(data)
     val result = data.build()
     assertThat(result.hasLive()).isFalse()
@@ -67,6 +69,10 @@ class SessionStatisticsTest {
     model.notifyModified(structuralChange = true)
     stats.hideSystemNodes = true
     stats.attachSuccess()
+    stats.recompositionHighlightColor = HIGHLIGHT_COLOR_BLUE
+    stats.showRecompositions = true
+    stats.frameReceived()
+    stats.frameReceived()
     stats.gotoSourceFromDoubleClick()
     stats.selectionMadeFromComponentTree(compose1)
     waitForCondition(10, TimeUnit.SECONDS) { stats.memoryMeasurements > 0 }
@@ -86,6 +92,8 @@ class SessionStatisticsTest {
     assertThat(result.rotation.componentTreeClicksIn2D).isEqualTo(1)
     assertThat(result.memory.initialSnapshot.captureSizeMb).isEqualTo(0)
     assertThat(result.compose.componentTreeClicks).isEqualTo(1)
+    assertThat(result.compose.framesWithRecompositionCountsOn).isEqualTo(2)
+    assertThat(result.compose.framesWithRecompositionColorBlue).isEqualTo(2)
     assertThat(result.system.clicksWithHiddenSystemViews).isEqualTo(1)
     assertThat(result.gotoDeclaration.doubleClicks).isEqualTo(1)
     assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
