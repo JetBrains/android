@@ -22,8 +22,8 @@
 
     <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 
-    <facet.toolWindow id="Android Emulator"
-                facetIdList="android,apk"
+    <library.toolWindow id="Android Emulator"
+                librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
                 anchor="right"
                 secondary="true"
                 canCloseContents="true"
