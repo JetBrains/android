@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.projectImport.ProjectOpenProcessor
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor
 
-class AndroidGradleOpenProjectProcessorInitializer : Runnable {
-  override fun run() {
+class DisableGradleProjectOpenProcessor : ApplicationInitializedListener {
+  override fun componentsInitialized() {
     ProjectOpenProcessor.EXTENSION_POINT_NAME.getPoint().unregisterExtension(GradleProjectOpenProcessor::class.java)
   }
 }

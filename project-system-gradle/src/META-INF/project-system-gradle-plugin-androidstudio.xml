@@ -17,6 +17,8 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationInitializedListener id="Startup.AndroidGradleDisableAutoImportInitializer"
                                     implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
+    <applicationInitializedListener id="Startup.AndroidGradleOpenProjectProcessorInitializer"
+                                    implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleProjectOpenProcessor"/>
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
                     overrides="true"

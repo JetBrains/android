@@ -17,12 +17,11 @@ WARNING: IntelliJ changes their startup lifecycle often as they try to fix perfo
       * `AndroidSdkInitializer`
         * sdk setup, first run wizard mode, some gui test specific code.
         * Oddly, `SystemInfoStatsMonitor` is started here
-      * `AndroidGradleOpenProjectProcessorInitializer`, which has a single line:
-        `ProjectOpenProcessor.unregisterExtension(GradleProjectOpenProcessor::class.java)`
 * `ApplicationInitializedListener.componentsInitialized`
   * Splash screen loading bar is moving
   * `LowMemoryReporter$OnStartup`
   * `ThreadingChecker`
+  * `DisableGradleProjectOpenProcessor` used to unregister the platform's `GradleProjectOpenProcessor`
 * `PreloadingActivity.preload`
   * On background thread in parallel with componentsInitialized; only if preloading is enabled
   * **Preloading activities should not have any side effects except for improving subsequent performance**, so that if

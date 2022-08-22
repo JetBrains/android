@@ -42,8 +42,6 @@
     <projectConfigurable groupId="build" id="gradle.compiler"
                          provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider"/>
-    <androidStudioInitializer id="Startup.AndroidGradleOpenProjectProcessorInitializer"
-                              implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleOpenProjectProcessorInitializer"/>
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner"
                        id="android"
                        order="first, before gradle"/>
