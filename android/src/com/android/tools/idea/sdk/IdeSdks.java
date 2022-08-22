@@ -161,11 +161,6 @@ public class IdeSdks {
    */
   @Nullable
   public File getAndroidSdkPath() {
-    // TODO(b/203234375): This line should be removed---but then SdkSyncTest fails.
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      return null;
-    }
-
     Path sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
     if (sdkPath != null) {
       File candidate = sdkPath.toFile();

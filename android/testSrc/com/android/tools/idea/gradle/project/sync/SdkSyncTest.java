@@ -19,8 +19,8 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Ref;
@@ -46,7 +46,7 @@ public class SdkSyncTest extends PlatformTestCase {
     myLocalProperties = new LocalProperties(myProject);
     myAndroidSdkPath = TestUtils.getSdk().toFile();
     myIdeSdks = IdeSdks.getInstance();
-    new IdeComponents(getProject()).replaceApplicationService(IdeSdks.class, myIdeSdks);
+    ApplicationManager.getApplication().runWriteAction(() -> AndroidSdkPathStore.getInstance().setAndroidSdkPath(null));
     mySdkSync = new SdkSync();
     assertNull(myIdeSdks.getAndroidSdkPath());
     IdeSdks.removeJdksOn(getTestRootDisposable());
