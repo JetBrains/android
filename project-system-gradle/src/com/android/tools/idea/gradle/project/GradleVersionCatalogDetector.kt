@@ -75,8 +75,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
  *    b. it has a gradle/libs.versions.toml file relative to its base directory
  */
 class GradleVersionCatalogDetector(private val project: Project): Disposable {
-  var _gradleVersion: GradleVersion? = null
-  var _settingsVisitorResults: SettingsVisitorResults? = null
+  private var _gradleVersion: GradleVersion? = null
+  private var _settingsVisitorResults: SettingsVisitorResults? = null
 
   private val fileDocumentManager = FileDocumentManager.getInstance()
   init {
@@ -113,7 +113,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
     }
   }
 
-  val gradleVersion: GradleVersion
+  private val gradleVersion: GradleVersion
     get() {
       _gradleVersion?.let { return it }
       return runReadAction {
@@ -125,7 +125,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
-  val settingsVisitorResults: SettingsVisitorResults
+  private val settingsVisitorResults: SettingsVisitorResults
     get() {
       _settingsVisitorResults?.let { return it }
       return runReadAction {
@@ -141,7 +141,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
-  val _isVersionCatalogProject: DetectorResult
+  private val _isVersionCatalogProject: DetectorResult
     get() {
       val gradleVersion = gradleVersion
       if (gradleVersion < PREVIEW_GRADLE_VERSION) return OLD_GRADLE
@@ -155,7 +155,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
-  var shouldSendTrackerEvent = true
+  private var shouldSendTrackerEvent = true
 
   val isVersionCatalogProject: Boolean
     get() = _isVersionCatalogProject.run {
