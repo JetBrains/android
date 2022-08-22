@@ -25,12 +25,15 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.sdklib.repository.targets.PlatformTarget;
+import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -251,6 +254,10 @@ public class AndroidPositionManager extends PositionManagerImpl {
       // Swallow. This isn't expected; but if it happens and the user can for some reason edit this file, it won't make any difference.
       LOG.info("Unable to set generated file not writable.", e);
     }
+
+    // Add data indicating that we want to put up a banner offering to download sources.
+    List<AndroidVersion> requiredSourceDownload = ImmutableList.of(version);
+    generatedVirtualFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, requiredSourceDownload);
 
     return generatedPsiFile;
   }

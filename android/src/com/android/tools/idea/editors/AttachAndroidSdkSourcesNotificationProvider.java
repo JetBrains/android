@@ -17,12 +17,15 @@ package com.android.tools.idea.editors;
 
 import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
 
+import com.android.annotations.concurrency.UiThread;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.intellij.codeEditor.JavaEditorFileSwapper;
 import com.intellij.ide.highlighter.JavaClassFileType;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -47,11 +50,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Notifies users that the android SDK class they opened doesn't have a source file associated with it, and provide two links: one to
- * open SDK manager to download the source, another to update the SDK information cached in the IDE once source code is downloaded.
+ * Notifies users that the Android SDK file they opened doesn't have a source file associated with it, and provides a link to download the
+ * source via the SDK Manager.
  */
 public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("add sdk sources to class");
+
+  public static final Key<List<AndroidVersion>> REQUIRED_SOURCES_KEY = Key.create("sources to download");
 
   private final Project myProject;
 
@@ -66,52 +71,101 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
   }
 
   @Override
+  @UiThread
   @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+    if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {
+      // If the displayed file has user data indicating this banner panel should be displayed for particular sources, just use that.
+      List<AndroidVersion> requiredSources = file.getUserData(REQUIRED_SOURCES_KEY);
+      if (requiredSources != null && !requiredSources.isEmpty()) {
+        return createPanel(fileEditor, requiredSources, null);
+      }
+    }
+
+    // Check whether the file is a class file in the SDK. This can happen when the user browses to the source of an SDK file.
+    return createNotificationPanelForClassFiles(file, fileEditor);
+  }
+
+  private EditorNotificationPanel createNotificationPanelForClassFiles(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     if (!FileTypeRegistry.getInstance().isFileOfType(file, JavaClassFileType.INSTANCE)) {
       return null;
     }
 
-    // Locate the java source of the class file, if not found, then it might come from a SDK.
-    if (JavaEditorFileSwapper.findSourceFile(myProject, file) == null) {
-      JdkOrderEntry jdkOrderEntry = findAndroidSdkEntryForFile(file);
-
-      if (jdkOrderEntry == null) {
-        return null;
-      }
-      Sdk sdk = jdkOrderEntry.getJdk();
-      if (sdk == null) {
-        return null;
-      }
-
-      String sdkHome = sdk.getHomePath();
-      if (sdkHome == null) {
-        return null;
-      }
-      if (sdk.getRootProvider().getFiles(OrderRootType.SOURCES).length > 0) {
-        return null;
-      }
-
-      AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
-      if (platform == null) {
-        return null;
-      }
-      MyEditorNotificationPanel panel = new MyEditorNotificationPanel(fileEditor);
-
-      panel.setText("Sources for '" + jdkOrderEntry.getJdkName() + "' not found.");
-      panel.createAndAddLink("Download", () -> {
-        List<String> requested = Lists.newArrayList();
-        requested.add(DetailsTypes.getSourcesPath(platform.getApiVersion()));
-
-        ModelWizardDialog dialog = createSdkDownloadDialog(requested);
-        if (dialog != null && dialog.showAndGet()) {
-          updateSdkSourceRoot(sdk);
-        }
-      });
-      panel.createAndAddLink("Refresh (if already downloaded)", () -> updateSdkSourceRoot(sdk));
-      return panel;
+    if (JavaEditorFileSwapper.findSourceFile(myProject, file) != null) {
+      // Since the java source was found, no need to download sources.
+      return null;
     }
-    return null;
+
+    // Since the java source was not found, it might come from an Android SDK.
+    JdkOrderEntry jdkOrderEntry = findAndroidSdkEntryForFile(file);
+    if (jdkOrderEntry == null) {
+      return null;
+    }
+    Sdk sdk = jdkOrderEntry.getJdk();
+    if (sdk == null) {
+      return null;
+    }
+
+    String sdkHome = sdk.getHomePath();
+    if (sdkHome == null) {
+      return null;
+    }
+    if (sdk.getRootProvider().getFiles(OrderRootType.SOURCES).length > 0) {
+      return null;
+    }
+
+    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+    if (platform == null) {
+      return null;
+    }
+
+    AndroidVersion apiVersion = platform.getApiVersion();
+    Runnable refresh = () -> updateSdkSourceRoot(sdk);
+    if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {
+      return createPanel(fileEditor, ImmutableList.of(apiVersion), refresh);
+    }
+    else {
+      String title = "Sources for '" + jdkOrderEntry.getJdkName() + "' not found.";
+      return createLegacyPanel(fileEditor, title, apiVersion, refresh);
+    }
+  }
+
+  @NotNull
+  private MyEditorNotificationPanel createPanel(
+    @NotNull FileEditor fileEditor,
+    @NotNull List<AndroidVersion> requestedSourceVersions,
+    @Nullable Runnable refreshAfterDownload) {
+    MyEditorNotificationPanel panel = new MyEditorNotificationPanel(fileEditor);
+    panel.setText("Android SDK sources not found.");
+    panel.createAndAddLink("Download SDK Sources", () -> {
+      List<String> sourcesPaths =
+        requestedSourceVersions.stream().map(DetailsTypes::getSourcesPath).collect(ImmutableList.toImmutableList());
+      ModelWizardDialog dialog = createSdkDownloadDialog(sourcesPaths);
+      if (dialog != null && dialog.showAndGet()) {
+        if (refreshAfterDownload != null) {
+          refreshAfterDownload.run();
+        }
+      }
+    });
+    return panel;
+  }
+
+  private MyEditorNotificationPanel createLegacyPanel(
+    @NotNull FileEditor fileEditor,
+    @NotNull String title,
+    @NotNull AndroidVersion requestedSourceVersion,
+    @NotNull Runnable refresh) {
+    MyEditorNotificationPanel panel = new MyEditorNotificationPanel(fileEditor);
+    panel.setText(title);
+    panel.createAndAddLink("Download", () -> {
+      String sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion);
+      ModelWizardDialog dialog = createSdkDownloadDialog(ImmutableList.of(sourcesPath));
+      if (dialog != null && dialog.showAndGet()) {
+        refresh.run();
+      }
+    });
+    panel.createAndAddLink("Refresh (if already downloaded)", refresh);
+    return panel;
   }
 
   @VisibleForTesting
@@ -124,7 +178,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
     ProjectFileIndex index = ProjectFileIndex.getInstance(myProject);
     for (OrderEntry entry : index.getOrderEntriesForFile(file)) {
       if (entry instanceof JdkOrderEntry) {
-        JdkOrderEntry jdkOrderEntry = (JdkOrderEntry) entry;
+        JdkOrderEntry jdkOrderEntry = (JdkOrderEntry)entry;
         Sdk jdk = jdkOrderEntry.getJdk();
         if (jdk != null && AndroidSdks.getInstance().isAndroidSdk(jdk)) {
           return jdkOrderEntry;

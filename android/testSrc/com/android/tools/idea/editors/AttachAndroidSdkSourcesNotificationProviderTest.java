@@ -18,10 +18,14 @@ package com.android.tools.idea.editors;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.android.flags.junit.RestoreFlagRule;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.highlighter.JavaClassFileType;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -53,6 +57,7 @@ import org.mockito.junit.MockitoRule;
 public final class AttachAndroidSdkSourcesNotificationProviderTest {
   @Rule public final AndroidProjectRule myAndroidProjectRule = AndroidProjectRule.withSdk();
   @Rule public final MockitoRule myMockitoRule = MockitoJUnit.rule();
+  @Rule public final RestoreFlagRule myRestoreFlagRule = new RestoreFlagRule(StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE);
 
   @Mock private FileEditor myFileEditor;
   @Mock private ModelWizardDialog myModelWizardDialog;
@@ -61,6 +66,8 @@ public final class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Before
   public void setup() {
+    StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(true);
+
     when(myModelWizardDialog.showAndGet()).thenReturn(true);
 
     myProvider = new TestAttachAndroidSdkSourcesNotificationProvider(myAndroidProjectRule.getProject());
@@ -104,7 +111,26 @@ public final class AttachAndroidSdkSourcesNotificationProviderTest {
   }
 
   @Test
-  public void createNotificationPanel_panelHasCorrectLabel() {
+  public void createNotificationPanel_virtualFileHasRequiredSourcesKeyButIsNull_nullReturned() {
+    VirtualFile javaFile = myAndroidProjectRule.getFixture().createFile("somefile.java", "file contents");
+    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, null);
+
+    MyEditorNotificationPanel panel = invokeCreateNotificationPanel(javaFile);
+    assertThat(panel).isNull();
+  }
+
+  @Test
+  public void createNotificationPanel_virtualFileHasRequiredSourcesKeyButIsEmpty_nullReturned() {
+    VirtualFile javaFile = myAndroidProjectRule.getFixture().createFile("somefile.java", "file contents");
+    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, ImmutableList.of());
+
+    MyEditorNotificationPanel panel = invokeCreateNotificationPanel(javaFile);
+    assertThat(panel).isNull();
+  }
+
+  @Test
+  public void createNotificationPanel_flagOff_panelHasCorrectLabel() {
+    StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(false);
     VirtualFile virtualFile = getAndroidSdkClassWithoutSources();
 
     MyEditorNotificationPanel panel = invokeCreateNotificationPanel(virtualFile);
@@ -113,19 +139,41 @@ public final class AttachAndroidSdkSourcesNotificationProviderTest {
   }
 
   @Test
-  public void createNotificationPanel_panelHasDownloadAndRefreshLinks() {
+  public void createNotificationPanel_panelHasCorrectLabel() {
+    VirtualFile virtualFile = getAndroidSdkClassWithoutSources();
+
+    MyEditorNotificationPanel panel = invokeCreateNotificationPanel(virtualFile);
+    assertThat(panel).isNotNull();
+    assertThat(panel.getText()).isEqualTo("Android SDK sources not found.");
+  }
+
+  @Test
+  public void createNotificationPanel_flagOff_panelHasDownloadAndRefreshLinks() {
+    StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(false);
     VirtualFile virtualFile = getAndroidSdkClassWithoutSources();
 
     MyEditorNotificationPanel panel = invokeCreateNotificationPanel(virtualFile);
 
     Map<String, Runnable> links = panel.getLinks();
 
-    assertThat(links).hasSize(2);
     assertThat(links.keySet()).containsExactly("Download", "Refresh (if already downloaded)");
   }
 
   @Test
-  public void createNotificationPanel_downloadLinkDownloadsSources() {
+  public void createNotificationPanel_panelHasDownloadLink() {
+    VirtualFile virtualFile = getAndroidSdkClassWithoutSources();
+
+    MyEditorNotificationPanel panel = invokeCreateNotificationPanel(virtualFile);
+
+    Map<String, Runnable> links = panel.getLinks();
+
+    assertThat(links.keySet()).containsExactly("Download SDK Sources");
+  }
+
+  @Test
+  public void createNotificationPanel_flagOff_downloadLinkDownloadsSources() {
+    StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(false);
+
     VirtualFile virtualFile = getAndroidSdkClassWithoutSources();
 
     MyEditorNotificationPanel panel = invokeCreateNotificationPanel(virtualFile);
@@ -143,7 +191,46 @@ public final class AttachAndroidSdkSourcesNotificationProviderTest {
   }
 
   @Test
-  public void createNotificationPanel_refreshLinkUpdatesSources() {
+  public void createNotificationPanel_downloadLinkDownloadsSources() {
+    VirtualFile virtualFile = getAndroidSdkClassWithoutSources();
+
+    MyEditorNotificationPanel panel = invokeCreateNotificationPanel(virtualFile);
+
+    RootProvider rootProvider = AndroidSdks.getInstance().getAllAndroidSdks().get(0).getRootProvider();
+    assertThat(rootProvider.getFiles(OrderRootType.SOURCES)).hasLength(0);
+
+    // Invoke the "Download" link, which is first in the components.
+    ApplicationManager.getApplication().invokeAndWait(() -> panel.getLinks().get("Download SDK Sources").run());
+
+    // Check that the link requested the correct paths, and that then sources became available.
+    assertThat(myProvider.getRequestedPaths()).isNotNull();
+    assertThat(myProvider.getRequestedPaths()).containsExactly("sources;android-32");
+    assertThat(rootProvider.getFiles(OrderRootType.SOURCES).length).isGreaterThan(0);
+  }
+
+  @Test
+  public void createNotificationPanel_virtualFileHasRequiredSourcesKey_downloadLinkHasRequestedSources() {
+    List<AndroidVersion> requiredSourceVersions = ImmutableList.of(
+      new AndroidVersion(30),
+      new AndroidVersion(31)
+    );
+
+    VirtualFile javaFile = myAndroidProjectRule.getFixture().createFile("somefile.java", "file contents");
+    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, requiredSourceVersions);
+
+    MyEditorNotificationPanel panel = invokeCreateNotificationPanel(javaFile);
+
+    ApplicationManager.getApplication().invokeAndWait(() -> panel.getLinks().get("Download SDK Sources").run());
+
+    // Check that the link requested the correct paths, and that then sources became available.
+    assertThat(myProvider.getRequestedPaths()).isNotNull();
+    assertThat(myProvider.getRequestedPaths()).containsExactly("sources;android-30", "sources;android-31");
+  }
+
+  @Test
+  public void createNotificationPanel_flagOff_refreshLinkUpdatesSources() {
+    StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(false);
+
     VirtualFile virtualFile = getAndroidSdkClassWithoutSources();
 
     MyEditorNotificationPanel panel = invokeCreateNotificationPanel(virtualFile);

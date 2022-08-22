@@ -32,6 +32,7 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.debug.AndroidPositionManager.MyXDebugSessionListener;
+import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -410,6 +411,10 @@ public class AndroidPositionManagerTest {
     assertThat(fileContent).contains(
       "device under debug has API level " + targetDeviceAndroidVersion.getApiLevel() + ".");
     assertThat(file.getName()).isEqualTo("Unavailable Source");
+
+    List<AndroidVersion> requiredVersions =
+      file.getVirtualFile().getUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY);
+    assertThat(requiredVersions).containsExactly(targetDeviceAndroidVersion);
   }
 
   private static Location getAndroidSdkClassLocation() throws Exception {
