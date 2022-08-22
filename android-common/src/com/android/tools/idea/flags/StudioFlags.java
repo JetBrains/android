@@ -1327,7 +1327,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_NETWORK_INTERCEPTION = Flag.create(
     NETWORK_INSPECTOR, "enable.network.interception", "Enable Network Interception",
     "Enables interceptions on network requests and responses",
-    true
+    false
   );
   // endregion
 
