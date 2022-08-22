@@ -43,6 +43,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -104,6 +105,7 @@ public class BuildVariantView {
     this(project, BuildVariantUpdater.getInstance(project));
   }
 
+  @NonInjectable
   private BuildVariantView(@NotNull Project project, @NotNull BuildVariantUpdater updater) {
     myProject = project;
     myUpdater = updater;
