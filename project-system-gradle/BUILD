@@ -76,7 +76,7 @@ iml_module(
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_resources = ["testSrc/resources"],
-    test_shard_count = 26,
+    test_shard_count = 27,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
