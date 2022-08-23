@@ -191,8 +191,8 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
   }
 
   @Test
-  fun testHasComboBoxFrom800Alpha03() {
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("8.0.0-alpha03"), GradleVersion.parse("8.0.0"))
+  fun testHasComboBoxFrom740() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("7.4.0"), GradleVersion.parse("8.0.0"))
     processor.setR8FullModeDefaultIsAlwaysNoOpForProject(false)
     val dialog = registerDialogDisposable(AgpUpgradeRefactoringProcessorDialog(processor, processor.getJava8DefaultRefactoringProcessor(),
                                                                                processor.getR8FullModeDefaultRefactoringProcessor(), false))
@@ -252,8 +252,8 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
   }
 
   @Test
-  fun testHasNoComboBoxTo800Alpha03() {
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0-alpha03"))
+  fun testHasNoComboBoxTo740() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("7.4.0"))
     processor.setJava8DefaultIsAlwaysNoOpForProject(false)
     processor.setR8FullModeDefaultIsAlwaysNoOpForProject(false)
     val dialog = registerDialogDisposable(AgpUpgradeRefactoringProcessorDialog(processor, processor.getJava8DefaultRefactoringProcessor(),

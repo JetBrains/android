@@ -46,26 +46,26 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   }
 
   @Test
-  fun testIsDisabledFor800Alpha03() {
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0-alpha03"))
+  fun testIsDisabledFor740() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("7.4.0"))
     assertFalse(processor.isEnabled)
   }
 
   @Test
-  fun testIsEnabledFor800Alpha04() {
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0-alpha04"))
+  fun testIsEnabledFor800Alpha01() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0-alpha01"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
-  fun testIsEnabledFrom800Alpha03() {
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("8.0.0-alpha03"), GradleVersion.parse("8.0.0"))
+  fun testIsEnabledFrom740() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.4.0"), GradleVersion.parse("8.0.0"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
-  fun testIsDisabledFrom800Alpha04() {
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("8.0.0-alpha04"), GradleVersion.parse("8.0.0"))
+  fun testIsDisabledFrom800Alpha01() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("8.0.0-alpha01"), GradleVersion.parse("8.0.0"))
     assertFalse(processor.isEnabled)
   }
 
@@ -78,12 +78,12 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testNecessities() {
     val expectedNecessitiesMap = mapOf(
-      ("7.3.0" to "8.0.0-alpha03") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
-      ("7.3.0" to "8.0.0-alpha04") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
+      ("7.3.0" to "7.4.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
+      ("7.3.0" to "8.0.0-alpha01") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
       ("7.3.0" to "8.0.0-beta01") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
       ("7.3.0" to "8.0.0-rc01") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
       ("7.3.0" to "8.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
-      ("8.0.0-alpha04" to "8.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
+      ("8.0.0-alpha01" to "8.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
       ("8.0.0-beta01" to "8.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
       ("8.0.0-rc01" to "8.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
     )
