@@ -23,6 +23,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
 import com.intellij.openapi.options.newEditor.SettingsTreeView;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.TabbedPaneWrapper;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.tabs.impl.TabLabel;
@@ -63,7 +64,11 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
     return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
-        return component.getTitle().matches("Settings.*");
+        if(SystemInfo.isMac) {
+          return component.getTitle().matches("Preferences.*");
+        } else {
+          return component.getTitle().matches("Settings.*");
+        }
       }
     }));
   }
