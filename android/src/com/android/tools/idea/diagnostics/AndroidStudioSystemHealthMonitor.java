@@ -418,8 +418,6 @@ public class AndroidStudioSystemHealthMonitor {
 
     application.executeOnPooledThread(this::checkRuntime);
 
-    new WindowsPerformanceHintsChecker().run();
-
     if (SystemInfo.isWindows && StudioFlags.WINDOWS_UCRT_CHECK_ENABLED.get()) {
       application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
         @Override
