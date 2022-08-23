@@ -178,7 +178,12 @@ compose_preview_data = select({
     "@platforms//os:linux": [
         "//tools/adt/idea/studio:android-studio.linux.zip",
     ],
-    "//conditions:default": [],
+    "@platforms//os:macos": [
+        "//tools/adt/idea/studio:android-studio.mac.zip",
+    ],
+    "@platforms//os:windows": [
+        "//tools/adt/idea/studio:android-studio.win.zip",
+    ],
 }) + [
     ":compose_preview_deps",
     "//prebuilts/studio/sdk:build-tools/latest",
@@ -215,10 +220,10 @@ iml_test(
     data = compose_preview_data,
     module = ":intellij.android.compose-designer.integration",
     tags_linux = ["block-network"],
-    tags_mac = ["manual"],  # Untested
+    tags_mac = ["manual"],  # Missing Maven dependency: b/243445943
     tags_windows = [
         "block-network",
-        "manual",  # Untested
+        "manual",  # Missing Maven dependency: b/243445943
     ],
     test_class = "com.android.tools.idea.compose.ComposePreviewKotlin",
 )
@@ -229,10 +234,6 @@ iml_test(
     data = compose_preview_data,
     module = ":intellij.android.compose-designer.integration",
     tags_linux = ["block-network"],
-    tags_mac = ["manual"],  # Untested
-    tags_windows = [
-        "block-network",
-        "manual",  # Untested
-    ],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.compose.ComposePreviewXml",
 )
