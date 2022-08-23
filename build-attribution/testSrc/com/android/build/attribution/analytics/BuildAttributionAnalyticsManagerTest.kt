@@ -25,6 +25,7 @@ import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.analyzers.createBinaryPluginIdentifierStub
 import com.android.build.attribution.analyzers.createScriptPluginIdentifierStub
 import com.android.build.attribution.data.AlwaysRunTaskData
@@ -37,10 +38,13 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionReportBuilderTest
 import com.android.ide.common.attribution.CheckJetifierResult
 import com.android.ide.common.attribution.DependencyPath
 import com.android.ide.common.attribution.FullDependencyPath
+import com.android.ide.common.attribution.TaskCategory
+import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
 import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
@@ -186,6 +190,13 @@ class BuildAttributionAnalyticsManagerTest {
           )
         )
       ))
+
+      override fun getTaskCategoryWarningsAnalyzerResult() =
+        TaskCategoryWarningsAnalyzer.Result(
+          buildAnalyzerTaskCategoryIssues = listOf(
+            BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED
+          )
+        )
     }
   }
 

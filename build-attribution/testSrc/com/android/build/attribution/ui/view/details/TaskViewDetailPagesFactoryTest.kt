@@ -140,7 +140,7 @@ Number of tasks: 20 tasks<BR/>
 <BR/>
 <B>Warnings</B><BR/>
 20 tasks with warnings associated with this plugin.<BR/>
-Top 10 tasks shown below, you can find the full list in the tree on the left.<BR/>
+Top 10 warnings shown below, you can find the full list in the tree on the left.<BR/>
 
 ${expectedTaskSection(":module1:task1")}
 
@@ -251,13 +251,12 @@ which it must do in order to support incremental builds.<BR/>
   }
 
   @Test
-  fun testCreateTaskCategoryPageWithoutWarnings() {
+  fun testCreateTaskCategoryPageWithoutWarning() {
     StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
     val data = MockUiData(tasksList = listOf(mockTask(":module1", "task1", "myPlugin", 100)))
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
-    print(data.criticalPathTaskCategories.entries.joinToString { it.name })
     val taskCategoryData = data.criticalPathTaskCategories.entries.first{ it.name == "Android Resources" }
     val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData)) as EntryDetailsNodeDescriptor
 
@@ -270,7 +269,35 @@ which it must do in order to support incremental builds.<BR/>
       Number of tasks: 1 task<BR/>
       <BR/>
       <B>Warnings</B><BR/>
-      No warnings detected for this task category.
+      No warnings detected for Android Resources category.
+    """.trimIndent())
+  }
+
+  @Test
+  fun testCreateTaskCategoryPageWithWarning() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
+    val data = MockUiData(tasksList = listOf(mockTask(":module1", "task1", "myPlugin", 100)),
+                          createTaskCategoryWarning = true)
+    val model = TasksDataPageModelImpl(data)
+    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
+    model.selectGrouping(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
+    val taskCategoryData = data.criticalPathTaskCategories.entries.first{ it.name == "Android Resources" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData)) as EntryDetailsNodeDescriptor
+
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    assertThat(htmlBody).isEqualTo("""
+      <B>Android Resources</B><BR/>
+      Tasks related to Android resources compilation, processing, linking and merging.<BR/>
+      <BR/>
+      Total duration: 0.1s<BR/>
+      Number of tasks: 1 task<BR/>
+      <BR/>
+      <B>Warnings</B><BR/>
+      1 warning associated with Android Resources category.<BR/>
+
+      <table><tr><td VALIGN=TOP><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td VALIGN=TOP>test<BR/>
+      <a href='NON_TRANSITIVE_R_CLASS'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'></td></tr>
+      </table>
     """.trimIndent())
   }
 

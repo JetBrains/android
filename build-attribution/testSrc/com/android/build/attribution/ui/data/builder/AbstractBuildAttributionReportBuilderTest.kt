@@ -21,6 +21,7 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.GarbageCollectionData
@@ -71,6 +72,7 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun isGCSettingSet(): Boolean? = null
     override fun buildUsesConfigurationCache(): Boolean = false
     override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
+    override fun getTaskCategoryWarningsAnalyzerResult(): TaskCategoryWarningsAnalyzer.Result = TaskCategoryWarningsAnalyzer.Result(emptyList())
   }
 
   fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)

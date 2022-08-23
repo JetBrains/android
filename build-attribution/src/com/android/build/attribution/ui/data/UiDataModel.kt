@@ -18,8 +18,10 @@ package com.android.build.attribution.ui.data
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
 import com.android.ide.common.attribution.TaskCategory
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
@@ -128,15 +130,18 @@ interface CriticalPathPluginUiData : CriticalPathEntryUiData {
 }
 
 interface CriticalPathTaskCategoryUiData : CriticalPathEntryUiData {
-  val taskCategoryInfo: String
+  val taskCategory: TaskCategory
+  val taskCategoryDescription: String
   override val modelGrouping: TasksDataPageModel.Grouping
     get() = TasksDataPageModel.Grouping.BY_TASK_CATEGORY
+  val taskCategoryWarnings: List<BuildAnalyzerTaskCategoryIssueUiData>
+  val taskCategoryInfos: List<BuildAnalyzerTaskCategoryIssueUiData>
 }
 
 // Model UI object that represents a plugin / task label
 interface CriticalPathEntryUiData {
   val name: String
-  /** Total time of this plugin tasks on critical path. */
+  /** Total time of these entry tasks on critical path. */
   val criticalPathDuration: TimeWithPercentage
   /** This plugin tasks on critical path. */
   val criticalPathTasks: List<TaskUiData>
@@ -224,3 +229,10 @@ interface AnnotationProcessorUiData {
   val className: String
   val compilationTimeMs: Long
 }
+
+data class BuildAnalyzerTaskCategoryIssueUiData(
+  val buildAnalyzerTaskCategoryIssue: BuildAnalyzerTaskCategoryIssue,
+  val message: String,
+  val link: BuildAnalyzerBrowserLinks?
+  )
+

@@ -39,6 +39,7 @@ import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoDataFromSavedResult
 import com.android.build.attribution.analyzers.NoncacheableTasksAnalyzer
 import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
@@ -68,6 +69,7 @@ class BuildResultsProtoMessageConverter(val project: Project) {
     tasks: Map<String, TaskData>
   ) : BuildAnalysisResultsMessage {
     val analyzersDataBuilder = BuildAnalysisResultsMessage.newBuilder()
+    // TODO(b/246728389): Add field for TaskCategoryWarningsAnalyzerResult
     analyzersDataBuilder.requestData = transformRequestData(buildResults.getBuildRequestData())
     analyzersDataBuilder.annotationProcessorsAnalyzerResult = transformAnnotationProcessorsAnalyzerResult(
       buildResults.getAnnotationProcessorAnalyzerResult()
@@ -437,6 +439,8 @@ class BuildResultsProtoMessageConverter(val project: Project) {
       configurationCachingCompatibilityAnalyzerResult = configurationCachingCompatibilityAnalyzerResult,
       jetifierUsageAnalyzerResult = jetifierUsageAnalyzerResult,
       downloadsAnalyzerResult = downloadAnalyzerResult,
+      // TODO(b/246728389): Add TaskCategoryWarningsAnalyzerResult
+      taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(emptyList()),
       buildSessionID = buildSessionID,
       taskMap = tasks,
       pluginMap = plugins

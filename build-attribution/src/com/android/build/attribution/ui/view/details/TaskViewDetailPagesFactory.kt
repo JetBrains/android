@@ -16,7 +16,7 @@
 package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.ui.HtmlLinksHandler
-import com.android.build.attribution.ui.data.CriticalPathPluginUiData
+import com.android.build.attribution.ui.createTaskCategoryIssueMessage
 import com.android.build.attribution.ui.data.CriticalPathTaskCategoryUiData
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
@@ -29,8 +29,8 @@ import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warnIconHtml
+import com.android.build.attribution.ui.withPluralization
 import com.android.utils.HtmlBuilder
-import com.intellij.openapi.util.text.StringUtil
 import java.awt.BorderLayout
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -91,26 +91,49 @@ class TaskViewDetailPagesFactory(
     linksHandler: HtmlLinksHandler
   ): String {
     return HtmlBuilder().apply {
-      val entryTypeString = if (descriptor.entryData is CriticalPathPluginUiData) "plugin" else "task category"
       val filteredTasksNumber = descriptor.filteredTaskNodes.size
       val filteredTasksWithWarnings = descriptor.filteredTaskNodes.filter { it.hasWarning }
       addBold(descriptor.entryData.name).newline()
-      if (descriptor.entryData is CriticalPathTaskCategoryUiData) add(descriptor.entryData.taskCategoryInfo).newline().newline()
+      if (descriptor.entryData is CriticalPathTaskCategoryUiData) add(descriptor.entryData.taskCategoryDescription).newline().newline()
       add("Total duration: ").addHtml(descriptor.filteredEntryTime.toTimeWithPercentage().durationStringHtml()).newline()
       //TODO (b/240926892): these are filtered tasks, should make it clear for the user.
       add("Number of tasks: ${filteredTasksNumber.withPluralization("task")}").newline()
       newline()
-      addBold("Warnings").newline()
-      if (filteredTasksWithWarnings.isEmpty()) {
-        //TODO (b/240926892): same here, these are filtered, need to make it clear on UI
-        add("No warnings detected for this ${entryTypeString}.")
-      }
-      else {
-        add("${filteredTasksWithWarnings.size.withPluralization("task")} with warnings associated with this ${entryTypeString}.").newline()
-        if (filteredTasksWithWarnings.size > 10) {
-          add("Top 10 tasks shown below, you can find the full list in the tree on the left.").newline()
+
+      if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+        val taskCategoryInfos = descriptor.entryData.taskCategoryInfos
+        if (taskCategoryInfos.isNotEmpty()) {
+          createTaskCategoryIssueMessage(taskCategoryInfos, linksHandler)
+          newline()
         }
-        filteredTasksWithWarnings.take(10).forEach { task ->
+      }
+
+      addBold("Warnings").newline()
+      var warningCount = filteredTasksWithWarnings.size
+      if (descriptor.entryData is CriticalPathTaskCategoryUiData) warningCount += descriptor.entryData.taskCategoryWarnings.size
+      if (warningCount == 0) {
+        //TODO (b/240926892): same here, these are filtered, need to make it clear on UI
+        if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+          add("No warnings detected for ${descriptor.entryData.name} category.")
+        } else {
+          add("No warnings detected for this plugin.")
+        }
+      } else {
+        if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+          add("${warningCount.withPluralization("warning")} associated with ${descriptor.entryData.name} category.").newline()
+        } else {
+          add("${warningCount.withPluralization("task")} with warnings associated with this plugin.").newline()
+        }
+        if (warningCount > 10) {
+          add("Top 10 warnings shown below, you can find the full list in the tree on the left.").newline()
+        }
+        if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+          if (descriptor.entryData.taskCategoryWarnings.isNotEmpty()) {
+            createTaskCategoryIssueMessage(descriptor.entryData.taskCategoryWarnings, linksHandler)
+            warningCount -= descriptor.entryData.taskCategoryWarnings.size
+          }
+        }
+        filteredTasksWithWarnings.take(minOf(warningCount, 10)).forEach { task ->
           val linkToTask = linksHandler.actionLink(task.taskPath, task.taskPath) {
             actionHandlers.tasksDetailsLinkClicked(TasksPageId.task(task, descriptor.entryData.modelGrouping))
           }
@@ -127,5 +150,5 @@ class TaskViewDetailPagesFactory(
     }.html
   }
 
-  private fun Int.withPluralization(base: String): String = "$this ${StringUtil.pluralize(base, this)}"
+
 }

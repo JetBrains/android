@@ -25,8 +25,10 @@ import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING
 import com.android.build.attribution.ui.HtmlLinksHandler
+import com.android.build.attribution.ui.createTaskCategoryIssueMessage
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
+import com.android.build.attribution.ui.data.CriticalPathTaskCategoryUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
@@ -40,6 +42,7 @@ import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescri
 import com.android.build.attribution.ui.model.ConfigurationCachingWarningNodeDescriptor
 import com.android.build.attribution.ui.model.JetifierUsageWarningRootNodeDescriptor
 import com.android.build.attribution.ui.model.PluginGroupingWarningNodeDescriptor
+import com.android.build.attribution.ui.model.TaskCategoryWarningNodeDescriptor
 import com.android.build.attribution.ui.model.TaskUnderPluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
@@ -50,7 +53,9 @@ import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.warningsCountString
+import com.android.build.attribution.ui.withPluralization
 import com.android.tools.adtui.TabularLayout
+import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.ui.HyperlinkLabel
@@ -112,6 +117,7 @@ class WarningsViewDetailPagesFactory(
     is ConfigurationCachingWarningNodeDescriptor -> createConfigurationCachingWarningPage(nodeDescriptor.data,
                                                                                           nodeDescriptor.projectConfigurationTime)
     is JetifierUsageWarningRootNodeDescriptor -> JetifierWarningDetailsView(nodeDescriptor.data, actionHandlers, disposable).pagePanel
+    is TaskCategoryWarningNodeDescriptor -> createTaskCategoryWarningDetailsPage(nodeDescriptor.taskCategoryData)
   }.apply {
     name = nodeDescriptor.pageId.id
   }
@@ -149,6 +155,28 @@ class WarningsViewDetailPagesFactory(
       </table>
     """.trimIndent()
     add(htmlTextLabelWithFixedLines(content), BorderLayout.NORTH)
+  }
+
+  private fun createTaskCategoryWarningDetailsPage(
+    taskCategoryData: CriticalPathTaskCategoryUiData) = JPanel().apply {
+    layout = BorderLayout()
+    val linksHandler = HtmlLinksHandler(actionHandlers)
+    val content = taskCategoryWarningDetailsHtml(taskCategoryData, linksHandler)
+    add(htmlTextLabelWithFixedLines(content), BorderLayout.NORTH)
+  }
+
+  private fun taskCategoryWarningDetailsHtml(taskCategoryData: CriticalPathTaskCategoryUiData, linksHandler: HtmlLinksHandler): String {
+    return HtmlBuilder().apply {
+      val tasksNumber = taskCategoryData.criticalPathTasks.size
+      addBold(taskCategoryData.name).newline()
+      add(taskCategoryData.taskCategoryDescription).newline()
+      newline()
+      add("Total duration: ").addHtml(durationStringHtml(taskCategoryData.criticalPathDuration.timeMs)).newline()
+      add("Number of tasks:  ${ tasksNumber.withPluralization("task") }").newline()
+      newline()
+      addBold(taskCategoryData.taskCategoryWarnings.size.withPluralization("warning")).newline()
+      createTaskCategoryIssueMessage(taskCategoryData.taskCategoryWarnings, linksHandler)
+    }.html
   }
 
   private fun createWarningDetailsPage(taskData: TaskUiData) = taskDetailsPage(taskData, actionHandlers)

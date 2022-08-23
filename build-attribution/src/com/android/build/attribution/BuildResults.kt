@@ -27,10 +27,10 @@ import com.android.build.attribution.analyzers.GarbageCollectionAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.NoncacheableTasksAnalyzer
 import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
-import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
@@ -54,6 +54,7 @@ data class BuildAnalysisResults(
   private val configurationCachingCompatibilityAnalyzerResult: ConfigurationCachingCompatibilityProjectResult,
   private val jetifierUsageAnalyzerResult: JetifierUsageAnalyzerResult,
   private val downloadsAnalyzerResult: DownloadsAnalyzer.Result,
+  private val taskCategoryWarningsAnalyzerResult: TaskCategoryWarningsAnalyzer.Result,
   private val buildSessionID: String,
   private val taskMap: Map<String, TaskData>,
   private val pluginMap: Map<String, PluginData>
@@ -188,6 +189,10 @@ data class BuildAnalysisResults(
 
   override fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {
     return downloadsAnalyzerResult
+  }
+
+  override fun getTaskCategoryWarningsAnalyzerResult(): TaskCategoryWarningsAnalyzer.Result {
+    return taskCategoryWarningsAnalyzerResult
   }
 
   fun getBuildSessionID(): String {

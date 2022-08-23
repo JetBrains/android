@@ -20,9 +20,9 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
-import com.android.build.attribution.data.TaskCategoryBuildData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
+import com.android.build.attribution.ui.data.BuildAnalyzerTaskCategoryIssueUiData
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.BuildSummary
 import com.android.build.attribution.ui.data.ConfigurationUiData
@@ -37,6 +37,7 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
 import com.android.ide.common.attribution.TaskCategory
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
@@ -61,7 +62,8 @@ class MockUiData(
   val criticalPathDurationMs: Long = defaultCriticalPathDurationMs,
   val configurationDurationMs: Long = defaultConfigurationDurationMs,
   val gcTimeMs: Long = 0,
-  val tasksList: List<TestTaskUiData> = emptyList()
+  val tasksList: List<TestTaskUiData> = emptyList(),
+  val createTaskCategoryWarning: Boolean = false
 ) : BuildAttributionReportUiData {
   override val successfulBuild = true
   override val buildRequestData: GradleBuildInvoker.Request.RequestData
@@ -126,13 +128,20 @@ class MockUiData(
 
   fun createTaskCategoryData(taskCategory: TaskCategory, tasks: List<TaskUiData>) = object : CriticalPathTaskCategoryUiData {
     override val name = taskCategory.displayName()
+    override val taskCategory = taskCategory
     override val criticalPathTasks = tasks
     override val criticalPathDuration = TimeWithPercentage(tasks.sumByLong { it.executionTime.timeMs }, criticalPathDurationMs)
     override val issues = tasks.flatMap { it.issues }.groupBy { it.type }.map { (k, v) -> createIssuesGroup(k, v) }
     override val warningCount = tasks.count { it.hasWarning }
     override val infoCount = tasks.count { it.hasInfo }
-    override val taskCategoryInfo: String
-      get() = taskCategory.getTaskCategoryInfo()
+    override val taskCategoryDescription: String
+      get() = taskCategory.getTaskCategoryDescription()
+    override val taskCategoryWarnings: List<BuildAnalyzerTaskCategoryIssueUiData>
+      get() = if (createTaskCategoryWarning)
+        listOf(BuildAnalyzerTaskCategoryIssueUiData(BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED, "test", BuildAnalyzerBrowserLinks.NON_TRANSITIVE_R_CLASS))
+        else emptyList()
+    override val taskCategoryInfos: List<BuildAnalyzerTaskCategoryIssueUiData>
+      get() = emptyList()
   }
 
   fun createPluginData(name: String, tasks: List<TaskUiData>) = object : CriticalPathPluginUiData {

@@ -41,7 +41,7 @@ class WarningsDataPageModelImplTest {
     task1.issues = task1.issues + listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
   }
 
-  val mockData = MockUiData(tasksList = listOf(task1, task2, task3))
+  val mockData = MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true)
 
   var modelUpdateListenerCallsCount = 0
   val model: WarningsDataPageModel = WarningsDataPageModelImpl(mockData).apply {
@@ -50,6 +50,7 @@ class WarningsDataPageModelImplTest {
 
   @Test
   fun testInitialSelection() {
+    print(mockData.criticalPathTaskCategories.entries.joinToString { it.name })
     assertThat(model.print()).isEqualTo("""
       |ROOT
       |  ALWAYS_RUN_TASKS
@@ -64,6 +65,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
+      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -91,7 +93,8 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
-      |=>JETIFIER_USAGE
+      |  JETIFIER_USAGE
+      |=>ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -121,6 +124,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
+      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
   }
@@ -146,6 +150,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
+      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -171,6 +176,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
+      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -178,7 +184,7 @@ class WarningsDataPageModelImplTest {
   @Test
   fun testNoTaskSetupIssuesDetected() {
     // Arrange
-    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task2)))
+    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task2), createTaskCategoryWarning = true))
 
     // Assert
     assertThat(model.print()).isEqualTo("""
@@ -191,13 +197,14 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
+      |  ANDROID_RESOURCES
     """.trimMargin())
   }
 
   @Test
   fun testNoAnnotationProcessorsWarningsIssuesDetected() {
     // Arrange
-    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3)).apply {
+    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true).apply {
       annotationProcessors = object : AnnotationProcessorsReport {
         override val nonIncrementalProcessors: List<AnnotationProcessorUiData> = emptyList()
       }
@@ -214,6 +221,7 @@ class WarningsDataPageModelImplTest {
       |    TASK_SETUP_ISSUE-:lib:compile
       |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
+      |  ANDROID_RESOURCES
     """.trimMargin())
   }
 
@@ -225,7 +233,7 @@ class WarningsDataPageModelImplTest {
 
   private fun testNoJetifierWarningShown(jetifierData: JetifierUsageAnalyzerResult) {
     // Arrange
-    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3)).apply {
+    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true).apply {
       this.jetifierData = jetifierData
     })
     assertThat(model.print()).isEqualTo("""
@@ -241,8 +249,9 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
     """.trimMargin())
-    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 8, Filtered: 8")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 9, Filtered: 9")
   }
 
   @Test
@@ -266,11 +275,11 @@ class WarningsDataPageModelImplTest {
 
   @Test
   fun testTreeHeader() {
-    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 9, Filtered: 9")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 10, Filtered: 10")
   }
 
   @Test
-  fun testAllWarningsFilteredOut() {
+  fun testAllWarningsFilteredOutExceptBuildAnalyzerTaskCategoryIssue() {
     model.filter = WarningsFilter.DEFAULT.copy(
       showTaskWarningTypes = setOf(),
       showAnnotationProcessorWarnings = false,
@@ -279,9 +288,10 @@ class WarningsDataPageModelImplTest {
     )
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  ANDROID_RESOURCES
     """.trimMargin())
 
-    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 9, Filtered: 0")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 10, Filtered: 1")
   }
 
   @Test
@@ -302,6 +312,7 @@ class WarningsDataPageModelImplTest {
       |    ALWAYS_RUN_TASKS-:app:resources
       |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
+      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -327,6 +338,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
+      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -348,6 +360,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
+      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }

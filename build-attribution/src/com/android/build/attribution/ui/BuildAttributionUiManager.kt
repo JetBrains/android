@@ -184,7 +184,6 @@ class BuildAttributionUiManagerImpl(
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val downloadsData: DownloadsAnalyzer.Result
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-
     }
   }
 

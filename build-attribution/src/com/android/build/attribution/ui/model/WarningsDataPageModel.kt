@@ -33,6 +33,7 @@ import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import com.android.build.attribution.ui.data.CriticalPathTaskCategoryUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
@@ -41,6 +42,7 @@ import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.android.build.attribution.ui.warningsCountString
+import com.android.ide.common.attribution.TaskCategory
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
@@ -146,7 +148,9 @@ class WarningsDataPageModelImpl(
   override val isEmpty: Boolean
     get() = reportData.issues.sumBy { it.warningCount } +
       reportData.annotationProcessors.issueCount +
-      reportData.confCachingData.warningsCount() == 0
+      reportData.confCachingData.warningsCount() +
+      reportData.criticalPathTaskCategories.entries.map { category ->
+        category.taskCategoryWarnings }.flatten().size == 0
 
   override fun selectNode(warningsTreeNode: WarningsTreeNode?) {
     selectedPageId = warningsTreeNode?.descriptor?.pageId ?: WarningsPageId.emptySelection
@@ -263,6 +267,15 @@ private class WarningsTreeStructure(
           treeStats.filteredWarningsCount++
         }
       }
+
+      // Leave out Java non-incremental annotation processors task category warnings as warnings are already shown for that
+      // TODO(b/246764487): Should filter out only specific nonIncAP warning not whole Java category
+      val taskCategories = reportData.criticalPathTaskCategories.entries.filter { it.taskCategoryWarnings.isNotEmpty() && it.taskCategory != TaskCategory.JAVA }
+      taskCategories.forEach {
+        rootNode.add(treeNode(TaskCategoryWarningNodeDescriptor(it)))
+        treeStats.filteredWarningsCount += it.taskCategoryWarnings.size
+      }
+
       treeStats.totalWarningsCount = reportData.countTotalWarnings()
     }
   }
@@ -294,6 +307,7 @@ enum class WarningsPageType {
   CONFIGURATION_CACHING_ROOT,
   CONFIGURATION_CACHING_WARNING,
   JETIFIER_USAGE_WARNING,
+  TASK_CATEGORY_WARNING
 }
 
 data class WarningsPageId(
@@ -314,6 +328,8 @@ data class WarningsPageId(
 
     fun configurationCachingWarning(data: IncompatiblePluginWarning) =
       WarningsPageId(WarningsPageType.CONFIGURATION_CACHING_WARNING, data.plugin.toString())
+
+    fun taskCategory(taskCategory: TaskCategory) = WarningsPageId(WarningsPageType.TASK_CATEGORY_WARNING, taskCategory.toString())
 
     val annotationProcessorRoot = WarningsPageId(WarningsPageType.ANNOTATION_PROCESSOR_GROUP, "ANNOTATION_PROCESSORS")
     val configurationCachingRoot = WarningsPageId(WarningsPageType.CONFIGURATION_CACHING_ROOT, "CONFIGURATION_CACHING")
@@ -384,6 +400,20 @@ class PluginGroupingWarningNodeDescriptor(
       mainText = pluginName,
       suffix = warningsCountString(warningsCount),
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(presentedTasksWithWarnings.keys.sumByLong { it.executionTime.timeMs })
+    )
+}
+
+class TaskCategoryWarningNodeDescriptor(
+  val taskCategoryData: CriticalPathTaskCategoryUiData
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.taskCategory(taskCategoryData.taskCategory)
+  // TODO(b/245517105): Add PageType
+  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = taskCategoryData.name,
+      suffix = warningsCountString(taskCategoryData.taskCategoryWarnings.size),
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(taskCategoryData.criticalPathDuration.timeMs)
     )
 }
 
@@ -511,4 +541,7 @@ fun BuildAttributionReportUiData.countTotalWarnings(): Int =
   issues.sumOf { it.warningCount } +
   annotationProcessors.issueCount +
   confCachingData.warningsCount() +
+  // TODO(b/246764487): Should filter out only specific nonIncAP warning not whole Java category
+  criticalPathTaskCategories.entries.filter{ it.name != "Java" }.map { category ->
+    category.taskCategoryWarnings }.flatten().size +
   if (jetifierData.shouldShowWarning()) 1 else 0

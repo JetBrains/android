@@ -45,6 +45,7 @@ class BuildAnalyzerStorageManagerImpl(
       configurationCachingCompatibilityAnalyzerResult = analyzersProxy.configurationCachingCompatibilityAnalyzer.result,
       jetifierUsageAnalyzerResult = analyzersProxy.jetifierUsageAnalyzer.result,
       downloadsAnalyzerResult = analyzersProxy.downloadsAnalyzer?.result ?: DownloadsAnalyzer.AnalyzerIsDisabled,
+      taskCategoryWarningsAnalyzerResult = analyzersProxy.taskCategoryWarningsAnalyzer.result,
       buildSessionID = buildSessionID,
       taskMap = analyzersProxy.taskContainer.allTasks,
       pluginMap = analyzersProxy.pluginContainer.allPlugins
