@@ -26,6 +26,7 @@ import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.update.RunningApplicationUpdater;
 import com.intellij.execution.update.RunningApplicationUpdaterProvider;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
@@ -47,6 +48,11 @@ public class ApplyChangesAction extends BaseAction {
 
   public ApplyChangesAction() {
     super(DISPLAY_NAME, ACCELERATOR_NAME, SwapInfo.SwapType.APPLY_CHANGES, APPLY_ALL_CHANGES, DESC);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
