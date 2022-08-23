@@ -26,8 +26,6 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
-import com.android.tools.idea.diagnostics.report.MetricsLogFileProvider
-import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -63,6 +61,7 @@ import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
+import org.jetbrains.android.AndroidPluginDisposable
 import java.io.File
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -411,8 +410,7 @@ object AndroidStudioUsageTracker {
   }
 
   private fun setupMetricsListener() {
-    // Create a coroutine scope tied to a disposable application service
-    val scope = AndroidCoroutineScope(MavenClassRegistryManager.getInstance())
+    val scope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
     UsageTracker.listener = { event ->
       scope.launch {
         channel.send(event)
