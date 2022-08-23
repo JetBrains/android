@@ -25,7 +25,6 @@ import org.jetbrains.android.AndroidTestCase
  *
  * Verifies that gradlew files are the only shell files ignore by spellcheck.
  */
-@org.junit.Ignore("b/233921382")
 class AndroidShellSpellcheckingStrategyTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
