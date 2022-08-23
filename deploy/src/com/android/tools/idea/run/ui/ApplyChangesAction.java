@@ -25,6 +25,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
@@ -50,6 +51,12 @@ public class ApplyChangesAction extends BaseAction {
 
   public ApplyChangesAction() {
     super(ID, DISPLAY_NAME, ACCELERATOR_NAME, SwapInfo.SwapType.APPLY_CHANGES, APPLY_ALL_CHANGES, SHORTCUT, DESC);
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
