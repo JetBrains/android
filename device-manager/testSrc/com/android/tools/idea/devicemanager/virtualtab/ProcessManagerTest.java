@@ -17,6 +17,8 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IDevice.DeviceState;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
@@ -53,6 +55,25 @@ public final class ProcessManagerTest {
 
     myManager = new ProcessManager(() -> myConnection, this::newSetKeyToStateMapFutureCallback);
     myManager.addProcessManagerListener(myListener);
+  }
+
+  @Test
+  public void deviceChanged() throws Exception {
+    // Arrange
+    IDevice device = Mockito.mock(IDevice.class);
+    Mockito.when(device.isEmulator()).thenReturn(true);
+    Mockito.when(device.getState()).thenReturn(DeviceState.ONLINE);
+
+    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
+
+    // Act
+    myManager.deviceChanged(device, IDevice.CHANGE_STATE);
+
+    // Assert
+    CountDownLatchAssert.await(myLatch);
+
+    Mockito.verify(myListener).statesChanged(new ProcessManagerEvent(myManager));
+    assertEquals(Map.of(KEY, ProcessManager.State.LAUNCHED), myManager.getKeyToStateMap());
   }
 
   @Test
