@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -70,7 +69,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
 
     Module module = getModule();
     List<SyncIssueNotificationHyperlink> quickFixes = new ArrayList<>();
-    quickFixes.add(mock(SyncIssueNotificationHyperlink.class));
+    quickFixes.add(new TestSyncIssueNotificationHyperlink("url", "", null));
 
     BuildToolsTooLowReporter spiedReporter = spy(myIssueReporter);
 

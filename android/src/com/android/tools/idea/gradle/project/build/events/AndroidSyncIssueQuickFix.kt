@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.events
 
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
-import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -26,16 +24,33 @@ import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
 import javax.swing.event.HyperlinkEvent
 
-class AndroidSyncIssueQuickFix(private val hyperlink: SyncMessageHyperlink) : BuildIssueQuickFix {
+@Suppress("UnstableApiUsage")
+class AndroidSyncIssueQuickFix private constructor(
+  private val url: String,
+  private val handler: (Project, HyperlinkEvent) -> Boolean
+) : BuildIssueQuickFix {
+
+  companion object {
+
+    @JvmStatic
+    fun create(hyperlink: SyncMessageFragment): List<AndroidSyncIssueQuickFix> =
+      hyperlink.urls.map {
+        AndroidSyncIssueQuickFix(
+          url = it,
+          handler = { project, event -> hyperlink.executeHandler(project, event); true }
+        )
+      }
+  }
+
   override val id: String
-    get() = hyperlink.url
+    get() = url
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     invokeLater {
       try {
         val source = PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext) ?: dataContext
-        hyperlink.executeIfClicked(project, HyperlinkEvent(source, HyperlinkEvent.EventType.ACTIVATED, null, id))
+        handler(project, HyperlinkEvent(source, HyperlinkEvent.EventType.ACTIVATED, null, id))
         future.complete(null)
       }
       catch (e: Exception) {

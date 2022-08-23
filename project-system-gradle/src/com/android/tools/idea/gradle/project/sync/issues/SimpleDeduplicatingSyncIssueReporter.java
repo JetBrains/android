@@ -127,7 +127,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
 
     // Add links to each of the affected modules
     ArrayList<AndroidSyncIssueQuickFix> buildIssueLinks = new ArrayList<>();
-    buildIssueLinks.addAll(ContainerUtil.map(customLinks, it -> new AndroidSyncIssueQuickFix(it)));
+    buildIssueLinks.addAll(ContainerUtil.flatMap(customLinks, AndroidSyncIssueQuickFix::create));
     if (shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
       builder.append("\nAffected Modules: ");
       for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
@@ -135,7 +135,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
         if (m != null) {
           final var link = doCreateModuleLink(project, notification, builder, m, syncIssues, buildFileMap.get(m));
           if (link != null) {
-            buildIssueLinks.add(new AndroidSyncIssueQuickFix(link));
+            buildIssueLinks.addAll(AndroidSyncIssueQuickFix.create(link));
           }
           if (it.hasNext()) {
             builder.append(", ");

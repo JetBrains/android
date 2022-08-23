@@ -16,7 +16,6 @@
 package com.android.tools.idea.project.messages;
 
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
@@ -24,7 +23,7 @@ import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
@@ -135,7 +134,7 @@ public abstract class AbstractSyncMessages implements Disposable {
       updateNotification(notification, text, quickFixes);
     }
 
-    report(notification, ContainerUtil.map(quickFixes, it -> new AndroidSyncIssueQuickFix(it)));
+    report(notification, ContainerUtil.flatMap(quickFixes, AndroidSyncIssueQuickFix::create));
   }
 
   @NotNull
@@ -153,18 +152,17 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   public void updateNotification(@NotNull NotificationData notification,
                                  @NotNull String text,
-                                 @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
+                                 @NotNull List<? extends SyncMessageFragment> quickFixes) {
     String message = text;
-    int hyperlinkCount = quickFixes.size();
-    if (hyperlinkCount > 0) {
-      StringBuilder b = new StringBuilder();
-      for (int i = 0; i < hyperlinkCount; i++) {
-        b.append(quickFixes.get(i).toHtml());
-        if (i < hyperlinkCount - 1) {
-          b.append("\n");
-        }
+    StringBuilder b = new StringBuilder();
+    for (final var handler : quickFixes) {
+      if (b.length() > 0) {
+        b.append("\n");
       }
-      message += ('\n' + b.toString());
+      b.append(handler.toHtml());
+    }
+    if (b.length() > 0) {
+      message += ("\n" + b.toString());
     }
     notification.setMessage(message);
 
@@ -173,9 +171,11 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   // Call this method only if notification contains detailed text message with hyperlinks
   // Use updateNotification otherwise
-  public void addNotificationListener(@NotNull NotificationData notification, @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
+  public void addNotificationListener(@NotNull NotificationData notification, @NotNull List<? extends SyncMessageFragment> quickFixes) {
     for (final var quickFix : quickFixes) {
-      notification.setListener(quickFix.getUrl(), new QuickFixNotificationListener(myProject, quickFix));
+      for (String url : quickFix.getUrls()) {
+        notification.setListener(url, new QuickFixNotificationListener(myProject, quickFix));
+      }
     }
   }
 

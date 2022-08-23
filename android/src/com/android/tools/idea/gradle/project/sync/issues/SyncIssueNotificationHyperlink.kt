@@ -17,9 +17,29 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.TestOnly
 
 abstract class SyncIssueNotificationHyperlink(
   url: String,
   text: String,
   val quickFixId: AndroidStudioEvent.GradleSyncQuickFix?
 ) : SyncMessageHyperlink(url, text)
+
+@TestOnly
+class TestSyncIssueNotificationHyperlink @JvmOverloads constructor(
+  url: String,
+  private val text: String,
+  quickFixId: AndroidStudioEvent.GradleSyncQuickFix?,
+  private var handler: (Project) -> Unit = {}
+) : SyncIssueNotificationHyperlink(url, text, quickFixId) {
+  override val urls: Collection<String> = listOf(url)
+
+  override fun execute(project: Project) {
+    handler(project)
+  }
+
+  override fun toHtml(): String {
+    return if (text == "") "" else super.toHtml()
+  }
+}

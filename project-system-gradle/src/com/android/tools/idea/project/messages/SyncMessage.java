@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.project.messages;
 
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.util.PositionInFile;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -42,7 +39,7 @@ public class SyncMessage {
 
   @Nullable private final PositionInFile myPosition;
 
-  @NotNull private final List<SyncMessageHyperlink> myQuickFixes = new ArrayList<>();
+  @NotNull private final List<SyncMessageFragment> myQuickFixes = new ArrayList<>();
 
   public SyncMessage(@NotNull String group, @NotNull MessageType type, @NotNull String... text) {
     this(group, type, NonNavigatable.INSTANCE, text);
@@ -97,18 +94,18 @@ public class SyncMessage {
     return myPosition;
   }
 
-  public void add(@NotNull Collection<? extends SyncMessageHyperlink> quickFixes) {
-    for (final var quickFix : quickFixes) {
+  public void add(@NotNull Collection<? extends SyncMessageFragment> quickFixes) {
+    for (var quickFix : quickFixes) {
       add(quickFix);
     }
   }
 
-  public void add(@NotNull SyncMessageHyperlink quickFix) {
+  public void add(@NotNull SyncMessageFragment quickFix) {
     myQuickFixes.add(quickFix);
   }
 
   @NotNull
-  public List<SyncMessageHyperlink> getQuickFixes() {
+  public List<SyncMessageFragment> getQuickFixes() {
     return ImmutableList.copyOf(myQuickFixes);
   }
 

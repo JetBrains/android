@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.project.hyperlink;
 
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Collection;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Base hyperlink class for notification purposes.
  */
-public abstract class SyncMessageHyperlink {
+public abstract class SyncMessageHyperlink implements SyncMessageFragment {
   @NotNull private final String myUrl;
   @NotNull private final String myValue;
 
@@ -34,12 +36,9 @@ public abstract class SyncMessageHyperlink {
 
   protected abstract void execute(@NotNull Project project);
 
-  public boolean executeIfClicked(@NotNull Project project, @NotNull HyperlinkEvent event) {
-    if (myUrl.equals(event.getDescription())) {
-      execute(project);
-      return true;
-    }
-    return false;
+  @Override
+  public final void executeHandler(@NotNull Project project, @NotNull HyperlinkEvent event) {
+    execute(project);
   }
 
   @NotNull
@@ -47,11 +46,18 @@ public abstract class SyncMessageHyperlink {
     return myUrl;
   }
 
+  @NotNull
+  @Override
+  public Collection<String> getUrls() {
+    return ImmutableList.of(myUrl);
+  }
+
   @Override
   public String toString() {
     return toHtml();
   }
 
+  @Override
   @NotNull
   public String toHtml() {
     return myValue;

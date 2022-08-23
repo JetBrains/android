@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.project.sync.messages;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static org.junit.Assert.assertSame;
 
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
@@ -89,13 +88,13 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   @Override
   public void updateNotification(@NotNull NotificationData notification,
                                  @NotNull String text,
-                                 @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
+                                 @NotNull List<? extends SyncMessageFragment> quickFixes) {
     myNotificationUpdate = new NotificationUpdate(text, quickFixes);
   }
 
   @Override
   public void addNotificationListener(@NotNull NotificationData notification,
-                                      @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
+                                      @NotNull List<? extends SyncMessageFragment> quickFixes) {
     myNotificationUpdate = new NotificationUpdate(notification.getMessage(), quickFixes);
   }
 
@@ -111,9 +110,9 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
 
   public static class NotificationUpdate {
     @NotNull private final String myText;
-    @NotNull private final List<? extends SyncMessageHyperlink> myFixes;
+    @NotNull private final List<? extends SyncMessageFragment> myFixes;
 
-    NotificationUpdate(@NotNull String text, @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
+    NotificationUpdate(@NotNull String text, @NotNull List<? extends SyncMessageFragment> quickFixes) {
       myText = text;
       myFixes = quickFixes;
     }
@@ -124,7 +123,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
     }
 
     @NotNull
-    public List<? extends SyncMessageHyperlink> getFixes() {
+    public List<? extends SyncMessageFragment> getFixes() {
       return myFixes;
     }
   }
