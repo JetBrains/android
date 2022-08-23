@@ -20,7 +20,6 @@ import com.intellij.application.options.editor.WebEditorOptions;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.editor.ex.EditorSettingsExternalizable;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.keymap.Keymap;
@@ -54,7 +53,6 @@ public class AndroidInitialConfigurator {
 
 
   public AndroidInitialConfigurator() {
-    validateConfiguration();
     setupSystemProperties();
     customizeSettings(PropertiesComponent.getInstance());
 
@@ -62,23 +60,6 @@ public class AndroidInitialConfigurator {
     setActivateAndroidToolWindowShortcut();
 
     activateAndroidStudioInitializerExtensions();
-  }
-
-  /**
-   * Validates that the IDE configuration follows Android Studio requirements.
-   */
-  private static void validateConfiguration() {
-    String[] versions = {
-      ApplicationInfo.getInstance().getMajorVersion(),
-      ApplicationInfo.getInstance().getMinorVersion(),
-      ApplicationInfo.getInstance().getMicroVersion(),
-      ApplicationInfo.getInstance().getPatchVersion(),
-    };
-    for (String version : versions) {
-      if (version == null || !version.matches("0|([1-9]+[0-9]*)")) {
-        throw new AssertionError("Invalid version component found: " + version);
-      }
-    }
   }
 
   /**
