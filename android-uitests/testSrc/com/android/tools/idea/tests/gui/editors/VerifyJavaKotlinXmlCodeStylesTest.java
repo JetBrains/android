@@ -46,7 +46,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
-public class VerifyJavaKotlinXmlCodeStyles {
+public class VerifyJavaKotlinXmlCodeStylesTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 

@@ -558,24 +558,22 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.CodeStyleTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
-        "no_mac",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
-    name = "VerifyJavaKotlinXmlCodeStyles",
+    name = "VerifyJavaKotlinXmlCodeStylesTest",
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.VerifyJavaKotlinXmlCodeStyles"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.VerifyJavaKotlinXmlCodeStylesTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
-        "no_mac",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -592,7 +590,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.XMLCodeStyleTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
-        "no_mac",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
