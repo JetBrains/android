@@ -233,14 +233,10 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(14);
+    assertThat(strategies).hasSize(13);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
-
-    strategy = strategies.get(TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION);
-    assertThat(strategy).isInstanceOf(ExternalNdkBuildIssuesReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_GRADLE_TOO_OLD);
