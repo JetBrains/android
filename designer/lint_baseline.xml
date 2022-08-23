@@ -54,7 +54,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintAnchorTarget.java"
-            line="438"/>
+            line="439"/>
     </issue>
 
     <issue
@@ -62,7 +62,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="635"/>
+            line="636"/>
     </issue>
 
     <issue
@@ -70,7 +70,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="760"/>
+            line="761"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="765"/>
+            line="766"/>
     </issue>
 
     <issue
@@ -86,7 +86,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="827"/>
+            line="828"/>
     </issue>
 
     <issue
@@ -94,7 +94,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="838"/>
+            line="839"/>
     </issue>
 
     <issue
@@ -102,7 +102,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="1504"/>
+            line="1505"/>
     </issue>
 
     <issue
@@ -126,7 +126,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintDragTarget.java"
-            line="181"/>
+            line="182"/>
     </issue>
 
     <issue
@@ -134,7 +134,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintDragTarget.java"
-            line="220"/>
+            line="221"/>
     </issue>
 
     <issue
@@ -142,7 +142,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintDragTarget.java"
-            line="273"/>
+            line="274"/>
     </issue>
 
     <issue
@@ -310,7 +310,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineTarget.java"
-            line="312"/>
+            line="313"/>
     </issue>
 
     <issue
@@ -318,7 +318,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineTarget.java"
-            line="316"/>
+            line="317"/>
     </issue>
 
     <issue
@@ -390,7 +390,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintModel.java"
-            line="689"/>
+            line="690"/>
     </issue>
 
     <issue
@@ -494,7 +494,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationToolWindowFactory.kt"
-            line="101"/>
+            line="122"/>
     </issue>
 
     <issue
@@ -622,7 +622,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/assistant/ImageViewAssistant.kt"
-            line="51"/>
+            line="52"/>
     </issue>
 
     <issue
@@ -957,24 +957,8 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/common/model/NlComponent.java"
-            line="100"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/preview/PreviewElementDebugLogger.kt"
-            line="44"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/preview/PreviewElementDebugLogger.kt"
-            line="44"/>
+            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
+            line="654"/>
     </issue>
 
     <issue
@@ -982,7 +966,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="656"/>
+            line="811"/>
     </issue>
 
     <issue
@@ -990,15 +974,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="823"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="981"/>
+            line="969"/>
     </issue>
 
     <issue
@@ -1029,6 +1005,22 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
+            file="src/com/android/tools/idea/preview/PreviewElementDebugLogger.kt"
+            line="44"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/preview/PreviewElementDebugLogger.kt"
+            line="44"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
             file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
             line="183"/>
     </issue>
@@ -1046,7 +1038,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="581"/>
+            line="582"/>
     </issue>
 
     <issue
@@ -1054,7 +1046,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="581"/>
+            line="582"/>
     </issue>
 
     <issue
