@@ -21,19 +21,18 @@ WARNING: IntelliJ changes their startup lifecycle often as they try to fix perfo
   * `LowMemoryReporter$OnStartup`
   * `ThreadingChecker`
   * `DisableGradleProjectOpenProcessor` used to unregister the platform's `GradleProjectOpenProcessor`
+  * `AndroidStudioInitializer`
 * `PreloadingActivity.preload`
   * On background thread in parallel with componentsInitialized; only if preloading is enabled
   * **Preloading activities should not have any side effects except for improving subsequent performance**, so that if
     they are not executed for any reason, the behavior of the IDE remains the same.
 * `ActionConfigurationCustomizer.customize`
-  * `ActionManager` is first accessed, usually during preloading
-  * `AndroidStudioInitializer` sets up analytics and system health monitoring.
-  * `AndroidStudioActionCustomizer`:
-    * `setUpNewFilePopupActions`, `hideRarelyUsedIntellijActions` and `setupResourceManagerActions`
+  * Called by `ActionManager.<init>`, which runs sometime during app startup upon first access
+  * `AndroidStudioActionCustomizer`
   * `AndroidPlugin$ActionCustomizer`
   * `NewProjectActionsInitializer`
   * `GradleSpecificActionCustomizer`
-  * `GradleSpecificInitializer`
+  * `GradleSpecificInitializer` (TODO: this should not be a `ActionConfigurationCustomizer`)
   * `AdtImportInitializer`
   * `PsdActionsInitializer`
 * `ProjectLifecycleListener.beforeProjectLoaded`

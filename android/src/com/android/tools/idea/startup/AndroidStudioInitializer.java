@@ -22,11 +22,9 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
+import com.intellij.ide.ApplicationInitializedListener;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -35,16 +33,13 @@ import org.jetbrains.annotations.NotNull;
  * {@link GradleSpecificInitializer} instead.
  * </p>
  */
-public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
+public class AndroidStudioInitializer implements ApplicationInitializedListener {
 
   @Override
-  public void customize(@NotNull ActionManager actionManager) {
+  public void componentsInitialized() {
     setupAnalytics();
 
     // Initialize System Health Monitor after Analytics.
-    // AndroidStudioSystemHealthMonitor requires ActionManager to be ready, but this code is a part
-    // of its initialization. By pushing initialization to background thread, the thread will
-    // block until ActionManager is ready and use its instance, instead of making another one.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       AndroidStudioSystemHealthMonitor.getInstance().start();
     });
