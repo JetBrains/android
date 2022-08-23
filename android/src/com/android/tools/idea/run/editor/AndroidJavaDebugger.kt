@@ -17,19 +17,24 @@ package com.android.tools.idea.run.editor
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.debug.attachDebuggerAndShowTab
-import com.android.tools.idea.run.debug.getDebugProcessStarter
+import com.android.tools.idea.run.debug.startAndroidJavaDebuggerSession
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.createReattachingConnectDebuggerTask
+import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.xdebugger.XDebugProcess
+import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.concurrency.Promise
@@ -100,6 +105,25 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
                              { device -> device.forceStop(client.clientData.clientDescription) },
                              true)
     }
+  }
+
+  fun getDebugProcessStarter(
+    project: Project,
+    client: Client,
+    consoleViewToReuse: ConsoleView?,
+    onDebugProcessStarted: (() -> Unit)?,
+    onDebugProcessDestroyed: (IDevice) -> Unit,
+    detachIsDefault: Boolean = false,
+    ): Promise<XDebugProcessStarter> {
+    return startAndroidJavaDebuggerSession(project, client, consoleViewToReuse, onDebugProcessStarted,
+                                           onDebugProcessDestroyed, detachIsDefault)
+      .then { debuggerSession ->
+        return@then object : XDebugProcessStarter() {
+          override fun start(session: XDebugSession): XDebugProcess {
+            return JavaDebugProcess.create(session, debuggerSession)
+          }
+        }
+      }
   }
 
   companion object {

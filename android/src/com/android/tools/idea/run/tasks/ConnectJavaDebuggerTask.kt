@@ -20,7 +20,7 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.debug.attachDebugger
-import com.android.tools.idea.run.debug.getDebugProcessStarter
+import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.intellij.execution.ui.ConsoleView
@@ -44,7 +44,7 @@ class ConnectJavaDebuggerTask(
     logger.info("Attaching Java debugger")
 
     val env = currentLaunchInfo.env
-    val debugProcessStarter = getDebugProcessStarter(
+    val debugProcessStarter = AndroidJavaDebugger().getDebugProcessStarter(
       env.project,
       client,
       androidTestResultListener,

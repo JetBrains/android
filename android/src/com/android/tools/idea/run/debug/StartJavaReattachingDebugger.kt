@@ -21,6 +21,7 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.AndroidProcessHandler
+import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessAdapter
@@ -78,8 +79,8 @@ fun startJavaReattachingDebugger(
 
   fun startJavaSession(client: Client, onDebugProcessStarted: (() -> Unit)?) =
     attachDebugger(project, client, environment) {
-      getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted,
-                             onDebugProcessDestroyed = { it.forceStop(client.clientData.clientDescription) }, false)
+      AndroidJavaDebugger().getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted,
+                                                   onDebugProcessDestroyed = { it.forceStop(client.clientData.clientDescription) })
     }
 
   return startReattachingDebugger(project, device, masterProcessHandler, applicationIds, ::startJavaSession, onDebugProcessStarted)

@@ -19,37 +19,14 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.intellij.debugger.DebuggerManagerEx
-import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
-import com.intellij.xdebugger.XDebugProcess
-import com.intellij.xdebugger.XDebugProcessStarter
-import com.intellij.xdebugger.XDebugSession
 import org.jetbrains.concurrency.AsyncPromise
-import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.catchError
 
-internal fun getDebugProcessStarter(
-  project: Project,
-  client: Client,
-  consoleViewToReuse: ConsoleView?,
-  onDebugProcessStarted: (() -> Unit)?,
-  onDebugProcessDestroyed: (IDevice) -> Unit,
-  detachIsDefault: Boolean,
-): Promise<XDebugProcessStarter> {
-  return startAndroidJavaDebuggerSession(project, client, consoleViewToReuse, onDebugProcessStarted,
-                                         onDebugProcessDestroyed, detachIsDefault)
-    .then { debuggerSession ->
-      return@then object : XDebugProcessStarter() {
-        override fun start(session: XDebugSession): XDebugProcess {
-          return JavaDebugProcess.create(session, debuggerSession)
-        }
-      }
-    }
-}
 
 fun startAndroidJavaDebuggerSession(
   project: Project,
@@ -59,9 +36,10 @@ fun startAndroidJavaDebuggerSession(
   onDebugProcessDestroyed: (IDevice) -> Unit,
   detachIsDefault: Boolean
 ): AsyncPromise<DebuggerSession> {
-  val promise = AsyncPromise<DebuggerSession>()
 
   val sessionName = "Android Java Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})"
+
+  val promise = AsyncPromise<DebuggerSession>()
 
   runInEdt {
     promise.catchError {
