@@ -487,6 +487,7 @@
                      implementationClass="org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection"/>
 
     <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidJavaPredefinedCodeStyle"/>
+    <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidKotlinPredefinedCodeStyle"/>
 
     <findUsagesHandlerFactory implementation="org.jetbrains.android.AndroidResourcesFindUsagesHandlerFactory"/>
 

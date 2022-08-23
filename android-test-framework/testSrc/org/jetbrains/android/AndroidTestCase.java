@@ -67,6 +67,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidJavaPredefinedCodeStyle;
+import org.jetbrains.android.formatter.AndroidKotlinPredefinedCodeStyle;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
@@ -331,6 +332,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   public static void applyAndroidCodeStyleSettings(CodeStyleSettings settings) {
     new AndroidJavaPredefinedCodeStyle().apply(settings);
+    new AndroidKotlinPredefinedCodeStyle().apply(settings);
     new AndroidXmlPredefinedCodeStyle().apply(settings);
   }
 
