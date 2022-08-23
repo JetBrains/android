@@ -72,12 +72,6 @@ class HeapDumpSnapshotRunnable(
     if (analysisOption == AnalysisOption.SCHEDULE_ON_NEXT_START) {
       try {
         val instance = AndroidStudioSystemHealthMonitor.getInstance()
-
-        if (instance == null) {
-          LOG.error("Android Studio System Health Monitor not initialized.")
-          return
-        }
-
         val isHeapReportPending = instance.hasPendingHeapReport()
         if (isHeapReportPending) {
           if (userInvoked) {
@@ -242,7 +236,7 @@ class HeapDumpSnapshotRunnable(
 
       when (analysisOption) {
         AnalysisOption.SCHEDULE_ON_NEXT_START -> {
-          AndroidStudioSystemHealthMonitor.getInstance()?.addHeapReportToDatabase(report)
+          AndroidStudioSystemHealthMonitor.getInstance().addHeapReportToDatabase(report)
           ApplicationManager.getApplication().invokeLater {
             val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),

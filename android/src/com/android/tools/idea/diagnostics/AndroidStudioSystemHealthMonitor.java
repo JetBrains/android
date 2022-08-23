@@ -87,6 +87,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
@@ -143,7 +144,8 @@ import sun.tools.attach.HotSpotVirtualMachine;
 /**
  * Extension to System Health Monitor that includes Android Studio-specific code.
  */
-public class AndroidStudioSystemHealthMonitor {
+@Service
+public final class AndroidStudioSystemHealthMonitor {
   private static final Logger LOG = Logger.getInstance(AndroidStudioSystemHealthMonitor.class);
 
   // The group should be registered by SystemHealthMonitor
@@ -197,20 +199,15 @@ public class AndroidStudioSystemHealthMonitor {
   // If there is more free memory than FREE_MEMORY_THRESHOLD_FOR_HEAP_REPORT, ignore the notification.
   public static final long FREE_MEMORY_THRESHOLD_FOR_HEAP_REPORT = 300_000_000;
 
-  private static AndroidStudioSystemHealthMonitor ourInstance;
   private final ExceptionDataCollection myExceptionDataCollection = ExceptionDataCollection.getInstance();
 
+  @SuppressWarnings("unused")  // Called reflectively.
   public AndroidStudioSystemHealthMonitor() {
     this(new StudioReportDatabase(new File(PathManager.getTempPath(), "reports.dmp")));
   }
 
   public AndroidStudioSystemHealthMonitor(StudioReportDatabase studioReportDatabase) {
     myProperties = PropertiesComponent.getInstance();
-    if (ourInstance != null) {
-      LOG.warn("Multiple instances of AndroidStudioSystemHealthMonitor!");
-    } else {
-      ourInstance = this;
-    }
     myReportsDatabase = studioReportDatabase;
   }
 
@@ -226,8 +223,8 @@ public class AndroidStudioSystemHealthMonitor {
     return myReportsDatabase.getReports().stream().anyMatch(r -> r instanceof UnanalyzedHeapReport);
   }
 
-  public static @Nullable AndroidStudioSystemHealthMonitor getInstance() {
-    return ourInstance;
+  public static @NotNull AndroidStudioSystemHealthMonitor getInstance() {
+    return ApplicationManager.getApplication().getService(AndroidStudioSystemHealthMonitor.class);
   }
 
   public static Integer getMaxHistogramReportsCount() {

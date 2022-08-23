@@ -46,9 +46,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     // of its initialization. By pushing initialization to background thread, the thread will
     // block until ActionManager is ready and use its instance, instead of making another one.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      if (AndroidStudioSystemHealthMonitor.getInstance() == null) {
-        new AndroidStudioSystemHealthMonitor().start();
-      }
+      AndroidStudioSystemHealthMonitor.getInstance().start();
     });
   }
 
