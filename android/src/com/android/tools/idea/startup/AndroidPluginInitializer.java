@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import com.android.tools.idea.progress.StudioProgressManagerAdapter;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.openapi.application.Application;
@@ -30,6 +29,5 @@ public class AndroidPluginInitializer implements ApplicationLoadListener {
   @Override
   public void beforeApplicationLoaded(@NotNull Application application, @NotNull Path configPath) {
     AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
-    StudioProgressManagerAdapter.initialize();
   }
 }
