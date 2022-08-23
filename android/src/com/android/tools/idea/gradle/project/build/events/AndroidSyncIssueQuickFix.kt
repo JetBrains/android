@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.events
 
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -24,7 +26,7 @@ import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
 import javax.swing.event.HyperlinkEvent
 
-class AndroidSyncIssueQuickFix(private val hyperlink: NotificationHyperlink) : BuildIssueQuickFix {
+class AndroidSyncIssueQuickFix(private val hyperlink: SyncMessageHyperlink) : BuildIssueQuickFix {
   override val id: String
     get() = hyperlink.url
 

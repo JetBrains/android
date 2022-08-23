@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlSyncMessageHyperlink
 import com.android.tools.idea.gradle.util.GradleProperties
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
@@ -48,10 +50,14 @@ class AndroidXUsedReporter: SimpleDeduplicatingSyncIssueReporter() {
     val quickFixes = mutableListOf<SyncIssueNotificationHyperlink>()
     quickFixes.add(EnableAndroidXHyperlink())
     if (propertiesPath.exists()) {
-      quickFixes.add(OpenFileHyperlink(propertiesPath.path, "Open Gradle properties file", -1, -1))
+      quickFixes.add(OpenFileSyncMessageHyperlink(propertiesPath.path, "Open Gradle properties file", -1, -1))
     }
-    quickFixes.add(OpenUrlHyperlink("https://developer.android.com/jetpack/androidx/migrate",
-                                    "More information about migrating to AndroidX..."))
+    quickFixes.add(
+      OpenUrlSyncMessageHyperlink(
+        "https://developer.android.com/jetpack/androidx/migrate",
+        "More information about migrating to AndroidX..."
+      )
+    )
     return quickFixes
   }
 }

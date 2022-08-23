@@ -131,7 +131,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     assertEquals("Unresolved dependencies", message.getTitle());
     assertThat(message.getMessage()).contains("Failed to resolve: com.android.support.constraint:constraint-layout:+\nAffected Modules:");
 
-    List<? extends NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
+    final var quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     assertNotEmpty(quickFixes);
 
     assertEquals(
@@ -162,11 +162,11 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     assertEquals("Unresolved dependencies", message.getTitle());
     assertThat(message.getMessage()).contains("Failed to resolve: com.android.support:appcompat-v7:24.1.1\nAffected Modules:");
 
-    List<? extends NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
+    final var quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
     assertThat(quickFixes).hasSize(expectedSize);
 
-    NotificationHyperlink quickFix = quickFixes.get(0);
+    var quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
     AddGoogleMavenRepositoryHyperlink addQuickFix = (AddGoogleMavenRepositoryHyperlink)quickFix;
     // Confirm that the repository will be added to project build file (b/68657672)
@@ -214,7 +214,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
                  message.getMessage());
 
     GradleSyncMessagesStub.NotificationUpdate update = mySyncMessagesStub.getNotificationUpdate();
-    List<? extends NotificationHyperlink> quickFixes = update.getFixes();
+    final var quickFixes = update.getFixes();
     int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 1 : 0;
     assertThat(quickFixes).hasSize(expectedSize);
 
@@ -255,11 +255,11 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     assertEquals("Unresolved dependencies", message.getTitle());
     assertEquals("Failed to resolve: com.android.support:appcompat-v7:24.1.1\nAffected Modules: app", message.getMessage());
 
-    List<? extends NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
+    final var quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
     assertThat(quickFixes).hasSize(expectedSize);
 
-    NotificationHyperlink quickFix = quickFixes.get(0);
+    var quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
     AddGoogleMavenRepositoryHyperlink addQuickFix = (AddGoogleMavenRepositoryHyperlink)quickFix;
     // Confirm that the build file was found
@@ -298,11 +298,11 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     assertEquals("Unresolved dependencies", message.getTitle());
     assertThat(message.getMessage()).contains("Failed to resolve: com.google.android.gms:play-services:9.4.0\nAffected Modules:");
 
-    List<? extends NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
+    final var quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
     assertThat(quickFixes).hasSize(expectedSize);
 
-    NotificationHyperlink quickFix = quickFixes.get(0);
+    var quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
@@ -403,7 +403,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
     List<IdeSyncIssue> syncIssues = ImmutableList.of(mySyncIssue);
-    OpenFileHyperlink link = myReporter.createModuleLink(getProject(), appModule, syncIssues, appFile);
+    final var link = myReporter.createModuleLink(getProject(), appModule, syncIssues, appFile);
     assertThat(link.getLineNumber()).isEqualTo(-1);
     assertThat(link.getFilePath()).isEqualTo(appFile.getPath());
   }
@@ -420,7 +420,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
 
-    List<? extends NotificationHyperlink> links = mySyncMessagesStub.getNotificationUpdate().getFixes();
+    final var links = mySyncMessagesStub.getNotificationUpdate().getFixes();
     boolean studio = IdeInfo.getInstance().isAndroidStudio();
     assertSize(studio ? 2 : 1, links);
     assertThat(links.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);

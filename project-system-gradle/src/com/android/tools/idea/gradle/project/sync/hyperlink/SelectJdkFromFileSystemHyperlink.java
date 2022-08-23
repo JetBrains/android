@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -25,7 +26,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SelectJdkFromFileSystemHyperlink extends SyncIssueNotificationHyperlink {
+public class SelectJdkFromFileSystemHyperlink extends NotificationHyperlink {
   @NotNull private final AndroidProjectSettingsService mySettingsService;
 
   @Nullable
@@ -48,7 +49,7 @@ public class SelectJdkFromFileSystemHyperlink extends SyncIssueNotificationHyper
   }
 
   private SelectJdkFromFileSystemHyperlink(@NotNull AndroidProjectSettingsService settingsService) {
-    super("select.jdk", "Select the Gradle JDK location", AndroidStudioEvent.GradleSyncQuickFix.SELECT_JDK_FROM_FILE_SYSTEM_HYPERLINK);
+    super("select.jdk", "Select the Gradle JDK location");
     mySettingsService = settingsService;
   }
 

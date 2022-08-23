@@ -19,10 +19,12 @@ import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.messages.GroupNames
 import com.android.tools.idea.gradle.variant.view.BuildVariantView
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.projectsystem.getAndroidFacets
@@ -59,13 +61,13 @@ class ConflictSet private constructor(
       // Creates the "Select in 'Build Variants' window" hyperlink.
       val source = conflict.source
       val hyperlinkText = String.format("Select '%1\$s' in \"Build Variants\" window", source.name)
-      val selectInBuildVariantsWindowHyperlink: NotificationHyperlink =
-        object : NotificationHyperlink("select.conflict.in.variants.window", hyperlinkText) {
+      val selectInBuildVariantsWindowHyperlink: SyncMessageHyperlink =
+        object : SyncMessageHyperlink("select.conflict.in.variants.window", hyperlinkText) {
           override fun execute(project: Project) = BuildVariantView.getInstance(project).findAndSelect(source)
         }
 
       // Creates the "Fix problem" hyperlink.
-      val quickFixHyperlink: NotificationHyperlink = object : NotificationHyperlink("fix.conflict", "Fix problem") {
+      val quickFixHyperlink: SyncMessageHyperlink = object : SyncMessageHyperlink("fix.conflict", "Fix problem") {
         override fun execute(project: Project) {
           val solved = ConflictResolution.solveSelectionConflict(conflict)
           if (solved) {

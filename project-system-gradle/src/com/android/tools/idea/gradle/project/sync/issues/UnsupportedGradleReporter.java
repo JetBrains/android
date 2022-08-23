@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -75,7 +76,9 @@ class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
       File propertiesFile = gradleWrapper.getPropertiesFilePath();
       if (propertiesFile.exists()) {
         hyperlinks
-          .add(new OpenFileHyperlink(gradleWrapper.getPropertiesFilePath().getAbsolutePath(), "Open Gradle wrapper properties", -1, -1));
+          .add(
+            new OpenFileSyncMessageHyperlink(gradleWrapper.getPropertiesFilePath().getAbsolutePath(), "Open Gradle wrapper properties", -1,
+                                             -1));
       }
     }
     else {

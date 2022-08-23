@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlSyncMessageHyperlink
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -36,10 +38,10 @@ class AndroidXUsedReporterTest {
     val fixes = reporter.createQuickFixes(mockedPropertiesFile)
     assertThat(fixes).hasSize(3)
     assertThat(fixes[0]).isInstanceOf(EnableAndroidXHyperlink::class.java)
-    assertThat(fixes[1]).isInstanceOf(OpenFileHyperlink::class.java)
-    assertThat((fixes[1] as OpenFileHyperlink).filePath).isEqualTo(expectedPath)
-    assertThat(fixes[2]).isInstanceOf(OpenUrlHyperlink::class.java)
-    assertThat((fixes[2] as OpenUrlHyperlink).url).isEqualTo(expectedUrl)
+    assertThat(fixes[1]).isInstanceOf(OpenFileSyncMessageHyperlink::class.java)
+    assertThat((fixes[1] as OpenFileSyncMessageHyperlink).filePath).isEqualTo(expectedPath)
+    assertThat(fixes[2]).isInstanceOf(OpenUrlSyncMessageHyperlink::class.java)
+    assertThat((fixes[2] as OpenUrlSyncMessageHyperlink).url).isEqualTo(expectedUrl)
   }
 
   @Test
@@ -50,7 +52,7 @@ class AndroidXUsedReporterTest {
     val fixes = reporter.createQuickFixes(mockedPropertiesFile)
     assertThat(fixes).hasSize(2)
     assertThat(fixes[0]).isInstanceOf(EnableAndroidXHyperlink::class.java)
-    assertThat(fixes[1]).isInstanceOf(OpenUrlHyperlink::class.java)
-    assertThat((fixes[1] as OpenUrlHyperlink).url).isEqualTo(expectedUrl)
+    assertThat(fixes[1]).isInstanceOf(OpenUrlSyncMessageHyperlink::class.java)
+    assertThat((fixes[1] as OpenUrlSyncMessageHyperlink).url).isEqualTo(expectedUrl)
   }
 }

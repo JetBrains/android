@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 
 abstract class SyncIssueNotificationHyperlink(
   url: String,
   text: String,
   val quickFixId: AndroidStudioEvent.GradleSyncQuickFix?
-) : NotificationHyperlink(url, text)
+) : SyncMessageHyperlink(url, text)

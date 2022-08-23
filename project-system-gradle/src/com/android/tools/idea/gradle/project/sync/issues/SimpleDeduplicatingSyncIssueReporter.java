@@ -24,8 +24,10 @@ import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
@@ -131,7 +133,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
       for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
         Module m = it.next();
         if (m != null) {
-          NotificationHyperlink link = doCreateModuleLink(project, notification, builder, m, syncIssues, buildFileMap.get(m));
+          final var link = doCreateModuleLink(project, notification, builder, m, syncIssues, buildFileMap.get(m));
           if (link != null) {
             buildIssueLinks.add(new AndroidSyncIssueQuickFix(link));
           }
@@ -147,19 +149,19 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     messages.report(notification, buildIssueLinks);
   }
 
-  private NotificationHyperlink doCreateModuleLink(@NotNull Project project,
-                                  @NotNull NotificationData notification,
-                                  @NotNull StringBuilder builder,
-                                  @NotNull Module module,
-                                  @NotNull List<IdeSyncIssue> syncIssues,
-                                  @Nullable VirtualFile buildFile) {
+  private SyncMessageHyperlink doCreateModuleLink(@NotNull Project project,
+                                                  @NotNull NotificationData notification,
+                                                  @NotNull StringBuilder builder,
+                                                  @NotNull Module module,
+                                                  @NotNull List<IdeSyncIssue> syncIssues,
+                                                  @Nullable VirtualFile buildFile) {
     if (buildFile == null) {
       // No build file found, just include the name of the module.
       builder.append(getDisplayNameForModule(module));
       return null;
     }
     else {
-      OpenFileHyperlink link = createModuleLink(project, module, syncIssues, buildFile);
+      final var link = createModuleLink(project, module, syncIssues, buildFile);
       builder.append(link.toHtml());
       notification.setListener(link.getUrl(), new QuickFixNotificationListener(project, link));
       return link;
@@ -177,12 +179,12 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * @param buildFile         the build file for the provided module.
    */
   @NotNull
-  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
-                                               @NotNull Module module,
-                                               @NotNull List<IdeSyncIssue> syncIssues,
-                                               @NotNull VirtualFile buildFile) {
+  protected OpenFileSyncMessageHyperlink createModuleLink(@NotNull Project project,
+                                                          @NotNull Module module,
+                                                          @NotNull List<IdeSyncIssue> syncIssues,
+                                                          @NotNull VirtualFile buildFile) {
 
-    return new OpenFileHyperlink(buildFile.getPath(), getDisplayNameForModule(module), -1, -1);
+    return new OpenFileSyncMessageHyperlink(buildFile.getPath(), getDisplayNameForModule(module), -1, -1);
   }
 
   /**

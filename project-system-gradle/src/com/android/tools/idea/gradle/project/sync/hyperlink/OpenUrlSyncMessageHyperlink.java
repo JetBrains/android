@@ -16,22 +16,20 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class OpenUrlHyperlink extends NotificationHyperlink {
-  @NotNull private final String myUrl;
+public class OpenUrlSyncMessageHyperlink extends SyncIssueNotificationHyperlink {
+  private final @NotNull OpenUrlHyperlink myOpenUrlHyperlink;
 
-  public OpenUrlHyperlink(@NotNull String url, @NotNull String text) {
-    super(url, text);
-    myUrl = url;
+  public OpenUrlSyncMessageHyperlink(@NotNull String url, @NotNull String text) {
+    super(url, text, AndroidStudioEvent.GradleSyncQuickFix.OPEN_URL_HYPERLINK);
+    myOpenUrlHyperlink = new OpenUrlHyperlink(url, text);
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    BrowserUtil.browse(myUrl);
+    myOpenUrlHyperlink.execute(project);
   }
 }

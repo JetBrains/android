@@ -19,6 +19,7 @@ import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static org.junit.Assert.assertSame;
 
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
@@ -88,13 +89,13 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   @Override
   public void updateNotification(@NotNull NotificationData notification,
                                  @NotNull String text,
-                                 @NotNull List<? extends NotificationHyperlink> quickFixes) {
+                                 @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
     myNotificationUpdate = new NotificationUpdate(text, quickFixes);
   }
 
   @Override
   public void addNotificationListener(@NotNull NotificationData notification,
-                                      @NotNull List<? extends NotificationHyperlink> quickFixes) {
+                                      @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
     myNotificationUpdate = new NotificationUpdate(notification.getMessage(), quickFixes);
   }
 
@@ -110,9 +111,9 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
 
   public static class NotificationUpdate {
     @NotNull private final String myText;
-    @NotNull private final List<? extends NotificationHyperlink> myFixes;
+    @NotNull private final List<? extends SyncMessageHyperlink> myFixes;
 
-    NotificationUpdate(@NotNull String text, @NotNull List<? extends NotificationHyperlink> quickFixes) {
+    NotificationUpdate(@NotNull String text, @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
       myText = text;
       myFixes = quickFixes;
     }
@@ -123,7 +124,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
     }
 
     @NotNull
-    public List<? extends NotificationHyperlink> getFixes() {
+    public List<? extends SyncMessageHyperlink> getFixes() {
       return myFixes;
     }
   }

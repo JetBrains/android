@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
@@ -130,7 +130,7 @@ public abstract class AbstractSyncMessages implements Disposable {
     Navigatable navigatable = message.getNavigatable();
     notification.setNavigatable(navigatable);
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    final var quickFixes = message.getQuickFixes();
     if (!quickFixes.isEmpty()) {
       updateNotification(notification, text, quickFixes);
     }
@@ -153,7 +153,7 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   public void updateNotification(@NotNull NotificationData notification,
                                  @NotNull String text,
-                                 @NotNull List<? extends NotificationHyperlink> quickFixes) {
+                                 @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
     String message = text;
     int hyperlinkCount = quickFixes.size();
     if (hyperlinkCount > 0) {
@@ -173,8 +173,8 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   // Call this method only if notification contains detailed text message with hyperlinks
   // Use updateNotification otherwise
-  public void addNotificationListener(@NotNull NotificationData notification, @NotNull List<? extends NotificationHyperlink> quickFixes) {
-    for (NotificationHyperlink quickFix : quickFixes) {
+  public void addNotificationListener(@NotNull NotificationData notification, @NotNull List<? extends SyncMessageHyperlink> quickFixes) {
+    for (final var quickFix : quickFixes) {
       notification.setListener(quickFix.getUrl(), new QuickFixNotificationListener(myProject, quickFix));
     }
   }

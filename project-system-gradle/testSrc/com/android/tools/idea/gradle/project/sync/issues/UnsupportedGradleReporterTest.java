@@ -22,11 +22,13 @@ import static org.mockito.Mockito.when;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -83,10 +85,10 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
                                             .hasMessageLine(expectedText, 0);
     // @formatter:on
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    final var  quickFixes = message.getQuickFixes();
     assertThat(quickFixes).hasSize(3);
 
-    NotificationHyperlink quickFix = quickFixes.get(0);
+    var quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(FixGradleVersionInWrapperHyperlink.class);
     FixGradleVersionInWrapperHyperlink hyperlink = (FixGradleVersionInWrapperHyperlink)quickFix;
     assertEquals("2.14.1", hyperlink.getGradleVersion());
@@ -108,9 +110,9 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
       myUsageReporter.getCollectedIssue());
   }
 
-  private static void verifyOpenGradleWrapperPropertiesFile(@NotNull Project project, @NotNull NotificationHyperlink link) {
-    assertThat(link).isInstanceOf(OpenFileHyperlink.class);
-    OpenFileHyperlink openFileHyperlink = (OpenFileHyperlink)link;
+  private static void verifyOpenGradleWrapperPropertiesFile(@NotNull Project project, @NotNull SyncMessageHyperlink link) {
+    assertThat(link).isInstanceOf(OpenFileSyncMessageHyperlink.class);
+    final var openFileHyperlink = (OpenFileSyncMessageHyperlink)link;
     assertTrue(openFileHyperlink.toHtml().contains("Open Gradle wrapper properties"));
     assertThat(openFileHyperlink.getFilePath()).isEqualTo(
       FileUtils.toSystemIndependentPath(GradleWrapper.find(project).getPropertiesFilePath().getAbsolutePath()));

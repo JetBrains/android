@@ -16,22 +16,35 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class OpenUrlHyperlink extends NotificationHyperlink {
-  @NotNull private final String myUrl;
+public class OpenFileSyncMessageHyperlink extends SyncIssueNotificationHyperlink {
+  private final @NotNull OpenFileHyperlink myOpenFileHyperlink;
 
-  public OpenUrlHyperlink(@NotNull String url, @NotNull String text) {
-    super(url, text);
-    myUrl = url;
+  /**
+   * Creates a file hyperlink. The line and column numbers should be 0-based. The file path should be a file system dependent path.
+   */
+  public OpenFileSyncMessageHyperlink(@NotNull String filePath, @NotNull String text, int lineNumber, int column) {
+    super("openFile:" + filePath, text, AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK);
+    myOpenFileHyperlink = new OpenFileHyperlink(filePath, text, lineNumber, column);
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    BrowserUtil.browse(myUrl);
+    myOpenFileHyperlink.execute(project);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public String getFilePath() {
+    return myOpenFileHyperlink.getFilePath();
+  }
+
+  @VisibleForTesting
+  public int getLineNumber() {
+    return myOpenFileHyperlink.getLineNumber();
   }
 }

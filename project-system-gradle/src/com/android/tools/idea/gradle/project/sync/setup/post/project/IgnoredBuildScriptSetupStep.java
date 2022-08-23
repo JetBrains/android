@@ -24,6 +24,7 @@ import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
@@ -105,7 +106,8 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
           ShowSettingsUtil.getInstance().showSettingsDialog(project, "preferences.fileTypes");
         }
       });
-      message.add(new OpenFileHyperlink(path.getPath(), "Open ignored " + ((path.isDirectory()) ? "folder location" : "file"), -1, -1));
+      message.add(
+        new OpenFileSyncMessageHyperlink(path.getPath(), "Open ignored " + ((path.isDirectory()) ? "folder location" : "file"), -1, -1));
       messages.report(message);
     }
   }
