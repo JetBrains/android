@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
@@ -27,11 +27,9 @@ import com.intellij.testFramework.HeavyPlatformTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import org.mockito.Mockito.mock
+import java.util.IdentityHashMap
 
 class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
-  private lateinit var syncIssue1: IdeSyncIssue
-  private lateinit var syncIssue2: IdeSyncIssue
   private lateinit var module1: Module
   private lateinit var module2: Module
   private lateinit var messageStub: GradleSyncMessagesStub
@@ -43,26 +41,34 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project)
     messageStub.removeAllMessages()
     reporter = DeprecatedConfigurationReporter()
-    syncIssue1 = mock(IdeSyncIssue::class.java)
-    syncIssue2 = mock(IdeSyncIssue::class.java)
     module1 = createModule("app")
     module2 = createModule("lib")
     usageReporter = TestSyncIssueUsageReporter()
-
-    whenever(syncIssue1.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
-    whenever(syncIssue2.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
   }
 
   @Test
   fun testDeduplicationInSameModule() {
-    whenever(syncIssue1.message).thenReturn("Warning message!")
-    whenever(syncIssue1.data).thenReturn("key")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Warning message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module1), mapOf(), usageReporter)
+    reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module1).toMap(IdentityHashMap()),
+      mapOf(),
+      usageReporter
+    )
 
     val messages = messageStub.notifications
     assertSize(1, messages)
@@ -81,14 +87,27 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   @Test
   fun testNoDeduplicationInSameModule() {
-    whenever(syncIssue1.message).thenReturn("Warning message!")
-    whenever(syncIssue1.data).thenReturn("key1")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Warning message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key1",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
+    reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+      mapOf(),
+      usageReporter
+    )
 
     val messages = messageStub.notifications
     assertSize(2, messages)
@@ -114,14 +133,27 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   @Test
   fun testDeduplicationAcrossModules() {
-    whenever(syncIssue1.message).thenReturn("Warning message!")
-    whenever(syncIssue1.data).thenReturn("key")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Warning message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
+    reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+      mapOf(),
+      usageReporter
+    )
 
     val messages = messageStub.notifications
     assertSize(1, messages)
@@ -140,14 +172,27 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   @Test
   fun testNoDeduplicationAcrossModules() {
-    whenever(syncIssue1.message).thenReturn("Warning message!")
-    whenever(syncIssue1.data).thenReturn("key1")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Warning message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key1",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
+    reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+      mapOf(),
+      usageReporter
+    )
 
     val messages = messageStub.notifications
     assertSize(2, messages)
@@ -173,14 +218,27 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   @Test
   fun testDeduplicationHandlesErrors() {
-    whenever(syncIssue1.message).thenReturn("Error message!")
-    whenever(syncIssue1.data).thenReturn("key")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Error message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Error message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_ERROR,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Error message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
+    reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+      mapOf(),
+      usageReporter
+    )
 
     val messages = messageStub.notifications
     assertSize(1, messages)

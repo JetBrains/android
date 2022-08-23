@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -25,7 +25,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
 import org.junit.Test
-import org.mockito.Mockito.mock
+import java.util.IdentityHashMap
 
 class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
   private lateinit var syncMessages: GradleSyncMessagesStub
@@ -87,11 +87,11 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
     val syncIssueThree = setUpMockSyncIssue("19.1.2") // Intentional duplicate of syncIssueOne
 
 
-    val moduleMap = mapOf(
+    val moduleMap = listOf(
       syncIssueOne to getModule("testWithCompositeBuild"),
       syncIssueTwo to getModule("TestCompositeLib1"),
       syncIssueThree to getModule("TestCompositeLib3")
-    )
+    ).toMap(IdentityHashMap())
 
     reporter.reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf(), usageReporter)
 
@@ -123,11 +123,12 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
   }
 
   private fun setUpMockSyncIssue(revision: String): IdeSyncIssue {
-    val syncIssue = mock(IdeSyncIssue::class.java)
-    whenever(syncIssue.data).thenReturn(null)
-    whenever(syncIssue.message).thenReturn("No version of NDK matched the requested version $revision")
-    whenever(syncIssue.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
-    whenever(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
-    return syncIssue
+    return IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_ERROR,
+      type = IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION,
+      data = null,
+      message = "No version of NDK matched the requested version $revision",
+      multiLineMessage = null
+    )
   }
 }

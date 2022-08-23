@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
@@ -43,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
  * Tests for {@link UnsupportedGradleReporter}.
  */
 public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
-  private IdeSyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnsupportedGradleReporter myReporter;
   private TestSyncIssueUsageReporter myUsageReporter;
@@ -51,7 +49,6 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(IdeSyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnsupportedGradleReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
@@ -66,12 +63,16 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
     mySyncMessagesStub.removeAllMessages();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
-
     String expectedText = "Hello World!";
-    when(mySyncIssue.getMessage()).thenReturn(expectedText);
-    when(mySyncIssue.getData()).thenReturn("2.14.1");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      0 /* unspecified? */,
+      "2.14.1",
+      expectedText,
+      null
+    );
 
-    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
+    myReporter.report(syncIssue, appModule, null, myUsageReporter);
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);

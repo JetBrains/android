@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.SdkConstants
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -26,8 +26,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
 import org.junit.Test
-import org.mockito.Mockito.mock
 import java.io.File
+import java.util.IdentityHashMap
 
 class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
   private lateinit var syncMessages: GradleSyncMessagesStub
@@ -98,13 +98,18 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
     val syncIssueThree = setUpMockSyncIssue(localPropertiesPathThree.absolutePath)
 
 
-    val moduleMap = mapOf(
+    val moduleMap = listOf(
       syncIssueOne to getModule("testWithCompositeBuild"),
       syncIssueTwo to getModule("TestCompositeLib1"),
       syncIssueThree to getModule("TestCompositeLib3")
-    )
+    ).toMap(IdentityHashMap())
 
-    reporter.reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf(), usageReporter)
+    reporter.reportAll(
+      listOf(syncIssueOne, syncIssueTwo, syncIssueThree),
+      moduleMap,
+      mapOf(),
+      usageReporter
+    )
 
     val notifications = syncMessages.notifications.filter { it.notificationCategory == NotificationCategory.WARNING }
     assertSize(1, notifications)
@@ -138,11 +143,12 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
   }
 
   private fun setUpMockSyncIssue(path: String): IdeSyncIssue {
-    val syncIssue = mock(IdeSyncIssue::class.java)
-    whenever(syncIssue.data).thenReturn(path)
-    whenever(syncIssue.message).thenReturn("This is some message that is not used")
-    whenever(syncIssue.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
-    whenever(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_SDK_NOT_SET)
-    return syncIssue
+    return IdeSyncIssueImpl(
+      data = path,
+      severity = IdeSyncIssue.SEVERITY_ERROR,
+      message = "This is some message that is not used",
+      type = IdeSyncIssue.TYPE_SDK_NOT_SET,
+      multiLineMessage = null
+    )
   }
 }

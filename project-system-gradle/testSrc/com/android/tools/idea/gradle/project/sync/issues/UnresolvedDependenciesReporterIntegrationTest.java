@@ -20,8 +20,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -29,6 +27,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
@@ -52,7 +51,6 @@ import java.util.regex.Pattern;
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradleTestCase {
-  private IdeSyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
   private TestSyncIssueUsageReporter myUsageReporter;
@@ -60,13 +58,10 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(IdeSyncIssue.class);
     // getMessage() is NotNull but message is unused for dependencies.
-    when(mySyncIssue.getMessage()).thenReturn("");
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
-    when(mySyncIssue.getType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
   }
 
   @Override
@@ -83,11 +78,17 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      TYPE_UNRESOLVED_DEPENDENCY,
+      "com.google.guava:guava:19.0",
+      "",
+      null
+    );
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    myReporter.report(mySyncIssue, appModule, buildFile, myUsageReporter);
+    myReporter.report(syncIssue, appModule, buildFile, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -121,9 +122,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
-    when(mySyncIssue.getData()).thenReturn("com.android.support.constraint:constraint-layout:+");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      TYPE_UNRESOLVED_DEPENDENCY,
+      "com.android.support.constraint:constraint-layout:+",
+      "",
+      null
+    );
 
-    myReporter.report(mySyncIssue, appModule, getGradleBuildFile(appModule), myUsageReporter);
+    myReporter.report(syncIssue, appModule, getGradleBuildFile(appModule), myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -154,9 +161,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
-    when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      TYPE_UNRESOLVED_DEPENDENCY,
+      "com.android.support:appcompat-v7:24.1.1",
+      "",
+      null
+    );
 
-    myReporter.report(mySyncIssue, appModule, getGradleBuildFile(appModule), myUsageReporter);
+    myReporter.report(syncIssue, appModule, getGradleBuildFile(appModule), myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -205,9 +218,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     buildModel.repositories().addGoogleMavenRepository();
     runWriteCommandAction(project, buildModel::applyChanges);
 
-    when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      TYPE_UNRESOLVED_DEPENDENCY,
+      "com.android.support:appcompat-v7:24.1.1",
+      "",
+      null
+    );
 
-    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
+    myReporter.report(syncIssue, appModule, null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -249,10 +268,16 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     mySyncMessagesStub.removeAllMessages();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
-    when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      TYPE_UNRESOLVED_DEPENDENCY,
+      "com.android.support:appcompat-v7:24.1.1",
+      "",
+      null
+    );
 
     myReporter.assumeProjectNotInitialized(true);
-    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
+    myReporter.report(syncIssue, appModule, null, myUsageReporter);
     myReporter.assumeProjectNotInitialized(false);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
@@ -298,9 +323,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
-    when(mySyncIssue.getData()).thenReturn("com.google.android.gms:play-services:9.4.0");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      TYPE_UNRESOLVED_DEPENDENCY,
+      "com.google.android.gms:play-services:9.4.0",
+      "",
+      null
+    );
 
-    myReporter.report(mySyncIssue, appModule, getGradleBuildFile(appModule), myUsageReporter);
+    myReporter.report(syncIssue, appModule, getGradleBuildFile(appModule), myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -416,9 +447,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile appFile = getGradleBuildFile(appModule);
 
-    when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      TYPE_UNRESOLVED_DEPENDENCY,
+      "com.google.guava:guava:19.0",
+      "",
+      null
+    );
 
-    List<IdeSyncIssue> syncIssues = ImmutableList.of(mySyncIssue);
+    List<IdeSyncIssue> syncIssues = ImmutableList.of(syncIssue);
     final var link = myReporter.createModuleLink(getProject(), appModule, syncIssues, appFile);
     assertThat(link.getLineNumber()).isEqualTo(-1);
     assertThat(link.getFilePath()).isEqualTo(appFile.getPath());
@@ -429,9 +466,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile appFile = getGradleBuildFile(appModule);
 
-    when(mySyncIssue.getData()).thenReturn("androidx.room:room-compiler:2.0.0-alpha1");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      TYPE_UNRESOLVED_DEPENDENCY,
+      "androidx.room:room-compiler:2.0.0-alpha1",
+      "",
+      null
+    );
 
-    myReporter.report(mySyncIssue, appModule, appFile, myUsageReporter);
+    myReporter.report(syncIssue, appModule, appFile, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);

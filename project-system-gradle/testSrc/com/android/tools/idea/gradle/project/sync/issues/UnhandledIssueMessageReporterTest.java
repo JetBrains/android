@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING;
+
+import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -26,21 +32,14 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-
 import com.intellij.pom.NonNavigatable;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link UnhandledIssuesReporter}.
  */
 public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
-  private IdeSyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnhandledIssuesReporter myReporter;
   private TestSyncIssueUsageReporter myUsageReporter;
@@ -48,7 +47,6 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(IdeSyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnhandledIssuesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
@@ -67,11 +65,16 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     String text = "Hello World!";
     String expectedText =
       text + "\nAffected Modules:";
-    when(mySyncIssue.getMessage()).thenReturn(text);
-    when(mySyncIssue.getSeverity()).thenReturn(IdeSyncIssue.SEVERITY_ERROR);
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_ERROR,
+      SyncIssue.TYPE_GENERIC,
+      null,
+      text,
+      null
+    );
 
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    myReporter.report(mySyncIssue, appModule, buildFile, myUsageReporter);
+    myReporter.report(syncIssue, appModule, buildFile, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -101,10 +104,15 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
     String text = "Hello World!";
     String expectedText = text + "\nAffected Modules: app";
-    when(mySyncIssue.getMessage()).thenReturn(text);
-    when(mySyncIssue.getSeverity()).thenReturn(IdeSyncIssue.SEVERITY_ERROR);
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_ERROR,
+      SyncIssue.TYPE_GENERIC,
+      null,
+      text,
+      null
+    );
 
-    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
+    myReporter.report(syncIssue, appModule, null, myUsageReporter);
 
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
