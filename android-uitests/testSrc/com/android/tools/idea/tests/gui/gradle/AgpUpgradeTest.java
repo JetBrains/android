@@ -16,64 +16,65 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.AGPUpgradeAssistantToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
-public class AgpUpgradeFromBuildGradleFile {
+public class AgpUpgradeTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(8, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
+  private File projectDir;
 
-  /**
-   * Verifies automatic update of gradle version
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: b320c139-38f1-4384-bed3-2ea198b140c9
-   *   <pre>
-   *   Test Steps:
-   *   1.Import Simple project
-   *   2.Open module level build.gradle file
-   *   3.Update the gradle version in build.gradle file. (Verify 1)
-   *   4.Invoke gradle sync
-   *   Verify:
-   *   1.AGP classpath updated in build.gradle file
-   *   2.Gradle sync successful.
-   *
-   *   </pre>
-   */
-
-  @RunIn(com.android.tools.idea.tests.gui.framework.TestGroup.SANITY_BAZEL)
-  @Test
-  public void testAgpUpgradeAssistant() throws Exception {
-
-    File projectDir = guiTest.setUpProject("SimpleApplication", null, "7.1.0", null, null);
+  @Before
+  public void setUp() throws Exception {
+    projectDir = guiTest.setUpProject("SimpleApplication", null, "7.1.0", null, null);
     guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+  }
+
+  @RunIn(TestGroup.FAST_BAZEL)
+  @Test
+  public void testAgpUpgradeUsingGradleBuildFie() {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    String studioVersion = ideFrame.getAndroidStudioVersion();
+
     EditorFixture editor = ideFrame.getEditor();
+    AGPUpgradeAssistantToolWindowFixture upgradeAssistant = ideFrame.getUgradeAssistantToolWindow();
+
+    String agpVersion = upgradeAssistant.generateAGPVersion(studioVersion);
+
+    List<String> agpVersionsList = upgradeAssistant.getAGPVersions();
+
+    upgradeAssistant.hide();
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    assertEquals(agpVersion, agpVersionsList.get(0));
 
     editor.open("build.gradle")
       .select("gradle\\:(\\d+\\.\\d+\\.\\d+)")
-      .enterText("7.2.0");
+      .enterText(agpVersion);
 
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    assertThat(editor.open("build.gradle").getCurrentFileContents()).contains("gradle:7.2.0");
-    assertThat(editor.open("build.gradle").getCurrentFileContents()).doesNotContain("gradle:7.1.0");
+    assertThat(editor.open("build.gradle").getCurrentFileContents()).contains(agpVersion);
   }
 }
+

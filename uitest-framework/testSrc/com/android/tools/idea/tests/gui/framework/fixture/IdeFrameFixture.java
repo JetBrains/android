@@ -581,6 +581,20 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public AGPUpgradeAssistantToolWindowFixture getUgradeAssistantToolWindow() {
+    waitAndInvokeMenuPath("Tools", "AGP Upgrade Assistant...");
+    return new AGPUpgradeAssistantToolWindowFixture(this);
+  }
+
+  @NotNull
+  public String getAndroidStudioVersion() {
+    AboutAndroidStudioFixture aboutStudio = AboutAndroidStudioFixture.openAboutStudioDialog(this);
+    String name = aboutStudio.getAndroidStudioVersion();
+    aboutStudio.clickCopy();
+    return name;
+  }
+
+  @NotNull
   public IdeSettingsDialogFixture openIdeSettings() {
     // Using invokeLater because we are going to show a *modal* dialog via API (instead of clicking a button, for example.) If we use
     // GuiActionRunner the test will hang until the modal dialog is closed.
