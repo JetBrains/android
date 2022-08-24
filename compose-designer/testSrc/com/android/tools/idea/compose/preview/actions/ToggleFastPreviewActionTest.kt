@@ -67,8 +67,14 @@ internal class ToggleFastPreviewActionTest {
     assertFalse(manager.isEnabled)
     assertFalse(manager.isAvailable)
 
+    action.update(event) // Manually trigger update, we can check the action presentation
+    assertEquals("Enable Live Updates", event.presentation.text)
+
     action.actionPerformed(event)
     assertTrue(manager.isEnabled)
     assertTrue(manager.isAvailable)
+
+    action.update(event) // Manually trigger update, we can check the action presentation
+    assertEquals("Disable Live Updates", event.presentation.text)
   }
 }
