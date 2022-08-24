@@ -39,7 +39,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() =
-    standardRegionNecessity(current, new, GradleVersion.parse("4.2.0-beta03"), GradleVersion.parse("8.0.0-alpha01"))
+    standardRegionNecessity(current, new, GradleVersion.parse("4.2.0-beta03"), GradleVersion.parse("8.0.0-beta01"))
 
   data class Namespaces(val namespace: String?, val testNamespace: String?)
 
