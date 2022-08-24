@@ -59,10 +59,12 @@ class IssuePanelViewOptionActionGroupTest {
     val showWeakWarningAction = options[1] as SeverityFilterAction
     val showServerProblemAction = options[2] as SeverityFilterAction
     val showTypoAction = options[3] as SeverityFilterAction
+/* b/243701914
     val showVisualProblemAction = options[4] as VisualLintFilterAction
     assertInstanceOf<Separator>(options[5])
     val sortedBySeverityAction = options[6] as ToggleIssuePanelSortedBySeverityAction
     val sortedByNameAction = options[7] as ToggleIssuePanelSortedByNameAction
+b/243701914 */
 
     val severityIterator = SeverityRegistrar.getSeverityRegistrar(rule.project).allSeverities.reversed()
       .filter { it != HighlightSeverity.INFO && it > HighlightSeverity.INFORMATION && it < HighlightSeverity.ERROR }
@@ -87,6 +89,7 @@ class IssuePanelViewOptionActionGroupTest {
       assertEquals(severityIterator.next().myVal, it.severity)
       assertEquals("Show Typo", it.templateText)
     }
+/* b/243701914
     assertFalse(severityIterator.hasNext())
 
     showVisualProblemAction.let {
@@ -100,5 +103,6 @@ class IssuePanelViewOptionActionGroupTest {
     sortedByNameAction.let {
       assertEquals("Sort By Name", it.templateText)
     }
+b/243701914 */
   }
 }
