@@ -191,9 +191,9 @@ fun androidConfig(
 
 private fun resource(path: String) = File("templates/module", path)
 
-fun RecipeExecutor.copyIcons(destination: File, targetSdkVersion: ApiVersion) {
+fun RecipeExecutor.copyIcons(destination: File) {
 
-  fun copyAdaptiveIcons(targetSdkVersion: ApiVersion) {
+  fun copyAdaptiveIcons() {
     copy(
       resource("mipmap-anydpi-v26/ic_launcher.xml"),
       destination.resolve("mipmap-anydpi-v26/ic_launcher.xml")
@@ -210,18 +210,11 @@ fun RecipeExecutor.copyIcons(destination: File, targetSdkVersion: ApiVersion) {
       resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
       destination.resolve("mipmap-anydpi-v26/ic_launcher_round.xml")
     )
-    if (targetSdkVersion.api >= 33) {
-      // For themed app icons
-      copy(
-        resource("mipmap-anydpi-v33/ic_launcher.xml"),
-        destination.resolve("mipmap-anydpi-v33/ic_launcher.xml")
-      )
-    }
   }
 
   copyMipmapFolder(destination)
   copyMipmapFolder(destination)
-  copyAdaptiveIcons(targetSdkVersion)
+  copyAdaptiveIcons()
 }
 
 fun RecipeExecutor.copyMipmapFolder(destination: File) {

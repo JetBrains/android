@@ -50,7 +50,6 @@ fun RecipeExecutor.generateAndroidModule(
     useKts = useKts,
     manifestXml = generateManifest(
       hasApplicationBlock = !data.isLibrary,
-      hasRoundIcon = data.apis.targetApi.api <= 32, // b/218931654; roundIcon can affect themed app icons from appearing in new projects
       theme = "@style/${data.themesData.main.name}",
       addBackupRules = addBackupRules
     ),
