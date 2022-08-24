@@ -107,6 +107,8 @@ public class AndroidStudioInstallation {
                        String.format("-Didea.config.path=%s%n", configDir) +
                        String.format("-Didea.plugins.path=%s/plugins%n", configDir) +
                        String.format("-Didea.system.path=%s/system%n", workDir) +
+                       // Prevent our crash metrics from going to the production URL
+                       String.format("-Duse.staging.crash.url=true%n") +
                        String.format("-Didea.log.path=%s%n", logsDir) +
                        String.format("-Duser.home=%s%n", fileSystem.getHome());
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
