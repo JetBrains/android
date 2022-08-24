@@ -57,8 +57,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
       new LayoutlibSceneManagerHierarchyProvider(),
       null,
       LayoutScannerConfiguration.getDISABLED(),
-      RealTimeSessionClock::new,
-      new DesignSurfaceProgressIndicator(surface));
+      RealTimeSessionClock::new);
     myDefaultProperties = new HashMap<>();
   }
 

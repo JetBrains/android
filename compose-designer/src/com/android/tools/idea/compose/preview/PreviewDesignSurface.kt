@@ -33,7 +33,6 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.scene.DesignSurfaceProgressIndicator
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -92,17 +91,8 @@ private fun createPreviewDesignSurfaceBuilder(
         model,
         surface,
         sceneComponentProvider,
-        ComposeSceneUpdateListener(),
-        { RealTimeSessionClock() },
-        object : DesignSurfaceProgressIndicator(surface) {
-          @Synchronized
-          override fun start() {
-          }
-
-          @Synchronized
-          override fun stop() {
-          }
-        })
+        ComposeSceneUpdateListener()
+      ) { RealTimeSessionClock() }
     }
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
