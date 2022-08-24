@@ -57,7 +57,8 @@ import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.impl.light.LightModifierList
 import com.intellij.psi.util.PsiFormatUtil
 import com.intellij.psi.util.PsiFormatUtilBase
-import com.intellij.util.PlatformIcons
+import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import com.intellij.util.ProcessingContext
 
 /**
@@ -295,7 +296,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
             psiConvertedField = LightFieldBuilder(name, psiMethod.returnType!!, psiMethod.navigationElement)
             psiConvertedField.containingClass = psiMethod.containingClass
             // Set this explicitly or otherwise the icon comes out as "V" for variable
-            psiConvertedField.setBaseIcon(PlatformIcons.FIELD_ICON)
+            psiConvertedField.setBaseIcon(IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
             psiConvertedField.setModifierList(LightModifierList(psiMethod))
           }
           if (psiConvertedField == null) {
