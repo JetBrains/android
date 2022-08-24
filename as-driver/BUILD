@@ -99,6 +99,7 @@ iml_module(
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
     ],
 )
 
