@@ -192,7 +192,7 @@ open class ProjectsUpgradeTestBase {
     || it.endsWith(SdkConstants.DOT_XML)
     || it.endsWith(SdkConstants.DOT_JAVA)
     || it.endsWith(SdkConstants.DOT_KT)
-    //|| it.endsWith(SdkConstants.DOT_PROPERTIES) // TODO need to avoid comparing timestamp first
+    //|| it.endsWith(SdkConstants.DOT_PROPERTIES) // TODO(b/200007322): need to avoid comparing timestamp first
   }
 
   private class FakeInvoker(val delegate: GradleSyncInvoker = GradleSyncInvokerImpl()) : GradleSyncInvoker by delegate {
