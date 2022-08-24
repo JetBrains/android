@@ -16,17 +16,13 @@
 
 package com.android.tools.idea;
 
-import com.intellij.application.options.editor.WebEditorOptions;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
-import com.intellij.openapi.editor.ex.EditorSettingsExternalizable;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.ex.KeymapManagerEx;
-import com.intellij.openapi.keymap.impl.KeymapManagerImpl;
-import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,11 +31,6 @@ public class AndroidInitialConfigurator {
   @NonNls
   private static final ExtensionPointName<Runnable> EP_NAME =
     ExtensionPointName.create("com.intellij.androidStudioInitializer");
-
-  @NonNls private static final String CONFIG_V1 = "AndroidInitConfigurator.V1";
-  @NonNls private static final String CONFIG_V3 = "AndroidInitConfigurator.V3";
-  // 2 and 4 no longer applicable
-  @NonNls private static final String CONFIG_V5 = "AndroidInitConfigurator.V5";
 
   @SuppressWarnings("SpellCheckingInspection")
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
@@ -54,7 +45,6 @@ public class AndroidInitialConfigurator {
 
   public AndroidInitialConfigurator() {
     setupSystemProperties();
-    customizeSettings(PropertiesComponent.getInstance());
 
     // change default key maps to add a activate Android ToolWindow shortcut
     setActivateAndroidToolWindowShortcut();
@@ -80,49 +70,6 @@ public class AndroidInitialConfigurator {
     }
   }
 
-  private static void customizeSettings(PropertiesComponent propertiesComponent) {
-    if (!propertiesComponent.getBoolean(CONFIG_V5)) {
-      propertiesComponent.setValue(CONFIG_V5, "true");
-
-      if (!propertiesComponent.getBoolean(CONFIG_V3)) {
-        propertiesComponent.setValue(CONFIG_V3, "true");
-        // See https://youtrack.jetbrains.com/issue/IDEA-113332
-        // It's not really fixed but worked around by turning off the =-quoting
-        WebEditorOptions.getInstance().setInsertQuotesForAttributeValue(false);
-      }
-
-      if (!propertiesComponent.getBoolean(CONFIG_V1)) {
-        propertiesComponent.setValue(CONFIG_V1, "true");
-        EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
-
-        // For Macs, use 10.5+ keymap as the default
-        if (SystemInfo.isMac) {
-          setDefaultMacKeymap();
-        }
-      }
-
-      // CONFIG_V2 no longer done: we used to force UISettings#SHOW_MAIN_TOOLBAR=true
-    }
-  }
-
-  private static void setDefaultMacKeymap() {
-    KeymapManagerImpl instance = (KeymapManagerImpl)KeymapManager.getInstance();
-    Keymap mac105Keymap = getMac105Keymap();
-    if (mac105Keymap != null) {
-      instance.setActiveKeymap(mac105Keymap);
-    }
-  }
-
-  @Nullable
-  private static Keymap getMac105Keymap() {
-    for (Keymap keymap: KeymapManagerEx.getInstanceEx().getAllKeymaps()) {
-      if (keymap.getName().contains("10.5")) {
-        return keymap;
-      }
-    }
-
-    return null;
-  }
 
   private static void setActivateAndroidToolWindowShortcut() {
     // The IntelliJ keymap implementation behaves as follows:
