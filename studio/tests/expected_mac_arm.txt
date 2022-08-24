@@ -508,11 +508,11 @@ Android Studio Preview.app/Contents/license/dexlib2-2.0.8-NOTICE
 Android Studio Preview.app/Contents/license/eclipse_license.txt
 Android Studio Preview.app/Contents/license/eclipse_license2.txt
 Android Studio Preview.app/Contents/license/fest-NOTICE
+Android Studio Preview.app/Contents/license/fetchasgoogle.jar-NOTICE
+Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.TXT
 Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.md
 Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.openh264
-Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.TXT
 Android Studio Preview.app/Contents/license/ffmpeg-SOURCE_CODE.TXT
-Android Studio Preview.app/Contents/license/fetchasgoogle.jar-NOTICE
 Android Studio Preview.app/Contents/license/freemarker-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-debugger.jar-NOTICE

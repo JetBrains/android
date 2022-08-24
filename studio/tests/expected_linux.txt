@@ -517,9 +517,9 @@ android-studio/license/eclipse_license.txt
 android-studio/license/eclipse_license2.txt
 android-studio/license/fest-NOTICE
 android-studio/license/fetchasgoogle.jar-NOTICE
+android-studio/license/ffmpeg-LICENSE.TXT
 android-studio/license/ffmpeg-LICENSE.md
 android-studio/license/ffmpeg-LICENSE.openh264
-android-studio/license/ffmpeg-LICENSE.TXT
 android-studio/license/ffmpeg-SOURCE_CODE.TXT
 android-studio/license/freemarker-NOTICE
 android-studio/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
