@@ -69,6 +69,7 @@ android {
         pickFirst "readme.md"
         pickFirst "foo.so"
     }
+    namespace 'com.example.myapplication'
 }
 
 dependencies {

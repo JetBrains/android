@@ -108,11 +108,13 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, dependenciesModel),
       RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, gradleBuildModel),
       AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
-      VIEW_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
-      DATA_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+      VIEW_BINDING_ENABLED_INFO
+        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, gradleBuildModel, { resolvedPropertyModel }),
+      DATA_BINDING_ENABLED_INFO
+        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, gradleBuildModel, { resolvedPropertyModel }),
       SOURCE_SET_JNI_INFO.RemovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel),
       (MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.propertiesOperationInfos[0] as MovePropertiesInfo)
-        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, gradleBuildModel, { resolvedPropertyModel }),
       // TODO(xof): do something so we don't have to explicitly construct this stuff here
       RewriteObsoletePropertiesInfo({ listOf(resolvedPropertyModel) }, { "" }, UsageType(""))
         .RewritePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel),

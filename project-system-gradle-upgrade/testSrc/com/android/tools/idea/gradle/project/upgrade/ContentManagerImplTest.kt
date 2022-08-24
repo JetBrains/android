@@ -111,6 +111,15 @@ class ContentManagerImplTest {
     )
   }
 
+  private fun addMinimalGradlePropertiesToProject() : PsiFile {
+    return projectRule.fixture.addFileToProject(
+      "gradle.properties",
+      """
+        android.enableR8.fullMode=true
+      """.trimIndent()
+    )
+  }
+
   private fun ToolWindowModel.listeningStatesChanges() = apply { uiState.addListener { uiStates.add(uiState.get()) }}
 
   @Test
@@ -164,6 +173,7 @@ class ContentManagerImplTest {
     assertThat(treeString(view.tree)).isEqualTo(
       """
         Upgrade
+          Accept the new R8 default of full mode
           Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion
       """.trimIndent()
     )
@@ -198,6 +208,7 @@ class ContentManagerImplTest {
         }
       """.trimIndent()
     )
+    addMinimalGradlePropertiesToProject()
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
@@ -277,6 +288,7 @@ class ContentManagerImplTest {
   @Test
   fun testTreeModelInitialState() {
     addMinimalBuildGradleToProject()
+    addMinimalGradlePropertiesToProject()
     val toolWindowModel = ToolWindowModel(project, { currentAgpVersion })
     val treeModel = toolWindowModel.treeModel
     val root = treeModel.root as? CheckedTreeNode
@@ -306,6 +318,7 @@ class ContentManagerImplTest {
   @Test
   fun testToolWindowViewHasExpandedTree() {
     addMinimalBuildGradleToProject()
+    addMinimalGradlePropertiesToProject()
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
@@ -360,6 +373,7 @@ class ContentManagerImplTest {
   @Test
   fun testToolWindowViewClasspathProcessorDetailsPanel() {
     addMinimalBuildGradleToProject()
+    addMinimalGradlePropertiesToProject()
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
@@ -372,6 +386,7 @@ class ContentManagerImplTest {
 
   @Test
   fun testToolWindowViewClasspathProcessorBlockedDetailsPanel() {
+    addMinimalGradlePropertiesToProject()
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })
@@ -529,6 +544,7 @@ class ContentManagerImplTest {
         distributionUrl=https\://services.gradle.org/distributions/gradle-6.1.1-bin.zip
       """.trimIndent()
     )
+    addMinimalGradlePropertiesToProject()
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = ToolWindowModel(project, { currentAgpVersion })

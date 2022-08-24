@@ -267,6 +267,10 @@ class AgpUpgradeRefactoringProcessor(
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),
+    RedundantPropertiesRefactoringProcessor(this),
+    AndroidManifestPackageToNamespaceRefactoringProcessor(this),
+    R8FullModeDefaultRefactoringProcessor(this),
+    RenderScriptDefaultRefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
@@ -277,10 +281,6 @@ class AgpUpgradeRefactoringProcessor(
     MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(this),
     MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(this),
     REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
-    RedundantPropertiesRefactoringProcessor(this),
-    AndroidManifestPackageToNamespaceRefactoringProcessor(this),
-    R8FullModeDefaultRefactoringProcessor(this),
-    RenderScriptDefaultRefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -952,10 +952,9 @@ data class MovePropertiesInfo(
     sourceToDestinationPropertyModelGetters.forEach { (sourceGetter, destinationGetter) ->
       val sourceModel = buildModel.(sourceGetter)()
       if (sourceModel.getValue(OBJECT_TYPE) != null) {
-        val destinationModel = buildModel.(destinationGetter)()
         val psiElement = sourceModel.psiElement ?: return@forEach
         val wrappedPsiElement = WrappedPsiElement(psiElement, processor, usageType)
-        val usageInfo = this.MovePropertyUsageInfo(wrappedPsiElement, sourceModel, destinationModel)
+        val usageInfo = this.MovePropertyUsageInfo(wrappedPsiElement, sourceModel, buildModel, destinationGetter)
         usages.add(usageInfo)
       }
     }
@@ -965,7 +964,8 @@ data class MovePropertiesInfo(
   inner class MovePropertyUsageInfo(
     element: WrappedPsiElement,
     val sourcePropertyModel: ResolvedPropertyModel,
-    val destinationPropertyModel: ResolvedPropertyModel,
+    val buildModel: GradleBuildModel,
+    val destinationPropertyModelGetter: GradleBuildModel.() -> ResolvedPropertyModel,
   ) : GradleBuildModelUsageInfo(element) {
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       val valueModel = sourcePropertyModel.unresolvedModel
@@ -976,7 +976,7 @@ data class MovePropertiesInfo(
         else -> valueModel.getValue(OBJECT_TYPE) ?: return
       }
 
-      destinationPropertyModel.setValue(value)
+      buildModel.(destinationPropertyModelGetter)().setValue(value)
       sourcePropertyModel.delete()
     }
 

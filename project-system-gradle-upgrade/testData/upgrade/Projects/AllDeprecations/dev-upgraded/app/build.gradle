@@ -60,6 +60,7 @@ android {
             pickFirsts += ['readme.md']
         }
     }
+    namespace 'com.example.myapplication'
     androidResources {
         namespaced false
     }
@@ -73,7 +74,6 @@ android {
         ignore 'foo'
         xmlOutput file('lint-output.xml')
     }
-    namespace 'com.example.myapplication'
 }
 
 dependencies {
