@@ -16,15 +16,8 @@
 
 package com.android.tools.idea;
 
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.keymap.Keymap;
-import com.intellij.openapi.keymap.KeymapManager;
-import com.intellij.openapi.keymap.ex.KeymapManagerEx;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.Nullable;
 
 /** Customize Android IDE specific experience. */
 public class AndroidInitialConfigurator {
@@ -32,23 +25,8 @@ public class AndroidInitialConfigurator {
   private static final ExtensionPointName<Runnable> EP_NAME =
     ExtensionPointName.create("com.intellij.androidStudioInitializer");
 
-  @SuppressWarnings("SpellCheckingInspection")
-  @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
-  @SuppressWarnings("SpellCheckingInspection")
-  @NonNls private static final String ANDROIDMONITOR_TOOLWINDOW_ACTION_ID = "ActivateAndroidMonitorToolWindow";
-  @SuppressWarnings("SpellCheckingInspection")
-  @NonNls private static final String LOGCAT_TOOLWINDOW_ACTION_ID = "ActivateLogcatToolWindow";
-
-  @NonNls private static final boolean EXPERIMENTAL_PROFILING_FLAG_ENABLED =
-    !"false".equals(System.getProperty("enable.experimental.profiling"));
-
-
   public AndroidInitialConfigurator() {
     setupSystemProperties();
-
-    // change default key maps to add a activate Android ToolWindow shortcut
-    setActivateAndroidToolWindowShortcut();
-
     activateAndroidStudioInitializerExtensions();
   }
 
@@ -68,53 +46,6 @@ public class AndroidInitialConfigurator {
       System.setProperty("idea.updates.url", updateUrl + "updates.xml");
       System.setProperty("idea.patches.url", updateUrl);
     }
-  }
-
-
-  private static void setActivateAndroidToolWindowShortcut() {
-    // The IntelliJ keymap implementation behaves as follows:
-    //  - getting a shortcut from a keymap gets the shortcut only from that keymap, and not from its parent, unless no shortcuts
-    //    are defined in the keymap itself
-    //  - however, adding a shortcut to a keymap explicitly copies all the shortcuts for that action from the parent keymap to this keymap
-    // The upshot of all this is that to add a shortcut, we should do so in all the child keymaps first, then the parent keymap.
-    // The following code does a simplified implementation of this behavior by changing the default keymap last after all the other
-    // keymaps have been changed.
-    Keymap defaultKeymap = null;
-    for (Keymap keymap: KeymapManagerEx.getInstanceEx().getAllKeymaps()) {
-      if (KeymapManager.DEFAULT_IDEA_KEYMAP.equals(keymap.getName())) {
-        defaultKeymap = keymap;
-        continue;
-      }
-      setActivateAndroidToolWindowShortcut(keymap);
-    }
-
-    if (defaultKeymap != null) {
-      setActivateAndroidToolWindowShortcut(defaultKeymap);
-    }
-  }
-
-  private static void setActivateAndroidToolWindowShortcut(Keymap keymap) {
-    KeyboardShortcut shortcut = removeFirstKeyboardShortcut(keymap, TODO_TOOLWINDOW_ACTION_ID);
-    if (shortcut != null) {
-      if (EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
-        keymap.addShortcut(LOGCAT_TOOLWINDOW_ACTION_ID, shortcut);
-      } else {
-        keymap.addShortcut(ANDROIDMONITOR_TOOLWINDOW_ACTION_ID, shortcut);
-      }
-    }
-  }
-
-  @Nullable
-  private static KeyboardShortcut removeFirstKeyboardShortcut(Keymap keymap, String actionId) {
-    Shortcut[] shortcuts = keymap.getShortcuts(actionId);
-    for (Shortcut each : shortcuts) {
-      if (each instanceof KeyboardShortcut) {
-        keymap.removeShortcut(actionId, each);
-        return (KeyboardShortcut)each;
-      }
-    }
-
-    return null;
   }
 
   private static void activateAndroidStudioInitializerExtensions() {
