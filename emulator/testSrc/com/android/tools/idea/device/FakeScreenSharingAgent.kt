@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.emulator.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.emulator.interpolate
 import com.android.tools.idea.emulator.rotatedByQuadrants
@@ -96,7 +97,8 @@ import kotlin.math.roundToInt
  */
 internal class FakeScreenSharingAgent(val displaySize: Dimension, private val deviceState: DeviceState) : Disposable {
 
-  private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeScreenSharingAgent", 1)
+  private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
+      "FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor,1, this)
   private val coroutineScope = CoroutineScope(executor.asCoroutineDispatcher() + Job())
   private var startTime = 0L
 
