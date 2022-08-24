@@ -59,8 +59,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
         String message = "Error creating diagnostics report: " + ex.getMessage();
         Messages.showErrorDialog(e.getProject(), message, "Diagnostics Summary File");
       }
-      String user = "someuser@gmail.com";
-      new SendFeedbackDialog(null, path, user).show();
+      new SendFeedbackDialog(null, path).show();
     }
     else {
       submit(e.getProject());

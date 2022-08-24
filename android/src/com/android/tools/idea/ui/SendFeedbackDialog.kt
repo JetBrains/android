@@ -24,11 +24,15 @@ import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
 import kotlinx.collections.immutable.toImmutableList
+import java.awt.Color
+import java.awt.Desktop
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.GridBagConstraints
@@ -40,16 +44,20 @@ import javax.swing.Action
 import javax.swing.DefaultListModel
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import javax.swing.event.HyperlinkEvent
 import kotlin.io.path.name
 
 private const val REPRO_TEXT = "Please enter the series of steps necessary to reproduce this bug."
 private const val EXPECTED_TEXT = "What was the expected behavior?"
 private const val ACTUAL_TEXT = "What was the actual behavior?"
+private const val CONSENT_TEXT = "We may email your for more information or updates."
+private const val PRIVACY_TEXT = "Information entered in the bug description will be publicly visible. To learn more about how Google uses your data, see <a href=\"http://www.google.com/policies/privacy/\">Google's Privacy Policy</a>."
 
-class SendFeedbackDialog(project: Project?, file: Path?, user: String) : DialogWrapper(project) {
+class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project) {
   private val titleText = JBTextField().apply {
     name = "titleText"
     preferredSize = Dimension(800, 40)
@@ -60,13 +68,13 @@ class SendFeedbackDialog(project: Project?, file: Path?, user: String) : DialogW
     preferredSize = Dimension(800, 200)
   }
 
-  private val actualText = PlaceholderTextArea(ACTUAL_TEXT).apply {
-    name = "actualText"
+  private val expectedText = PlaceholderTextArea(EXPECTED_TEXT).apply {
+    name = "expectedText"
     preferredSize = Dimension(800, 200)
   }
 
-  private val expectedText = PlaceholderTextArea(EXPECTED_TEXT).apply {
-    name = "expectedText"
+  private val actualText = PlaceholderTextArea(ACTUAL_TEXT).apply {
+    name = "actualText"
     preferredSize = Dimension(800, 200)
   }
 
@@ -80,10 +88,8 @@ class SendFeedbackDialog(project: Project?, file: Path?, user: String) : DialogW
     preferredSize = Dimension(400, 300)
   }
 
-  private val userText = JBTextField().apply {
-    name = "userText"
-    text = user
-    isEnabled = false
+  private val consentChkbox = JBCheckBox().apply {
+    text = CONSENT_TEXT
   }
 
   private val grid = JPanel(GridBagLayout())
@@ -148,19 +154,19 @@ class SendFeedbackDialog(project: Project?, file: Path?, user: String) : DialogW
 
       constraints.gridy = 2
 
-      add(expectedLabel, constraints)
-
       val actualLabel = JLabel().apply {
         text = "<html>Actual<br/>behavior:</html>"
       }
-
-      constraints.gridy = 3
 
       add(actualLabel, constraints)
 
       val componentLabel = JLabel().apply {
         text = "Component:"
       }
+
+      constraints.gridy = 3
+
+      add(expectedLabel, constraints)
 
       constraints.gridy = 4
 
@@ -173,14 +179,6 @@ class SendFeedbackDialog(project: Project?, file: Path?, user: String) : DialogW
       constraints.gridy = 5
 
       add(filesLabel, constraints)
-
-      val userLabel = JLabel().apply {
-        text = "Reporter:"
-      }
-
-      constraints.gridy = 7
-
-      add(userLabel, constraints)
 
       constraints.apply {
         gridx = 1
@@ -200,13 +198,13 @@ class SendFeedbackDialog(project: Project?, file: Path?, user: String) : DialogW
         gridy = 2
       }
 
-      add(expectedText, constraints)
+      add(actualText, constraints)
 
       constraints.apply {
         gridy = 3
       }
 
-      add(actualText, constraints)
+      add(expectedText, constraints)
 
       constraints.apply {
         gridx = 1
@@ -224,15 +222,6 @@ class SendFeedbackDialog(project: Project?, file: Path?, user: String) : DialogW
       }
 
       add(JScrollPane(listFiles), constraints)
-
-      constraints.apply {
-        gridx = 1
-        gridy = 7
-        gridwidth = 1
-        gridheight = 1
-      }
-
-      add(userText, constraints)
 
       val addButton = JButton().apply {
         text = "Add"
@@ -258,6 +247,36 @@ class SendFeedbackDialog(project: Project?, file: Path?, user: String) : DialogW
       }
 
       add(removeButton, constraints)
+
+      constraints.apply {
+        gridwidth = 1
+        gridheight = 1
+        gridx = 1
+        gridy = 7
+      }
+
+      add(consentChkbox, constraints)
+
+      val privacy = JEditorPane("text/html", PRIVACY_TEXT).apply {
+        isEditable = false
+        background = Color(0, 0, 0, 0)
+        preferredSize = Dimension(400, 80)
+        putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
+
+        addHyperlinkListener { e ->
+          if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+            if (Desktop.isDesktopSupported()) {
+              Desktop.getDesktop().browse(e.url.toURI());
+            }
+          }
+        }
+      }
+
+      constraints.apply {
+        gridy = 8
+      }
+
+      add(privacy, constraints)
     }
 
     init()

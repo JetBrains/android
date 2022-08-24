@@ -35,12 +35,11 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 private val PATH = Paths.get("DiagnosticsFile20220616-040000.zip")
-private const val USER = "someuser@gmail.com"
 
 @RunsInEdt
 class SendFeedbackDialogTest {
   private val projectRule = ProjectRule()
-  private val dialog by lazy { SendFeedbackDialog(projectRule.project, PATH, USER) }
+  private val dialog by lazy { SendFeedbackDialog(projectRule.project, PATH) }
 
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
@@ -72,10 +71,6 @@ class SendFeedbackDialogTest {
       val feedbackComponents = findByName<JBTextField>("feedbackComponents")
       Truth.assertThat(feedbackComponents).isNotNull()
       feedbackComponents?.text = "component"
-
-      val user = findByName<JBTextField>("userText")
-      Truth.assertThat(user).isNotNull()
-      Truth.assertThat(user?.text).isEqualTo(USER)
 
       dialog.apply {
         Truth.assertThat(issueTitle).isEqualTo("This is the bug title.")
