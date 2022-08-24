@@ -167,12 +167,6 @@ def _produce_manifest(platform, os, build_info, build_version, channel,
   app_info = _read_file(platform, base_path + "lib/resources.jar",
                         "idea/AndroidStudioApplicationInfo.xml")
 
-  m = re.search(r'version.*major="(\d+)"', app_info)
-  major = m.group(1)
-
-  m = re.search(r'version.*minor="(\d+)"', app_info)
-  minor = m.group(1)
-
   build_txt = build_txt.replace("__BUILD_NUMBER__", bid)
   build_date = _format_build_date(build_version)
 
@@ -180,6 +174,15 @@ def _produce_manifest(platform, os, build_info, build_version, channel,
   build_number = build_txt[3:]
 
   channel = "CHANNEL_" + channel.upper()
+
+  m = re.search(r'version.*major="(\d+)"', app_info)
+  major = m.group(1)
+
+  m = re.search(r'version.*minor="(\d+)"', app_info)
+  minor = m.group(1)
+
+  # full may contain "{0} {1} {2}" as placeholders for version components
+  full = full.format(major, minor, micro)
 
   contents = ('major: {major}\n'
              'minor: {minor}\n'
