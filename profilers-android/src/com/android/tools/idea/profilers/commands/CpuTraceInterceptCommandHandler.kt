@@ -24,7 +24,7 @@ import androidx.tracing.perfetto.PerfettoHandshake.ResponseExitCodes.RESULT_CODE
 import androidx.tracing.perfetto.PerfettoHandshake.ResponseExitCodes.RESULT_CODE_SUCCESS
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
-import com.android.ide.common.repository.DEFAULT_GMAVEN_URL
+import com.android.ide.common.repository.GMAVEN_BASE_URL
 import com.android.repository.api.ConsoleProgressIndicator
 import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sdk.StudioDownloader
@@ -55,7 +55,7 @@ data class Artifact(
   val fileName = "${artifactId}-${version}.aar"
 
   fun toGMavenUrl() = URL(
-    "${DEFAULT_GMAVEN_URL}/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")
+    "${GMAVEN_BASE_URL}/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")
 }
 
 // Command handler that triggers on perfetto traces. This enables the tracing of apps that use the perfetto SDK.
