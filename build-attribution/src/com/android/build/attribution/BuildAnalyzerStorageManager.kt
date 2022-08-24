@@ -39,7 +39,7 @@ interface BuildAnalyzerStorageManager {
    * @exception NoSuchElementException
    */
   fun getHistoricBuildResultByID(buildID : String) : BuildAnalysisResults
-  fun getListOfHistoricBuildIDs() : Set<String>
+  fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor>
 
   interface Listener {
     fun newDataAvailable()
@@ -54,3 +54,9 @@ interface BuildAnalyzerStorageManager {
     }
   }
 }
+
+data class BuildDescriptor(
+  val buildSessionID: String,
+  val buildFinishedTimestamp: Long,
+  val totalBuildTimeMs: Long
+)

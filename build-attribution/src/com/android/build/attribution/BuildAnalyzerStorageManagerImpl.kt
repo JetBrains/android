@@ -73,8 +73,14 @@ class BuildAnalyzerStorageManagerImpl(
     return historicBuildResults[buildID] ?: throw NoSuchElementException("No such build result was found.")
   }
 
-  override fun getListOfHistoricBuildIDs() : Set<String> {
-    return historicBuildResults.keys
+  override fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor> {
+    return historicBuildResults.values.map { buildAnalysisResults ->
+      BuildDescriptor(
+        buildAnalysisResults.getBuildSessionID(),
+        buildAnalysisResults.getBuildFinishedTimestamp(),
+        buildAnalysisResults.getTotalBuildTimeMs()
+      )
+    }.toSet()
   }
 
   override fun hasData(): Boolean {

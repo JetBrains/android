@@ -21,6 +21,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.util.text.DateFormatUtil
 
 /**
  * Opens window with a list of previous Build Analyses results
@@ -40,12 +42,30 @@ class OpenBuildAnalyzerResultsAction : AnAction("Show Results Analysis of Previo
     val project = e.project!!
     val buildAnalyzerStorageManager = BuildAnalyzerStorageManager.getInstance(project)
     JBPopupFactory.getInstance()
-      .createPopupChooserBuilder(buildAnalyzerStorageManager.getListOfHistoricBuildIDs().toList())
+      .createPopupChooserBuilder(
+        buildAnalyzerStorageManager.getListOfHistoricBuildDescriptors().toList()
+          .sortedByDescending { it.buildFinishedTimestamp })
       .setTitle("Build Analysis Results")
-      .setItemChosenCallback { buildId ->
+      .setItemChosenCallback { buildDescriptor ->
         BuildAttributionUiManager.getInstance(project)
-          .showBuildAnalysisReportById(buildId)
+          .showBuildAnalysisReportById(buildDescriptor.buildSessionID)
       }
+      .setRenderer(
+        SimpleListCellRenderer.create { label, buildDescriptor, _ ->
+          val totalBuildTimeSec = durationStringHtml(buildDescriptor.totalBuildTimeMs)
+          val briefId = buildDescriptor.buildSessionID.substringBefore('-')
+          val formattedTime = DateFormatUtil.formatDateTime(buildDescriptor.buildFinishedTimestamp)
+          label.text = """
+            |<html>
+              |<body>
+                |Build duration: ${totalBuildTimeSec}
+                |&emsp&emsp<font color="gray">$briefId</font>
+                |<br>
+                |$formattedTime
+              |</body>
+            |</html>
+          """.trimMargin() //TODO make alignment right to briefId
+        })
       .createPopup()
       .showInFocusCenter()
   }

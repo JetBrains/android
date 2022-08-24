@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui
 
 import com.android.build.attribution.BuildAnalyzerStorageManager
+import com.android.build.attribution.BuildDescriptor
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.PluginContainer
@@ -109,9 +110,9 @@ class OpenBuildAnalyzerResultsActionTest {
     Truth.assertThat(event.presentation.isVisible).isTrue()
     Truth.assertThat(event.presentation.isEnabled).isTrue()
     openBuildAnalyzerResultsAction.actionPerformed(event)
-    val popup = jbPopupRule.fakePopupFactory.getPopup<String>(0)
+    val popup = jbPopupRule.fakePopupFactory.getPopup<BuildDescriptor>(0)
     Truth.assertThat(popup.title).isEqualTo("Build Analysis Results")
-    Truth.assertThat(popup.items).isEqualTo(buildSessionIDs)
+    Truth.assertThat(popup.items.map { it.buildSessionID }).isEqualTo(buildSessionIDs)
   }
 
   private fun storeDefaultData(buildSessionID: String) {

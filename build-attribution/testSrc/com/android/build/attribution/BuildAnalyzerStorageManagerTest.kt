@@ -45,16 +45,29 @@ class BuildAnalyzerStorageManagerTest {
   @Test
   fun testBuildResultsAreStored() {
     StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    val buildStartedTimestamp = 10L
+    val buildDuration = 100L
+    val buildFinishedTimestamp = buildStartedTimestamp + buildDuration
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
     val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+    val setPrivateField: (Any, String, Any) -> Unit = { classInstance: Any, fieldName: String, newValue: Any ->
+      val field = classInstance.javaClass.getDeclaredField(fieldName)
+      field.isAccessible = true
+      field.set(classInstance, newValue)
+    }
+    val criticalPathAnalyzer = analyzersProxy.criticalPathAnalyzer
+    setPrivateField(criticalPathAnalyzer, "buildStartedTimestamp", buildStartedTimestamp)
+    setPrivateField(criticalPathAnalyzer, "buildFinishedTimestamp", buildFinishedTimestamp)
     val request = GradleBuildInvoker.Request
       .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
       .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
     Truth.assertThat(BuildAnalyzerStorageManager
                        .getInstance(projectRule.project).getLatestBuildAnalysisResults().getBuildSessionID()).isEqualTo("some buildID")
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildIDs()).contains("some buildID")
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors()).isEqualTo(
+      setOf(BuildDescriptor("some buildID", buildFinishedTimestamp, buildDuration))
+    )
   }
 
   @Test
@@ -81,7 +94,7 @@ class BuildAnalyzerStorageManagerTest {
       .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
       .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildIDs()).isEmpty()
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors()).isEmpty()
   }
 
   @Test
