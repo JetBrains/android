@@ -189,7 +189,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
 
     newFile.accept(new XmlRecursiveElementVisitor() {
       @Override
-      public void visitXmlTag(XmlTag tag) {
+      public void visitXmlTag(@NotNull XmlTag tag) {
         super.visitXmlTag(tag);
         final String prefix = tag.getNamespacePrefix();
 
@@ -199,7 +199,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
       }
 
       @Override
-      public void visitXmlAttribute(XmlAttribute attribute) {
+      public void visitXmlAttribute(@NotNull XmlAttribute attribute) {
         final String prefix = attribute.getNamespacePrefix();
 
         if (!unknownPrefixes.contains(prefix) && attribute.getNamespace().isEmpty()) {

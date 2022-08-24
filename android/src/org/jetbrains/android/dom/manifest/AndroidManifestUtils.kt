@@ -170,9 +170,9 @@ class AndroidManifestXmlFile(delegate: XmlFile) : XmlFile by delegate {
   private fun findAndroidNamesForTags(tagName: String): Collection<String> {
     val androidNames = mutableListOf<String>()
     accept(object : XmlRecursiveElementVisitor() {
-      override fun visitXmlTag(tag: XmlTag?) {
+      override fun visitXmlTag(tag: XmlTag) {
         super.visitXmlTag(tag)
-        if (tagName != tag?.name) return
+        if (tagName != tag.name) return
         tag.getAttributeValue(ATTR_NAME, ANDROID_URI)?.let(androidNames::add)
       }
     })

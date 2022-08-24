@@ -730,7 +730,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       Ref<XmlTag> resultTag = new Ref<>();
       xmlFile.accept(new XmlRecursiveElementWalkingVisitor() {
         @Override
-        public void visitXmlTag(XmlTag tag) {
+        public void visitXmlTag(@NotNull XmlTag tag) {
           super.visitXmlTag(tag);
           String idValue = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
           if (idValue != null && myViewIdData.getId().equals(stripPrefixFromId(idValue))) {

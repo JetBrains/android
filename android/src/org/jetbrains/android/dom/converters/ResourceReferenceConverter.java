@@ -293,7 +293,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     XmlFile file = context.getFile();
     file.accept(new XmlRecursiveElementVisitor() {
       @Override
-      public void visitXmlAttributeValue(XmlAttributeValue attributeValue) {
+      public void visitXmlAttributeValue(@NotNull XmlAttributeValue attributeValue) {
         String valueText = attributeValue.getValue();
         if (valueText != null && valueText.startsWith(ID_PREFIX) && valueText.length() > ID_PREFIX.length()) {
           String name = valueText.substring(ID_PREFIX.length());

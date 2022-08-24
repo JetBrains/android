@@ -403,7 +403,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         isFileInResourceFolderType((XmlFile)layoutFile, ResourceFolderType.LAYOUT)) {
       layoutFile.accept(new XmlRecursiveElementVisitor() {
         @Override
-        public void visitXmlTag(XmlTag tag) {
+        public void visitXmlTag(@NotNull XmlTag tag) {
           super.visitXmlTag(tag);
 
           List<UsageInfo> usageInfos = getLayoutRefactoringForTag(tag, createV17, minSdk);
@@ -544,7 +544,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
       if (isFileInResourceFolderType(xmlV17File, ResourceFolderType.LAYOUT)) {
         xmlV17File.accept(new XmlRecursiveElementVisitor() {
           @Override
-          public void visitXmlTag(XmlTag tag) {
+          public void visitXmlTag(@NotNull XmlTag tag) {
             super.visitXmlTag(tag);
 
             final XmlAttribute attribute = tag.getAttribute(((XmlAttribute)element).getName());

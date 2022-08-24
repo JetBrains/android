@@ -319,7 +319,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
   public void collectPossibleStyleApplications(PsiFile layoutFile, final List<UsageInfo> usages) {
     layoutFile.accept(new XmlRecursiveElementVisitor() {
       @Override
-      public void visitXmlTag(XmlTag tag) {
+      public void visitXmlTag(@NotNull XmlTag tag) {
         super.visitXmlTag(tag);
 
         if (isPossibleApplicationOfStyle(tag)) {

@@ -207,7 +207,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
 
     file.accept(new XmlRecursiveElementVisitor() {
       @Override
-      public void visitXmlAttribute(XmlAttribute attribute) {
+      public void visitXmlAttribute(@NotNull XmlAttribute attribute) {
         final GenericAttributeValue domAttrValue = domManager.getDomElement(attribute);
 
         if (domAttrValue != null) {

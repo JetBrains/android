@@ -156,7 +156,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
     final List<XmlTag> tags = new ArrayList<>();
     root.accept(new XmlRecursiveElementVisitor() {
       @Override
-      public void visitXmlTag(XmlTag tag) {
+      public void visitXmlTag(@NotNull XmlTag tag) {
         super.visitXmlTag(tag);
         if (tag.getName().equalsIgnoreCase(tagName)) {
           tags.add(tag);

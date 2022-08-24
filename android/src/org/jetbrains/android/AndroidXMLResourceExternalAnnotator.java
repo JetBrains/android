@@ -50,7 +50,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
       // Only look at XMLTag contents
       file.accept(new XmlRecursiveElementWalkingVisitor() {
         @Override
-        public void visitXmlTag(XmlTag tag) {
+        public void visitXmlTag(@NotNull XmlTag tag) {
           super.visitXmlTag(tag);
           FileAnnotationInfo.AnnotatableElement annotatableElement = getAnnotatableElement(tag.getValue().getText().trim(), tag);
           if (annotatableElement != null) {
@@ -63,7 +63,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
       // Only look at XMLAttributeValues
       file.accept(new XmlRecursiveElementWalkingVisitor() {
         @Override
-        public void visitXmlAttributeValue(XmlAttributeValue attributeValue) {
+        public void visitXmlAttributeValue(@NotNull XmlAttributeValue attributeValue) {
           super.visitXmlAttributeValue(attributeValue);
           FileAnnotationInfo.AnnotatableElement annotatableElement = getAnnotatableElement(attributeValue.getValue(), attributeValue);
           if (annotatableElement != null) {

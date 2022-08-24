@@ -112,7 +112,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       final XmlFile file = (XmlFile) element;
       file.accept(new XmlRecursiveElementVisitor() {
         @Override
-        public void visitXmlAttributeValue(XmlAttributeValue value) {
+        public void visitXmlAttributeValue(@NotNull XmlAttributeValue value) {
           InlinedResource inlinedResource = findXmlValueReference(value);
           if (inlinedResource != null) {
             FoldingDescriptor descriptor = inlinedResource.getDescriptor();
