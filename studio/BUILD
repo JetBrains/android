@@ -74,6 +74,7 @@ studio_plugin(
     ],
     licenses = [
         "//prebuilts/r8:license",
+        "//prebuilts/tools/common/m2:ffmpeg-licenses",
         "//tools/adt/idea/android/lib:licenses",
     ],
     modules = {
