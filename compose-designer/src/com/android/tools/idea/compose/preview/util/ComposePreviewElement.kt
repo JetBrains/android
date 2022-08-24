@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefin
 import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.Wallpaper
 import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
@@ -78,6 +79,9 @@ const val UNDEFINED_DIMENSION = -1
 
 /** Default background to be used by the rendered elements when showBackground is set to true. */
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
+
+/** Value to use for the wallpaper attribute when none has been specified. */
+private const val NO_WALLPAPER_SELECTED = -1
 
 /**
  * Method name to be used when we fail to load a PreviewParameterProvider. In this case, we should
@@ -242,6 +246,9 @@ private fun PreviewConfiguration.applyTo(
   renderConfiguration.locale = Locale.create(locale)
   renderConfiguration.uiModeFlagValue = uiMode
   renderConfiguration.fontScale = max(0f, fontScale)
+  renderConfiguration.wallpaperPath =
+    if (wallpaper in Wallpaper.values().indices) Wallpaper.values()[wallpaper].resourcePath
+    else null
 
   val allDevices = devicesProvider(renderConfiguration)
   val device =
@@ -340,7 +347,8 @@ internal constructor(
   val locale: String,
   val fontScale: Float,
   val uiMode: Int,
-  val deviceSpec: String
+  val deviceSpec: String,
+  val wallpaper: Int,
 ) {
   companion object {
     /**
@@ -356,7 +364,8 @@ internal constructor(
       locale: String? = null,
       fontScale: Float? = null,
       uiMode: Int? = null,
-      device: String? = null
+      device: String? = null,
+      wallpaper: Int? = null,
     ): PreviewConfiguration =
       // We only limit the sizes. We do not limit the API because using an incorrect API level will
       // throw an exception that
@@ -369,7 +378,8 @@ internal constructor(
         locale = locale ?: "",
         fontScale = fontScale ?: 1f,
         uiMode = uiMode ?: 0,
-        deviceSpec = device ?: NO_DEVICE_SPEC
+        deviceSpec = device ?: NO_DEVICE_SPEC,
+        wallpaper = wallpaper ?: NO_WALLPAPER_SELECTED,
       )
   }
 }

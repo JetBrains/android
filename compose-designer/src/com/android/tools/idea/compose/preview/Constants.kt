@@ -47,6 +47,7 @@ internal const val PARAMETER_HARDWARE_DENSITY = "Density"
 internal const val PARAMETER_HARDWARE_ORIENTATION = "Orientation"
 internal const val PARAMETER_HARDWARE_CHIN_SIZE = "ChinSize"
 internal const val PARAMETER_HARDWARE_IS_ROUND = "IsRound"
+internal const val PARAMETER_WALLPAPER = "wallpaper"
 // endregion
 // region SpringSpec
 internal const val DECLARATION_SPRING_SPEC = "SpringSpec"

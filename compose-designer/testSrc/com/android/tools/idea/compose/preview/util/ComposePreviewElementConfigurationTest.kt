@@ -29,6 +29,7 @@ import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.Wallpaper
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import kotlin.math.sqrt
 import org.junit.Assert.assertEquals
@@ -205,5 +206,42 @@ class ComposePreviewElementConfigurationTest() {
         assertEquals(1000, screenSize.width)
         assertEquals(2000, screenSize.height)
       }
+  }
+
+  private fun assertWallpaperUpdate(expectedWallpaperPath: String?, wallpaperParameterValue: Int?) {
+    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
+    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
+      val previewConfiguration =
+        PreviewConfiguration.cleanAndGet(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          wallpaperParameterValue
+        )
+      previewConfiguration.applyConfigurationForTest(
+        it,
+        highestApiTarget = { null },
+        devicesProvider = deviceProvider,
+        defaultDeviceProvider = { defaultDevice }
+      )
+      assertEquals(expectedWallpaperPath, it.wallpaperPath)
+    }
+  }
+
+  @Test
+  fun testWallpaperConfiguration() {
+    assertWallpaperUpdate(null, null)
+    assertWallpaperUpdate(null, -25)
+    assertWallpaperUpdate(null, 167)
+    assertWallpaperUpdate(null, -1)
+    assertWallpaperUpdate(Wallpaper.RED.resourcePath, 0)
+    assertWallpaperUpdate(Wallpaper.GREEN.resourcePath, 1)
+    assertWallpaperUpdate(Wallpaper.BLUE.resourcePath, 2)
+    assertWallpaperUpdate(Wallpaper.YELLOW.resourcePath, 3)
   }
 }

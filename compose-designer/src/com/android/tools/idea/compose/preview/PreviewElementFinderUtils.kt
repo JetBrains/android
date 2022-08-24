@@ -352,6 +352,7 @@ private fun attributesToConfiguration(
   val uiMode = node.getIntAttribute(PARAMETER_UI_MODE, defaultValues)
   val device = node.getStringAttribute(PARAMETER_DEVICE, defaultValues)
   val locale = node.getStringAttribute(PARAMETER_LOCALE, defaultValues)
+  val wallpaper = node.getIntAttribute(PARAMETER_WALLPAPER, defaultValues)
 
   return PreviewConfiguration.cleanAndGet(
     apiLevel,
@@ -361,7 +362,8 @@ private fun attributesToConfiguration(
     locale,
     fontScale,
     uiMode,
-    device
+    device,
+    wallpaper,
   )
 }
 

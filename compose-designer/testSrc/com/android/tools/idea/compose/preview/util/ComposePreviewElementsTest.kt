@@ -34,8 +34,8 @@ class ComposePreviewElementsTest {
   @Test
   fun testPreviewConfigurationCleaner() {
     assertEquals(
-      PreviewConfiguration.cleanAndGet(-120, null, 1, 1, "", 2f, null, ""),
-      PreviewConfiguration.cleanAndGet(-120, null, -2, -10, null, 2f, 0, null)
+      PreviewConfiguration.cleanAndGet(-120, null, 1, 1, "", 2f, null, "", 2),
+      PreviewConfiguration.cleanAndGet(-120, null, -2, -10, null, 2f, 0, null, 2)
     )
 
     assertEquals(
@@ -53,8 +53,8 @@ class ComposePreviewElementsTest {
     )
 
     assertEquals(
-      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT, null, null, 123, null),
-      PreviewConfiguration.cleanAndGet(12, null, 120, 500000, null, 1f, 123, null)
+      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT, null, null, 123, null, -1),
+      PreviewConfiguration.cleanAndGet(12, null, 120, 500000, null, 1f, 123, null, null)
     )
   }
 
