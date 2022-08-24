@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,14 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;
 import com.intellij.pom.NonNavigatable;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.TestOnly;
 
 public class SyncMessage {
   public static final String DEFAULT_GROUP = "Gradle Sync Issues";
@@ -113,6 +115,12 @@ public class SyncMessage {
   @NotNull
   public String toString() {
     return myText;
+  }
+
+  @TestOnly
+  public @NotNull String getMessage() {
+    String quickFixesPart = getQuickFixes().stream().map(it -> it.toHtml()).filter(it -> !it.isEmpty()).collect(Collectors.joining("\n"));
+    return myText + (quickFixesPart.isEmpty() ? "" : "\n" + quickFixesPart);
   }
 
   @NotNull

@@ -63,6 +63,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   @Override
   public void report(@NotNull SyncMessage message) {
     myMessages.add(message);
+    super.report(message);
   }
 
   @Nullable
@@ -76,7 +77,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   }
 
   @Override
-  public void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
+  protected void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
     myNotifications.add(notification);
   }
 
@@ -90,12 +91,14 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
                                  @NotNull String text,
                                  @NotNull List<? extends SyncMessageFragment> quickFixes) {
     myNotificationUpdate = new NotificationUpdate(text, quickFixes);
+    super.updateNotification(notification, text, quickFixes);
   }
 
   @Override
   public void addNotificationListener(@NotNull NotificationData notification,
                                       @NotNull List<? extends SyncMessageFragment> quickFixes) {
     myNotificationUpdate = new NotificationUpdate(notification.getMessage(), quickFixes);
+    super.addNotificationListener(notification, quickFixes);
   }
 
   @Nullable

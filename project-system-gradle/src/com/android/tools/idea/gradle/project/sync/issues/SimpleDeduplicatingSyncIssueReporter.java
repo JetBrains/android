@@ -22,21 +22,18 @@ import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.ui.QuickFixNotificationListener;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -45,13 +42,14 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -114,57 +112,73 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     MessageType type = isError ? WARNING : INFO;
 
     assert !syncIssues.isEmpty();
-    NotificationData notification = setupNotificationData(project, syncIssues, affectedModules, buildFileMap, type);
-
-    StringBuilder builder = new StringBuilder();
+    SyncMessage syncMessage = setupSyncMessage(project, syncIssues, affectedModules, buildFileMap, type);
 
     // Add custom links
     final List<SyncIssueNotificationHyperlink> customLinks = getCustomLinks(project, syncIssues, affectedModules, buildFileMap);
-    messages
-      .updateNotification(notification, notification.getMessage(), customLinks);
+    syncMessage.add(customLinks);
     SyncIssueUsageReporterUtils.collect(usageReporter, syncIssues.get(0).getType(), customLinks);
-    String message = notification.getMessage().trim();
 
-    // Add links to each of the affected modules
-    ArrayList<AndroidSyncIssueQuickFix> buildIssueLinks = new ArrayList<>();
-    buildIssueLinks.addAll(ContainerUtil.flatMap(customLinks, AndroidSyncIssueQuickFix::create));
     if (shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
-      builder.append("\nAffected Modules: ");
-      for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
-        Module m = it.next();
-        if (m != null) {
-          final var link = doCreateModuleLink(project, notification, builder, m, syncIssues, buildFileMap.get(m));
-          if (link != null) {
-            buildIssueLinks.addAll(AndroidSyncIssueQuickFix.create(link));
+      StringBuilder builder = new StringBuilder();
+      final var links = affectedModules.stream()
+        .map(m -> doCreateModuleLink(project, m, syncIssues, buildFileMap.get(m)))
+        .collect(Collectors.toList());
+
+      builder.append("Affected Modules: ");
+      final var linkHtmls =
+        links.stream()
+          .map(SyncMessageHyperlink::toHtml)
+          .collect(Collectors.toList());
+      builder.append(String.join(", ", linkHtmls));
+
+      syncMessage.add(
+        // Group multiple hyperlinks with some static text in one fragment to avoid formatting across multiple lines.
+        new SyncMessageFragment() {
+          @Override
+          public void executeHandler(@NotNull Project project, @NotNull HyperlinkEvent event) {
+            for (final var link : links) {
+              if (link.getUrls().contains(event.getDescription())) {
+                link.executeHandler(project, event);
+              }
+            }
           }
-          if (it.hasNext()) {
-            builder.append(", ");
+
+          @Override
+          public @NotNull Collection<@NotNull String> getUrls() {
+            return ContainerUtil.flatMap(links, it -> new ArrayList<>(it.getUrls()));
+          }
+
+          @Override
+          public @NotNull String toHtml() {
+            return builder.toString();
           }
         }
-      }
+      );
     }
-    message += builder.toString();
-
-    notification.setMessage(message);
-    messages.report(notification, buildIssueLinks);
+    messages.report(syncMessage);
   }
 
+  @NotNull
   private SyncMessageHyperlink doCreateModuleLink(@NotNull Project project,
-                                                  @NotNull NotificationData notification,
-                                                  @NotNull StringBuilder builder,
                                                   @NotNull Module module,
                                                   @NotNull List<IdeSyncIssue> syncIssues,
                                                   @Nullable VirtualFile buildFile) {
     if (buildFile == null) {
       // No build file found, just include the name of the module.
-      builder.append(getDisplayNameForModule(module));
-      return null;
+      String text = getDisplayNameForModule(module);
+      return new SyncMessageHyperlink("url." + module.getName(), text) {
+        @Override
+        protected void execute(@NotNull Project project) { }
+
+        @Override
+        public @NotNull String toHtml() {
+          return text; // No hyperlink.
+        }
+      };
     }
     else {
-      final var link = createModuleLink(project, module, syncIssues, buildFile);
-      builder.append(link.toHtml());
-      notification.setListener(link.getUrl(), new QuickFixNotificationListener(project, link));
-      return link;
+      return createModuleLink(project, module, syncIssues, buildFile);
     }
   }
 
@@ -233,11 +247,11 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * @return a {@link NotificationData} instance with the correct configuration.
    */
   @NotNull
-  protected NotificationData setupNotificationData(@NotNull Project project,
-                                                   @NotNull List<IdeSyncIssue> syncIssues,
-                                                   @NotNull List<Module> affectedModules,
-                                                   @NotNull Map<Module, VirtualFile> buildFileMap,
-                                                   @NotNull MessageType type) {
+  protected SyncMessage setupSyncMessage(@NotNull Project project,
+                                         @NotNull List<IdeSyncIssue> syncIssues,
+                                         @NotNull List<Module> affectedModules,
+                                         @NotNull Map<Module, VirtualFile> buildFileMap,
+                                         @NotNull MessageType type) {
     assert !syncIssues.isEmpty();
     GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
     PositionInFile position = null;
@@ -249,11 +263,9 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
       }
     }
 
-    NotificationData data = messages.createNotification(DEFAULT_GROUP, syncIssues.get(0).getMessage(), type.convertToCategory(), position);
-    if (position != null) {
-      data.setNavigatable(new OpenFileDescriptor(project, position.file, position.line, position.column));
-    }
-    return data;
+    return position != null
+           ? new SyncMessage(project, DEFAULT_GROUP, type, position, syncIssues.get(0).getMessage())
+           : new SyncMessage(DEFAULT_GROUP, type, syncIssues.get(0).getMessage());
   }
 
   public static int getLineNumberForElement(@NotNull Project project,

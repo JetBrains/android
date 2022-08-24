@@ -27,6 +27,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 
+import com.intellij.pom.NonNavigatable;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
@@ -113,7 +114,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     assertEquals(WARNING, message.getNotificationCategory());
     assertEquals(expectedText, message.getMessage());
 
-    assertNull(message.getNavigatable());
+    assertEquals(NonNavigatable.INSTANCE, message.getNavigatable());
 
     assertEquals(
       ImmutableList.of(

@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHy
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -114,25 +115,24 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
     return quickFixes;
   }
 
-  @NotNull
   @Override
-  protected NotificationData setupNotificationData(@NotNull Project project,
-                                                   @NotNull List<IdeSyncIssue> syncIssues,
-                                                   @NotNull List<Module> affectedModules,
-                                                   @NotNull Map<Module, VirtualFile> buildFileMap,
-                                                   @NotNull MessageType type) {
-    NotificationData notificationData =
-      super.setupNotificationData(project, syncIssues, affectedModules, buildFileMap, type);
-    notificationData.setTitle(UNRESOLVED_DEPENDENCIES_GROUP);
+  protected @NotNull SyncMessage setupSyncMessage(@NotNull Project project,
+                                                  @NotNull List<IdeSyncIssue> syncIssues,
+                                                  @NotNull List<Module> affectedModules,
+                                                  @NotNull Map<Module, VirtualFile> buildFileMap,
+                                                  @NotNull MessageType type) {
+    var syncMessage =
+      super.setupSyncMessage(project, syncIssues, affectedModules, buildFileMap, type);
+    syncMessage = new SyncMessage(UNRESOLVED_DEPENDENCIES_GROUP, syncMessage.getType(), syncMessage.getNavigatable(), syncMessage.getText());
 
     String dependency = syncIssues.get(0).getData();
     if (dependency == null) {
-      return notificationData;
+      return syncMessage;
     }
 
     String message = "Failed to resolve: " + dependency;
-    notificationData.setMessage(message);
-    return notificationData;
+    syncMessage = new SyncMessage(syncMessage.getGroup(), syncMessage.getType(), syncMessage.getNavigatable(), message);
+    return syncMessage;
   }
 
 

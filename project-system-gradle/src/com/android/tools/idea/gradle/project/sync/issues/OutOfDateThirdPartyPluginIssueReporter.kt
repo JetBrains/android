@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.GradlePluginInfo
 import com.android.tools.idea.project.messages.MessageType
+import com.android.tools.idea.project.messages.SyncMessage
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -38,26 +40,30 @@ class OutOfDateThirdPartyPluginIssueReporter : SimpleDeduplicatingSyncIssueRepor
     return if (pluginToVersionMap.isEmpty()) emptyList() else listOf(UpdatePluginHyperlink(pluginToVersionMap))
   }
 
-  override fun setupNotificationData(
+  override fun setupSyncMessage(
     project: Project,
     syncIssues: List<IdeSyncIssue>,
     affectedModules: List<Module>,
     buildFileMap: Map<Module, VirtualFile>,
     type: MessageType
-  ): NotificationData {
-    val notificationData = super.setupNotificationData(project, syncIssues, affectedModules, buildFileMap, type)
+  ): SyncMessage {
+    val message = super.setupSyncMessage(project, syncIssues, affectedModules, buildFileMap, type)
 
-    if (syncIssues.isEmpty()) return notificationData
+    if (syncIssues.isEmpty()) return message
 
     val IdeSyncIssue = syncIssues[0]
     val messageParts = IdeSyncIssue.message.split(":", limit = 2)
     val messageStem = if (messageParts.isEmpty()) "Some plugins require updates" else messageParts[0]
 
     val paths = syncIssues.flatMap { issue -> issue.issueData()?.violatingPaths ?: listOf() }
-    if (paths.isEmpty()) return notificationData
-    notificationData.message = "$messageStem:\n" + paths.joinToString("\n")
+    if (paths.isEmpty()) return message
 
-    return notificationData
+    return SyncMessage(
+      message.group,
+      type,
+      message.navigatable,
+      "$messageStem:\n" + paths.joinToString("\n")
+    )
   }
 
   override fun getSupportedIssueType(): Int = IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD

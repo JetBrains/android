@@ -156,10 +156,12 @@ public abstract class AbstractSyncMessages implements Disposable {
     String message = text;
     StringBuilder b = new StringBuilder();
     for (final var handler : quickFixes) {
+      String html = handler.toHtml();
+      if (html.isEmpty()) continue;
       if (b.length() > 0) {
         b.append("\n");
       }
-      b.append(handler.toHtml());
+      b.append(html);
     }
     if (b.length() > 0) {
       message += ("\n" + b.toString());
@@ -179,7 +181,7 @@ public abstract class AbstractSyncMessages implements Disposable {
     }
   }
 
-  public void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
+  protected void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
     // Save on array to be shown by build view later.
     Object taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
     if (taskId == null) {

@@ -51,12 +51,15 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
     val notification = notifications[0]
 
     assertEquals("Gradle Sync Issues", notification.title)
-    assertEquals("This is some message:\npath/one\npath/two\nAffected Modules: app", notification.message)
+    assertEquals("This is some message:\npath/one\npath/two\n" +
+                   "<a href=\"update.plugins\">Update plugins</a>\n" +
+                   "Affected Modules: app",
+                 notification.message)
     assertEquals(NotificationCategory.WARNING, notification.notificationCategory)
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes
-    assertSize(1, quickFixes)
+    assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], UpdatePluginHyperlink::class.java)
     val pluginHyperlink = quickFixes[0] as UpdatePluginHyperlink
     assertSize(1, pluginHyperlink.pluginToVersionMap.values)

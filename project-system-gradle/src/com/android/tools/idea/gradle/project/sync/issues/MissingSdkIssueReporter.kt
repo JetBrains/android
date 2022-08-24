@@ -19,6 +19,7 @@ import com.android.SdkConstants.FN_LOCAL_PROPERTIES
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
 import com.android.tools.idea.project.messages.MessageType
+import com.android.tools.idea.project.messages.SyncMessage
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -38,15 +39,19 @@ class MissingSdkIssueReporter : SimpleDeduplicatingSyncIssueReporter() {
   // All issues of this type should be grouped together
   override fun getDeduplicationKey(issue: IdeSyncIssue): Any = supportedIssueType
 
-  override fun setupNotificationData(project: Project,
-                                     syncIssues: List<IdeSyncIssue>,
-                                     affectedModules: List<Module>,
-                                     buildFileMap: Map<Module, VirtualFile>,
-                                     type: MessageType): NotificationData {
-    val notificationData = super.setupNotificationData(project, syncIssues, affectedModules, buildFileMap, type)
+  override fun setupSyncMessage(project: Project,
+                                syncIssues: List<IdeSyncIssue>,
+                                affectedModules: List<Module>,
+                                buildFileMap: Map<Module, VirtualFile>,
+                                type: MessageType): SyncMessage {
+    val message = super.setupSyncMessage(project, syncIssues, affectedModules, buildFileMap, type)
     val uniqueLocalPropertiesPaths = syncIssues.map { it.data }.distinct()
-    notificationData.message = "SDK location not found. Define a location by setting the ANDROID_SDK_ROOT environment variable or by " +
-      "setting the sdk.dir path in your project's $FN_LOCAL_PROPERTIES file${if (uniqueLocalPropertiesPaths.size == 1) "" else "s"}."
-    return notificationData
+    return SyncMessage(
+      message.group,
+      type,
+      message.navigatable,
+      "SDK location not found. Define a location by setting the ANDROID_SDK_ROOT environment variable or by " +
+        "setting the sdk.dir path in your project's $FN_LOCAL_PROPERTIES file${if (uniqueLocalPropertiesPaths.size == 1) "" else "s"}."
+    )
   }
 }

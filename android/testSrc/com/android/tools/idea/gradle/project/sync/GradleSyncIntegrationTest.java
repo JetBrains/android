@@ -132,6 +132,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
 import junit.framework.AssertionFailedError;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -338,14 +339,15 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     prepareProjectForTest(getProject(), "app");
 
     BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getModule("app"), "basicQa");
-
+    final var pattern1 = Pattern.compile(
+      "Unable to resolve dependency for ':app@basicQa/compileClasspath': Could not resolve project :lib..*Affected Modules:",
+      Pattern.DOTALL);
+    final var pattern2 = Pattern.compile("Failed to resolve: project :lib.*Affected Modules:", Pattern.DOTALL);
     // Verify sync issues are reported properly.
-    List<NotificationData> messages = syncMessages.getNotifications();
-    List<NotificationData> relevantMessages = messages.stream()
-      .filter(m -> m.getTitle().equals("Unresolved dependencies") &&
-                   (m.getMessage().contains(
-                     "Unable to resolve dependency for ':app@basicQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:")
-                    || m.getMessage().contains("Failed to resolve: project :lib\nAffected Modules:")))
+    final var messages = syncMessages.getReportedMessages();
+    final var relevantMessages = messages.stream()
+      .filter(m -> m.getGroup().equals("Unresolved dependencies") &&
+                   (pattern1.matcher(m.getMessage()).find() || pattern2.matcher(m.getMessage()).find()))
       .collect(toList());
     assertThat(relevantMessages).isNotEmpty();
   }

@@ -58,13 +58,16 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
     assertEquals("Gradle Sync Issues", notification.title)
     assertEquals(
       "SDK location not found. Define a location by setting the ANDROID_SDK_ROOT environment variable or by setting the sdk.dir path in " +
-      "your project's local.properties file.\n" +
-      "Affected Modules: app", notification.message)
+        "your project's local.properties file.\n" +
+        "<a href=\"set.sdkdir\">Set sdk.dir in local.properties and sync project</a>\n" +
+        "Affected Modules: app",
+      notification.message
+    )
     assertEquals(NotificationCategory.WARNING, notification.notificationCategory)
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes
-    assertSize(1, quickFixes)
+    assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], SetSdkDirHyperlink::class.java)
     val quickFixPaths = (quickFixes[0] as SetSdkDirHyperlink).localPropertiesPaths
     assertSize(1, quickFixPaths)
@@ -110,12 +113,15 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
     assertEquals("Gradle Sync Issues", notification.title)
     assertEquals(
       "SDK location not found. Define a location by setting the ANDROID_SDK_ROOT environment variable or by setting the sdk.dir path in " +
-      "your project's local.properties files.\n" +
-      "Affected Modules: TestCompositeLib1, TestCompositeLib3, testWithCompositeBuild", notification.message)
+        "your project's local.properties files.\n" +
+        "<a href=\"set.sdkdir\">Set sdk.dir in local.properties and sync project</a>\n" +
+        "Affected Modules: TestCompositeLib1, TestCompositeLib3, testWithCompositeBuild",
+      notification.message
+    )
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes
-    assertSize(1, quickFixes)
+    assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], SetSdkDirHyperlink::class.java)
     val quickFixPaths = (quickFixes[0] as SetSdkDirHyperlink).localPropertiesPaths
     assertSize(3, quickFixPaths)
