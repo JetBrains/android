@@ -27,6 +27,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -35,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.xml.stream.events.Characters;
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
 import java.beans.PropertyChangeListener;
@@ -61,7 +61,7 @@ class FontEditor implements FileEditor {
 
   private final JPanel myRootPanel;
   private float myCurrentFontSize;
-  private final JTextArea myFontNameArea;
+  private final JLabel myFontNameLabel;
 
   @NotNull
   private static JTextArea createTextArea() {
@@ -109,7 +109,7 @@ class FontEditor implements FileEditor {
     myRootPanel = new JPanel(new BorderLayout());
     myRootPanel.setBackground(UIUtil.getTextFieldBackground());
     myRootPanel.setBorder(BORDER);
-    myFontNameArea = createTextArea();
+    myFontNameLabel = new JLabel();
     myTextArea = createTextArea();
 
     myCurrentFontSize = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(15f);
@@ -118,12 +118,12 @@ class FontEditor implements FileEditor {
       // Derive the font and set it to large
       Font font = Font.createFont(Font.TRUETYPE_FONT, file.getInputStream()).deriveFont(myCurrentFontSize);
 
-      myFontNameArea.setText(font.getFontName());
+      myFontNameLabel.setText(font.getFontName());
       if (font.canDisplayUpTo(font.getFontName()) == -1) {
-        myFontNameArea.setFont(font);
+        myFontNameLabel.setFont(font);
       }
       else {
-        myFontNameArea.setFont(DEFAULT_FONT.deriveFont(myCurrentFontSize));
+        myFontNameLabel.setFont(DEFAULT_FONT.deriveFont(myCurrentFontSize));
       }
 
       String displayableText = findDisplayableText(font);
@@ -147,8 +147,12 @@ class FontEditor implements FileEditor {
       myTextArea.setText(message);
       LOG.warn(message ,e);
     }
-    myRootPanel.add(myFontNameArea, BorderLayout.NORTH);
-    myRootPanel.add(myTextArea, BorderLayout.CENTER);
+    myRootPanel.add(myFontNameLabel, BorderLayout.NORTH);
+    // The JTextArea needs to be put inside a scroll pane,
+    // otherwise its width will expand to occupy the entire IDE
+    JBScrollPane scrollPane = new JBScrollPane();
+    scrollPane.getViewport().add(myTextArea);
+    myRootPanel.add(scrollPane, BorderLayout.CENTER);
   }
 
   private void onMouseWheelEvent(MouseWheelEvent e) {
@@ -158,7 +162,7 @@ class FontEditor implements FileEditor {
     if (newFontSize != myCurrentFontSize) {
       myCurrentFontSize = newFontSize;
       myTextArea.setFont(myTextArea.getFont().deriveFont(myCurrentFontSize));
-      myFontNameArea.setFont(myFontNameArea.getFont().deriveFont(myCurrentFontSize));
+      myFontNameLabel.setFont(myFontNameLabel.getFont().deriveFont(myCurrentFontSize));
     }
   }
 
