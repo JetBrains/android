@@ -434,7 +434,6 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param sceneUpdateListener        a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    * @param layoutScannerConfig        a {@link LayoutScannerConfiguration} for layout validation from Accessibility Testing Framework.
    * @param sessionClockFactory        a factory to create a session clock used in the interactive preview.
-   * @param progressIndicator          a {@link DesignSurfaceProgressIndicator} to be used when updating models.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface<? extends LayoutlibSceneManager> designSurface,
@@ -443,10 +442,9 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                   @Nullable SceneManager.SceneUpdateListener sceneUpdateListener,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig,
-                                  @NotNull Supplier<SessionClock> sessionClockFactory,
-                                  @NotNull DesignSurfaceProgressIndicator progressIndicator) {
+                                  @NotNull Supplier<SessionClock> sessionClockFactory) {
     super(model, designSurface, sceneComponentProvider, sceneUpdateListener);
-    myProgressIndicator = progressIndicator;
+    myProgressIndicator = new DesignSurfaceProgressIndicator(designSurface);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);
     mySessionClockFactory = sessionClockFactory;
@@ -485,7 +483,7 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests, but with accessibility testing
    * framework scanner disabled.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier, DesignSurfaceProgressIndicator)}
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier)}
    *
    * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
@@ -493,14 +491,12 @@ public class LayoutlibSceneManager extends SceneManager {
    *                               {@link SceneComponent}s.
    * @param sceneUpdateListener    a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    * @param sessionClockFactory    a factory to create a session clock used in the interactive preview.
-   * @param progressIndicator      a {@link DesignSurfaceProgressIndicator} to be used when updating models.
    */
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface<LayoutlibSceneManager> designSurface,
                                @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                @NotNull SceneManager.SceneUpdateListener sceneUpdateListener,
-                               @NotNull Supplier<SessionClock> sessionClockFactory,
-                               @NotNull DesignSurfaceProgressIndicator progressIndicator) {
+                               @NotNull Supplier<SessionClock> sessionClockFactory) {
     this(
       model,
       designSurface,
@@ -509,13 +505,12 @@ public class LayoutlibSceneManager extends SceneManager {
       sceneComponentProvider,
       sceneUpdateListener,
       LayoutScannerConfiguration.getDISABLED(),
-      sessionClockFactory,
-      progressIndicator);
+      sessionClockFactory);
   }
 
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier, DesignSurfaceProgressIndicator)}
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier)}
    *
    * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
@@ -530,8 +525,7 @@ public class LayoutlibSceneManager extends SceneManager {
       new LayoutlibSceneManagerHierarchyProvider(),
       null,
       config,
-      RealTimeSessionClock::new,
-      new DesignSurfaceProgressIndicator(designSurface));
+      RealTimeSessionClock::new);
   }
 
   @NotNull
