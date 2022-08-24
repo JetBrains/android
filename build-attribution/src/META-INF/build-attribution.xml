@@ -28,6 +28,8 @@
                         serviceImplementation="com.android.build.attribution.LocalKnownGradlePluginsServiceImpl"/>
     <projectService  serviceInterface = "com.android.build.attribution.BuildAnalyzerStorageManager"
         serviceImplementation="com.android.build.attribution.BuildAnalyzerStorageManagerImpl"/>
+
+    <fileEditorProvider implementation="com.android.build.attribution.ui.BuildReportEditorProvider"/>
   </extensions>
   <actions>
     <group text="Build Analyzer" popup="true">

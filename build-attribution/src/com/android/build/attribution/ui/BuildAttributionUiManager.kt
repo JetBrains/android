@@ -18,6 +18,7 @@ package com.android.build.attribution.ui
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.BuildAnalyzerNotificationManager
 import com.android.build.attribution.BuildAnalyzerStorageManager
+import com.android.build.attribution.BuildAnalyzerStorageManager.Listener
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
@@ -37,16 +38,16 @@ import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
-import com.android.build.attribution.BuildAnalyzerStorageManager.Listener
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentContainer
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
@@ -66,7 +67,7 @@ interface BuildAttributionUiManager : Disposable {
   fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
   fun hasDataToShow(): Boolean
   fun showNewReport()
-  fun showBuildAnalysisReportById(buildID : String)
+  fun showBuildAnalysisReportById(buildID: String)
 
   companion object {
     fun getInstance(project: Project): BuildAttributionUiManager {
@@ -132,7 +133,10 @@ class BuildAttributionUiManagerImpl(
   }
 
   override fun showBuildAnalysisReportById(buildID: String) {
-    Messages.showInfoMessage("Build report id: $buildID", "Build Report")
+    val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID)
+    val reportFile = BuildReportFile(buildResults, project)
+    val fileDescriptor = OpenFileDescriptor(project, reportFile)
+    FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)
   }
 
   override fun onBuildFailure(buildSessionId: String) {
@@ -290,7 +294,7 @@ fun Project.invokeLaterIfNotDisposed(runnable: () -> Unit) = ApplicationManager.
   runnable
 ) { this.isDisposed }
 
-private class NewViewComponentContainer(
+class NewViewComponentContainer(
   uiData: BuildAttributionReportUiData,
   project: Project,
   issueReporter: TaskIssueReporter,
