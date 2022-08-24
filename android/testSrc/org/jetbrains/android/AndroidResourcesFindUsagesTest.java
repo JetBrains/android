@@ -38,11 +38,11 @@ import com.intellij.usages.UsageTargetUtil;
 import com.intellij.usages.UsageViewManager;
 import com.intellij.usages.UsageViewPresentation;
 import com.intellij.usages.impl.UsageViewImpl;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -1023,7 +1023,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
       .getInstance(getProject())
       .createUsageView(
         target,
-        StreamEx.of(usages).map(usageInfo -> new UsageInfo2UsageAdapter(usageInfo)).toArray(Usage.EMPTY_ARRAY),
+        ContainerUtil.map2Array(usages, Usage.EMPTY_ARRAY, usageInfo -> new UsageInfo2UsageAdapter(usageInfo)),
         new UsageViewPresentation(),
          null);
     Disposer.register(myFixture.getTestRootDisposable(), usageView);
