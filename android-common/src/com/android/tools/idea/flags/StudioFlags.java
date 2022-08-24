@@ -101,6 +101,15 @@ public final class StudioFlags {
     true);
   //endregion
 
+  //region Memory Usage Reporting
+  private static final FlagGroup MEMORY_USAGE_REPORTING = new FlagGroup(FLAGS, "memory.usage.reporting", "Memory Usage Reporting");
+
+  public static final Flag<Boolean> USE_DISPOSER_TREE_REFERENCES = Flag.create(
+    MEMORY_USAGE_REPORTING, "use.disposer.tree.references", "Memory report collection traversal will use disposer tree reference.",
+    "If enabled, the memory report collecting traversal will consider disposer tree references as an object graph edges.",
+    false);
+  //endregion
+
   //region Profiler
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 

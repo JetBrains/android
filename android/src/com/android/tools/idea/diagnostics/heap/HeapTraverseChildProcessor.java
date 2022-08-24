@@ -18,6 +18,7 @@ package com.android.tools.idea.diagnostics.heap;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isArrayOfPrimitives;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isInitialized;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import java.lang.ref.Reference;
@@ -35,9 +36,11 @@ public class HeapTraverseChildProcessor {
 
   @NotNull
   private final Object myDisposerTree;
+  private final boolean myShouldUseDisposerTreeReferences;
 
   public HeapTraverseChildProcessor() {
     myDisposerTree = Disposer.getTree();
+    myShouldUseDisposerTreeReferences = StudioFlags.USE_DISPOSER_TREE_REFERENCES.get();
   }
 
   /**
@@ -47,9 +50,9 @@ public class HeapTraverseChildProcessor {
    * @param consumer   processor for references: gets a referred object and the type of the reference as {@link HeapTraverseNode.RefWeight}
    * @param fieldCache cache that stores fields declared for the given class.
    */
-   void processChildObjects(@Nullable final Object obj,
-                                   @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
-                                   @NotNull final FieldCache fieldCache) {
+  void processChildObjects(@Nullable final Object obj,
+                           @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
+                           @NotNull final FieldCache fieldCache) {
     if (obj == null) {
       return;
     }
@@ -104,7 +107,7 @@ public class HeapTraverseChildProcessor {
 
     // Check is the object implements Disposable and is registered in a Disposer tree. In that case, we consider that the disposable
     // object refers to the children from Disposer tree.
-    if (obj instanceof Disposable) {
+    if (myShouldUseDisposerTreeReferences && obj instanceof Disposable) {
       Object objToNodeMap = getFieldValue(myDisposerTree, "myObject2NodeMap");
       if (!(objToNodeMap instanceof Map)) {
         return;
