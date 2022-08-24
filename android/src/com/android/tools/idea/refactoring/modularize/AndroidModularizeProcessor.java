@@ -282,7 +282,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
           // <application> tag inside a <manifest>.
           manifest.acceptChildren(new XmlRecursiveElementWalkingVisitor() {
             @Override
-            public void visitXmlTag(XmlTag tag) {
+            public void visitXmlTag(@NotNull XmlTag tag) {
               if (TAG_MANIFEST.equals(tag.getName())) {
                 XmlTag applicationTag = null;
                 for (PsiElement child : tag.getChildren()) {

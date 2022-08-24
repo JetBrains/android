@@ -32,18 +32,18 @@ class AndroidXmlVisitor(val elementCallback: (ResourceIdentifier, String, XmlAtt
         element.acceptChildren(this)
     }
 
-    override fun visitXmlElement(element: XmlElement?) {
-        element?.acceptChildren(this)
+    override fun visitXmlElement(element: XmlElement) {
+        element.acceptChildren(this)
     }
 
-    override fun visitXmlTag(tag: XmlTag?) {
-        val localName = tag?.localName ?: ""
+    override fun visitXmlTag(tag: XmlTag) {
+        val localName = tag.localName
         if (isWidgetTypeIgnored(localName)) {
-            tag?.acceptChildren(this)
+            tag.acceptChildren(this)
             return
         }
 
-        val idAttribute = tag?.getAttribute(AndroidConst.ID_ATTRIBUTE_NO_NAMESPACE, AndroidConst.ANDROID_NAMESPACE)
+        val idAttribute = tag.getAttribute(AndroidConst.ID_ATTRIBUTE_NO_NAMESPACE, AndroidConst.ANDROID_NAMESPACE)
         if (idAttribute != null) {
             val idAttributeValue = idAttribute.value
             if (idAttributeValue != null) {
@@ -53,6 +53,6 @@ class AndroidXmlVisitor(val elementCallback: (ResourceIdentifier, String, XmlAtt
             }
         }
 
-        tag?.acceptChildren(this)
+        tag.acceptChildren(this)
     }
 }

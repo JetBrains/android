@@ -320,12 +320,12 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       }
 
       @Override
-      public void visitXmlAttributeValue(XmlAttributeValue element) {
+      public void visitXmlAttributeValue(@NotNull XmlAttributeValue element) {
         processPotentialReference(element.getValue());
       }
 
       @Override
-      public void visitXmlToken(XmlToken token) {
+      public void visitXmlToken(@NotNull XmlToken token) {
         processPotentialReference(token.getText());
       }
 

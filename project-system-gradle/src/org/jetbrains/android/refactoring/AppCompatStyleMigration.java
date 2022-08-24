@@ -129,7 +129,7 @@ class AppCompatStyleMigration {
 
       layoutFile.accept(new XmlRecursiveElementVisitor() {
         @Override
-        public void visitXmlTag(XmlTag tag) {
+        public void visitXmlTag(@NotNull XmlTag tag) {
           super.visitXmlTag(tag);
 
           XmlAttribute attr = tag.getAttribute(ATTR_STYLE);

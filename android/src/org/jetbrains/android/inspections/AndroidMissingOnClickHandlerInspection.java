@@ -155,7 +155,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     }
 
     @Override
-    public void visitXmlAttributeValue(XmlAttributeValue value) {
+    public void visitXmlAttributeValue(@NotNull XmlAttributeValue value) {
       for (PsiReference reference : value.getReferences()) {
         if (!(reference instanceof OnClickConverter.MyReference)) {
           continue;

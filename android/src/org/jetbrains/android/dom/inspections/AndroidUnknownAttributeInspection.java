@@ -120,7 +120,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     }
 
     @Override
-    public void visitXmlAttribute(XmlAttribute attribute) {
+    public void visitXmlAttribute(@NotNull XmlAttribute attribute) {
       if (!"xmlns".equals(attribute.getNamespacePrefix())) {
         String namespace = attribute.getNamespace();
 

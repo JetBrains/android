@@ -74,7 +74,7 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
     }
 
     @Override
-    public void visitXmlTag(XmlTag tag) {
+    public void visitXmlTag(@NotNull XmlTag tag) {
       super.visitXmlTag(tag);
 
       if (tag.getNamespace().isEmpty()) {

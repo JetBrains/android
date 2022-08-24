@@ -291,7 +291,7 @@ class MigrateToAppCompatUtil {
       for (XmlFile file : xmlFiles) {
         file.accept(new XmlRecursiveElementVisitor() {
           @Override
-          public void visitXmlTag(XmlTag tag) {
+          public void visitXmlTag(@NotNull XmlTag tag) {
             super.visitXmlTag(tag);
             List<AppCompatMigrationEntry.XmlElementMigration> operations = tag2XmlOperation.get(tag.getName());
             if (operations != null) {
