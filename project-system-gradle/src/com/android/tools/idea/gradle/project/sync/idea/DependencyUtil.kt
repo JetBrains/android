@@ -186,7 +186,6 @@ private class AndroidDependenciesSetupContext(
     val targetModuleGradlePath = computeModuleIdForLibraryTarget(library)
     val targetData = gradleProjectPathToModuleData(targetModuleGradlePath)
     if (targetData == null) {
-      // TODO(b/208357458): Once we correct source set matching we need to revisit whether this should produce an error
       LOG.warnInProduction(ExternalSystemException("Cannot find module with id: $targetModuleGradlePath"))
       return null;
     }
