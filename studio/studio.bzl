@@ -781,7 +781,7 @@ def _intellij_plugin_import_impl(ctx):
             relpath = f.short_path[len(ctx.attr.strip_prefix):]
             zip_spec.append((plugin_dir + "/" + relpath, f))
         plugin_zip = ctx.actions.declare_file(ctx.label.name + ".zip")
-        _lnzipper(ctx, ctx.attr.name, zip_spec, plugin_zip)
+        _zipper(ctx, ctx.attr.name, zip_spec, plugin_zip)
         plugin_zips.append(plugin_zip)
 
     java_info = java_common.merge([export[JavaInfo] for export in ctx.attr.exports])
@@ -819,9 +819,9 @@ _intellij_plugin_import = rule(
             cfg = "host",
             executable = True,
         ),
-        "_lnzipper": attr.label(
-            default = Label("//tools/base/bazel/lnzipper:lnzipper"),
-            cfg = "exec",
+        "_zipper": attr.label(
+            default = Label("@bazel_tools//tools/zip:zipper"),
+            cfg = "host",
             executable = True,
         ),
     },
