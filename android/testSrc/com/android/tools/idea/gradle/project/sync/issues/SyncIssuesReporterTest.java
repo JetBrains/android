@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -70,7 +70,6 @@ import org.mockito.InOrder;
  */
 public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   private IdeSyncIssue mySyncIssue;
-  private GradleSyncMessagesStub mySyncMessagesStub;
   private BaseSyncIssuesReporter myStrategy1;
   private BaseSyncIssuesReporter myStrategy2;
 
@@ -78,7 +77,6 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(IdeSyncIssue.class);
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     myStrategy1 = mock(BaseSyncIssuesReporter.class);
     when(myStrategy1.getSupportedIssueType()).thenReturn(TYPE_BUILD_TOOLS_TOO_LOW);
@@ -89,7 +87,6 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   public void testReportError() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
-    mySyncMessagesStub.removeAllMessages();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
     when(mySyncIssue.getType()).thenReturn(issueType);
@@ -116,7 +113,6 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   public void testReportWarning() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
-    mySyncMessagesStub.removeAllMessages();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
     when(mySyncIssue.getType()).thenReturn(issueType);
@@ -142,7 +138,6 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
   public void testReportUsingDefaultStrategy() throws Exception {
     loadProject(DEPENDENT_MODULES);
-    mySyncMessagesStub.removeAllMessages();
 
     // This issue is created to be equal to mySyncIssue, in practice issues with the same fields will be classed as equal.
     IdeSyncIssue syncIssue2 = new IdeSyncIssue() {
@@ -203,8 +198,8 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)), "/");
 
 
-    assertSize(1, mySyncMessagesStub.getReportedMessages());
-    final var message = mySyncMessagesStub.getReportedMessages().get(0);
+    assertSize(1, GradleSyncMessages.getInstance(project).getReportedMessages());
+    final var message = GradleSyncMessages.getInstance(project).getReportedMessages().get(0);
     assertNotNull(message);
     assertThat(message.getType()).isEqualTo(MessageType.WARNING);
 
@@ -223,7 +218,6 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
   public void testStrategiesSetInConstructor() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.removeAllMessages();
 
     SyncIssuesReporter reporter = SyncIssuesReporter.getInstance();
     Module appModule = TestModuleUtil.findAppModule(getProject());

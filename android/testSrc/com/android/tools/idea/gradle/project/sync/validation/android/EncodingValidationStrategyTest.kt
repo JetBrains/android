@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.InternedModels
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.google.common.truth.Truth
@@ -78,11 +78,11 @@ class EncodingValidationStrategyTest : AndroidGradleTestCase() {
   }
 
   fun testFixAndReportFoundIssues() {
-    val syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project)
+    val syncMessages = GradleSyncMessages.getInstance(project)
     val mismatchingEncoding = "UTF-8"
     myStrategy!!.mismatchingEncoding = mismatchingEncoding
     myStrategy!!.fixAndReportFoundIssues()
-    val message = syncMessages.firstReportedMessage
+    val message = syncMessages.reportedMessages.firstOrNull()
     assertNotNull(message)
     val text = message!!.text
     Truth.assertThat(text.split('\n')).hasSize(2)
@@ -91,10 +91,10 @@ class EncodingValidationStrategyTest : AndroidGradleTestCase() {
   }
 
   fun testFixAndReportFoundIssuesWithNoMismatch() {
-    val syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project)
+    val syncMessages = GradleSyncMessages.getInstance(project)
     myStrategy!!.mismatchingEncoding = null
     myStrategy!!.fixAndReportFoundIssues()
-    val message = syncMessages.firstReportedMessage
+    val message = syncMessages.reportedMessages.firstOrNull()
     assertNull(message)
     verify(myEncodings, never())?.let { it.defaultCharsetName = ArgumentMatchers.anyString() }
   }

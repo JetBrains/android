@@ -26,8 +26,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.DumbService;
@@ -36,7 +35,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
-import java.util.List;
 import org.mockito.Mock;
 
 /**
@@ -46,7 +44,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   @Mock private RefactoringProcessorInstantiator myRefactoringProcessorInstantiator;
   @Mock private AgpUpgradeRefactoringProcessor myProcessor;
 
-  private GradleSyncMessagesStub mySyncMessages;
+  private GradleSyncMessages mySyncMessages;
   private TestDialog myOriginalTestDialog;
 
   @Override
@@ -59,7 +57,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
     ServiceContainerUtil.replaceService(project, RefactoringProcessorInstantiator.class, myRefactoringProcessorInstantiator, project);
     when(myRefactoringProcessorInstantiator.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    mySyncMessages = GradleSyncMessages.getInstance(project);
   }
 
   @Override

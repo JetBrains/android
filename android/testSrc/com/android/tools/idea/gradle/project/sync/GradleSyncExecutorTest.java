@@ -29,11 +29,8 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -115,11 +112,6 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
 
   public void testNoVariantsGiveCorrectError() throws Exception {
     prepareProjectForImport(NEW_SYNC_KOTLIN_TEST);
-
-    GradleSyncMessagesStub messagesStub = new GradleSyncMessagesStub(getProject()) {
-    };
-    new IdeComponents(getProject()).replaceProjectService(GradleSyncMessages.class, messagesStub);
-
 
     // Add a variant filter that will remove every variant.
     VirtualFile buildFile = GradleUtil.getGradleBuildFile(new File(getProjectFolderPath(), "app"));

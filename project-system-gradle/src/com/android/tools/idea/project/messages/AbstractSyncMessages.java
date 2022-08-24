@@ -27,7 +27,6 @@ import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
-import com.intellij.build.events.Failure;
 import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -38,12 +37,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public abstract class AbstractSyncMessages implements Disposable {
 
@@ -54,10 +53,8 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   @GuardedBy("myLock")
   @NotNull
-  private final HashMap<Object, List<NotificationData>> myCurrentNotifications = new HashMap<>();
-  @GuardedBy("myLock")
-  @NotNull
-  private final HashMap<Object, List<Failure>> myShownFailures = new HashMap<>();
+  private final List<SyncMessage> myCurrentMessages = new ArrayList<>();
+
   @NotNull private static final String PENDING_TASK_ID = "Pending taskId";
 
   protected AbstractSyncMessages(@NotNull Project project) {
@@ -71,11 +68,9 @@ public abstract class AbstractSyncMessages implements Disposable {
   public String getErrorDescription() {
     Set<String> errorGroups = new LinkedHashSet<>();
     synchronized (myLock) {
-      for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
-        for (NotificationData notificationData : notificationDataList) {
-          if (notificationData.getNotificationCategory() == NotificationCategory.ERROR) {
-            errorGroups.add(notificationData.getTitle());
-          }
+      for (final var message : myCurrentMessages) {
+        if (message.getType() == MessageType.ERROR) {
+          errorGroups.add(message.getGroup());
         }
       }
     }
@@ -84,13 +79,13 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   public boolean isEmpty() {
     synchronized (myLock) {
-      return myCurrentNotifications.isEmpty();
+      return myCurrentMessages.isEmpty();
     }
   }
 
   public void removeAllMessages() {
     synchronized (myLock) {
-      myCurrentNotifications.clear();
+      myCurrentMessages.clear();
     }
   }
 
@@ -110,7 +105,17 @@ public abstract class AbstractSyncMessages implements Disposable {
       updateNotification(notification, text, quickFixes);
     }
 
-    report(notification, ContainerUtil.flatMap(quickFixes, AndroidSyncIssueQuickFix::create));
+    // Save on array to be shown by build view later.
+    Object taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
+    if (taskId == null) {
+      taskId = PENDING_TASK_ID;
+    }
+    else {
+      showNotification(notification, taskId, ContainerUtil.flatMap(quickFixes, AndroidSyncIssueQuickFix::create));
+    }
+    synchronized (myLock) {
+      myCurrentMessages.add(message);
+    }
   }
 
   @NotNull
@@ -157,20 +162,6 @@ public abstract class AbstractSyncMessages implements Disposable {
     }
   }
 
-  private void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
-    // Save on array to be shown by build view later.
-    Object taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
-    if (taskId == null) {
-      taskId = PENDING_TASK_ID;
-    }
-    else {
-      showNotification(notification, taskId, quickFixes);
-    }
-    synchronized (myLock) {
-      myCurrentNotifications.computeIfAbsent(taskId, key -> new ArrayList<>()).add(notification);
-    }
-  }
-
   private void showNotification(@NotNull NotificationData notification,
                                 @NotNull Object taskId,
                                 @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
@@ -198,6 +189,13 @@ public abstract class AbstractSyncMessages implements Disposable {
   @NotNull
   protected Project getProject() {
     return myProject;
+  }
+
+  @TestOnly
+  public @NotNull List<@NotNull SyncMessage> getReportedMessages() {
+    synchronized (myLock) {
+      return new ArrayList<>(myCurrentMessages);
+    }
   }
 
   @Override
