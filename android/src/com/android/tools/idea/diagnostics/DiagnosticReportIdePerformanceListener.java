@@ -24,7 +24,6 @@ import com.intellij.diagnostic.ThreadDump;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
@@ -51,7 +50,6 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   private @Nullable ReportContext myContext;
   private int myReportsCollected;
   private @Nullable MessageBusConnection myMessageBusConnection;
-  private @NonNull LastActionTracker myLastActionTracker;
 
   private static class ReportContext {
     private Path myThreadDumpPath;
@@ -59,7 +57,6 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
 
   public DiagnosticReportIdePerformanceListener(Consumer<DiagnosticReport> reportCallback) {
     myReportCallback = reportCallback;
-    myLastActionTracker = new LastActionTracker();
   }
 
   @Override
@@ -88,7 +85,6 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
       DiagnosticReportBuilder.MAX_DURATION_MS,
       DiagnosticReportBuilder.FRAME_IGNORE_THRESHOLD_MS,
       freezeTimeBeforeCreatedMs,
-      myLastActionTracker,
       new Controller(context)
     );
   }
@@ -234,10 +230,6 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
 
     myMessageBusConnection.disconnect();
     myMessageBusConnection = null;
-
-    Disposer.dispose(myLastActionTracker);
-    //noinspection ConstantConditions
-    myLastActionTracker = null;
   }
 
   public class Controller {

@@ -16,23 +16,28 @@
 package com.android.tools.idea.diagnostics;
 
 import com.android.tools.idea.util.ListenerCollection;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.AnActionResult;
 import com.intellij.openapi.actionSystem.ex.AnActionListener;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
-public class LastActionTracker implements Disposable, AnActionListener {
+@Service
+public final class LastActionTracker {
 
   private final ListenerCollection<Listener> myListeners = ListenerCollection.createWithDirectExecutor();
   private String myCurrentActionId = "(no action)";
   private long myCurrentActionStartNano;
 
-  public LastActionTracker() {
-    ActionManager.getInstance().addAnActionListener(this);
+  public static LastActionTracker getInstance() {
+    return ApplicationManager.getApplication().getService(LastActionTracker.class);
   }
+
+  private LastActionTracker() { }
 
   public void registerActionDurationListener(Listener listener) {
     myListeners.add(listener);
@@ -54,17 +59,24 @@ public class LastActionTracker implements Disposable, AnActionListener {
     myListeners.remove(listener);
   }
 
-  @Override
-  public void dispose() {
-    ActionManager.getInstance().removeAnActionListener(this);
-  }
+  public static class MyActionListener implements AnActionListener {
+    @Override
+    public void beforeActionPerformed(@NotNull AnAction action, @NotNull AnActionEvent event) {
+      var tracker = LastActionTracker.getInstance();
+      String actionId = getActionId(action);
+      tracker.myCurrentActionId = actionId;
+      tracker.myCurrentActionStartNano = System.nanoTime();
+      tracker.myListeners.forEach(l -> l.actionStarted(actionId));
+    }
 
-  @Override
-  public void beforeActionPerformed(AnAction action, DataContext dataContext, AnActionEvent event) {
-    String actionId = getActionId(action);
-    myCurrentActionId = actionId;
-    myCurrentActionStartNano = System.nanoTime();
-    myListeners.forEach(l -> l.actionStarted(actionId));
+    @Override
+    public void afterActionPerformed(@NotNull AnAction action, @NotNull AnActionEvent event, @NotNull AnActionResult result) {
+      var tracker = LastActionTracker.getInstance();
+      String actionId = getActionId(action);
+      tracker.myListeners.forEach(l -> l.actionFinished(actionId, tracker.getCurrentDurationMs()));
+      tracker.myCurrentActionId = "(no action)";
+      tracker.myCurrentActionStartNano = 0;
+    }
   }
 
   private static String getActionId(AnAction action) {
@@ -72,15 +84,6 @@ public class LastActionTracker implements Disposable, AnActionListener {
       return "<null>";
     }
     return action.getClass().getName() + " (" + ActionManager.getInstance().getId(action) + ")";
-  }
-
-  @Override
-  public void afterActionPerformed(AnAction action, DataContext dataContext, AnActionEvent event) {
-    String actionId = getActionId(action);
-
-    myListeners.forEach(l -> l.actionFinished(actionId, getCurrentDurationMs()));
-    myCurrentActionId = "(no action)";
-    myCurrentActionStartNano = 0;
   }
 
   public interface Listener {
