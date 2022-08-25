@@ -49,6 +49,7 @@ import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.UnixStat;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.intellij.build.dependencies.BuildDependenciesCommunityRoot;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout;
 
@@ -461,12 +462,21 @@ public class TestUtils {
       }
     }
 
+    Path jdk11Path = findInDownloadedJdks("corretto-11.");
+    if (jdk11Path != null) return jdk11Path;
+
+    assert Runtime.version().feature() == 11 : "To continue we need to know where JDK11 is. env.JDK_11 didn't work.";
+    return Paths.get(SystemProperties.getJavaHome());
+  }
+
+  @Nullable
+  private static Path findInDownloadedJdks(String prefix) {
     String userHome = System.getProperty("user.home");
     Path jdks = Paths.get(userHome, ".jdks");
     if (Files.isDirectory(jdks)) {
       try (Stream<Path> stream = Files.list(jdks)) {
         Optional<Path> jdk11Path = stream
-          .filter(file -> Files.isDirectory(file) && file.getFileName().toString().startsWith("corretto-11"))
+          .filter(file -> Files.isDirectory(file) && file.getFileName().toString().startsWith(prefix))
           .findAny();
 
         if (jdk11Path.isPresent()) {
@@ -478,9 +488,7 @@ public class TestUtils {
         Logger.getInstance(TestUtils.class).warn("Cannot list directory " + jdks, e);
       }
     }
-
-    assert Runtime.version().feature() == 11 : "To continue we need to know where JDK11 is. env.JDK_11 didn't work.";
-    return Paths.get(SystemProperties.getJavaHome());
+    return null;
   }
 
   @NonNull
@@ -494,6 +502,9 @@ public class TestUtils {
         Logger.getInstance(TestUtils.class).warn("Ignore env.JDK_18 because it is not a directory: " + jdkPath);
       }
     }
+
+    Path jdk8Path = findInDownloadedJdks("corretto-1.8.");
+    if (jdk8Path != null) return jdk8Path.toString();
 
     assert Runtime.version().feature() == 8 : "To continue we need to know where JDK8 is. env.JDK_18 didn't work.";
     return SystemProperties.getJavaHome();
