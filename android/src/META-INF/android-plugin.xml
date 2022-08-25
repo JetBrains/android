@@ -314,6 +314,7 @@
                         serviceImplementation="com.android.tools.idea.diagnostics.crash.ExceptionDataConfigurationImpl"/>
     <applicationService serviceInterface="com.android.tools.idea.serverflags.ServerFlagService"
                         serviceImplementation="com.android.tools.idea.serverflags.ServerFlagServiceImpl"/>
+    <applicationService serviceImplementation="com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService"/>
 
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>

@@ -17,27 +17,12 @@ package com.android.tools.idea.diagnostics.heap;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.testFramework.LeakHunter;
-import com.intellij.util.containers.WeakList;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import org.jetbrains.annotations.NotNull;
 
 public final class HeapStrongReferenceCountAction extends AnAction {
 
-  private static final Logger LOG = Logger.getInstance(HeapStrongReferenceCountAction.class);
-  private static final int MAX_DEPTH = 100_000;
-
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    WeakList<Object> roots = new WeakList<>();
-    roots.addAll(LeakHunter.allRoots().get().keySet());
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.getComponentSet());
-    StatusCode statusCode = new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, roots);
-    if (statusCode != StatusCode.NO_ERROR) {
-      LOG.warn("Heap traversing finished with an error: " + statusCode);
-    }
-    stats.print(new PrintWriter(System.out, true, StandardCharsets.UTF_8));
+    HeapSnapshotTraverseService.getInstance().collectAndPrintMemoryReport();
   }
 }

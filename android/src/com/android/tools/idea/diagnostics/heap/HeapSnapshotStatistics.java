@@ -19,6 +19,7 @@ import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMa
 
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.PrintWriter;
@@ -128,6 +129,14 @@ public final class HeapSnapshotStatistics {
 
   public void setHeapObjectCount(int heapObjectCount) {
     myHeapObjectCount = heapObjectCount;
+  }
+
+  @NotNull
+  public MemoryUsageReportEvent buildMemoryUsageReportEvent(StatusCode statusCode,
+                                                            long executionTimeMs) {
+    // TODO(viuginick): finish when studio_stats MemoryUsageReportEvent proto will be approved and cherry picked.
+    MemoryUsageReportEvent.Builder builder = MemoryUsageReportEvent.newBuilder();
+    return builder.build();
   }
 
   static class HeapObjectsStatistics {

@@ -21,6 +21,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.ExceptionDataCollection;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.crash.UploadFields;
+import com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService;
 import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
 import com.android.tools.idea.diagnostics.jfr.RecordingManager;
@@ -31,6 +32,8 @@ import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.serverflags.ServerFlagService;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultiset;
@@ -146,6 +149,7 @@ import sun.tools.attach.HotSpotVirtualMachine;
 @Service
 public final class AndroidStudioSystemHealthMonitor {
   private static final Logger LOG = Logger.getInstance(AndroidStudioSystemHealthMonitor.class);
+  private static final String MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME = "diagnostics/memory_usage_reporting";
 
   // The group should be registered by SystemHealthMonitor
   private final NotificationGroup myGroup = NotificationGroup.findRegisteredGroup("System Health");
@@ -413,6 +417,10 @@ public final class AndroidStudioSystemHealthMonitor {
     registerPlatformEventsListener();
 
     application.executeOnPooledThread(this::checkRuntime);
+
+    if (ServerFlagService.Companion.getInstance().getBoolean(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, false)) {
+      HeapSnapshotTraverseService.getInstance().addMemoryReportCollectionRequest();
+    }
 
     List<DiagnosticReport> reports = myReportsDatabase.reapReports();
     processDiagnosticReports(reports);

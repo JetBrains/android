@@ -19,11 +19,20 @@ import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMa
 import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources;
 import static com.google.common.math.IntMath.isPowerOfTwo;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.util.StudioPathManager;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.ide.IdeEventQueue;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.impl.LaterInvocator;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.ReflectionUtil;
+import com.intellij.util.containers.WeakList;
 import com.intellij.util.system.CpuArch;
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
@@ -31,8 +40,10 @@ import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,6 +51,8 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
+import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +60,7 @@ public final class HeapSnapshotTraverse {
 
   private static final int MAX_ALLOWED_OBJECT_MAP_SIZE = 1_000_000;
   private static final int INVALID_OBJECT_ID = -1;
+  private static final int MAX_DEPTH = 100_000;
 
   private static final long OBJECT_CREATION_TIMESTAMP_MASK = 0xFF;
   private static final long CURRENT_ITERATION_TIMESTAMP_MASK = 0xFF00;
@@ -399,6 +413,45 @@ public final class HeapSnapshotTraverse {
         currentNode.myOwnedByComponentMask |= parentNode.myOwnedByComponentMask;
       }
     }, fieldCache);
+  }
+
+  public static void collectAndPrintMemoryReport() {
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.getComponentSet());
+    new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, getRoots());
+    stats.print(new PrintWriter(System.out, true, StandardCharsets.UTF_8));
+  }
+
+  public static StatusCode collectMemoryReport() {
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.getComponentSet());
+    long startTime = System.nanoTime();
+    StatusCode statusCode =
+      new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, getRoots());
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
+                       .setKind(AndroidStudioEvent.EventKind.MEMORY_USAGE_REPORT_EVENT)
+                       .setMemoryUsageReportEvent(
+                         stats.buildMemoryUsageReportEvent(statusCode, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime))));
+    return statusCode;
+  }
+
+  @NotNull
+  private static WeakList<?> getRoots() {
+    ClassLoader classLoader = HeapSnapshotTraverse.class.getClassLoader();
+    // inspect static fields of all loaded classes
+    @SuppressWarnings("UseOfObsoleteCollectionType")
+    Vector<?> allLoadedClasses = ReflectionUtil.getField(classLoader.getClass(), classLoader, Vector.class, "classes");
+
+    WeakList<Object> result = new WeakList<>();
+    Application application = ApplicationManager.getApplication();
+    if (application != null) {
+      result.add(application);
+    }
+    result.add(Disposer.getTree());
+    result.add(IdeEventQueue.getInstance());
+    result.add(LaterInvocator.getLaterInvocatorEdtQueue());
+    if (allLoadedClasses != null) {
+      result.add(allLoadedClasses);
+    }
+    return result;
   }
 
   private static @NotNull String getLibName() {
