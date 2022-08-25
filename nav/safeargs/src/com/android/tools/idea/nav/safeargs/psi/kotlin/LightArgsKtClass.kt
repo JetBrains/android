@@ -25,7 +25,7 @@ import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.PlatformIcons
+import com.intellij.ui.IconManager
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -231,7 +231,7 @@ class LightArgsKtClass(
             XmlSourceElement(
               SafeArgsXmlTag(
                 it as XmlTagImpl,
-                PlatformIcons.FUNCTION_ICON,
+                IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Function),
                 methodName,
                 argsClassDescriptor.fqNameSafe.asString()
               )

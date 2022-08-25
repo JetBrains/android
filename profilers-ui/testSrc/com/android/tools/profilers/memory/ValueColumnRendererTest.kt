@@ -1,3 +1,4 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.profilers.memory
 
 /*
@@ -26,7 +27,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons.Debugger.Db_array
 import com.intellij.icons.AllIcons.Debugger.Db_primitive
 import com.intellij.icons.AllIcons.Hierarchy.Subtypes
-import com.intellij.util.PlatformIcons.FIELD_ICON
+import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import com.intellij.util.PlatformIcons.INTERFACE_ICON
 import icons.StudioIcons.Profiler.Overlays.ARRAY_STACK
 import icons.StudioIcons.Profiler.Overlays.FIELD_STACK
@@ -59,13 +61,13 @@ class ValueColumnRendererTest {
     check(makeField(ValueType.ARRAY, null), Db_array)
     check(makeField(ValueType.ARRAY, 1), ARRAY_STACK)
     check(makeField(ValueType.INT, null), Db_primitive)
-    check(makeField(ValueType.OBJECT, 0), FIELD_ICON)
+    check(makeField(ValueType.OBJECT, 0), IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
     check(makeField(ValueType.STRING, 1), FIELD_STACK)
 
     check(makeRef(makeInst(ValueType.OBJECT, 0, true)), Subtypes)
     check(makeRef(makeInst(ValueType.ARRAY, 0)), Db_array)
     check(makeRef(makeInst(ValueType.ARRAY, 1)), ARRAY_STACK)
-    check(makeRef(makeInst(ValueType.OBJECT, 0)), FIELD_ICON)
+    check(makeRef(makeInst(ValueType.OBJECT, 0)), IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
     check(makeRef(makeInst(ValueType.OBJECT, 1)), FIELD_STACK)
 
     check(makeInst(ValueType.STRING, 0), INTERFACE_ICON)

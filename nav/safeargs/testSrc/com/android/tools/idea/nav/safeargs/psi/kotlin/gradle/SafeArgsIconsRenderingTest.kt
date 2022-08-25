@@ -30,7 +30,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.util.PlatformIcons
+import com.intellij.ui.IconManager
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.junit.Before
 import org.junit.Rule
@@ -102,7 +102,7 @@ class SafeArgsIconsRenderingTest {
       .filter { it.lookupString.endsWith("FragmentArgs") }
       .map { DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
-    assertThat(icons).containsExactly(PlatformIcons.CLASS_ICON)
+    assertThat(icons).containsExactly(IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Class))
 
     // check directions classes
     fixture.moveCaret("val directionsClass = |")
@@ -112,7 +112,7 @@ class SafeArgsIconsRenderingTest {
       .filter { it.lookupString.endsWith("FragmentDirections") }
       .mapNotNull { DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
-    assertThat(icons).containsExactly(PlatformIcons.CLASS_ICON)
+    assertThat(icons).containsExactly(IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Class))
   }
 
   @Test
@@ -146,7 +146,7 @@ class SafeArgsIconsRenderingTest {
     var icons = fixture.lookupElements!!
       .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
-    assertThat(icons).contains("fromBundle" to PlatformIcons.FUNCTION_ICON)
+    assertThat(icons).contains("fromBundle" to IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Function))
 
     // check static method from directions class
     fixture.moveCaret("val directionsClass1 = SecondFragmentDirections.|")
@@ -154,7 +154,8 @@ class SafeArgsIconsRenderingTest {
     icons = fixture.lookupElements!!
       .mapNotNull { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
-    assertThat(icons).contains("actionSecondFragmentToFirstFragment" to PlatformIcons.FUNCTION_ICON)
+    assertThat(icons).contains("actionSecondFragmentToFirstFragment" to IconManager.getInstance().getPlatformIcon(
+      com.intellij.ui.PlatformIcons.Function))
 
     // check methods from args class
     fixture.moveCaret("val argsClass2 = SecondFragmentArgs().|")
@@ -165,8 +166,8 @@ class SafeArgsIconsRenderingTest {
     assertThat(icons).containsAllOf(
       // componentN() functions of data class are filtered out when collecting variants during completions.
       "arg1" to KotlinIcons.FIELD_VAL,
-      "copy" to PlatformIcons.FUNCTION_ICON,
-      "toBundle" to PlatformIcons.FUNCTION_ICON
+      "copy" to IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Function),
+      "toBundle" to IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Function)
     )
 
     // directions class only has companion object

@@ -20,19 +20,20 @@ import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
 import com.android.tools.apk.analyzer.dex.tree.DexFieldNode;
 import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
 import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
-import com.intellij.util.PlatformIcons;
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.IconManager;
 import javax.swing.Icon;
 
 public class DexNodeIcons {
   public static Icon forNode(DexElementNode node){
     if (node instanceof DexClassNode){
-      return PlatformIcons.CLASS_ICON;
+      return IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Class);
     } else if (node instanceof DexFieldNode){
-      return PlatformIcons.FIELD_ICON;
+      return IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Field);
     } else if (node instanceof DexMethodNode){
-      return PlatformIcons.METHOD_ICON;
+      return IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Method);
     } else if (node instanceof DexPackageNode){
-      return PlatformIcons.PACKAGE_ICON;
+      return AllIcons.Nodes.Package;
     } else {
       throw new IllegalArgumentException("No icon defined for this node type.");
     }

@@ -33,7 +33,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
-import com.intellij.util.PlatformIcons;
+import com.intellij.ui.IconManager;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,7 +63,7 @@ class ClassNode extends ProjectViewNode<ApkClass> {
   protected void update(@NotNull PresentationData presentation) {
     Icon icon = SmaliFile;
     if (myDexSourceFiles.findJavaPsiClass(myClass.getFqn()) != null) {
-      icon = PlatformIcons.CLASS_ICON;
+      icon = IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Class);
     }
     presentation.setIcon(icon);
     presentation.setPresentableText(getText());

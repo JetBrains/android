@@ -25,8 +25,9 @@ import com.intellij.icons.AllIcons.Debugger.Db_array
 import com.intellij.icons.AllIcons.Debugger.Db_primitive
 import com.intellij.icons.AllIcons.Hierarchy.Subtypes
 import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.util.PlatformIcons.FIELD_ICON
 import com.intellij.util.PlatformIcons.INTERFACE_ICON
 import icons.StudioIcons.Profiler.Overlays.ARRAY_STACK
 import icons.StudioIcons.Profiler.Overlays.FIELD_STACK
@@ -81,12 +82,12 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
       is FieldObject -> when {
         valueType == ARRAY -> asInstance.getStackedIcon(ARRAY_STACK, Db_array)
         valueType.isPrimitive -> Db_primitive
-        else -> asInstance.getStackedIcon(FIELD_STACK, FIELD_ICON)
+        else -> asInstance.getStackedIcon(FIELD_STACK, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
       }
       is ReferenceObject -> when {
         referenceInstance.isRoot -> Subtypes
         referenceInstance.valueType == ARRAY -> referenceInstance.getStackedIcon(ARRAY_STACK, Db_array)
-        else -> referenceInstance.getStackedIcon(FIELD_STACK, FIELD_ICON)
+        else -> referenceInstance.getStackedIcon(FIELD_STACK, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
       }
       is InstanceObject -> getStackedIcon(INTERFACE_STACK, INTERFACE_ICON)
       else -> INTERFACE_ICON
