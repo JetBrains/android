@@ -29,14 +29,23 @@ import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.testing.TestProjectPaths.TEST_RESOURCES
 import com.android.tools.idea.testing.TestProjectPaths.UNIT_TESTING
+import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.coverage.CoverageDataManager
+import com.intellij.coverage.CoverageRunner
+import com.intellij.coverage.CoverageSuitesBundle
+import com.intellij.coverage.DefaultCoverageFileProvider
+import com.intellij.coverage.IDEACoverageRunner
+import com.intellij.coverage.JavaCoverageEngine
 import com.intellij.execution.actions.ConfigurationFromContextImpl
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
 import com.intellij.psi.JavaPsiFacade
@@ -200,6 +209,40 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     Assert.assertNotNull(configuration)
     assertThat(configuration!!.settings.taskNames.size).isEqualTo(1)
     assertThat(configuration.settings.taskNames[0]).isEqualTo(":includedLib1:app:testDebugUnitTest")
+  }
+
+  @Throws(Exception::class)
+  fun testCoverageEngineDoesntRequireRecompilation() {
+    loadSimpleApplication()
+    // Run a Gradle task.
+    AndroidGradleTaskManager().executeTasks(
+      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+      listOf(":app:testDebugUnitTest"),
+      project.basePath!!,
+      GradleManager().executionSettingsProvider.`fun`(Pair.create(project, project.basePath)),
+      null,
+      object : ExternalSystemTaskNotificationListenerAdapter() {}
+    )
+
+    // Check that the JavaCoverageEngine won't require project rebuild.
+    val filePsiElement = getPsiElement(project, "app/src/main/java/google/simpleapplication/MyActivity.java", false)
+    val module = ModuleUtilCore.findModuleForPsiElement(filePsiElement)
+    assertThat(module).isNotNull()
+
+    val runner = CoverageRunner.getInstance(IDEACoverageRunner::class.java)
+    val fileProvider = DefaultCoverageFileProvider(filePsiElement.containingFile.virtualFile.toIoFile())
+    val suite =
+      JavaCoverageEngine.getInstance().createCoverageSuite(
+        runner, "Simple", fileProvider, null, -1, null, false, false, false, project)
+    val bundle = CoverageSuitesBundle(suite)
+
+    val coverageEngine = JavaCoverageEngine()
+    val needToRebuild =
+      coverageEngine.recompileProjectAndRerunAction(module!!, bundle) {
+        CoverageDataManager.getInstance(project).chooseSuitesBundle(bundle)
+      }
+
+    assertThat(needToRebuild).isFalse()
   }
 
   private fun createConfigurationFromContext(psiFile: PsiElement): ConfigurationFromContextImpl? {
