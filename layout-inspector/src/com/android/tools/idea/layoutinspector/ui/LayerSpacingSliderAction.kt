@@ -19,6 +19,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -38,7 +39,10 @@ object LayerSpacingSliderAction : AnAction(), CustomComponentAction {
   override fun actionPerformed(event: AnActionEvent) {
     val component = event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
     val slider = component.getClientProperty(SLIDER_KEY) as JSlider
-    val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
+    // The event for Custom components actions are constructed differently than normal actions.
+    // If this action is shown in a popup toolbar (when there is not enough space to show the whole toolbar in-place),
+    // go through the action toolbar data context to find the model.
+    val model = ActionToolbar.getDataContextFor(component).getData(DEVICE_VIEW_MODEL_KEY) ?: return
     model.layerSpacing = slider.value
   }
 
