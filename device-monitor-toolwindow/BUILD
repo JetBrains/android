@@ -2,9 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.device-monitor",
+    name = "intellij.android.device-monitor-toolwindow",
     srcs = ["src"],
-    iml_files = ["intellij.android.device-monitor.iml"],
+    iml_files = ["intellij.android.device-monitor-toolwindow.iml"],
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -25,8 +25,8 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.device-monitor.tests",
-    iml_files = ["intellij.android.device-monitor.tests.iml"],
+    name = "intellij.android.device-monitor-toolwindow.tests",
+    iml_files = ["intellij.android.device-monitor-toolwindow.tests.iml"],
     test_class = "com.android.tools.idea.device.monitor.DeviceMonitorTestSuite",
     # keep sorted
     test_data = [
@@ -39,7 +39,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/device-monitor:intellij.android.device-monitor[module, test]",
+        "//tools/adt/idea/device-monitor-toolwindow:intellij.android.device-monitor-toolwindow[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",

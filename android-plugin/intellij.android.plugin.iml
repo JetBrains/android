@@ -43,7 +43,7 @@
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.android.logcat" />
     <orderEntry type="module" module-name="intellij.android.device-file-explorer-toolwindow" />
-    <orderEntry type="module" module-name="intellij.android.device-monitor" />
+    <orderEntry type="module" module-name="intellij.android.device-monitor-toolwindow" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
     <orderEntry type="module" module-name="intellij.android.templates" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />

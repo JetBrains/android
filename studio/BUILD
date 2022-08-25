@@ -133,7 +133,7 @@ studio_plugin(
             "//tools/adt/idea/debuggers:intellij.android.debuggers",
             "//tools/adt/idea/deploy:intellij.android.deploy",
             "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow",
-            "//tools/adt/idea/device-monitor:intellij.android.device-monitor",
+            "//tools/adt/idea/device-monitor-toolwindow:intellij.android.device-monitor-toolwindow",
             "//tools/adt/idea/device-manager:intellij.android.device-manager",
             "//tools/adt/idea/emulator:intellij.android.emulator",
             "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
