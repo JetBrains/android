@@ -215,7 +215,8 @@ public class ViewHandlerManager implements Disposable {
     }
 
     // No built-in handler found. Allow extensions to return one
-    final ViewHandler extensionHandler = EP_NAME.extensions(myProject)
+    final ViewHandler extensionHandler = EP_NAME.getExtensionList(myProject)
+      .stream()
       .map(extension -> extension.findHandler(viewTag))
       .filter(Objects::nonNull)
       .limit(2)
