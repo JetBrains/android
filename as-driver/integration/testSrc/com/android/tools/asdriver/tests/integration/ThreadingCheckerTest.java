@@ -21,6 +21,7 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.Display;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,6 +38,7 @@ public class ThreadingCheckerTest {
    * Verifies that threading errors triggered by the threading agent will cause
    * the AndroidSystem test rule to throw an exception.
    * */
+  @Ignore("http://b/243813979")
   @Test
   public void verifiesThreadingProblemsTest() throws Exception {
     thrown.expect(RuntimeException.class);
