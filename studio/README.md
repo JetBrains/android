@@ -49,7 +49,7 @@ $SRC/tools/adt/idea/studio/update_sdk.py --path $SRC/tools/idea/out/studio/dist
 Note: `build_studio.sh` does a clean build by default. You can use the
 `--incremental` flag to do an incremental build instead, which is much faster
 for repeated builds. There are also some additional build options you can set
-via system properties; see `$SRC/tools/idea/platform/build-scripts/groovy/org/jetbrains/intellij/build/BuildOptions.groovy`
+via system properties; see `$SRC/tools/idea/platform/build-scripts/src/org/jetbrains/intellij/build/BuildOptions.kt`
 for details.
 
 ### Isolated builds
