@@ -57,7 +57,7 @@ import org.jetbrains.annotations.TestOnly;
 public class ViewHandlerManager implements Disposable {
   @VisibleForTesting
   static final ExtensionPointName<ViewHandlerProvider> EP_NAME =
-    ExtensionPointName.create("com.android.tools.idea.uibuilder.handlers.viewHandlerProvider");
+    new ExtensionPointName<>("com.android.tools.idea.uibuilder.handlers.viewHandlerProvider");
 
   /**
    * View handlers are named the same as the class for the view they represent, plus this suffix
@@ -215,7 +215,8 @@ public class ViewHandlerManager implements Disposable {
     }
 
     // No built-in handler found. Allow extensions to return one
-    final ViewHandler extensionHandler = EP_NAME.extensions(myProject)
+    final ViewHandler extensionHandler = EP_NAME.getExtensionList(myProject)
+      .stream()
       .map(extension -> extension.findHandler(viewTag))
       .filter(Objects::nonNull)
       .limit(2)
