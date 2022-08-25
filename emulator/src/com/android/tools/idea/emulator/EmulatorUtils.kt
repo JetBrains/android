@@ -136,17 +136,14 @@ internal fun Int.scaledDown(numerator: Int, denominator: Int): Int =
   ((this.toLong() * numerator) / denominator).toInt()
 
 /**
- * Converts the given [value] from the `[0, fromRange-1]` interval to the `[0, toRange - 1]`
- * interval by scaling by the [toRange]/[fromRange] factor while maintaining symmetry with
- * respect to the centers of the two intervals.
+ * Converts this value from the `[0, fromRange-1]` interval to the `[0, toRange - 1]`interval by scaling by
+ * the [toRange]/[fromRange] factor while maintaining symmetry with respect to the centers of the two intervals.
+ *
+ * The conversion is reversible, i.e. if `fromRange <= toRange`, then for every `i` in the `[0, fromRange-1]`
+ * interval `i.scaledUnbiased(fromRange, toRange).scaledUnbiased(toRange, fromRange) = i`.
  */
-internal fun Int.scaledUnbiased(fromRange: Int, toRange: Int): Int {
-  if (fromRange <= 1) {
-    return toRange / 2
-  }
-  val shift = (toRange + fromRange / 2) / (2 * fromRange)
-  return (shift + toLong() * (toRange - 2 * shift) / (fromRange - 1)).toInt()
-}
+internal fun Int.scaledUnbiased(fromRange: Int, toRange: Int): Int =
+  ((this * 2L + 1) * toRange / (2 * fromRange)).toInt()
 
 /**
  * Checks if the ratio between [width1] and [height1] is the same as the ratio between

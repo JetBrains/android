@@ -120,13 +120,13 @@ internal class DeviceViewTest {
     // Check mouse input in various orientations.
     val expectedCoordinates = listOf(
       MotionEventMessage.Pointer(298, 766, 0),
-      MotionEventMessage.Pointer(807, 1399, 0),
+      MotionEventMessage.Pointer(806, 1399, 0),
       MotionEventMessage.Pointer(881, 917, 0),
       MotionEventMessage.Pointer(312, 1373, 0),
       MotionEventMessage.Pointer(794, 1526, 0),
-      MotionEventMessage.Pointer(285, 892, 0),
-      MotionEventMessage.Pointer(209, 1373, 0),
-      MotionEventMessage.Pointer(779, 917, 0),
+      MotionEventMessage.Pointer(285, 893, 0),
+      MotionEventMessage.Pointer(210, 1373, 0),
+      MotionEventMessage.Pointer(778, 917, 0),
     )
     for (i in 0 until 4) {
       assertAppearance("Rotation${i * 90}")
@@ -167,9 +167,9 @@ internal class DeviceViewTest {
         MotionEventMessage(listOf(MotionEventMessage.Pointer(679, 259, 0)), MotionEventMessage.ACTION_MOVE, 0))
     fakeUi.mouse.dragTo(60, -10)
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
-        MotionEventMessage(listOf(MotionEventMessage.Pointer(807, 0, 0)), MotionEventMessage.ACTION_MOVE, 0))
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(806, 0, 0)), MotionEventMessage.ACTION_MOVE, 0))
     assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
-        MotionEventMessage(listOf(MotionEventMessage.Pointer(807, 0, 0)), MotionEventMessage.ACTION_UP, 0))
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(806, 0, 0)), MotionEventMessage.ACTION_UP, 0))
     fakeUi.mouse.release()
   }
 
