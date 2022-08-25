@@ -24,15 +24,10 @@ import org.jetbrains.annotations.SystemIndependent
 
 class TestSyncIssueUsageReporter(
     val collectedIssue: MutableList<GradleSyncIssue> = mutableListOf(),
-    var collectedFailure: AndroidStudioEvent.GradleSyncFailure? = null,
-    val collectedQuickFixes: MutableList<AndroidStudioEvent.GradleSyncQuickFix> = mutableListOf()
+    var collectedFailure: AndroidStudioEvent.GradleSyncFailure? = null
 ) : SyncIssueUsageReporter {
   override fun collect(failure: AndroidStudioEvent.GradleSyncFailure) {
     collectedFailure = failure
-  }
-
-  override fun collect(quickFixes: Collection<AndroidStudioEvent.GradleSyncQuickFix>) {
-    collectedQuickFixes.addAll(quickFixes)
   }
 
   override fun collect(issue: GradleSyncIssue.Builder) {

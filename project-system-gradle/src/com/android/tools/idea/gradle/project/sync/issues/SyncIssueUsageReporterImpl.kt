@@ -57,10 +57,6 @@ class SyncIssueUsageReporterImpl(private val project: Project) : SyncIssueUsageR
     collectedIssues.add(issue.build())
   }
 
-  override fun collect(quickFixes: Collection<AndroidStudioEvent.GradleSyncQuickFix>) {
-    collectedQuickFixes.addAll(quickFixes)
-  }
-
   override fun collect(failure: AndroidStudioEvent.GradleSyncFailure) {
     if (collectedFailure != null) {
       LOG.warn("Multiple sync failures reported. Discarding: $collectedFailure")
