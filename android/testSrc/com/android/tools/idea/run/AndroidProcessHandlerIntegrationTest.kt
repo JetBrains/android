@@ -22,6 +22,7 @@ import com.android.fakeadbserver.services.ServiceOutput
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
 import com.intellij.testFramework.ProjectRule
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -29,6 +30,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 
+@Ignore("FakeAdbTestRule hangs")
 class AndroidProcessHandlerIntegrationTest {
 
   @get:Rule

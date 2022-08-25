@@ -36,6 +36,7 @@ import com.intellij.xdebugger.XDebuggerManager
 import junit.framework.Assert.fail
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -45,6 +46,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Tests for [attachJavaDebuggerToClient], method will eventually replace all [AndroidJavaDebugger] code.
  */
+@Ignore("FakeAdbTestRule hangs")
 class AndroidJavaDebuggerTest {
   @get:Rule
   var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()

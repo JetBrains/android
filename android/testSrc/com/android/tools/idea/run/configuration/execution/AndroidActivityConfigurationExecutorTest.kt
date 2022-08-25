@@ -29,12 +29,14 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 
+@Ignore("FakeAdbTestRule hangs")
 internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
 
   private val forceStop = "force-stop com.example.app"

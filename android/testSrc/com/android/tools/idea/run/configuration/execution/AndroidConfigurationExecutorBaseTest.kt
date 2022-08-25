@@ -26,10 +26,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
 import com.intellij.xdebugger.XDebuggerManager
 import org.junit.After
+import org.junit.Ignore
 import org.junit.Rule
 import java.io.File
 
 
+@Ignore("FakeAdbTestRule hangs")
 abstract class AndroidConfigurationExecutorBaseTest {
   protected val appId = "com.example.app"
   protected val componentName = "com.example.app.Component"

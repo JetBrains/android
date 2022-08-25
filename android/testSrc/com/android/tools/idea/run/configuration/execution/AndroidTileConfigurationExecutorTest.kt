@@ -38,6 +38,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.util.ExceptionUtil
 import io.ktor.util.reflect.instanceOf
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.CompletableFuture
@@ -46,6 +47,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 import kotlin.test.fail
 
+@Ignore("FakeAdbTestRule hangs")
 class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
 
   //Expected am commands
