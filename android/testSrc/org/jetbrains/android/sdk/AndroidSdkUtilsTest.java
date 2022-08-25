@@ -28,6 +28,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
@@ -118,11 +119,11 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
   public void testGetAdbInNonAndroidProject() {
     assertWithMessage("Precondition: project with no android facets")
         .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, TestUtils.getLatestAndroidPlatform());
-    System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
-    assertWithMessage("Precondition: android SDK configured").that(sdkSet).isTrue();
 
-    assertThat(AndroidSdkUtils.getAdb(myProject))
+    WriteAction.runAndWait(() -> IdeSdks.getInstance().setAndroidSdkPath(mySdkPath, null));
+    assertWithMessage("Precondition: android SDK configured").that(IdeSdks.getInstance().hasConfiguredAndroidSdk()).isTrue();
+
+    assertThat(AndroidSdkUtils.findAdb(myProject).adbPath)
         .isEqualTo(new File(IdeSdks.getInstance().getAndroidSdkPath(), AndroidBuildCommonUtils.platformToolPath(SdkConstants.FN_ADB)));
   }
 

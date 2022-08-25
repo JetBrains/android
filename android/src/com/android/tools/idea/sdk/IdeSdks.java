@@ -936,6 +936,7 @@ public class IdeSdks {
       for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
         ProjectJdkTable.getInstance().removeJdk(sdk);
       }
+      AndroidSdkPathStore.getInstance().setAndroidSdkPath(null);
     }));
   }
 
