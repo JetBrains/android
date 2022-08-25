@@ -31,6 +31,7 @@ import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -43,6 +44,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -117,7 +119,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     // Add custom links
     final List<SyncIssueNotificationHyperlink> customLinks = getCustomLinks(project, syncIssues, affectedModules, buildFileMap);
     syncMessage.add(customLinks);
-    SyncIssueUsageReporterUtils.collect(usageReporter, syncIssues.get(0).getType(), customLinks);
+    SyncIssueUsageReporterUtils.collect(usageReporter, syncIssues.get(0).getType(), syncMessage.getQuickFixes());
 
     if (shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
       StringBuilder builder = new StringBuilder();
@@ -153,6 +155,12 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
           public @NotNull String toHtml() {
             return builder.toString();
           }
+
+          @NotNull
+          @Override
+          public List<AndroidStudioEvent.GradleSyncQuickFix> getQuickFixIds() {
+            return links.stream().flatMap(it -> it.getQuickFixIds().stream()).collect(Collectors.toList());
+          }
         }
       );
     }
@@ -168,6 +176,12 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
       // No build file found, just include the name of the module.
       String text = getDisplayNameForModule(module);
       return new SyncMessageHyperlink("url." + module.getName(), text) {
+        @NotNull
+        @Override
+        public List<AndroidStudioEvent.GradleSyncQuickFix> getQuickFixIds() {
+          return Collections.emptyList();
+        }
+
         @Override
         protected void execute(@NotNull Project project) { }
 

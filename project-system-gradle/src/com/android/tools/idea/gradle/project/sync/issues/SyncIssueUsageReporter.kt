@@ -18,6 +18,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.diagnostic.Logger
@@ -53,12 +54,12 @@ interface SyncIssueUsageReporter {
   }
 }
 
-fun SyncIssueUsageReporter.collect(issueType: Int, quickFixes: Collection<SyncIssueNotificationHyperlink>) =
+fun SyncIssueUsageReporter.collect(issueType: Int, quickFixes: Collection<SyncMessageFragment>) =
     collect(
         GradleSyncIssue
             .newBuilder()
             .setType(issueType.toGradleSyncIssueType() ?: AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
-            .addAllOfferedQuickFixes(quickFixes.mapNotNull { it.quickFixId }))
+            .addAllOfferedQuickFixes(quickFixes.flatMap { it.quickFixIds }))
 
 @Suppress("DEPRECATION")
 fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =

@@ -31,6 +31,7 @@ import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.toHolder
 import com.google.common.collect.ImmutableList
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -63,11 +64,13 @@ class ConflictSet private constructor(
       val hyperlinkText = String.format("Select '%1\$s' in \"Build Variants\" window", source.name)
       val selectInBuildVariantsWindowHyperlink: SyncMessageHyperlink =
         object : SyncMessageHyperlink("select.conflict.in.variants.window", hyperlinkText) {
+          override val quickFixIds: List<AndroidStudioEvent.GradleSyncQuickFix> get() = emptyList()
           override fun execute(project: Project) = BuildVariantView.getInstance(project).findAndSelect(source)
         }
 
       // Creates the "Fix problem" hyperlink.
       val quickFixHyperlink: SyncMessageHyperlink = object : SyncMessageHyperlink("fix.conflict", "Fix problem") {
+        override val quickFixIds: List<AndroidStudioEvent.GradleSyncQuickFix> get() = emptyList()
         override fun execute(project: Project) {
           val solved = ConflictResolution.solveSelectionConflict(conflict)
           if (solved) {

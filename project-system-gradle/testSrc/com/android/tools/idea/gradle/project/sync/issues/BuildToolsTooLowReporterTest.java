@@ -68,7 +68,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
 
     Module module = getModule();
     List<SyncIssueNotificationHyperlink> quickFixes = new ArrayList<>();
-    quickFixes.add(new TestSyncIssueNotificationHyperlink("url", "", null));
+    quickFixes.add(new TestSyncIssueNotificationHyperlink("url", "", AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX));
 
     BuildToolsTooLowReporter spiedReporter = spy(myIssueReporter);
 
@@ -90,7 +90,10 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
                  actualQuickFixes.subList(0, actualQuickFixes.size() - 1));
     assertEquals(
       ImmutableList.of(
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_BUILD_TOOLS_TOO_LOW).build()),
+        GradleSyncIssue.newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_BUILD_TOOLS_TOO_LOW)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX)
+          .build()),
       myUsageReporter.getCollectedIssue());
   }
 }

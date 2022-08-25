@@ -28,15 +28,19 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageH
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -100,10 +104,16 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
         "You can change ignored files and folders from " + getIgnoredFileTypesPathInSettings(),
       };
       SyncMessage message = new SyncMessage(DEFAULT_GROUP, WARNING, text);
-      message.add(new SyncIssueNotificationHyperlink("open.settings.filetypes", "Open in Settings", null) {
+      message.add(new SyncMessageHyperlink("open.settings.filetypes", "Open in Settings") {
         @Override
         protected void execute(@NotNull Project project) {
           ShowSettingsUtil.getInstance().showSettingsDialog(project, "preferences.fileTypes");
+        }
+
+        @NotNull
+        @Override
+        public List<AndroidStudioEvent.GradleSyncQuickFix> getQuickFixIds() {
+          return Collections.emptyList();
         }
       });
       message.add(
