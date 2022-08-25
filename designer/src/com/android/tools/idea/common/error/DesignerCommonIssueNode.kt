@@ -27,6 +27,7 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.CompoundIconProvider
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -37,8 +38,10 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.tree.LeafState
+import com.intellij.util.ui.EmptyIcon
 import org.assertj.core.util.VisibleForTesting
 import java.util.Objects
+import javax.swing.Icon
 
 /**
  * The issue node in [DesignerCommonIssuePanel].
@@ -317,6 +320,9 @@ class NoFileNode(parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(par
   }
 }
 
+val DESCEND_ORDER_DEFAULT_SEVERITIES: List<HighlightSeverity> = HighlightSeverity.DEFAULT_SEVERITIES.sortedByDescending { it.myVal }
+  .toMutableList().also { it.remove(HighlightSeverity.INFO) }
+
 /**
  * The node represents an [Issue] in the layout file.
  */
@@ -342,7 +348,18 @@ open class IssueNode(val file: VirtualFile?, val issue: Issue, val parent: Desig
 
   override fun updatePresentation(presentation: PresentationData) {
     val nodeDisplayText: String = createNodeDisplayText()
-    val icon = HighlightDisplayLevel.find(issue.severity).icon
+    val icon: Icon = HighlightDisplayLevel.find(issue.severity)?.icon ?: let {
+      val issueSeverityLevel = issue.severity.myVal
+      var icon: Icon? = null
+      for (severity in DESCEND_ORDER_DEFAULT_SEVERITIES) {
+        if (issueSeverityLevel < severity.myVal) {
+          continue
+        }
+        icon = HighlightDisplayLevel.find(severity)?.icon
+        break
+      }
+      icon ?: EmptyIcon.ICON_16
+    }
     presentation.setIcon(icon)
 
     presentation.addText(nodeDisplayText, SimpleTextAttributes.REGULAR_ATTRIBUTES)

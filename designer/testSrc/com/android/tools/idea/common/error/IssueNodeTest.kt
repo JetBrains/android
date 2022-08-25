@@ -20,10 +20,12 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
+import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.SimpleTextAttributes
+import icons.StudioIcons
 import junit.framework.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -89,5 +91,44 @@ class IssueNodeTest {
     val node1 = IssueNode(null, TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION), null)
     val node2 = IssueNode(null, TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION), null)
     Assert.assertEquals(node1, node2)
+  }
+
+  @Test
+  fun testPresentationWithRegisteredCustomSeverity() {
+    val customSeverity = HighlightSeverity("My Severity", HighlightSeverity.ERROR.myVal + 1)
+
+    HighlightDisplayLevel.registerSeverity(customSeverity,
+                                           TextAttributesKey.createTextAttributesKey("test"),
+                                           StudioIcons.Common.ANDROID_HEAD)
+
+    val node = IssueNode(null, TestIssue(summary = "Custom severity", severity = customSeverity), null)
+    node.update()
+
+    val expected = PresentationData()
+    expected.setIcon(StudioIcons.Common.ANDROID_HEAD)
+    expected.addText("Custom severity", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    expected.tooltip = "Custom severity"
+
+    val presentation = node.presentation
+    Assert.assertEquals(expected, presentation)
+  }
+
+  @Test
+  fun testPresentationWithUnregisteredCustomSeverity() {
+    for (severity in DESCEND_ORDER_DEFAULT_SEVERITIES) {
+      val severityIcon = HighlightDisplayLevel.find(severity)?.icon ?: continue
+
+      val customSeverity = HighlightSeverity("My Severity", severity.myVal + 1)
+      val node = IssueNode(null, TestIssue(summary = "Custom severity", severity = customSeverity), null)
+      node.update()
+
+      val expected = PresentationData()
+      expected.setIcon(severityIcon)
+      expected.addText("Custom severity", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+      expected.tooltip = "Custom severity"
+
+      val presentation = node.presentation
+      Assert.assertEquals(expected, presentation)
+    }
   }
 }
