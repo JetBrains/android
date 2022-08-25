@@ -25,7 +25,7 @@ import com.intellij.psi.impl.light.LightIdentifier
 import com.intellij.psi.impl.light.LightModifierList
 import com.intellij.psi.javadoc.PsiDocComment
 import com.intellij.ui.IconManager
-import com.intellij.util.PlatformIcons
+import com.intellij.ui.PlatformIcons
 import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
 
@@ -84,7 +84,8 @@ open class AndroidLightField(
   }
 
   public override fun getElementIcon(flags: Int): Icon? {
-    val baseIcon = IconManager.getInstance().createLayeredIcon(this, PlatformIcons.FIELD_ICON, ElementPresentationUtil.getFlags(this, false))
+    val baseIcon = IconManager.getInstance().createLayeredIcon(
+      this, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field), ElementPresentationUtil.getFlags(this, false))
     return ElementPresentationUtil.addVisibilityIcon(this, flags, baseIcon)
   }
 }

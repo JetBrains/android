@@ -53,8 +53,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
@@ -799,7 +800,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
           setIconColorized(((ClassSet)node.getAdapter()).hasStackInfo()
                            ? StudioIcons.Profiler.Overlays.CLASS_STACK
-                           : PlatformIcons.CLASS_ICON);
+                           : IconManager.getInstance().getPlatformIcon(PlatformIcons.Class));
 
           String className = classSet.getClassEntry().getSimpleClassName();
           String packageName = classSet.getClassEntry().getPackageName();
@@ -813,12 +814,12 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
         else if (node.getAdapter() instanceof PackageSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
+          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : IconManager.getInstance().getPlatformIcon(PlatformIcons.Package));
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
         else if (node.getAdapter() instanceof MethodSet) {
-          setIconColorized(PlatformIcons.METHOD_ICON);
+          setIconColorized(IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
 
           MethodSet methodObject = (MethodSet)node.getAdapter();
           String name = methodObject.getMethodName();
@@ -839,7 +840,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
         else if (node.getAdapter() instanceof HeapSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
+          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : IconManager.getInstance().getPlatformIcon(PlatformIcons.Package));
           String name = set.getName() + " heap";
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }

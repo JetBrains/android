@@ -46,8 +46,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.IconManager;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.LoadingNode;
+import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -449,7 +451,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
         }
-        return AllIcons.Nodes.Package;
+        return IconManager.getInstance().getPlatformIcon(PlatformIcons.Package);
       }
     }
   }

@@ -17,7 +17,6 @@ package com.android.tools.idea.navigator.nodes.android;
 
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.util.PlatformIcons.PACKAGE_ICON;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
@@ -34,6 +33,8 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.PlatformIcons;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -191,7 +192,7 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
     if (myFiles.size() > 1) {
       presentation.addText(String.format(Locale.US, " (%1$d)", myFiles.size()), GRAY_ATTRIBUTES);
     }
-    presentation.setIcon(PACKAGE_ICON);
+    presentation.setIcon(IconManager.getInstance().getPlatformIcon(PlatformIcons.Package));
   }
 
   @Override

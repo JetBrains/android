@@ -19,7 +19,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.util.PlatformIcons
+import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,14 +36,14 @@ class SafeArgsXmlTagTest {
 
     val tagA = SafeArgsXmlTag(
       xmlTag = originalTag,
-      icon = PlatformIcons.CLASS_ICON,
+      icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
       name = "Foo",
       containerIdentifier = "package1"
     )
 
     val tagB = SafeArgsXmlTag(
       xmlTag = originalTag,
-      icon = PlatformIcons.CLASS_ICON,
+      icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
       name = "Foo",
       containerIdentifier = "package1"
     )

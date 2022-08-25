@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
+import com.intellij.ui.IconManager;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +23,7 @@ import javax.swing.*;
 
 enum Kind {
   ANNOTATION("Annotation", PlatformIcons.ANNOTATION_TYPE_ICON, "AnnotationType"),
-  CLASS("Class", PlatformIcons.CLASS_ICON),
+  CLASS("Class", IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Class)),
   ENUM("Enum", PlatformIcons.ENUM_ICON),
   INTERFACE("Interface", PlatformIcons.INTERFACE_ICON);
 

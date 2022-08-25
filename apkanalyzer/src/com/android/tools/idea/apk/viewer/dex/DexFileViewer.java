@@ -65,14 +65,15 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.IconManager;
 import com.intellij.ui.LoadingNode;
+import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.PlatformIcons;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.tree.TreeModelAdapter;
@@ -606,7 +607,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     private final DexViewFilters myDexViewFilters;
 
     public ShowFieldsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
-      super("Show fields", "Toggle between show/hide fields", PlatformIcons.FIELD_ICON);
+      super("Show fields", "Toggle between show/hide fields", IconManager.getInstance().getPlatformIcon(PlatformIcons.Field));
       myTree = tree;
       myDexViewFilters = options;
     }
@@ -628,7 +629,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     private final DexViewFilters myDexViewFilters;
 
     public ShowMethodsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
-      super("Show methods", "Toggle between show/hide methods", PlatformIcons.METHOD_ICON);
+      super("Show methods", "Toggle between show/hide methods", IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
       myTree = tree;
       myDexViewFilters = options;
     }

@@ -38,8 +38,9 @@ import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -391,7 +392,7 @@ public abstract class TreeDetailsView extends CaptureDetailsView {
           append(classOrNamespace, attributes);
         }
         else {
-          setIcon(PlatformIcons.METHOD_ICON);
+          setIcon(IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
           if (model instanceof SystemTraceNodeModel) {
             // System Trace events are not real methods so don't append "()".
             append(model.getName());
