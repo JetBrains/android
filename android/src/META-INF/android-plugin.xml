@@ -39,9 +39,6 @@
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="RebuildGradleProject"/>
     </action>
 
-    <!-- Sync action has different location in IDEA and AS. Do not specify location here. -->
-    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC" />
-
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip">
       <override-text place="MainMenu"/>
       <add-to-group group-id="FileExportGroup" anchor="last"/>
@@ -92,7 +89,6 @@
 
     <group id="Android.MainToolBarActionGroup">
       <separator/>
-      <reference id="Android.SyncProject" />
       <reference id="Android.DeviceManager"/>
       <separator/>
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />

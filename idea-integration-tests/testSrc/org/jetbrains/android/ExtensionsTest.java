@@ -3,6 +3,8 @@ package org.jetbrains.android;
 
 import com.android.tools.idea.project.AndroidRunConfigurations;
 import com.intellij.ExtensionPoints;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.testFramework.LightPlatformTestCase;
@@ -25,5 +27,10 @@ public class ExtensionsTest extends LightPlatformTestCase {
       .collect(Collectors.toList());
 
     assertTrue("registered EPs: " + androidEPs, androidEPs.isEmpty());
+  }
+
+  public void testActions() {
+    AnAction androidSyncAction = ActionManager.getInstance().getAction("Android.SyncProject");
+    assertNull("Android.SyncProject is not needed in IDEA", androidSyncAction);
   }
 }

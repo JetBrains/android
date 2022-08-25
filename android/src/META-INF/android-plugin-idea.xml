@@ -15,13 +15,6 @@
   -->
 <!-- This configuration file is only loaded in IntelliJ IDEA, not in Android Studio. -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <actions>
-    <group id="Android.SyncProject.ActionGroup">
-      <reference id="Android.SyncProject"/>
-      <add-to-group group-id="AndroidToolsGroup" anchor="first"/>
-    </group>
-  </actions>
-
   <extensions defaultExtensionNs="com.intellij">
     <!-- Note: in AndroidStudio this configurable has different groupId: build -->
     <applicationConfigurable groupId="build.android" id="instant.run"

@@ -148,10 +148,9 @@
             icon="AllIcons.ToolbarDecorator.Import"
             overrides="true"/>
 
-    <group id="Android.SyncProject.ActionGroup">
-      <reference id="Android.SyncProject" />
+    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
-    </group>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
