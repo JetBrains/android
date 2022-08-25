@@ -116,12 +116,14 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
 
   private val myDeviceSelectorListView: DetailsViewDeviceSelectorListView = DetailsViewDeviceSelectorListView(
     object : DetailsViewDeviceSelectorListViewListener {
+      @UiThread
       override fun onDeviceSelected(selectedDevice: AndroidDevice) {
         this@AndroidTestSuiteDetailsView.selectedDevice = selectedDevice
         reloadAndroidTestResults()
         myComponentsSplitter.secondComponent = contentView.rootPanel
       }
 
+      @UiThread
       override fun onRawOutputSelected() {
         myComponentsSplitter.secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
       }

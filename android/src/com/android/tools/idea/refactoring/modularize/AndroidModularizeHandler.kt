@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.refactoring.modularize
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.getManifestFiles
 import com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE
@@ -65,10 +66,12 @@ import org.jetbrains.annotations.NotNull
 import java.util.Locale
 
 class AndroidModularizeHandler : RefactoringActionHandler {
+  @UiThread
   override fun invoke(project: Project, editor: Editor, file: PsiFile, dataContext: DataContext) {
     invoke(project, BaseRefactoringAction.getPsiElementArray(dataContext), dataContext)
   }
 
+  @UiThread
   override fun invoke(@NotNull project: Project, @NotNull elements: Array<PsiElement>, dataContext: DataContext) {
     val processor: AndroidModularizeProcessor = createProcessor(project, elements)
 

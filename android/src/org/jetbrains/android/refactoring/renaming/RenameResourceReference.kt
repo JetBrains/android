@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring.renaming
 
+import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.FolderTypeRelationship
@@ -273,6 +274,7 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     return isAvailableOnDataContext(dataContext)
   }
 
+  @UiThread
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext) {
     val referencePsiElement = getWritableResourceReferenceElement(dataContext) ?: return
     if (file == null) {
@@ -283,6 +285,7 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     ResourceRenameDialog(project, referencePsiElement, null, editor, newName).show(dataContext)
   }
 
+  @UiThread
   override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext) {
     val editor = CommonDataKeys.EDITOR.getData(dataContext)
     val file = CommonDataKeys.PSI_FILE.getData(dataContext)

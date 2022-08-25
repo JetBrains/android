@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.project
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildResult
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
@@ -38,5 +39,6 @@ object DefaultBuildManager : ProjectSystemBuildManager {
 
   override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {}
 
+  @get:UiThread
   override val isBuilding = false
 }

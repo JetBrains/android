@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.annotations.concurrency.UiThread;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -60,11 +61,13 @@ public class UnusedResourcesHandler implements RefactoringActionHandler {
   }
 
   @Override
+  @UiThread
   public void invoke(@NotNull Project project, Editor editor, PsiFile file, DataContext dataContext) {
     invoke(project, new PsiElement[]{file}, dataContext);
   }
 
   @Override
+  @UiThread
   public void invoke(@NotNull final Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
     Set<Module> moduleSet = Sets.newHashSet();
     Module[] modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext);
