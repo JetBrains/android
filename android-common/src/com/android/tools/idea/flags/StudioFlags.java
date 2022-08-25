@@ -1391,6 +1391,15 @@ public final class StudioFlags {
       "The project to use for FTL Direct Access",
       "cloud-test-external1"
     );
+
+  public static final Flag<String> DIRECT_ACCESS_ENDPOINT =
+    Flag.create(
+      FIREBASE_TEST_LAB,
+      "direct.access.endpoint",
+      "FTL Direct Access endpoint",
+      "The URL for FTL Direct Access to connect to, in host:port form (with no protocol specified).",
+      "testing.googleapis.com"
+    );
   // endregion Firebase Test Lab
 
   // region App Insights
