@@ -49,7 +49,6 @@ MODULE                        : project_sm_src
                     archives                      : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>_sm_src/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
@@ -57,7 +56,6 @@ MODULE                        : project_sm_src
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>_sm_src/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugImplementation           : <empty>
@@ -74,12 +72,10 @@ MODULE                        : project_sm_src
                     implementation                : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>_sm_src/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>_sm_src/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseImplementation         : <empty>

@@ -49,7 +49,6 @@ MODULE                        : project
                     archives                      : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
-                    debugAabPublication           : <empty>
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
@@ -57,7 +56,6 @@ MODULE                        : project
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugImplementation           : <empty>
@@ -74,12 +72,10 @@ MODULE                        : project
                     implementation                : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    releaseAabPublication         : <empty>
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseImplementation         : <empty>
@@ -184,10 +180,6 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -206,10 +198,6 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>
@@ -303,10 +291,6 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -325,10 +309,6 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>

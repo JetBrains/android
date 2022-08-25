@@ -204,7 +204,6 @@ MODULE                        : MainActivity
                     localApiDependenciesMetadata  : <empty>
                     localCompileOnly              : <empty>
                     localCompileOnlyDependenciesMetadata    : <empty>
-                    - localDebugAabPublication    : <ROOT>/app/build/outputs/bundle/localDebug/app-local-debug.aab [-]
                     localDebugAndroidTestAnnotationProcessorClasspath : <empty>
                     localDebugAndroidTestApi      : <empty>
                     localDebugAndroidTestApiDependenciesMetadata      : <empty>
@@ -222,7 +221,6 @@ MODULE                        : MainActivity
                     localDebugApi                 : <empty>
                     localDebugApiDependenciesMetadata       : <empty>
                     localDebugApiElements         : <empty>
-                    - localDebugApkPublication    : <ROOT>/app/build/outputs/apk-zips/localDebug/apks.zip [-]
                     localDebugCompileClasspath    : <empty>
                     localDebugCompileOnly         : <empty>
                     localDebugCompileOnlyDependenciesMetadata         : <empty>
@@ -251,13 +249,11 @@ MODULE                        : MainActivity
                     localImplementation           : <empty>
                     localImplementationDependenciesMetadata : <empty>
                     localIntransitiveDependenciesMetadata   : <empty>
-                    - localReleaseAabPublication  : <ROOT>/app/build/outputs/bundle/localRelease/app-local-release.aab [-]
                     localReleaseAnnotationProcessor         : <empty>
                     localReleaseAnnotationProcessorClasspath          : <empty>
                     localReleaseApi               : <empty>
                     localReleaseApiDependenciesMetadata     : <empty>
                     localReleaseApiElements       : <empty>
-                    - localReleaseApkPublication  : <ROOT>/app/build/outputs/apk-zips/localRelease/apks.zip [-]
                     localReleaseCompileClasspath  : <empty>
                     localReleaseCompileOnly       : <empty>
                     localReleaseCompileOnlyDependenciesMetadata       : <empty>
@@ -302,7 +298,6 @@ MODULE                        : MainActivity
                     remoteApiDependenciesMetadata : <empty>
                     remoteCompileOnly             : <empty>
                     remoteCompileOnlyDependenciesMetadata   : <empty>
-                    - remoteDebugAabPublication   : <ROOT>/app/build/outputs/bundle/remoteDebug/app-remote-debug.aab [-]
                     remoteDebugAndroidTestAnnotationProcessorClasspath          : <empty>
                     remoteDebugAndroidTestApi     : <empty>
                     remoteDebugAndroidTestApiDependenciesMetadata     : <empty>
@@ -320,7 +315,6 @@ MODULE                        : MainActivity
                     remoteDebugApi                : <empty>
                     remoteDebugApiDependenciesMetadata      : <empty>
                     remoteDebugApiElements        : <empty>
-                    - remoteDebugApkPublication   : <ROOT>/app/build/outputs/apk-zips/remoteDebug/apks.zip [-]
                     remoteDebugCompileClasspath   : <empty>
                     remoteDebugCompileOnly        : <empty>
                     remoteDebugCompileOnlyDependenciesMetadata        : <empty>
@@ -349,13 +343,11 @@ MODULE                        : MainActivity
                     remoteImplementation          : <empty>
                     remoteImplementationDependenciesMetadata          : <empty>
                     remoteIntransitiveDependenciesMetadata  : <empty>
-                    - remoteReleaseAabPublication : <ROOT>/app/build/outputs/bundle/remoteRelease/app-remote-release.aab [-]
                     remoteReleaseAnnotationProcessor        : <empty>
                     remoteReleaseAnnotationProcessorClasspath         : <empty>
                     remoteReleaseApi              : <empty>
                     remoteReleaseApiDependenciesMetadata    : <empty>
                     remoteReleaseApiElements      : <empty>
-                    - remoteReleaseApkPublication : <ROOT>/app/build/outputs/apk-zips/remoteRelease/apks.zip [-]
                     remoteReleaseCompileClasspath : <empty>
                     remoteReleaseCompileOnly      : <empty>
                     remoteReleaseCompileOnlyDependenciesMetadata      : <empty>
@@ -798,10 +790,6 @@ MODULE                        : MainActivity
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
                     debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -849,10 +837,6 @@ MODULE                        : MainActivity
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
                     releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     runtimeOnlyDependenciesMetadata         : <empty>

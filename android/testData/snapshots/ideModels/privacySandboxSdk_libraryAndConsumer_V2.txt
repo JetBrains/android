@@ -82,10 +82,6 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/ads-sdk-stub/build/outputs/aar/ads-sdk-stub-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/ads-sdk-stub/build/outputs/aar/ads-sdk-stub-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/ads-sdk-stub/build/outputs/aar/ads-sdk-stub-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/ads-sdk-stub/build/outputs/aar/ads-sdk-stub-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -104,10 +100,6 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/ads-sdk-stub/build/outputs/aar/ads-sdk-stub-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/ads-sdk-stub/build/outputs/aar/ads-sdk-stub-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/ads-sdk-stub/build/outputs/aar/ads-sdk-stub-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/ads-sdk-stub/build/outputs/aar/ads-sdk-stub-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>
@@ -205,7 +197,6 @@ MODULE                        : project
                     compileOnly                   : <empty>
                     compileOnlyDependenciesMetadata         : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
@@ -223,7 +214,6 @@ MODULE                        : project
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -264,13 +254,11 @@ MODULE                        : project
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>

@@ -49,7 +49,6 @@ MODULE                        : project
                     archives                      : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
@@ -57,7 +56,6 @@ MODULE                        : project
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugImplementation           : <empty>
@@ -74,12 +72,10 @@ MODULE                        : project
                     implementation                : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseImplementation         : <empty>
@@ -186,17 +182,9 @@ MODULE                        : project
                     debugTestFixturesCompileClasspath       : <empty>
                     debugTestFixturesRuntimeClasspath       : <empty>
                     debugTestFixturesRuntimeElements        : <empty>
-                    - debugTestFixturesVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug-testFixtures-testFixtures.aar [-]
-                    - debugTestFixturesVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug-testFixtures-testFixtures.aar [-]
-                    - debugTestFixturesVariantDebugApiPublication     : <ROOT>/lib/build/outputs/aar/lib-debug-testFixtures-testFixtures.aar [-]
-                    - debugTestFixturesVariantDebugRuntimePublication : <ROOT>/lib/build/outputs/aar/lib-debug-testFixtures-testFixtures.aar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -217,17 +205,9 @@ MODULE                        : project
                     releaseTestFixturesCompileClasspath     : <empty>
                     releaseTestFixturesRuntimeClasspath     : <empty>
                     releaseTestFixturesRuntimeElements      : <empty>
-                    - releaseTestFixturesVariantAllApiPublication     : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
-                    - releaseTestFixturesVariantAllRuntimePublication : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
-                    - releaseTestFixturesVariantReleaseApiPublication : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
-                    - releaseTestFixturesVariantReleaseRuntimePublication       : <ROOT>/lib/build/outputs/aar/lib-release-testFixtures-testFixtures.aar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>

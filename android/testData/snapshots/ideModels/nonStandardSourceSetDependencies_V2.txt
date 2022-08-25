@@ -80,7 +80,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     compileOnly                   : <empty>
                     compileOnlyDependenciesMetadata         : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
@@ -98,7 +97,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -139,13 +137,11 @@ MODULE                        : NonStandardSourceSetDependencies
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -567,10 +563,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
                     debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -618,10 +610,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
                     releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     runtimeOnlyDependenciesMetadata         : <empty>
@@ -924,10 +912,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -966,10 +950,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>
@@ -1307,10 +1287,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
                     debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -1359,10 +1335,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
                     releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     runtimeOnlyDependenciesMetadata         : <empty>

@@ -82,7 +82,6 @@ MODULE                        : TestCompositeLib1
                     compileOnly                   : <empty>
                     compileOnlyDependenciesMetadata         : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/TestCompositeLib1/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
@@ -100,7 +99,6 @@ MODULE                        : TestCompositeLib1
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/TestCompositeLib1/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -141,13 +139,11 @@ MODULE                        : TestCompositeLib1
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/TestCompositeLib1/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/TestCompositeLib1/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -347,10 +343,6 @@ MODULE                        : TestCompositeLib1
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
                     debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -398,10 +390,6 @@ MODULE                        : TestCompositeLib1
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
                     releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     runtimeOnlyDependenciesMetadata         : <empty>
@@ -3130,7 +3118,6 @@ MODULE                        : TestCompositeLib3
                     compileOnly                   : <empty>
                     compileOnlyDependenciesMetadata         : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/TestCompositeLib3/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
@@ -3148,7 +3135,6 @@ MODULE                        : TestCompositeLib3
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/TestCompositeLib3/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -3189,13 +3175,11 @@ MODULE                        : TestCompositeLib3
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/TestCompositeLib3/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/TestCompositeLib3/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -3347,10 +3331,6 @@ MODULE                        : TestCompositeLib3
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -3369,10 +3349,6 @@ MODULE                        : TestCompositeLib3
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/TestCompositeLib3/lib/build/outputs/aar/lib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>
@@ -5624,7 +5600,6 @@ MODULE                        : project
                     compileOnly                   : <empty>
                     compileOnlyDependenciesMetadata         : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
@@ -5642,7 +5617,6 @@ MODULE                        : project
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -5683,13 +5657,11 @@ MODULE                        : project
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
@@ -5892,10 +5864,6 @@ MODULE                        : project
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
                     debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -5943,10 +5911,6 @@ MODULE                        : project
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
                     releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     runtimeOnlyDependenciesMetadata         : <empty>

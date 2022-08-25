@@ -69,7 +69,6 @@ MODULE                        : project
                     exampleAnnotationProcessor    : <empty>
                     exampleApi                    : <empty>
                     exampleCompileOnly            : <empty>
-                    - exampleDebugAabPublication  : <ROOT>/app/build/outputs/bundle/exampleDebug/app-example-debug.aab [-]
                     exampleDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                     exampleDebugAndroidTestCompileClasspath : <empty>
                     exampleDebugAndroidTestRuntimeClasspath : <empty>
@@ -77,7 +76,6 @@ MODULE                        : project
                     exampleDebugAnnotationProcessorClasspath          : <empty>
                     exampleDebugApi               : <empty>
                     exampleDebugApiElements       : <empty>
-                    - exampleDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/exampleDebug/apks.zip [-]
                     exampleDebugCompileClasspath  : <empty>
                     exampleDebugCompileOnly       : <empty>
                     exampleDebugImplementation    : <empty>
@@ -91,12 +89,10 @@ MODULE                        : project
                     exampleDebugWearApp           : <empty>
                     exampleDebugWearBundling      : <empty>
                     exampleImplementation         : <empty>
-                    - exampleReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/exampleRelease/app-example-release.aab [-]
                     exampleReleaseAnnotationProcessor       : <empty>
                     exampleReleaseAnnotationProcessorClasspath        : <empty>
                     exampleReleaseApi             : <empty>
                     exampleReleaseApiElements     : <empty>
-                    - exampleReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/exampleRelease/apks.zip [-]
                     exampleReleaseCompileClasspath          : <empty>
                     exampleReleaseCompileOnly     : <empty>
                     exampleReleaseImplementation  : <empty>

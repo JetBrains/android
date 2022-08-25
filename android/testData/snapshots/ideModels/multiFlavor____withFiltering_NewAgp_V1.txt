@@ -94,7 +94,6 @@ MODULE                        : MultiFlavor
                     firstAbcSecondAbcAnnotationProcessor    : <empty>
                     firstAbcSecondAbcApi          : <empty>
                     firstAbcSecondAbcCompileOnly  : <empty>
-                    - firstAbcSecondAbcDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcDebug/app-firstAbc-secondAbc-debug.aab [-]
                     firstAbcSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                     firstAbcSecondAbcDebugAndroidTestCompileClasspath : <empty>
                     firstAbcSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
@@ -102,7 +101,6 @@ MODULE                        : MultiFlavor
                     firstAbcSecondAbcDebugAnnotationProcessorClasspath          : <empty>
                     firstAbcSecondAbcDebugApi     : <empty>
                     firstAbcSecondAbcDebugApiElements       : <empty>
-                    - firstAbcSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcDebug/apks.zip [-]
                     firstAbcSecondAbcDebugCompileClasspath  : <empty>
                     firstAbcSecondAbcDebugCompileOnly       : <empty>
                     firstAbcSecondAbcDebugImplementation    : <empty>
@@ -116,12 +114,10 @@ MODULE                        : MultiFlavor
                     firstAbcSecondAbcDebugWearApp : <empty>
                     firstAbcSecondAbcDebugWearBundling      : <empty>
                     firstAbcSecondAbcImplementation         : <empty>
-                    - firstAbcSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcRelease/app-firstAbc-secondAbc-release.aab [-]
                     firstAbcSecondAbcReleaseAnnotationProcessor       : <empty>
                     firstAbcSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
                     firstAbcSecondAbcReleaseApi   : <empty>
                     firstAbcSecondAbcReleaseApiElements     : <empty>
-                    - firstAbcSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcRelease/apks.zip [-]
                     firstAbcSecondAbcReleaseCompileClasspath          : <empty>
                     firstAbcSecondAbcReleaseCompileOnly     : <empty>
                     firstAbcSecondAbcReleaseImplementation  : <empty>

@@ -224,7 +224,6 @@ MODULE                        : kotlinMultiPlatform
                     compileClasspath              : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
@@ -232,7 +231,6 @@ MODULE                        : kotlinMultiPlatform
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugImplementation           : <empty>
@@ -302,12 +300,10 @@ MODULE                        : kotlinMultiPlatform
                     metadataCompileClasspath      : <empty>
                     metadataCompileOnly           : <empty>
                     metadataImplementation        : <empty>
-                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseImplementation         : <empty>
@@ -594,10 +590,6 @@ MODULE                        : kotlinMultiPlatform
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -683,10 +675,6 @@ MODULE                        : kotlinMultiPlatform
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>

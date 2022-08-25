@@ -121,10 +121,6 @@ MODULE                        : My_First_App
                             debugUnitTestRuntimeClasspath : <empty>
                             debugUnitTestRuntimeOnly      : <empty>
                             debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
-                            - debugVariantAllApiPublication         : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
-                            - debugVariantAllRuntimePublication     : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
-                            - debugVariantDebugApiPublication       : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
-                            - debugVariantDebugRuntimePublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                             debugWearApp                  : <empty>
                             default                       : <empty>
                             implementation                : <empty>
@@ -172,10 +168,6 @@ MODULE                        : My_First_App
                             releaseUnitTestRuntimeClasspath         : <empty>
                             releaseUnitTestRuntimeOnly    : <empty>
                             releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
-                            - releaseVariantAllApiPublication       : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                            - releaseVariantAllRuntimePublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                            - releaseVariantReleaseApiPublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
-                            - releaseVariantReleaseRuntimePublication         : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                             releaseWearApp                : <empty>
                             runtimeOnly                   : <empty>
                             runtimeOnlyDependenciesMetadata         : <empty>
@@ -300,7 +292,6 @@ MODULE                        : My_First_App
                     compileOnly                   : <empty>
                     compileOnlyDependenciesMetadata         : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/firstapp/app/build/outputs/bundle/debug/app-debug.aab [-]
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestApi           : <empty>
                     debugAndroidTestApiDependenciesMetadata : <empty>
@@ -318,7 +309,6 @@ MODULE                        : My_First_App
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/firstapp/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
@@ -359,13 +349,11 @@ MODULE                        : My_First_App
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/firstapp/app/build/outputs/bundle/release/app-release.aab [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/firstapp/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>

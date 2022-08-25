@@ -143,7 +143,6 @@ MODULE                        : project
                     basicBarAnnotationProcessor   : <empty>
                     basicBarApi                   : <empty>
                     basicBarCompileOnly           : <empty>
-                    - basicBarDebugAabPublication : <ROOT>/app/build/outputs/bundle/basicBarDebug/app-basic-bar-debug.aab [-]
                     basicBarDebugAndroidTestAnnotationProcessorClasspath        : <empty>
                     basicBarDebugAndroidTestCompileClasspath          : <empty>
                     basicBarDebugAndroidTestRuntimeClasspath          : <empty>
@@ -164,7 +163,6 @@ MODULE                        : project
                     basicBarDebugWearApp          : <empty>
                     basicBarDebugWearBundling     : <empty>
                     basicBarImplementation        : <empty>
-                    - basicBarReleaseAabPublication         : <ROOT>/app/build/outputs/bundle/basicBarRelease/app-basic-bar-release.aab [-]
                     basicBarReleaseAnnotationProcessor      : <empty>
                     basicBarReleaseAnnotationProcessorClasspath       : <empty>
                     basicBarReleaseApi            : <empty>
@@ -182,7 +180,6 @@ MODULE                        : project
                     basicBarReleaseWearApp        : <empty>
                     basicBarReleaseWearBundling   : <empty>
                     basicBarRuntimeOnly           : <empty>
-                    - basicBarSpecialReleaseAabPublication  : <ROOT>/app/build/outputs/bundle/basicBarSpecialRelease/app-basic-bar-specialRelease.aab [-]
                     basicBarSpecialReleaseAnnotationProcessor         : <empty>
                     basicBarSpecialReleaseAnnotationProcessorClasspath          : <empty>
                     basicBarSpecialReleaseApi     : <empty>
@@ -205,7 +202,6 @@ MODULE                        : project
                     basicOtherBarAnnotationProcessor        : <empty>
                     basicOtherBarApi              : <empty>
                     basicOtherBarCompileOnly      : <empty>
-                    - basicOtherBarDebugAabPublication      : <ROOT>/app/build/outputs/bundle/basicOtherBarDebug/app-basic-otherBar-debug.aab [-]
                     basicOtherBarDebugAndroidTestAnnotationProcessorClasspath   : <empty>
                     basicOtherBarDebugAndroidTestCompileClasspath     : <empty>
                     basicOtherBarDebugAndroidTestRuntimeClasspath     : <empty>
@@ -226,7 +222,6 @@ MODULE                        : project
                     basicOtherBarDebugWearApp     : <empty>
                     basicOtherBarDebugWearBundling          : <empty>
                     basicOtherBarImplementation   : <empty>
-                    - basicOtherBarReleaseAabPublication    : <ROOT>/app/build/outputs/bundle/basicOtherBarRelease/app-basic-otherBar-release.aab [-]
                     basicOtherBarReleaseAnnotationProcessor : <empty>
                     basicOtherBarReleaseAnnotationProcessorClasspath  : <empty>
                     basicOtherBarReleaseApi       : <empty>
@@ -244,7 +239,6 @@ MODULE                        : project
                     basicOtherBarReleaseWearApp   : <empty>
                     basicOtherBarReleaseWearBundling        : <empty>
                     basicOtherBarRuntimeOnly      : <empty>
-                    - basicOtherBarSpecialReleaseAabPublication       : <ROOT>/app/build/outputs/bundle/basicOtherBarSpecialRelease/app-basic-otherBar-specialRelease.aab [-]
                     basicOtherBarSpecialReleaseAnnotationProcessor    : <empty>
                     basicOtherBarSpecialReleaseAnnotationProcessorClasspath     : <empty>
                     basicOtherBarSpecialReleaseApi          : <empty>
@@ -287,7 +281,6 @@ MODULE                        : project
                     paidBarAnnotationProcessor    : <empty>
                     paidBarApi                    : <empty>
                     paidBarCompileOnly            : <empty>
-                    - paidBarDebugAabPublication  : <ROOT>/app/build/outputs/bundle/paidBarDebug/app-paid-bar-debug.aab [-]
                     paidBarDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                     paidBarDebugAndroidTestCompileClasspath : <empty>
                     paidBarDebugAndroidTestRuntimeClasspath : <empty>
@@ -308,7 +301,6 @@ MODULE                        : project
                     paidBarDebugWearApp           : <empty>
                     paidBarDebugWearBundling      : <empty>
                     paidBarImplementation         : <empty>
-                    - paidBarReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/paidBarRelease/app-paid-bar-release.aab [-]
                     paidBarReleaseAnnotationProcessor       : <empty>
                     paidBarReleaseAnnotationProcessorClasspath        : <empty>
                     paidBarReleaseApi             : <empty>
@@ -326,7 +318,6 @@ MODULE                        : project
                     paidBarReleaseWearApp         : <empty>
                     paidBarReleaseWearBundling    : <empty>
                     paidBarRuntimeOnly            : <empty>
-                    - paidBarSpecialReleaseAabPublication   : <ROOT>/app/build/outputs/bundle/paidBarSpecialRelease/app-paid-bar-specialRelease.aab [-]
                     paidBarSpecialReleaseAnnotationProcessor          : <empty>
                     paidBarSpecialReleaseAnnotationProcessorClasspath : <empty>
                     paidBarSpecialReleaseApi      : <empty>
@@ -349,7 +340,6 @@ MODULE                        : project
                     paidOtherBarAnnotationProcessor         : <empty>
                     paidOtherBarApi               : <empty>
                     paidOtherBarCompileOnly       : <empty>
-                    - paidOtherBarDebugAabPublication       : <ROOT>/app/build/outputs/bundle/paidOtherBarDebug/app-paid-otherBar-debug.aab [-]
                     paidOtherBarDebugAndroidTestAnnotationProcessorClasspath    : <empty>
                     paidOtherBarDebugAndroidTestCompileClasspath      : <empty>
                     paidOtherBarDebugAndroidTestRuntimeClasspath      : <empty>
@@ -370,7 +360,6 @@ MODULE                        : project
                     paidOtherBarDebugWearApp      : <empty>
                     paidOtherBarDebugWearBundling : <empty>
                     paidOtherBarImplementation    : <empty>
-                    - paidOtherBarReleaseAabPublication     : <ROOT>/app/build/outputs/bundle/paidOtherBarRelease/app-paid-otherBar-release.aab [-]
                     paidOtherBarReleaseAnnotationProcessor  : <empty>
                     paidOtherBarReleaseAnnotationProcessorClasspath   : <empty>
                     paidOtherBarReleaseApi        : <empty>
@@ -388,7 +377,6 @@ MODULE                        : project
                     paidOtherBarReleaseWearApp    : <empty>
                     paidOtherBarReleaseWearBundling         : <empty>
                     paidOtherBarRuntimeOnly       : <empty>
-                    - paidOtherBarSpecialReleaseAabPublication        : <ROOT>/app/build/outputs/bundle/paidOtherBarSpecialRelease/app-paid-otherBar-specialRelease.aab [-]
                     paidOtherBarSpecialReleaseAnnotationProcessor     : <empty>
                     paidOtherBarSpecialReleaseAnnotationProcessorClasspath      : <empty>
                     paidOtherBarSpecialReleaseApi : <empty>
@@ -836,10 +824,6 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -858,10 +842,6 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>
@@ -963,10 +943,6 @@ MODULE                        : project
                             debugUnitTestAnnotationProcessorClasspath         : <empty>
                             debugUnitTestCompileClasspath : <empty>
                             debugUnitTestRuntimeClasspath : <empty>
-                            - debugVariantAllApiPublication         : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
-                            - debugVariantAllRuntimePublication     : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
-                            - debugVariantDebugApiPublication       : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
-                            - debugVariantDebugRuntimePublication   : <ROOT>/nested1/deep/build/outputs/aar/deep-debug.aar [-]
                             debugWearApp                  : <empty>
                             default                       : <empty>
                             implementation                : <empty>
@@ -985,10 +961,6 @@ MODULE                        : project
                             releaseUnitTestAnnotationProcessorClasspath       : <empty>
                             releaseUnitTestCompileClasspath         : <empty>
                             releaseUnitTestRuntimeClasspath         : <empty>
-                            - releaseVariantAllApiPublication       : <ROOT>/nested1/deep/build/outputs/aar/deep-release.aar [-]
-                            - releaseVariantAllRuntimePublication   : <ROOT>/nested1/deep/build/outputs/aar/deep-release.aar [-]
-                            - releaseVariantReleaseApiPublication   : <ROOT>/nested1/deep/build/outputs/aar/deep-release.aar [-]
-                            - releaseVariantReleaseRuntimePublication         : <ROOT>/nested1/deep/build/outputs/aar/deep-release.aar [-]
                             releaseWearApp                : <empty>
                             runtimeOnly                   : <empty>
                             testAnnotationProcessor       : <empty>
@@ -1075,10 +1047,6 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/nested1/build/outputs/aar/nested1-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -1097,10 +1065,6 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/nested1/build/outputs/aar/nested1-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/nested1/build/outputs/aar/nested1-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/nested1/build/outputs/aar/nested1-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/nested1/build/outputs/aar/nested1-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>
@@ -1202,10 +1166,6 @@ MODULE                        : project
                             debugUnitTestAnnotationProcessorClasspath         : <empty>
                             debugUnitTestCompileClasspath : <empty>
                             debugUnitTestRuntimeClasspath : <empty>
-                            - debugVariantAllApiPublication         : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
-                            - debugVariantAllRuntimePublication     : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
-                            - debugVariantDebugApiPublication       : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
-                            - debugVariantDebugRuntimePublication   : <ROOT>/nested2/deep/build/outputs/aar/deep-debug.aar [-]
                             debugWearApp                  : <empty>
                             default                       : <empty>
                             implementation                : <empty>
@@ -1224,10 +1184,6 @@ MODULE                        : project
                             releaseUnitTestAnnotationProcessorClasspath       : <empty>
                             releaseUnitTestCompileClasspath         : <empty>
                             releaseUnitTestRuntimeClasspath         : <empty>
-                            - releaseVariantAllApiPublication       : <ROOT>/nested2/deep/build/outputs/aar/deep-release.aar [-]
-                            - releaseVariantAllRuntimePublication   : <ROOT>/nested2/deep/build/outputs/aar/deep-release.aar [-]
-                            - releaseVariantReleaseApiPublication   : <ROOT>/nested2/deep/build/outputs/aar/deep-release.aar [-]
-                            - releaseVariantReleaseRuntimePublication         : <ROOT>/nested2/deep/build/outputs/aar/deep-release.aar [-]
                             releaseWearApp                : <empty>
                             runtimeOnly                   : <empty>
                             testAnnotationProcessor       : <empty>
@@ -1327,10 +1283,6 @@ MODULE                        : project
                                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                                     debugUnitTestCompileClasspath : <empty>
                                     debugUnitTestRuntimeClasspath : <empty>
-                                    - debugVariantAllApiPublication         : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
-                                    - debugVariantAllRuntimePublication     : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
-                                    - debugVariantDebugApiPublication       : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
-                                    - debugVariantDebugRuntimePublication   : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-debug.aar [-]
                                     debugWearApp                  : <empty>
                                     default                       : <empty>
                                     implementation                : <empty>
@@ -1349,10 +1301,6 @@ MODULE                        : project
                                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                                     releaseUnitTestCompileClasspath         : <empty>
                                     releaseUnitTestRuntimeClasspath         : <empty>
-                                    - releaseVariantAllApiPublication       : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-release.aar [-]
-                                    - releaseVariantAllRuntimePublication   : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-release.aar [-]
-                                    - releaseVariantReleaseApiPublication   : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-release.aar [-]
-                                    - releaseVariantReleaseRuntimePublication         : <ROOT>/nested2/trans/deep2/build/outputs/aar/deep2-release.aar [-]
                                     releaseWearApp                : <empty>
                                     runtimeOnly                   : <empty>
                                     testAnnotationProcessor       : <empty>
@@ -1468,10 +1416,6 @@ MODULE                        : project
                     basicDebugUnitTestAnnotationProcessorClasspath    : <empty>
                     basicDebugUnitTestCompileClasspath      : <empty>
                     basicDebugUnitTestRuntimeClasspath      : <empty>
-                    - basicDebugVariantAllApiPublication    : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
-                    - basicDebugVariantAllRuntimePublication          : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
-                    - basicDebugVariantBasicDebugApiPublication       : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
-                    - basicDebugVariantBasicDebugRuntimePublication   : <ROOT>/nested2/build/outputs/aar/nested2-basic-debug.aar [-]
                     basicDebugWearApp             : <empty>
                     basicImplementation           : <empty>
                     basicReleaseAnnotationProcessor         : <empty>
@@ -1487,10 +1431,6 @@ MODULE                        : project
                     basicReleaseUnitTestAnnotationProcessorClasspath  : <empty>
                     basicReleaseUnitTestCompileClasspath    : <empty>
                     basicReleaseUnitTestRuntimeClasspath    : <empty>
-                    - basicReleaseVariantAllApiPublication  : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
-                    - basicReleaseVariantAllRuntimePublication        : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
-                    - basicReleaseVariantBasicReleaseApiPublication   : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
-                    - basicReleaseVariantBasicReleaseRuntimePublication         : <ROOT>/nested2/build/outputs/aar/nested2-basic-release.aar [-]
                     basicReleaseWearApp           : <empty>
                     basicRuntimeOnly              : <empty>
                     basicWearApp                  : <empty>
@@ -1525,10 +1465,6 @@ MODULE                        : project
                     paidDebugUnitTestAnnotationProcessorClasspath     : <empty>
                     paidDebugUnitTestCompileClasspath       : <empty>
                     paidDebugUnitTestRuntimeClasspath       : <empty>
-                    - paidDebugVariantAllApiPublication     : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
-                    - paidDebugVariantAllRuntimePublication : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
-                    - paidDebugVariantPaidDebugApiPublication         : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
-                    - paidDebugVariantPaidDebugRuntimePublication     : <ROOT>/nested2/build/outputs/aar/nested2-paid-debug.aar [-]
                     paidDebugWearApp              : <empty>
                     paidImplementation            : <empty>
                     paidReleaseAnnotationProcessor          : <empty>
@@ -1544,10 +1480,6 @@ MODULE                        : project
                     paidReleaseUnitTestAnnotationProcessorClasspath   : <empty>
                     paidReleaseUnitTestCompileClasspath     : <empty>
                     paidReleaseUnitTestRuntimeClasspath     : <empty>
-                    - paidReleaseVariantAllApiPublication   : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
-                    - paidReleaseVariantAllRuntimePublication         : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
-                    - paidReleaseVariantPaidReleaseApiPublication     : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
-                    - paidReleaseVariantPaidReleaseRuntimePublication : <ROOT>/nested2/build/outputs/aar/nested2-paid-release.aar [-]
                     paidReleaseWearApp            : <empty>
                     paidRuntimeOnly               : <empty>
                     paidWearApp                   : <empty>

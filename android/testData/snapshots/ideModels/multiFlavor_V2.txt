@@ -136,7 +136,6 @@ MODULE                        : MultiFlavor
                     firstAbcSecondAbcAnnotationProcessor    : <empty>
                     firstAbcSecondAbcApi          : <empty>
                     firstAbcSecondAbcCompileOnly  : <empty>
-                    - firstAbcSecondAbcDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcDebug/app-firstAbc-secondAbc-debug.aab [-]
                     firstAbcSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                     firstAbcSecondAbcDebugAndroidTestCompileClasspath : <empty>
                     firstAbcSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
@@ -144,7 +143,6 @@ MODULE                        : MultiFlavor
                     firstAbcSecondAbcDebugAnnotationProcessorClasspath          : <empty>
                     firstAbcSecondAbcDebugApi     : <empty>
                     firstAbcSecondAbcDebugApiElements       : <empty>
-                    - firstAbcSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcDebug/apks.zip [-]
                     firstAbcSecondAbcDebugCompileClasspath  : <empty>
                     firstAbcSecondAbcDebugCompileOnly       : <empty>
                     firstAbcSecondAbcDebugImplementation    : <empty>
@@ -158,12 +156,10 @@ MODULE                        : MultiFlavor
                     firstAbcSecondAbcDebugWearApp : <empty>
                     firstAbcSecondAbcDebugWearBundling      : <empty>
                     firstAbcSecondAbcImplementation         : <empty>
-                    - firstAbcSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondAbcRelease/app-firstAbc-secondAbc-release.aab [-]
                     firstAbcSecondAbcReleaseAnnotationProcessor       : <empty>
                     firstAbcSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
                     firstAbcSecondAbcReleaseApi   : <empty>
                     firstAbcSecondAbcReleaseApiElements     : <empty>
-                    - firstAbcSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondAbcRelease/apks.zip [-]
                     firstAbcSecondAbcReleaseCompileClasspath          : <empty>
                     firstAbcSecondAbcReleaseCompileOnly     : <empty>
                     firstAbcSecondAbcReleaseImplementation  : <empty>
@@ -181,7 +177,6 @@ MODULE                        : MultiFlavor
                     firstAbcSecondXyzAnnotationProcessor    : <empty>
                     firstAbcSecondXyzApi          : <empty>
                     firstAbcSecondXyzCompileOnly  : <empty>
-                    - firstAbcSecondXyzDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstAbcSecondXyzDebug/app-firstAbc-secondXyz-debug.aab [-]
                     firstAbcSecondXyzDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                     firstAbcSecondXyzDebugAndroidTestCompileClasspath : <empty>
                     firstAbcSecondXyzDebugAndroidTestRuntimeClasspath : <empty>
@@ -189,7 +184,6 @@ MODULE                        : MultiFlavor
                     firstAbcSecondXyzDebugAnnotationProcessorClasspath          : <empty>
                     firstAbcSecondXyzDebugApi     : <empty>
                     firstAbcSecondXyzDebugApiElements       : <empty>
-                    - firstAbcSecondXyzDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondXyzDebug/apks.zip [-]
                     firstAbcSecondXyzDebugCompileClasspath  : <empty>
                     firstAbcSecondXyzDebugCompileOnly       : <empty>
                     firstAbcSecondXyzDebugImplementation    : <empty>
@@ -203,12 +197,10 @@ MODULE                        : MultiFlavor
                     firstAbcSecondXyzDebugWearApp : <empty>
                     firstAbcSecondXyzDebugWearBundling      : <empty>
                     firstAbcSecondXyzImplementation         : <empty>
-                    - firstAbcSecondXyzReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstAbcSecondXyzRelease/app-firstAbc-secondXyz-release.aab [-]
                     firstAbcSecondXyzReleaseAnnotationProcessor       : <empty>
                     firstAbcSecondXyzReleaseAnnotationProcessorClasspath        : <empty>
                     firstAbcSecondXyzReleaseApi   : <empty>
                     firstAbcSecondXyzReleaseApiElements     : <empty>
-                    - firstAbcSecondXyzReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstAbcSecondXyzRelease/apks.zip [-]
                     firstAbcSecondXyzReleaseCompileClasspath          : <empty>
                     firstAbcSecondXyzReleaseCompileOnly     : <empty>
                     firstAbcSecondXyzReleaseImplementation  : <empty>
@@ -232,7 +224,6 @@ MODULE                        : MultiFlavor
                     firstXyzSecondAbcAnnotationProcessor    : <empty>
                     firstXyzSecondAbcApi          : <empty>
                     firstXyzSecondAbcCompileOnly  : <empty>
-                    - firstXyzSecondAbcDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstXyzSecondAbcDebug/app-firstXyz-secondAbc-debug.aab [-]
                     firstXyzSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                     firstXyzSecondAbcDebugAndroidTestCompileClasspath : <empty>
                     firstXyzSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
@@ -240,7 +231,6 @@ MODULE                        : MultiFlavor
                     firstXyzSecondAbcDebugAnnotationProcessorClasspath          : <empty>
                     firstXyzSecondAbcDebugApi     : <empty>
                     firstXyzSecondAbcDebugApiElements       : <empty>
-                    - firstXyzSecondAbcDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondAbcDebug/apks.zip [-]
                     firstXyzSecondAbcDebugCompileClasspath  : <empty>
                     firstXyzSecondAbcDebugCompileOnly       : <empty>
                     firstXyzSecondAbcDebugImplementation    : <empty>
@@ -254,12 +244,10 @@ MODULE                        : MultiFlavor
                     firstXyzSecondAbcDebugWearApp : <empty>
                     firstXyzSecondAbcDebugWearBundling      : <empty>
                     firstXyzSecondAbcImplementation         : <empty>
-                    - firstXyzSecondAbcReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstXyzSecondAbcRelease/app-firstXyz-secondAbc-release.aab [-]
                     firstXyzSecondAbcReleaseAnnotationProcessor       : <empty>
                     firstXyzSecondAbcReleaseAnnotationProcessorClasspath        : <empty>
                     firstXyzSecondAbcReleaseApi   : <empty>
                     firstXyzSecondAbcReleaseApiElements     : <empty>
-                    - firstXyzSecondAbcReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondAbcRelease/apks.zip [-]
                     firstXyzSecondAbcReleaseCompileClasspath          : <empty>
                     firstXyzSecondAbcReleaseCompileOnly     : <empty>
                     firstXyzSecondAbcReleaseImplementation  : <empty>
@@ -277,7 +265,6 @@ MODULE                        : MultiFlavor
                     firstXyzSecondXyzAnnotationProcessor    : <empty>
                     firstXyzSecondXyzApi          : <empty>
                     firstXyzSecondXyzCompileOnly  : <empty>
-                    - firstXyzSecondXyzDebugAabPublication  : <ROOT>/app/build/outputs/bundle/firstXyzSecondXyzDebug/app-firstXyz-secondXyz-debug.aab [-]
                     firstXyzSecondXyzDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                     firstXyzSecondXyzDebugAndroidTestCompileClasspath : <empty>
                     firstXyzSecondXyzDebugAndroidTestRuntimeClasspath : <empty>
@@ -285,7 +272,6 @@ MODULE                        : MultiFlavor
                     firstXyzSecondXyzDebugAnnotationProcessorClasspath          : <empty>
                     firstXyzSecondXyzDebugApi     : <empty>
                     firstXyzSecondXyzDebugApiElements       : <empty>
-                    - firstXyzSecondXyzDebugApkPublication  : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondXyzDebug/apks.zip [-]
                     firstXyzSecondXyzDebugCompileClasspath  : <empty>
                     firstXyzSecondXyzDebugCompileOnly       : <empty>
                     firstXyzSecondXyzDebugImplementation    : <empty>
@@ -299,12 +285,10 @@ MODULE                        : MultiFlavor
                     firstXyzSecondXyzDebugWearApp : <empty>
                     firstXyzSecondXyzDebugWearBundling      : <empty>
                     firstXyzSecondXyzImplementation         : <empty>
-                    - firstXyzSecondXyzReleaseAabPublication          : <ROOT>/app/build/outputs/bundle/firstXyzSecondXyzRelease/app-firstXyz-secondXyz-release.aab [-]
                     firstXyzSecondXyzReleaseAnnotationProcessor       : <empty>
                     firstXyzSecondXyzReleaseAnnotationProcessorClasspath        : <empty>
                     firstXyzSecondXyzReleaseApi   : <empty>
                     firstXyzSecondXyzReleaseApiElements     : <empty>
-                    - firstXyzSecondXyzReleaseApkPublication          : <ROOT>/app/build/outputs/apk-zips/firstXyzSecondXyzRelease/apks.zip [-]
                     firstXyzSecondXyzReleaseCompileClasspath          : <empty>
                     firstXyzSecondXyzReleaseCompileOnly     : <empty>
                     firstXyzSecondXyzReleaseImplementation  : <empty>
