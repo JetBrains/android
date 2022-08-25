@@ -17,6 +17,7 @@ package org.jetbrains.android.refactoring.namespaces
 
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.URI_PREFIX
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
@@ -99,10 +100,12 @@ class MigrateToResourceNamespacesAction : BaseRefactoringAction() {
  * Since there's no user input required to start the refactoring, it just runs a fresh [MigrateToResourceNamespacesProcessor].
  */
 class MigrateToResourceNamespacesHandler : RefactoringActionHandler {
+  @UiThread
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) {
     dataContext?.module?.let(this::invoke)
   }
 
+  @UiThread
   override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) {
     dataContext?.module?.let(this::invoke)
   }

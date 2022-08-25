@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring.namespaces
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
@@ -99,7 +100,10 @@ class MigrateToNonTransitiveRClassesAction : BaseRefactoringAction() {
  * Since there's no user input required to start the refactoring, it just runs a fresh [MigrateToResourceNamespacesProcessor].
  */
 class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
+  @UiThread
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) = invoke(project)
+
+  @UiThread
   override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) = invoke(project)
 
   private fun invoke(project: Project) {

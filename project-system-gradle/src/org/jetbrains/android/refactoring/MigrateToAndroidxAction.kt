@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.annotations.concurrency.UiThread
 import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidTargetHash
@@ -60,10 +61,12 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
                                var callSyncAfterMigration: Boolean = true,
                                var checkPrerequisites: Boolean = true
 ) : RefactoringActionHandler {
+  @UiThread
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) {
     invoke(project, if (file == null) arrayOf() else arrayOf<PsiElement>(file), dataContext)
   }
 
+  @UiThread
   override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext?) {
     if (checkPrerequisites && !checkRefactoringPrerequisites(project)) {
       return

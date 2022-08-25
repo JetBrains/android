@@ -21,6 +21,7 @@ import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.ge
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MODULE_RENAMED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -91,10 +92,12 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   }
 
   @Override
+  @UiThread
   public void invoke(@NotNull Project project, @Nullable Editor editor, @Nullable PsiFile file, @NotNull DataContext dataContext) {
   }
 
   @Override
+  @UiThread
   public void invoke(@NotNull final Project project, @NotNull PsiElement[] elements, @NotNull DataContext dataContext) {
     Module module = getGradleModule(dataContext);
     assert module != null;

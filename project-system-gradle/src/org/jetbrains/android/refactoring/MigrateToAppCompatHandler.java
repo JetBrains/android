@@ -17,6 +17,7 @@ package org.jetbrains.android.refactoring;
 
 import static java.util.Collections.emptySet;
 
+import com.android.annotations.concurrency.UiThread;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
@@ -28,11 +29,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class MigrateToAppCompatHandler implements RefactoringActionHandler {
   @Override
+  @UiThread
   public void invoke(@NotNull Project project, Editor editor, PsiFile file, DataContext dataContext) {
     invoke(project, new PsiElement[]{file}, dataContext);
   }
 
   @Override
+  @UiThread
   public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
 
     MigrateToAppCompatProcessor processor;

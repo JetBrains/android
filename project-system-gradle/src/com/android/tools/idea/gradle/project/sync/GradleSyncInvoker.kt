@@ -57,7 +57,10 @@ interface GradleSyncInvoker {
       project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SKIPPED)
     }
 
+    @WorkerThread
     override fun fetchAndMergeNativeVariants(project: Project, requestedAbis: Set<String>) = Unit
+
+    @WorkerThread
     override fun fetchGradleModels(project: Project): GradleProjectModels = GradleProjectModels(emptyList(), null)
   }
 
