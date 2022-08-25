@@ -352,6 +352,7 @@ iml_module(
         "//tools/adt/idea/android-navigator:intellij.android.navigator.testutils[module, test]",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module, test]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-coverage[test]",
     ],
 )
 
