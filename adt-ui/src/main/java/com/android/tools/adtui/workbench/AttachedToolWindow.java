@@ -101,6 +101,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
                      @NotNull WorkBench<T> workBench,
                      @NotNull SideModel<T> model,
                      boolean minimizedByDefault) {
+    Disposer.register(workBench, this);
     myWorkBench = workBench;
     myDefinition = definition;
     myDragListener = dragListener;
