@@ -73,6 +73,12 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   }
 
   @Test
+  fun testReadMoreUrl() {
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/compile-runtime-configuration", processor.getReadMoreUrl())
+  }
+
+  @Test
   fun testSimpleApplication() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
     val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))

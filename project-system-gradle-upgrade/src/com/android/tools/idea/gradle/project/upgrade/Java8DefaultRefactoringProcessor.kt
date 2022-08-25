@@ -145,7 +145,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       }
     }
 
-  override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/java8-default"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("java8-default")
 
   override fun getShortDescription(): String? =
     """

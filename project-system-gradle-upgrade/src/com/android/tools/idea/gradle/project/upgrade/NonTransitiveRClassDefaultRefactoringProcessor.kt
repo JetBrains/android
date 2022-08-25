@@ -75,8 +75,7 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.nonTransitiveRClass"
 
-  // TODO(b/243830717): use a redirect instead
-  override fun getReadMoreUrl() = "https://developer.android.com/studio/build/optimize-your-build#use-non-transitive-r-classes"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("non-transitive-r-class-default")
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {

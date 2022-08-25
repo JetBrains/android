@@ -23,6 +23,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
@@ -34,38 +35,44 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
   fun setUpGradlePropertiesFile() {
     runWriteAction {
       gradlePropertiesFile = projectRule.fixture.tempDirFixture.createFile("gradle.properties")
-      Assert.assertTrue(gradlePropertiesFile.isWritable)
+      assertTrue(gradlePropertiesFile.isWritable)
     }
+  }
+
+  @Test
+  fun testReadMoreUrl() {
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("7.4.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/non-transitive-r-class-default", processor.getReadMoreUrl())
   }
 
   @Test
   fun testIsDisabledFor740() {
     val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("7.4.0"))
-    Assert.assertFalse(processor.isEnabled)
+    assertFalse(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledFor800Beta01() {
     val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0-beta01"))
-    Assert.assertTrue(processor.isEnabled)
+    assertTrue(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledFrom740() {
     val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.4.0"), GradleVersion.parse("8.0.0"))
-    Assert.assertTrue(processor.isEnabled)
+    assertTrue(processor.isEnabled)
   }
 
   @Test
   fun testIsDisabledFrom800Beta01() {
     val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("8.0.0-beta01"), GradleVersion.parse("8.0.0"))
-    Assert.assertFalse(processor.isEnabled)
+    assertFalse(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledFor800Release() {
     val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
-    Assert.assertTrue(processor.isEnabled)
+    assertTrue(processor.isEnabled)
   }
 
   @Test
@@ -82,7 +89,7 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
     )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
-      Assert.assertEquals("${t.first} to ${t.second}", u, processor.necessity())
+      assertEquals("${t.first} to ${t.second}", u, processor.necessity())
     }
   }
 
@@ -115,13 +122,13 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
     val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
     processor.run()
     val newGradlePropertiesFile = projectRule.fixture.tempDirFixture.getFile("gradle.properties")
-    Assert.assertNotNull(newGradlePropertiesFile)
+    assertNotNull(newGradlePropertiesFile)
     verifyGradlePropertiesFileContents(newGradlePropertiesFile!!, TestFileName("NonTransitiveRClassDefault/False"))
   }
 
   private fun writeToGradlePropertiesFile(fileName: TestFileName) {
     val testFile = fileName.toFile(testDataPath, "")
-    Assert.assertTrue(testFile.exists())
+    assertTrue(testFile.exists())
     val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, VfsUtilCore.loadText(virtualTestFile!!)) }
   }
@@ -129,6 +136,6 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
   private fun verifyGradlePropertiesFileContents(gradlePropertiesFile: VirtualFile, testFile: TestFileName) {
     val expectedText = FileUtil.loadFile(testFile.toFile(testDataPath, ""))
     val actualText = VfsUtil.loadText(gradlePropertiesFile)
-    Assert.assertEquals(expectedText, actualText)
+    assertEquals(expectedText, actualText)
   }
 }

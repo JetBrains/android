@@ -242,7 +242,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
        The Fabric SDK is no longer supported as of November 15, 2020.
     """.trimIndent()
 
-  override fun getReadMoreUrl(): String? = "https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("fabric-crashlytics")
 
   companion object {
     val COMPATIBLE_WITH = GradleVersion.parse("3.4.0")

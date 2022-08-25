@@ -77,6 +77,12 @@ class Java8DefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testReadMoreUrl() {
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/java8-default", processor.getReadMoreUrl())
+  }
+
+  @Test
   fun testSimpleApplicationNoLanguageLevel() {
     writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
     val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))

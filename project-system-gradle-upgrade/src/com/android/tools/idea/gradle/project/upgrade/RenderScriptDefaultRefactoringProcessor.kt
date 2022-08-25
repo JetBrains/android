@@ -94,7 +94,7 @@ class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPr
     }
   }
 
-  override fun getReadMoreUrl() = "https://developer.android.com/guide/topics/renderscript/migrate"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("render-script-default")
 
   companion object {
     val INSERT_RENDER_SCRIPT_DIRECTIVE = UsageType(AndroidBundle.messagePointer("project.upgrade.renderScriptDefaultRefactoringProcessor.enable.usageType"))

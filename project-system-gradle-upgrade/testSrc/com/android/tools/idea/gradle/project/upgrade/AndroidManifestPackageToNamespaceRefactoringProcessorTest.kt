@@ -65,6 +65,12 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
   }
 
   @Test
+  fun testReadMoreUrl() {
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/manifest-package-deprecated", processor.getReadMoreUrl())
+  }
+
+  @Test
   fun testPackageToNamespace() {
     writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToNamespace"))
     writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))

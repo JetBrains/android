@@ -118,7 +118,7 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     return usages.toTypedArray()
   }
 
-  override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/compile-runtime-configuration"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("compile-runtime-configuration")
 
   override fun getShortDescription(): String? = let {
     val mandatory = necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }

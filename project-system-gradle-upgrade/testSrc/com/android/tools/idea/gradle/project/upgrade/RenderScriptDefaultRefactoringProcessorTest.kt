@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 @RunsInEdt
@@ -28,6 +29,12 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
   override val projectRule = AndroidProjectRule.withAndroidModel(
     AndroidProjectBuilder().withMainSourceProvider { buildMainSourceProviderStub() }
   )
+
+  @Test
+  fun testReadMoreUrl() {
+    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/render-script-default", processor.getReadMoreUrl())
+  }
 
   @Test
   fun testNoRenderScriptDirectory() {

@@ -138,7 +138,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.commandName")
 
-  override fun getReadMoreUrl(): String = "https://developer.android.com/r/tools/upgrade-assistant/manifest-package-deprecated"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("manifest-package-deprecated")
 
   override fun getShortDescription(): String? = """
     Declaration of a project's namespace using the package attribute of the

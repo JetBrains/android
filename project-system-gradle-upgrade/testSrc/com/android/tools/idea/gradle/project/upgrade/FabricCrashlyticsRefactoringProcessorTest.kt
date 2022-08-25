@@ -20,6 +20,7 @@ import com.intellij.testFramework.RunsInEdt
 import junit.framework.Assert.assertNotNull
 import junit.framework.Assert.assertTrue
 import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 @RunsInEdt
@@ -35,6 +36,12 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
       val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
       Assert.assertEquals(u, processor.necessity())
     }
+  }
+
+  @Test
+  fun testReadMoreUrl() {
+    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/fabric-crashlytics", processor.getReadMoreUrl())
   }
 
   @Test

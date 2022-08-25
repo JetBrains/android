@@ -89,8 +89,14 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
     )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
-      Assert.assertEquals("${t.first} to ${t.second}", u, processor.necessity())
+      assertEquals("${t.first} to ${t.second}", u, processor.necessity())
     }
+  }
+
+  @Test
+  fun testReadMoreUrl() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/r8-full-mode-default", processor.getReadMoreUrl())
   }
 
   @Test

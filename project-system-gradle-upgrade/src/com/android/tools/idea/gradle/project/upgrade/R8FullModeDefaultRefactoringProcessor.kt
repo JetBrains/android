@@ -116,7 +116,7 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
       it is R8FullModeUsageInfo && it.existing
     }
 
-  override fun getReadMoreUrl() = "https://r8.googlesource.com/r8/+/refs/heads/master/compatibility-faq.md#r8-full-mode"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("r8-full-mode-default")
 
   override fun getShortDescription(): String? =
     """

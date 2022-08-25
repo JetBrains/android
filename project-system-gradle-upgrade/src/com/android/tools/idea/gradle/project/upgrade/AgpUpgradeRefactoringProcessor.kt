@@ -869,7 +869,9 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   open val groupingName
     get() = commandName
 
-  open fun getReadMoreUrl(): String? = null
+  data class ReadMoreUrlRedirect(val leaf: String)
+  protected open val readMoreUrlRedirect: ReadMoreUrlRedirect? = null
+  fun getReadMoreUrl(): String? = readMoreUrlRedirect?.run { "https://developer.android.com/r/tools/upgrade-assistant/$leaf" }
 
   open fun getShortDescription(): String? = null
 
