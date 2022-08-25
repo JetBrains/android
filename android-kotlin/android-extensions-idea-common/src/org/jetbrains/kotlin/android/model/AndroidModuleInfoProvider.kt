@@ -27,7 +27,7 @@ interface AndroidModuleInfoProvider {
             if (!extensionArea.hasExtensionPoint(EP_NAME.name)) {
                 return null
             }
-            return extensionArea.getExtensionPoint(EP_NAME).extension
+            return extensionArea.getExtensionPoint(EP_NAME).extensionList.firstOrNull()
         }
 
         fun getInstance(element: PsiElement): AndroidModuleInfoProvider? {
