@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWr
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -31,7 +30,6 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
-import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.module.Module;
@@ -76,14 +74,10 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
-    assertThat(message.getText().split("\n")).hasLength(1);
+    assertThat(message.getText()).isEqualTo(expectedText);
+    assertThat(message.getGroup()).isEqualTo("Gradle Sync Issues");
 
-    // @formatter:off
-    Truth.assertAbout(SyncMessageSubject.syncMessage()).that(message).hasGroup("Gradle Sync Issues")
-                                            .hasMessageLine(expectedText, 0);
-    // @formatter:on
-
-    final var  quickFixes = message.getQuickFixes();
+    final var quickFixes = message.getQuickFixes();
     assertThat(quickFixes).hasSize(3);
 
     var quickFix = quickFixes.get(0);

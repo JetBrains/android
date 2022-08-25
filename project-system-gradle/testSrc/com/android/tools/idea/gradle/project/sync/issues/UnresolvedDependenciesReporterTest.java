@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.NotificationUpdate;
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -30,7 +29,6 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.testFramework.PlatformTestCase;
 import java.util.Arrays;
 import java.util.List;
@@ -73,15 +71,14 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
 
     myReporter.report(syncIssue, getModule(), null, myUsageReporter);
 
-    List<NotificationData> messages = mySyncMessages.getNotifications();
+    final var messages = mySyncMessages.getReportedMessages();
     assertSize(1, messages);
-    NotificationData message = messages.get(0);
+    final var message = messages.get(0);
     assertEquals(expected, message.getMessage());
 
 
-    NotificationUpdate update = mySyncMessages.getNotificationUpdate();
-    assertSize(1 + 1 /* affected modules */, update.getFixes());
-    assertInstanceOf(update.getFixes().get(0), ShowSyncIssuesDetailsHyperlink.class);
+    assertSize(1 + 1 /* affected modules */, messages.get(0).getQuickFixes());
+    assertInstanceOf(messages.get(0).getQuickFixes().get(0), ShowSyncIssuesDetailsHyperlink.class);
 
     assertEquals(
       ImmutableList.of(
@@ -111,14 +108,14 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
     );
 
     myReporter.report(syncIssue, getModule(), null, myUsageReporter);
-    List<NotificationData> messages = mySyncMessages.getNotifications();
+
+    final var messages = mySyncMessages.getReportedMessages();
     assertSize(1, messages);
-    NotificationData message = messages.get(0);
+    final var message = messages.get(0);
     assertEquals(expected, message.getMessage());
 
-    NotificationUpdate update = mySyncMessages.getNotificationUpdate();
-    assertSize(1 + 1 /* affected modules */, update.getFixes());
-    assertInstanceOf(update.getFixes().get(0), DisableOfflineModeHyperlink.class);
+    assertSize(1 + 1 /* affected modules */, messages.get(0).getQuickFixes());
+    assertInstanceOf(messages.get(0).getQuickFixes().get(0), DisableOfflineModeHyperlink.class);
 
     assertEquals(
       ImmutableList.of(
@@ -147,12 +144,12 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
     when(myGradleSettings.isOfflineWork()).thenReturn(false);
     myReporter.report(syncIssue, getModule(), null, myUsageReporter);
 
-    List<NotificationData> messages = mySyncMessages.getNotifications();
+    final var messages = mySyncMessages.getReportedMessages();
     assertSize(1, messages);
-    NotificationData message = messages.get(0);
+    final var message = messages.get(0);
     assertEquals(expected, message.getMessage());
 
-    assertSize(1 /* go to module */ + 0, message.getRegisteredListenerIds());
+    assertSize(1 /* go to module */ + 0, message.getQuickFixes());
 
     assertEquals(
       ImmutableList.of(

@@ -49,13 +49,12 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -207,10 +206,10 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)), "/");
 
 
-    assertSize(1, mySyncMessagesStub.getNotifications());
-    NotificationData message = mySyncMessagesStub.getNotifications().get(0);
+    assertSize(1, mySyncMessagesStub.getReportedMessages());
+    final var message = mySyncMessagesStub.getReportedMessages().get(0);
     assertNotNull(message);
-    assertThat(message.getNotificationCategory()).isEqualTo(NotificationCategory.WARNING);
+    assertThat(message.getType()).isEqualTo(MessageType.WARNING);
 
     verify(myStrategy1, never())
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),

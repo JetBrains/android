@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.android.tools.idea.testing.AndroidGradleTests.getMainJavaModule;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -28,8 +30,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -100,7 +100,6 @@ import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildCla
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.LanguageLevelUtil;
@@ -111,8 +110,6 @@ import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -761,8 +758,8 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     });
 
     assertFalse(AndroidGradleTests.syncFailed(syncListener));
-    List<NotificationData> notifications = syncMessages.getNotifications();
-    assertThat(notifications.get(0).getMessage()).startsWith("Failed to resolve: unresolved:dependency:99.9");
+    final var messages = syncMessages.getReportedMessages();
+    assertThat(messages.get(0).getMessage()).startsWith("Failed to resolve: unresolved:dependency:99.9");
   }
 
   /**

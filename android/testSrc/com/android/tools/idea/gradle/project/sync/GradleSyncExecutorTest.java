@@ -117,11 +117,6 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     prepareProjectForImport(NEW_SYNC_KOTLIN_TEST);
 
     GradleSyncMessagesStub messagesStub = new GradleSyncMessagesStub(getProject()) {
-      // Ensure we actually count this as a sync failure.
-      @Override
-      public int getErrorCount() {
-        return getFakeErrorCount();
-      }
     };
     new IdeComponents(getProject()).replaceProjectService(GradleSyncMessages.class, messagesStub);
 

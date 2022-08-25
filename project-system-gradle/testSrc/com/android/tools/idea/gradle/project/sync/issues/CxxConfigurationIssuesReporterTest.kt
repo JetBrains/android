@@ -19,11 +19,11 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
+import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
 import org.junit.Test
 import java.util.IdentityHashMap
 
@@ -48,21 +48,20 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
     val syncIssue = setUpMockSyncIssue("19.1.2")
 
     reporter.report(syncIssue, getModule("app"), null, usageReporter)
-    val notifications = syncMessages.notifications
-    assertSize(1, notifications)
-    val notification = notifications[0]
+    val messages = syncMessages.reportedMessages
+    assertSize(1, messages)
+    val notification = messages[0]
 
-    assertEquals("Gradle Sync Issues", notification.title)
+    assertEquals("Gradle Sync Issues", notification.group)
     assertEquals(
       "No version of NDK matched the requested version 19.1.2\n" +
         "<a href=\"install.ndk\">Install NDK '19.1.2' and sync project</a>\n" +
         "Affected Modules: app",
       notification.message
     )
-    assertEquals(NotificationCategory.WARNING, notification.notificationCategory)
+    assertEquals(MessageType.WARNING, notification.type)
 
-    val notificationUpdate = syncMessages.notificationUpdate
-    val quickFixes = notificationUpdate!!.fixes
+    val quickFixes = messages[0]!!.quickFixes
     assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
 
@@ -95,11 +94,11 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
 
     reporter.reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf(), usageReporter)
 
-    val notifications = syncMessages.notifications.filter { it.notificationCategory == NotificationCategory.WARNING }
-    assertSize(1, notifications)
-    val notificationOne = notifications[0]
+    val messages = syncMessages.reportedMessages.filter { it.type == MessageType.WARNING }
+    assertSize(1, messages)
+    val notificationOne = messages[0]
 
-    assertEquals("Gradle Sync Issues", notificationOne.title)
+    assertEquals("Gradle Sync Issues", notificationOne.group)
     assertEquals(
       "No version of NDK matched the requested version 19.1.2\n" +
         "<a href=\"install.ndk\">Install NDK '19.1.2' and sync project</a>\n" +
@@ -107,8 +106,7 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
       notificationOne.message
     )
 
-    val notificationUpdate = syncMessages.notificationUpdate
-    val quickFixes = notificationUpdate!!.fixes
+    val quickFixes = messages[0]!!.quickFixes
     assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
 

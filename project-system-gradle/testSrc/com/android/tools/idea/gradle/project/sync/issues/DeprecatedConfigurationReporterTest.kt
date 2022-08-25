@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
+import com.android.tools.idea.project.messages.MessageType
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.INFO
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.hamcrest.CoreMatchers.equalTo
@@ -70,13 +69,13 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       usageReporter
     )
 
-    val messages = messageStub.notifications
+    val messages = messageStub.reportedMessages
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
 
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app"))
-    assertThat(message.notificationCategory, equalTo(INFO))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
 
@@ -109,17 +108,17 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       usageReporter
     )
 
-    val messages = messageStub.notifications
+    val messages = messageStub.reportedMessages
     assertSize(2, messages)
     var message = messages[0]
     assertNotNull(message)
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app"))
-    assertThat(message.notificationCategory, equalTo(INFO))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     message = messages[1]
     assertNotNull(message)
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: lib"))
-    assertThat(message.notificationCategory, equalTo(INFO))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
 
@@ -155,13 +154,13 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       usageReporter
     )
 
-    val messages = messageStub.notifications
+    val messages = messageStub.reportedMessages
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
 
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app, lib"))
-    assertThat(message.notificationCategory, equalTo(INFO))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
 
@@ -194,19 +193,17 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       usageReporter
     )
 
-    val messages = messageStub.notifications
+    val messages = messageStub.reportedMessages
     assertSize(2, messages)
     var message = messages[0]
     assertNotNull(message)
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app"))
-    assertThat(message.notificationCategory, equalTo(INFO))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     message = messages[1]
     assertNotNull(message)
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: lib"))
-    assertThat(message.notificationCategory, equalTo(INFO))
-
-    assertThat(messageStub.fakeErrorCount, equalTo(0))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     assertEquals(
       listOf(
@@ -240,15 +237,13 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       usageReporter
     )
 
-    val messages = messageStub.notifications
+    val messages = messageStub.reportedMessages
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
 
     assertThat(message.message, equalTo("Error message!\nAffected Modules: app, lib"))
-    assertThat(message.notificationCategory, equalTo(WARNING))
-
-    assertThat(messageStub.fakeErrorCount, equalTo(0))
+    assertThat(message.type, equalTo(MessageType.WARNING))
 
     assertEquals(
       listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),

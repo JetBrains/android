@@ -150,7 +150,7 @@ public abstract class AbstractSyncMessages implements Disposable {
     return new NotificationData(title, text, category, source);
   }
 
-  public void updateNotification(@NotNull NotificationData notification,
+  private void updateNotification(@NotNull NotificationData notification,
                                  @NotNull String text,
                                  @NotNull List<? extends SyncMessageFragment> quickFixes) {
     String message = text;
@@ -173,7 +173,7 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   // Call this method only if notification contains detailed text message with hyperlinks
   // Use updateNotification otherwise
-  public void addNotificationListener(@NotNull NotificationData notification, @NotNull List<? extends SyncMessageFragment> quickFixes) {
+  private void addNotificationListener(@NotNull NotificationData notification, @NotNull List<? extends SyncMessageFragment> quickFixes) {
     for (final var quickFix : quickFixes) {
       for (String url : quickFix.getUrls()) {
         notification.setListener(url, new QuickFixNotificationListener(myProject, quickFix));
@@ -181,7 +181,7 @@ public abstract class AbstractSyncMessages implements Disposable {
     }
   }
 
-  protected void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
+  private void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
     // Save on array to be shown by build view later.
     Object taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
     if (taskId == null) {

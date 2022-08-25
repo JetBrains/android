@@ -17,24 +17,21 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import java.util.List;
-
 
 /**
  * Tests for {@link UnhandledIssuesReporter}.
@@ -76,12 +73,12 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     VirtualFile buildFile = getGradleBuildFile(appModule);
     myReporter.report(syncIssue, appModule, buildFile, myUsageReporter);
 
-    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    final var messages = mySyncMessagesStub.getReportedMessages();
     assertSize(1, messages);
 
-    NotificationData message = messages.get(0);
-    assertEquals(WARNING, message.getNotificationCategory());
-    assertThat(message.getMessage()).contains(expectedText);
+    final var message = messages.get(0);
+    assertEquals(MessageType.WARNING, message.getType());
+    assertThat(String.join("", message.getMessage())).contains(expectedText);
 
     assertThat(message.getNavigatable()).isInstanceOf(OpenFileDescriptor.class);
     OpenFileDescriptor navigatable = (OpenFileDescriptor)message.getNavigatable();
@@ -115,11 +112,11 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     myReporter.report(syncIssue, appModule, null, myUsageReporter);
 
 
-    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    final var messages = mySyncMessagesStub.getReportedMessages();
     assertSize(1, messages);
 
-    NotificationData message = messages.get(0);
-    assertEquals(WARNING, message.getNotificationCategory());
+    final var message = messages.get(0);
+    assertEquals(MessageType.WARNING, message.getType());
     assertEquals(expectedText, message.getMessage());
 
     assertEquals(NonNavigatable.INSTANCE, message.getNavigatable());

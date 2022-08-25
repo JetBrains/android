@@ -18,10 +18,10 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
+import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
 import org.junit.Test
 
 class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
@@ -46,19 +46,18 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
 
     reporter.report(syncIssue, getModule("app"), null, usageReporter)
 
-    val notifications = syncMessages.notifications
-    assertSize(1, notifications)
-    val notification = notifications[0]
+    val messages = syncMessages.reportedMessages
+    assertSize(1, messages)
+    val notification = messages[0]
 
-    assertEquals("Gradle Sync Issues", notification.title)
+    assertEquals("Gradle Sync Issues", notification.group)
     assertEquals("This is some message:\npath/one\npath/two\n" +
                    "<a href=\"update.plugins\">Update plugins</a>\n" +
                    "Affected Modules: app",
                  notification.message)
-    assertEquals(NotificationCategory.WARNING, notification.notificationCategory)
+    assertEquals(MessageType.WARNING, notification.type)
 
-    val notificationUpdate = syncMessages.notificationUpdate
-    val quickFixes = notificationUpdate!!.fixes
+    val quickFixes = messages[0]!!.quickFixes
     assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], UpdatePluginHyperlink::class.java)
     val pluginHyperlink = quickFixes[0] as UpdatePluginHyperlink

@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlSyncMessageHyperlink
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test

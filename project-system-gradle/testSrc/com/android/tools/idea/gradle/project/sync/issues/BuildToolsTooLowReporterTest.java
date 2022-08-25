@@ -23,19 +23,15 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
+import com.android.tools.idea.project.messages.MessageType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 /**
@@ -81,15 +77,15 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
 
     spiedReporter.report(mySyncIssue, module, null, myUsageReporter);
 
-    List<NotificationData> messages = mySyncMessages.getNotifications();
+    final var messages = mySyncMessages.getReportedMessages();
     assertThat(messages).hasSize(1);
 
-    NotificationData message = messages.get(0);
+    final var message = messages.get(0);
 
-    assertEquals(NotificationCategory.WARNING, message.getNotificationCategory());
+    assertEquals(MessageType.WARNING, message.getType());
     assertEquals("Upgrade Build Tools!\nAffected Modules: testReport", message.getMessage());
 
-    final var actualQuickFixes = mySyncMessages.getNotificationUpdate().getFixes();
+    final var actualQuickFixes = message.getQuickFixes();
     assertEquals(quickFixes,
                  actualQuickFixes.subList(0, actualQuickFixes.size() - 1));
     assertEquals(
