@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * This class provides simple deduplication behaviour for other reporters.
@@ -61,10 +62,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssuesReporter {
   /**
-   * Reporting single sync issues falls back to the result message generation. This method should be overridden
-   * in subclasses should different semantics be required.
+   * A convenience method to report a single sync issue in tests.
    */
-  @Override
+  @TestOnly
   final void report(@NotNull IdeSyncIssue syncIssue,
                     @NotNull Module module,
                     @Nullable VirtualFile buildFile,
