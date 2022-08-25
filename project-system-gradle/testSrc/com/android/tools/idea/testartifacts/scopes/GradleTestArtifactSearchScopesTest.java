@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
+import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.android.utils.FileUtils.toSystemDependentPath;
@@ -34,6 +35,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
@@ -64,6 +66,20 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
       return false;
     }
     return super.shouldRunTest();
+  }
+
+  public void testPureJavaProject() throws Exception {
+    loadProject(PURE_JAVA_PROJECT);
+
+    File srcFile = new File(myFixture.getProject().getBasePath(), toSystemDependentPath("src/main/java/org/gradle/Person.java"));
+    assertTrue(srcFile.toString(), srcFile.exists());
+    VirtualFile srcVirtualFile = findFileByIoFile(srcFile, true);
+    assertNotNull(srcVirtualFile);
+
+    Module mainModule = ModuleUtilCore.findModuleForFile(srcVirtualFile, getProject());
+    TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(mainModule);
+
+    assertFalse(testArtifactSearchScopes.isAndroidTestSource(srcVirtualFile));
   }
 
   public void testSrcFolderIncluding() throws Exception {
