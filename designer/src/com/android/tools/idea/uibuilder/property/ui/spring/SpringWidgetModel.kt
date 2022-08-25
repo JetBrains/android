@@ -91,8 +91,10 @@ interface SpringWidgetModel {
         // Do nothing
       }
 
+      @UiThread
       override fun getValue(parameter: SpringParameter) = ""
 
+      @UiThread
       override fun setValue(parameter: SpringParameter, value: String) {}
     }
   }

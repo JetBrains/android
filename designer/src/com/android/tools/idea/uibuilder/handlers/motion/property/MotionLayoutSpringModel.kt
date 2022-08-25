@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.property
 
 import com.android.SdkConstants
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
@@ -27,7 +28,6 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.projectRoots.Sdk
 
 /**
  * MotionLayout model for the Spring widget.
@@ -57,6 +57,7 @@ class MotionLayoutSpringModel(propertiesModel: MotionLayoutAttributesModel) : Ba
     }
   }
 
+  @UiThread
   override fun getValue(parameter: SpringParameter): String {
     val transitionProp = allProperties[MotionSceneAttrs.Tags.TRANSITION]!!
     val swipeProp = allProperties[MotionSceneAttrs.Tags.ON_SWIPE]!!
@@ -84,6 +85,7 @@ class MotionLayoutSpringModel(propertiesModel: MotionLayoutAttributesModel) : Ba
     }
   }
 
+  @UiThread
   override fun setValue(parameter: SpringParameter, value: String) {
     var valueToWrite = value
     val swipeProp = allProperties[MotionSceneAttrs.Tags.ON_SWIPE]

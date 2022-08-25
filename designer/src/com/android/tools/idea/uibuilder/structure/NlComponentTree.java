@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.editor.ActionUtils;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -520,6 +521,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented DesignSurfaceListener ----
 
   @Override
+  @UiThread
   public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
     setModel(model, true);
   }

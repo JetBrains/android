@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -87,6 +88,7 @@ public class BackNavigationComponent extends JPanel {
   private DesignSurfaceListener createDesignSurfaceListener() {
     return new DesignSurfaceListener() {
       @Override
+      @UiThread
       public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
         updateBackNavigation();
       }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.android.tools.idea.common.model.NlModel
@@ -45,6 +46,7 @@ class DesignSurfaceFloatingActionsToolbarProvider(
     designSurface.removePanZoomListener(this)
   }
 
+  @UiThread
   override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
     updateToolbar()
   }

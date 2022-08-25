@@ -18,6 +18,7 @@ package com.android.tools.idea.common.editor;
 import static com.android.tools.idea.common.model.NlModel.DELAY_AFTER_TYPING_MS;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -130,6 +131,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
     // If the editor is just opening the SceneView may not be set yet. Register a listener so we get updated once we can get the model.
     designEditor.getComponent().getSurface().addListener(new DesignSurfaceListener() {
       @Override
+      @UiThread
       public void modelChanged(@NotNull DesignSurface<?> surface,
                                @Nullable NlModel model) {
         surface.removeListener(this);

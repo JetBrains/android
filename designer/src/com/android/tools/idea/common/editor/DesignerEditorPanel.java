@@ -201,6 +201,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     if (bottomModelComponent != null) {
       mySurface.addListener(new DesignSurfaceListener() {
         @Override
+        @UiThread
         public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
           if (myBottomComponent != null) {
             myContentPanel.remove(myBottomComponent);
