@@ -73,6 +73,6 @@ public final class AndroidStudioPreferences {
       }
     }
 
-    projectConfigurable.unregisterExtensions(ep -> nonStudioExtensions.contains(ep));
+    projectConfigurable.unregisterExtensions((s, adapter) -> nonStudioExtensions.contains(adapter.createInstance(project)), false);
   }
 }
