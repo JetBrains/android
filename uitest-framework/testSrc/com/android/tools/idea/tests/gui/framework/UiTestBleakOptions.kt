@@ -100,5 +100,4 @@ object UiTestBleakOptions {
   // a fresh copy of the default options are provided with each access, to facilitate local modifications (e.g. test-specific ignore lists)
   val defaults: BleakOptions
     get() = BleakOptions().withCheck(MainBleakCheck(globalIgnoreList, knownIssues, customExpanders, listOf(TObjectHash.REMOVED)))
-      .withCheck(DisposerCheck())
 }
