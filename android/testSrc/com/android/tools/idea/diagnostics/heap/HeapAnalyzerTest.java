@@ -35,51 +35,62 @@ public class HeapAnalyzerTest {
   @Test
   public void testSimpleComponents() {
     ComponentsSet componentsSet = new ComponentsSet();
-    componentsSet.addComponentWithPackagesAndClassNames("A", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A");
-    componentsSet.addComponentWithPackagesAndClassNames("B", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B");
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+    componentsSet.addComponentWithPackagesAndClassNames("A",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
+    componentsSet.addComponentWithPackagesAndClassNames("B",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(StatusCode.NO_ERROR, new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A())));
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A())));
 
-    List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
+    List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
-    Assert.assertEquals("A", componentStats.get(0).getComponentName());
+    Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
     // instance of A, boxed int
-    Assert.assertEquals(2, componentStats.get(0).getOwnedObjectsNumber());
-    Assert.assertEquals(40, componentStats.get(0).getOwnedTotalSizeOfObjects());
-    Assert.assertEquals("B", componentStats.get(1).getComponentName());
+    Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(40, componentStats.get(0).getOwnedClusterStat().getTotalSizeOfObjects());
+    Assert.assertEquals("B", componentStats.get(1).getComponent().getComponentLabel());
     // instance of B
-    Assert.assertEquals(1, componentStats.get(1).getOwnedObjectsNumber());
-    Assert.assertEquals(16, componentStats.get(1).getOwnedTotalSizeOfObjects());
+    Assert.assertEquals(1, componentStats.get(1).getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(16, componentStats.get(1).getOwnedClusterStat().getTotalSizeOfObjects());
   }
 
   @Test
   public void testNonComponentObjectLowOwnershipPriority() {
     ComponentsSet componentsSet = new ComponentsSet();
-    componentsSet.addComponentWithPackagesAndClassNames("A", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A");
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+    componentsSet.addComponentWithPackagesAndClassNames("A", defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     Assert.assertEquals(StatusCode.NO_ERROR,
                         new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(), C.class)));
 
-    List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
+    List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(1, componentStats.size());
-    Assert.assertEquals("A", componentStats.get(0).getComponentName());
+    Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
     // A, B, Integer
-    Assert.assertEquals(3, componentStats.get(0).getOwnedObjectsNumber());
-    Assert.assertEquals(56, componentStats.get(0).getOwnedTotalSizeOfObjects());
+    Assert.assertEquals(3, componentStats.get(0).getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(56, componentStats.get(0).getOwnedClusterStat().getTotalSizeOfObjects());
   }
 
   @Test
   public void testStaticFieldHigherOwnershipPriorityThanInstanceField() {
     ComponentsSet componentsSet = new ComponentsSet();
-    componentsSet.addComponentWithPackagesAndClassNames("A", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A");
-    componentsSet.addComponentWithPackagesAndClassNames("C", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$C");
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+    componentsSet.addComponentWithPackagesAndClassNames("A", defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
+    componentsSet.addComponentWithPackagesAndClassNames("C", defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$C"));
 
     // to initialize C class.
     C c = new C();
@@ -89,16 +100,149 @@ public class HeapAnalyzerTest {
                                                                                                            List.of(new A(new B()),
                                                                                                                    c.getClass())));
 
-    List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
+    List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
-    Assert.assertEquals("A", componentStats.get(0).getComponentName());
+    Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
     // A instance and B instance
-    Assert.assertEquals(2, componentStats.get(0).getOwnedObjectsNumber());
-    Assert.assertEquals(40, componentStats.get(0).getOwnedTotalSizeOfObjects());
+    Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(40, componentStats.get(0).getOwnedClusterStat().getTotalSizeOfObjects());
 
-    Assert.assertEquals("C", componentStats.get(1).getComponentName());
+    Assert.assertEquals("C", componentStats.get(1).getComponent().getComponentLabel());
     // C class object and boxed 0 static field
-    Assert.assertEquals(2, componentStats.get(1).getOwnedObjectsNumber());
+    Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsNumber());
+  }
+
+  @Test
+  public void testArrayElementsHigherOwnershipPriorityThanNonComponent() {
+    ComponentsSet componentsSet = new ComponentsSet();
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+    componentsSet.addComponentWithPackagesAndClassNames("D", defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+
+    B b = new B();
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(b), new A(b))));
+
+    List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
+    Assert.assertEquals(1, componentStats.size());
+    Assert.assertEquals("D", componentStats.get(0).getComponent().getComponentLabel());
+    Assert.assertEquals(3, componentStats.get(0).getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(56, componentStats.get(0).getOwnedClusterStat().getTotalSizeOfObjects());
+  }
+
+  @Test
+  public void testInstanceFieldHigherOwnershipPriorityThanArrayElements() {
+    ComponentsSet componentsSet = new ComponentsSet();
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+    componentsSet.addComponentWithPackagesAndClassNames("A", defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
+    componentsSet.addComponentWithPackagesAndClassNames("D", defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+
+    B b = new B();
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(b), new A(b))));
+
+    List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
+    Assert.assertEquals(2, componentStats.size());
+    Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
+    Assert.assertEquals(3, componentStats.get(0).getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(56, componentStats.get(0).getOwnedClusterStat().getTotalSizeOfObjects());
+    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getTotalSizeOfObjects());
+  }
+
+  @Test
+  public void testWeakSoftReferencesIgnored() {
+    ComponentsSet componentsSet = new ComponentsSet();
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+    componentsSet.addComponentWithPackagesAndClassNames("F",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$F"));
+
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new F())));
+
+    List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
+    Assert.assertEquals(1, componentStats.size());
+    Assert.assertEquals("F", componentStats.get(0).getComponent().getComponentLabel());
+    // F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
+    Assert.assertEquals(4, componentStats.get(0).getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(96, componentStats.get(0).getOwnedClusterStat().getTotalSizeOfObjects());
+  }
+
+  @Test
+  public void testComponentRetainedSize() {
+    ComponentsSet componentsSet = new ComponentsSet();
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+    componentsSet.addComponentWithPackagesAndClassNames("B",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(new B()))));
+
+    List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
+    Assert.assertEquals(2, componentStats.size());
+    Assert.assertEquals("B", componentStats.get(0).getComponent().getComponentLabel());
+    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
+
+    Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getTotalSizeOfObjects());
+    Assert.assertEquals(3, componentStats.get(1).getRetainedClusterStat().getObjectsNumber());
+    Assert.assertEquals(56, componentStats.get(1).getRetainedClusterStat().getTotalSizeOfObjects());
+  }
+
+  @org.junit.Ignore("b/243081723")
+  @Test
+  public void testDisposerTreeReferences() {
+    C c = new C();
+    try {
+      ComponentsSet componentsSet = new ComponentsSet();
+      ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+      componentsSet.addComponentWithPackagesAndClassNames("A", defaultCategory,
+                                                          Collections.emptyList(),
+                                                          List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
+      componentsSet.addComponentWithPackagesAndClassNames("C", defaultCategory,
+                                                          Collections.emptyList(),
+                                                          List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$C"));
+      B b = new B();
+
+      Disposer.register(c, b);
+
+      HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+      Assert.assertEquals(StatusCode.NO_ERROR,
+                          new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(b), c)));
+
+      List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
+      Assert.assertEquals(2, componentStats.size());
+      Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
+      Assert.assertEquals("C", componentStats.get(1).getComponent().getComponentLabel());
+
+      // a and it's static int
+      Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsNumber());
+      Assert.assertEquals(40, componentStats.get(0).getOwnedClusterStat().getTotalSizeOfObjects());
+      // c and b
+      Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsNumber());
+      Assert.assertEquals(32, componentStats.get(1).getOwnedClusterStat().getTotalSizeOfObjects());
+    }
+    finally {
+      Disposer.dispose(c);
+    }
   }
 
   @Test
@@ -117,117 +261,6 @@ public class HeapAnalyzerTest {
   }
 
   @Test
-  public void testArrayElementsHigherOwnershipPriorityThanNonComponent() {
-    ComponentsSet componentsSet = new ComponentsSet();
-    componentsSet.addComponentWithPackagesAndClassNames("D", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D");
-
-    B b = new B();
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(b), new A(b))));
-
-    List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(1, componentStats.size());
-    Assert.assertEquals("D", componentStats.get(0).getComponentName());
-    Assert.assertEquals(3, componentStats.get(0).getOwnedObjectsNumber());
-    Assert.assertEquals(56, componentStats.get(0).getOwnedTotalSizeOfObjects());
-  }
-
-  @Test
-  public void testInstanceFieldHigherOwnershipPriorityThanArrayElements() {
-    ComponentsSet componentsSet = new ComponentsSet();
-    componentsSet.addComponentWithPackagesAndClassNames("A", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A");
-    componentsSet.addComponentWithPackagesAndClassNames("D", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D");
-
-    B b = new B();
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(b), new A(b))));
-
-    List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(2, componentStats.size());
-    Assert.assertEquals("A", componentStats.get(0).getComponentName());
-    Assert.assertEquals(3, componentStats.get(0).getOwnedObjectsNumber());
-    Assert.assertEquals(56, componentStats.get(0).getOwnedTotalSizeOfObjects());
-    Assert.assertEquals("D", componentStats.get(1).getComponentName());
-    Assert.assertEquals(2, componentStats.get(1).getOwnedObjectsNumber());
-    Assert.assertEquals(40, componentStats.get(1).getOwnedTotalSizeOfObjects());
-  }
-
-  @Test
-  public void testWeakSoftReferencesIgnored() {
-    ComponentsSet componentsSet = new ComponentsSet();
-    componentsSet.addComponentWithPackagesAndClassNames("F", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$F");
-
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(StatusCode.NO_ERROR, new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new F())));
-
-    List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(1, componentStats.size());
-    Assert.assertEquals("F", componentStats.get(0).getComponentName());
-    // F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
-    Assert.assertEquals(4, componentStats.get(0).getOwnedObjectsNumber());
-    Assert.assertEquals(96, componentStats.get(0).getOwnedTotalSizeOfObjects());
-  }
-
-  @Test
-  public void testComponentRetainedSize() {
-    ComponentsSet componentsSet = new ComponentsSet();
-    componentsSet.addComponentWithPackagesAndClassNames("B", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B");
-    componentsSet.addComponentWithPackagesAndClassNames("D", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D");
-
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(new B()))));
-
-    List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(2, componentStats.size());
-    Assert.assertEquals("B", componentStats.get(0).getComponentName());
-    Assert.assertEquals("D", componentStats.get(1).getComponentName());
-
-    Assert.assertEquals(2, componentStats.get(1).getOwnedObjectsNumber());
-    Assert.assertEquals(40, componentStats.get(1).getOwnedTotalSizeOfObjects());
-    Assert.assertEquals(3, componentStats.get(1).getRetainedObjectsNumber());
-    Assert.assertEquals(56, componentStats.get(1).getRetainedTotalSizeOfObjects());
-  }
-
-  @org.junit.Ignore("b/243081723")
-  @Test
-  public void testDisposerTreeReferences() {
-    ComponentsSet componentsSet = new ComponentsSet();
-    componentsSet.addComponentWithPackagesAndClassNames("A", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A");
-    componentsSet.addComponentWithPackagesAndClassNames("C", Collections.emptyList(),
-                                                        "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$C");
-    B b = new B();
-    C c = new C();
-    Disposer.register(c, b);
-
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(b), c)));
-    Disposer.dispose(c);
-
-    List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(2, componentStats.size());
-    Assert.assertEquals("A", componentStats.get(0).getComponentName());
-    Assert.assertEquals("C", componentStats.get(1).getComponentName());
-
-    // a and it's static int
-    Assert.assertEquals(2, componentStats.get(0).getOwnedObjectsNumber());
-    Assert.assertEquals(40, componentStats.get(0).getOwnedTotalSizeOfObjects());
-    // c and b
-    Assert.assertEquals(2, componentStats.get(1).getOwnedObjectsNumber());
-    Assert.assertEquals(32, componentStats.get(1).getOwnedTotalSizeOfObjects());
-  }
-
-  @Test
   public void testTraverseReturnLowMemoryError() {
     ComponentsSet componentsSet = new ComponentsSet();
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
@@ -237,6 +270,30 @@ public class HeapAnalyzerTest {
 
     Assert.assertEquals(StatusCode.LOW_MEMORY,
                         traverse.walkObjects(MAX_DEPTH, List.of(new A())));
+  }
+
+  @Test
+  public void testCategoryComponentData() {
+    ComponentsSet componentsSet = new ComponentsSet();
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+    componentsSet.addComponentWithPackagesAndClassNames("A",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
+    componentsSet.addComponentWithPackagesAndClassNames("B",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+    Assert.assertEquals(StatusCode.NO_ERROR, new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A())));
+
+    HeapSnapshotStatistics.ClusterObjectsStatistics categoryComponentStats =
+      stats.getCategoryComponentStats().get(defaultCategory.getId());
+    Assert.assertEquals(3, categoryComponentStats.getOwnedClusterStat().getObjectsNumber());
+    Assert.assertEquals(56, categoryComponentStats.getOwnedClusterStat().getTotalSizeOfObjects());
+    Assert.assertEquals(3, categoryComponentStats.getRetainedClusterStat().getObjectsNumber());
+    Assert.assertEquals(56, categoryComponentStats.getRetainedClusterStat().getTotalSizeOfObjects());
   }
 
   private static class TestTraverseChildProcessor extends HeapTraverseChildProcessor {
@@ -293,8 +350,8 @@ public class HeapAnalyzerTest {
   private static class D {
     private final B[] myArray;
 
-    private D(B b) {
-      myArray = new B[]{b};
+    private D(B... b) {
+      myArray = b;
     }
   }
 

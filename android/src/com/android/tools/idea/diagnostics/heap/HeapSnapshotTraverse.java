@@ -53,6 +53,7 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -173,19 +174,35 @@ public final class HeapSnapshotTraverse {
         }
 
         // Check whether the current object is a root of one of the components
-        int componentId = myStatistics.getComponentsSet().getComponentId(currentObject);
+        ComponentsSet.Component currentObjectComponent = myStatistics.getComponentsSet().getComponentOfObject(currentObject);
         long currentObjectSize = getObjectSize(currentObject);
+
         myStatistics.addObjectToTotal(currentObjectSize);
 
         // if it's a root of a component
-        if (componentId != HeapSnapshotStatistics.COMPONENT_NOT_FOUND) {
-          node.myRetainedMask |= (1 << componentId);
-          node.myOwnedByComponentMask = (1 << componentId);
+        if (currentObjectComponent != null) {
+          node.myRetainedMask |= (1 << currentObjectComponent.getId());
+          node.myRetainedMaskForCategories |= (1 << currentObjectComponent.getComponentCategory().getId());
+          node.myOwnedByComponentMask = (1 << currentObjectComponent.getId());
           node.myOwnershipWeight = HeapTraverseNode.RefWeight.DEFAULT;
         }
 
         // If current object is retained by any components - propagate their stats.
         processMask(node.myRetainedMask, (index) -> myStatistics.addRetainedObjectSizeToComponent(index, currentObjectSize));
+        // If current object is retained by any component categories - propagate their stats.
+        processMask(node.myRetainedMaskForCategories,
+                    (index) -> myStatistics.addRetainedObjectSizeToCategoryComponent(index, currentObjectSize));
+
+        AtomicInteger categoricalOwnedMask = new AtomicInteger();
+        processMask(node.myOwnedByComponentMask,
+                    (index) -> categoricalOwnedMask.set(
+                      categoricalOwnedMask.get() |
+                      1 << myStatistics.getComponentsSet().getComponents().get(index).getComponentCategory().getId()));
+        if (isPowerOfTwo(categoricalOwnedMask.get())) {
+          processMask(categoricalOwnedMask.get(),
+                      (index) -> myStatistics.addOwnedObjectSizeToCategoryComponent(index, currentObjectSize));
+        }
+
         if (node.myOwnedByComponentMask == 0) {
           myStatistics.addNonComponentObject(currentObjectSize);
         }
@@ -227,6 +244,11 @@ public final class HeapSnapshotTraverse {
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   private boolean isTagFromTheCurrentIteration(long tag) {
     return ((tag & CURRENT_ITERATION_TIMESTAMP_MASK) >> CURRENT_ITERATION_TIMESTAMP_OFFSET) == myTraverseSessionId;
+  }
+
+  private short getObjectCreationTimestamp(@NotNull final Object obj) {
+    long tag = getObjectTag(obj);
+    return (short)(tag & OBJECT_CREATION_TIMESTAMP_MASK);
   }
 
   private void checkObjectCreationTimestampAndSetIfNot(@NotNull final Object obj) {
@@ -398,12 +420,15 @@ public final class HeapSnapshotTraverse {
 
         currentNode.myOwnershipWeight = ownershipWeight;
         currentNode.myOwnedByComponentMask = parentNode.myOwnedByComponentMask;
+
         currentNode.myRetainedMask = parentNode.myRetainedMask;
+        currentNode.myRetainedMaskForCategories = parentNode.myRetainedMaskForCategories;
 
         objectIdToTraverseNode.put(objectId, currentNode);
       }
 
       currentNode.myRetainedMask &= parentNode.myRetainedMask;
+      currentNode.myRetainedMaskForCategories &= parentNode.myRetainedMaskForCategories;
 
       if (ownershipWeight.compareTo(currentNode.myOwnershipWeight) > 0) {
         currentNode.myOwnershipWeight = ownershipWeight;

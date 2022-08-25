@@ -17,81 +17,33 @@ package com.android.tools.idea.diagnostics.heap;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.Collections;
+import com.google.common.collect.Maps;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class ComponentsSet {
-
-  private static final int COMPONENT_NOT_FOUND = -1;
 
   @NotNull
   private final List<Component> myComponents;
   @NotNull
-  private final Object2IntMap<String> myClassNameToComponentId;
+  private final List<ComponentCategory> myComponentCategories;
   @NotNull
-  private final Object2IntMap<String> myPackageNameToComponentIdCache;
+  private final Map<String, Component> myClassNameToComponent;
+  @NotNull
+  private final Map<String, Component> myPackageNameToComponentCache;
 
   ComponentsSet() {
-    myPackageNameToComponentIdCache = new Object2IntOpenHashMap<>();
-    myClassNameToComponentId = new Object2IntOpenHashMap<>();
+    myPackageNameToComponentCache = Maps.newHashMap();
+    myClassNameToComponent = Maps.newHashMap();
     myComponents = Lists.newArrayList();
+    myComponentCategories = Lists.newArrayList();
   }
 
   @NotNull
-  public static ComponentsSet getComponentSet() {
-    ComponentsSet components = new ComponentsSet();
-    components.addComponentWithPackages("android: resourceManager", "org.jetbrains.android.resourceManagers");
-    components.addComponentWithPackages("android: resourceRepository", "org.jetbrains.android.facet", "com.android.tools.idea.res");
-    components.addComponentWithPackages("android: rendering", "android", "androidx", "com.android.tools.idea.rendering");
-    components.addComponentWithPackages("intellij: psi", "com.intellij.psi");
-    components.addComponentWithPackages("android: layoutlib", "com.android.layoutlib", "com.android.tools.idea.layoutlib");
-    components.addComponentWithPackages("android: naveditor", "com.android.tools.idea.naveditor");
-    components.addComponentWithPackages("android: gradle", "com.android.tools.idea.gradle", "org.jetbrains.plugins.gradle");
-    components.addComponentWithPackages("android: profiler", "com.android.tools.profiling",
-                                        "com.android.tools.profilers",
-                                        "com.android.tools.profiler",
-                                        "com.android.tools.datastore",
-                                        "com.android.tools.idea.profilers");
-    components.addComponentWithPackages("android: templates", "com.android.tools.idea.templates");
-    components.addComponentWithPackages("android: runDebug", "com.android.tools.idea.ddms",
-                                        "com.android.ddmlib",
-                                        "com.android.tools.idea.debug",
-                                        "com.android.tools.idea.logcat",
-                                        "com.android.tools.idea.apk.viewer",
-                                        "com.android.tools.idea.run");
-    components.addComponentWithPackages("android: inspections", "org.jetbrains.android.inspections");
-    components.addComponentWithPackages("android: lint", "com.android.tools.lint",
-                                        "com.android.tools.idea.lint",
-                                        "com.android.tools.idea.common.lint");
-    components.addComponentWithPackages("android: c++", "com.android.tools.ndk",
-                                        "com.jetbrains.cidr");
-    components.addComponentWithPackages("android: avdmanager", "com.android.tools.idea.avdmanager",
-                                        "com.android.sdklib.internal.avd");
-    components.addComponentWithPackages("android: layoutEditor",
-                                        "com.android.tools.idea.common.surface",
-                                        "com.android.tools.idea.common.scene",
-                                        "com.android.tools.idea.common.editor",
-                                        "com.android.tools.idea.uibuilder",
-                                        "com.android.tools.idea.configurations");
-    components.addComponentWithPackages("android: editors", "com.android.tools.idea.editors");
-    components.addComponentWithPackages("android: diagnostics", "com.android.tools.idea.diagnostics", "com.android.tools.analytics");
-    components.addComponentWithPackages("android: dataBinding", "com.android.tools.idea.databinding",
-                                        "com.android.tools.idea.lang.databinding");
-    components.addComponentWithPackages("intellij: kotlin", "org.jetbrains.kotlin");
-    components.addComponentWithPackages("intellij: project", "com.intellij.openapi.project");
-    components.addComponentWithPackages("intellij: application", "com.intellij.openapi.application");
-    components.addComponentWithPackages("intellij: module", "com.intellij.workspaceModel.ide.impl.legacyBridge.module",
-                                        "com.intellij.openapi.module");
-    components.addComponentWithPackagesAndClassNames("intellij: vfs", ImmutableList.of("com.intellij.openapi.vfs"),
-                                                     "com.intellij.workspaceModel.ide.impl.IdeVirtualFileUrlManagerImpl",
-                                                     "com.intellij.workspaceModel.ide.impl.legacyBridge.watcher.VirtualFileUrlWatcher");
-    components.addComponentWithPackages("intellij: editor", "com.intellij.openapi.editor", "com.intellij.openapi.fileEditor");
-    components.addComponentWithPackages("android: sdk", "com.android.sdklib", "org.jetbrains.android.sdk");
-    components.addComponentWithPackagesAndClassNames("ide: IdeEventQueue", Collections.emptyList(), "com.intellij.ide.IdeEventQueue");
-    return components;
+  public List<ComponentCategory> getComponentsCategories() {
+    return myComponentCategories;
   }
 
   @NotNull
@@ -100,48 +52,60 @@ public final class ComponentsSet {
   }
 
   @NotNull
-  private Component registerComponent(@NotNull final String componentName) {
-    Component component = new Component(componentName, myComponents.size());
+  Component registerComponent(@NotNull final String componentLabel,
+                              @NotNull final ComponentCategory category) {
+    Component component = new Component(componentLabel, myComponents.size(), category);
     myComponents.add(component);
     return component;
   }
 
-  void addComponentWithPackages(@NotNull final String componentName,
-                                String... packageNames) {
-    Component newComponent = registerComponent(componentName);
-
-    for (String name : packageNames) {
-      myPackageNameToComponentIdCache.put(name, newComponent.myId);
-    }
+  ComponentCategory registerCategory(@NotNull final String componentCategoryLabel) {
+    ComponentCategory category = new ComponentCategory(componentCategoryLabel, myComponentCategories.size());
+    myComponentCategories.add(category);
+    return category;
   }
 
-  void addComponentWithPackagesAndClassNames(@NotNull final String componentName,
+  void addComponentWithPackagesAndClassNames(@NotNull final String componentLabel,
+                                             @NotNull final ComponentCategory componentCategory,
                                              @NotNull final List<String> packageNames,
-                                             String... classNames) {
-    Component newComponent = registerComponent(componentName);
+                                             @NotNull final List<String> classNames) {
+    Component newComponent = registerComponent(componentLabel, componentCategory);
 
     for (String name : classNames) {
-      myClassNameToComponentId.put(name, newComponent.myId);
+      myClassNameToComponent.put(name, newComponent);
     }
 
     for (String name : packageNames) {
-      myPackageNameToComponentIdCache.put(name, newComponent.myId);
+      myPackageNameToComponentCache.put(name, newComponent);
     }
   }
 
-  public int getComponentId(@NotNull final Object obj) {
-    return (obj instanceof Class) ? getClassComponentId((Class<?>)obj) : getObjectComponentId(obj);
+  void addComponentWithPackages(@NotNull final String componentLabel,
+                                @NotNull final ComponentCategory componentCategory,
+                                String... packageNames) {
+    Component newComponent = registerComponent(componentLabel, componentCategory);
+
+    for (String name : packageNames) {
+      myPackageNameToComponentCache.put(name, newComponent);
+    }
   }
 
-  private int getObjectComponentId(@NotNull final Object obj) {
-    return getClassComponentId(obj.getClass());
+  @Nullable
+  public Component getComponentOfObject(@NotNull final Object obj) {
+    return (obj instanceof Class) ? getClassComponent((Class<?>)obj) : getObjectComponent(obj);
   }
 
-  private int getClassComponentId(@NotNull final Class<?> aClass) {
+  @Nullable
+  private Component getObjectComponent(@NotNull final Object obj) {
+    return getClassComponent(obj.getClass());
+  }
+
+  @Nullable
+  private Component getClassComponent(@NotNull final Class<?> aClass) {
     String objClassName = aClass.getName();
 
-    if (myClassNameToComponentId.containsKey(objClassName)) {
-      return myClassNameToComponentId.getInt(objClassName);
+    if (myClassNameToComponent.containsKey(objClassName)) {
+      return myClassNameToComponent.get(objClassName);
     }
     String packageName = aClass.getPackageName();
 
@@ -149,32 +113,189 @@ public final class ComponentsSet {
     String packageNamePrefix = packageName;
     do {
       packageNamePrefix = packageNamePrefix.substring(0, lastDot);
-      if (myPackageNameToComponentIdCache.containsKey(packageNamePrefix)) {
-        int ans = myPackageNameToComponentIdCache.getInt(packageNamePrefix);
-        myPackageNameToComponentIdCache.put(packageName, ans);
+      if (myPackageNameToComponentCache.containsKey(packageNamePrefix)) {
+        Component ans = myPackageNameToComponentCache.get(packageNamePrefix);
+        myPackageNameToComponentCache.put(packageName, ans);
         return ans;
       }
       lastDot = packageNamePrefix.lastIndexOf('.');
     }
     while (lastDot > 0);
 
-    myPackageNameToComponentIdCache.put(packageName, COMPONENT_NOT_FOUND);
-    return COMPONENT_NOT_FOUND;
+    myPackageNameToComponentCache.put(packageName, null);
+    return null;
+  }
+
+  @NotNull
+  public static ComponentsSet getComponentSet() {
+    ComponentsSet components = new ComponentsSet();
+    // Android: ResourceManager
+    components.addComponentWithPackages("ANDROID_RESOURCE_MANAGER",
+                                        components.registerCategory("ANDROID_RESOURCE_MANAGER_CATEGORY"),
+                                        "org.jetbrains.android.resourceManagers");
+    // Android: ResourceRepository
+    components.addComponentWithPackages("ANDROID_RESOURCE_REPOSITORY",
+                                        components.registerCategory("ANDROID_RESOURCE_REPOSITORY_CATEGORY"),
+                                        "org.jetbrains.android.facet", "com.android.tools.idea.res");
+    // Android: DesignTools
+    ComponentCategory designToolsCategory = components.registerCategory("ANDROID_DESIGN_TOOLS_CATEGORY");
+    components.addComponentWithPackages("ANDROID_RENDERING",
+                                        designToolsCategory, "android", "androidx");
+    components.addComponentWithPackages("ANDROID_LAYOUT_EDITOR",
+                                        designToolsCategory,
+                                        "com.android.tools.idea.common.surface", "com.android.tools.idea.common.scene",
+                                        "com.android.tools.idea.common.editor", "com.android.tools.idea.uibuilder",
+                                        "com.android.tools.idea.configurations");
+    components.addComponentWithPackages("ANDROID_LAYOUTLIB",
+                                        designToolsCategory, "com.android.layoutlib",
+                                        "com.android.tools.idea.layoutlib");
+    components.addComponentWithPackages("ANDROID_NAVEDITOR",
+                                        designToolsCategory,
+                                        "com.android.tools.idea.naveditor");
+    // Android: Gradle
+    components.addComponentWithPackages("ANDROID_GRADLE",
+                                        components.registerCategory("ANDROID_GRADLE_CATEGORY"), "com.android.tools.idea.gradle",
+                                        "org.jetbrains.plugins.gradle");
+    // Android: Profiler
+    ComponentCategory profilerCategory = components.registerCategory("ANDROID_PROFILER_CATEGORY");
+    components.addComponentWithPackages("ANDROID_PROFILER",
+                                        profilerCategory, "com.android.tools.profilers",
+                                        "com.android.tools.profiler", "com.android.tools.idea.profilers", "com.android.tools.perflib",
+                                        "trebuchet.io");
+    components.addComponentWithPackages("ANDROID_TRANSPORT",
+                                        profilerCategory,
+                                        "com.android.tools.idea.transport", "com.android.tools.datastore");
+
+    // Android: Templates
+    components.addComponentWithPackages("ANDROID_TEMPLATES",
+                                        components.registerCategory("ANDROID_TEMPLATES_CATEGORY"),
+                                        "com.android.tools.idea.templates");
+    // Android: RunDebug
+    ComponentCategory runDebugCategory = components.registerCategory("ANDROID_RUN_DEBUG_CATEGORY");
+    components.addComponentWithPackages("ANDROID_RUN_DEPLOYER",
+                                        runDebugCategory, "com.android.tools.idea.run",
+                                        "com.android.tools.deployer");
+    components.addComponentWithPackages("ANDROID_LOGCAT",
+                                        runDebugCategory,
+                                        "com.android.tools.idea.logcat");
+    components.addComponentWithPackages("ANDROID_DDM",
+                                        runDebugCategory, "com.android.tools.idea.ddms",
+                                        "com.android.ddmlib");
+    components.addComponentWithPackages("ANDROID_DEBUG",
+                                        runDebugCategory,
+                                        "com.android.tools.idea.debug");
+    components.addComponentWithPackages("ANDROID_APK_VIEW",
+                                        runDebugCategory,
+                                        "com.android.tools.idea.apk.viewer");
+
+    // Android: Lint
+    ComponentCategory lintCategory = components.registerCategory("ANDROID_LINT_CATEGORY");
+    components.addComponentWithPackages("ANDROID_LINT",
+                                        lintCategory, "com.android.tools.lint",
+                                        "com.android.tools.idea.lint", "com.android.tools.idea.common.lint");
+    // Android: C++
+    components.addComponentWithPackages("ANDROID_CPP",
+                                        lintCategory, "com.android.tools.ndk",
+                                        "com.jetbrains.cidr");
+    // Android: AVDManager
+    ComponentCategory avdmanagerCategory = components.registerCategory("ANDROID_AVDMANAGER_CATEGORY");
+    components.addComponentWithPackages("ANDROID_AVDMANAGER",
+                                        avdmanagerCategory,
+                                        "com.android.tools.idea.avdmanager", "com.android.sdklib.internal.avd");
+    // Android: Editor
+    ComponentCategory editorsCategory = components.registerCategory("ANDROID_EDITORS_CATEGORY");
+    components.addComponentWithPackages("ANDROID_EDITORS",
+                                        editorsCategory,
+                                        "com.android.tools.idea.editors");
+    components.addComponentWithPackages("ANDROID_INSPECTIONS",
+                                        editorsCategory,
+                                        "org.jetbrains.android.inspections");
+    // Android: Diagnostics
+    components.addComponentWithPackages("ANDROID_DIAGNOSTICS",
+                                        components.registerCategory("ANDROID_DIAGNOSTICS_CATEGORY"),
+                                        "com.android.tools.idea.diagnostics", "com.android.tools.analytics");
+    // Android: DataBinding
+    components.addComponentWithPackages("ANDROID_DATA_BINDINGS",
+                                        components.registerCategory("ANDROID_DATA_BINDINGS_CATEGORY"),
+                                        "com.android.tools.idea.databinding", "com.android.tools.idea.lang.databinding");
+    // Android: SDK
+    components.addComponentWithPackages("ANDROID_SDK",
+                                        components.registerCategory("ANDROID_SDK_CATEGORY"), "com.android.sdklib",
+                                        "org.jetbrains.android.sdk");
+    // Intellij: Platform
+    ComponentCategory platformCategory = components.registerCategory("ANDROID_SDK_CATEGORY");
+    components.addComponentWithPackages("INTELLIJ_KOTLIN",
+                                        platformCategory, "org.jetbrains.kotlin");
+    components.addComponentWithPackages("INTELLIJ_PROJECT",
+                                        platformCategory,
+                                        "com.intellij.openapi.project");
+    components.addComponentWithPackages("INTELLIJ_APPLICATION",
+                                        platformCategory,
+                                        "com.intellij.openapi.application");
+    components.addComponentWithPackages("INTELLIJ_MODULE",
+                                        platformCategory,
+                                        "com.intellij.workspaceModel.ide.impl.legacyBridge.module", "com.intellij.openapi.module");
+    components.addComponentWithPackagesAndClassNames("INTELLIJ_VFS",
+                                                     platformCategory,
+                                                     ImmutableList.of("com.intellij.openapi.vfs"),
+                                                     ImmutableList.of("com.intellij.workspaceModel.ide.impl.IdeVirtualFileUrlManagerImpl",
+                                                                      "com.intellij.workspaceModel.ide.impl.legacyBridge.watcher.VirtualFileUrlWatcher"));
+    components.addComponentWithPackages("INTELLIJ_EDITOR",
+                                        platformCategory, "com.intellij.openapi.editor",
+                                        "com.intellij.openapi.fileEditor");
+    components.addComponentWithPackages("INTELLIJ_PSI",
+                                        platformCategory, "com.intellij.psi");
+    return components;
   }
 
   public static final class Component {
-    @NotNull
-    private final String myComponentName;
     private final int myId;
+    @NotNull
+    private final String myComponentLabel;
 
-    private Component(@NotNull final String componentName, int id) {
-      myComponentName = componentName;
+    @NotNull
+    private final ComponentCategory myComponentCategory;
+
+    private Component(@NotNull final String componentLabel,
+                      int id, @NotNull final ComponentCategory category) {
+      myComponentLabel = componentLabel;
+      myId = id;
+      myComponentCategory = category;
+    }
+
+    @NotNull
+    public ComponentCategory getComponentCategory() {
+      return myComponentCategory;
+    }
+
+    @NotNull
+    public String getComponentLabel() {
+      return myComponentLabel;
+    }
+
+    public int getId() {
+      return myId;
+    }
+  }
+
+  public static final class ComponentCategory {
+    private final int myId;
+    @NotNull
+    private final String myLabel;
+
+    private ComponentCategory(@NotNull final String label,
+                              int id) {
+      myLabel = label;
       myId = id;
     }
 
     @NotNull
-    String getComponentName() {
-      return myComponentName;
+    public String getComponentCategoryLabel() {
+      return myLabel;
+    }
+
+    public int getId() {
+      return myId;
     }
   }
 }
