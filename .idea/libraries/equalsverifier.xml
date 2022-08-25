@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="equalsverifier">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/3.4.1/equalsverifier-3.4.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/3.8/equalsverifier-3.8.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
