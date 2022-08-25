@@ -51,35 +51,34 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
 
   @UiThread
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor): EditorNotificationPanel? {
-    if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {
-      // If the displayed file has user data indicating this banner panel should be displayed for particular sources, just use that.
-      val requiredSources = file.getUserData(REQUIRED_SOURCES_KEY)
-      if (!requiredSources.isNullOrEmpty()) {
-        return createPanel(fileEditor, requiredSources, null)
-      }
-    }
+    return createNotificationPanelForDebugSession(file, fileEditor) ?: createNotificationPanelForClassFiles(file, fileEditor)
+  }
 
-    // Check whether the file is a class file in the SDK. This can happen when the user browses to the source of an SDK file.
-    return createNotificationPanelForClassFiles(file, fileEditor)
+  private fun createNotificationPanelForDebugSession(file: VirtualFile, fileEditor: FileEditor): EditorNotificationPanel? {
+    if (!StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) return null
+
+    // AndroidPositionManager is responsible for detecting that a specific SDK is needed during a debugging session, and will set the
+    // REQUIRED_SOURCES_KEY when necessary.
+    val missingDebugSourcesInfo = file.getUserData(REQUIRED_SOURCES_KEY) ?: return null
+
+    val requiredSources = missingDebugSourcesInfo.missingSourceVersions
+    if (requiredSources.isNullOrEmpty()) return null
+
+    return createPanel(fileEditor, requiredSources, missingDebugSourcesInfo::refreshAfterDownload)
   }
 
   private fun createNotificationPanelForClassFiles(file: VirtualFile, fileEditor: FileEditor): EditorNotificationPanel? {
-    if (!FileTypeRegistry.getInstance().isFileOfType(file, JavaClassFileType.INSTANCE)) {
-      return null
-    }
+    if (!FileTypeRegistry.getInstance().isFileOfType(file, JavaClassFileType.INSTANCE)) return null
 
-    if (JavaEditorFileSwapper.findSourceFile(myProject, file) != null) {
-      // Since the java source was found, no need to download sources.
-      return null
-    }
+    // If the java source can be found, no need to download sources.
+    if (JavaEditorFileSwapper.findSourceFile(myProject, file) != null) return null
 
     // Since the java source was not found, it might come from an Android SDK.
     val jdkOrderEntry = findAndroidSdkEntryForFile(file) ?: return null
     val sdk = jdkOrderEntry.jdk ?: return null
-    if (sdk.rootProvider.getFiles(OrderRootType.SOURCES).isNotEmpty()) {
-      // Since we have sources, no need to display the panel.
-      return null
-    }
+
+    // If we have sources, no need to display the panel.
+    if (sdk.rootProvider.getFiles(OrderRootType.SOURCES).isNotEmpty()) return null
 
     val apiVersion = AndroidPlatform.getInstance(sdk)?.apiVersion ?: return null
     val refresh = Runnable { AndroidSdkUtils.updateSdkSourceRoot(sdk) }
@@ -96,14 +95,14 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
   private fun createPanel(
     fileEditor: FileEditor,
     requestedSourceVersions: List<AndroidVersion>,
-    refreshAfterDownload: Runnable?
+    refreshAfterDownload: Runnable
   ): MyEditorNotificationPanel {
     val panel = MyEditorNotificationPanel(fileEditor)
     panel.text = "Android SDK sources not found."
     panel.createAndAddLink("Download SDK Sources") {
       val sourcesPaths = requestedSourceVersions.map { DetailsTypes.getSourcesPath(it) }
       if (createSdkDownloadDialog(sourcesPaths)?.showAndGet() == true) {
-        refreshAfterDownload?.run()
+        refreshAfterDownload.run()
       }
     }
     return panel
@@ -159,6 +158,17 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
     private val KEY = Key.create<EditorNotificationPanel?>("add sdk sources to class")
 
     @JvmField
-    val REQUIRED_SOURCES_KEY = Key.create<List<AndroidVersion>>("sources to download")
+    val REQUIRED_SOURCES_KEY = Key.create<AttachAndroidSdkSourcesCallback>("sources to download")
+  }
+
+  /**
+   * Callback used to represent sources that are missing during a debug session. This allows {@link
+   * AttachAndroidSdkSourcesNotificationProvider} to display and refresh without having to know anything about the debug session itself.
+   */
+  interface AttachAndroidSdkSourcesCallback {
+    val missingSourceVersions: List<AndroidVersion>
+
+    @UiThread
+    fun refreshAfterDownload()
   }
 }

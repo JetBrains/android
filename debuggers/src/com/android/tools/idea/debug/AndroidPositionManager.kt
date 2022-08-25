@@ -16,6 +16,7 @@
 package com.android.tools.idea.debug
 
 import com.android.SdkConstants
+import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider
@@ -30,13 +31,16 @@ import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.PositionManagerImpl
 import com.intellij.debugger.impl.DebuggerUtilsEx
+import com.intellij.debugger.impl.PrioritizedTask
 import com.intellij.debugger.requests.ClassPrepareRequestor
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VfsUtil
@@ -71,7 +75,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
 
   private val myAndroidVersion: AndroidVersion? = getAndroidVersionFromDebugSession(myDebugProcess.project)
 
-  private val mySourceFolder: Supplier<VirtualFile?> = Suppliers.memoize(::createSourcePackageForApiLevel)
+  private var mySourceFolder: Supplier<VirtualFile?> = Suppliers.memoize { createSourcePackageForApiLevel(false) }
   private var myGeneratedPsiFile: PsiFile? = null
 
   private var debugSessionListenerRegistered = false
@@ -103,9 +107,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
 
   @Throws(NoDataException::class)
   override fun getSourcePosition(location: Location?): SourcePosition? {
-    if (location == null) {
-      throw NoDataException.INSTANCE
-    }
+    if (location == null) throw NoDataException.INSTANCE
 
     if (myAndroidVersion == null) {
       LOG.debug("getSourcePosition cannot determine version from device.")
@@ -114,9 +116,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
 
     val project = myDebugProcess.project
     val file = getPsiFileByLocation(project, location)
-    if (file == null || !AndroidSdks.getInstance().isInAndroidSdk(file)) {
-      throw NoDataException.INSTANCE
-    }
+    if (file == null || !AndroidSdks.getInstance().isInAndroidSdk(file)) throw NoDataException.INSTANCE
 
     // Since we have an Android SDK file, return the SDK source if it's available.
     // Otherwise, return a generated file with a comment indicating that sources are unavailable.
@@ -142,6 +142,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     }
 
     val apiSpecificSourceFile = PsiManager.getInstance(project).findFile(vfile) ?: return null
+
     val lineNumber = DebuggerUtilsEx.getLineNumber(location, true)
     return SourcePosition.createFromLine(apiSpecificSourceFile, lineNumber)
   }
@@ -184,12 +185,13 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     }
 
     // Add data indicating that we want to put up a banner offering to download sources.
-    generatedVirtualFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, listOf(myAndroidVersion))
+    val attachSourcesCallback = AttachSourcesCallback(listOf(myAndroidVersion))
+    generatedVirtualFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, attachSourcesCallback)
 
     return generatedPsiFile
   }
 
-  private fun createSourcePackageForApiLevel(): VirtualFile? {
+  private fun createSourcePackageForApiLevel(refreshIfNeeded: Boolean): VirtualFile? {
     if (myAndroidVersion == null) return null
 
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
@@ -202,7 +204,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
         continue
       }
       if (myAndroidVersion == typeDetails.androidVersion) {
-        val sourceFolder = VfsUtil.findFile(sourcePackage.location, false)
+        val sourceFolder = VfsUtil.findFile(sourcePackage.location, refreshIfNeeded)
         if (sourceFolder?.isValid == true) {
           return sourceFolder
         }
@@ -279,5 +281,38 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     @VisibleForTesting
     fun String.changeClassExtensionToJava() =
       if (endsWith(SdkConstants.DOT_CLASS)) substring(0, length - SdkConstants.DOT_CLASS.length) + SdkConstants.DOT_JAVA else this
+  }
+
+  inner class AttachSourcesCallback(override val missingSourceVersions: List<AndroidVersion>) :
+    AttachAndroidSdkSourcesNotificationProvider.AttachAndroidSdkSourcesCallback {
+
+    @UiThread
+    override fun refreshAfterDownload() {
+      val application = ApplicationManager.getApplication()
+
+      // Refresh this PositionManager's source file location. Since refreshIfNeeded is true, this needs to be on the EDT.
+      application.assertIsDispatchThread()
+      mySourceFolder = Suppliers.ofInstance(createSourcePackageForApiLevel(true))
+
+      // If the above call caused a refresh, we may now be in dumb mode. Ensure that the following refresh logic doesn't happen until the
+      // index is updated.
+      DumbService.getInstance(myDebugProcess.project).smartInvokeLater {
+        myDebugProcess.managerThread.invoke(PrioritizedTask.Priority.HIGH) {
+          // Clear the cache on the containing CompoundPositionManager.
+          myDebugProcess.positionManager.clearCache()
+
+          // After the cache is cleared, close the generated PsiFile instance if it's open and schedule a refresh of the debug session.
+          application.invokeLater(
+            {
+              myGeneratedPsiFile?.virtualFile?.let {
+                if (it.isValid) FileEditorManager.getInstance(myDebugProcess.project).closeFile(it)
+              }
+
+              myDebugProcess.session.refresh(true)
+            },
+            { myDebugProcess.session.isStopped })
+        }
+      }
+    }
   }
 }

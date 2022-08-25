@@ -18,11 +18,11 @@ package com.android.tools.idea.editors
 import com.android.flags.junit.RestoreFlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider.AttachAndroidSdkSourcesCallback
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
 import com.android.tools.idea.wizard.model.ModelWizardDialog
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
@@ -40,6 +40,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 
 @RunWith(JUnit4::class)
@@ -58,6 +59,9 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Mock
   lateinit var myModelWizardDialog: ModelWizardDialog
+
+  @Mock
+  lateinit var myAttachAndroidSdkSourcesCallback: AttachAndroidSdkSourcesCallback
 
   private lateinit var myProvider: TestAttachAndroidSdkSourcesNotificationProvider
 
@@ -116,7 +120,8 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   @Test
   fun createNotificationPanel_virtualFileHasRequiredSourcesKeyButIsEmpty_nullReturned() {
     val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
-    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, ImmutableList.of())
+    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersions).thenReturn(listOf())
+    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, myAttachAndroidSdkSourcesCallback)
 
     val panel = invokeCreateNotificationPanel(javaFile)
     assertThat(panel).isNull()
@@ -190,10 +195,23 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_virtualFileHasRequiredSourcesKey_downloadLinkHasRequestedSources() {
-    val requiredSourceVersions = listOf(30, 31).map { AndroidVersion(it) }
+    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersions).thenReturn(listOf(AndroidVersion(30)))
 
     val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
-    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, requiredSourceVersions)
+    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, myAttachAndroidSdkSourcesCallback)
+
+    val panel = invokeCreateNotificationPanel(javaFile)
+    ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download SDK Sources"]!!.run() }
+
+    verify(myAttachAndroidSdkSourcesCallback).refreshAfterDownload()
+  }
+
+  @Test
+  fun createNotificationPanel_virtualFileHasRequiredSourcesKey_refreshInvokedAfterDownload() {
+    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersions).thenReturn(listOf(30, 31).map { AndroidVersion(it) })
+
+    val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
+    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, myAttachAndroidSdkSourcesCallback)
 
     val panel = invokeCreateNotificationPanel(javaFile)
     ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download SDK Sources"]!!.run() }
@@ -231,11 +249,11 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
       }
 
       return runReadAction {
-          JavaPsiFacade.getInstance(myAndroidProjectRule.project)
-            .findClass("android.view.View", GlobalSearchScope.allScope(myAndroidProjectRule.project))!!
-            .containingFile
-            .virtualFile
-        }
+        JavaPsiFacade.getInstance(myAndroidProjectRule.project)
+          .findClass("android.view.View", GlobalSearchScope.allScope(myAndroidProjectRule.project))!!
+          .containingFile
+          .virtualFile
+      }
     }
 
   /**
