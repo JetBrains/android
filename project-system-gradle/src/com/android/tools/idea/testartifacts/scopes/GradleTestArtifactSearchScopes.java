@@ -52,7 +52,10 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @NotNull
   public GlobalSearchScope getAndroidTestSourceScope() {
     Module androidTestModule;
-    if (getModuleSystem(myModule).getType() == Type.TYPE_TEST) {
+    if (getModuleSystem(myModule).getType() == Type.TYPE_NON_ANDROID) {
+      androidTestModule = null;
+    }
+    else if (getModuleSystem(myModule).getType() == Type.TYPE_TEST) {
       androidTestModule = getMainModule(myModule);
     }
     else {
