@@ -20,14 +20,10 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-import com.intellij.ui.ComponentUtil
 import com.intellij.util.ui.JBUI
 import java.awt.FlowLayout
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -40,7 +36,11 @@ object AlphaSliderAction : AnAction(), CustomComponentAction {
   override fun actionPerformed(event: AnActionEvent) {
     val component = event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
     val slider = component.getClientProperty(SLIDER_KEY) as JSlider
-    event.getData(DEVICE_VIEW_MODEL_KEY)?.overlayAlpha = slider.value / 100.0f
+    // The event for Custom components actions are constructed differently than normal actions.
+    // If this action is shown in a popup toolbar (when there is not enough space to show the whole toolbar in-place),
+    // go through the action toolbar data context to find the model.
+    val model = ActionToolbar.getDataContextFor(component).getData(DEVICE_VIEW_MODEL_KEY)
+    model?.overlayAlpha = slider.value / 100.0f
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
