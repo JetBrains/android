@@ -495,7 +495,7 @@ android-studio/lib/forms_rt.jar
 android-studio/lib/groovy.jar
 android-studio/lib/grpc-netty-shaded.jar
 android-studio/lib/idea_rt.jar
-android-studio/lib/intellij-coverage-agent-1.0.668.jar
+android-studio/lib/intellij-coverage-agent-1.0.671.jar
 android-studio/lib/intellij-test-discovery.jar
 android-studio/lib/jffi-1.3.9-native.jar
 android-studio/lib/jffi-1.3.9.jar
@@ -2156,6 +2156,8 @@ android-studio/plugins/textmate/lib/bundles/docker/language-configuration.json
 android-studio/plugins/textmate/lib/bundles/docker/package.json
 android-studio/plugins/textmate/lib/bundles/docker/package.nls.json
 android-studio/plugins/textmate/lib/bundles/docker/syntaxes/docker.tmLanguage.json
+android-studio/plugins/textmate/lib/bundles/erlang/snippets/erlang.json
+android-studio/plugins/textmate/lib/bundles/erlang/syntaxes/erlang.tmLanguage.json
 android-studio/plugins/textmate/lib/bundles/fsharp/.vscodeignore
 android-studio/plugins/textmate/lib/bundles/fsharp/cgmanifest.json
 android-studio/plugins/textmate/lib/bundles/fsharp/language-configuration.json
