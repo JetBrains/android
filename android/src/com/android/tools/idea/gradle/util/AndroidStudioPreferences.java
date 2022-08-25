@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.util;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 
 import com.android.tools.idea.IdeInfo;
-import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.options.Configurable;
@@ -29,7 +28,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidStudioPreferences {
-  private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
+  private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = List.of(
     "org.intellij.lang.xpath.xslt.associations.impl.FileAssociationsConfigurable", "com.intellij.uiDesigner.GuiDesignerConfigurable",
     "org.jetbrains.plugins.groovy.gant.GantConfigurable", "org.jetbrains.plugins.groovy.compiler.GroovyCompilerConfigurable",
     "org.jetbrains.idea.maven.utils.MavenSettings",
@@ -49,7 +48,7 @@ public final class AndroidStudioPreferences {
     // This option can not be set in Android Studio, this is to disable already set configurations.
     CompilerWorkspaceConfiguration.getInstance(project).MAKE_PROJECT_ON_SAVE = false;
 
-    ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = PROJECT_CONFIGURABLE.getPoint(project);
+    ExtensionPoint<@NotNull ConfigurableEP<Configurable>> projectConfigurable = PROJECT_CONFIGURABLE.getPoint(project);
 
     List<ConfigurableEP<Configurable>> nonStudioExtensions = new ArrayList<>();
     for (ConfigurableEP<Configurable> extension : projectConfigurable.getExtensionList()) {
@@ -58,6 +57,6 @@ public final class AndroidStudioPreferences {
       }
     }
 
-    projectConfigurable.unregisterExtensions(ep -> nonStudioExtensions.contains(ep));
+    projectConfigurable.unregisterExtensions((s, adapter) -> nonStudioExtensions.contains(adapter.createInstance(project)), false);
   }
 }
