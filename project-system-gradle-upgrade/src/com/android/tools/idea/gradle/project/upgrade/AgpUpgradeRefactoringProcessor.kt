@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
@@ -55,7 +54,6 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAs
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
-import com.intellij.notification.NotificationListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.undo.BasicUndoableAction
@@ -704,38 +702,39 @@ enum class AgpUpgradeComponentNecessity {
   MANDATORY_INDEPENDENT,
   OPTIONAL_CODEPENDENT,
   OPTIONAL_INDEPENDENT,
+}
 
-  ;
-
-  companion object {
-    fun standardPointNecessity(current: AgpVersion, new: AgpVersion, change: AgpVersion) = when {
-      current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
-      current >= change && new >= change -> IRRELEVANT_PAST
-      current < change && new >= change -> MANDATORY_CODEPENDENT
-      current < change && new < change -> IRRELEVANT_FUTURE
-      else -> throw RuntimeException("cannot happen")
-    }
-
-    /** [replacementAvailable] must be less than [originalRemoved]. */
-    fun standardRegionNecessity(
-      current: AgpVersion,
-      new: AgpVersion,
-      replacementAvailable: AgpVersion,
-      originalRemoved: AgpVersion
-    ): AgpUpgradeComponentNecessity {
-      return when {
-        current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
-        replacementAvailable > originalRemoved ->
-          throw IllegalArgumentException("internal error: replacementAvailable ($replacementAvailable) > originalRemoved ($originalRemoved")
-        current >= originalRemoved && new >= originalRemoved -> IRRELEVANT_PAST
-        current < replacementAvailable && new < replacementAvailable -> IRRELEVANT_FUTURE
-        current < replacementAvailable && new >= originalRemoved -> MANDATORY_CODEPENDENT
-        current < originalRemoved && new >= originalRemoved -> MANDATORY_INDEPENDENT
-        current < replacementAvailable && new >= replacementAvailable -> OPTIONAL_CODEPENDENT
-        current >= replacementAvailable && new < originalRemoved -> OPTIONAL_INDEPENDENT
-        else -> throw RuntimeException("cannot happen")
-      }
-    }
+abstract class AgpUpgradeComponentNecessityInfo {
+  abstract fun computeNecessity(current: AgpVersion, new: AgpVersion): AgpUpgradeComponentNecessity
+}
+object AlwaysNeeded : AgpUpgradeComponentNecessityInfo() {
+  override fun computeNecessity(current: AgpVersion, new: AgpVersion) = MANDATORY_CODEPENDENT
+}
+data class PointNecessity(val change: AgpVersion) : AgpUpgradeComponentNecessityInfo() {
+  override fun computeNecessity(current: AgpVersion, new: AgpVersion) = when {
+    current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
+    current >= change && new >= change -> IRRELEVANT_PAST
+    current < change && new >= change -> MANDATORY_CODEPENDENT
+    current < change && new < change -> IRRELEVANT_FUTURE
+    else -> throw RuntimeException("cannot happen")
+  }
+}
+/** [replacementAvailable] must be less than [originalRemoved]. */
+data class RegionNecessity(
+  val replacementAvailable: AgpVersion,
+  val originalRemoved: AgpVersion
+) : AgpUpgradeComponentNecessityInfo() {
+  override fun computeNecessity(current: AgpVersion, new: AgpVersion) = when {
+    current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
+    replacementAvailable > originalRemoved ->
+      throw IllegalArgumentException("internal error: replacementAvailable ($replacementAvailable) > originalRemoved ($originalRemoved")
+    current >= originalRemoved && new >= originalRemoved -> IRRELEVANT_PAST
+    current < replacementAvailable && new < replacementAvailable -> IRRELEVANT_FUTURE
+    current < replacementAvailable && new >= originalRemoved -> MANDATORY_CODEPENDENT
+    current < originalRemoved && new >= originalRemoved -> MANDATORY_INDEPENDENT
+    current < replacementAvailable && new >= replacementAvailable -> OPTIONAL_CODEPENDENT
+    current >= replacementAvailable && new < originalRemoved -> OPTIONAL_INDEPENDENT
+    else -> throw RuntimeException("cannot happen")
   }
 }
 
@@ -817,7 +816,9 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     this.hasParentProcessor = true
   }
 
-  abstract fun necessity(): AgpUpgradeComponentNecessity
+  abstract val necessityInfo: AgpUpgradeComponentNecessityInfo
+
+  fun necessity() = necessityInfo.computeNecessity(current, new)
 
   private var _cachedUsages = listOf<UsageInfo>()
   internal val cachedUsages
@@ -906,7 +907,7 @@ data class PropertiesOperationsRefactoringInfo(
     constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
     constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
-    override fun necessity() = standardRegionNecessity(current, new, optionalFromVersion, requiredFromVersion)
+    override val necessityInfo = RegionNecessity(optionalFromVersion, requiredFromVersion)
 
     override fun getCommandName(): String = commandNameSupplier.get()
 

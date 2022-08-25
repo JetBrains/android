@@ -19,7 +19,6 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardPointNecessity
 import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.androidFacet
@@ -42,7 +41,7 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardPointNecessity(current, new, AgpVersion.parse("8.0.0-beta01"))
+  override var necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-beta01"))
 
   class SourcesNotGenerated(moduleNames: List<String>) : BlockReason(
     shortDescription = "Generated BuildConfig sources are missing",

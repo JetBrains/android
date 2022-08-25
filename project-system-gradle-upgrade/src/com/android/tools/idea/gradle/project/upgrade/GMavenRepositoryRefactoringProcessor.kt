@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardPointNecessity
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.openapi.project.Project
@@ -34,7 +33,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardPointNecessity(current, new, AgpVersion(3, 0, 0))
+  override val necessityInfo = PointNecessity(AgpVersion.parse("3.0.0"))
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()

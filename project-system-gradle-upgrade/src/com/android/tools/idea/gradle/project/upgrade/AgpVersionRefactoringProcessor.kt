@@ -44,7 +44,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+  override val necessityInfo = AlwaysNeeded
 
   object AgpVersionNotFound: BlockReason(
     shortDescription = "Cannot find AGP version in build files.",

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.utils.appendCapitalized
@@ -36,7 +35,7 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardRegionNecessity(current, new, IMPLEMENTATION_API_INTRODUCED, COMPILE_REMOVED)
+  override val necessityInfo = RegionNecessity(IMPLEMENTATION_API_INTRODUCED, COMPILE_REMOVED)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()

@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.openapi.project.Project
@@ -41,7 +40,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardRegionNecessity(current, new, COMPATIBLE_WITH, INCOMPATIBLE_VERSION)
+  override val necessityInfo = RegionNecessity(COMPATIBLE_WITH, INCOMPATIBLE_VERSION)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = ArrayList<UsageInfo>()

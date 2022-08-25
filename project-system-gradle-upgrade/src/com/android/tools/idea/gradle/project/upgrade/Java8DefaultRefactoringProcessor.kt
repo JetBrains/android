@@ -49,7 +49,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, ACTIVATED_VERSION)
+  override val necessityInfo = PointNecessity(ACTIVATED_VERSION)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     fun usageType(model: LanguageLevelPropertyModel): UsageType? = when {

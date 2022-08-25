@@ -33,7 +33,7 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, AgpVersion.parse("8.0.0-beta01"))
+  override val necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-beta01"))
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()

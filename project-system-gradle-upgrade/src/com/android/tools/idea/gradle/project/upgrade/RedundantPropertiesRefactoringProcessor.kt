@@ -32,7 +32,7 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity(): AgpUpgradeComponentNecessity = MANDATORY_CODEPENDENT
+  override val necessityInfo = AlwaysNeeded
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()

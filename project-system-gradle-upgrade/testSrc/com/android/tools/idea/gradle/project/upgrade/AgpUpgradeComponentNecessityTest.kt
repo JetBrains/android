@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardPointNecessity
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.AndroidTestCase
 
@@ -28,82 +26,82 @@ class AgpUpgradeComponentNecessityTest : AndroidTestCase() {
   val three = AgpVersion(3, 0, 0)
   val four = AgpVersion(4, 0, 0)
 
-  fun testStandardPointNecessityReturns() {
-    assertEquals(IRRELEVANT_PAST, standardPointNecessity(one, one, one))
-    assertEquals(IRRELEVANT_FUTURE, standardPointNecessity(one, one, two))
+  fun testPointNecessityReturns() {
+    assertEquals(IRRELEVANT_PAST, PointNecessity(one).computeNecessity(one, one))
+    assertEquals(IRRELEVANT_FUTURE, PointNecessity(two).computeNecessity(one, one))
     // 1, 1, 3 == 1, 1, 2
-    assertEquals(IRRELEVANT_PAST, standardPointNecessity(one, two, one))
-    assertEquals(MANDATORY_CODEPENDENT, standardPointNecessity(one, two, two))
-    assertEquals(IRRELEVANT_FUTURE, standardPointNecessity(one, two, three))
+    assertEquals(IRRELEVANT_PAST, PointNecessity(one).computeNecessity(one, two))
+    assertEquals(MANDATORY_CODEPENDENT, PointNecessity(two).computeNecessity(one, two))
+    assertEquals(IRRELEVANT_FUTURE, PointNecessity(three).computeNecessity(one, two))
     // 1, 3, 1 == 1, 2, 1
-    assertEquals(MANDATORY_CODEPENDENT, standardPointNecessity(one, three, two))
+    assertEquals(MANDATORY_CODEPENDENT, PointNecessity(two).computeNecessity(one, three))
     // 1, 3, 3 == 1, 2, 2
-    assertEquals(IRRELEVANT_PAST, standardPointNecessity(two, two, one))
+    assertEquals(IRRELEVANT_PAST, PointNecessity(one).computeNecessity(two, two))
     // 2, 2, 2 == 1, 1, 1
     // 2, 2, 3 == 1, 1, 3
-    assertEquals(IRRELEVANT_PAST, standardPointNecessity(two, three, one))
+    assertEquals(IRRELEVANT_PAST, PointNecessity(one).computeNecessity(two, three))
     // 2, 3, 2 == 1, 2, 1
     // 2, 3, 3 == 1, 3, 3
   }
 
   fun testRegionNecessityReturnsSameAsPoint() {
-    assertEquals(IRRELEVANT_PAST, standardRegionNecessity(one, one, one, one))
-    assertEquals(IRRELEVANT_FUTURE, standardRegionNecessity(one, one, two, two))
-    assertEquals(IRRELEVANT_PAST, standardRegionNecessity(one, two, one, one))
-    assertEquals(MANDATORY_CODEPENDENT, standardRegionNecessity(one, two, two, two))
-    assertEquals(IRRELEVANT_FUTURE, standardRegionNecessity(one, two, three, three))
-    assertEquals(MANDATORY_CODEPENDENT, standardRegionNecessity(one, three, two, two))
-    assertEquals(IRRELEVANT_PAST, standardRegionNecessity(two, two, one, one))
-    assertEquals(IRRELEVANT_PAST, standardRegionNecessity(two, three, one, one))
+    assertEquals(IRRELEVANT_PAST, RegionNecessity(one, one).computeNecessity(one, one))
+    assertEquals(IRRELEVANT_FUTURE, RegionNecessity(two, two).computeNecessity(one, one))
+    assertEquals(IRRELEVANT_PAST, RegionNecessity(one, one).computeNecessity(one, two))
+    assertEquals(MANDATORY_CODEPENDENT, RegionNecessity(two, two).computeNecessity(one, two))
+    assertEquals(IRRELEVANT_FUTURE, RegionNecessity(three, three).computeNecessity(one, two))
+    assertEquals(MANDATORY_CODEPENDENT, RegionNecessity(two, two).computeNecessity(one, three))
+    assertEquals(IRRELEVANT_PAST, RegionNecessity(one, one).computeNecessity(two, two))
+    assertEquals(IRRELEVANT_PAST, RegionNecessity(one, one).computeNecessity(two, three))
   }
 
   fun testRegionNecessityReturns() {
-    assertEquals(OPTIONAL_INDEPENDENT, standardRegionNecessity(one, one, one, two))
-    assertEquals(IRRELEVANT_FUTURE, standardRegionNecessity(one, one, two, three))
-    assertEquals(MANDATORY_INDEPENDENT, standardRegionNecessity(one, two, one, two))
-    assertEquals(OPTIONAL_CODEPENDENT, standardRegionNecessity(one, two, two, three))
-    assertEquals(IRRELEVANT_FUTURE, standardRegionNecessity(one, two, three, four))
+    assertEquals(OPTIONAL_INDEPENDENT, RegionNecessity(one, two).computeNecessity(one, one))
+    assertEquals(IRRELEVANT_FUTURE, RegionNecessity(two, three).computeNecessity(one, one))
+    assertEquals(MANDATORY_INDEPENDENT, RegionNecessity(one, two).computeNecessity(one, two))
+    assertEquals(OPTIONAL_CODEPENDENT, RegionNecessity(two, three).computeNecessity(one, two))
+    assertEquals(IRRELEVANT_FUTURE, RegionNecessity(three, four).computeNecessity(one, two))
 
-    assertEquals(OPTIONAL_CODEPENDENT, standardRegionNecessity(one, three, two, four))
-    assertEquals(MANDATORY_CODEPENDENT, standardRegionNecessity(one, four, two, three))
+    assertEquals(OPTIONAL_CODEPENDENT, RegionNecessity(two, four).computeNecessity(one, three))
+    assertEquals(MANDATORY_CODEPENDENT, RegionNecessity(two, three).computeNecessity(one, four))
 
-    assertEquals(IRRELEVANT_PAST, standardRegionNecessity(two, two, one, two))
-    assertEquals(OPTIONAL_INDEPENDENT, standardRegionNecessity(two, two, one, three))
-    assertEquals(IRRELEVANT_PAST, standardRegionNecessity(two, three, one, two))
-    assertEquals(MANDATORY_INDEPENDENT, standardRegionNecessity(two, three, one, three))
-    assertEquals(OPTIONAL_INDEPENDENT, standardRegionNecessity(two, three, one, four))
+    assertEquals(IRRELEVANT_PAST, RegionNecessity(one, two).computeNecessity(two, two))
+    assertEquals(OPTIONAL_INDEPENDENT, RegionNecessity(one, three).computeNecessity(two, two))
+    assertEquals(IRRELEVANT_PAST, RegionNecessity(one, two).computeNecessity(two, three))
+    assertEquals(MANDATORY_INDEPENDENT, RegionNecessity(one, three).computeNecessity(two, three))
+    assertEquals(OPTIONAL_INDEPENDENT, RegionNecessity(one, four).computeNecessity(two, three))
 
-    assertEquals(MANDATORY_INDEPENDENT, standardRegionNecessity(two, four, one, three))
+    assertEquals(MANDATORY_INDEPENDENT, RegionNecessity(one, three).computeNecessity(two, four))
 
-    assertEquals(IRRELEVANT_PAST, standardRegionNecessity(three, four, one, two))
+    assertEquals(IRRELEVANT_PAST, RegionNecessity(one, two).computeNecessity(three, four))
   }
 
   fun testStandardPointNecessityThrows() {
-    assertThrows(IllegalArgumentException::class.java, { standardPointNecessity(two, one, one) })
-    assertThrows(IllegalArgumentException::class.java, { standardPointNecessity(two, one, two) })
-    assertThrows(IllegalArgumentException::class.java, { standardPointNecessity(two, one, three) })
-    assertThrows(IllegalArgumentException::class.java, { standardPointNecessity(three, two, one) })
+    assertThrows(IllegalArgumentException::class.java, { PointNecessity(one).computeNecessity(two, one) })
+    assertThrows(IllegalArgumentException::class.java, { PointNecessity(two).computeNecessity(two, one) })
+    assertThrows(IllegalArgumentException::class.java, { PointNecessity(three).computeNecessity(two, one) })
+    assertThrows(IllegalArgumentException::class.java, { PointNecessity(one).computeNecessity(three, two) })
   }
 
   fun testStandardRegionNecessityThrows() {
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(two, one, one, two) })
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(two, one, two, three) })
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(two, one, three, four) })
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(three, two, one, two) })
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(four, three, one, two) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(one, two).computeNecessity(two, one) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(two, three).computeNecessity(two, one) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(three, four).computeNecessity(two, one) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(one, two).computeNecessity(three, two) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(one, two).computeNecessity(four, three) })
 
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(one, two, two, one) })
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(two, three, two, one) })
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(three, four, two, one) })
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(one, two, three, two) })
-    assertThrows(IllegalArgumentException::class.java, { standardRegionNecessity(one, two, four, three) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(two, one).computeNecessity(one, two) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(two, one).computeNecessity(two, three) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(two, one).computeNecessity(three, four) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(three, two).computeNecessity(one, two) })
+    assertThrows(IllegalArgumentException::class.java, { RegionNecessity(four, three).computeNecessity(one, two) })
   }
 
   fun testStandardPointNecessityReturnsOrIllegalArgument() {
     listOf(one, two, three).forEach { i ->
       listOf(one, two, three).forEach { j ->
         listOf(one, two, three).forEach { k ->
-          val thrower = ThrowableRunnable<Exception> { standardPointNecessity(i, j, k); throw IllegalArgumentException() }
+          val thrower = ThrowableRunnable<Exception> { PointNecessity(k).computeNecessity(i, j); throw IllegalArgumentException() }
           // assert that standardPointNecessity does not throw anything *other* than an IllegalArgumentException
           assertThrows(IllegalArgumentException::class.java, thrower)
         }
@@ -116,7 +114,7 @@ class AgpUpgradeComponentNecessityTest : AndroidTestCase() {
       listOf(one, two, three, four).forEach { j ->
         listOf(one, two, three, four).forEach { k ->
           listOf(one, two, three, four).forEach { l ->
-            val thrower = ThrowableRunnable<Exception> { standardRegionNecessity(i, j, k, l); throw IllegalArgumentException() }
+            val thrower = ThrowableRunnable<Exception> { RegionNecessity(k, l).computeNecessity(i, j); throw IllegalArgumentException() }
             // assert that standardRegionNecessity does not throw anything *other* than an IllegalArgumentException
             assertThrows(IllegalArgumentException::class.java, thrower)
           }

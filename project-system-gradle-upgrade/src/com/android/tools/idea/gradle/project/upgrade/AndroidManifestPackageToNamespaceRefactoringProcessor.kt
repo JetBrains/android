@@ -19,7 +19,6 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.toVirtualFile
@@ -42,8 +41,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() =
-    standardRegionNecessity(current, new, AgpVersion.parse("7.0.0-alpha05"), AgpVersion.parse("8.0.0-alpha03"))
+  override val necessityInfo = RegionNecessity(AgpVersion.parse("7.0.0-alpha05"), AgpVersion.parse("8.0.0-alpha03"))
 
   data class Namespaces(val namespace: String?, val testNamespace: String?)
 

@@ -44,7 +44,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
   val compatibleGradleVersion: CompatibleGradleVersion
 
-  override fun necessity() = AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+  override val necessityInfo = AlwaysNeeded
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()

@@ -40,10 +40,12 @@ class RemoveImplementationPropertiesRefactoringProcessor: AgpUpgradeComponentRef
   // the interface definitions have already been removed, so it is necessary for KotlinScript build files in the 7.0.0-alpha series.
   // We cannot make it required by 7.0.0-alpha, though, because users might mistakenly include those properties in Groovy files without
   // receiving errors or even deprecation notices during the 7.x series.
-  override fun necessity(): AgpUpgradeComponentNecessity = when {
-    new < AgpVersion.parse("7.0.0-alpha13") -> OPTIONAL_INDEPENDENT
-    current > AgpVersion.parse("8.0.0") -> IRRELEVANT_PAST
-    else -> MANDATORY_INDEPENDENT
+  override val necessityInfo = object : AgpUpgradeComponentNecessityInfo() {
+    override fun computeNecessity(current: AgpVersion, new: AgpVersion) = when {
+      new < AgpVersion.parse("7.0.0-alpha13") -> OPTIONAL_INDEPENDENT
+      current > AgpVersion.parse("8.0.0") -> IRRELEVANT_PAST
+      else -> MANDATORY_INDEPENDENT
+    }
   }
 
   override fun findComponentUsages(): Array<UsageInfo> {
