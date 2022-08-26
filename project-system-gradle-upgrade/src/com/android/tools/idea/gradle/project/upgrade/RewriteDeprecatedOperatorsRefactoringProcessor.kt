@@ -22,12 +22,12 @@ import org.jetbrains.android.util.AndroidBundle
 
 val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = GradleVersion.parse("7.1.0-alpha06"),
-  requiredFromVersion = GradleVersion.parse("8.0.0-alpha01"),
+  requiredFromVersion = GradleVersion.parse("9.0.0-alpha01"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.commandName"),
   shortDescriptionSupplier = {
     """
       A number of Dsl operators and methods have been deprecated for removal in
-      AGP 8.0.0, replaced by simpler property operations.
+      AGP 9.0.0, replaced by simpler property operations.
     """.trimIndent()
   },
   processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.rewriteDeprecatedOperatorsRefactoringProcessor.usageView.header"),

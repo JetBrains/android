@@ -384,15 +384,15 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   fun testResConfigs() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/ResConfigs"))
     val processor =
-      REWRITE_DEPRECATED_OPERATORS_INFO.RefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+      REWRITE_DEPRECATED_OPERATORS_INFO.RefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("9.0.0"))
     processor.run()
 
     checkComponentEvents(
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REWRITE_DEPRECATED_OPERATORS).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2).setFiles(2))
         .build(),
-      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("8.0.0")
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REWRITE_DEPRECATED_OPERATORS).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2).setFiles(2))
         .build(),
