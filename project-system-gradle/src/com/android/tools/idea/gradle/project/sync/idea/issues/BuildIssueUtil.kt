@@ -22,7 +22,7 @@ import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.roots.impl.DirectoryIndex
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 
@@ -84,7 +84,7 @@ fun fetchIdeaProjectForGradleProject(projectPath: String): Project? {
   return runReadAction {
     val projectVirtualFile = VfsUtil.findFileByIoFile(File(projectPath), false) ?: return@runReadAction null
     ProjectManager.getInstance().openProjects.firstOrNull {
-      DirectoryIndex.getInstance(it).getInfoForFile(projectVirtualFile).module != null
+      ProjectFileIndex.getInstance(it).isInContent(projectVirtualFile)
     }
   }
 }
