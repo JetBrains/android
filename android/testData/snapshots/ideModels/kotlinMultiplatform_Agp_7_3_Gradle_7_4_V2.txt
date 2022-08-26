@@ -549,7 +549,7 @@ MODULE                        : kotlinMultiPlatform
         externalSystemId              : GRADLE
 MODULE                        : kotlinMultiPlatform.app
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :app
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/app/build.gradle
@@ -583,7 +583,7 @@ MODULE                        : kotlinMultiPlatform.app
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -2032,7 +2032,7 @@ MODULE                        : kotlinMultiPlatform.app.main
 MODULE                        : kotlinMultiPlatform.app.unitTest
 MODULE                        : kotlinMultiPlatform.module2
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :module2
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/module2/build.gradle
@@ -2068,7 +2068,7 @@ MODULE                        : kotlinMultiPlatform.module2
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :module2
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/module2/build [-]

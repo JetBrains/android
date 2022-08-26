@@ -929,7 +929,7 @@ MODULE                        : MainActivity
         externalSystemId              : GRADLE
 MODULE                        : MainActivity.app
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :app
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/app/build.gradle
@@ -966,7 +966,7 @@ MODULE                        : MainActivity.app
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -1140,7 +1140,7 @@ MODULE                        : MainActivity.app
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.3.0-beta05 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.3.0-rc01 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -1355,7 +1355,11 @@ MODULE                        : MainActivity.app
                     Manifest                      : <ROOT>/app/src/localDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/localDebug/java [-]
                     JavaDirectories               : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+                    KotlinDirectories             : <ROOT>/app/src/localDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/localDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/localDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/localDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/localDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/localDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/localDebug/resources [-]
                     RenderscriptDirectories       : <ROOT>/app/src/localDebug/rs [-]
@@ -1565,6 +1569,10 @@ MODULE                        : MainActivity.app
                     JavaDirectories               : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestLocalDebug/resources [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestLocalDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestLocalDebug/res [-]
@@ -2276,7 +2284,7 @@ MODULE                        : MainActivity.javaLib.main
 MODULE                        : MainActivity.javaLib.test
 MODULE                        : MainActivity.lib
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :lib
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/lib/build.gradle
@@ -2312,7 +2320,7 @@ MODULE                        : MainActivity.lib
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :lib
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -2473,7 +2481,7 @@ MODULE                        : MainActivity.lib
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-beta05 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.txt [-]
             ConsumerProguardFiles         : <ROOT>/lib/other.pro [-]
             IsDebuggable                  : false

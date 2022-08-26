@@ -550,7 +550,7 @@ MODULE                        : project
         externalSystemId              : GRADLE
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :app
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/app/build.gradle
@@ -583,7 +583,7 @@ MODULE                        : project.app
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -751,7 +751,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-beta05 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -1877,7 +1877,7 @@ MODULE                        : project.javalib2.main
 MODULE                        : project.javalib2.test
 MODULE                        : project.library1
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :library1
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/library1/build.gradle
@@ -1910,7 +1910,7 @@ MODULE                        : project.library1
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :library1
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library1/build [-]
@@ -2069,7 +2069,7 @@ MODULE                        : project.library1
                     ShadersDirectories            : <ROOT>/library1/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/library1/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-beta05 [-]
+            ProguardFiles                 : <ROOT>/library1/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
             ProguardFiles                 : <ROOT>/library1/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2720,7 +2720,7 @@ MODULE                        : project.library1.main
 MODULE                        : project.library1.unitTest
 MODULE                        : project.library2
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :library2
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/library2/build.gradle
@@ -2753,7 +2753,7 @@ MODULE                        : project.library2
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :library2
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library2/build [-]
@@ -2912,7 +2912,7 @@ MODULE                        : project.library2
                     ShadersDirectories            : <ROOT>/library2/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/library2/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-beta05 [-]
+            ProguardFiles                 : <ROOT>/library2/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
             ProguardFiles                 : <ROOT>/library2/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

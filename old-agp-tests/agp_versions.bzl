@@ -38,7 +38,7 @@ AGP_4_2 = "4.2.0"
 AGP_7_0 = "7.0.0"
 AGP_7_1 = "7.1.0"
 AGP_7_2 = "7.2.0"
-AGP_7_3 = "7.3.0-beta05"
+AGP_7_3 = "7.3.0-rc01"
 
 AGP_MAVEN_REPOS = {
     AGP_3_1_4: ["//tools/base/build-system/previous-versions:3.1.4"],

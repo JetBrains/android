@@ -371,7 +371,7 @@ MODULE                        : project
         externalSystemId              : GRADLE
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :app
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/app/build.gradle
@@ -404,7 +404,7 @@ MODULE                        : project.app
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build
@@ -750,7 +750,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :lib
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/lib/build.gradle
@@ -783,7 +783,7 @@ MODULE                        : project.lib
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :lib
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build
@@ -1098,7 +1098,7 @@ MODULE                        : project.lib.main
 MODULE                        : project.lib.unitTest
 MODULE                        : project.otherlib
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :otherlib
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/otherlib/build.gradle
@@ -1131,7 +1131,7 @@ MODULE                        : project.otherlib
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :otherlib
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/otherlib/build

@@ -252,7 +252,7 @@ MODULE                        : navgraph
         externalSystemId              : GRADLE
 MODULE                        : navgraph.app
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :app
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/app/build.gradle
@@ -285,7 +285,7 @@ MODULE                        : navgraph.app
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -453,7 +453,7 @@ MODULE                        : navgraph.app
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.3.0-beta05 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.3.0-rc01 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2017,7 +2017,7 @@ MODULE                        : navgraph.app.main
 MODULE                        : navgraph.app.unitTest
 MODULE                        : navgraph.lib
     GradleModuleModel
-        agpVersion                    : 7.3.0-beta05
+        agpVersion                    : 7.3.0-rc01
         gradlePath                    : :lib
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/lib/build.gradle
@@ -2050,7 +2050,7 @@ MODULE                        : navgraph.lib
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :lib
-    ModelVersion                  : 7.3.0-beta05
+    ModelVersion                  : 7.3.0-rc01
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -2213,7 +2213,7 @@ MODULE                        : navgraph.lib
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.3.0-beta05 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.3.0-rc01 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
