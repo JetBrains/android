@@ -66,7 +66,7 @@ iml_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = ["manual"],  # Adb startup error: "could not install *smartsocket* listener: Address already in use"
+    tags = ["manual"],  # b/243923041
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.AdbServerConnectionTest",
