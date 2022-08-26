@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>dev build</version>
+  <version>2022.1.1</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
