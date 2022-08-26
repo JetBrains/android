@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixtur
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,8 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class MultiModuleSearchTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+
+  private static String RESOURCE_MATCH_IN_LIBRARY = "1 resource found in 'MultiAndroidModule.library.main'";
 
   /**
    * To verify search results displays resources correctly while searching in resource manager
@@ -68,8 +71,11 @@ public class MultiModuleSearchTest {
 
     // Verify 1 : Verify Text link with asserts found in the other module.
     resourceExplorerFixture.getSearchField().enterText("event");
-    resourceExplorerFixture.findLinklabelByTextContains("1 resource found in 'MultiAndroidModule.library.main'")
-      .requireVisible()
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    Wait.seconds(2).expecting("Wait for search link to show up").until(() ->
+      resourceExplorerFixture.findLinklabelByTextContains(RESOURCE_MATCH_IN_LIBRARY).isEnabled()
+      );
+    resourceExplorerFixture.findLinklabelByTextContains(RESOURCE_MATCH_IN_LIBRARY)
       .clickLink();
 
     // Verify 2: Verify clicking on the link update the module in the dropdown.
