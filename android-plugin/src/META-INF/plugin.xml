@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>2022.1.1 RC 3</version>
+  <version>2022.1.1 RC 4</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
