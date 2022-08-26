@@ -343,7 +343,7 @@ class DeviceMonitorController(
     val addedNodes = TreeUtil.updateChildrenNodes(treeModel, parentNode, newEntries, updateChildrenOps)
     parentNode.allowsChildren = parentNode.childCount > 0
     view.expandNode(parentNode)
-    thisLogger().info("${parentNode.device}: Process list updated to ${newEntries.size} processes")
+    thisLogger().debug("${parentNode.device}: Process list updated to ${newEntries.size} processes")
     return addedNodes
   }
 

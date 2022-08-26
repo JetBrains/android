@@ -209,7 +209,7 @@ class AdbDeviceListService @NonInjectable constructor(private val adbSupplier: S
     try {
       // We don't actually assign to myBridge here, we do that in the DebugBridgeChangeListener
       val bridge = AdbService.getInstance().getDebugBridge(adb).await()
-      LOGGER.info("Successfully obtained debug bridge")
+      LOGGER.debug("Successfully obtained debug bridge")
 
       bridgeChangedWorker(bridge)
       state = State.SetupDone
@@ -276,7 +276,7 @@ class AdbDeviceListService @NonInjectable constructor(private val adbSupplier: S
 
   private inner class DebugBridgeChangeListener : IDebugBridgeChangeListener {
     override fun bridgeChanged(bridge: AndroidDebugBridge?) {
-      LOGGER.info("Debug bridge changed")
+      LOGGER.debug("Debug bridge changed")
       coroutineScope.launch(uiThread) {
         bridgeChangedWorker(bridge)
       }
@@ -285,7 +285,7 @@ class AdbDeviceListService @NonInjectable constructor(private val adbSupplier: S
 
   private inner class DeviceChangeListener : IDeviceChangeListener {
     override fun deviceConnected(device: IDevice) {
-      LOGGER.info(String.format("Device connected: %s", device))
+      LOGGER.debug(String.format("Device connected: %s", device))
       coroutineScope.launch(uiThread) {
         if (findDevice(device) == null) {
           val newDevice = AdbDevice(device)
@@ -296,7 +296,7 @@ class AdbDeviceListService @NonInjectable constructor(private val adbSupplier: S
     }
 
     override fun deviceDisconnected(device: IDevice) {
-      LOGGER.info(String.format("Device disconnected: %s", device))
+      LOGGER.debug(String.format("Device disconnected: %s", device))
       coroutineScope.launch(uiThread) {
         findDevice(device)?.let {
           listeners.forEach { l -> l.deviceRemoved(it) }
@@ -306,7 +306,7 @@ class AdbDeviceListService @NonInjectable constructor(private val adbSupplier: S
     }
 
     override fun deviceChanged(device: IDevice, changeMask: Int) {
-      LOGGER.info(String.format("Device changed: %s", device))
+      LOGGER.debug(String.format("Device changed: %s", device))
       coroutineScope.launch(uiThread) {
         findDevice(device)?.let {
           if (isMaskBitSet(changeMask, CHANGE_STATE)) {
@@ -323,7 +323,7 @@ class AdbDeviceListService @NonInjectable constructor(private val adbSupplier: S
   private inner class DeviceClientListener : IClientChangeListener {
     override fun clientChanged(client: Client, changeMask: Int) {
       val device = client.device
-      LOGGER.info(String.format("Client changed: %s", device))
+      LOGGER.debug(String.format("Client changed: %s", device))
       coroutineScope.launch(uiThread) {
         findDevice(device)?.let {
           if (isMaskBitSet(changeMask, CHANGE_INFO)) {

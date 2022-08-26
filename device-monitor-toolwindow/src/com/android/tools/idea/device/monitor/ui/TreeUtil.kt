@@ -51,7 +51,7 @@ object TreeUtil {
     newEntries: List<U>,
     ops: UpdateChildrenOps<T, U>
   ): List<T> {
-    thisLogger().info("updateChildrenNodes($treeModel, $parentNode, ${newEntries.size} nodes)")
+    thisLogger().debug("updateChildrenNodes($treeModel, $parentNode, ${newEntries.size} nodes)")
     return if (newEntries.isEmpty()) {
       // Special case: new list is empty, so we remove all children
       // This is more efficient that doing incremental updates
