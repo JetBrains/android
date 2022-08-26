@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.intellij.openapi.Disposable
@@ -22,6 +23,7 @@ import com.intellij.openapi.Disposable
 class PsJavaModuleAnalyzer(parentDisposable: Disposable) : PsModelAnalyzer<PsJavaModule>(parentDisposable) {
   override val supportedModelType: Class<PsJavaModule> = PsJavaModule::class.java
 
+  @UiThread
   override fun analyze(model: PsJavaModule): Sequence<PsIssue> =
     model.dependencies.libraries.asSequence().flatMap { analyzeDeclaredDependency(it) + analyzeDependencyScope(it) } +
     model.dependencies.jars.asSequence().flatMap { analyzeDependencyScope(it) } +

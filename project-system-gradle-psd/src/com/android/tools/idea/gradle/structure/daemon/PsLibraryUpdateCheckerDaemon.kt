@@ -65,6 +65,7 @@ class PsLibraryUpdateCheckerDaemon(
   fun add(@UiThread listener: () -> Unit, parentDisposable: Disposable) {
     eventDispatcher.addListener(
       object : AvailableUpdatesListener {
+        @UiThread
         override fun availableUpdates() = listener()
       }, parentDisposable)
   }

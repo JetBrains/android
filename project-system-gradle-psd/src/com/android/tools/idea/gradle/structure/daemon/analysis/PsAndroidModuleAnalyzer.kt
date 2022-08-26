@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
@@ -45,6 +46,7 @@ class PsAndroidModuleAnalyzer(
 
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java
 
+  @UiThread
   override fun analyze(model: PsAndroidModule): Sequence<PsIssue> {
     return analyzeModuleVariants(model) +
            analyzeDeclaredDependencies(model) +

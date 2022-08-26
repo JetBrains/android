@@ -38,6 +38,7 @@ class PsSdkIndexCheckerDaemon(
   fun add(@UiThread listener: () -> Unit, parentDisposable: Disposable) {
     eventDispatcher.addListener(
       object : SdkIndexIssuesListener {
+        @UiThread
         override fun availableIssues() = listener()
       }, parentDisposable)
   }
