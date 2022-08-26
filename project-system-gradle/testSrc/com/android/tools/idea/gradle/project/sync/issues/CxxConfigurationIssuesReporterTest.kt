@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
@@ -28,27 +27,24 @@ import org.junit.Test
 import java.util.IdentityHashMap
 
 class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
-  private lateinit var syncMessages: GradleSyncMessagesStub
   private lateinit var reporter: CxxConfigurationIssuesReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
   override fun setUp() {
     super.setUp()
 
-    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project)
     reporter = CxxConfigurationIssuesReporter()
     usageReporter = TestSyncIssueUsageReporter()
   }
 
   @Test
   fun testWithSingleModule() {
-    syncMessages.removeAllMessages()
     loadSimpleApplication()
 
     val syncIssue = setUpMockSyncIssue("19.1.2")
 
-    reporter.report(syncIssue, getModule("app"), null, usageReporter)
-    val messages = syncMessages.reportedMessages
+
+    val messages = reporter.report(syncIssue, getModule("app"), null)
     assertSize(1, messages)
     val notification = messages[0]
 
@@ -71,13 +67,14 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
           .newBuilder()
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK)
-          .build()),
-      usageReporter.collectedIssue)
+          .build()
+      ),
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION, messages)
+    )
   }
 
   @Test
   fun testWithCompositeBuild() {
-    syncMessages.removeAllMessages()
     prepareProjectForImport(COMPOSITE_BUILD)
     importProject()
 
@@ -92,9 +89,11 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
       syncIssueThree to getModule("TestCompositeLib3")
     ).toMap(IdentityHashMap())
 
-    reporter.reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf(), usageReporter)
 
-    val messages = syncMessages.reportedMessages.filter { it.type == MessageType.WARNING }
+    val messages =
+      reporter
+        .reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf())
+        .filter { it.type == MessageType.WARNING }
     assertSize(1, messages)
     val notificationOne = messages[0]
 
@@ -106,7 +105,7 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
       notificationOne.message
     )
 
-    val quickFixes = messages[0]!!.quickFixes
+    val quickFixes = messages[0].quickFixes
     assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
 
@@ -117,7 +116,8 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
       .build()
     assertEquals(
       listOf(resultSyncIssue),
-      usageReporter.collectedIssue)
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION, messages)
+    )
   }
 
   private fun setUpMockSyncIssue(revision: String): IdeSyncIssue {

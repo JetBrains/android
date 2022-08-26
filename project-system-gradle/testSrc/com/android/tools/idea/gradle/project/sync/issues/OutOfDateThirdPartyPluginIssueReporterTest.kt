@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -25,28 +24,24 @@ import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import org.junit.Test
 
 class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
-  private lateinit var syncMessages: GradleSyncMessagesStub
   private lateinit var reporter: OutOfDateThirdPartyPluginIssueReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
   override fun setUp() {
     super.setUp()
 
-    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project)
     reporter = OutOfDateThirdPartyPluginIssueReporter()
     usageReporter = TestSyncIssueUsageReporter()
   }
 
   @Test
   fun testReporterEmitsCorrectLinks() {
-    syncMessages.removeAllMessages()
     loadSimpleApplication()
 
     val syncIssue = setUpMockSyncIssue("pluginName", "pluginGroup", "2.3.4", listOf("path/one", "path/two"))
 
-    reporter.report(syncIssue, getModule("app"), null, usageReporter)
+    val messages = reporter.report(syncIssue, getModule("app"), null)
 
-    val messages = syncMessages.reportedMessages
     assertSize(1, messages)
     val notification = messages[0]
 
@@ -57,7 +52,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
                  notification.message)
     assertEquals(MessageType.WARNING, notification.type)
 
-    val quickFixes = messages[0]!!.quickFixes
+    val quickFixes = messages[0].quickFixes
     assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], UpdatePluginHyperlink::class.java)
     val pluginHyperlink = quickFixes[0] as UpdatePluginHyperlink
@@ -74,7 +69,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK)
           .build()),
-      usageReporter.collectedIssue)
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD, messages))
   }
 
   private fun setUpMockSyncIssue(name: String, group: String, minVersion: String, paths: List<String>): IdeSyncIssue = object : IdeSyncIssue {
@@ -82,7 +77,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
 
     override val type: Int = IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
 
-    override val data: String? = listOf("Some Plugin", group, name, minVersion, paths.joinToString(",", "[", "]")).joinToString(";")
+    override val data: String = listOf("Some Plugin", group, name, minVersion, paths.joinToString(",", "[", "]")).joinToString(";")
 
     override val message: String = "This is some message"
 

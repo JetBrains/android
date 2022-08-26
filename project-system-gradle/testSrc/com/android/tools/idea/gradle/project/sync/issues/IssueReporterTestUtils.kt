@@ -23,16 +23,13 @@ import junit.framework.Assert.assertSame
 import org.jetbrains.annotations.SystemIndependent
 
 class TestSyncIssueUsageReporter(
-    val collectedIssue: MutableList<GradleSyncIssue> = mutableListOf(),
     var collectedFailure: AndroidStudioEvent.GradleSyncFailure? = null
 ) : SyncIssueUsageReporter {
   override fun collect(failure: AndroidStudioEvent.GradleSyncFailure) {
     collectedFailure = failure
   }
 
-  override fun collect(issue: GradleSyncIssue.Builder) {
-    collectedIssue.add(issue.build())
-  }
+  override fun collect(issue: GradleSyncIssue)= error("Not expected")
 
   override fun reportToUsageTracker(rootProjectPath: @SystemIndependent String) = Unit
 

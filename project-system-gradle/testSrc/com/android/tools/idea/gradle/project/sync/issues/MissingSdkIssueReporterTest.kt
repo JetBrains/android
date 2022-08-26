@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
@@ -30,28 +29,24 @@ import java.io.File
 import java.util.IdentityHashMap
 
 class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
-  private lateinit var syncMessages: GradleSyncMessagesStub
   private lateinit var reporter: MissingSdkIssueReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
   override fun setUp() {
     super.setUp()
 
-    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project)
     reporter = MissingSdkIssueReporter()
     usageReporter = TestSyncIssueUsageReporter()
   }
 
   @Test
   fun testWithSingleModule() {
-    syncMessages.removeAllMessages()
     loadSimpleApplication()
 
     val localPropertiesPath = File(projectFolderPath, SdkConstants.FN_LOCAL_PROPERTIES)
     val syncIssue = setUpMockSyncIssue(localPropertiesPath.absolutePath)
 
-    reporter.report(syncIssue, getModule("app"), null, usageReporter)
-    val messages = syncMessages.reportedMessages
+    val messages = reporter.report(syncIssue, getModule("app"), null)
     assertSize(1, messages)
     val notification = messages[0]
 
@@ -65,7 +60,7 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
     )
     assertEquals(MessageType.WARNING, notification.type)
 
-    val quickFixes = messages[0]!!.quickFixes
+    val quickFixes = messages[0].quickFixes
     assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], SetSdkDirHyperlink::class.java)
     val quickFixPaths = (quickFixes[0] as SetSdkDirHyperlink).localPropertiesPaths
@@ -79,12 +74,11 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK)
           .build()),
-      usageReporter.collectedIssue)
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages))
   }
 
   @Test
   fun testWithCompositeBuild() {
-    syncMessages.removeAllMessages()
     prepareProjectForImport(COMPOSITE_BUILD)
     importProject()
 
@@ -103,14 +97,14 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
       syncIssueThree to getModule("TestCompositeLib3")
     ).toMap(IdentityHashMap())
 
-    reporter.reportAll(
-      listOf(syncIssueOne, syncIssueTwo, syncIssueThree),
-      moduleMap,
-      mapOf(),
-      usageReporter
-    )
+    val messages = reporter
+      .reportAll(
+        listOf(syncIssueOne, syncIssueTwo, syncIssueThree),
+        moduleMap,
+        mapOf()
+      )
+      .filter { it.type == MessageType.WARNING }
 
-    val messages = syncMessages.reportedMessages.filter { it.type == MessageType.WARNING }
     assertSize(1, messages)
     val notification = messages[0]
 
@@ -137,7 +131,7 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
                .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET)
                .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK)
                .build()),
-      usageReporter.collectedIssue)
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages))
   }
 
   private fun setUpMockSyncIssue(path: String): IdeSyncIssue {

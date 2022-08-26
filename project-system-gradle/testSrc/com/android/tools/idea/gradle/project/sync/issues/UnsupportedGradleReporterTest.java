@@ -22,15 +22,15 @@ import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueType;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -40,16 +40,12 @@ import org.jetbrains.annotations.NotNull;
  * Tests for {@link UnsupportedGradleReporter}.
  */
 public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
-  private GradleSyncMessagesStub mySyncMessagesStub;
   private UnsupportedGradleReporter myReporter;
-  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnsupportedGradleReporter();
-    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -58,7 +54,6 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
 
   public void testReport() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     String expectedText = "Hello World!";
@@ -70,9 +65,9 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
       null
     );
 
-    myReporter.report(syncIssue, appModule, null, myUsageReporter);
+    final var messages = myReporter.report(syncIssue, appModule, null);
+    final var message = messages.get(0);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).isEqualTo(expectedText);
     assertThat(message.getGroup()).isEqualTo("Gradle Sync Issues");
@@ -94,12 +89,12 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
       ImmutableList.of(
         GradleSyncIssue
           .newBuilder()
-          .setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_GRADLE_SETTINGS_HYPERLINK)
+          .setType(GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
+          .addOfferedQuickFixes(GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK)
+          .addOfferedQuickFixes(GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
+          .addOfferedQuickFixes(GradleSyncQuickFix.OPEN_GRADLE_SETTINGS_HYPERLINK)
           .build()),
-      myUsageReporter.getCollectedIssue());
+      SyncIssueUsageReporter.createGradleSyncIssues(0, messages));
   }
 
   private static void verifyOpenGradleWrapperPropertiesFile(@NotNull Project project, @NotNull SyncMessageFragment link) {

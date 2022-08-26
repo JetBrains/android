@@ -21,7 +21,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -37,16 +36,12 @@ import com.intellij.pom.NonNavigatable;
  * Tests for {@link UnhandledIssuesReporter}.
  */
 public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
-  private GradleSyncMessagesStub mySyncMessagesStub;
   private UnhandledIssuesReporter myReporter;
-  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnhandledIssuesReporter();
-    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -55,7 +50,6 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
   public void testReportWithBuildFile() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
@@ -71,9 +65,8 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     );
 
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    myReporter.report(syncIssue, appModule, buildFile, myUsageReporter);
+    final var messages = myReporter.report(syncIssue, appModule, buildFile);
 
-    final var messages = mySyncMessagesStub.getReportedMessages();
     assertSize(1, messages);
 
     final var message = messages.get(0);
@@ -89,13 +82,15 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
     assertEquals(
       ImmutableList.of(
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE).build()),
-      myUsageReporter.getCollectedIssue());
+        GradleSyncIssue.newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
+          .build()),
+      SyncIssueUsageReporter.createGradleSyncIssues(0, messages));
   }
 
   public void testReportWithoutBuildFile() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
@@ -109,10 +104,8 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
       null
     );
 
-    myReporter.report(syncIssue, appModule, null, myUsageReporter);
+    final var messages = myReporter.report(syncIssue, appModule, null);
 
-
-    final var messages = mySyncMessagesStub.getReportedMessages();
     assertSize(1, messages);
 
     final var message = messages.get(0);
@@ -124,6 +117,6 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     assertEquals(
       ImmutableList.of(
         GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE).build()),
-      myUsageReporter.getCollectedIssue());
+      SyncIssueUsageReporter.createGradleSyncIssues(0, messages));
   }
 }

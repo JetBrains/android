@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -99,12 +101,21 @@ public class SyncIssuesReporter {
       Collections.reverseOrder(Map.Entry.comparingByValue(Comparator.comparing(issues -> issues.get(0).getSeverity())))).collect(
       Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> oldVal, LinkedHashMap::new));
     SyncIssueUsageReporter syncIssueUsageReporter = SyncIssueUsageReporter.Companion.getInstance(project);
+    final var syncMessages = new ArrayList<@NotNull SyncMessage>();
     for (Map.Entry<Integer, List<IdeSyncIssue>> entry : sortedSyncIssues.entrySet()) {
       BaseSyncIssuesReporter strategy = myStrategies.get(entry.getKey());
       if (strategy == null) {
         strategy = myDefaultMessageFactory;
       }
-      strategy.reportAll(entry.getValue(), moduleMap, buildFileMap, syncIssueUsageReporter);
+      List<? extends @NotNull SyncMessage> messages = strategy.reportAll(entry.getValue(), moduleMap, buildFileMap);
+
+      SyncIssueUsageReporterUtils.collect(syncIssueUsageReporter, entry.getKey(), messages);
+
+      syncMessages.addAll(messages);
+    }
+    final var gradleSyncMessages = GradleSyncMessages.getInstance(project);
+    for (SyncMessage syncMessage : syncMessages) {
+      gradleSyncMessages.report(syncMessage);
     }
     Project finalProject = project;
     Runnable reportTask = () -> {

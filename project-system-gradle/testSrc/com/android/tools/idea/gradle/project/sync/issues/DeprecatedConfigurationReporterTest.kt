@@ -17,9 +17,8 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.project.messages.MessageType
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueType
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.HeavyPlatformTestCase
@@ -31,14 +30,11 @@ import java.util.IdentityHashMap
 class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
   private lateinit var module1: Module
   private lateinit var module2: Module
-  private lateinit var messageStub: GradleSyncMessagesStub
   private lateinit var reporter: DeprecatedConfigurationReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
   override fun setUp() {
     super.setUp()
-    messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project)
-    messageStub.removeAllMessages()
     reporter = DeprecatedConfigurationReporter()
     module1 = createModule("app")
     module2 = createModule("lib")
@@ -62,14 +58,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       multiLineMessage = null
     )
 
-    reporter.reportAll(
+    val messages = reporter.reportAll(
       listOf(syncIssue1, syncIssue2),
       listOf(syncIssue1 to module1, syncIssue2 to module1).toMap(IdentityHashMap()),
-      mapOf(),
-      usageReporter
+      mapOf()
     )
 
-    val messages = messageStub.reportedMessages
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
@@ -77,11 +71,9 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app"))
     assertThat(message.type, equalTo(MessageType.INFO))
 
-    assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
-
     assertEquals(
-      listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
-      usageReporter.collectedIssue)
+      listOf(GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 
   @Test
@@ -101,14 +93,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       multiLineMessage = null
     )
 
-    reporter.reportAll(
+    val messages = reporter.reportAll(
       listOf(syncIssue1, syncIssue2),
       listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
-      mapOf(),
-      usageReporter
+      mapOf()
     )
 
-    val messages = messageStub.reportedMessages
     assertSize(2, messages)
     var message = messages[0]
     assertNotNull(message)
@@ -120,14 +110,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: lib"))
     assertThat(message.type, equalTo(MessageType.INFO))
 
-    assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
-
     assertEquals(
       listOf(
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
       ),
-      usageReporter.collectedIssue)
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 
   @Test
@@ -147,14 +135,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       multiLineMessage = null
     )
 
-    reporter.reportAll(
+    val messages = reporter.reportAll(
       listOf(syncIssue1, syncIssue2),
       listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
-      mapOf(),
-      usageReporter
+      mapOf()
     )
 
-    val messages = messageStub.reportedMessages
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
@@ -162,11 +148,9 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app, lib"))
     assertThat(message.type, equalTo(MessageType.INFO))
 
-    assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
-
     assertEquals(
-      listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
-      usageReporter.collectedIssue)
+      listOf(GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 
   @Test
@@ -186,14 +170,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       multiLineMessage = null
     )
 
-    reporter.reportAll(
+    val messages = reporter.reportAll(
       listOf(syncIssue1, syncIssue2),
       listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
-      mapOf(),
-      usageReporter
+      mapOf()
     )
 
-    val messages = messageStub.reportedMessages
     assertSize(2, messages)
     var message = messages[0]
     assertNotNull(message)
@@ -207,10 +189,10 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
     assertEquals(
       listOf(
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
       ),
-      usageReporter.collectedIssue)
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 
   @Test
@@ -230,14 +212,12 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
       multiLineMessage = null
     )
 
-    reporter.reportAll(
+    val messages = reporter.reportAll(
       listOf(syncIssue1, syncIssue2),
       listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
-      mapOf(),
-      usageReporter
+      mapOf()
     )
 
-    val messages = messageStub.reportedMessages
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
@@ -246,7 +226,7 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     assertThat(message.type, equalTo(MessageType.WARNING))
 
     assertEquals(
-      listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
-      usageReporter.collectedIssue)
+      listOf(GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 }

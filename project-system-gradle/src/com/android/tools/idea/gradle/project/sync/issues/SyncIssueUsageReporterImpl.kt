@@ -53,8 +53,8 @@ class SyncIssueUsageReporterImpl(private val project: Project) : SyncIssueUsageR
     }
   }
 
-  override fun collect(issue: GradleSyncIssue.Builder) {
-    collectedIssues.add(issue.build())
+  override fun collect(issue: GradleSyncIssue) {
+    collectedIssues.add(issue)
   }
 
   override fun collect(failure: AndroidStudioEvent.GradleSyncFailure) {

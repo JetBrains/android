@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
@@ -29,11 +30,6 @@ import org.jetbrains.annotations.NotNull;
  * syncing a Gradle project with Android Studio.
  */
 abstract class BaseSyncIssuesReporter {
-  @NotNull
-  GradleSyncMessages getSyncMessages(@NotNull Module module) {
-    return GradleSyncMessages.getInstance(module.getProject());
-  }
-
   /**
    * @return the type of messages this reporter should be run against. This reporter will only be invoked for sync issues of this type.
    */
@@ -45,10 +41,9 @@ abstract class BaseSyncIssuesReporter {
    * @param moduleMap     provides the origin module of each sync issue, this map MUST contain every sync issue provided in syncIssues.
    * @param buildFileMap  map of build files per module, this map provides information to each of the reporters to support quick links to
    *                      the build.gradle files, entries in this map are optional.
-   * @param usageReporter an object to report final rendered issues to.
    */
-  abstract void reportAll(@NotNull List<IdeSyncIssue> syncIssues,
-                 @NotNull Map<IdeSyncIssue, Module> moduleMap,
-                 @NotNull Map<Module, VirtualFile> buildFileMap,
-                 @NotNull SyncIssueUsageReporter usageReporter);
+  abstract @NotNull List<? extends @NotNull SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
+                                                                   @NotNull Map<IdeSyncIssue, Module> moduleMap,
+                                                                   @NotNull Map<Module, VirtualFile> buildFileMap);
+
 }

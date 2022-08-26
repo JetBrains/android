@@ -23,7 +23,6 @@ import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
 import static com.android.builder.model.SyncIssue.TYPE_DEPENDENCY_INTERNAL_CONFLICT;
 import static com.android.builder.model.SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
 import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION;
-import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
 import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
 import static com.android.builder.model.SyncIssue.TYPE_JCENTER_IS_DEPRECATED;
 import static com.android.builder.model.SyncIssue.TYPE_MIN_SDK_VERSION_IN_MANIFEST;
@@ -35,7 +34,6 @@ import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
@@ -43,6 +41,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.annotations.NonNull;
@@ -55,6 +54,8 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -106,11 +107,9 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)), "/");
 
     verify(myStrategy1, never())
-      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
-                 any());
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
     verify(myStrategy2)
-      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
-                 any());
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
     verify(usageReporter).reportToUsageTracker("/");
   }
 
@@ -135,11 +134,9 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)), "/");
 
     verify(myStrategy1, never())
-      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
-                 any());
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
     verify(myStrategy2)
-      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
-                 any());
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
     verify(usageReporter).reportToUsageTracker("/");
   }
 
@@ -212,12 +209,16 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertThat(message.getType()).isEqualTo(MessageType.WARNING);
 
     verify(myStrategy1, never())
-      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
-                 any());
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
     verify(myStrategy2, never())
-      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
-                 any());
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
+    verify(usageReporter).collect(
+      GradleSyncIssue.newBuilder()
+        .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_GRADLE_TOO_OLD)
+        .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
+        .build());
     verify(usageReporter).reportToUsageTracker("/");
+    verifyNoMoreInteractions(usageReporter);
   }
 
   public void testStrategiesSetInConstructor() throws Exception {
@@ -229,62 +230,48 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     BaseSyncIssuesReporter strategy = reporter.getDefaultMessageFactory();
     assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
     assertThat(strategies).hasSize(13);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_GRADLE_TOO_OLD);
     assertThat(strategy).isInstanceOf(UnsupportedGradleReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_BUILD_TOOLS_TOO_LOW);
     assertThat(strategy).isInstanceOf(BuildToolsTooLowReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_MISSING_SDK_PACKAGE);
     assertThat(strategy).isInstanceOf(MissingSdkPackageSyncIssuesReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_MIN_SDK_VERSION_IN_MANIFEST);
     assertThat(strategy).isInstanceOf(MinSdkInManifestIssuesReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_TARGET_SDK_VERSION_IN_MANIFEST);
     assertThat(strategy).isInstanceOf(TargetSdkInManifestIssuesReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_DEPRECATED_CONFIGURATION);
     assertThat(strategy).isInstanceOf(DeprecatedConfigurationReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_SDK_NOT_SET);
     assertThat(strategy).isInstanceOf(MissingSdkIssueReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD);
     assertThat(strategy).isInstanceOf(OutOfDateThirdPartyPluginIssueReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION);
     assertThat(strategy).isInstanceOf(CxxConfigurationIssuesReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_ANDROID_X_PROPERTY_NOT_ENABLED);
     assertThat(strategy).isInstanceOf(AndroidXUsedReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_JCENTER_IS_DEPRECATED);
     assertThat(strategy).isInstanceOf(JcenterDeprecatedReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_AGP_USED_JAVA_VERSION_TOO_LOW);
     assertThat(strategy).isInstanceOf(AgpUsedJavaTooLowReporter.class);
-    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
   }
 
   public void testReportErrorBeforeWarning() throws Exception {
@@ -313,7 +300,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     InOrder inOrder = inOrder(myStrategy1, myStrategy2);
 
-    inOrder.verify(myStrategy2).reportAll(eq(ImmutableList.of(syncIssue2)), anyMap(), anyMap(), any());
-    inOrder.verify(myStrategy1).reportAll(eq(ImmutableList.of(mySyncIssue, syncIssue3)), anyMap(), anyMap(), any());
+    inOrder.verify(myStrategy2).reportAll(eq(ImmutableList.of(syncIssue2)), anyMap(), anyMap());
+    inOrder.verify(myStrategy1).reportAll(eq(ImmutableList.of(mySyncIssue, syncIssue3)), anyMap(), anyMap());
   }
 }

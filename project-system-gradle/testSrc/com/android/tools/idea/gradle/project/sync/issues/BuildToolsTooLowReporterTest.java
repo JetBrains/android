@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.MessageType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -39,18 +38,14 @@ import org.mockito.Mock;
  */
 public class BuildToolsTooLowReporterTest extends PlatformTestCase {
   @Mock private IdeSyncIssue mySyncIssue;
-  private GradleSyncMessagesStub mySyncMessages;
   private BuildToolsTooLowReporter myIssueReporter;
-  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
     initMocks(this);
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myIssueReporter = new BuildToolsTooLowReporter();
-    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -75,9 +70,9 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
     when(spiedReporter.getQuickFixHyperlinks(minVersion, ImmutableList.of(module), ImmutableMap.of()))
       .thenReturn(quickFixes);
 
-    spiedReporter.report(mySyncIssue, module, null, myUsageReporter);
 
-    final var messages = mySyncMessages.getReportedMessages();
+
+    final var messages = spiedReporter.report(mySyncIssue, module, null);
     assertThat(messages).hasSize(1);
 
     final var message = messages.get(0);
@@ -89,11 +84,10 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
     assertEquals(quickFixes,
                  actualQuickFixes.subList(0, actualQuickFixes.size() - 1));
     assertEquals(
-      ImmutableList.of(
         GradleSyncIssue.newBuilder()
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_BUILD_TOOLS_TOO_LOW)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX)
-          .build()),
-      myUsageReporter.getCollectedIssue());
+          .build(),
+      SyncIssueUsageReporter.createGradleSyncIssue(mySyncIssue.getType(), message));
   }
 }

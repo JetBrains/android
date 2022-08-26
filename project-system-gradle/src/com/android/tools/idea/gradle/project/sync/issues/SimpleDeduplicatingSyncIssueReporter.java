@@ -65,19 +65,18 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * A convenience method to report a single sync issue in tests.
    */
   @TestOnly
-  final void report(@NotNull IdeSyncIssue syncIssue,
-                    @NotNull Module module,
-                    @Nullable VirtualFile buildFile,
-                    @NotNull SyncIssueUsageReporter usageReporter) {
-    reportAll(ImmutableList.of(syncIssue), ImmutableMap.of(syncIssue, module),
-              buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile), usageReporter);
+  final @NotNull List<@NotNull SyncMessage> report(@NotNull IdeSyncIssue syncIssue,
+                                                   @NotNull Module module,
+                                                   @Nullable VirtualFile buildFile) {
+    return reportAll(ImmutableList.of(syncIssue), ImmutableMap.of(syncIssue, module),
+                     buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile));
   }
 
   @Override
-  final void reportAll(@NotNull List<IdeSyncIssue> syncIssues,
-                       @NotNull Map<IdeSyncIssue, Module> moduleMap,
-                       @NotNull Map<Module, VirtualFile> buildFileMap,
-                       @NotNull SyncIssueUsageReporter usageReporter) {
+  final @NotNull List<@NotNull SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
+                                                      @NotNull Map<IdeSyncIssue, Module> moduleMap,
+                                                      @NotNull Map<Module, VirtualFile> buildFileMap) {
+    final var result = new ArrayList<@NotNull SyncMessage>();
     // Group by the deduplication key.
     Map<Object, List<IdeSyncIssue>> groupedIssues = new LinkedHashMap<>();
     for (IdeSyncIssue issue : syncIssues) {
@@ -99,17 +98,16 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
         entry.stream().map(moduleMap::get).filter(Objects::nonNull).distinct().sorted(Comparator.comparing(Module::getName))
              .collect(Collectors.toList());
       boolean isError = entry.stream().anyMatch(i -> i.getSeverity() == SEVERITY_ERROR);
-      createNotificationDataAndReport(module.getProject(), entry, affectedModules, buildFileMap, isError, usageReporter);
+      result.add(createSyncMessage(module.getProject(), entry, affectedModules, buildFileMap, isError));
     }
+    return result;
   }
 
-  private void createNotificationDataAndReport(@NotNull Project project,
-                                               @NotNull List<IdeSyncIssue> syncIssues,
-                                               @NotNull List<Module> affectedModules,
-                                               @NotNull Map<Module, VirtualFile> buildFileMap,
-                                               boolean isError,
-                                               @NotNull SyncIssueUsageReporter usageReporter) {
-    GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
+  private SyncMessage createSyncMessage(@NotNull Project project,
+                                        @NotNull List<IdeSyncIssue> syncIssues,
+                                        @NotNull List<Module> affectedModules,
+                                        @NotNull Map<Module, VirtualFile> buildFileMap,
+                                        boolean isError) {
     // All errors are displayed as warnings and all warnings displayed as info.
     MessageType type = isError ? WARNING : INFO;
 
@@ -119,7 +117,6 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     // Add custom links
     final List<SyncIssueNotificationHyperlink> customLinks = getCustomLinks(project, syncIssues, affectedModules, buildFileMap);
     syncMessage.add(customLinks);
-    SyncIssueUsageReporterUtils.collect(usageReporter, syncIssues.get(0).getType(), syncMessage.getQuickFixes());
 
     if (shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
       StringBuilder builder = new StringBuilder();
@@ -164,7 +161,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
         }
       );
     }
-    messages.report(syncMessage);
+    return syncMessage;
   }
 
   @NotNull

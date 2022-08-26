@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,14 +64,6 @@ public abstract class AbstractSyncMessages implements Disposable {
     myProject = project;
   }
 
-  public int getErrorCount() {
-    return countNotifications(notification -> notification.getNotificationCategory() == NotificationCategory.ERROR);
-  }
-
-  public int getMessageCount(@NotNull String groupName) {
-    return countNotifications(notification -> notification.getTitle().equals(groupName));
-  }
-
   /**
    * @return A string description containing sync issue groups, for example, "Unresolved dependencies".
    */
@@ -89,21 +80,6 @@ public abstract class AbstractSyncMessages implements Disposable {
       }
     }
     return String.join(", ", errorGroups);
-  }
-
-  private int countNotifications(@NotNull Predicate<NotificationData> condition) {
-    int total = 0;
-
-    synchronized (myLock) {
-      for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
-        for (NotificationData notificationData : notificationDataList) {
-          if (condition.test(notificationData)) {
-            total++;
-          }
-        }
-      }
-    }
-    return total;
   }
 
   public boolean isEmpty() {

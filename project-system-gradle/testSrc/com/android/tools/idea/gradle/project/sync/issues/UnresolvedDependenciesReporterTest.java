@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -24,7 +23,6 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -41,18 +39,14 @@ import org.mockito.Mock;
 public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
   @Mock private GradleSettings myGradleSettings;
 
-  private GradleSyncMessagesStub mySyncMessages;
   private UnresolvedDependenciesReporter myReporter;
-  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    mySyncMessages = replaceSyncMessagesService(getProject());
     new IdeComponents(getProject()).replaceProjectService(GradleSettings.class, myGradleSettings);
     myReporter = new UnresolvedDependenciesReporter();
-    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testReportWithoutDependencyAndExtraInfo() {
@@ -69,9 +63,8 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
       extraInfo
     );
 
-    myReporter.report(syncIssue, getModule(), null, myUsageReporter);
+    final var messages = myReporter.report(syncIssue, getModule(), null);
 
-    final var messages = mySyncMessages.getReportedMessages();
     assertSize(1, messages);
     final var message = messages.get(0);
     assertEquals(expected, message.getMessage());
@@ -87,7 +80,7 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_SYNC_ISSUES_DETAILS_HYPERLINK)
           .build()),
-      myUsageReporter.getCollectedIssue());
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
   }
 
   /**
@@ -107,9 +100,8 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
       null
     );
 
-    myReporter.report(syncIssue, getModule(), null, myUsageReporter);
+    final var messages = myReporter.report(syncIssue, getModule(), null);
 
-    final var messages = mySyncMessages.getReportedMessages();
     assertSize(1, messages);
     final var message = messages.get(0);
     assertEquals(expected, message.getMessage());
@@ -124,7 +116,7 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.DISABLE_OFFLINE_MODE_HYPERLINK)
           .build()),
-      myUsageReporter.getCollectedIssue());
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
   }
 
   /**
@@ -142,9 +134,8 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
     );
 
     when(myGradleSettings.isOfflineWork()).thenReturn(false);
-    myReporter.report(syncIssue, getModule(), null, myUsageReporter);
+    final var messages = myReporter.report(syncIssue, getModule(), null);
 
-    final var messages = mySyncMessages.getReportedMessages();
     assertSize(1, messages);
     final var message = messages.get(0);
     assertEquals(expected, message.getMessage());
@@ -154,6 +145,6 @@ public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
     assertEquals(
       ImmutableList.of(
         GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY).build()),
-      myUsageReporter.getCollectedIssue());
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
   }
 }

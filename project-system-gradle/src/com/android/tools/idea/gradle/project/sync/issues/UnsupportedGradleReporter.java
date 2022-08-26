@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;

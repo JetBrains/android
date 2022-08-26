@@ -85,7 +85,8 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ISSUES
               |  USER_REQUESTED_PARALLEL
               |  STUDIO_REQUESTD_$expectedMode
-              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH""".trim()
+              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH
+              |    OPEN_FILE_HYPERLINK""".trim()
               )
             }
             appendLine(
@@ -117,7 +118,8 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ISSUES
               |  USER_REQUESTED_SEQUENTIAL
               |  STUDIO_REQUESTD_SEQUENTIAL
-              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH""".trim()
+              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH
+              |    OPEN_FILE_HYPERLINK""".trim()
               )
             }
             appendLine(
