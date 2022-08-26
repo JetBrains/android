@@ -18,13 +18,14 @@ package com.android.tools.idea.diagnostics.hprof.visitors
 import com.android.tools.idea.diagnostics.hprof.classstore.ThreadInfo
 import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
-import gnu.trove.TLongObjectHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
-class CollectThreadInfoVisitor(private val threadsMap: TLongObjectHashMap<ThreadInfo>,
-                               private val stringIdMap: TLongObjectHashMap<String>) : HProfVisitor() {
+class CollectThreadInfoVisitor(private val threadsMap: Long2ObjectMap<ThreadInfo>,
+                               private val stringIdMap: Long2ObjectMap<String>) : HProfVisitor() {
 
-  private val stackFrameIdToStringMap = TLongObjectHashMap<String>()
-  private val classSerialNumberToNameMap = TLongObjectHashMap<String>()
+  private val stackFrameIdToStringMap = Long2ObjectOpenHashMap<String>()
+  private val classSerialNumberToNameMap = Long2ObjectOpenHashMap<String>()
 
   override fun preVisit() {
     disableAll()

@@ -19,10 +19,11 @@ import com.android.tools.idea.diagnostics.hprof.classstore.ThreadInfo
 import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.HeapDumpRecordType
-import gnu.trove.TLongObjectHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
-class CollectRootReasonsVisitor(private val threadsMap: TLongObjectHashMap<ThreadInfo>) : HProfVisitor() {
-  val roots = TLongObjectHashMap<RootReason>()
+class CollectRootReasonsVisitor(private val threadsMap: Long2ObjectMap<ThreadInfo>) : HProfVisitor() {
+  val roots = Long2ObjectOpenHashMap<RootReason>()
 
   override fun preVisit() {
     disableAll()

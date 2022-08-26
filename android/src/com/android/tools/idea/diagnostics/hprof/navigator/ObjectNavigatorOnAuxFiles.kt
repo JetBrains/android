@@ -18,13 +18,13 @@ package com.android.tools.idea.diagnostics.hprof.navigator
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassDefinition
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassStore
 import com.android.tools.idea.diagnostics.hprof.parser.Type
-import gnu.trove.TLongArrayList
-import gnu.trove.TLongObjectHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap
+import it.unimi.dsi.fastutil.longs.LongArrayList
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
 class ObjectNavigatorOnAuxFiles(
-  private val roots: TLongObjectHashMap<RootReason>,
+  private val roots: Long2ObjectMap<RootReason>,
   private val auxOffsets: ByteBuffer,
   private val aux: ByteBuffer,
   classStore: ClassStore,
@@ -45,7 +45,7 @@ class ObjectNavigatorOnAuxFiles(
   private var currentObjectId = 0L
   private var arraySize = 0
   private var currentClass: ClassDefinition? = null
-  private val references = TLongArrayList()
+  private val references = LongArrayList()
   private var softWeakReferenceId = 0L
 
   private enum class ReferenceType { Strong, Weak, Soft }
@@ -58,23 +58,22 @@ class ObjectNavigatorOnAuxFiles(
 
   override fun createRootsIterator(): Iterator<RootObject> {
     return object : Iterator<RootObject> {
-      val internalIterator = roots.iterator()
+      val internalIterator = roots.keys.iterator()
       override fun hasNext(): Boolean {
         return internalIterator.hasNext()
       }
 
       override fun next(): RootObject {
-        internalIterator.advance()
-        val key = internalIterator.key()
-        return RootObject(key, roots[key])
+        val key = internalIterator.nextLong()
+        return RootObject(key, roots.get(key))
       }
     }
   }
 
-  override fun getReferencesCopy(): TLongArrayList {
-    val result = TLongArrayList()
-    for (i in 0 until references.size()) {
-      result.add(references[i])
+  override fun getReferencesCopy(): LongArrayList {
+    val result = LongArrayList()
+    for (i in 0 until references.size) {
+      result.add(references.getLong(i))
     }
     return result
   }
@@ -87,7 +86,7 @@ class ObjectNavigatorOnAuxFiles(
     auxOffsets.position((id * 4).toInt())
     aux.position(auxOffsets.int)
     currentObjectId = id
-    references.resetQuick()
+    references.clear()
     softWeakReferenceId = 0L
     softWeakReferenceIndex = -1
     referenceType = ReferenceType.Strong
@@ -176,7 +175,7 @@ class ObjectNavigatorOnAuxFiles(
         }
         else {
           softWeakReferenceId = reference.toLong()
-          softWeakReferenceIndex = references.size() // current index in references list
+          softWeakReferenceIndex = references.size // current index in references list
           referenceType = if (isSoftReference) ReferenceType.Soft else ReferenceType.Weak
           // Soft/weak reference
           if (includeSoftWeakReferences) {
@@ -231,11 +230,11 @@ class ObjectNavigatorOnAuxFiles(
     }
   }
 
-  override fun copyReferencesTo(outReferences: TLongArrayList) {
-    outReferences.resetQuick()
-    outReferences.ensureCapacity(references.size())
-    for (i in 0 until references.size()) {
-      outReferences.add(references[i])
+  override fun copyReferencesTo(outReferences: LongArrayList) {
+    outReferences.clear()
+    outReferences.ensureCapacity(references.size)
+    for (i in 0 until references.size) {
+      outReferences.add(references.getLong(i))
     }
   }
 

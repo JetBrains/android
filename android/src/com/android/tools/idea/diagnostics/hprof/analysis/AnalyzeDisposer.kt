@@ -28,6 +28,7 @@ import gnu.trove.TIntArrayList
 import gnu.trove.TLongArrayList
 import gnu.trove.TLongHashSet
 import gnu.trove.TObjectIntHashMap
+import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.longs.LongArrayList
 import it.unimi.dsi.fastutil.longs.LongCollection
@@ -81,7 +82,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
       goToArrayOfDisposableObjectNodes(nav)
       nav.getReferencesCopy().forEach {
-        if (it == 0L) return@forEach true
+        if (it == 0L) return@forEach
 
         nav.goTo(it)
         verifyClassIsObjectNode(nav.getClass())
@@ -89,28 +90,26 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
         val childId = nav.getInstanceFieldObjectId(null, "myObject")
         nav.goTo(objectNodeParentId)
 
-        val parentId =
-          if (nav.isNull())
-            0L
-          else
-            nav.getInstanceFieldObjectId(null, "myObject")
+        val parentId = if (nav.isNull()) {
+          0L
+        }
+        else {
+          nav.getInstanceFieldObjectId(null, "myObject")
+        }
 
         val childrenList = if (result.containsKey(parentId.toInt())) {
           result.get(parentId.toInt())
         }
         else {
-          val list = TIntArrayList()
+          val list = IntArrayList()
           result.put(parentId.toInt(), list)
           list
         }
         childrenList.add(childId.toInt())
-        true
       }
-      result.forEachValue { list ->
-        list.trimToSize()
-        true
-      }
-    } catch (ex : Exception) {
+      result.values.forEach(IntArrayList::trim)
+    }
+    catch (ex: Exception) {
       prepareException = ex
     }
   }
@@ -197,7 +196,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
         goToArrayOfDisposableObjectNodes(nav)
 
         nav.getReferencesCopy().forEach { childId ->
-          if (childId == 0L) return@forEach true
+          if (childId == 0L) return@forEach
 
           nav.goTo(childId)
           verifyClassIsObjectNode(nav.getClass())
@@ -304,7 +303,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       val maxTreeDepth = 200
       val tooDeepObjectClasses = HashSet<ClassDefinition>()
       nav.getReferencesCopy().forEach {
-        if (it == 0L) return@forEach true
+        if (it == 0L) return@forEach
 
         nav.goTo(it)
         verifyClassIsObjectNode(nav.getClass())
@@ -366,7 +365,6 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
         groupingToObjectStats
           .getOrPut(Grouping(objectClass, parentClass, rootClass)) { InstanceStats() }
           .registerObject(parentId, rootId)
-        true
       }
 
       TruncatingPrintBuffer(400, 0, this::appendln).use { buffer ->
@@ -455,24 +453,24 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
       nav.getReferencesCopy().forEach {
         if (it == 0L) {
-          return@forEach true
+          return@forEach
         }
         nav.goTo(it, ObjectNavigator.ReferenceResolution.ALL_REFERENCES)
         if (nav.getClass() != weakKeyClass) {
-          return@forEach true
+          return@forEach
         }
         nav.goToInstanceField("com.intellij.util.containers.WeakHashMap\$WeakKey", "referent")
-        if (nav.id == 0L) return@forEach true
+        if (nav.id == 0L) return@forEach
 
         val leakId = nav.id.toInt()
-        if (parentList[leakId] == 0) {
+        if (parentList.get(leakId) == 0) {
           // If there is no parent, then the object does not have a strong-reference path to GC root
-          return@forEach true
+          return@forEach
         }
         disposedObjectsIDs.add(leakId)
-        true
       }
-    } catch (navEx : ObjectNavigator.NavigationException) {
+    }
+    catch (navEx: ObjectNavigator.NavigationException) {
       prepareException = navEx
     }
   }

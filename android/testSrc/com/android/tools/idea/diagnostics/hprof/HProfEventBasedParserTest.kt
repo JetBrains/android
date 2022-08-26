@@ -22,6 +22,7 @@ import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import gnu.trove.TObjectIntHashMap
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -62,27 +63,26 @@ class HProfEventBasedParserTest {
     val hprofMetadata = HProfMetadata.create(parser)
     val roots = hprofMetadata.roots
     var javaFrameRootsCount = 0
-    val counts = TObjectIntHashMap<RootReason>()
-    roots.forEachValue {
+    val counts = Object2IntOpenHashMap<RootReason>()
+    roots.values.forEach {
       if (it.javaFrame) {
         javaFrameRootsCount++
       } else {
         if (!counts.containsKey(it)) {
           counts.put(it, 0)
         }
-        counts.increment(it)
+        counts.addTo(it, 1)
       }
-      true
     }
-    assertEquals(2, counts[RootReason.rootGlobalJNI])
+    assertEquals(2, counts.getInt(RootReason.rootGlobalJNI))
     assertEquals(16, javaFrameRootsCount)
-    assertEquals(1, counts[RootReason.rootLocalJNI])
-    assertEquals(2, counts[RootReason.rootMonitorUsed])
-    assertEquals(0, counts[RootReason.rootNativeStack])
-    assertEquals(621, counts[RootReason.rootStickyClass])
-    assertEquals(0, counts[RootReason.rootThreadBlock])
-    assertEquals(6, counts[RootReason.rootThreadObject])
-    assertEquals(0, counts[RootReason.rootUnknown])
+    assertEquals(1, counts.getInt(RootReason.rootLocalJNI))
+    assertEquals(2, counts.getInt(RootReason.rootMonitorUsed))
+    assertEquals(0, counts.getInt(RootReason.rootNativeStack))
+    assertEquals(621, counts.getInt(RootReason.rootStickyClass))
+    assertEquals(0, counts.getInt(RootReason.rootThreadBlock))
+    assertEquals(6, counts.getInt(RootReason.rootThreadObject))
+    assertEquals(0, counts.getInt(RootReason.rootUnknown))
   }
 
   @Test

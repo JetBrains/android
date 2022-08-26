@@ -20,9 +20,9 @@ import com.android.tools.idea.diagnostics.hprof.parser.InstanceFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.StaticFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.Type
 import com.android.tools.idea.diagnostics.hprof.util.HprofWriter
-import gnu.trove.TLongIntHashMap
-import gnu.trove.TObjectHashingStrategy
-import gnu.trove.TObjectLongHashMap
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
+import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.lang.Boolean
@@ -46,10 +46,9 @@ import kotlin.arrayOf
 import kotlin.toRawBits
 
 class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> String?)) {
-
-  private val objectToIdMap = TObjectLongHashMap<Any>(TObjectHashingStrategy.IDENTITY)
-  private val stringToIdMap = TObjectLongHashMap<String>()
-  private val classObjectIdToClassSerialNumber = TLongIntHashMap()
+  private val objectToIdMap = Reference2LongOpenHashMap<Any>()
+  private val stringToIdMap = Object2LongOpenHashMap<String>()
+  private val classObjectIdToClassSerialNumber = Long2IntOpenHashMap()
 
   private val classToObjectWithStatics = HashMap<Class<*>, Any>()
 
@@ -127,7 +126,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
       return 0
     }
     if (objectToIdMap.containsKey(o)) {
-      return objectToIdMap[o]
+      return objectToIdMap.getLong(o)
     }
     val objectID = nextObjectID()
     objectToIdMap.put(o, objectID)
@@ -313,7 +312,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
   private fun nextClassSerialNumber() = nextClassSerialNumber++
 
   private fun addString(string: String): Long {
-    if (stringToIdMap.contains(string)) return stringToIdMap[string]
+    if (stringToIdMap.contains(string)) return stringToIdMap.getLong(string)
     val id = nextStringID()
     writer.writeStringInUTF8(id, string)
     stringToIdMap.put(string, id)

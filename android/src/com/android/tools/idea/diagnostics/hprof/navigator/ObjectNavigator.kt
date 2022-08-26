@@ -20,7 +20,7 @@ import com.android.tools.idea.diagnostics.hprof.classstore.ClassStore
 import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.android.tools.idea.diagnostics.hprof.visitors.CreateAuxiliaryFilesVisitor
-import gnu.trove.TLongArrayList
+import it.unimi.dsi.fastutil.longs.LongArrayList
 import java.nio.channels.FileChannel
 
 abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Long) {
@@ -43,8 +43,8 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
 
   abstract fun getClass(): ClassDefinition
 
-  abstract fun getReferencesCopy(): TLongArrayList
-  abstract fun copyReferencesTo(outReferences: TLongArrayList)
+  abstract fun getReferencesCopy(): LongArrayList
+  abstract fun copyReferencesTo(outReferences: LongArrayList)
 
   abstract fun getClassForObjectId(id: Long): ClassDefinition
   abstract fun getRootReasonForObjectId(id: Long): RootReason?
@@ -69,7 +69,7 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
     if (indexOfField == -1) {
       throw NavigationException("Missing field $name in ${getClass().name}")
     }
-    return refs[indexOfField]
+    return refs.getLong(indexOfField)
   }
 
   fun goToStaticField(className: String, fieldName: String) {

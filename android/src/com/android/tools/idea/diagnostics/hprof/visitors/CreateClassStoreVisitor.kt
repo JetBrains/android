@@ -26,11 +26,12 @@ import com.android.tools.idea.diagnostics.hprof.parser.InstanceFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
 import com.android.tools.idea.diagnostics.hprof.parser.StaticFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.Type
-import gnu.trove.TLongArrayList
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.longs.LongArrayList
 
-class CreateClassStoreVisitor(private val stringIdMap: Long2ObjectOpenHashMap<String>) : HProfVisitor() {
+class CreateClassStoreVisitor(private val stringIdMap: Long2ObjectMap<String>) : HProfVisitor() {
   private val classIDToNameStringID = Long2LongOpenHashMap()
 
   private val result = Long2ObjectOpenHashMap<ClassDefinition>()
@@ -76,7 +77,7 @@ class CreateClassStoreVisitor(private val stringIdMap: Long2ObjectOpenHashMap<St
         currentOffset += visitorContext.idSize
       }
     }
-    val constantsArray = TLongArrayList(constants.size)
+    val constantsArray = LongArrayList(constants.size)
     constants.filter { it.type == Type.OBJECT }.forEach { constantsArray.add(it.value) }
     val objectStaticFields = staticFields.filter { it.type == Type.OBJECT }
     objectStaticFields.forEach {
@@ -92,7 +93,7 @@ class CreateClassStoreVisitor(private val stringIdMap: Long2ObjectOpenHashMap<St
                  currentOffset,
                  refInstanceFields.toTypedArray(),
                  primitiveInstanceFields.toTypedArray(),
-                 constantsArray.toNativeArray(),
+                 constantsArray.toLongArray(),
                  staticFieldList.toTypedArray()
                ))
   }

@@ -19,9 +19,9 @@ import com.android.tools.idea.diagnostics.hprof.histogram.Histogram
 import com.android.tools.idea.diagnostics.hprof.navigator.ObjectNavigator
 import com.android.tools.idea.diagnostics.hprof.util.IntList
 import com.android.tools.idea.diagnostics.hprof.util.UByteList
-import gnu.trove.TIntArrayList
 import gnu.trove.TIntHashSet
-import gnu.trove.TIntObjectHashMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.ints.IntArrayList
 
 class AnalysisContext(
   val navigator: ObjectNavigator,
@@ -34,6 +34,6 @@ class AnalysisContext(
 ) {
   val classStore = navigator.classStore
   val disposedObjectsIDs = TIntHashSet()
-  val disposerParentToChildren = TIntObjectHashMap<TIntArrayList>()
+  val disposerParentToChildren = Int2ObjectOpenHashMap<IntArrayList>()
   var diposerTreeObjectId = 0
 }
