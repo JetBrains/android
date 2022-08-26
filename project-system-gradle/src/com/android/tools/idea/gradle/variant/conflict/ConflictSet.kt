@@ -19,19 +19,11 @@ import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
-import com.android.tools.idea.gradle.project.sync.messages.GroupNames
 import com.android.tools.idea.gradle.variant.view.BuildVariantView
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
-import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
-import com.android.tools.idea.project.messages.MessageType
-import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.toHolder
 import com.google.common.collect.ImmutableList
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -57,33 +49,6 @@ class ConflictSet private constructor(
    * Shows the "variant selection" conflicts in the "Build Variant" and "Messages" windows.
    */
   fun showSelectionConflicts() {
-    val messages = GradleSyncMessages.getInstance(project)
-    for (conflict in selectionConflicts) {
-      // Creates the "Select in 'Build Variants' window" hyperlink.
-      val source = conflict.source
-      val hyperlinkText = String.format("Select '%1\$s' in \"Build Variants\" window", source.name)
-      val selectInBuildVariantsWindowHyperlink: SyncMessageHyperlink =
-        object : SyncMessageHyperlink("select.conflict.in.variants.window", hyperlinkText) {
-          override val quickFixIds: List<AndroidStudioEvent.GradleSyncQuickFix> get() = emptyList()
-          override fun execute(project: Project) = BuildVariantView.getInstance(project).findAndSelect(source)
-        }
-
-      // Creates the "Fix problem" hyperlink.
-      val quickFixHyperlink: SyncMessageHyperlink = object : SyncMessageHyperlink("fix.conflict", "Fix problem") {
-        override val quickFixIds: List<AndroidStudioEvent.GradleSyncQuickFix> get() = emptyList()
-        override fun execute(project: Project) {
-          val solved = ConflictResolution.solveSelectionConflict(conflict)
-          if (solved) {
-            val conflicts = findConflicts(project)
-            conflicts.showSelectionConflicts()
-          }
-        }
-      }
-      val msg = SyncMessage(GroupNames.VARIANT_SELECTION_CONFLICTS, MessageType.WARNING, conflict.toString())
-      msg.add(selectInBuildVariantsWindowHyperlink)
-      msg.add(quickFixHyperlink)
-      messages.report(msg)
-    }
     ApplicationManager.getApplication().invokeLater {
       if (!project.isDisposed) {
         BuildVariantView.getInstance(project).updateContents(selectionConflicts)
