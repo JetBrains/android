@@ -214,6 +214,14 @@ public:
   }
   jmethodID GetDeclaredOrInheritedMethodId(JNIEnv* jni_env, const char* name, const char* signature) const;
 
+  // Similar to GetMethodId, but gracefully handles a non-existent method by returning nullptr.
+  jmethodID FindMethod(const char* name, const char* signature) const {
+    return FindMethod(GetJni(), name, signature);
+  }
+  jmethodID FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
+    return jni_env->GetMethodID(ref(), name, signature);
+  }
+
   JObject NewObject(jmethodID constructor, ...) const;
   JObject NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const;
   JObjectArray NewObjectArray(int32_t length, jobject initialElement) const {

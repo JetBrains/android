@@ -51,6 +51,8 @@ public:
 
 private:
   ClipboardManager(Jni jni);
+  // Number of parameters of the getPrimaryClip method minus 1. Possible values: 0, 1 and 2.
+  int number_of_extra_parameters_;
 
   JString package_name_;
   JObject clipboard_listener_;
