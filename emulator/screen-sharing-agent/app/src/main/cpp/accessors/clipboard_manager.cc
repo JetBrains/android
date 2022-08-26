@@ -74,21 +74,45 @@ ClipboardManager::ClipboardManager(Jni jni)
   clipboard_listener_.MakeGlobal();
 
   JClass clipboard_manager_class = clipboard_manager_.GetClass();
-  const char* signature = api_level >= 29 ?
-      "(Ljava/lang/String;I)Landroid/content/ClipData;" : "(Ljava/lang/String;)Landroid/content/ClipData;";
-  get_primary_clip_method_ = clipboard_manager_class.GetMethodId("getPrimaryClip", signature);
-  signature = api_level >= 29 ?
-      "(Landroid/content/ClipData;Ljava/lang/String;I)V" : "(Landroid/content/ClipData;Ljava/lang/String;)V";
-  set_primary_clip_method_ = clipboard_manager_class.GetMethodId("setPrimaryClip", signature);
-  signature = api_level >= 29 ?
-      "(Landroid/content/IOnPrimaryClipChangedListener;Ljava/lang/String;I)V" :
-      "(Landroid/content/IOnPrimaryClipChangedListener;Ljava/lang/String;)V";
-  jmethodID add_listener_method = clipboard_manager_class.GetMethodId("addPrimaryClipChangedListener", signature);
-  if (api_level >= 29) {
+  number_of_extra_parameters_ = api_level >= 33 ? 2 : api_level >= 29 ? 1 : 0;
+  if (api_level == 33) {
+    // The IClipboard.getPrimaryClip method may have either 2 or 3 parameters in API 33.
+    get_primary_clip_method_ =
+        clipboard_manager_class.FindMethod("getPrimaryClip", "(Ljava/lang/String;Ljava/lang/String;I)Landroid/content/ClipData;");
+    if (get_primary_clip_method_ == nullptr) {
+      number_of_extra_parameters_ = 1;
+    }
+  }
+  if (get_primary_clip_method_ == nullptr) {
+    const char* signatures1[] = {
+        "(Ljava/lang/String;)Landroid/content/ClipData;",
+        "(Ljava/lang/String;I)Landroid/content/ClipData;",
+        "(Ljava/lang/String;Ljava/lang/String;I)Landroid/content/ClipData;"
+    };
+    get_primary_clip_method_ = clipboard_manager_class.GetMethodId("getPrimaryClip", signatures1[number_of_extra_parameters_]);
+  }
+  const char* signatures2[] = {
+      "(Landroid/content/ClipData;Ljava/lang/String;)V",
+      "(Landroid/content/ClipData;Ljava/lang/String;I)V",
+      "(Landroid/content/ClipData;Ljava/lang/String;Ljava/lang/String;I)V"
+  };
+  set_primary_clip_method_ = clipboard_manager_class.GetMethodId("setPrimaryClip", signatures2[number_of_extra_parameters_]);
+  const char* signatures3[] = {
+      "(Landroid/content/IOnPrimaryClipChangedListener;Ljava/lang/String;)V",
+      "(Landroid/content/IOnPrimaryClipChangedListener;Ljava/lang/String;I)V",
+      "(Landroid/content/IOnPrimaryClipChangedListener;Ljava/lang/String;Ljava/lang/String;I)V"
+  };
+  jmethodID add_listener_method =
+      clipboard_manager_class.GetMethodId("addPrimaryClipChangedListener", signatures3[number_of_extra_parameters_]);
+  if (number_of_extra_parameters_ == 0) {
+    clipboard_manager_.CallVoidMethod(add_listener_method, clipboard_listener_.ref(), package_name_.ref());
+  } else if (number_of_extra_parameters_ == 1) {
     clipboard_manager_.CallVoidMethod(add_listener_method, clipboard_listener_.ref(), package_name_.ref(), USER_ID);
   } else {
-    clipboard_manager_.CallVoidMethod(add_listener_method, clipboard_listener_.ref(), package_name_.ref());
+    clipboard_manager_.CallVoidMethod(
+        add_listener_method, clipboard_listener_.ref(), package_name_.ref(), JString(jni, "ScreenSharing").ref(), USER_ID);
   }
+
   clipboard_manager_.MakeGlobal();
 }
 
@@ -104,9 +128,13 @@ ClipboardManager* ClipboardManager::GetInstance(Jni jni) {
 }
 
 string ClipboardManager::GetText(Jni jni) const {
-  JObject clip_data = android_get_device_api_level() >= 29 ?
-      clipboard_manager_.CallObjectMethod(jni, get_primary_clip_method_, package_name_.ref(), USER_ID) :
-      clipboard_manager_.CallObjectMethod(jni, get_primary_clip_method_, package_name_.ref());
+  JObject clip_data =
+      number_of_extra_parameters_ == 0 ?
+          clipboard_manager_.CallObjectMethod(jni, get_primary_clip_method_, package_name_.ref()) :
+      number_of_extra_parameters_ == 1 ?
+          clipboard_manager_.CallObjectMethod(jni, get_primary_clip_method_, package_name_.ref(), USER_ID) :
+          clipboard_manager_.CallObjectMethod(
+              jni, get_primary_clip_method_, package_name_.ref(), JString(jni, "ScreenSharing").ref(), USER_ID);
   if (clip_data.IsNull() || clip_data.CallIntMethod(get_item_count_method_) == 0) {
     return "";
   }
@@ -127,10 +155,13 @@ void ClipboardManager::SetText(Jni jni, const string& text) const {
     JObject clip_description = clip_data.CallObjectMethod(jni, get_description_method_);
     clip_description.CallVoidMethod(set_extras_method_, overlay_suppressor_.ref());
   }
-  if (api_level >= 29) {
+  if (number_of_extra_parameters_ == 0) {
+    clipboard_manager_.CallObjectMethod(jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref());
+  } else if (number_of_extra_parameters_ == 1) {
     clipboard_manager_.CallObjectMethod(jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), USER_ID);
   } else {
-    clipboard_manager_.CallObjectMethod(jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref());
+    clipboard_manager_.CallObjectMethod(
+        jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), JString(jni, "ScreenSharing").ref(), USER_ID);
   }
 }
 
