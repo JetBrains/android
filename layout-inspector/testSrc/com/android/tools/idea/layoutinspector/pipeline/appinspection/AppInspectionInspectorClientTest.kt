@@ -285,18 +285,14 @@ class AppInspectionInspectorClientTest {
     }
   }
 
-  @Ignore("b/244184385")
   @Test
   fun statsInitializedWhenConnectedA() {
     inspectorRule.inspector.treeSettings.hideSystemNodes = true
     inspectorRule.inspector.treeSettings.showRecompositions = false
 
-    val modelUpdatedLatch = ReportingCountDownLatch(1)
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
-      modelUpdatedLatch.countDown()
-    }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { inspectorRule.inspectorClient.stats.hideSystemNodes }
+
     inspectorRule.inspectorClient.stats.selectionMadeFromImage(null)
     inspectorRule.inspectorClient.stats.frameReceived()
     inspectorRule.launcher.disconnectActiveClient()
@@ -309,19 +305,15 @@ class AppInspectionInspectorClientTest {
     assertThat(session1.compose.framesWithRecompositionCountsOn).isEqualTo(0)
   }
 
-  @Ignore("b/244184385")
   @Test
   fun statsInitializedWhenConnectedB() {
     // Make the start settings opposite from statsInitializedWhenConnectedA:
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
     inspectorRule.inspector.treeSettings.showRecompositions = true
 
-    val modelUpdatedLatch = ReportingCountDownLatch(1)
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
-      modelUpdatedLatch.countDown()
-    }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { inspectorRule.inspectorClient.stats.showRecompositions }
+
     inspectorRule.inspectorClient.stats.selectionMadeFromImage(null)
     inspectorRule.inspectorClient.stats.frameReceived()
     inspectorRule.launcher.disconnectActiveClient()
