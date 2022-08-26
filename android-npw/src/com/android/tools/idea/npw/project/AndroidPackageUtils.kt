@@ -24,6 +24,7 @@ package com.android.tools.idea.npw.project
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toIoFile
+import com.intellij.openapi.roots.PackageIndex
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
@@ -44,7 +45,7 @@ fun AndroidFacet.getPackageForPath(moduleTemplates: List<NamedModuleTemplate>, t
   val srcPath = srcDirectory.toPath().toAbsolutePath()
   val targetPath = targetDirectory.toIoFile().toPath().toAbsolutePath()
   if (targetPath.startsWith(srcPath)) {
-    val suggestedPackage = ProjectRootManager.getInstance(module.project).fileIndex.getPackageNameByDirectory(targetDirectory)
+    val suggestedPackage = PackageIndex.getInstance(module.project).getPackageNameByDirectory(targetDirectory)
 
     if (!suggestedPackage.isNullOrEmpty()) {
       return suggestedPackage
