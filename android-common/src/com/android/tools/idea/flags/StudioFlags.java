@@ -193,6 +193,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> USE_COMPONENT_TREE_TABLE = Flag.create(
     DESIGN_TOOLS, "design.component.tree.table", "Enable TreeTable implementation of component tree",
     "Use a TreeTable for displaying the component tree in the LayoutInspector and the Nav editor.", true);
+  //endregion
 
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
@@ -1502,6 +1503,7 @@ public final class StudioFlags {
     "Whether or not show issues when libraries are not policy complaint",
     false
   );
+  // endregion GOOGLE_PLAY_SDK_INDEX
 
   // region NEW_SEND_FEEDBACK_DIALOG
   private static final FlagGroup NEW_SEND_FEEDBACK_DIALOG = new FlagGroup(FLAGS, "new.send.feedback", "New Send Feedback Dialog");
