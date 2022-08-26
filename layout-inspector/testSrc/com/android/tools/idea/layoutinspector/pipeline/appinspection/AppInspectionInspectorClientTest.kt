@@ -95,6 +95,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CompletableDeferred
@@ -192,7 +193,7 @@ class AppInspectionInspectorClientTest {
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) { !inspectorRule.inspectorModel.updating }
 
     // Make sure all UI events are done
-    UIUtil.pump()
+    runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
 
     // Check that the table header for showing recompositions are shown initially:
     val header = ComponentUtil.flatten(panel.component).filterIsInstance<TreeTableHeader>().single()
