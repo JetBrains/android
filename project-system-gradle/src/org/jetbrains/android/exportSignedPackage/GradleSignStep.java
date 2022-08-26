@@ -28,7 +28,8 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.components.JBList;
-import gnu.trove.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,7 +78,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       Collections.sort(buildVariants);
     }
 
-    TIntArrayList lastSelectedIndices = new TIntArrayList(buildVariants.size());
+    IntList lastSelectedIndices = new IntArrayList(buildVariants.size());
     List<String> cachedVariants = properties.getList(PROPERTY_BUILD_VARIANTS);
     Set<String> lastSelectedVariants = cachedVariants == null ? Collections.emptySet() : Sets.newHashSet(cachedVariants);
 
@@ -90,7 +91,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       }
     }
 
-    myBuildVariantsList.setSelectedIndices(lastSelectedIndices.toNativeArray());
+    myBuildVariantsList.setSelectedIndices(lastSelectedIndices.toIntArray());
 
     String moduleName = myAndroidModel.getModuleName();
     String targetType = myWizard.getTargetType();

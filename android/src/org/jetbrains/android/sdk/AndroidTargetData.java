@@ -47,6 +47,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.NanoXmlBuilder;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -81,7 +83,7 @@ public class AndroidTargetData {
 
   private final Object myPublicResourceIdMapLock = new Object();
   @GuardedBy("myPublicResourceIdMapLock")
-  private TIntObjectHashMap<String> myPublicResourceIdMap;
+  private Int2ObjectMap<String> myPublicResourceIdMap;
 
   private volatile MyStaticConstantsData myStaticConstantsData;
 
@@ -116,7 +118,7 @@ public class AndroidTargetData {
 
   // TODO: Consider moving this method to FrameworkResourceRepository.
   @Nullable
-  public TIntObjectHashMap<String> getPublicIdMap() {
+  public Int2ObjectMap<String> getPublicIdMap() {
     synchronized (myPublicResourceIdMapLock) {
       if (myPublicResourceIdMap == null) {
         buildPublicResourceIdMap();
@@ -137,7 +139,7 @@ public class AndroidTargetData {
   private void buildPublicResourceIdMap() {
     Path resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
 
-    TIntObjectHashMap<String> resourceIdMap = new TIntObjectHashMap<>();
+    Int2ObjectMap<String> resourceIdMap = new Int2ObjectOpenHashMap<>();
 
     for (String fileName : myPublicFileNames) {
       Path publicXmlPath = resDirPath.resolve(SdkConstants.FD_RES_VALUES).resolve(fileName);

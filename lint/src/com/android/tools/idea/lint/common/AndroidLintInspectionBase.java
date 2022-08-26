@@ -86,7 +86,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.siyeh.ig.InspectionGadgetsFix;
-import gnu.trove.THashMap;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -450,8 +449,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         // shows the setting as modified, even though the name seems totally unrelated)
         InspectionProfileImpl base = InspectionProfileKt.getBASE_PROFILE();
         InspectionProfileImpl current = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-        base.addTool(project, factory, new THashMap<>());
-        current.addTool(project, factory, new THashMap<>());
+        base.addTool(project, factory, new HashMap<>());
+        current.addTool(project, factory, new HashMap<>());
 
         name = tool.getShortName();
         issue2InspectionShortName.put(issue, name);

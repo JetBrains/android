@@ -19,7 +19,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import gnu.trove.TIntObjectHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 public class ProjectResourceIdResolver implements ResourceIdResolver {
   private final Project myProject;
 
-  private TIntObjectHashMap<String> myIdMap;
+  private Int2ObjectMap<String> myIdMap;
   private boolean myInitialized;
 
   @NotNull
@@ -52,7 +52,7 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
     return myIdMap == null ? null : myIdMap.get(resId);
   }
 
-  private TIntObjectHashMap<String> getIdMap() {
+  private Int2ObjectMap<String> getIdMap() {
     AndroidFacet facet = null;
     for (Module m : ModuleManager.getInstance(myProject).getModules()) {
       facet = AndroidFacet.getInstance(m);
