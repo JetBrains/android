@@ -149,7 +149,6 @@
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
     <orderEntry type="library" scope="TEST" name="Velocity" level="project" />
     <orderEntry type="library" scope="TEST" name="CGLIB" level="project" />
-    <orderEntry type="library" scope="TEST" name="Trove4j" level="project" />
     <orderEntry type="library" scope="TEST" name="http-client" level="project" />
     <orderEntry type="library" scope="TEST" name="org.codehaus.groovy:groovy" level="project" />
     <orderEntry type="library" scope="TEST" name="Log4J" level="project" />
@@ -249,6 +248,7 @@
     <orderEntry type="module" module-name="intellij.gradle.tests" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.plugin" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.plugin.k1" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.util.trove" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

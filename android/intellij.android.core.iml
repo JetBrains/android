@@ -153,7 +153,6 @@
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="CGLIB" level="project" />
-    <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-ir" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
@@ -274,5 +273,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.classLoader" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="intellij.properties.psi.impl" />
+    <orderEntry type="module" module-name="intellij.platform.util.trove" />
   </component>
 </module>

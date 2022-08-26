@@ -42,7 +42,6 @@
     <orderEntry type="module" module-name="intellij.android.codenavigation" />
     <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
     <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
-    <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
@@ -60,5 +59,6 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.trove" />
   </component>
 </module>

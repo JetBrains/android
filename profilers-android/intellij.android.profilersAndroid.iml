@@ -49,7 +49,6 @@
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
     <orderEntry type="module" module-name="intellij.android.codenavigation" />
-    <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
@@ -79,5 +78,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.trove" />
   </component>
 </module>
