@@ -29,12 +29,13 @@ import com.android.tools.idea.diagnostics.hprof.parser.Type
 import gnu.trove.TLongArrayList
 import gnu.trove.TLongLongHashMap
 import gnu.trove.TLongObjectHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
 class CreateClassStoreVisitor(private val stringIdMap: TLongObjectHashMap<String>) : HProfVisitor() {
 
   private val classIDToNameStringID = TLongLongHashMap()
 
-  private val result = TLongObjectHashMap<ClassDefinition>()
+  private val result = Long2ObjectOpenHashMap<ClassDefinition>()
   private var completed = false
 
   override fun preVisit() {
