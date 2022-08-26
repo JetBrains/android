@@ -19,6 +19,7 @@ import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
+import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.IntellijProjectSizeStats
 import com.intellij.ide.highlighter.JavaClassFileType
@@ -31,9 +32,11 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.search.FileTypeIndex
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.util.Processor
+
+// Upper limit on the number of files we will count. Only 1% of projects have more files than this
+private const val FILE_CAP = 60000
 
 class ProjectSizeUsageTrackerListener(private val project: Project) : SyncResultListener {
   override fun syncEnded(result: SyncResult) {
@@ -55,7 +58,7 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
     KOTLIN(FileTypeRegistry.getInstance().findFileTypeByName("Kotlin") ?: PlainTextFileType.INSTANCE,
            IntellijProjectSizeStats.FileType.KOTLIN),
     NATIVE(FileTypeRegistry.getInstance().findFileTypeByName("ObjectiveC") ?: PlainTextFileType.INSTANCE,
-               IntellijProjectSizeStats.FileType.NATIVE);
+           IntellijProjectSizeStats.FileType.NATIVE);
 
     fun languageFileType(): com.intellij.openapi.fileTypes.FileType {
       return fileType
@@ -66,62 +69,46 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
     }
   }
 
-  private enum class SearchScope(private val globalSearchScopeFunc: (project: Project) -> GlobalSearchScope,
-                                 private val statsSearchScope: IntellijProjectSizeStats.Scope) {
-    // Count files within whole project
-    All(ProjectScope::getAllScope, IntellijProjectSizeStats.Scope.ALL),
-    // Count all library files i.e. only jar files
-    LIBRARY(ProjectScope::getLibrariesScope, IntellijProjectSizeStats.Scope.LIBRARY);
-
-    fun globalSearchScope(project: Project): GlobalSearchScope {
-      return globalSearchScopeFunc(project)
-    }
-
-    fun statsSearchScope(): IntellijProjectSizeStats.Scope {
-      return statsSearchScope
-    }
-  }
-
   override fun run() {
     val builder = AndroidStudioEvent
       .newBuilder()
       .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
       .withProjectId(project)
-    for (searchScope in SearchScope.values()) {
-      for (fileType in FileType.values()) {
-        val fileCount =
-          try {
-            fileCount(fileType, searchScope)
-          }
-          catch (e: Exception) {
-            // in the case of any exception (project disposed, or ProcessCanceledException, etc)
-            // we just send an impossible value so that we can track how often such scenarios
-            // occur in the backend
-            -1
-          }
-        builder.addIntellijProjectSizeStats(IntellijProjectSizeStats
-                                              .newBuilder()
-                                              .setScope(searchScope.statsSearchScope())
-                                              .setType(fileType.statsFileType())
-                                              .setCount(fileCount))
-      }
+    for (fileType in FileType.values()) {
+      val fileCount =
+        try {
+          fileCount(fileType)
+        }
+        catch (e: Exception) {
+          // in the case of any exception (project disposed, or ProcessCanceledException, etc)
+          // we just send an impossible value so that we can track how often such scenarios
+          // occur in the backend
+          -1
+        }
+      builder.addIntellijProjectSizeStats(IntellijProjectSizeStats
+                                            .newBuilder()
+                                            .setScope(IntellijProjectSizeStats.Scope.PROJECT)
+                                            .setType(fileType.statsFileType())
+                                            .setCount(fileCount))
     }
 
     UsageTracker.log(builder)
   }
 
-  private fun fileCount(fileType: FileType, searchScope: SearchScope): Int {
+  private fun fileCount(fileType: FileType): Int {
     if (fileType.languageFileType() is PlainTextFileType) {
       // If kotlin plugin is not enabled, we will get PlainTextFileType. In such case, we do not want to collect kotlin
       // file count since it will include so many unrelated plain text file
       return 0
     }
     else {
+      val cap = ServerFlagService.instance.getInt("analytics/projectsize/filecap", FILE_CAP)
       // note that this pauses the current thread until smart mode is available
       return DumbService.getInstance(project).runReadActionInSmartMode(
         Computable {
           var numFiles = 0
-          FileTypeIndex.processFiles(fileType.languageFileType(), Processor { numFiles++; true }, searchScope.globalSearchScope(project))
+          FileTypeIndex.processFiles(fileType.languageFileType(), Processor { numFiles++; numFiles < cap },
+                                     ProjectScope.getProjectScope(project))
           numFiles;
         })
     }
