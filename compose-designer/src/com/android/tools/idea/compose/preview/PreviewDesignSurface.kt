@@ -87,12 +87,17 @@ private fun createPreviewDesignSurfaceBuilder(
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider { surface, model ->
+      // Compose Preview manages its own render and refresh logic, and then it should avoid
+      // some automatic renderings triggered in LayoutLibSceneManager
       LayoutlibSceneManager(
         model,
         surface,
         sceneComponentProvider,
-        ComposeSceneUpdateListener()
-      ) { RealTimeSessionClock() }
+        ComposeSceneUpdateListener(),
+      ) { RealTimeSessionClock() }.also {
+        it.setListenResourceChange(false) // don't re-render on resource changes
+        it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+      }
     }
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
