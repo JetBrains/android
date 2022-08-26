@@ -179,15 +179,7 @@ public class EmbeddedDistributionPaths {
       }
 
       // Development build.
-      Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk/jdk17");
-      Path jdk11Path = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk/jdk11");
-      if (!Files.exists(jdkRootPath)) {
-        // if there is no JDK17
-        jdkRootPath = jdk11Path;
-      } else if ("true".equalsIgnoreCase(System.getenv("force_embedded_jdk11")) && Files.exists(jdk11Path)) {
-        // running tests on JDK17 but force switch to 11
-        jdkRootPath = jdk11Path;
-      }
+      Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk/jdk11");
       if (SystemInfo.isWindows) {
         jdkRootPath = jdkRootPath.resolve("win");
       }

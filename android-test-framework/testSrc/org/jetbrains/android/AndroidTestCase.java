@@ -6,7 +6,7 @@ import static com.android.tools.idea.testing.ThreadingAgentTestUtilKt.maybeCheck
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -121,7 +121,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    Path jdkPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();
+    Path jdkPath = TestUtils.getJava11Jdk();
     WriteAction.runAndWait(() -> {
       cleanJdkTable();
       setupJdk(jdkPath);
