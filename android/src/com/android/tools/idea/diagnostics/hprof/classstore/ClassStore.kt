@@ -16,10 +16,10 @@
 package com.android.tools.idea.diagnostics.hprof.classstore
 
 import com.android.tools.idea.diagnostics.hprof.parser.Type
-import gnu.trove.TLongObjectHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.util.function.LongUnaryOperator
 
-class ClassStore(private val classes: TLongObjectHashMap<ClassDefinition>) {
+class ClassStore(private val classes: Long2ObjectOpenHashMap<ClassDefinition>) {
   private val stringToClassDefinition = HashMap<String, ClassDefinition>()
   private val classDefinitionToShortPrettyName = HashSet<ClassDefinition>()
 
@@ -40,7 +40,7 @@ class ClassStore(private val classes: TLongObjectHashMap<ClassDefinition>) {
     }
 
     val clashedClassNames = mutableSetOf<String>()
-    classes.forEachValue { classDefinition ->
+    classes.values.forEach { classDefinition ->
       val className = classDefinition.name
       var clashed = false
       if (clashedClassNames.contains(className)) {
@@ -73,7 +73,6 @@ class ClassStore(private val classes: TLongObjectHashMap<ClassDefinition>) {
       else {
         stringToClassDefinition[classDefinition.name] = classDefinition
       }
-      true
     }
     clashedClassNames.forEach { assert(!stringToClassDefinition.contains(it)) }
 
@@ -92,8 +91,8 @@ class ClassStore(private val classes: TLongObjectHashMap<ClassDefinition>) {
     }
 
     val shortNameToClassDefinition = HashMap<String, ClassDefinition?>()
-    classes.forEachValue {
-      if (it.name.contains('$')) return@forEachValue true
+    classes.values.forEach {
+      if (it.name.contains('$')) return@forEach
       val prettyName = it.prettyName
       val shortPrettyName = prettyName.substringAfterLast('.')
       if (shortNameToClassDefinition.containsKey(shortPrettyName)) {
@@ -105,7 +104,6 @@ class ClassStore(private val classes: TLongObjectHashMap<ClassDefinition>) {
       else {
         shortNameToClassDefinition[shortPrettyName] = it
       }
-      true
     }
     shortNameToClassDefinition.forEach { (_, classDef) ->
       if (classDef == null) return@forEach
@@ -135,25 +133,23 @@ class ClassStore(private val classes: TLongObjectHashMap<ClassDefinition>) {
     return primitiveArrayToClassDefinition[t]
   }
 
-  fun size() = classes.size()
+  fun size() = classes.size
 
   fun isSoftOrWeakReferenceClass(classDefinition: ClassDefinition): Boolean {
     return classDefinition == softReferenceClass || classDefinition == weakReferenceClass
   }
 
   fun forEachClass(func: (ClassDefinition) -> Unit) {
-    classes.forEachValue {
+    classes.values.forEach {
       func(it)
-      true
     }
   }
 
   fun createStoreWithRemappedIDs(remappingFunction: LongUnaryOperator): ClassStore {
     fun map(id: Long): Long = remappingFunction.applyAsLong(id)
-    val newClasses = TLongObjectHashMap<ClassDefinition>()
-    classes.forEachValue {
+    val newClasses = Long2ObjectOpenHashMap<ClassDefinition>()
+    classes.values.forEach {
       newClasses.put(map(it.id), it.copyWithRemappedIDs(remappingFunction))
-      true
     }
     return ClassStore(newClasses)
   }

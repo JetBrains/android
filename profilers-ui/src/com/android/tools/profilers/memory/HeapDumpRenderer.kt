@@ -29,7 +29,7 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.profilers.ProfilerColors.MEMORY_HEAP_DUMP_BG
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.intellij.ui.JBColor
-import gnu.trove.TDoubleArrayList
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList
 import java.awt.BasicStroke
 import java.awt.Component
 import java.awt.Graphics2D
@@ -43,8 +43,8 @@ import javax.swing.JLabel
 class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<out CaptureObject>>,
                        private val viewRange: Range)
       : AspectObserver(), AbstractDurationDataRenderer {
-  private val startsCache = TDoubleArrayList()
-  private val durationsCache = TDoubleArrayList()
+  private val startsCache = DoubleArrayList()
+  private val durationsCache = DoubleArrayList()
   private val labelCache = mutableListOf<JLabel>()
   private var mousePosition = Point()
   private val heapDumpHoveredListener = mutableListOf<Consumer<Boolean>>()
@@ -81,9 +81,9 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
     val height = Math.min(origHeight, dimHeight).toDouble()
     val clipRect = Rectangle2D.Float()
 
-    for (i in 0 until startsCache.size()) {
-      val xStart = startsCache[i]
-      val xLen = durationsCache[i]
+    for (i in 0 until startsCache.size) {
+      val xStart = startsCache.getDouble(i)
+      val xLen = durationsCache.getDouble(i)
       val scaledXStart = xStart * dimWidth
       val scaledDuration = xLen * dimWidth
       val newX = Math.max(scaledXStart, origX)
@@ -137,9 +137,9 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
 
   override fun handleMouseEvent(overlayComponent: Component, selectionComponent: Component, event: MouseEvent) = false.also {
     mousePosition = event.point
-    isMouseOverHeapDump = (0 until startsCache.size()).any { i ->
-      val xStart = startsCache[i]
-      val xLen = durationsCache[i]
+    isMouseOverHeapDump = (0 until startsCache.size).any { i ->
+      val xStart = startsCache.getDouble(i)
+      val xLen = durationsCache.getDouble(i)
       val scaledStartX = xStart * overlayComponent.width
       val scaledDur = xLen * overlayComponent.width
       scaledStartX < mousePosition.x && mousePosition.x < scaledStartX + scaledDur &&

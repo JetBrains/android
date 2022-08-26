@@ -40,7 +40,6 @@ import com.android.tools.lint.detector.api.LintFix.ShowUrl;
 import com.android.tools.lint.detector.api.Option;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
-import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -86,7 +85,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.siyeh.ig.InspectionGadgetsFix;
-import gnu.trove.THashMap;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -450,8 +448,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         // shows the setting as modified, even though the name seems totally unrelated)
         InspectionProfileImpl base = InspectionProfileKt.getBASE_PROFILE();
         InspectionProfileImpl current = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-        base.addTool(project, factory, new THashMap<>());
-        current.addTool(project, factory, new THashMap<>());
+        base.addTool(project, factory, new HashMap<>());
+        current.addTool(project, factory, new HashMap<>());
 
         name = tool.getShortName();
         issue2InspectionShortName.put(issue, name);
@@ -555,7 +553,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     List<Option> options = myIssue.getOptions();
     if (!options.isEmpty()) {
       sb.append("<br><br>");
-      String optionsHtml = Option.Companion.describe(options, TextFormat.HTML, true);
+      String optionsHtml = Option.Companion.describe(options, HTML, true);
       sb.append(optionsHtml);
     }
     List<String> urls = myIssue.getMoreInfo();
@@ -586,7 +584,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
     if (vendor != null && vendor != IssueRegistry.Companion.getAOSP_VENDOR()) {
       sb.append("<br/><br/>\n");
-      vendor.describeInto(sb, TextFormat.HTML, "");
+      vendor.describeInto(sb, HTML, "");
     }
 
     sb.append("</body></html>");

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.bleak;
 
-import gnu.trove.THashMap;
-import gnu.trove.TObjectHashingStrategy;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.Buffer;
@@ -35,10 +35,13 @@ import org.jetbrains.annotations.NotNull;
 /* Mostly copied from com.intellij.util.ref.DebugReflectionUtil */
 public class ReflectionUtil implements DoNotTrace {
 
-  private static final TObjectHashingStrategy<Class> hashingStrategy = new TObjectHashingStrategy<Class>() {
+  private static final Hash.Strategy<Class> hashingStrategy = new Hash.Strategy<>() {
     // default strategy seems to be too slow
     @Override
-    public int computeHashCode(Class aClass) {
+    public int hashCode(Class aClass) {
+      if (aClass == null) {
+        return 0;
+      }
       return aClass.getName().hashCode();
     }
 
@@ -47,8 +50,8 @@ public class ReflectionUtil implements DoNotTrace {
       return o1 == o2;
     }
   };
-  private static final Map<Class, Long> objectSizes = new THashMap<>(hashingStrategy);
-  private static final Map<Class, Field[]> allFields = new THashMap<>(hashingStrategy);
+  private static final Map<Class, Long> objectSizes = new Object2ObjectOpenCustomHashMap<>(hashingStrategy);
+  private static final Map<Class, Field[]> allFields = new Object2ObjectOpenCustomHashMap<>(hashingStrategy);
   private static final Field[] EMPTY_FIELD_ARRAY = new Field[0];
 
   private static final int OBJECT_HEADER_SIZE = 16;

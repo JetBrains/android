@@ -60,7 +60,6 @@
     <orderEntry type="library" name="rd-core" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" name="grpc-core" level="project" />
-    <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="library" name="org.codehaus.groovy:groovy" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-jps-common" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
@@ -141,5 +140,6 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
   </component>
 </module>
