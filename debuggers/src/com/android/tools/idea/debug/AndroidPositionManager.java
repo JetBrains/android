@@ -25,7 +25,6 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.run.AndroidSessionInfo;
@@ -34,9 +33,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.intellij.debugger.NoDataException;
 import com.intellij.debugger.SourcePosition;
 import com.intellij.debugger.engine.DebugProcessImpl;
@@ -68,7 +65,6 @@ import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.intellij.lang.annotations.Language;
@@ -101,16 +97,28 @@ public class AndroidPositionManager extends PositionManagerImpl {
 
   private final DebugProcessImpl myDebugProcess;
 
-  private final Supplier<Map<AndroidVersion, VirtualFile>> mySourceFoldersByApiLevel =
-    Suppliers.memoize(AndroidPositionManager::createSourcePackagesByApiLevel);
+  @Nullable
+  private final AndroidVersion myAndroidVersion;
 
-  private final Supplier<PsiFile> myGeneratedPsiFile = Suppliers.memoize(this::createGeneratedPsiFile);
+  private final Supplier<@Nullable VirtualFile> mySourceFolder;
+
+  private final Supplier<@Nullable PsiFile> myGeneratedPsiFile;
 
   private boolean debugSessionListenerRegistered = false;
 
   public AndroidPositionManager(DebugProcessImpl debugProcess) {
     super(debugProcess);
     this.myDebugProcess = debugProcess;
+
+    myAndroidVersion = getAndroidVersionFromDebugSession(debugProcess.getProject());
+    if (myAndroidVersion != null) {
+      mySourceFolder = Suppliers.memoize(this::createSourcePackageForApiLevel);
+      myGeneratedPsiFile = Suppliers.memoize(this::createGeneratedPsiFile);
+    }
+    else {
+      mySourceFolder = Suppliers.ofInstance(null);
+      myGeneratedPsiFile = Suppliers.ofInstance(null);
+    }
   }
 
   @NotNull
@@ -153,20 +161,19 @@ public class AndroidPositionManager extends PositionManagerImpl {
       throw NoDataException.INSTANCE;
     }
 
-    Project project = myDebugProcess.getProject();
-    AndroidVersion version = getAndroidVersionFromDebugSession(project);
-    if (version == null) {
+    if (myAndroidVersion == null) {
       LOG.debug("getSourcePosition cannot determine version from device.");
       throw NoDataException.INSTANCE;
     }
 
+    Project project = myDebugProcess.getProject();
     PsiFile file = getPsiFileByLocation(project, location);
     if (file == null || !AndroidSdks.getInstance().isInAndroidSdk(file)) {
       throw NoDataException.INSTANCE;
     }
 
     // Since we have an Android SDK file, return the SDK source if it's available.
-    SourcePosition sourcePosition = getSourceFileForApiLevel(project, version, file, location);
+    SourcePosition sourcePosition = getSourceFileForApiLevel(project, file, location);
     if (sourcePosition != null) {
       return sourcePosition;
     }
@@ -193,15 +200,14 @@ public class AndroidPositionManager extends PositionManagerImpl {
   }
 
   @Nullable
-  private SourcePosition getSourceFileForApiLevel(
-    @NotNull Project project, @NotNull AndroidVersion version, @NotNull PsiFile file, @NotNull Location location) {
+  private SourcePosition getSourceFileForApiLevel(@NotNull Project project, @NotNull PsiFile file, @NotNull Location location) {
     String relPath = getRelPathForJavaSource(project, file);
     if (relPath == null) {
       LOG.debug("getApiSpecificPsi returned null because relPath is null for file: " + file.getName());
       return null;
     }
 
-    VirtualFile sourceFolder = mySourceFoldersByApiLevel.get().get(version);
+    VirtualFile sourceFolder = mySourceFolder.get();
     if (sourceFolder == null) {
       return null;
     }
@@ -239,8 +245,7 @@ public class AndroidPositionManager extends PositionManagerImpl {
   @NotNull
   private PsiFile createGeneratedPsiFile() {
     Project project = myDebugProcess.getProject();
-    AndroidVersion version = getAndroidVersionFromDebugSession(project);
-    int apiLevel = version.getApiLevel();
+    int apiLevel = myAndroidVersion.getApiLevel();
     String fileContent = String.format(Locale.getDefault(), GENERATED_FILE_CONTENTS_FORMAT, apiLevel);
 
     PsiFile generatedPsiFile =
@@ -256,20 +261,19 @@ public class AndroidPositionManager extends PositionManagerImpl {
     }
 
     // Add data indicating that we want to put up a banner offering to download sources.
-    List<AndroidVersion> requiredSourceDownload = ImmutableList.of(version);
+    List<AndroidVersion> requiredSourceDownload = ImmutableList.of(myAndroidVersion);
     generatedVirtualFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, requiredSourceDownload);
 
     return generatedPsiFile;
   }
 
-  @NotNull
-  private static Map<AndroidVersion, VirtualFile> createSourcePackagesByApiLevel() {
+  @Nullable
+  private VirtualFile createSourcePackageForApiLevel() {
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     RepoManager sdkManager =
       sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(AndroidPositionManager.class));
     Collection<LocalPackage> sourcePackages = sdkManager.getPackages().getLocalPackagesForPrefix(FD_ANDROID_SOURCES);
 
-    Map<AndroidVersion, VirtualFile> sourcesByApi = Maps.newHashMap();
     for (LocalPackage sourcePackage : sourcePackages) {
       TypeDetails typeDetails = sourcePackage.getTypeDetails();
       if (!(typeDetails instanceof DetailsTypes.ApiDetailsType)) {
@@ -278,15 +282,15 @@ public class AndroidPositionManager extends PositionManagerImpl {
       }
 
       DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)typeDetails;
-      AndroidVersion version = details.getAndroidVersion();
-
-      VirtualFile sourceFolder = VfsUtil.findFile(sourcePackage.getLocation(), false);
-      if (sourceFolder != null && sourceFolder.isValid()) {
-        sourcesByApi.put(version, sourceFolder);
+      if (myAndroidVersion.equals(details.getAndroidVersion())) {
+        VirtualFile sourceFolder = VfsUtil.findFile(sourcePackage.getLocation(), false);
+        if (sourceFolder != null && sourceFolder.isValid()) {
+          return sourceFolder;
+        }
       }
     }
 
-    return ImmutableMap.copyOf(sourcesByApi);
+    return null;
   }
 
   @Nullable

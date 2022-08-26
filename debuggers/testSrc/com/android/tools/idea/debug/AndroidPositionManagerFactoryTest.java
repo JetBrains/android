@@ -16,10 +16,13 @@
 package com.android.tools.idea.debug;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.android.flags.junit.RestoreFlagRule;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.debugger.engine.DebugProcessImpl;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -29,10 +32,16 @@ import org.mockito.junit.MockitoRule;
 public class AndroidPositionManagerFactoryTest {
   @Rule public final MockitoRule myMockitoRule = MockitoJUnit.rule();
   @Rule public final RestoreFlagRule myRestoreFlagRule = new RestoreFlagRule(StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE);
+  @Rule public final AndroidProjectRule myAndroidProjectRule = AndroidProjectRule.inMemory();
 
   @Mock private DebugProcessImpl mockDebugProcessImpl;
 
   private AndroidPositionManagerFactory myFactory = new AndroidPositionManagerFactory();
+
+  @Before
+  public void setup() {
+    when(mockDebugProcessImpl.getProject()).thenReturn(myAndroidProjectRule.getProject());
+  }
 
   @Test
   public void createPositionManager_debugDeviceSdkSourcesEnabled() {

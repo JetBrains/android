@@ -332,6 +332,9 @@ public class AndroidPositionManagerTest {
     Location location = mock(Location.class);
     targetDeviceAndroidVersion = null;
 
+    // Recreate myPositionManager, so that it reinitializes with a null version.
+    myPositionManager = new AndroidPositionManager(mockDebugProcessImpl);
+
     assertThrows(NoDataException.class, () -> myPositionManager.getSourcePosition(location));
 
     // getSourcePosition should have exited before `location` was used.
