@@ -19,12 +19,14 @@ import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.DefaultTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile.GradleDslVersionLiteral;
@@ -67,6 +69,11 @@ public class GradleVersionCatalogModelImpl implements GradleVersionCatalogModel 
     return extractByName("versions").get(catalogName);
   }
 
+  @Override
+  public ExtModel bundles(String catalogName) {
+    return extractByName("bundles").get(catalogName);
+  }
+
   public Set<String> catalogNames(){
     return versionCatalogFiles.stream().map(GradleVersionCatalogFile::getCatalogName).collect(Collectors.toSet());
   }
@@ -80,6 +87,29 @@ public class GradleVersionCatalogModelImpl implements GradleVersionCatalogModel 
       super(holder, type, name);
     }
 
+    @NotNull
+    @Override
+    public GradlePropertyModel addListValue(){
+      if (!"bundles".equals(myPropertyHolder.getName())) {
+        return super.addListValue();
+      }
+      GradlePropertyModelImpl model = (GradlePropertyModelImpl)super.addListValue();
+      model.addTransform(new LibraryTransform());
+      return model;
+    }
+
+    @NotNull
+    @Override
+    public GradlePropertyModel addListValueAt(int index) {
+      if (!"bundles".equals(myPropertyHolder.getName())) {
+        return super.addListValueAt(index);
+      }
+      GradlePropertyModelImpl model = (GradlePropertyModelImpl)super.addListValueAt(index);
+      model.addTransform(new LibraryTransform());
+      return model;
+    }
+
+    @Override
     public @NotNull GradlePropertyModel getMapValue(@NotNull String key) {
       if (!"version".equals(key)) {
         return super.getMapValue(key);
@@ -98,6 +128,24 @@ public class GradleVersionCatalogModelImpl implements GradleVersionCatalogModel 
       if (oldElement == null) {
         GradleDslVersionLiteral literal = new GradleDslVersionLiteral(holder, GradleNameElement.fake(name), value);
         literal.setValue(value);
+        return literal;
+      }
+      return super.bind(holder, oldElement, value, name);
+    }
+  }
+
+  static class LibraryTransform extends DefaultTransform {
+    @Override
+    public @NotNull GradleDslExpression bind(@NotNull GradleDslElement holder,
+                                             @Nullable GradleDslElement oldElement,
+                                             @NotNull Object value,
+                                             @NotNull String name) {
+      // prop.addListValue() returns element with empty name
+      if (oldElement != null &&
+          oldElement.getName().isEmpty() &&
+          value instanceof ReferenceTo) {
+        GradleDslLiteral literal = new GradleDslLiteral(holder, GradleNameElement.fake(name));
+        literal.setValue(((ReferenceTo)value).getReferredElement().getName());
         return literal;
       }
       return super.bind(holder, oldElement, value, name);

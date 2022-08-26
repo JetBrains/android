@@ -1446,6 +1446,139 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
+  fun testSimpleBundle() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [libraries]
+        foo = { group = "com.example", name = "foo", version = "1.2.3" }
+        bar = { group = "com.example", name = "bar", version = "1.2.3" }
+
+        [bundles]
+        core = [ "foo", "bar" ]
+      """.trimIndent())
+
+      val vcModel = projectBuildModel.versionCatalogModel!!
+      val bundles = vcModel.bundles("libs")!!
+      val libraries = vcModel.libraries("libs")!!
+      val refs = bundles.findProperty("core").toList()!!
+
+      //Check that libraries.foo is the same DSL element that is referred from bundles.code[0] (foo)
+      assertTrue(libraries.findProperty("foo").rawElement == refs[0].dependencies[0].rawElement)
+      assertTrue(libraries.findProperty("bar").rawElement == refs[1].dependencies[0].rawElement)
+
+      assertEquals(refs.map { it.rawElement!!.name }, listOf("foo", "bar"))
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testBundleCreateMapWithLibs() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [libraries]
+        foo = { group = "com.example", name = "foo", version = "1.2.3" }
+        bar = { group = "com.example", name = "bar", version = "1.2.3" }
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val bundles = vcModel.bundles("libs")!!
+      val core = bundles.findProperty("core")
+
+      val libraries = vcModel.libraries("libs")!!
+      core.addListValue().setValue(ReferenceTo(libraries.findProperty("bar")))
+      core.addListValueAt(0).setValue(ReferenceTo(libraries.findProperty("foo")))
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [libraries]
+        foo = { group = "com.example", name = "foo", version = "1.2.3" }
+        bar = { group = "com.example", name = "bar", version = "1.2.3" }
+        [bundles]
+        core = [ "foo", "bar" ]
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testBundleAppendLib() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [libraries]
+        foo = { group = "com.example", name = "foo", version = "1.2.3" }
+        bar = { group = "com.example", name = "bar", version = "1.2.3" }
+
+        [bundles]
+        core = [ "foo" ]
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val bundles = vcModel.bundles("libs")!!
+      val core = bundles.findProperty("core")
+
+      val libraries = vcModel.libraries("libs")!!
+      core.addListValue().setValue(ReferenceTo(libraries.findProperty("bar")))
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [libraries]
+        foo = { group = "com.example", name = "foo", version = "1.2.3" }
+        bar = { group = "com.example", name = "bar", version = "1.2.3" }
+
+        [bundles]
+        core = [ "foo", "bar" ]
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testDeleteLibFromBundle() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [libraries]
+        foo = { group = "com.example", name = "foo", version = "1.2.3" }
+        bar = { group = "com.example", name = "bar", version = "1.2.3" }
+
+        [bundles]
+        core = [ "foo", "bar" ]
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val core = vcModel.bundles("libs")!!.findProperty("core")
+
+      core.toList()!![0].delete()
+      applyChanges(pbm)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+        [libraries]
+        foo = { group = "com.example", name = "foo", version = "1.2.3" }
+        bar = { group = "com.example", name = "bar", version = "1.2.3" }
+
+        [bundles]
+        core = [ "bar" ]
+      """.trimIndent())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),

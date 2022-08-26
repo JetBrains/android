@@ -35,6 +35,8 @@ public interface GradleVersionCatalogModel {
 
   ExtModel versions(String catalogName);
 
+  ExtModel bundles(String catalogName);
+
   /**
    * Get names for all catalogs that are in use for particular project
    */

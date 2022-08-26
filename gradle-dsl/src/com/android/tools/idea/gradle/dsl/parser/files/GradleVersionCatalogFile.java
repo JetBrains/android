@@ -20,15 +20,16 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
-import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -57,6 +58,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     myGradleDslParser.parse();
     replaceVersionRefsWithInjections();
     mapAliasesToAccessors();
+    replaceLibraryRefsInBundlesWithInjections();
   }
 
   public static class GradleDslVersionLiteral extends GradleDslLiteral {
@@ -190,6 +192,8 @@ public class GradleVersionCatalogFile extends GradleDslFile {
   protected void mapAliasesToAccessors() {
     GradleDslExpressionMap libraries = getPropertyElement("libraries", GradleDslExpressionMap.class);
     GradleDslExpressionMap plugins = getPropertyElement("plugins", GradleDslExpressionMap.class);
+    GradleDslExpressionMap bundles = getPropertyElement("bundles", GradleDslExpressionMap.class);
+
     Pattern pattern = Pattern.compile("[_-]");
     Function<GradleDslExpressionMap, BiConsumer<String, GradleDslElement>> aliasConstructorFactory =
       (map) -> (BiConsumer<String, GradleDslElement>)(name, element) -> {
@@ -215,5 +219,39 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     if (plugins != null) {
       plugins.getPropertyElements().forEach(aliasConstructorFactory.apply(plugins));
     }
+    if (bundles != null) {
+      bundles.getPropertyElements().forEach(aliasConstructorFactory.apply(bundles));
+    }
   }
+
+  protected void replaceLibraryRefsInBundlesWithInjections() {
+    GradleDslExpressionMap libraries = getPropertyElement("libraries", GradleDslExpressionMap.class);
+    GradleDslExpressionMap bundles = getPropertyElement("bundles", GradleDslExpressionMap.class);
+
+    if (bundles == null) return;
+
+    Consumer<GradlePropertiesDslElement> libraryRefReplacer = (bundle) -> {
+      List<GradleDslElement> elements = bundle.getCurrentElements();
+      elements.forEach(element -> {
+        if (element instanceof GradleDslLiteral) {
+          GradleDslLiteral ref = (GradleDslLiteral)element;
+          String targetName = ref.getValue(String.class);
+          GradleDslElement targetProperty = libraries.getPropertyElement(targetName);
+          if (targetProperty != null) {
+            GradleDslLiteral reference =
+              new GradleDslLiteral(bundle, ref.getPsiElement(), targetProperty.getNameElement(),
+                                          ref.getPsiElement(), REFERENCE);
+            GradleReferenceInjection injection =
+              new GradleReferenceInjection(reference, targetProperty, ref.getPsiElement(), targetName);
+            targetProperty.registerDependent(injection);
+            reference.addDependency(injection);
+            bundle.substituteElement(element, reference);
+          }
+        }
+      });
+    };
+
+    bundles.getPropertyElements(GradlePropertiesDslElement.class).forEach(libraryRefReplacer);
+  }
+
 }
