@@ -69,8 +69,14 @@ public class ApplyChangesAction extends BaseAction {
     if (project == null) {
       return null;
     }
+
     // Disable "Apply Changes" for any kind of test project.
-    RunnerAndConfigurationSettings runConfig = RunManager.getInstance(project).getSelectedConfiguration();
+    RunManager runManager = RunManager.getInstanceIfCreated(project);
+    if (runManager == null) {
+      return null;
+    }
+
+    RunnerAndConfigurationSettings runConfig = runManager.getSelectedConfiguration();
     if (runConfig != null) {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();
