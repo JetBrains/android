@@ -2073,7 +2073,6 @@ MODULE                        : kotlinMultiPlatform.jsModule
                     target                        : v5
                     typedArrays                   : true
                     wasmDebug                     : true
-                    wasmLauncher                  : esm
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -2091,7 +2090,6 @@ MODULE                        : kotlinMultiPlatform.jsModule
                     target                        : v5
                     typedArrays                   : true
                     wasmDebug                     : true
-                    wasmLauncher                  : esm
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -2162,7 +2160,6 @@ MODULE                        : kotlinMultiPlatform.jsModule
                         target                        : v5
                         typedArrays                   : true
                         wasmDebug                     : true
-                        wasmLauncher                  : esm
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         errors                        : ArgumentParseErrors
@@ -2221,7 +2218,6 @@ MODULE                        : kotlinMultiPlatform.jsModule
                         target                        : v5
                         typedArrays                   : true
                         wasmDebug                     : true
-                        wasmLauncher                  : esm
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         errors                        : ArgumentParseErrors
