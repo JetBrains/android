@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,31 +18,26 @@ package com.android.tools.idea.gradle.project.importing
 import com.android.SdkConstants
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager.Companion.getInstance
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists
 import com.intellij.openapi.module.StdModuleTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.roots.impl.DirectoryIndexExcludePolicy
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.util.PathUtil
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
+
+private val LOG: Logger =  Logger.getInstance(TopLevelModuleFactory::class.java)
 
 class TopLevelModuleFactory() {
 
@@ -107,7 +102,7 @@ class TopLevelModuleFactory() {
     }
     projectModifieableModel.commit()
     val projectRootDirPath = PathUtil.toSystemIndependentName(gradleRoot.path)
-    getInstance(module)
+    ExternalSystemModulePropertyManager.getInstance(module)
       .setExternalOptions(
         GradleUtil.GRADLE_SYSTEM_ID,
         ModuleData(
@@ -121,7 +116,7 @@ class TopLevelModuleFactory() {
           /* owner = */ GradleUtil.GRADLE_SYSTEM_ID,
           /* externalName = */ project.name,
           /* ideProjectFileDirectoryPath = */ gradleRootPath,
-          /* linkedExternalProjectPath = */ toCanonicalPath(gradleRoot.canonicalPath)
+          /* linkedExternalProjectPath = */ ExternalSystemApiUtil.toCanonicalPath(gradleRoot.canonicalPath)
         )
       )
     val model = ModuleRootManager.getInstance(module).modifiableModel
@@ -152,5 +147,3 @@ class TopLevelModuleFactory() {
     }
   }
 }
-
-private val LOG = Logger.getInstance(TopLevelModuleFactory::class.java)
