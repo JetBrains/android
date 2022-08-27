@@ -25,15 +25,16 @@ private fun BuildStatus.toProjectSystemBuildStatus(): ProjectSystemBuildManager.
   BuildStatus.SUCCESS -> ProjectSystemBuildManager.BuildStatus.SUCCESS
   BuildStatus.FAILED -> ProjectSystemBuildManager.BuildStatus.FAILED
   BuildStatus.CANCELED -> ProjectSystemBuildManager.BuildStatus.CANCELLED
-  else -> ProjectSystemBuildManager.BuildStatus.UNKNOWN
 }
 
-private fun BuildMode?.toProjectSystemBuildMode(): ProjectSystemBuildManager.BuildMode = when(this) {
+private fun BuildMode.toProjectSystemBuildMode(): ProjectSystemBuildManager.BuildMode = when(this) {
   BuildMode.CLEAN -> ProjectSystemBuildManager.BuildMode.CLEAN
   BuildMode.COMPILE_JAVA -> ProjectSystemBuildManager.BuildMode.COMPILE
   BuildMode.ASSEMBLE -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
-  BuildMode.REBUILD -> ProjectSystemBuildManager.BuildMode.COMPILE
-  else -> ProjectSystemBuildManager.BuildMode.UNKNOWN
+  BuildMode.REBUILD -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
+  BuildMode.SOURCE_GEN -> ProjectSystemBuildManager.BuildMode.UNKNOWN
+  BuildMode.BUNDLE -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
+  BuildMode.APK_FROM_BUNDLE -> ProjectSystemBuildManager.BuildMode.ASSEMBLE
 }
 
 @Service
@@ -51,12 +52,13 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
 
   override fun buildStarted(context: BuildContext) {
     buildCount++
-    project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).buildStarted(context.buildMode.toProjectSystemBuildMode())
+    project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC)
+      .buildStarted(context.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN)
   }
 
   override fun buildFinished(status: BuildStatus, context: BuildContext?) {
     val result = ProjectSystemBuildManager.BuildResult(
-      context?.buildMode.toProjectSystemBuildMode(),
+      context?.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN,
       status.toProjectSystemBuildStatus(),
       System.currentTimeMillis())
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).beforeBuildCompleted(result)
@@ -93,7 +95,7 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult =
     GradleBuildState.getInstance(project).lastFinishedBuildSummary?.let {
       ProjectSystemBuildManager.BuildResult(
-        it.context?.buildMode.toProjectSystemBuildMode(),
+        it.context?.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN,
         it.status.toProjectSystemBuildStatus(),
         System.currentTimeMillis())
     } ?: ProjectSystemBuildManager.BuildResult.createUnknownBuildResult()
