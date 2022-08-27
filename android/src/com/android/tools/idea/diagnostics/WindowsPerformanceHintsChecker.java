@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
+
 import com.android.annotations.concurrency.Slow;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.windows.VirusCheckerStatusProvider;
 import com.android.tools.idea.diagnostics.windows.WindowsDefenderPowerShellStatusProvider;
 import com.android.tools.idea.diagnostics.windows.WindowsDefenderRegistryStatusProvider;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.build.BuildContext;
-import com.android.tools.idea.gradle.project.build.BuildStatus;
-import com.android.tools.idea.gradle.project.build.GradleBuildListener;
-import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WindowsDefenderStatus;
@@ -97,27 +96,31 @@ public class WindowsPerformanceHintsChecker {
       var app = ApplicationManager.getApplication();
       var checker = new WindowsPerformanceHintsChecker();
       app.executeOnPooledThread(() -> checker.checkWindowsDefender(project, false));
+      if (isEnabled()) {
+        getProjectSystem(project).getBuildManager().addBuildListener(project, new MyBuildListener(project));
+      }
     }
   }
 
   /** Runs checks after a Gradle build. */
-  public static class MyGradleBuildListener extends GradleBuildListener.Adapter {
+  public static class MyBuildListener implements ProjectSystemBuildManager.BuildListener {
 
-    public MyGradleBuildListener() {
+    private final Project myProject;
+
+    public MyBuildListener(@NotNull Project project) {
+      myProject = project;
       if (!isEnabled()) throw ExtensionNotApplicableException.create();
     }
 
     @Override
-    public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
+    public void buildCompleted(@NotNull ProjectSystemBuildManager.BuildResult result) {
       // Check antivirus status after a successful build, and possibly show a notification.
-      if (status.isBuildSuccessful() && context != null) {
-        BuildMode mode = context.getBuildMode();
-        if (mode == BuildMode.ASSEMBLE || mode == BuildMode.REBUILD ||
-            mode == BuildMode.BUNDLE || mode == BuildMode.APK_FROM_BUNDLE) {
+      if (result.getStatus() == ProjectSystemBuildManager.BuildStatus.SUCCESS ) {
+        final var mode = result.getMode();
+        if (mode == ProjectSystemBuildManager.BuildMode.ASSEMBLE) {
           var app = ApplicationManager.getApplication();
-          var project = context.getProject();
           var checker = new WindowsPerformanceHintsChecker();
-          app.executeOnPooledThread(() -> checker.checkWindowsDefender(project, true));
+          app.executeOnPooledThread(() -> checker.checkWindowsDefender(myProject, true));
         }
       }
     }

@@ -64,15 +64,6 @@
         topic="com.intellij.openapi.actionSystem.ex.AnActionListener" />
   </applicationListeners>
 
-  <!--The following suppression is currently needed because PluginXmlDomInspection says, "Could not determine target platform version." -->
-  <!--suppress PluginXmlValidity-->
-  <projectListeners>
-    <listener
-        class="com.android.tools.idea.diagnostics.WindowsPerformanceHintsChecker$MyGradleBuildListener"
-        topic="com.android.tools.idea.gradle.project.build.GradleBuildListener"
-        os="windows" />
-  </projectListeners>
-
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
     <group id="AndroidToolsGroup" icon="StudioIcons.Common.ANDROID_HEAD" popup="false" keep-content="true" overrides="true"/>
