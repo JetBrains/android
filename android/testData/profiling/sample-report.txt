@@ -113,7 +113,7 @@ Root 1:
 [  385/ 90%/96.2KB] 99.4KB          1   (root): byte[][]
 [  385/ 90%/96.2KB] 96.3KB        385 * []: byte[]
 Root 2:
-[    3/  0%/8.35KB] 25.1KB          1   ROOT: Static field: sun.launcher.LauncherHelper.ostream
+[    3/  0%/8.35KB] 25.1KB          1   ROOT: Static field: java.lang.System.err
 [    3/  0%/8.35KB] 25.1KB          1   (root): java.io.PrintStream
 [    2/  0%/8.21KB] 8.44KB          1   charOut: java.io.OutputStreamWriter
 [    2/  0%/8.21KB] 8.41KB          1   se: sun.nio.cs.StreamEncoder
@@ -156,7 +156,7 @@ Root 1:
 [   18/  5%/  512B]   788B         17   []: java.lang.Object[]
 [    1/  0%/   28B]    28B          1 * []: java.lang.Object[]
 Root 2:
-[   23/  6%/3.12KB] 54.2KB          1   ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader
+[   23/  6%/3.12KB] 54.2KB          1   ROOT: Static field: java.lang.ClassLoader.scl
 [   23/  6%/3.12KB] 54.2KB          1   (root): sun.misc.Launcher$AppClassLoader
 [   14/  4%/2.24KB] 31.2KB          1   ucp: sun.misc.URLClassPath
 [   12/  3%/1.72KB] 18.0KB          1   loaders: java.util.ArrayList
@@ -190,7 +190,7 @@ Root 2:
 
 CLASS: sun.misc.URLClassPath$JarLoader (35 objects)
 Root 1:
-[   30/ 85%/2.43KB] 54.2KB          1   ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader
+[   30/ 85%/2.43KB] 54.2KB          1   ROOT: Static field: java.lang.ClassLoader.scl
 [   30/ 85%/2.43KB] 54.2KB          1   (root): sun.misc.Launcher$AppClassLoader
 [   20/ 57%/1.62KB] 31.2KB          1   ucp: sun.misc.URLClassPath
 [   20/ 57%/1.62KB] 18.0KB          1   loaders: java.util.ArrayList
@@ -221,7 +221,7 @@ Root 2:
 
 CLASS: sun.nio.cs.UTF_8$Encoder (17 objects)
 Root 1:
-[   12/ 70%/  828B] 54.2KB          1   ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader
+[   12/ 70%/  828B] 54.2KB          1   ROOT: Static field: java.lang.ClassLoader.scl
 [   12/ 70%/  828B] 54.2KB          1   (root): sun.misc.Launcher$AppClassLoader
 [   11/ 64%/  759B] 31.2KB          1   ucp: sun.misc.URLClassPath
 [   11/ 64%/  759B] 18.0KB          1   loaders: java.util.ArrayList
@@ -231,7 +231,7 @@ Root 1:
 [   11/ 64%/  759B] 1.45KB         11   zc: java.util.zip.ZipCoder
 [   11/ 64%/  759B]   968B         11 * enc: sun.nio.cs.UTF_8$Encoder
 Root 2:
-[    1/  5%/   69B] 25.1KB          1   ROOT: Static field: sun.launcher.LauncherHelper.ostream
+[    1/  5%/   69B] 25.1KB          1   ROOT: Static field: java.lang.System.err
 [    1/  5%/   69B] 25.1KB          1   (root): java.io.PrintStream
 [    1/  5%/   69B] 8.44KB          1   charOut: java.io.OutputStreamWriter
 [    1/  5%/   69B] 8.41KB          1   se: sun.nio.cs.StreamEncoder
