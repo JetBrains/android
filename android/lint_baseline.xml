@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.4.0-dev">
+<issues format="5" by="lint 8.0.0-dev">
 
     <issue
         id="SimpleDateFormat"
@@ -15,14 +15,6 @@
         <location
             file="src/com/android/tools/idea/configurations/AdditionalDeviceService.kt"
             line="42"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/gradle/run/AndroidDeviceSpecUtil.kt"
-            line="51"/>
     </issue>
 
     <issue
