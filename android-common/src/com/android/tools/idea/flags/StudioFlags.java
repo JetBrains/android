@@ -1397,7 +1397,7 @@ public final class StudioFlags {
       "direct.access.project",
       "GCP Project for Direct Access authentication",
       "The project to use for FTL Direct Access",
-      "cloud-test-external1"
+      "ftl-direct-access-internal-eap"
     );
 
   public static final Flag<String> DIRECT_ACCESS_ENDPOINT =
