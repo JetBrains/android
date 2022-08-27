@@ -31,16 +31,15 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.event.EventListenerList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class ProcessManager implements IDeviceChangeListener {
   private Map<@NotNull Key, @NotNull State> myKeyToStateMap;
   private final @NotNull EventListenerList myListeners;
-  private @Nullable ProcessManagerEvent myEvent;
   private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
   private final @NotNull NewSetKeyToStateMapFutureCallback myNewSetKeyToStateMapFutureCallback;
 
@@ -135,27 +134,28 @@ final class ProcessManager implements IDeviceChangeListener {
   @UiThread
   private void setKeyToStateMap(@NotNull Map<@NotNull Key, @NotNull State> keyToStateMap) {
     myKeyToStateMap = keyToStateMap;
-    fireStatesChanged();
+    fire(() -> new ProcessManagerEvent(this), ProcessManagerListener::allStatesChanged);
   }
 
   @UiThread
-  private void fireStatesChanged() {
+  private void fire(@NotNull Supplier<@NotNull ProcessManagerEvent> newProcessManagerEvent,
+                    @NotNull BiConsumer<@NotNull ProcessManagerListener, @NotNull ProcessManagerEvent> consumer) {
     Object[] listeners = myListeners.getListenerList();
+    ProcessManagerEvent event = null;
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] != ProcessManagerListener.class) {
         continue;
       }
 
-      if (myEvent == null) {
-        myEvent = new ProcessManagerEvent(this);
+      if (event == null) {
+        event = newProcessManagerEvent.get();
       }
 
-      ((ProcessManagerListener)listeners[i + 1]).statesChanged(myEvent);
+      consumer.accept((ProcessManagerListener)listeners[i + 1], event);
     }
   }
 
-  @VisibleForTesting
   enum State {
     STOPPED, LAUNCHED;
 

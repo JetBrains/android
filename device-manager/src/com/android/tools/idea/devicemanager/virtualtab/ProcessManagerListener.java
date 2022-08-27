@@ -19,5 +19,7 @@ import java.util.EventListener;
 import org.jetbrains.annotations.NotNull;
 
 interface ProcessManagerListener extends EventListener {
-  void statesChanged(@NotNull ProcessManagerEvent event);
+  void allStatesChanged(@NotNull ProcessManagerEvent event);
+
+  void stateChanged(@NotNull ProcessManagerEvent event);
 }

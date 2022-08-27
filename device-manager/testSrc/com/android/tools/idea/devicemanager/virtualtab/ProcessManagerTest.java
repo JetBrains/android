@@ -74,7 +74,7 @@ public final class ProcessManagerTest {
     // Assert
     CountDownLatchAssert.await(myLatch);
 
-    Mockito.verify(myListener).statesChanged(new ProcessManagerEvent(myManager));
+    Mockito.verify(myListener).allStatesChanged(new ProcessManagerEvent(myManager));
     assertEquals(Map.of(KEY, State.LAUNCHED), myManager.getKeyToStateMap());
   }
 
@@ -89,7 +89,7 @@ public final class ProcessManagerTest {
     // Assert
     CountDownLatchAssert.await(myLatch);
 
-    Mockito.verify(myListener).statesChanged(new ProcessManagerEvent(myManager));
+    Mockito.verify(myListener).allStatesChanged(new ProcessManagerEvent(myManager));
     assertEquals(Map.of(KEY, State.LAUNCHED), myManager.getKeyToStateMap());
   }
 
@@ -101,7 +101,7 @@ public final class ProcessManagerTest {
     // Assert
     CountDownLatchAssert.await(myLatch);
 
-    Mockito.verify(myListener).statesChanged(new ProcessManagerEvent(myManager));
+    Mockito.verify(myListener).allStatesChanged(new ProcessManagerEvent(myManager));
     assertEquals(Map.of(KEY, State.STOPPED), myManager.getKeyToStateMap());
   }
 

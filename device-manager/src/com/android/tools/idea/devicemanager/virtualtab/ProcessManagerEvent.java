@@ -15,22 +15,45 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.tools.idea.devicemanager.Key;
+import com.android.tools.idea.devicemanager.virtualtab.ProcessManager.State;
 import java.util.EventObject;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class ProcessManagerEvent extends EventObject {
+  private final @Nullable Object myKey;
+  private final @Nullable Object myState;
+
   ProcessManagerEvent(@NotNull ProcessManager source) {
+    this(source, null, null);
+  }
+
+  ProcessManagerEvent(@NotNull ProcessManager source, @Nullable Key key, @Nullable State state) {
     super(source);
+
+    myKey = key;
+    myState = state;
   }
 
   @Override
   public int hashCode() {
-    return source.hashCode();
+    int hashCode = source.hashCode();
+
+    hashCode = 31 * hashCode + Objects.hashCode(myKey);
+    hashCode = 31 * hashCode + Objects.hashCode(myState);
+
+    return hashCode;
   }
 
   @Override
   public boolean equals(@Nullable Object object) {
-    return object instanceof ProcessManagerEvent && source.equals(((ProcessManagerEvent)object).source);
+    if (!(object instanceof ProcessManagerEvent)) {
+      return false;
+    }
+
+    ProcessManagerEvent event = (ProcessManagerEvent)object;
+    return source.equals(event.source) && Objects.equals(myKey, event.myKey) && Objects.equals(myState, event.myState);
   }
 }
