@@ -7,6 +7,8 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking
 import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Memory
+import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -75,6 +77,16 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     assertThat(stage.liveAllocationSamplingMode).isEqualTo(SAMPLED)  // Stop command doesn't change sampling mode
     assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
     assertThat(handler.lastCommand.commandId).isNotEqualTo(prevCommand.commandId)
+  }
+
+  @Test
+  fun `implicit selection of allocation artifact proto is made post recording`() {
+    // Capture a Java/Kotlin Allocation Trace
+    MemoryProfilerTestUtils.startTrackingHelper(stage.parentStage, transportService, timer, 0, Memory.TrackStatus.Status.SUCCESS, false)
+    MemoryProfilerTestUtils.stopTrackingHelper(stage.parentStage, transportService, timer, 0, Memory.TrackStatus.Status.SUCCESS, false)
+
+    // Make sure the resulting artifact's proto is of AllocationsInfo type
+    assertThat(profilers.sessionsManager.selectedArtifactProto).isInstanceOf(AllocationsInfo::class.java)
   }
 
   @Test

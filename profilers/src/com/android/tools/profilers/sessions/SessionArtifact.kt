@@ -70,9 +70,24 @@ interface SessionArtifact<T : GeneratedMessageV3> : Updatable {
   val canExport: Boolean
 
   /**
-   * The [SessionArtifact] has been selected. Perform the corresponding navigation and selection change in the model.
+   * The [SessionArtifact] has been selected. Check if it's a reselection, if so, ignore selection.
+   * If not, continue to do the respective on selection behavior.
    */
-  fun onSelect()
+  fun onSelect() {
+    if (isTopLevelArtifact()) {
+      profilers.sessionsManager.selectedArtifactProto = this.artifactProto
+    }
+    else if (!profilers.sessionsManager.selectArtifactProto(this.artifactProto)) {
+      return;
+    }
+
+    doSelect()
+  }
+
+  /**
+   * Perform the corresponding navigation and selection change in the model.
+   */
+  fun doSelect()
 
   /**
    * Export operation to the given outputStream.
@@ -80,6 +95,14 @@ interface SessionArtifact<T : GeneratedMessageV3> : Updatable {
   fun export(outputStream: OutputStream) {}
 
   override fun update(elapsedNs: Long) {}
+
+  /**
+   * Differentiate between parent session artifacts and their respective child artifacts
+   * as both are of type [SessionArtifact].
+   */
+  fun isTopLevelArtifact(): Boolean {
+    return this is SessionItem
+  }
 
   companion object {
     /**

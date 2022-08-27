@@ -54,6 +54,7 @@ import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -491,6 +492,38 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(selectionRange.isEmpty()).isTrue();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 0, 0, 0, 0);
+  }
+
+  @Test
+  public void implicitSelectionOfNativeAllocationArtifactProtoIsMadePostRecording() {
+    StudioProfilers profiler = new StudioProfilers(
+      new ProfilerClient(myGrpcChannel.getChannel()),
+      myIdeProfilerServices,
+      myTimer
+    );
+
+    SessionsManager manager = profiler.getSessionsManager();
+    Common.Device device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build();
+    Common.Process process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build();
+
+    Long session1Timestamp = 1L;
+    myTimer.setCurrentTimeNs(session1Timestamp);
+    manager.beginSession(1, device, process1);
+    manager.update();
+    manager.endCurrentSession();
+    manager.update();
+    Common.Session session1 = manager.getSelectedSession();
+
+    long nativeHeapTimestamp = 30L;
+    Memory.MemoryNativeSampleData nativeHeapInfo = Memory.MemoryNativeSampleData.newBuilder().setStartTime(nativeHeapTimestamp).setEndTime(
+      nativeHeapTimestamp + 1).build();
+    Common.Event.Builder nativeHeapData =
+      ProfilersTestData.generateMemoryNativeSampleData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo);
+    myTransportService.addEventToStream(device.getDeviceId(), nativeHeapData.setPid(session1.getPid()).build());
+    manager.update();
+
+    // Makes sure native memory allocation artifact proto is implicitly selected after recording
+    assertThat(manager.getSelectedArtifactProto()).isInstanceOf(Memory.MemoryNativeSampleData.class);
   }
 
   @Test

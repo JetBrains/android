@@ -80,7 +80,7 @@ class SessionItem(
     activeSession = session
   }
 
-  override fun onSelect() {
+  override fun doSelect() {
     // Navigate to the new session
     profilers.sessionsManager.setSession(activeSession)
     if (sessionMetaData.type == SessionMetaData.SessionType.FULL &&
@@ -133,7 +133,6 @@ class SessionItem(
     }
   }
 
-  @VisibleForTesting
   fun getChildArtifacts(): List<SessionArtifact<*>> {
     return childArtifacts.toList()
   }

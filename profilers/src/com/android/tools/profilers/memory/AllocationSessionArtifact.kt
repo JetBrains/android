@@ -46,7 +46,7 @@ class AllocationSessionArtifact(override val profilers: StudioProfilers,
 
   override val canExport = false
 
-  override fun onSelect() {
+  override fun doSelect() {
     if (session !== profilers.session)
       profilers.sessionsManager.setSession(session)
     profilers.stage = AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = startUs, maxTrackingTimeUs = endUs)

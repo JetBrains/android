@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Commands.BeginSession;
@@ -64,6 +65,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * A wrapper class for keeping track of the list of sessions that the profilers have seen, along with their associated artifacts (e.g.
@@ -112,6 +114,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * The currently selected session.
    */
   @NotNull private Common.Session mySelectedSession;
+
+  /**
+   * The currently selected artifact's proto
+   */
+  private GeneratedMessageV3 mySelectedArtifactProto;
 
   /**
    * The session that is actively being profiled. Note that there can only be one profiling session at a time, but it does not have to be
@@ -165,6 +172,14 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   @NotNull
   public Common.Session getProfilingSession() {
     return myProfilingSession;
+  }
+
+  /**
+   * Return the currently selected artifact's proto
+   */
+  @VisibleForTesting
+  public GeneratedMessageV3 getSelectedArtifactProto() {
+    return mySelectedArtifactProto;
   }
 
   /**
@@ -293,6 +308,41 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       mySessionArtifacts = sessionArtifacts;
       changed(SessionAspect.SESSIONS);
       mySessionArtifacts.forEach(artifact -> myProfilers.getUpdater().register(artifact));
+
+      detectImplicitlySelectedArtifactProto(mySessionArtifacts, previousArtifactProtos);
+    }
+  }
+
+  /**
+   * Attempt to detect and register the implicit selection of newly added
+   * artifacts done by the UI. These registered selections prevent reparsing
+   * on reselection of an artifact.
+   */
+  private void detectImplicitlySelectedArtifactProto(List<SessionArtifact> sessionArtifacts,
+                                                     List<GeneratedMessageV3> previousArtifactProtos) {
+    // Get the newly added artifacts based off their backing proto
+    SessionArtifact[] newlyAddedArtifacts =
+      (sessionArtifacts.stream().filter(i -> !previousArtifactProtos.contains(i.getArtifactProto()))).toArray(SessionArtifact[]::new);
+    if (newlyAddedArtifacts.length >= 1) {
+      // Registers the implicit UI selections of a newly started session,
+      // most recently recording's generated artifact (non-imported or session container),
+      // or the first displayed imported session.
+      SessionArtifact artifact = newlyAddedArtifacts[0];
+      boolean onlyOneArtifactIsNew = newlyAddedArtifacts.length == 1;
+
+      // User started new session
+      if (onlyOneArtifactIsNew && artifact.isTopLevelArtifact() && artifact.isOngoing() ||
+          // User recording/capture ends and artifact is generated
+          onlyOneArtifactIsNew && !artifact.isTopLevelArtifact() && !artifact.isOngoing() ||
+          // User's current session ends or user is importing session(s)
+          // Also checks to make sure that the current selection is not a child
+          // artifact of ending session. This avoids the selection being
+          // overriden by its parent session on session end.
+          artifact.isTopLevelArtifact() && !artifact.isOngoing() &&
+          ((SessionItem)artifact).getChildArtifacts().stream().noneMatch(x -> x.getArtifactProto().equals(getSelectedArtifactProto()))
+      ) {
+        setSelectedArtifactProto(artifact.getArtifactProto());
+      }
     }
   }
 
@@ -371,6 +421,14 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     myProfilingSession = session;
     changed(SessionAspect.PROFILING_SESSION);
+  }
+
+  public void setSelectedArtifactProto(GeneratedMessageV3 selectedArtifactProto) {
+    mySelectedArtifactProto = selectedArtifactProto;
+  }
+
+  public void resetSelectedArtifactProto() {
+    setSelectedArtifactProto(null);
   }
 
   /**
@@ -693,6 +751,21 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       changed(SessionAspect.SESSIONS);
       mySessionArtifacts.forEach(artifact -> myProfilers.getUpdater().register(artifact));
     }
+  }
+
+  /**
+   * Attempt to register selection of artifact (through its backing proto).
+   * If attempted selection is already selected, return false indicating reselection
+   * has occurred, otherwise return true.
+   */
+  public boolean selectArtifactProto(GeneratedMessageV3 artifactProto) {
+    if (artifactProto.equals(getSelectedArtifactProto())) {
+      return false;
+    }
+
+    // If it was not reselected, register this current selection
+    setSelectedArtifactProto(artifactProto);
+    return true;
   }
 
   private static class SessionArtifactComparator implements Comparator<SessionArtifact> {

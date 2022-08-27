@@ -476,6 +476,14 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void implicitSelectionOfCpuCaptureSessionArtifactProtoIsMadePostRecording() throws Exception {
+    // Capture a CPU Trace, generating a CpuSessionArtifact
+    CpuProfilerTestUtils.captureSuccessfully(myStage, myTransportService, CpuProfilerTestUtils.readValidTrace());
+    // Make sure implicit selection of recently recorded capture's respective artifact proto is saved
+    assertThat(myStage.getStudioProfilers().getSessionsManager().getSelectedArtifactProto()).isInstanceOf(Cpu.CpuTraceInfo.class);
+  }
+
+  @Test
   public void configurationShouldBeTheOnGoingProfilingAfterExitAndEnter() throws InterruptedException {
     ProfilingConfiguration testConfig = new SimpleperfConfiguration(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME);
     myStage.getProfilerConfigModel().setProfilingConfiguration(testConfig);

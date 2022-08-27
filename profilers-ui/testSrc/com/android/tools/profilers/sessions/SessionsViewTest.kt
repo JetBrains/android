@@ -586,6 +586,8 @@ class SessionsViewTest {
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo("00:01:00.000")
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
+    // Makes sure current selection (before selecting an artifact) is the session we just began
+    assertThat(mySessionsManager.selectedArtifactProto).isInstanceOf(Common.Session::class.java)
     // Selecting the CpuCaptureSessionArtifact should open CPU profiler and select the capture
     ui.layout()
     ui.mouse.click(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
@@ -593,6 +595,8 @@ class SessionsViewTest {
     ui.mouse.moveTo(-10, -10)
     assertThat(myProfilers.stage).isInstanceOf(CpuCaptureStage::class.java) // Makes sure CPU capture stage is now open
     assertThat(myProfilers.timeline.isStreaming).isFalse()
+    // Makes sure artifact's proto selection is saved
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto);
 
     // Make sure clicking the export label does not select the session.
     mySessionsManager.setSession(Common.Session.getDefaultInstance())
@@ -604,6 +608,8 @@ class SessionsViewTest {
     assertThat(exportLabel.isVisible).isTrue()
     ui.mouse.click(cpuCaptureItem.bounds.x + exportLabel.bounds.x + 1, cpuCaptureItem.bounds.y + exportLabel.bounds.y + 1)
     assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    // Makes sure selected artifact's proto stayed the same
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto);
   }
 
   @Test
@@ -657,6 +663,13 @@ class SessionsViewTest {
     ui.mouse.click(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
     assertThat(myProfilers.stage).isInstanceOf(CpuProfilerStage::class.java) // Makes sure CPU profiler stage is now open
     assertThat(myProfilers.timeline.isStreaming).isTrue()
+    // Makes sure artifact's proto selection is saved
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto);
+    // Selects the CPUCaptureSessionArtifact again
+    ui.layout()
+    ui.mouse.click(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
+    // Makes sure selected artifact's proto stayed the same
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(cpuCaptureItem.artifact.artifactProto);
   }
 
   @Ignore("b/138573206")
@@ -741,6 +754,13 @@ class SessionsViewTest {
     // Makes sure that there is no capture selected.
     assertThat((myProfilers.stage as MainMemoryProfilerStage).captureSelection.selectedCapture).isNull()
     assertThat(myProfilers.timeline.isStreaming).isTrue()
+    // Makes sure artifact's proto selection is saved
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(hprofItem.artifact.artifactProto);
+    // Selects the HprofSessionArtifact again
+    ui.layout()
+    ui.mouse.click(hprofItem.bounds.x + 1, hprofItem.bounds.y + 1)
+    // Makes sure selected artifact's proto stayed the same
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(hprofItem.artifact.artifactProto);
   }
 
   @Test
@@ -768,15 +788,17 @@ class SessionsViewTest {
 
     // Makes sure we're in monitor stage.
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java)
-    // Selecting on the HprofSessionArtifact should open Memory profiler and select the capture.
+    // Selecting on the LegacyAllocationsSessionArtifact should open Memory profiler and select the capture.
     ui.layout()
     ui.mouse.click(allocationItem.bounds.x + 1, allocationItem.bounds.y + 1)
     // Move away again so we're not hovering
     ui.mouse.moveTo(-10, -10)
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MainMemoryProfilerStage::class.java)
-    // Makes sure a HeapDumpCaptureObject is loaded.
+    // Makes sure a LegacyAllocationCaptureObject is loaded.
     assertThat((myProfilers.stage as MainMemoryProfilerStage).captureSelection.selectedCapture).isInstanceOf(LegacyAllocationCaptureObject::class.java)
+    // Makes sure artifact's proto selection is saved
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
 
     // Make sure clicking the export label does not select the session.
     mySessionsManager.setSession(Common.Session.getDefaultInstance())
@@ -788,6 +810,11 @@ class SessionsViewTest {
     assertThat(exportLabel.isVisible).isTrue()
     ui.mouse.click(allocationItem.bounds.x + exportLabel.bounds.x + 1, allocationItem.bounds.y + exportLabel.bounds.y + 1)
     assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    // Selects the LegacyAllocationsSessionArtifact again
+    ui.layout()
+    ui.mouse.click(allocationItem.bounds.x + 1, allocationItem.bounds.y + 1)
+    // Makes sure selected artifact's proto stayed the same
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
   }
 
   @Test
@@ -823,5 +850,12 @@ class SessionsViewTest {
     // Makes sure that there is no capture selected.
     assertThat((myProfilers.stage as MainMemoryProfilerStage).captureSelection.selectedCapture).isNull()
     assertThat(myProfilers.timeline.isStreaming).isTrue()
+    // Makes sure artifact's proto selection is saved
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
+    // Selects the LegacyAllocationsSessionArtifact again
+    ui.layout()
+    ui.mouse.click(allocationItem.bounds.x + 1, allocationItem.bounds.y + 1)
+    // Makes sure selected artifact's proto stayed the same
+    assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
   }
 }

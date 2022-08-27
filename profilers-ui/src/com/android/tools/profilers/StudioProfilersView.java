@@ -304,6 +304,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBack = new CommonButton(AllIcons.Actions.Back);
     myBack.addActionListener(action -> confirmExit("Go back?", () -> {
       myProfiler.setStage(myProfiler.getStage().getParentStage());
+      // clear the selected artifact by setting it to null as going back
+      // guarantees we will no longer be viewing an artifact recording
+      getStudioProfilers().getSessionsManager().resetSelectedArtifactProto();
+
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
     }));
     myCommonToolbar.add(myBack);
