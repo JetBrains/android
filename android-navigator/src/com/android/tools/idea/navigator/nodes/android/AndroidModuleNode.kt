@@ -17,21 +17,12 @@ package com.android.tools.idea.navigator.nodes.android
 
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.fileTypes.AndroidIconProvider
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.navigator.AndroidViewNodes
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
-import com.android.tools.idea.navigator.nodes.ndk.containedByNativeNodes
-import com.android.tools.idea.projectsystem.IdeaSourceProvider
-import com.android.tools.idea.projectsystem.SourceProviders
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider
 import com.android.tools.idea.util.toVirtualFile
-import com.google.common.collect.HashMultimap
-import com.intellij.codeInsight.dataflow.SetUtil
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ViewSettings
-import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -40,8 +31,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidSourceType
-import org.jetbrains.android.facet.SourceProviderManager.Companion.getInstance
 
 /**
  * [com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode] does not classify source types, and just assumes that all source
@@ -60,11 +49,7 @@ class AndroidModuleNode(
       platformGetChildren()
     }
     else {
-      getChildren(
-        facet,
-        settings,
-        getInstance(facet)
-      )
+      getChildren(facet, settings)
     }
   }
 
@@ -75,13 +60,7 @@ class AndroidModuleNode(
 
     // If there is a native-containing module then check it for externally referenced header files
     val module = value?.takeUnless { it.isDisposed } ?: return false
-
-    val facet = AndroidFacet.getInstance(module) ?: return false
-    if (AndroidModel.get(facet) == null) {
-      return false
-    }
-    val ndkModuleModel = get(facet.module)
-    return ndkModuleModel?.let { containedByNativeNodes(myProject, it, file) } ?: false
+    return AndroidViewNodeProvider.getProviders().any { it.moduleContainsExternalFile(module, file) }
   }
 
   override fun getSortKey(): Comparable<*>? = value?.takeUnless { it.isDisposed }?.name
@@ -109,113 +88,16 @@ class AndroidModuleNode(
   companion object {
     fun getChildren(
       facet: AndroidFacet,
-      settings: ViewSettings,
-      providers: SourceProviders
+      settings: ViewSettings
     ): Collection<AbstractTreeNode<*>> {
       val result: MutableList<AbstractTreeNode<*>> = ArrayList()
-      val project = facet.module.project
-      val androidModuleModel = AndroidModuleModel.get(facet)
-      val sourcesByType = getSourcesBySourceType(providers, androidModuleModel)
-      val ndkModuleModel = get(facet.module)
-      for (sourceType in sourcesByType.keySet()) {
-        when {
-          sourceType == AndroidSourceType.CPP && ndkModuleModel != null -> {
-            // Native sources will be added separately from NativeAndroidGradleModel.
-          }
-          sourceType == AndroidSourceType.MANIFEST -> {
-            result.add(AndroidManifestsGroupNode(project, facet, settings, sourcesByType[sourceType]))
-          }
-          sourceType == AndroidSourceType.RES || sourceType == AndroidSourceType.GENERATED_RES -> {
-            result.add(AndroidResFolderNode(project, facet, sourceType, settings, sourcesByType[sourceType]))
-          }
-          sourceType == AndroidSourceType.SHADERS && androidModuleModel == null -> {
-          }
-          sourceType == AndroidSourceType.ASSETS -> {
-            result.add(
-              AndroidSourceTypeNode(
-                project,
-                facet,
-                object : ViewSettings by settings {
-                  override fun isFlattenPackages(): Boolean = false
-                  override fun isHideEmptyMiddlePackages(): Boolean = false
-                },
-                sourceType,
-                sourcesByType[sourceType]
-              )
-            )
-          }
-          else -> {
-            result.add(AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType[sourceType]))
-          }
-        }
-      }
-      if (ndkModuleModel != null) {
-        result.add(AndroidJniFolderNode(project, ndkModuleModel, settings))
-      }
-      val moduleSystem = facet.holderModule.getModuleSystem()
-      val sampleDataPsi = getPsiDirectory(project, moduleSystem.getSampleDataDirectory())
-      if (sampleDataPsi != null) {
-        result.add(PsiDirectoryNode(project, sampleDataPsi, settings))
-      }
+      result.addAll(AndroidViewNodeProvider.getProviders().mapNotNull { it.getModuleChildren(facet.holderModule, settings) }.flatten())
       return result
     }
 
-    private fun getPsiDirectory(project: Project, path: PathString?): PsiDirectory? {
+    fun getPsiDirectory(project: Project, path: PathString?): PsiDirectory? {
       val virtualFile = path.toVirtualFile() ?: return null
       return PsiManager.getInstance(project).findDirectory(virtualFile)
-    }
-
-    private fun getSourcesBySourceType(
-      providers: SourceProviders,
-      androidModel: AndroidModuleModel?
-    ): HashMultimap<AndroidSourceType, VirtualFile> {
-      val sourcesByType = HashMultimap.create<AndroidSourceType, VirtualFile>()
-
-      // Multiple source types can sometimes be present in the same source folder, e.g.:
-      //    sourcesSets.main.java.srcDirs = sourceSets.main.aidl.srcDirs = ['src']
-      // in such a case, we only want to show one of them. Source sets can be either proper or improper subsets. It is not entirely
-      // obvious there is a perfect solution here, but since this is not a common occurrence, we resort to the easiest solution here:
-      // If a set of sources has partially been included as part of another source type's source set, then we simply don't include it
-      // as part of this source type.
-      val allSources: MutableSet<VirtualFile> = HashSet()
-      for (sourceType in AndroidSourceType.BUILT_IN_TYPES) {
-        if (sourceType == AndroidSourceType.SHADERS && androidModel == null) {
-          continue
-        }
-
-        val sources = when (sourceType) {
-          AndroidSourceType.GENERATED_JAVA, AndroidSourceType.GENERATED_RES -> getGeneratedSources(sourceType, providers)
-          else -> getSources(sourceType, providers)
-        }
-        
-        if (sources.isEmpty()) {
-          continue
-        }
-
-        // if we have a partial overlap, we put just the non overlapping sources into this source type
-        sourcesByType.putAll(sourceType, sources - allSources)
-        allSources.addAll(sources)
-      }
-
-      for (provider in AndroidViewNodes.getSourceProviders(providers)) {
-        for (customKey in provider.custom.keys) {
-          val customType = AndroidSourceType.Custom(customKey)
-          sourcesByType.putAll(customType, getSources(customType, providers))
-        }
-      }
-      return sourcesByType
-    }
-
-    private fun getSources(sourceType: AndroidSourceType, providers: SourceProviders): Set<VirtualFile> {
-      return AndroidViewNodes.getSourceProviders(providers).sourcesOfType(sourceType)
-    }
-
-    private fun getGeneratedSources(sourceType: AndroidSourceType, providers: SourceProviders): Set<VirtualFile> {
-      return AndroidViewNodes.getGeneratedSourceProviders(providers).sourcesOfType(sourceType)
-    }
-
-    private fun Iterable<IdeaSourceProvider>.sourcesOfType(sourceType: AndroidSourceType): Set<VirtualFile> {
-      return flatMap { sourceType.getSources(it) }.toSet()
     }
   }
 }

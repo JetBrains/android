@@ -45,10 +45,38 @@ interface AndroidViewNodeProvider {
   fun getModuleNodes(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? = null
 
   /**
-   * If the provider may return nodes representing files not included in the IDE project structure such files should be recognised by this
+   * If the provider returns nodes representing files not included in the IDE project structure such files should be recognised by this
    * method.
    *
    * This is needed to support refreshing the tree and locating nodes in the tree.
    */
   fun projectContainsExternalFile(project: Project, file: VirtualFile): Boolean = false
+
+  /**
+   * For a given [module], returns a collection of nodes that represent its content in the Android project view or `null` if the [module]
+   * is not recognised by the provider.
+   */
+  fun getModuleChildren(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? = null
+
+  /**
+   * If the provider returns nodes representing files not included in the IDE project structure such files should be recognised by this
+   * method.
+   *
+   * This is needed to support refreshing the tree and locating nodes in the tree.
+   */
+  fun moduleContainsExternalFile(module: Module, file: VirtualFile): Boolean = false
+
+  /**
+   * For a given [module], returns a collection of nodes that represent its content in the Android project view or `null` if the [module]
+   * is not recognised by the provider.
+   */
+  fun getApkModuleChildren(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? = null
+
+  /**
+   * If the provider returns nodes representing files not included in the IDE project structure such files should be recognised by this
+   * method.
+   *
+   * This is needed to support refreshing the tree and locating nodes in the tree.
+   */
+  fun moduleApkContainsExternalFile(module: Module, file: VirtualFile): Boolean = false
 }
