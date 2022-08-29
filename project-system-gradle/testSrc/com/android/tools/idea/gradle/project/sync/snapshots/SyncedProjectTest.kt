@@ -25,10 +25,9 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.DumbService
@@ -39,8 +38,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CoreIconManager
 import com.intellij.ui.IconManager
-import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
 import org.junit.Assume
 import org.junit.Ignore
 import org.junit.Rule
@@ -62,7 +59,7 @@ import kotlin.reflect.full.hasAnnotation
 abstract class SyncedProjectTest(
   val selfTest: Boolean = false,
   val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
-) : GradleIntegrationTest {
+) {
 
   interface TestDef : AgpIntegrationTestDefinition {
     val testProject: TestProject
@@ -85,11 +82,6 @@ abstract class SyncedProjectTest(
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 
   @Test
   fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
@@ -277,7 +269,7 @@ abstract class SyncedProjectTest(
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     try {
-      val preparedProject = prepareTestProject(
+      val preparedProject = projectRule.prepareTestProject(
         testProject,
         agpVersion = agpVersion
       )
