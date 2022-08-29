@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.FileSelectInContext
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
@@ -57,9 +58,11 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 
   private interface TestContext {
+    val viewPane: AndroidProjectViewPane
     val rootElement: ProjectViewNode<*>
     val projectRoot: File
     fun reportProblem(node: NodeWithParents, problem: String)
+    fun reportProblem(problem: String)
   }
 
   private data class NodeWithParents(val node: ProjectViewNode<*>, val parents: List<ProjectViewNode<*>> = emptyList()) {
@@ -84,6 +87,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
 
         val problems = mutableListOf<String>()
         with(object : TestContext {
+          override val viewPane: AndroidProjectViewPane get() = viewPane
           override val rootElement = (treeStructure?.rootElement ?: error("No root element")) as ProjectViewNode<*>
           override val projectRoot = root
           override fun reportProblem(node: NodeWithParents, problem: String) {
@@ -95,8 +99,12 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
               }
               appendln(problem.prependIndent(prefix))
             }
-            println(message);
-            problems.add(message)
+            reportProblem(message)
+          }
+
+          override fun reportProblem(problem: String) {
+            println(problem);
+            problems.add(problem)
           }
         }) {
           test()
@@ -160,7 +168,14 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
         if (missing.isNotEmpty()) {
           reportProblem(node,
                         "does not contains the following files:\n" +
-                        missing.joinToString("\n") { "* ${it.toIoFile().relativeTo(projectRoot)}" })
+                          missing.joinToString("\n") { "* ${it.toIoFile().relativeTo(projectRoot)}" })
+        }
+      }
+      val selectInTarget = viewPane.createSelectInTarget()
+
+      nodes.map { it.node }.mapNotNull { it.virtualFile }.forEach { fileInProject ->
+        if (!selectInTarget.canSelect(FileSelectInContext(projectRule.project, fileInProject))) {
+          reportProblem("$fileInProject cannot be selected")
         }
       }
     }

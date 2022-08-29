@@ -26,6 +26,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.Projects;
+import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
@@ -64,6 +65,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -176,6 +178,13 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       @Override
       public float getWeight() {
         return AndroidProjectViewPane.this.getWeight();
+      }
+
+      @Override
+      protected boolean canSelect(PsiFileSystemItem file) {
+        if (super.canSelect(file)) return true;
+        return AndroidViewNodeProvider.getProviders().stream()
+          .anyMatch(it -> it.projectContainsExternalFile(myProject, file.getVirtualFile()));
       }
     };
   }
