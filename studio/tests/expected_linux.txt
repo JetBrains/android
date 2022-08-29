@@ -52,6 +52,7 @@ android-studio/bin/studio.png
 android-studio/bin/studio.sh
 android-studio/bin/studio.svg
 android-studio/bin/studio64.vmoptions
+android-studio/bin/studio_safe.sh
 android-studio/build.txt
 android-studio/jbr/bin/jaotc
 android-studio/jbr/bin/jar
