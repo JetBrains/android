@@ -212,11 +212,26 @@ class PsAnalyzerDaemon(
   @UiThread
   private fun recreateSdkIndexIssues() {
     removeIssues(PLAY_SDK_INDEX_ISSUE, now = true)
+    var numErrors = 0
+    var numWarnings = 0
+    var numInfo = 0
+    var numUpdates = 0
+    var numOther = 0
     addAll(project.modules.flatMap { module ->
       module.dependencies.libraries.mapNotNull {
-        getSdkIndexIssueFor(it.spec, it.path, it.parent.rootDir)
+        getSdkIndexIssueFor(it.spec, it.path, it.parent.rootDir)?.also { issue->
+          when (issue.severity) {
+            ERROR -> numErrors++
+            WARNING -> numWarnings++
+            INFO -> numInfo++
+            UPDATE -> numUpdates++
+            // Currently not needed but here to catch when new severities are added
+            else -> numOther++
+          }
+        }
       }
     }, now = false)
+    LOG.debug("Issues recreated: $numErrors errors, $numWarnings warnings, $numInfo information, $numUpdates updates, $numOther other")
     notifyRunning()
   }
 }

@@ -17,17 +17,20 @@ package com.android.tools.idea.projectsystem.gradle
 
 import org.junit.Test
 
-class SdkIndexPsdTest : SdkIndexTestBase() {
+class PolicyIssuesPsdTest : SdkIndexTestBase() {
   @Test
-  fun snapshotUsedByPsdTest() {
+  fun `policy issues shown when flag true`() {
+    system.installation.addVmOption("-Dgoogle.play.sdk.index.show.sdk.policy.issues=true")
     system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon")
     verifySdkIndexIsInitializedAndUsedWhen(
       showFunction = { studio, _ ->
         openAndClosePSD(studio)
       },
       beforeClose = {
-        // Only an error should be shown (com.startapp:inapp-sdk:3.9.1 is marked as blocking critical)
-        verifyPsdIssues(numErrors = 1)
+        // Two errors should appear:
+        //   - com.startapp:inapp-sdk:3.9.1 blocking critical
+        //   - com.stripe:stripe-android:9.3.2 policy issue
+        verifyPsdIssues(numErrors = 2)
       },
       expectedIssues = setOf(
         "com.mopub:mopub-sdk version 4.16.0 has been marked as outdated by its author",

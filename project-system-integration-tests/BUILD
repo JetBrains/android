@@ -39,6 +39,19 @@ iml_module(
 )
 
 iml_test(
+    name = "PolicyIssuesPsdTest",
+    timeout = "long",
+    data = common_data,
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags = [
+        "block-network",
+        # Disabled on Mac due to b/242358149
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.projectsystem.gradle.PolicyIssuesPsdTest",
+)
+
+iml_test(
     name = "SdkIndexLintTest",
     timeout = "long",
     data = common_data,
