@@ -260,8 +260,8 @@ public class DisposerExplorer {
 
 
   private static Object @NotNull[] getObjectNodeChildren(@NotNull Object objectNode) {
-    Object childNodes = getFieldValue(objectNode, "myChildren");
-    return childNodes == null ? ArrayUtil.EMPTY_OBJECT_ARRAY : ((List<?>)childNodes).toArray();
+    Object childrenObject = getFieldValue(objectNode, "myChildren");
+    return childrenObject == null ? ArrayUtil.EMPTY_OBJECT_ARRAY : ((Collection<?>)getGetterValue(childrenObject, "getAllNodes")).toArray();
   }
 
   @NotNull
@@ -283,6 +283,20 @@ public class DisposerExplorer {
       Field field = object.getClass().getDeclaredField(fieldName);
       field.setAccessible(true);
       return (T)field.get(object);
+    }
+    catch (ReflectiveOperationException e) {
+      throw new Error(e); // Should not happen unless there is a bug in this class.
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  @Nullable
+  private static <T> T getGetterValue(@NotNull Object object, @NotNull String getterName) {
+    // If performance becomes an issue, we can cache Method objects.
+    try {
+      Method method = object.getClass().getDeclaredMethod(getterName);
+      method.setAccessible(true);
+      return (T)method.invoke(object);
     }
     catch (ReflectiveOperationException e) {
       throw new Error(e); // Should not happen unless there is a bug in this class.
