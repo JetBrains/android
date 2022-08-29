@@ -22,11 +22,9 @@ import com.intellij.debugger.engine.DebugProcess
 import com.intellij.debugger.engine.DebugProcessImpl
 
 class AndroidPositionManagerFactory : PositionManagerFactory() {
-  override fun createPositionManager(process: DebugProcess): PositionManager? {
-    return if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {
-      AndroidPositionManager((process as DebugProcessImpl))
-    } else {
-      AndroidPositionManagerOriginal(process as DebugProcessImpl)
-    }
+  override fun createPositionManager(process: DebugProcess): PositionManager {
+    val processImpl = process as DebugProcessImpl
+    if (!StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) return AndroidPositionManagerOriginal(processImpl)
+    return AndroidPositionManager(processImpl)
   }
 }
