@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -43,7 +44,7 @@ class Jvm1_8SyncTest : GradleIntegrationTest {
   @Test
   fun test18() {
     expect.that(IdeSdks.getInstance().jdk?.version).isEqualTo(JDK_1_8)
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "p", gradleVersion = "5.5", gradlePluginVersion = "3.5.0")
+    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "p", AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     openPreparedProject("p") { project ->
       val projectSdk = ProjectRootManager.getInstance(project).projectSdk
       expect.that(projectSdk?.version).isEqualTo(JDK_1_8)
