@@ -77,7 +77,7 @@ import java.util.concurrent.TimeoutException
 import javax.swing.JScrollPane
 
 /**
- * Tests for [EmulatorView] and some of the emulator toolbar actions.
+ * Tests for [EmulatorView] and some emulator toolbar actions.
  */
 @RunsInEdt
 class EmulatorViewTest {
@@ -193,17 +193,17 @@ class EmulatorViewTest {
     ui.mouse.press(10, 153)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 33 y: 58 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 35 y: 61 buttons: 1")
 
     ui.mouse.dragTo(215, 48)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1401 y: 2720 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1404 y: 2723 buttons: 1")
 
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1401 y: 2720")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1404 y: 2723")
 
     // Check keyboard input.
     ui.keyboard.setFocus(view)
@@ -280,11 +280,11 @@ class EmulatorViewTest {
     ui.mouse.press(82, 7)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 33 y: 41 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 36 y: 44 buttons: 1")
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 33 y: 41")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 36 y: 44")
 
     // Mouse events outside the display image should be ignored.
     ui.mouse.press(50, 7)
@@ -334,11 +334,11 @@ class EmulatorViewTest {
     ui.mouse.press(135, 190)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1271 y: 2098 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1273 y: 2100 buttons: 1")
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1271 y: 2098")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1273 y: 2100")
 
     val config = view.emulator.emulatorConfig
     emulator.setFoldedDisplay(FoldedDisplay.newBuilder().setWidth(config.displayWidth / 2).setHeight(config.displayHeight).build())
@@ -349,11 +349,11 @@ class EmulatorViewTest {
     ui.mouse.press(135, 190)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 829 y: 2098 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 831 y: 2100 buttons: 1")
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 829 y: 2098")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 831 y: 2100")
 
     // Check EmulatorShowFoldingControlsAction.
     val mockLafManager = mock<LafManager>()
@@ -388,15 +388,18 @@ class EmulatorViewTest {
     ui.mouse.press(100, 100)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 731 y: 1011 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 734 y: 1014 buttons: 1")
     ui.mouse.dragTo(140, 100)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1165 y: 1011 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1168 y: 1014 buttons: 1")
     ui.mouse.dragTo(180, 100)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1439 y: 1011")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1439 y: 1014 buttons: 1")
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1439 y: 1014")
   }
 
   @Test
@@ -426,15 +429,15 @@ class EmulatorViewTest {
     assertAppearance(ui, "MultiTouch1")
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1272 y: 741")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1274 y: 744")
 
     ui.mouse.press(mousePosition)
     assertAppearance(ui, "MultiTouch2")
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
     assertThat(shortDebugString(call.request)).isEqualTo(
-        "touches { x: 1272 y: 741 pressure: 1024 expiration: NEVER_EXPIRE }" +
-        " touches { x: 167 y: 2218 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE }")
+        "touches { x: 1274 y: 744 pressure: 1024 expiration: NEVER_EXPIRE }" +
+        " touches { x: 165 y: 2215 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE }")
 
     mousePosition.x -= 20
     mousePosition.y += 20
@@ -443,14 +446,14 @@ class EmulatorViewTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
     assertThat(shortDebugString(call.request)).isEqualTo(
-        "touches { x: 1056 y: 958 pressure: 1024 expiration: NEVER_EXPIRE }" +
-        " touches { x: 383 y: 2001 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE }")
+        "touches { x: 1058 y: 960 pressure: 1024 expiration: NEVER_EXPIRE }" +
+        " touches { x: 381 y: 1999 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE }")
 
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
     assertThat(shortDebugString(call.request)).isEqualTo(
-        "touches { x: 1056 y: 958 expiration: NEVER_EXPIRE } touches { x: 383 y: 2001 identifier: 1 expiration: NEVER_EXPIRE }")
+        "touches { x: 1058 y: 960 expiration: NEVER_EXPIRE } touches { x: 381 y: 1999 identifier: 1 expiration: NEVER_EXPIRE }")
 
     ui.keyboard.release(VK_CONTROL)
     assertAppearance(ui, "MultiTouch4")

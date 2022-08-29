@@ -120,7 +120,6 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
-import kotlin.math.nextDown
 import kotlin.math.roundToInt
 import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.MouseEvent as MouseEventMessage
@@ -204,26 +203,21 @@ class EmulatorView(
   private var multiTouchMode = false
     set(value) {
       if (value != field) {
+        if (!value) {
+          mouseListener.terminateDragging()
+        }
         field = value
         repaint()
-        if (!value) {
-          // Terminate all ongoing touches.
-          lastMultiTouchEvent?.let {
-            val touchEvent = it.toBuilder()
-            for (touch in touchEvent.touchesBuilderList) {
-              touch.pressure = 0
-            }
-            emulator.sendTouch(touchEvent.build())
-            lastMultiTouchEvent = null
-          }
-        }
       }
     }
 
-  /** Last multi-touch event with pressure. */
-  private var lastMultiTouchEvent: TouchEvent? = null
-  /** A bit set indicating the current pressed buttons. */
-  private var buttons = 0
+  private val mouseListener = MyMouseListener()
+
+  /**
+   * Last coordinates of the mouse pointer while the first button was pressed.
+   * Set to null when the first mouse button is released.
+   */
+  private var lastTouchCoordinates: Point? = null
 
   private var virtualSceneCameraActive = false
     set(value) {
@@ -272,7 +266,6 @@ class EmulatorView(
     })
 
     // Forward mouse & keyboard events.
-    val mouseListener = MyMouseListener()
     addMouseListener(mouseListener)
     addMouseMotionListener(mouseListener)
 
@@ -427,7 +420,7 @@ class EmulatorView(
     notifyFrameListeners(displayRect, screenshot.image)
 
     if (multiTouchMode) {
-      drawMultiTouchFeedback(g, displayRect, (buttons and BUTTON1_BIT) != 0)
+      drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
     }
 
     if (deviceFrameVisible) {
@@ -715,22 +708,25 @@ class EmulatorView(
 
   private inner class MyMouseListener : MouseAdapter() {
 
-    private var dragging = false
+    /** A bit set indicating the current pressed buttons. */
+    private var buttons = 0
 
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
-      if (event.button == BUTTON1) {
-        updateMultiTouchMode(event)
-      }
       buttons = buttons or getButtonBit(event.button)
-      sendMouseEvent(event.x, event.y, buttons)
+      if (isInsideDisplay(event)) {
+        lastTouchCoordinates = Point(event.x, event.y)
+        updateMultiTouchMode(event)
+        sendMouseEvent(event.x, event.y, buttons)
+      }
     }
 
     override fun mouseReleased(event: MouseEvent) {
+      buttons = buttons and getButtonBit(event.button).inv()
       if (event.button == BUTTON1) {
+        lastTouchCoordinates = null
         updateMultiTouchMode(event)
       }
-      buttons = buttons and getButtonBit(event.button).inv()
       sendMouseEvent(event.x, event.y, buttons)
     }
 
@@ -739,15 +735,17 @@ class EmulatorView(
     }
 
     override fun mouseExited(event: MouseEvent) {
-      if (dragging) {
-        sendMouseEvent(event.x, event.y, 0) // Terminate the ongoing dragging.
+      if (lastTouchCoordinates != null) {
+        // Moving over the edge of the display view will terminate the ongoing dragging.
+        sendMouseEvent(event.x, event.y, 0)
       }
+      lastTouchCoordinates = null
       multiTouchMode = false
     }
 
     override fun mouseDragged(event: MouseEvent) {
       updateMultiTouchMode(event)
-      if (!virtualSceneCameraOperating) {
+      if (!virtualSceneCameraOperating && lastTouchCoordinates != null) {
         sendMouseEvent(event.x, event.y, buttons, drag = true)
       }
     }
@@ -767,80 +765,86 @@ class EmulatorView(
       }
     }
 
-    private fun sendMouseEvent(x: Int, y: Int, button: Int, drag: Boolean = false) {
-      val screenScale = screenScale
-      sendMouseEventInPhysicalPixels(x * screenScale, y * screenScale, button, drag)
+    // Terminates ongoing dragging if any.
+    fun terminateDragging() {
+      lastTouchCoordinates?.let { sendMouseEvent(it.x, it.y, 0) }
     }
 
-    private fun sendMouseEventInPhysicalPixels(physicalX: Double, physicalY: Double, button: Int, drag: Boolean) {
-      val displayRect = displayRectangle ?: return // Null displayRectangle means that Emulator screen is not displayed.
-      if (!displayRect.contains(physicalX, physicalY)) {
-        // Coordinates are outside the display rectangle.
-        if (drag) {
-          // Terminate dragging.
-          sendMouseEventInPhysicalPixels(physicalX.coerceIn(displayRect.x.toDouble(),
-                                                            (displayRect.x + displayRect.width).toDouble().nextDown()),
-                                         physicalY.coerceIn(displayRect.y.toDouble(),
-                                                            (displayRect.y + displayRect.height).toDouble().nextDown()),
-                                         0, false)
-        }
-        return
-      }
-
-      dragging = drag
-
-      val normalizedX = (physicalX - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
-      val normalizedY = (physicalY - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
-      val deviceDisplayRegion = deviceDisplayRegion
-      val displayX: Int
-      val displayY: Int
-      when (screenshotShape.orientation) {
+    private fun sendMouseEvent(x: Int, y: Int, buttons: Int, drag: Boolean = false) {
+      val displayRectangle = displayRectangle ?: return
+      // Mouse pointer coordinates compensated for the device display rotation.
+      val normalizedX: Int
+      val normalizedY: Int
+      val imageWidth: Int
+      val imageHeight: Int
+      when (displayOrientationQuadrants) {
         0 -> {
-          displayX = transformNormalizedCoordinate(normalizedX, deviceDisplayRegion.x, deviceDisplayRegion.width)
-          displayY = transformNormalizedCoordinate(normalizedY, deviceDisplayRegion.y, deviceDisplayRegion.height)
+          normalizedX = x.scaled(screenScale) - displayRectangle.x
+          normalizedY = y.scaled(screenScale) - displayRectangle.y
+          imageWidth = displayRectangle.width
+          imageHeight = displayRectangle.height
         }
         1 -> {
-          displayX = transformNormalizedCoordinate(-normalizedY, deviceDisplayRegion.x, deviceDisplayRegion.width)
-          displayY = transformNormalizedCoordinate(normalizedX, deviceDisplayRegion.y, deviceDisplayRegion.height)
+          normalizedX = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
+          normalizedY = x.scaled(screenScale) - displayRectangle.x
+          imageWidth = displayRectangle.height
+          imageHeight = displayRectangle.width
         }
         2 -> {
-          displayX = transformNormalizedCoordinate(-normalizedX, deviceDisplayRegion.x, deviceDisplayRegion.width)
-          displayY = transformNormalizedCoordinate(-normalizedY, deviceDisplayRegion.y, deviceDisplayRegion.height)
+          normalizedX = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
+          normalizedY = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
+          imageWidth = displayRectangle.width
+          imageHeight = displayRectangle.height
         }
         3 -> {
-          displayX = transformNormalizedCoordinate(normalizedY, deviceDisplayRegion.x, deviceDisplayRegion.width)
-          displayY = transformNormalizedCoordinate(-normalizedX, deviceDisplayRegion.y, deviceDisplayRegion.height)
+          normalizedX = y.scaled(screenScale) - displayRectangle.y
+          normalizedY = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
+          imageWidth = displayRectangle.height
+          imageHeight = displayRectangle.width
         }
         else -> {
+          assert(false) { "Invalid display orientation: $displayOrientationQuadrants" }
           return
         }
       }
 
-      sendMouseOrTouchEvent(displayX, displayY, button, deviceDisplayRegion)
+      val deviceDisplayRegion = deviceDisplayRegion
+
+      // Device display coordinates.
+      val displayX = normalizedX.scaledUnbiased(imageWidth, deviceDisplayRegion.width)
+      val displayY = normalizedY.scaledUnbiased(imageHeight, deviceDisplayRegion.height)
+
+      if (deviceDisplayRegion.contains(displayX, displayY)) {
+        // Within the bounds of the device display.
+        sendMouseOrTouchEvent(displayX, displayY, buttons, deviceDisplayRegion)
+      }
+      else if (drag) {
+        // Crossed the device display boundary while dragging.
+        lastTouchCoordinates = null
+        val adjustedX = displayX.coerceIn(deviceDisplayRegion.x, deviceDisplayRegion.width - 1)
+        val adjustedY = displayY.coerceIn(deviceDisplayRegion.y, deviceDisplayRegion.height - 1)
+        sendMouseOrTouchEvent(adjustedX, adjustedY, buttons, deviceDisplayRegion)
+        sendMouseOrTouchEvent(adjustedX, adjustedY, 0, deviceDisplayRegion)
+      }
     }
 
-    private fun transformNormalizedCoordinate(normalizedCoordinate: Double, rangeStart: Int, rangeSize: Int): Int {
-      return ((0.5 + normalizedCoordinate) * rangeSize).roundToInt().coerceIn(0, rangeSize - 1) + rangeStart
-    }
-
-    private fun sendMouseOrTouchEvent(displayX: Int, displayY: Int, button: Int, deviceDisplayRegion: Rectangle) {
+    private fun sendMouseOrTouchEvent(displayX: Int, displayY: Int, buttons: Int, deviceDisplayRegion: Rectangle) {
       if (multiTouchMode) {
-        val pressure = if (button == 0) 0 else PRESSURE_RANGE_MAX
+        val pressure = if (buttons == 0) 0 else PRESSURE_RANGE_MAX
         val touchEvent = TouchEvent.newBuilder()
           .setDisplay(displayId)
           .addTouches(createTouch(displayX, displayY, 0, pressure))
-          .addTouches(createTouch(
-            deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure))
+          .addTouches(
+              createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure))
           .build()
         emulator.sendTouch(touchEvent)
-        lastMultiTouchEvent = touchEvent
       }
       else {
         val mouseEvent = MouseEventMessage.newBuilder()
           .setDisplay(displayId)
           .setX(displayX)
           .setY(displayY)
-          .setButtons(button)
+          .setButtons(buttons)
           .build()
         emulator.sendMouse(mouseEvent)
       }
@@ -854,6 +858,9 @@ class EmulatorView(
         .setPressure(pressure)
         .setExpiration(NEVER_EXPIRE)
     }
+
+    private fun isInsideDisplay(event: MouseEvent) =
+      displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
   }
 
   private inner class ScreenshotReceiver(
