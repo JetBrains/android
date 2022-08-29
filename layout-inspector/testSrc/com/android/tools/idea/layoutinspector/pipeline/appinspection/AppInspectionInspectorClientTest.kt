@@ -102,6 +102,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -284,6 +285,7 @@ class AppInspectionInspectorClientTest {
     }
   }
 
+  @Ignore("b/244184385")
   @Test
   fun statsInitializedWhenConnectedA() {
     inspectorRule.inspector.treeSettings.hideSystemNodes = true
@@ -307,6 +309,7 @@ class AppInspectionInspectorClientTest {
     assertThat(session1.compose.framesWithRecompositionCountsOn).isEqualTo(0)
   }
 
+  @Ignore("b/244184385")
   @Test
   fun statsInitializedWhenConnectedB() {
     // Make the start settings opposite from statsInitializedWhenConnectedA:
