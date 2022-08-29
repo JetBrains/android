@@ -148,4 +148,109 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
     myFixture.completeBasic()
     Truth.assertThat(myFixture.lookupElementStrings).isEmpty()
   }
+
+  @Test
+  fun testCompletionForVersionsToml() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/deps.versions.toml",
+      """
+        [versions]
+        agp = "7.1.2"
+        appcompat = "1.4.0"
+        compose = "0.1.2"
+
+        [libraries]
+        compat = { module = "androidx.appcompat:appcompat", version.ref = "a$caret" }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+    Truth.assertThat(myFixture.lookupElementStrings).isEqualTo(listOf("agp", "appcompat"))
+  }
+
+  @Test
+  fun testSuggestionsForBundle() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [versions]
+        agp = "7.1.2"
+        appcompat = "1.4.0"
+        compose = "0.1.2"
+
+        [libraries]
+        compat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+
+        [bundles]
+        core = [ "a$caret" ]
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+    Truth.assertThat(myFixture.lookupElementStrings).isEqualTo(listOf("compat"))
+  }
+
+  @Test
+  fun testCompletionForBundle() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        compat = { module = "androidx.appcompat:appcompat", version = "1.4.0" }
+
+        [bundles]
+        core = [ "c$caret" ]
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+    Truth.assertThat(myFixture.file.text).contains("core = [ \"compat\" ]")
+  }
+
+  @Test
+  fun testSuggestionsForExistingBundle() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [versions]
+        appcompat = "1.4.0"
+        compose = "0.1.2"
+
+        [libraries]
+        compat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+        compose = { module = "androidx.appcompat:compose", version.ref = "compose" }
+        core = 'androidx.core:core-ktx:1.7.0'
+
+        [bundles]
+        core = [ "c$caret", "compat" ]
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+    Truth.assertThat(myFixture.lookupElementStrings).isEqualTo(listOf("compose", "core"))
+  }
+
+  @Test
+  fun testCompletionForExistingBundle() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        compat = { module = "androidx.appcompat:appcompat", version = "1.4.0" }
+        compose = { module = "androidx.appcompat:compose", version.ref = "0.1.2" }
+
+        [bundles]
+        core = [ "c$caret", "compat" ]
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+    Truth.assertThat(myFixture.file.text).contains("core = [ \"compose\", \"compat\" ]")
+  }
+
 }

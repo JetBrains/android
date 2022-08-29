@@ -31,13 +31,20 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
 import com.intellij.util.containers.ContainerUtil
 import org.toml.lang.TomlLanguage
+import org.toml.lang.psi.TomlArray
+import org.toml.lang.psi.TomlArrayTable
+import org.toml.lang.psi.TomlElement
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
+import org.toml.lang.psi.TomlKeyValue
+import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.TomlTableHeader
 import org.toml.lang.psi.TomlVisitor
+import org.toml.lang.psi.ext.TomlLiteralKind
+import org.toml.lang.psi.ext.kind
 
 
 internal val TOML_VERSIONS_TABLE_PATTERN = psiElement(TomlTable::class.java).with(
@@ -47,11 +54,10 @@ internal val TOML_VERSIONS_TABLE_PATTERN = psiElement(TomlTable::class.java).wit
   }
 )
 
-
-internal val TEST = psiElement(PsiElement::class.java).with(
-  object : PatternCondition<PsiElement>(null) {
-    override fun accepts(t: PsiElement, context: ProcessingContext?): Boolean =
-      t.text == "versions"
+val BUNDLE_KEY_VALUE_PATTERN = psiElement(TomlTable::class.java).with(
+  object : PatternCondition<TomlTable>(null) {
+    override fun accepts(tomlTable: TomlTable, context: ProcessingContext?): Boolean =
+      tomlTable.header.key?.segments?.map { it.name } == listOf("bundles")
   }
 )
 
@@ -97,11 +103,14 @@ val TOML_VERSION_DOT_SYNTAX_PATTERN_AFTER = psiElement()
 
 val TOML_PLUGINS_TABLE_SYNTAX_PATTERN = psiElement()
   .withParent(TomlKeySegment::class.java)
-  .inFile(INSIDE_VERSIONS_TOML_FILE)
   .withSuperParent(6, TOML_PLUGINS_TABLE_PATTERN)
   .and(TOML)
   .andNot(psiElement().afterLeaf("."))
 
+val TOML_BUNDLE_SYNTAX_PATTERN = psiElement()
+  .withSuperParent(2, TomlArray::class.java)
+  .and(TOML)
+  .withSuperParent(4, BUNDLE_KEY_VALUE_PATTERN)
 
 val TOML_TABLE_SYNTAX_PATTERN = psiElement()
   .withSuperParent(2, psiElement().afterLeaf(psiElement().withText("[")))
@@ -145,6 +154,51 @@ class TomlVersionCatalogCompletionContributor  : CompletionContributor() {
     extend(CompletionType.BASIC, TOML_VERSIONS_SYNTAX_PATTERN, createKeySuggestionCompletionProvider(VERSION_ATTRIBUTES))
     extend(CompletionType.BASIC, TOML_VERSION_DOT_SYNTAX_PATTERN_AFTER, createKeySuggestionCompletionProvider(VERSION_ATTRIBUTES))
     extend(CompletionType.BASIC, TOML_TABLE_SYNTAX_PATTERN, createTableSuggestionCompletionProvider(TABLES))
+    extend(CompletionType.BASIC, TOML_BUNDLE_SYNTAX_PATTERN, createLibrariesSuggestionCompletionProvider())
+  }
+
+  fun createLibrariesSuggestionCompletionProvider(): CompletionProvider<CompletionParameters> {
+    return object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+        val originalFile = parameters.originalFile as? TomlFile ?: return
+        val libraries = findLibraries(originalFile)
+        var parent: PsiElement? = parameters.position
+        while (parent != null && parent !is TomlArray) {
+          parent = parent.parent
+        }
+        val existingElements =
+          (parent as TomlArray)?.elements.fold(setOf<String>()) { acc, e -> extractText(e)?.let{ acc + it} ?: acc} ?: setOf()
+        result.addAllElements(ContainerUtil.map(libraries - existingElements) { s: String ->
+          PrioritizedLookupElement.withPriority(LookupElementBuilder.create(s), 1.0)
+        })
+       }
+    }
+  }
+
+  private fun extractText(element: TomlElement): String? {
+    return when (element) {
+      is TomlLiteral -> when (val kind = element.kind) {
+        is TomlLiteralKind.String -> kind.value
+        else -> element.text
+      }
+      else -> element.text
+    }
+  }
+
+  private fun findLibraries(tomlFile: TomlFile): List<String> {
+    val result = mutableListOf<String>()
+    tomlFile.children.filter { it is TomlTable }.forEach {
+      it.accept(object : TomlVisitor() {
+        override fun visitTable(element: TomlTable) {
+          if (element.header.key?.segments?.map { it.name } == listOf("libraries")) {
+            element.entries.forEach { kv ->
+              kv.key.takeIf { it.segments.size == 1 }?.let { it.segments[0].name?.let { name -> result.add(name) } }
+            }
+          }
+        }
+      })
+    }
+    return result
   }
 
   fun createTableSuggestionCompletionProvider(list:List<String>): CompletionProvider<CompletionParameters> {
@@ -197,7 +251,8 @@ class EnableAutoPopupInTomlVersionCatalogCompletion : CompletionConfidence() {
                TOML_VERSIONS_TABLE_SYNTAX_PATTERN.accepts(contextElement) ||
                TOML_VERSIONS_SYNTAX_PATTERN.accepts(contextElement) ||
                TOML_VERSION_DOT_SYNTAX_PATTERN_BEFORE.accepts(contextElement) ||
-               TOML_TABLE_SYNTAX_PATTERN.accepts(contextElement) ) ThreeState.NO
+               TOML_TABLE_SYNTAX_PATTERN.accepts(contextElement) ||
+               TOML_BUNDLE_SYNTAX_PATTERN.accepts(contextElement) ) ThreeState.NO
     else ThreeState.UNSURE
   }
 }
