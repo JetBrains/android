@@ -51,6 +51,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
       name = "project",
       gradleVersion = GRADLE_VERSION,
       gradlePluginVersion = ANDROID_GRADLE_PLUGIN_VERSION,
+      kotlinVersion = null,
       ndkVersion = NDK_VERSION,
     )
     openPreparedProject("project") { project ->
@@ -85,6 +86,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
       name = "project",
       gradleVersion = GRADLE_VERSION,
       gradlePluginVersion = ANDROID_GRADLE_PLUGIN_VERSION,
+      kotlinVersion = null,
       ndkVersion = NDK_VERSION,
     )
     openPreparedProject("project") { project ->

@@ -1869,7 +1869,7 @@ interface GradleIntegrationTest {
 fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor = getAgpVersionSoftwareEnvironmentDescriptor(),
   ndkVersion: String? = null
 ): File {
   return prepareGradleProject(
@@ -1889,18 +1889,18 @@ fun GradleIntegrationTest.prepareGradleProject(
 fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
-  gradleVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor().gradleVersion,
-  gradlePluginVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor().agpVersion,
-  kotlinVersion: String? = getAgpVersionSoftwareEnvironmentDescriptor().kotlinVersion,
+  gradleVersion: String?,
+  gradlePluginVersion: String?,
+  kotlinVersion: String?,
   ndkVersion: String? = null
 ): File {
-  val srcPath = resolveTestDataPath(testProjectPath)
   val projectPath = nameToPath(name)
+  val srcPath = resolveTestDataPath(testProjectPath)
   if (projectPath.exists()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
 
   AndroidGradleTests.prepareProjectForImportCore(
     srcPath, projectPath,
-    ThrowableConsumer<File, IOException> { projectRoot ->
+    ThrowableConsumer { projectRoot ->
       AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion,
                                                      kotlinVersion,
                                                      ndkVersion,
