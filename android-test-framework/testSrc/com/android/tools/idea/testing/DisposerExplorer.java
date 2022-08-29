@@ -64,7 +64,12 @@ public class DisposerExplorer {
    */
   @NotNull
   private static Collection<Disposable> getTreeRootsInternal() {
-    return getObjectNodeDisposableChildren(getFieldValue(Disposer.getTree(), "myRootNode"));
+    return getObjectNodeDisposableChildren(getRootNode());
+  }
+
+  @NotNull
+  private static Object getRootNode() {
+    return getFieldValue(Disposer.getTree(), "myRootNode");
   }
 
   @NotNull
@@ -105,14 +110,11 @@ public class DisposerExplorer {
   @Nullable
   public static Disposable getParent(@NotNull Disposable disposable) {
     synchronized (treeLock) {
-      Object objectNode = getObjectNode(disposable);
-      if (objectNode != null) {
-        Object parentNode = getObjectNodeParent(objectNode);
-        if (parentNode != null) {
-          return getObjectNodeDisposable(parentNode);
-        }
+      Object parentNode = getParentNode(disposable);
+      if (parentNode == null) {
+        return null;
       }
-      return null;
+      return getObjectNodeDisposable(parentNode);
     }
   }
 
@@ -187,7 +189,7 @@ public class DisposerExplorer {
   @NotNull
   public static VisitResult visitTree(@NotNull Visitor visitor) {
     synchronized (treeLock) {
-      return visitSubtree(getFieldValue(Disposer.getTree(), "myRootNode"), visitor);
+      return visitNodeDescendants(getRootNode(), visitor);
     }
   }
 
@@ -207,7 +209,7 @@ public class DisposerExplorer {
     synchronized (treeLock) {
       Object objectNode = getObjectNode(disposable);
       if (objectNode != null) {
-        return visitDescendants(objectNode, visitor);
+        return visitNodeDescendants(objectNode, visitor);
       }
       return VisitResult.CONTINUE;
     }
@@ -217,7 +219,7 @@ public class DisposerExplorer {
   private static VisitResult visitSubtree(@NotNull Object objectNode, @NotNull Visitor visitor) {
     VisitResult result = visitor.visit(getObjectNodeDisposable(objectNode));
     if (result == VisitResult.CONTINUE) {
-      result = visitDescendants(objectNode, visitor);
+      result = visitNodeDescendants(objectNode, visitor);
       if (result == VisitResult.ABORT) {
         return result;
       }
@@ -226,7 +228,7 @@ public class DisposerExplorer {
   }
 
   @NotNull
-  private static VisitResult visitDescendants(@NotNull Object objectNode, @NotNull Visitor visitor) {
+  private static VisitResult visitNodeDescendants(@NotNull Object objectNode, @NotNull Visitor visitor) {
     List<?> childNodes = getObjectNodeChildren(objectNode);
     for (Object child : childNodes) {
       VisitResult result = visitSubtree(child, visitor);
@@ -238,19 +240,27 @@ public class DisposerExplorer {
   }
 
   @NotNull
-  private static Map<Disposable, ?> getObjectToNodeMap() {
+  private static Map<Disposable, ?> getObject2ParentNodeMap() {
     return getFieldValue(Disposer.getTree(), "myObject2ParentNode");
   }
 
   @Nullable
   private static Object getObjectNode(@NotNull Disposable disposable) {
-    return getObjectNodeChildren(getObjectToNodeMap().get(disposable)).stream().filter(n->getObjectNodeDisposable(n) == disposable).findFirst().get();
+    Object parentNode = getParentNode(disposable);
+    for (Object node : getObjectNodeChildren(parentNode)) {
+      if (getObjectNodeDisposable(node) == disposable) {
+        return node;
+      }
+    }
+    return null;
   }
 
-  @Nullable
-  private static Object getObjectNodeParent(@NotNull Object objectNode) {
-    return getObjectToNodeMap().get(getObjectNodeDisposable(objectNode));
+  @NotNull
+  private static Object getParentNode(@NotNull Disposable disposable) {
+    Object parentNode = getObject2ParentNodeMap().get(disposable);
+    return parentNode == null ? getRootNode() : parentNode;
   }
+
 
   @NotNull
   private static List<?> getObjectNodeChildren(@NotNull Object objectNode) {
@@ -258,8 +268,11 @@ public class DisposerExplorer {
     return childNodes == null ? ImmutableList.of() : (List<?>)childNodes;
   }
 
-  @NotNull
+  @Nullable
   private static Disposable getObjectNodeDisposable(@NotNull Object objectNode) {
+    if (objectNode == getRootNode()) {
+      return null;
+    }
     return getFieldValue(objectNode, "myObject");
   }
 

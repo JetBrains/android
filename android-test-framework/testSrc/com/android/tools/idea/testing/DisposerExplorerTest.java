@@ -65,7 +65,6 @@ public class DisposerExplorerTest {
     Disposer.dispose(c); // Dispose c to create an orphan root.
     TestDisposable notRegistered = new TestDisposable("not_registered");
 
-/* b/243078314
     assertThat(DisposerExplorer.isContainedInTree(b2)).isTrue();
     assertThat(DisposerExplorer.isContainedInTree(root2)).isTrue();
     assertThat(DisposerExplorer.isContainedInTree(notRegistered)).isFalse();
@@ -106,7 +105,6 @@ public class DisposerExplorerTest {
 
     assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("a"))).isSameAs(a);
     assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("x"))).isNull();
-b/243078314 */
 
     // Clean up to avoid interference with other tests.
     Disposer.dispose(root1);
