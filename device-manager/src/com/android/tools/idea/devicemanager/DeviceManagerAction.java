@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -70,7 +71,7 @@ final class DeviceManagerAction extends DumbAwareAction {
       presentation.setVisible(hasAndroidFacets);
     }
 
-    presentation.setEnabled(AndroidSdkUtils.isAndroidSdkAvailable());
+    presentation.setEnabled(AndroidSdkPathStore.getInstance().getAndroidSdkPath() != null);
   }
 
   @Override
