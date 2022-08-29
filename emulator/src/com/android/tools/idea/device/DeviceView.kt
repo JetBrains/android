@@ -134,8 +134,10 @@ class DeviceView(
       }
     }
 
-  /** Last coordinates of the mouse pointer while the first button was pressed.
-   *  Set to null when the first mouse button is released. */
+  /**
+   * Last coordinates of the mouse pointer while the first button was pressed.
+   * Set to null when the first mouse button is released.
+   */
   private var lastTouchCoordinates: Point? = null
 
   init {
@@ -404,7 +406,7 @@ class DeviceView(
     }
   }
 
-  internal fun sendMotionEventDisplayCoordinates(displayX: Int, displayY: Int, action: Int) {
+  private fun sendMotionEventDisplayCoordinates(displayX: Int, displayY: Int, action: Int) {
     val deviceController = deviceController ?: return
     val message = when {
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
