@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
@@ -71,11 +70,6 @@ public class ConversionTestUtil {
       .open("app/build.gradle")
       .getCurrentFileContents();
 
-    String kotlinVersion = bundledRuntimeVersion();
-    int dash = kotlinVersion.indexOf('-');
-    if (dash != -1) {
-      kotlinVersion = kotlinVersion.substring(0, dash);
-    }
     String newBuildGradleContents = buildGradleContents.replaceAll(
       "mavenCentral\\(\\)",
       ""

@@ -28,6 +28,7 @@ import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -110,7 +111,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     ProgressManager.checkCanceled()
     val (returnsModifier, others) = extensionFunctions.partition { it.returnType?.fqName?.asString() == COMPOSE_MODIFIER_FQN }
-    val lookupElementFactory = createLookupElementFactory(nameExpression, parameters)
+    val lookupElementFactory = createLookupElementFactory(parameters.editor, nameExpression, parameters)
 
     val isNewModifier = !isMethodCalledOnImportedModifier && element.parentOfType<KtDotQualifiedExpression>() == null
     //Prioritise functions that return Modifier over other extension function.
@@ -148,7 +149,11 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
    * Creates LookupElementFactory that is similar to the one kotlin-plugin uses during completion session.
    * Code partially copied from [CompletionSession].
    */
-  private fun createLookupElementFactory(nameExpression: KtSimpleNameExpression, parameters: CompletionParameters): LookupElementFactory {
+  private fun createLookupElementFactory(
+    editor: Editor,
+    nameExpression: KtSimpleNameExpression,
+    parameters: CompletionParameters
+  ): LookupElementFactory {
     val bindingContext = nameExpression.analyze(BodyResolveMode.PARTIAL_WITH_DIAGNOSTICS)
     val file = parameters.originalFile.safeAs<KtFile>()!!
     val resolutionFacade = file.getResolutionFacade()
@@ -168,7 +173,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val basicLookupElementFactory = BasicLookupElementFactory(nameExpression.project, insertHandler)
 
     return LookupElementFactory(
-      basicLookupElementFactory, receiverTypes,
+      basicLookupElementFactory, editor, receiverTypes,
       callTypeAndReceiver.callType, inDescriptor, CollectRequiredTypesContextVariablesProvider()
     )
   }

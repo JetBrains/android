@@ -53,9 +53,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     override val targetPlatform: TargetPlatform = JvmPlatforms.defaultJvmPlatform
 
-    @Suppress("DEPRECATION_ERROR")
-    override fun getTargetPlatform(): org.jetbrains.kotlin.resolve.TargetPlatform = JvmPlatforms.CompatJvmPlatform
-
     override val presentableText: String = "Android with Gradle"
 
     public override fun isApplicable(module: Module): Boolean = module.getBuildSystemType() == BuildSystemType.AndroidGradle

@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -37,6 +36,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
+import kotlin.KotlinVersion;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
@@ -165,7 +165,7 @@ public class AddKotlinTest {
       .open("build.gradle")
       .getCurrentFileContents();
 
-    String kotlinVersion = StringUtil.substringBefore(KotlinPluginLayout.getInstance().getStandaloneCompilerVersion(), "-release");
+    KotlinVersion kotlinVersion = KotlinPluginLayout.getInstance().getStandaloneCompilerVersion().getKotlinVersion();
     String newBuildGradleContents = buildGradleContents.replaceAll(
       "kotlin_version.*=.*",
       "kotlin_version = '" + kotlinVersion + '\'')

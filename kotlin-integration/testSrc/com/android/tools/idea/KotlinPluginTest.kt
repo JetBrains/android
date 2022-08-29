@@ -16,7 +16,6 @@
 package com.android.tools.idea
 
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 
 class KotlinPluginTest : AndroidTestCase() {
   
