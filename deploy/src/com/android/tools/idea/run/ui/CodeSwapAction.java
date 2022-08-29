@@ -21,6 +21,7 @@ import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
@@ -42,6 +43,11 @@ public class CodeSwapAction extends BaseAction {
   }
 
   @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
+  @Override
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
 
@@ -51,7 +57,12 @@ public class CodeSwapAction extends BaseAction {
     }
 
     // Disable the button for any test project that is not an Instrumented Test.
-    RunnerAndConfigurationSettings runConfig = RunManager.getInstance(project).getSelectedConfiguration();
+    RunManager runManager = RunManager.getInstanceIfCreated(project);
+    if (runManager == null) {
+      return;
+    }
+
+    RunnerAndConfigurationSettings runConfig = runManager.getSelectedConfiguration();
     if (runConfig != null) {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();
