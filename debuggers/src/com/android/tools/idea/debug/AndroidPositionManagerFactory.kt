@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.debug;
+package com.android.tools.idea.debug
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.intellij.debugger.PositionManager;
-import com.intellij.debugger.PositionManagerFactory;
-import com.intellij.debugger.engine.DebugProcess;
-import com.intellij.debugger.engine.DebugProcessImpl;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.flags.StudioFlags
+import com.intellij.debugger.PositionManager
+import com.intellij.debugger.PositionManagerFactory
+import com.intellij.debugger.engine.DebugProcess
+import com.intellij.debugger.engine.DebugProcessImpl
 
-public class AndroidPositionManagerFactory extends PositionManagerFactory {
-
-  @Override
-  public PositionManager createPositionManager(@NotNull DebugProcess process) {
-    if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {
-      return new AndroidPositionManager((DebugProcessImpl)process);
+class AndroidPositionManagerFactory : PositionManagerFactory() {
+  override fun createPositionManager(process: DebugProcess): PositionManager? {
+    return if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {
+      AndroidPositionManager((process as DebugProcessImpl))
     } else {
-      return new AndroidPositionManagerOriginal((DebugProcessImpl)process);
+      AndroidPositionManagerOriginal(process as DebugProcessImpl)
     }
   }
 }

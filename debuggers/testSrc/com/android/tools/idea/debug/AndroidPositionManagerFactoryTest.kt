@@ -13,47 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.debug;
+package com.android.tools.idea.debug
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
+import com.android.flags.junit.RestoreFlagRule
+import com.android.tools.idea.debug.AndroidPositionManager
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
+import com.google.common.truth.Truth
+import com.intellij.debugger.engine.DebugProcessImpl
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnit
 
-import com.android.flags.junit.RestoreFlagRule;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.debugger.engine.DebugProcessImpl;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+class AndroidPositionManagerFactoryTest {
+  @Rule
+  val myMockitoRule = MockitoJUnit.rule()
 
-public class AndroidPositionManagerFactoryTest {
-  @Rule public final MockitoRule myMockitoRule = MockitoJUnit.rule();
-  @Rule public final RestoreFlagRule myRestoreFlagRule = new RestoreFlagRule(StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE);
-  @Rule public final AndroidProjectRule myAndroidProjectRule = AndroidProjectRule.inMemory();
+  @Rule
+  val myRestoreFlagRule: RestoreFlagRule<*> = RestoreFlagRule<Any?>(StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE)
 
-  @Mock private DebugProcessImpl mockDebugProcessImpl;
+  @Rule
+  val myAndroidProjectRule = inMemory()
 
-  private AndroidPositionManagerFactory myFactory = new AndroidPositionManagerFactory();
-
+  @Mock
+  private val mockDebugProcessImpl: DebugProcessImpl? = null
+  private val myFactory = AndroidPositionManagerFactory()
   @Before
-  public void setup() {
-    when(mockDebugProcessImpl.getProject()).thenReturn(myAndroidProjectRule.getProject());
+  fun setup() {
+    Mockito.`when`(mockDebugProcessImpl!!.project).thenReturn(myAndroidProjectRule.project)
   }
 
   @Test
-  public void createPositionManager_debugDeviceSdkSourcesEnabled() {
-    StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(true);
-
-    assertThat(myFactory.createPositionManager(mockDebugProcessImpl)).isInstanceOf(AndroidPositionManager.class);
+  fun createPositionManager_debugDeviceSdkSourcesEnabled() {
+    StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(true)
+    Truth.assertThat(myFactory.createPositionManager(mockDebugProcessImpl!!)).isInstanceOf(AndroidPositionManager::class.java)
   }
 
   @Test
-  public void createPositionManager_debugDeviceSdkSourcesNotEnabled() {
-    StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(false);
-
-    assertThat(myFactory.createPositionManager(mockDebugProcessImpl)).isInstanceOf(AndroidPositionManagerOriginal.class);
+  fun createPositionManager_debugDeviceSdkSourcesNotEnabled() {
+    StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(false)
+    Truth.assertThat(myFactory.createPositionManager(mockDebugProcessImpl!!)).isInstanceOf(AndroidPositionManagerOriginal::class.java)
   }
 }
