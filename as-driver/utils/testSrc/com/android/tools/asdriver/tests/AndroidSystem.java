@@ -123,9 +123,24 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
     sdk.install(system.env);
 
+    createRemediationShutdownHook();
+
     return system;
   }
 
+  public static void createRemediationShutdownHook() {
+    // When running from Bazel on Windows, the JVM isn't terminated in such a way that the shutdown
+    // hook is triggered, so we have to emit the remediation steps ahead of time (without knowing
+    // if they'll even be needed).
+    if (SystemInfo.isWindows && TestUtils.runningFromBazel()) {
+      System.out.println("Running on Bazel on Windows, so the shutdown hook may not be properly triggered. If this test fails, please " +
+                         "check go/e2e-find-log-files for more information on how to diagnose test issues.");
+    }
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      System.out.println("The test was terminated early (e.g. it was manually ended or Bazel may have timed out). Please see " +
+                         "go/e2e-find-log-files for more information on how to diagnose test issues.");
+    }));
+  }
   /**
    * Assumes there is only one AndroidStudio installed in the system.
    * If there are multiple it will throw an exception.

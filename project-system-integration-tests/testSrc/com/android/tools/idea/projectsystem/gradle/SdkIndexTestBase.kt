@@ -68,7 +68,7 @@ open class SdkIndexTestBase {
       // Check lint caused SDK Index to look for issues
       for (issue in expectedIssues) {
         val escapedIssue = ".*${Pattern.quote(issue)}.*"
-        system.installation.ideaLog.waitForMatchingLine(escapedIssue, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
+        system.installation.ideaLog.waitForMatchingLine(escapedIssue, null, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
       }
       // Now check that only expected issues were present
       val foundIssues: MutableSet<String> = mutableSetOf()

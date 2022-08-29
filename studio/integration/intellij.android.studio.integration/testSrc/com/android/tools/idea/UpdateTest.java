@@ -23,6 +23,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidSdk;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
+import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.FileServer;
 import com.android.tools.asdriver.tests.TestFileSystem;
@@ -284,6 +285,7 @@ public class UpdateTest {
   @Test
   public void updateTest() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
+    AndroidSystem.createRemediationShutdownHook();
 
     AndroidStudioInstallation install;
     try (Display display = Display.createDefault();

@@ -126,12 +126,12 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   static private int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", true, 30, TimeUnit.SECONDS);
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
     return Integer.parseInt(matcher.group(1));
   }
 
   static private int waitForDriverServer(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", true, 30, TimeUnit.SECONDS);
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
     return Integer.parseInt(matcher.group(1));
   }
 
@@ -277,7 +277,8 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForBuild(long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle build finished in (.*)", timeout, unit);
+    Matcher matcher = install.getIdeaLog()
+      .waitForMatchingLine(".*Gradle build finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Build took " + matcher.group(1));
   }
 
@@ -287,7 +288,8 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle sync finished in (.*)", timeout, unit);
+    Matcher matcher = install.getIdeaLog()
+      .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Sync took " + matcher.group(1));
   }
 }

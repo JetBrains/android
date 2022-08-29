@@ -32,12 +32,18 @@ public class LogFile {
   /** The current position on the log file, see {@code waitForMatchingLine} */
   private long position;
 
+  private static final String CHECK_LOGS_INSTRUCTIONS = "For more information, check the logs: go/e2e-find-log-files";
+
   public LogFile(Path filePath) {
     path = filePath;
   }
 
+  public Matcher waitForMatchingLine(String regex, String failureRegex, long timeout, TimeUnit unit) throws IOException, InterruptedException {
+    return waitForMatchingLine(regex, failureRegex, false, timeout, unit);
+  }
+
   public Matcher waitForMatchingLine(String regex, long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    return waitForMatchingLine(regex, false, timeout, unit);
+    return waitForMatchingLine(regex, null, false, timeout, unit);
   }
 
   /**
@@ -55,7 +61,7 @@ public class LogFile {
    *  Waits until the given regex matches a line in the log. The log is scanned from the last read position.
    *  If {@code lookAhead} is true, the current position of the log remains unchanged.
    */
-  public Matcher waitForMatchingLine(String regex, boolean lookAhead, long timeout, TimeUnit unit) throws IOException, InterruptedException {
+  public Matcher waitForMatchingLine(String regex, String failureRegex, boolean lookAhead, long timeout, TimeUnit unit) throws IOException, InterruptedException {
     try (RandomAccessFile raf = new RandomAccessFile(path.toFile(), "r")) {
 
       FileChannel channel = raf.getChannel();
@@ -63,11 +69,16 @@ public class LogFile {
 
       long timeoutMillis = unit.toMillis(timeout);
       Pattern pattern = Pattern.compile(regex);
+      Pattern failurePattern = failureRegex == null ? null : Pattern.compile(failureRegex);
       Matcher matcher = null;
       long elapsed = 0;
       long start = System.currentTimeMillis();
       while (elapsed < timeoutMillis) {
         String line = raf.readLine();
+        if (failurePattern != null && line != null && failurePattern.matcher(line).matches()) {
+          throw new IllegalStateException(String.format("Found line matching failureRegex: %s%n%n%s", line, CHECK_LOGS_INSTRUCTIONS));
+        }
+
         matcher = line == null ? null : pattern.matcher(line);
         if (matcher != null && matcher.matches()) {
           break;
@@ -79,7 +90,8 @@ public class LogFile {
         elapsed = System.currentTimeMillis() - start;
       }
       if (matcher == null) {
-        throw new InterruptedException("Time out while waiting for line matching '" + regex + "'");
+        throw new InterruptedException(
+          String.format("Time out while waiting for line matching '%s'%n%n%s", regex, CHECK_LOGS_INSTRUCTIONS));
       }
       if (!lookAhead) {
         position = channel.position();
