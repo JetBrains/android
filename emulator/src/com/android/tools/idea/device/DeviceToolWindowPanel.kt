@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
@@ -130,6 +131,7 @@ internal class DeviceToolWindowPanel(
     mainToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
     deviceView.addConnectionStateListener(object : ConnectionStateListener {
+      @UiThread
       override fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState) {
         EventQueue.invokeLater {
           mainToolbar.updateActionsImmediately()

@@ -516,6 +516,7 @@ internal class EmulatorToolWindowManager private constructor(
     }
   }
 
+  @UiThread
   override fun settingsChanged(settings: DeviceMirroringSettings) {
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?: return
     toolWindow.stripeTitle = EMULATOR_TOOL_WINDOW_TITLE

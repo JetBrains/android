@@ -321,6 +321,7 @@ class DeviceView(
     }
   }
 
+  @UiThread
   override fun settingsChanged(settings: DeviceMirroringSettings) {
     val controller = deviceClient?.deviceController ?: return
     if (settings.synchronizeClipboard) {
