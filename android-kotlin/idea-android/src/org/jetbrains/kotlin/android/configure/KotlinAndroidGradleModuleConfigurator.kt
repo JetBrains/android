@@ -33,6 +33,7 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
 import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
 import org.jetbrains.kotlin.idea.configuration.createConfigureKotlinNotificationCollector
@@ -142,13 +143,14 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         return false
     }
 
-    override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: String): Boolean {
+    override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, originalVersion: IdeKotlinVersion): Boolean {
+        val version = originalVersion.rawVersion // TODO(b/244338901): Migrate to IdeKotlinVersion.
         val module = ModuleUtil.findModuleForPsiElement(file) ?: return false
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
         val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
         val sdk = ModuleRootManager.getInstance(module).sdk
-        val jvmTarget = getJvmTarget(sdk, version)
+        val jvmTarget = getJvmTarget(sdk, originalVersion)
 
         if (isTopLevelProjectFile) {
             // We need to handle the following cases:
@@ -198,7 +200,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             moduleBuildModel.applyPlugin("org.jetbrains.kotlin.android")
             if (version == "default_version" /* for tests */ ||
                 GradleVersion.tryParse(version)?.compareTo("1.4")?.let { it < 0 } != false) {
-                val stdLibArtifactName = getStdlibArtifactName(sdk, version)
+                val stdLibArtifactName = getStdlibArtifactName(sdk, originalVersion)
                 val buildModel = projectBuildModel.projectBuildModel
                 val versionString = when (buildModel?.buildscript()?.ext()?.findProperty("kotlin_version")?.valueType) {
                       STRING -> if (file.isKtDsl()) "\${extra[\"kotlin_version\"]}" else "\$kotlin_version"
@@ -220,7 +222,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         }
     }
 
-    override fun getStdlibArtifactName(sdk: Sdk?, version: String): String {
+    override fun getStdlibArtifactName(sdk: Sdk?, version: IdeKotlinVersion): String {
         if (sdk != null && hasJreSpecificRuntime(version)) {
             val sdkVersion = sdk.version
             if (sdkVersion != null && sdkVersion.isAtLeast(JavaSdkVersion.JDK_1_8)) {
@@ -241,11 +243,11 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         dialog.show()
         if (!dialog.isOK) return
 
-        val collector = doConfigure(project, dialog.modulesToConfigure, dialog.kotlinVersion)
+        val collector = doConfigure(project, dialog.modulesToConfigure, IdeKotlinVersion.get(dialog.kotlinVersion))
         collector.showNotification()
     }
 
-    fun doConfigure(project: Project, modules: List<Module>, version: String): NotificationMessageCollector {
+    fun doConfigure(project: Project, modules: List<Module>, version: IdeKotlinVersion): NotificationMessageCollector {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = createConfigureKotlinNotificationCollector(project)
             val changedFiles = configureWithVersion(project, modules, version, collector)
