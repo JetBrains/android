@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.adblib.testing.FakeAdbSession
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -164,7 +165,7 @@ class LogcatToolWindowFactoryTest {
   }
 
   private fun logcatToolWindowFactory(processNameMonitor: ProcessNameMonitor = mockProcessNameMonitor) =
-    LogcatToolWindowFactory().also {
+    LogcatToolWindowFactory { FakeAdbSession() }.also {
       projectRule.project.registerServiceInstance(ProcessNameMonitor::class.java, processNameMonitor)
     }
 }

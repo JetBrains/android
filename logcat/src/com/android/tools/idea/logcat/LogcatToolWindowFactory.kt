@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.adblib.AdbSession
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
@@ -41,7 +42,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
-internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
+internal class LogcatToolWindowFactory(
+  private val adbSessionFactory: (Project) -> AdbSession = { AdbLibService.getInstance(it).session },
+) : SplittingTabsToolWindowFactory(), DumbAware {
 
   init {
     // TODO(b/236246692): Register from XML when Logcat V2 is mainstream.
@@ -98,10 +101,11 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
 
   override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?) =
-    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState)).also {
-      logcatPresenters.add(it)
-      Disposer.register(it) { logcatPresenters.remove(it) }
-    }
+    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState), adbSessionFactory(project))
+      .also {
+        logcatPresenters.add(it)
+        Disposer.register(it) { logcatPresenters.remove(it) }
+      }
 
   companion object {
     @VisibleForTesting

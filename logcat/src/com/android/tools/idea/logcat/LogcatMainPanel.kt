@@ -157,7 +157,7 @@ private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 class LogcatMainPanelFactory {
   companion object {
     fun create(project: Project): JComponent {
-      return LogcatMainPanel(project, SimpleActionGroup(), LogcatColors(), null)
+      return LogcatMainPanel(project, SimpleActionGroup(), LogcatColors(), null, AdbLibService.getInstance(project).session)
     }
   }
 }
@@ -180,11 +180,11 @@ internal class LogcatMainPanel(
   private val splitterPopupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
+  adbSession: AdbSession,
   private var logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings.getInstance(),
   private var androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
-  adbSession: AdbSession = AdbLibService.getInstance(project).session,
   private val logcatService: LogcatService =
     LogcatServiceImpl(project, { AdbLibService.getInstance(project).session.deviceServices }, ProcessNameMonitor.getInstance(project)),
   zoneId: ZoneId = ZoneId.systemDefault()

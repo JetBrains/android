@@ -72,7 +72,7 @@ internal data class LogcatPanelConfig(
         }
       }
       catch (e: JsonSyntaxException) {
-        LOGGER.warn("Invalid state", e)
+        LOGGER.warn("Invalid state JSON string: '$json'")
         null
       }
     }
