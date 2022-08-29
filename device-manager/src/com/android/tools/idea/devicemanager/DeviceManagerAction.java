@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager;
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -28,6 +29,12 @@ import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 final class DeviceManagerAction extends DumbAwareAction {
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
