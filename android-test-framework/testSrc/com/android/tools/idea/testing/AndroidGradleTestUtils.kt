@@ -95,7 +95,6 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntriesPerSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidDependenciesForMpss
 import com.android.tools.idea.gradle.project.sync.idea.setupCompilerOutputPaths
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
@@ -1828,15 +1827,17 @@ fun Project.gradleModule(gradlePath: String): Module? =
 fun Module.fileUnderGradleRoot(path: @SystemIndependent String): VirtualFile? =
   VirtualFileManager.getInstance().findFileByUrl("${FilePaths.pathToIdeaUrl(File(AndroidProjectRootUtil.getModuleDirPath(this)!!))}/$path")
 
-/**
- * See implementing classes for usage examples.
- */
-interface GradleIntegrationTest {
+interface IntegrationTestEnvironment {
+
   /**
    * The base test directory to be used in tests.
    */
   fun getBaseTestPath(): @SystemDependent String
-
+}
+/**
+ * See implementing classes for usage examples.
+ */
+interface GradleIntegrationTest: IntegrationTestEnvironment {
 
   /**
    * The path to a test data directory relative to the workspace or `null` to use the legacy resolution.
@@ -1882,6 +1883,24 @@ fun GradleIntegrationTest.prepareGradleProject(
   )
 }
 
+fun IntegrationTestEnvironment.prepareGradleProject(
+  testProjectAbsolutePath: File,
+  additionalRepositories: Collection<File>,
+  name: String,
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+  ndkVersion: String?
+): File {
+  return prepareGradleProject(
+    testProjectAbsolutePath = testProjectAbsolutePath,
+    additionalRepositories = additionalRepositories,
+    name = name,
+    gradleVersion = agpVersion.gradleVersion,
+    gradlePluginVersion = agpVersion.agpVersion,
+    kotlinVersion = agpVersion.kotlinVersion,
+    ndkVersion = ndkVersion
+  )
+}
+
 /**
  * Prepares a test project created from a [testProjectPath] under the given [name] so that it can be opened with [openPreparedProject].
  */
@@ -1894,20 +1913,45 @@ fun GradleIntegrationTest.prepareGradleProject(
   kotlinVersion: String?,
   ndkVersion: String? = null
 ): File {
+  val testProjectAbsolutePath: File = resolveTestDataPath(testProjectPath)
+  val additionalRepositories: Collection<File> = getAdditionalRepos()
+
+  return prepareGradleProject(
+    testProjectAbsolutePath,
+    additionalRepositories,
+    name,
+    gradleVersion,
+    gradlePluginVersion,
+    kotlinVersion,
+    ndkVersion
+  )
+}
+
+private fun IntegrationTestEnvironment.prepareGradleProject(
+  testProjectAbsolutePath: File,
+  additionalRepositories: Collection<File>,
+  name: String,
+  gradleVersion: String?,
+  gradlePluginVersion: String?,
+  kotlinVersion: String?,
+  ndkVersion: String?
+): File {
   val projectPath = nameToPath(name)
-  val srcPath = resolveTestDataPath(testProjectPath)
   if (projectPath.exists()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
 
   AndroidGradleTests.prepareProjectForImportCore(
-    srcPath, projectPath,
+    testProjectAbsolutePath,
+    projectPath,
     ThrowableConsumer { projectRoot ->
-      AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion,
-                                                     kotlinVersion,
-                                                     ndkVersion,
-                                                     *getAdditionalRepos().toTypedArray())
+      AndroidGradleTests.defaultPatchPreparedProject(
+        projectRoot, gradleVersion, gradlePluginVersion,
+        kotlinVersion,
+        ndkVersion,
+        *additionalRepositories.toTypedArray()
+      )
     })
   if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
-    println("Test project $testProjectPath prepared at '$projectPath'")
+    println("Test project ${testProjectAbsolutePath.name} prepared at '$projectPath'")
   }
   return projectPath
 }
@@ -1936,7 +1980,7 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
  * The project's `.idea` directory is not required to exist, however.
  */
 @JvmOverloads
-fun <T> GradleIntegrationTest.openPreparedProject(
+fun <T> IntegrationTestEnvironment.openPreparedProject(
   name: String,
   options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(),
   action: (Project) -> T
@@ -2046,7 +2090,7 @@ private fun <T> openPreparedProject(
   return body()
 }
 
-fun GradleIntegrationTest.nameToPath(name: String) =
+fun IntegrationTestEnvironment.nameToPath(name: String) =
   File(toSystemDependentName(getBaseTestPath() + "/" + name))
 
 private fun verifySyncedSuccessfully(project: Project, expectedSyncIssues: Set<Int> = emptySet()) {

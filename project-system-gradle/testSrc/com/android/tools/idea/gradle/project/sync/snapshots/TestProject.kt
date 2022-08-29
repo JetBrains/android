@@ -19,13 +19,14 @@ import com.android.SdkConstants
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject.file
-import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -41,7 +42,10 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.util.PathUtil
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
+import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 import java.nio.file.Files
 
@@ -294,6 +298,19 @@ enum class TestProject(
   ;
 
   val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
+
+  val templateAbsolutePath: File get() = resolveTestDataPath(template)
+  val additionalRepositories: Collection<File> get() = getAdditionalRepos()
+
+  private fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
+  private fun getAdditionalRepos(): Collection<File> =
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+
+  private fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
+    val testDataDirectory = TestUtils.getWorkspaceRoot()
+      .resolve(FileUtil.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+    return testDataDirectory.resolve(FileUtil.toSystemDependentName(testDataPath)).toFile()
+  }
 }
 
 private fun File.replaceContent(change: (String) -> String) {
@@ -484,13 +501,14 @@ interface PreparedTestProject {
   val root: File
 }
 
-fun GradleIntegrationTest.prepareTestProject(
+fun IntegrationTestEnvironment.prepareTestProject(
   testProject: TestProject,
   name: String = "project",
   agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT
 ): PreparedTestProject {
   val root = prepareGradleProject(
-    testProject.template,
+    testProject.templateAbsolutePath,
+    testProject.additionalRepositories,
     name,
     agpVersion,
     ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
