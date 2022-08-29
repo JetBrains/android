@@ -25,8 +25,6 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Joiner
 import com.google.common.base.Suppliers
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
 import com.intellij.debugger.NoDataException
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcessImpl
@@ -69,24 +67,14 @@ import java.util.function.Supplier
  * manager and should fallback to other position managers if it encounters a situation it cannot
  * handle.
  */
-class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : PositionManagerImpl(
-  myDebugProcess
-) {
-  private val myAndroidVersion: AndroidVersion?
-  private var mySourceFolder: Supplier<VirtualFile?>? = null
-  private var myGeneratedPsiFile: Supplier<PsiFile?>? = null
-  private var debugSessionListenerRegistered = false
+class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : PositionManagerImpl(myDebugProcess) {
 
-  init {
-    myAndroidVersion = getAndroidVersionFromDebugSession(myDebugProcess.project)
-    if (myAndroidVersion != null) {
-      mySourceFolder = Suppliers.memoize { createSourcePackageForApiLevel() }
-      myGeneratedPsiFile = Suppliers.memoize { createGeneratedPsiFile() }
-    } else {
-      mySourceFolder = Suppliers.ofInstance(null)
-      myGeneratedPsiFile = Suppliers.ofInstance(null)
-    }
-  }
+  private val myAndroidVersion: AndroidVersion? = getAndroidVersionFromDebugSession(myDebugProcess.project)
+
+  private val mySourceFolder: Supplier<VirtualFile?> = Suppliers.memoize(::createSourcePackageForApiLevel)
+  private var myGeneratedPsiFile: PsiFile? = null
+
+  private var debugSessionListenerRegistered = false
 
   @Throws(NoDataException::class)
   override fun getAllClasses(position: SourcePosition): List<ReferenceType> {
@@ -99,10 +87,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   }
 
   @Throws(NoDataException::class)
-  override fun createPrepareRequests(
-    requestor: ClassPrepareRequestor,
-    position: SourcePosition
-  ): List<ClassPrepareRequest> {
+  override fun createPrepareRequests(requestor: ClassPrepareRequestor, position: SourcePosition): List<ClassPrepareRequest> {
     // For desugaring, we also need to add prepare requests for the extra synthesized classes that may contain the source position.
     val requests =
       DesugarUtils.addExtraPrepareRequestsIfNeeded(myDebugProcess, requestor, position, super.createPrepareRequests(requestor, position))
@@ -112,21 +97,21 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     return requests
   }
 
-  override fun getAcceptedFileTypes(): Set<FileType>? {
-    // When setting breakpoints or debugging into SDK source, the Location's sourceName() method
-    // returns a string of the form "FileName.java"; this resolves into a JavaFileType.
-    return ImmutableSet.of(JavaFileType.INSTANCE)
-  }
+  // When setting breakpoints or debugging into SDK source, the Location's sourceName() method
+  // returns a string of the form "FileName.java"; this resolves into a JavaFileType.
+  override fun getAcceptedFileTypes(): Set<FileType> = setOf(JavaFileType.INSTANCE)
 
   @Throws(NoDataException::class)
   override fun getSourcePosition(location: Location?): SourcePosition? {
     if (location == null) {
       throw NoDataException.INSTANCE
     }
+
     if (myAndroidVersion == null) {
       LOG.debug("getSourcePosition cannot determine version from device.")
       throw NoDataException.INSTANCE
     }
+
     val project = myDebugProcess.project
     val file = getPsiFileByLocation(project, location)
     if (file == null || !AndroidSdks.getInstance().isInAndroidSdk(file)) {
@@ -134,16 +119,13 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     }
 
     // Since we have an Android SDK file, return the SDK source if it's available.
-    val sourcePosition = getSourceFileForApiLevel(project, file, location)
-    return sourcePosition ?: getGeneratedFileSourcePosition(project)
-
     // Otherwise, return a generated file with a comment indicating that sources are unavailable.
+    return getSourceFileForApiLevel(project, file, location) ?: getGeneratedFileSourcePosition(project)
   }
 
+  // This override only exists for the purpose of changing visibility for invocation via tests.
   @VisibleForTesting
-  override fun getPsiFileByLocation(project: Project, location: Location): PsiFile? {
-    return super.getPsiFileByLocation(project, location)
-  }
+  public override fun getPsiFileByLocation(project: Project, location: Location): PsiFile? = super.getPsiFileByLocation(project, location)
 
   private fun getSourceFileForApiLevel(project: Project, file: PsiFile, location: Location): SourcePosition? {
     val relPath = getRelPathForJavaSource(project, file)
@@ -151,68 +133,82 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
       LOG.debug("getApiSpecificPsi returned null because relPath is null for file: " + file.name)
       return null
     }
-    val sourceFolder = mySourceFolder!!.get() ?: return null
+
+    val sourceFolder = mySourceFolder.get() ?: return null
     val vfile = sourceFolder.findFileByRelativePath(relPath)
     if (vfile == null) {
       LOG.debug("getSourceForApiLevel returned null because $relPath is not present in $sourceFolder")
       return null
     }
+
     val apiSpecificSourceFile = PsiManager.getInstance(project).findFile(vfile) ?: return null
     val lineNumber = DebuggerUtilsEx.getLineNumber(location, true)
     return SourcePosition.createFromLine(apiSpecificSourceFile, lineNumber)
   }
 
-  private fun getGeneratedFileSourcePosition(project: Project): SourcePosition {
-    val generatedPsiFile = myGeneratedPsiFile!!.get()
+  private fun getGeneratedFileSourcePosition(project: Project): SourcePosition? {
+    // This method should only be called for files that are in the Android SDK, and so we should always be able to generate a PsiFile.
+    if (myGeneratedPsiFile == null) myGeneratedPsiFile = createGeneratedPsiFile()
+    val generatedPsiFile = myGeneratedPsiFile ?: return null
 
     // If we don't already have one, create a new listener that will close the generated files after the debugging session completes.
     // Since this method is always called on DebuggerManagerThreadImpl, there's no concern around locking here.
     if (!debugSessionListenerRegistered) {
       debugSessionListenerRegistered = true
-      myDebugProcess.session.xDebugSession
-        .addSessionListener(MyXDebugSessionListener(generatedPsiFile!!.virtualFile, project))
+      val xDebugSession = myDebugProcess.session.xDebugSession
+      if (xDebugSession != null) {
+        xDebugSession.addSessionListener(MyXDebugSessionListener(generatedPsiFile.virtualFile, project))
+      }
+      else {
+        LOG.debug("xDebugSession unavailable.")
+      }
     }
-    return SourcePosition.createFromLine(generatedPsiFile!!, -1)
+    return SourcePosition.createFromLine(generatedPsiFile, -1)
   }
 
-  private fun createGeneratedPsiFile(): PsiFile {
-    val project = myDebugProcess.project
-    val apiLevel = myAndroidVersion!!.apiLevel
+  private fun createGeneratedPsiFile(): PsiFile? {
+    if (myAndroidVersion == null) return null
+
+    val apiLevel = myAndroidVersion.apiLevel
     val fileContent = String.format(Locale.getDefault(), GENERATED_FILE_CONTENTS_FORMAT, apiLevel)
-    val generatedPsiFile =
-      PsiFileFactory.getInstance(project).createFileFromText(GENERATED_FILE_NAME, JavaLanguage.INSTANCE, fileContent, true, true)
+    val generatedPsiFile = PsiFileFactory.getInstance(myDebugProcess.project)
+      .createFileFromText(GENERATED_FILE_NAME, JavaLanguage.INSTANCE, fileContent, true, true)
+
     val generatedVirtualFile = generatedPsiFile.virtualFile
     try {
       generatedVirtualFile.isWritable = false
-    } catch (e: IOException) {
+    }
+    catch (e: IOException) {
       // Swallow. This isn't expected; but if it happens and the user can for some reason edit this file, it won't make any difference.
       LOG.info("Unable to set generated file not writable.", e)
     }
 
     // Add data indicating that we want to put up a banner offering to download sources.
-    val requiredSourceDownload: List<AndroidVersion?> = ImmutableList.of(myAndroidVersion)
-    generatedVirtualFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, requiredSourceDownload)
+    generatedVirtualFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, listOf(myAndroidVersion))
+
     return generatedPsiFile
   }
 
   private fun createSourcePackageForApiLevel(): VirtualFile? {
+    if (myAndroidVersion == null) return null
+
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val sdkManager = sdkHandler.getSdkManager(StudioLoggerProgressIndicator(AndroidPositionManager::class.java))
-    val sourcePackages = sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_ANDROID_SOURCES)
-    for (sourcePackage in sourcePackages) {
+
+    for (sourcePackage in sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_ANDROID_SOURCES)) {
       val typeDetails = sourcePackage.typeDetails
       if (typeDetails !is DetailsTypes.ApiDetailsType) {
         LOG.warn("Unable to get type details for source package @ " + sourcePackage.location)
         continue
       }
-      val details = typeDetails as DetailsTypes.ApiDetailsType
-      if (myAndroidVersion == details.androidVersion) {
+      if (myAndroidVersion == typeDetails.androidVersion) {
         val sourceFolder = VfsUtil.findFile(sourcePackage.location, false)
-        if (sourceFolder != null && sourceFolder.isValid) {
+        if (sourceFolder?.isValid == true) {
           return sourceFolder
         }
       }
     }
+
     return null
   }
 
@@ -220,22 +216,15 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
    * Listener that's responsible for closing the generated "no sources available" file when a debug session completes.
    */
   @VisibleForTesting
-  internal class MyXDebugSessionListener @VisibleForTesting constructor(fileToClose: VirtualFile, project: Project) :
+  class MyXDebugSessionListener @VisibleForTesting constructor(fileToClose: VirtualFile, project: Project) :
     XDebugSessionListener {
-    private val myFileToClose: WeakReference<VirtualFile>
-    private val myProject: Project
 
-    init {
-      myFileToClose = WeakReference(fileToClose)
-      myProject = project
-    }
+    private val myFileToClose = WeakReference(fileToClose)
+    private val myProject = project
 
     override fun sessionStopped() {
       // When debugging is complete, close the generated file that was opened due to debugging into missing sources.
-      val file = myFileToClose.get()
-      if (file != null) {
-        FileEditorManager.getInstance(myProject).closeFile(file)
-      }
+      myFileToClose.get()?.let { FileEditorManager.getInstance(myProject).closeFile(it) }
     }
   }
 
@@ -247,47 +236,48 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
       " * Android SDK source code for this API level cannot be found.",
       " ********************************************************************/"
     )
+
     private const val GENERATED_FILE_NAME = "Unavailable Source"
-    private val LOG = Logger.getInstance(
-      AndroidPositionManager::class.java
-    )
+    private val LOG = Logger.getInstance(AndroidPositionManager::class.java)
 
     @VisibleForTesting
-    fun getAndroidVersionFromDebugSession(project: Project): AndroidVersion? {
-      val session = XDebuggerManager.getInstance(project).currentSession ?: return null
-      return session.debugProcess.processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)
-    }
+    fun getAndroidVersionFromDebugSession(project: Project): AndroidVersion? =
+      XDebuggerManager.getInstance(project)
+        .currentSession?.debugProcess?.processHandler?.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)
 
     @VisibleForTesting
     fun getRelPathForJavaSource(project: Project, file: PsiFile): String? {
-      val fileType = file.fileType
-      if (fileType === JavaFileType.INSTANCE) {
-        // When the compile SDK sources are present, they are indexed and the incoming PsiFile is a JavaFileType that refers to them. The
-        // relative path for the same file in target SDK sources can be directly determined.
-        val fileIndex = ProjectFileIndex.getInstance(project)
-        val sourceRoot = fileIndex.getSourceRootForFile(file.virtualFile)
-        if (sourceRoot == null) {
-          LOG.debug("Could not determine source root for file: " + file.virtualFile.path)
-          return null
+      return when (file.fileType) {
+        JavaFileType.INSTANCE -> {
+          // When the compile SDK sources are present, they are indexed and the incoming PsiFile is a JavaFileType that refers to them. The
+          // relative path for the same file in target SDK sources can be directly determined.
+          val sourceRoot = ProjectFileIndex.getInstance(project).getSourceRootForFile(file.virtualFile)
+          if (sourceRoot == null) {
+            LOG.debug("Could not determine source root for file: " + file.virtualFile.path)
+            null
+          }
+          else {
+            VfsUtilCore.getRelativePath(file.virtualFile, sourceRoot)
+          }
         }
-        return VfsUtilCore.getRelativePath(file.virtualFile, sourceRoot)
-      } else if (fileType === JavaClassFileType.INSTANCE) {
-        // When the compile SDK sources are not present, the incoming PsiFile is a JavaClassFileType coming from the compile SDK android.jar.
-        // We can figure out the relative path to the class file, and make the assumption that the java file will have the same path.
-        val virtualFile = file.virtualFile
-        val relativeClassPath = VfsUtilCore.getRelativePath(virtualFile, VfsUtilCore.getRootFile(virtualFile))
 
-        // The class file should end in ".class", but we're interested in the corresponding java file.
-        return changeClassExtensionToJava(relativeClassPath)
+        JavaClassFileType.INSTANCE -> {
+          // When the compile SDK sources are not present, the incoming PsiFile is a JavaClassFileType coming from the compile SDK
+          // android.jar. We can figure out the relative path to the class file, and make the assumption that the java file will have the
+          // same path.
+          val virtualFile = file.virtualFile
+          val relativeClassPath = VfsUtilCore.getRelativePath(virtualFile, VfsUtilCore.getRootFile(virtualFile))
+
+          // The class file should end in ".class", but we're interested in the corresponding java file.
+          relativeClassPath?.changeClassExtensionToJava()
+        }
+
+        else -> null
       }
-      return null
     }
 
     @VisibleForTesting
-    fun changeClassExtensionToJava(file: String?): String? {
-      return if (file != null && file.endsWith(SdkConstants.DOT_CLASS)) {
-        file.substring(0, file.length - SdkConstants.DOT_CLASS.length) + SdkConstants.DOT_JAVA
-      } else file
-    }
+    fun String.changeClassExtensionToJava() =
+      if (endsWith(SdkConstants.DOT_CLASS)) substring(0, length - SdkConstants.DOT_CLASS.length) + SdkConstants.DOT_JAVA else this
   }
 }

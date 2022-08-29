@@ -19,16 +19,16 @@ import com.android.SdkConstants
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RepoPackage
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.debug.AndroidPositionManager.Companion.changeClassExtensionToJava
 import com.android.tools.idea.debug.AndroidPositionManager.MyXDebugSessionListener
 import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
-import com.google.common.collect.Maps
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.NoDataException
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcessImpl
@@ -39,16 +39,13 @@ import com.intellij.debugger.jdi.VirtualMachineProxyImpl
 import com.intellij.debugger.requests.ClassPrepareRequestor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.UnknownFileType
-import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightVirtualFile
-import com.intellij.testFramework.UsefulTestCase
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
@@ -62,57 +59,59 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.invocation.InvocationOnMock
+import org.mockito.Mockito.RETURNS_DEFAULTS
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.Mockito.withSettings
 import org.mockito.junit.MockitoJUnit
-import java.util.stream.Collectors
+import kotlin.test.assertFailsWith
 
 class AndroidPositionManagerTest {
-  @Rule
+  @get:Rule
   val myAndroidProjectRule = withSdk()
 
-  @Rule
+  @get:Rule
   val myMockitoRule = MockitoJUnit.rule()
 
-  @Mock
-  private val mockDebugProcessImpl: DebugProcessImpl? = null
+  private val mockDebugProcessImpl: DebugProcessImpl = mock()
+  private val mockDebuggerSession: DebuggerSession = mock()
+  private val mockXDebugSession: XDebugSession = mock()
+  private val mockProcessHandler: ProcessHandler = mock()
 
-  @Mock
-  private val mockDebuggerSession: DebuggerSession? = null
+  private val targetDeviceAndroidVersion: AndroidVersion = AndroidVersion(30)
 
-  @Mock
-  private val mockXDebugSession: XDebugSession? = null
-  private var targetDeviceAndroidVersion: AndroidVersion? = AndroidVersion(30)
-  private var myPositionManager: AndroidPositionManager? = null
+  private lateinit var myPositionManager: AndroidPositionManager
+
   private var myOriginalLocalPackages: Collection<LocalPackage>? = null
+
   @Before
   fun setUp() {
-    Mockito.`when`(mockDebugProcessImpl!!.session).thenReturn(mockDebuggerSession)
-    Mockito.`when`(mockDebugProcessImpl.project).thenReturn(myAndroidProjectRule.project)
-    Mockito.`when`(mockDebugProcessImpl.searchScope).thenReturn(GlobalSearchScope.allScope(myAndroidProjectRule.project))
-    Mockito.`when`(mockDebuggerSession!!.xDebugSession).thenReturn(mockXDebugSession)
+    whenever(mockDebugProcessImpl.session).thenReturn(mockDebuggerSession)
+    whenever(mockDebugProcessImpl.project).thenReturn(myAndroidProjectRule.project)
+    whenever(mockDebugProcessImpl.searchScope).thenReturn(GlobalSearchScope.allScope(myAndroidProjectRule.project))
+    whenever(mockDebuggerSession.xDebugSession).thenReturn(mockXDebugSession)
+
     val mockXDebuggerManager = myAndroidProjectRule.mockProjectService(XDebuggerManager::class.java)
-    val mockXDebugSession = Mockito.mock(XDebugSession::class.java)
-    val mockXDebugProcess = Mockito.mock(XDebugProcess::class.java)
-    val mockProcessHandler = Mockito.mock(
-      ProcessHandler::class.java
-    )
-    Mockito.`when`(mockXDebuggerManager.currentSession).thenReturn(mockXDebugSession)
-    Mockito.`when`(mockXDebugSession.debugProcess).thenReturn(mockXDebugProcess)
-    Mockito.`when`(mockXDebugProcess.processHandler).thenReturn(mockProcessHandler)
-    Mockito.`when`(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL))
-      .thenAnswer { invocation: InvocationOnMock? -> targetDeviceAndroidVersion }
+    val mockXDebugSession: XDebugSession = mock()
+    val mockXDebugProcess: XDebugProcess = mock()
+
+    whenever(mockXDebuggerManager.currentSession).thenReturn(mockXDebugSession)
+    whenever(mockXDebugSession.debugProcess).thenReturn(mockXDebugProcess)
+    whenever(mockXDebugProcess.processHandler).thenReturn(mockProcessHandler)
+    whenever(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer { targetDeviceAndroidVersion }
+
     myPositionManager = AndroidPositionManager(mockDebugProcessImpl)
   }
 
   @After
   fun tearDown() {
     if (myOriginalLocalPackages != null) {
-      val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      val sdkManager = sdkHandler.getSdkManager(StudioLoggerProgressIndicator(AndroidPositionManager::class.java))
-      val packages = sdkManager.packages
+      val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
+        .getSdkManager(StudioLoggerProgressIndicator(AndroidPositionManager::class.java))
+        .packages
       packages.setLocalPkgInfos(myOriginalLocalPackages!!)
+
+      myOriginalLocalPackages = null
     }
   }
 
@@ -126,7 +125,6 @@ class AndroidPositionManagerTest {
   }
 
   @Test
-  @Throws(NoDataException::class)
   fun testDesugaringSupport_SimpleClass() {
     @Language("JAVA") val text = """package p1.p2;
 
@@ -141,13 +139,12 @@ class Foo {
   }
 }"""
     val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
-    Truth.assertThat(file).isNotNull()
+    assertThat(file).isNotNull()
     val position = createSourcePositionForOneBasedLineNumber(file, 5)
     runTestDesugaringSupportWhenDesugaringIsRequired(position, false)
   }
 
   @Test
-  @Throws(NoDataException::class)
   fun testDesugaringSupport_InterfaceWithStaticInitializer() {
     @Language("JAVA") val text = """package p1.p2;
 
@@ -161,13 +158,12 @@ interface Foo {
   }
 }"""
     val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
-    Truth.assertThat(file).isNotNull()
+    assertThat(file).isNotNull()
     val position = createSourcePositionForOneBasedLineNumber(file, 5)
     runTestDesugaringSupportWhenDesugaringIsRequired(position, false)
   }
 
   @Test
-  @Throws(NoDataException::class)
   fun testDesugaringSupport_InterfaceWithDefaultMethod() {
     @Language("JAVA") val text = """package p1.p2;
 
@@ -182,13 +178,12 @@ interface Foo {
   }
 }"""
     val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
-    Truth.assertThat(file).isNotNull()
+    assertThat(file).isNotNull()
     val position = createSourcePositionForOneBasedLineNumber(file, 5)
     runTestDesugaringSupportWhenDesugaringIsRequired(position, true)
   }
 
   @Test
-  @Throws(NoDataException::class)
   fun testDesugaringSupport_InterfaceWithStaticMethod() {
     @Language("JAVA") val text = """package p1.p2;
 
@@ -203,277 +198,256 @@ interface Foo {
   }
 }"""
     val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
-    Truth.assertThat(file).isNotNull()
+    assertThat(file).isNotNull()
     val position = createSourcePositionForOneBasedLineNumber(file, 5)
     runTestDesugaringSupportWhenDesugaringIsRequired(position, true)
   }
 
-  @Throws(NoDataException::class)
   private fun runTestDesugaringSupportWhenDesugaringIsRequired(position: SourcePosition, isDesugaringRequired: Boolean) {
     // Mock the VirtualMachine proxy to manage tested types.
-    val vmProxy = Mockito.mock(VirtualMachineProxyImpl::class.java)
-    Mockito.`when`(mockDebugProcessImpl!!.virtualMachineProxy).thenReturn(vmProxy)
+    val vmProxy: VirtualMachineProxyImpl = mock()
+    whenever(mockDebugProcessImpl!!.virtualMachineProxy).thenReturn(vmProxy)
     val typesMap = mockReferenceTypes(vmProxy, TOP_CLASS_NAME, INNER_CLASS_NAME, SYNTHESIZED_CLASS_NAME)
 
     // Mock the RequestManager for the class prepare requests.
-    val mockRequestManager = Mockito.mock(RequestManagerImpl::class.java)
-    Mockito.`when`(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManager)
+    val mockRequestManager: RequestManagerImpl = mock()
+    whenever(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManager)
 
     // Attach current project to the mocked debug process.
-    Mockito.`when`(mockDebugProcessImpl.project).thenReturn(myAndroidProjectRule.project)
+    whenever(mockDebugProcessImpl.project).thenReturn(myAndroidProjectRule.project)
 
     // Mock locationsOfLine to reflect which class contains the source position.
-    val topClass = typesMap[TOP_CLASS_NAME]
-    val innerClassWithoutLocation = typesMap[INNER_CLASS_NAME]
-    val desugarCompanionClass = typesMap[SYNTHESIZED_CLASS_NAME]
-    val mockLocation = Mockito.mock(Location::class.java)
+    val topClass = typesMap[TOP_CLASS_NAME]!!
+    val innerClassWithoutLocation = typesMap[INNER_CLASS_NAME]!!
+    val desugarCompanionClass = typesMap[SYNTHESIZED_CLASS_NAME]!!
+    val mockLocation: Location = mock()
     if (isDesugaringRequired) {
       // If desugaring applies to an interface, its code moves to a synthesized class
-      Mockito.`when`(myPositionManager!!.locationsOfLine(topClass!!, position)).thenReturn(emptyList())
-      Mockito.`when`(myPositionManager!!.locationsOfLine(desugarCompanionClass!!, position)).thenReturn(listOf(mockLocation))
-    } else {
+      whenever(myPositionManager.locationsOfLine(topClass, position)).thenReturn(emptyList())
+      whenever(myPositionManager.locationsOfLine(desugarCompanionClass, position)).thenReturn(listOf(mockLocation))
+    }
+    else {
       // If desugaring was not needed, the interface remains unchanged.
-      Mockito.`when`(myPositionManager!!.locationsOfLine(topClass!!, position)).thenReturn(listOf(mockLocation))
-      Mockito.`when`(myPositionManager!!.locationsOfLine(desugarCompanionClass!!, position)).thenReturn(emptyList())
+      whenever(myPositionManager.locationsOfLine(topClass, position)).thenReturn(listOf(mockLocation))
+      whenever(myPositionManager.locationsOfLine(desugarCompanionClass, position)).thenReturn(emptyList())
     }
     // The existing inner class is not related to the source position.
-    Mockito.`when`(myPositionManager!!.locationsOfLine(innerClassWithoutLocation!!, position)).thenReturn(emptyList())
+    whenever(myPositionManager.locationsOfLine(innerClassWithoutLocation, position)).thenReturn(emptyList())
 
     // Check that the list of types contains both the top class and the potential synthesized class.
-    val typesWithPosition = myPositionManager!!.getAllClasses(position)
-    Truth.assertThat(typesWithPosition).isNotNull()
+    val typesWithPosition = myPositionManager.getAllClasses(position)
+    assertThat(typesWithPosition).isNotNull()
     if (isDesugaringRequired) {
       // If desugaring may happen, both interface and its companion class should be returned.
-      Truth.assertThat(typesWithPosition).hasSize(2)
-      Truth.assertThat(typesWithPosition).containsExactly(topClass, desugarCompanionClass)
-    } else {
+      assertThat(typesWithPosition).hasSize(2)
+      assertThat(typesWithPosition).containsExactly(topClass, desugarCompanionClass)
+    }
+    else {
       // Without desugaring, the interface is the only class that contains the source position.
-      Truth.assertThat(typesWithPosition).hasSize(1)
-      Truth.assertThat(typesWithPosition).containsExactly(topClass)
+      assertThat(typesWithPosition).hasSize(1)
+      assertThat(typesWithPosition).containsExactly(topClass)
     }
 
     // Mock class prepare requests.
-    val topClassPrepareRequest = Mockito.mock(ClassPrepareRequest::class.java, "CPR:" + TOP_CLASS_NAME)
-    val allInnerClassesPrepareRequest = Mockito.mock(ClassPrepareRequest::class.java, "CPR:all inner classes")
-    Mockito.`when`(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq(TOP_CLASS_NAME)))
+    val topClassPrepareRequest: ClassPrepareRequest = mock(withSettings().name("CPR:$TOP_CLASS_NAME").defaultAnswer(RETURNS_DEFAULTS))
+    val allInnerClassesPrepareRequest: ClassPrepareRequest = mock(
+      withSettings().name("CPR:all inner classes").defaultAnswer(RETURNS_DEFAULTS))
+    whenever(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq(TOP_CLASS_NAME)))
       .thenReturn(topClassPrepareRequest)
-    Mockito.`when`(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq(TOP_CLASS_NAME + "$*")))
+    whenever(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq("$TOP_CLASS_NAME$*")))
       .thenReturn(allInnerClassesPrepareRequest)
-    val mockRequestor = Mockito.mock(ClassPrepareRequestor::class.java)
-    val classPrepareRequests = myPositionManager!!.createPrepareRequests(mockRequestor, position)
-    Truth.assertThat(classPrepareRequests).isNotNull()
+    val mockRequestor: ClassPrepareRequestor = mock()
+    val classPrepareRequests = myPositionManager.createPrepareRequests(mockRequestor, position)
+    assertThat(classPrepareRequests).isNotNull()
     if (isDesugaringRequired) {
       // If desugaring is required, we also create a class prepare request for all inner types of the interface so that we can find
       // the source position in the companion class (which is one of the inner classes).
-      Truth.assertThat(classPrepareRequests).hasSize(2)
-      Truth.assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest, allInnerClassesPrepareRequest)
-    } else {
-      Truth.assertThat(classPrepareRequests).hasSize(1)
-      Truth.assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest)
+      assertThat(classPrepareRequests).hasSize(2)
+      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest, allInnerClassesPrepareRequest)
+    }
+    else {
+      assertThat(classPrepareRequests).hasSize(1)
+      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest)
     }
   }
 
   @Test
   fun testGetAcceptedFileTypes_acceptsJavaFiles() {
-    val acceptedFileTypes = myPositionManager!!.acceptedFileTypes
-    Truth.assertThat(acceptedFileTypes).hasSize(1)
-    Truth.assertThat(acceptedFileTypes).containsExactly(JavaFileType.INSTANCE)
+    val acceptedFileTypes = myPositionManager.acceptedFileTypes
+    assertThat(acceptedFileTypes).hasSize(1)
+    assertThat(acceptedFileTypes).containsExactly(JavaFileType.INSTANCE)
   }
 
-  @get:Test
-  val sourcePosition_nullLocation: Unit
-    get() {
-      UsefulTestCase.assertThrows(NoDataException::class.java) { myPositionManager!!.getSourcePosition(null) }
-    }
-  // Recreate myPositionManager, so that it reinitializes with a null version.
+  @Test
+  fun sourcePosition_nullLocation() {
+    assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(null) }
+  }
 
-  // getSourcePosition should have exited before `location` was used.
-  @get:Test
-  val sourcePosition_androidVersionNotAvailable: Unit
-    get() {
-      val location = Mockito.mock(Location::class.java)
-      targetDeviceAndroidVersion = null
+  @Test
+  fun sourcePosition_androidVersionNotAvailable() {
+    val location: Location = mock()
+    whenever(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer { null }
 
-      // Recreate myPositionManager, so that it reinitializes with a null version.
-      myPositionManager = AndroidPositionManager(mockDebugProcessImpl)
-      UsefulTestCase.assertThrows(NoDataException::class.java) { myPositionManager!!.getSourcePosition(location) }
+    // Recreate myPositionManager, so that it reinitializes with a null version.
+    myPositionManager = AndroidPositionManager(mockDebugProcessImpl)
+    assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
 
-      // getSourcePosition should have exited before `location` was used.
-      Mockito.verifyNoInteractions(location)
-    }
+    // getSourcePosition should have exited before `location` was used.
+    verifyNoInteractions(location)
+  }
 
-  // No declaring type results in `PositionManagerImpl.getPsiFileByLocation()` return a null PsiFile, so this tests a branch of
-  // `AndroidPositionManager.getSourcePosition`.
-  @get:Test
-  val sourcePosition_locationHasNoDeclaringType: Unit
-    get() {
-      // No declaring type results in `PositionManagerImpl.getPsiFileByLocation()` return a null PsiFile, so this tests a branch of
-      // `AndroidPositionManager.getSourcePosition`.
-      val location = Mockito.mock(Location::class.java)
-      Mockito.`when`(location.declaringType()).thenReturn(null)
-      UsefulTestCase.assertThrows(NoDataException::class.java) { myPositionManager!!.getSourcePosition(location) }
-    }
-  // Ensure that the super class is actually finding this class.
+  @Test
+  fun sourcePosition_locationHasNoDeclaringType() {
+    // No declaring type results in `PositionManagerImpl.getPsiFileByLocation()` return a null PsiFile, so this tests a branch of
+    // `AndroidPositionManager.getSourcePosition`.
+    val location: Location = mock()
+    whenever(location.declaringType()).thenReturn(null)
 
-  // Now that it's found, NoDataException should be thrown since it's not in the Android SDK.
-  @get:Test
-  val sourcePosition_locationIsNonAndroidFile: Unit
-    get() {
-      val type = Mockito.mock(ReferenceType::class.java)
-      Mockito.`when`(type.name()).thenReturn(TOP_CLASS_NAME)
-      val location = Mockito.mock(Location::class.java)
-      Mockito.`when`(location.declaringType()).thenReturn(type)
-      @Language("JAVA") val text = """package p1.p2;
+    assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
+  }
 
+  @Test
+  fun sourcePosition_locationIsNonAndroidFile() {
+    val type: ReferenceType = mock()
+    whenever(type.name()).thenReturn(TOP_CLASS_NAME)
+
+    val location: Location = mock()
+    whenever(location.declaringType()).thenReturn(type)
+
+    @Language("JAVA") val text = """package p1.p2;
 class Foo {
-  
   private void Bar() {
     int test = 2;
   }
 }"""
-      val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/Foo.java", text)
-      ApplicationManager.getApplication().runReadAction {
 
-        // Ensure that the super class is actually finding this class.
-        Truth.assertThat(myPositionManager!!.getPsiFileByLocation(myAndroidProjectRule.project, location)).isSameAs(file)
+    val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/Foo.java", text)
 
-        // Now that it's found, NoDataException should be thrown since it's not in the Android SDK.
-        UsefulTestCase.assertThrows(NoDataException::class.java) { myPositionManager!!.getSourcePosition(location) }
-      }
+    runReadAction {
+      // Ensure that the super class is actually finding this class.
+      assertThat(myPositionManager.getPsiFileByLocation(myAndroidProjectRule.project, location)).isSameAs(file)
+
+      // Now that it's found, NoDataException should be thrown since it's not in the Android SDK.
+      assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
     }
+  }
 
-  @get:Throws(Exception::class)
-  @get:Test
-  val sourcePosition_targetSourcesAvailable: Unit
-    get() {
-      val location = androidSdkClassLocation
-      val sourcePosition = ApplicationManager.getApplication()
-        .runReadAction(ThrowableComputable<SourcePosition?, NoDataException?> { myPositionManager!!.getSourcePosition(location) })
-      Truth.assertThat(sourcePosition).isNotNull()
-      val file = sourcePosition!!.file
-      Truth.assertThat(file.fileType).isEqualTo(JavaFileType.INSTANCE)
-      Truth.assertThat(file.virtualFile.path).contains("/android-" + targetDeviceAndroidVersion!!.apiLevel + "/")
-    }
+  @Test
+  fun sourcePosition_targetSourcesAvailable() {
+    val sourcePosition = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }
+    assertThat(sourcePosition).isNotNull()
 
-  @get:Throws(Exception::class)
-  @get:Test
-  val sourcePosition_targetSourcesNotAvailable: Unit
-    get() {
-      removeLocalTargetSdkPackages()
-      val location = androidSdkClassLocation
-      val sourcePosition = ApplicationManager.getApplication()
-        .runReadAction(ThrowableComputable<SourcePosition?, NoDataException?> { myPositionManager!!.getSourcePosition(location) })
-      Truth.assertThat(sourcePosition).isNotNull()
-      val file = sourcePosition!!.file
-      Truth.assertThat(file.fileType).isEqualTo(JavaFileType.INSTANCE)
-      Truth.assertThat(file.virtualFile.path).doesNotContain("/android-" + targetDeviceAndroidVersion!!.apiLevel + "/")
-      Truth.assertThat(file.virtualFile).isInstanceOf(LightVirtualFile::class.java)
-      val fileContent = (file.virtualFile as LightVirtualFile).content.toString()
-      Truth.assertThat(fileContent).contains(
-        "device under debug has API level " + targetDeviceAndroidVersion!!.apiLevel + "."
-      )
-      Truth.assertThat(file.name).isEqualTo("Unavailable Source")
-      val requiredVersions = file.virtualFile.getUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY)!!
-      Truth.assertThat(requiredVersions).containsExactly(targetDeviceAndroidVersion)
-    }
+    val file = sourcePosition!!.file
+    assertThat(file.fileType).isEqualTo(JavaFileType.INSTANCE)
+    assertThat(file.virtualFile.path).contains("/android-${targetDeviceAndroidVersion.apiLevel}/")
+  }
+
+  @Test
+  fun sourcePosition_targetSourcesNotAvailable() {
+    removeLocalTargetSdkPackages()
+
+    val sourcePosition = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }
+    assertThat(sourcePosition).isNotNull()
+
+    val file = sourcePosition!!.file
+    assertThat(file.fileType).isEqualTo(JavaFileType.INSTANCE)
+    assertThat(file.virtualFile.path).doesNotContain("/android-${targetDeviceAndroidVersion.apiLevel}/")
+    assertThat(file.virtualFile).isInstanceOf(LightVirtualFile::class.java)
+    val fileContent = (file.virtualFile as LightVirtualFile).content.toString()
+    assertThat(fileContent).contains("device under debug has API level ${targetDeviceAndroidVersion.apiLevel}.")
+    assertThat(file.name).isEqualTo("Unavailable Source")
+
+    val requiredVersions = file.virtualFile.getUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY)!!
+    assertThat(requiredVersions).containsExactly(targetDeviceAndroidVersion)
+  }
 
   private fun removeLocalTargetSdkPackages() {
-    val packagesToRemove: Set<String> = ImmutableSet.of(
-      SdkConstants.FD_ANDROID_SOURCES + RepoPackage.PATH_SEPARATOR + "android-" + targetDeviceAndroidVersion!!.apiLevel,
-      SdkConstants.FD_PLATFORMS + RepoPackage.PATH_SEPARATOR + "android-" + targetDeviceAndroidVersion!!.apiLevel
+    val packagesToRemove = setOf(
+      "${SdkConstants.FD_ANDROID_SOURCES}${RepoPackage.PATH_SEPARATOR}android-${targetDeviceAndroidVersion.apiLevel}",
+      "${SdkConstants.FD_PLATFORMS}${RepoPackage.PATH_SEPARATOR}android-${targetDeviceAndroidVersion.apiLevel}"
     )
-    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val sdkManager = sdkHandler.getSdkManager(StudioLoggerProgressIndicator(AndroidPositionManager::class.java))
-    val packages = sdkManager.packages
-    val localPackages = packages.localPackages
+
+    val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
+      .getSdkManager(StudioLoggerProgressIndicator(AndroidPositionManager::class.java))
+      .packages
+    val localPackages = packages.localPackages.values
+
     if (myOriginalLocalPackages == null) {
       // This won't get reset at the end of each test automatically. Store original list to restore it later.
-      myOriginalLocalPackages = localPackages.values
+      myOriginalLocalPackages = localPackages
     }
-    val updatedPackages = localPackages.values.stream()
-      .filter { localPackage: LocalPackage -> !packagesToRemove.contains(localPackage.path) }
-      .collect(Collectors.toList())
+
+    val updatedPackages = localPackages.filter { !packagesToRemove.contains(it.path) }
     packages.setLocalPkgInfos(updatedPackages)
   }
 
-  @get:Test
-  val androidVersionFromDebugSession_nullSession: Unit
-    get() {
-      val mockXDebuggerManager = myAndroidProjectRule.mockProjectService(XDebuggerManager::class.java)
-      Mockito.`when`(mockXDebuggerManager.currentSession).thenReturn(null)
-      Truth.assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.project)).isNull()
-    }
+  @Test
+  fun androidVersionFromDebugSession_nullSession() {
+    val mockXDebuggerManager = myAndroidProjectRule.mockProjectService(XDebuggerManager::class.java)
 
-  @get:Test
-  val androidVersionFromDebugSession_nullAndroidVersion: Unit
-    get() {
-      targetDeviceAndroidVersion = null
-      Truth.assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.project)).isNull()
-    }
+    whenever(mockXDebuggerManager.currentSession).thenReturn(null)
 
-  @get:Test
-  val androidVersionFromDebugSession_androidVersionExists: Unit
-    get() {
-      targetDeviceAndroidVersion = AndroidVersion(32)
-      Truth.assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.project))
-        .isSameAs(targetDeviceAndroidVersion)
-    }
+    assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.project)).isNull()
+  }
 
   @Test
-  fun changeClassExtensionToJava_null() {
-    Truth.assertThat(AndroidPositionManager.changeClassExtensionToJava(null)).isNull()
+  fun androidVersionFromDebugSession_nullAndroidVersion() {
+    whenever(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer { null }
+
+    assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.project)).isNull()
+  }
+
+  @Test
+  fun androidVersionFromDebugSession_androidVersionExists() {
+    assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.project))
+      .isSameAs(targetDeviceAndroidVersion)
   }
 
   @Test
   fun changeClassExtensionToJava_notClassFile() {
-    Truth.assertThat(AndroidPositionManager.changeClassExtensionToJava("foo.bar")).isEqualTo("foo.bar")
-    Truth.assertThat(AndroidPositionManager.changeClassExtensionToJava("foo.java")).isEqualTo("foo.java")
+    assertThat("foo.bar".changeClassExtensionToJava()).isEqualTo("foo.bar")
+    assertThat("foo.java".changeClassExtensionToJava()).isEqualTo("foo.java")
   }
 
   @Test
   fun changeClassExtensionToJava_classFileChangedToJava() {
-    Truth.assertThat(AndroidPositionManager.changeClassExtensionToJava("foo.class")).isEqualTo("foo.java")
+    assertThat("foo.class".changeClassExtensionToJava()).isEqualTo("foo.java")
   }
 
-  // The case where the file is a java file is covered by above test cases; but the java class file case is not, due to difficulties in
-  // mocking super class logic. Instead, we can test resolution here directly.
-  @get:Test
-  val relPathForJavaSource_fileIsJavaClass: Unit
-    get() {
-      // The case where the file is a java file is covered by above test cases; but the java class file case is not, due to difficulties in
-      // mocking super class logic. Instead, we can test resolution here directly.
-      val viewClass = ApplicationManager.getApplication().runReadAction(
-        Computable {
-          PositionManagerImpl.findClass(
-            myAndroidProjectRule.project,
-            "android.view.View",
-            mockDebugProcessImpl!!.searchScope,
-            true
-          )
-        })
-      Truth.assertThat(viewClass).isNotNull()
-      Truth.assertThat(AndroidPositionManager.getRelPathForJavaSource(myAndroidProjectRule.project, viewClass!!.containingFile)).isEqualTo(
-        "android/view/View.java"
-      )
+  @Test
+  fun relPathForJavaSource_fileIsJavaClass() {
+    // The case where the file is a java file is covered by above test cases; but the java class file case is not, due to difficulties in
+    // mocking super class logic. Instead, we can test resolution here directly.
+    val viewClass = runReadAction {
+      PositionManagerImpl.findClass(myAndroidProjectRule.project, "android.view.View", mockDebugProcessImpl.searchScope, true)
     }
+    assertThat(viewClass).isNotNull()
+    assertThat(AndroidPositionManager.getRelPathForJavaSource(myAndroidProjectRule.project, viewClass!!.containingFile))
+      .isEqualTo("android/view/View.java")
+  }
 
-  @get:Test
-  val relPathForJavaSource_unknownFileType: Unit
-    get() {
-      val file = Mockito.mock(PsiFile::class.java)
-      Mockito.`when`(file.fileType).thenReturn(UnknownFileType.INSTANCE)
-      Truth.assertThat(AndroidPositionManager.getRelPathForJavaSource(myAndroidProjectRule.project, file)).isNull()
-    }
+  @Test
+  fun relPathForJavaSource_unknownFileType() {
+    val file: PsiFile = mock()
+    whenever(file.fileType).thenReturn(UnknownFileType.INSTANCE)
+
+    assertThat(AndroidPositionManager.getRelPathForJavaSource(myAndroidProjectRule.project, file)).isNull()
+  }
 
   @Test
   fun myXDebugSessionListener_sessionStopped() {
-    val mockVirtualFile = Mockito.mock(VirtualFile::class.java)
-    val mockFileEditorManager = Mockito.mock(FileEditorManager::class.java)
+    val mockVirtualFile: VirtualFile = mock()
+
+    val mockFileEditorManager: FileEditorManager = mock()
     val componentStack = ComponentStack(myAndroidProjectRule.project)
     componentStack.registerComponentInstance(FileEditorManager::class.java, mockFileEditorManager)
+
     val listener = MyXDebugSessionListener(mockVirtualFile, myAndroidProjectRule.project)
+
     listener.sessionStopped()
-    Mockito.verify(mockFileEditorManager).closeFile(mockVirtualFile)
+
+    verify(mockFileEditorManager).closeFile(mockVirtualFile)
+
     componentStack.restore()
   }
 
@@ -483,32 +457,32 @@ class Foo {
 
     // The name of an inner class that does not contain any tested source position. It is used to make sure we do not incorrectly consider an
     // inner class that is not related to the breakpoint position that is set up.
-    private const val INNER_CLASS_NAME = TOP_CLASS_NAME + "\$Inner"
+    private const val INNER_CLASS_NAME = "$TOP_CLASS_NAME\$Inner"
 
     // The name of an inner class that would be the "companion" class to support desugaring. This is the class that will contain the actual
     // code at execution time. Therefore this is the type where the breakpoint position will be set up.
     // Note: the name of the synthesized class does not matter. But it has to be an inner class.
-    private const val SYNTHESIZED_CLASS_NAME = TOP_CLASS_NAME + "\$DesugaringCompanion"
+    private const val SYNTHESIZED_CLASS_NAME = "$TOP_CLASS_NAME\$DespairingCompanion"
+
     private fun mockReferenceTypes(mockVmProxy: VirtualMachineProxyImpl, vararg typeNames: String): Map<String, ReferenceType> {
-      val map: MutableMap<String, ReferenceType> = Maps.newHashMap()
-      for (typeName in typeNames) {
-        val type = Mockito.mock(ReferenceType::class.java, typeName)
-        Mockito.`when`(type.name()).thenReturn(typeName)
-        Mockito.`when`(mockVmProxy.classesByName(typeName)).thenReturn(listOf(type))
-        map[typeName] = type
+      val map = typeNames.associateWith { typeName ->
+        val type: ReferenceType = mock(withSettings().name(typeName).defaultAnswer(RETURNS_DEFAULTS))!!
+        whenever(type.name()).thenReturn(typeName)
+        whenever(mockVmProxy.classesByName(typeName)).thenReturn(listOf(type))
+        type
       }
-      Mockito.`when`(mockVmProxy.allClasses()).thenReturn(ImmutableList.copyOf(map.values))
+
+      whenever(mockVmProxy.allClasses()).thenReturn(map.values.toList())
       return map
     }
 
-    @get:Throws(Exception::class)
     private val androidSdkClassLocation: Location
       private get() {
-        val type = Mockito.mock(ReferenceType::class.java)
-        Mockito.`when`(type.name()).thenReturn("android.view.View")
-        Mockito.`when`(type.sourceName()).thenReturn("View.java")
-        val location = Mockito.mock(Location::class.java)
-        Mockito.`when`(location.declaringType()).thenReturn(type)
+        val type: ReferenceType = mock()
+        whenever(type.name()).thenReturn("android.view.View")
+        whenever(type.sourceName()).thenReturn("View.java")
+        val location: Location = mock()
+        whenever(location.declaringType()).thenReturn(type)
         return location
       }
   }
