@@ -198,8 +198,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             Also, if we failed to find repositories in the top-level project, we should add repositories to this build file.
              */
             moduleBuildModel.applyPlugin("org.jetbrains.kotlin.android")
-            if (version == "default_version" /* for tests */ ||
-                GradleVersion.tryParse(version)?.compareTo("1.4")?.let { it < 0 } != false) {
+            if (GradleVersion.tryParse(version)?.compareTo("1.4")?.let { it < 0 } != false) {
                 val stdLibArtifactName = getStdlibArtifactName(sdk, originalVersion)
                 val buildModel = projectBuildModel.projectBuildModel
                 val versionString = when (buildModel?.buildscript()?.ext()?.findProperty("kotlin_version")?.valueType) {

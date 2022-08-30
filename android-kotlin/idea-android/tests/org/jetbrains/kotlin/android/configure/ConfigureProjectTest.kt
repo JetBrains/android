@@ -29,6 +29,7 @@ import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.kotlin.idea.configuration.createConfigureKotlinNotificationCollector
 import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
 import org.jetbrains.kotlin.android.KotlinTestUtils.assertEqualsToFile
+import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.junit.Assert
 import org.junit.Ignore
@@ -50,7 +51,8 @@ abstract class ConfigureProjectTest {
     protected lateinit var buildFile: VirtualFile
 
   companion object {
-    private const val DEFAULT_VERSION = "default_version"
+    // Note: this default version was chosen arbitrarily based on current test expectations.
+    private const val DEFAULT_VERSION = "1.1.0"
     private const val GRADLE_DIR = "idea-android/testData/configuration/android-gradle"
     private const val GSK_DIR = "idea-android/testData/configuration/android-gsk"
   }
@@ -68,7 +70,8 @@ abstract class ConfigureProjectTest {
     }
 
     val versionFromFile = findStringWithPrefixes(fileText, "// VERSION:")
-    val version = versionFromFile ?: DEFAULT_VERSION
+    val rawVersion = versionFromFile ?: DEFAULT_VERSION
+    val version = IdeKotlinVersion.get(rawVersion)
 
     val project = projectRule.project
     val collector = createConfigureKotlinNotificationCollector(project)
@@ -87,7 +90,7 @@ abstract class ConfigureProjectTest {
     collector.showNotification()
 
     val afterFile = File(testRoot, "${path}_after.$extension")
-    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(version, "\$VERSION$"))
+    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(rawVersion, "\$VERSION$"))
 
     if (useAndroidX) {
       // Disable AndroidX
