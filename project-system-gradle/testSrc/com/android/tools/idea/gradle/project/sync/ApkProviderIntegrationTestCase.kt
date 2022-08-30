@@ -34,6 +34,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
@@ -499,7 +500,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
             """,
-        *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73) eachTo """
+        *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73, AGP_74) eachTo """
               ApplicationId: google.simpleapplication
               File: *>java.lang.IllegalArgumentException
               Files:

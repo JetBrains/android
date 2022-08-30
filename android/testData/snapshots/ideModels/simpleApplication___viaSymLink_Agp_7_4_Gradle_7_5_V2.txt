@@ -1,0 +1,1443 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT>_sm_src (IdeBuildImpl)
+        buildName                     : :
+    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : project_sm_src
+    externalProject               : project_sm_src (DefaultExternalProject)
+        name                          : project_sm_src
+        qName                         : project_sm_src
+        version                       : unspecified
+        childProjects
+            app                           : :app (DefaultExternalProject)
+                name                          : app
+                qName                         : :app
+                group                         : project_sm_src
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>_sm_src/app
+                buildDir                      : <ROOT>_sm_src/app/build [-]
+                buildFile                     : <ROOT>_sm_src/app/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :app:testDebugUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :app:testReleaseUnitTest
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    androidApis                   : <empty>
+                    androidJacocoAnt              : <empty>
+                    androidJdkImage               : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    archives                      : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    - debugAabPublication         : <ROOT>_sm_src/app/build/outputs/bundle/debug/app-debug.aab [-]
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    - debugApkPublication         : <ROOT>_sm_src/app/build/outputs/apk-zips/debug/apks.zip [-]
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugReverseMetadataValues    : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugWearApp                  : <empty>
+                    debugWearBundling             : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintPublish                   : <empty>
+                    - releaseAabPublication       : <ROOT>_sm_src/app/build/outputs/bundle/release/app-release.aab [-]
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    - releaseApkPublication       : <ROOT>_sm_src/app/build/outputs/apk-zips/release/apks.zip [-]
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseReverseMetadataValues  : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseWearApp                : <empty>
+                    releaseWearBundling           : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testFixturesAnnotationProcessor         : <empty>
+                    testFixturesApi               : <empty>
+                    testFixturesCompileOnly       : <empty>
+                    testFixturesDebugAnnotationProcessor    : <empty>
+                    testFixturesDebugApi          : <empty>
+                    testFixturesDebugCompileOnly  : <empty>
+                    testFixturesDebugImplementation         : <empty>
+                    testFixturesDebugRuntimeOnly  : <empty>
+                    testFixturesDebugWearApp      : <empty>
+                    testFixturesImplementation    : <empty>
+                    testFixturesReleaseAnnotationProcessor  : <empty>
+                    testFixturesReleaseApi        : <empty>
+                    testFixturesReleaseCompileOnly          : <empty>
+                    testFixturesReleaseImplementation       : <empty>
+                    testFixturesReleaseRuntimeOnly          : <empty>
+                    testFixturesReleaseWearApp    : <empty>
+                    testFixturesRuntimeOnly       : <empty>
+                    testFixturesWearApp           : <empty>
+                    testImplementation            : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
+        projectDir                    : <ROOT>_sm_src
+        buildDir                      : <ROOT>_sm_src/build [-]
+        buildFile                     : <ROOT>_sm_src/build.gradle
+        externalSystemId              : GRADLE
+MODULE                        : project_sm_src.app
+    GradleModuleModel
+        agpVersion                    : 7.4.0-alpha09
+        gradlePath                    : :app
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>_sm_src/app/build.gradle
+        buildFilePath                 : <ROOT>_sm_src/app/build.gradle
+        rootFolderPath                : <ROOT>_sm_src
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
+        - gradlePlugins               : com.android.build.gradle.AppPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        runtimeMinSdk
+            ApiLevel                      : 19
+            ApiString                     : 19
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>_sm_src
+    BuildId                       : <ROOT>_sm_src
+    BuildName                     : :
+    ProjectPath                   : :app
+    ModelVersion                  : 7.4.0-alpha09
+    ProjectType                   : PROJECT_TYPE_APP
+    CompileTarget                 : android-<SDK_VERSION>
+    BuildFolder                   : <ROOT>_sm_src/app/build [-]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    IsBaseSplit                   : true
+    GroupId                       : project_sm_src
+    Namespace                     : google.simpleapplication
+    TestNamespace                 : google.simpleapplication.test
+    AaptOptions
+        NameSpacing                   : DISABLED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : false
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 1.8
+        TargetCompatibility           : 1.8
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : true
+        AestRClassConstantIds         : true
+        TransitiveRClasses            : true
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+    - basicVariant:               : debug
+        applicationId                 : google.simpleapplication
+        testApplicationId             : google.simpleapplication.test
+    - basicVariant:               : release
+        applicationId                 : google.simpleapplication
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+    ViewBindingOptions
+        Enabled                       : false
+    DependenciesInfo
+        IncludeInApk                  : true
+        IncludeInBundle               : true
+    DefaultConfig
+        ProductFlavor
+            Name                          : main
+            ApplicationId                 : google.simpleapplication
+            VersionCode                   : 1
+            VersionName                   : 1.0
+            MinSdkVersion
+                ApiLevel                      : 19
+                ApiString                     : 19
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            VectorDrawables
+                UseSupportLibrary             : false
+        SourceProvider
+            Name                          : main
+            Manifest                      : <ROOT>_sm_src/app/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>_sm_src/app/src/main/java
+            KotlinDirectories             : <ROOT>_sm_src/app/src/main/java
+            KotlinDirectories             : <ROOT>_sm_src/app/src/main/kotlin [-]
+            ResourcesDirectories          : <ROOT>_sm_src/app/src/main/resources [-]
+            AidlDirectories               : <ROOT>_sm_src/app/src/main/aidl [-]
+            RenderscriptDirectories       : <ROOT>_sm_src/app/src/main/rs [-]
+            ResDirectories                : <ROOT>_sm_src/app/src/main/res
+            AssetsDirectories             : <ROOT>_sm_src/app/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>_sm_src/app/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>_sm_src/app/src/main/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTest
+                    Manifest                      : <ROOT>_sm_src/app/src/androidTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>_sm_src/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/androidTest/kotlin [-]
+                    ResourcesDirectories          : <ROOT>_sm_src/app/src/androidTest/resources [-]
+                    AidlDirectories               : <ROOT>_sm_src/app/src/androidTest/aidl [-]
+                    RenderscriptDirectories       : <ROOT>_sm_src/app/src/androidTest/rs [-]
+                    ResDirectories                : <ROOT>_sm_src/app/src/androidTest/res [-]
+                    AssetsDirectories             : <ROOT>_sm_src/app/src/androidTest/assets [-]
+                    JniLibsDirectories            : <ROOT>_sm_src/app/src/androidTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>_sm_src/app/src/androidTest/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : test
+                    Manifest                      : <ROOT>_sm_src/app/src/test/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>_sm_src/app/src/test/java
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/test/java
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/test/kotlin [-]
+                    ResourcesDirectories          : <ROOT>_sm_src/app/src/test/resources [-]
+                    AidlDirectories               : <ROOT>_sm_src/app/src/test/aidl [-]
+                    RenderscriptDirectories       : <ROOT>_sm_src/app/src/test/rs [-]
+                    ResDirectories                : <ROOT>_sm_src/app/src/test/res [-]
+                    AssetsDirectories             : <ROOT>_sm_src/app/src/test/assets [-]
+                    JniLibsDirectories            : <ROOT>_sm_src/app/src/test/jniLibs [-]
+                    ShadersDirectories            : <ROOT>_sm_src/app/src/test/shaders [-]
+    BuildTypes
+        BuildType
+            Name                          : debug
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : debug
+            Manifest                      : <ROOT>_sm_src/app/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>_sm_src/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>_sm_src/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>_sm_src/app/src/debug/kotlin [-]
+            ResourcesDirectories          : <ROOT>_sm_src/app/src/debug/resources [-]
+            AidlDirectories               : <ROOT>_sm_src/app/src/debug/aidl [-]
+            RenderscriptDirectories       : <ROOT>_sm_src/app/src/debug/rs [-]
+            ResDirectories                : <ROOT>_sm_src/app/src/debug/res [-]
+            AssetsDirectories             : <ROOT>_sm_src/app/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>_sm_src/app/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>_sm_src/app/src/debug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestDebug
+                    Manifest                      : <ROOT>_sm_src/app/src/androidTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>_sm_src/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>_sm_src/app/src/androidTestDebug/resources [-]
+                    AidlDirectories               : <ROOT>_sm_src/app/src/androidTestDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>_sm_src/app/src/androidTestDebug/rs [-]
+                    ResDirectories                : <ROOT>_sm_src/app/src/androidTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>_sm_src/app/src/androidTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>_sm_src/app/src/androidTestDebug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testDebug
+                    Manifest                      : <ROOT>_sm_src/app/src/testDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>_sm_src/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/testDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>_sm_src/app/src/testDebug/resources [-]
+                    AidlDirectories               : <ROOT>_sm_src/app/src/testDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>_sm_src/app/src/testDebug/rs [-]
+                    ResDirectories                : <ROOT>_sm_src/app/src/testDebug/res [-]
+                    AssetsDirectories             : <ROOT>_sm_src/app/src/testDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>_sm_src/app/src/testDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>_sm_src/app/src/testDebug/shaders [-]
+        BuildType
+            Name                          : release
+            ProguardFiles                 : <ROOT>_sm_src/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.0-alpha09 [-]
+            ProguardFiles                 : <ROOT>_sm_src/app/proguard-rules.pro
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : release
+            Manifest                      : <ROOT>_sm_src/app/src/release/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>_sm_src/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>_sm_src/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>_sm_src/app/src/release/kotlin [-]
+            ResourcesDirectories          : <ROOT>_sm_src/app/src/release/resources [-]
+            AidlDirectories               : <ROOT>_sm_src/app/src/release/aidl [-]
+            RenderscriptDirectories       : <ROOT>_sm_src/app/src/release/rs [-]
+            ResDirectories                : <ROOT>_sm_src/app/src/release/res [-]
+            AssetsDirectories             : <ROOT>_sm_src/app/src/release/assets [-]
+            JniLibsDirectories            : <ROOT>_sm_src/app/src/release/jniLibs [-]
+            ShadersDirectories            : <ROOT>_sm_src/app/src/release/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testRelease
+                    Manifest                      : <ROOT>_sm_src/app/src/testRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>_sm_src/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>_sm_src/app/src/testRelease/kotlin [-]
+                    ResourcesDirectories          : <ROOT>_sm_src/app/src/testRelease/resources [-]
+                    AidlDirectories               : <ROOT>_sm_src/app/src/testRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>_sm_src/app/src/testRelease/rs [-]
+                    ResDirectories                : <ROOT>_sm_src/app/src/testRelease/res [-]
+                    AssetsDirectories             : <ROOT>_sm_src/app/src/testRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>_sm_src/app/src/testRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>_sm_src/app/src/testRelease/shaders [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>_sm_src/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                BundleTaskName                : bundleDebug
+                BundleTaskOutputListingFile   : <ROOT>_sm_src/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
+                ApkFromBundleTaskName         : extractApksForDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>_sm_src/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                AssembleTaskOutputListingFile : <ROOT>_sm_src/app/build/intermediates/apk_ide_redirect_file/release/redirect.txt [-]
+                BundleTaskName                : bundleRelease
+                BundleTaskOutputListingFile   : <ROOT>_sm_src/app/build/intermediates/bundle_ide_redirect_file/release/redirect.txt [-]
+                ApkFromBundleTaskName         : extractApksForRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>_sm_src/app/build/intermediates/apk_from_bundle_ide_redirect_file/release/redirect.txt [-]
+    IdeVariants
+        IdeVariant
+            Name                          : debug
+            BuildType                     : debug
+            DisplayName                   : debug
+            InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 19
+                ApiString                     : 19
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            VersionCode                   : 1
+            VersionNameWithSuffix         : 1.0
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileDebugSources
+                AssembleTaskName              : assembleDebug
+                IsTestArtifact                : false
+                IdeSetupTaskNames             : generateDebugSources
+                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/aidl_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/javac/debug/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/aidl [-]
+                                artifact                      : <M2>/android/arch/core/runtime/1.1.1/runtime-1.1.1.aar
+                                artifactAddress               : android.arch.core:runtime:1.1.1@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/R.txt
+                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/aidl [-]
+                                artifact                      : <M2>/android/arch/lifecycle/livedata-core/1.1.1/livedata-core-1.1.1.aar
+                                artifactAddress               : android.arch.lifecycle:livedata-core:1.1.1@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/R.txt
+                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/aidl [-]
+                                artifact                      : <M2>/android/arch/lifecycle/livedata/1.1.1/livedata-1.1.1.aar
+                                artifactAddress               : android.arch.lifecycle:livedata:1.1.1@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/R.txt
+                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/aidl [-]
+                                artifact                      : <M2>/android/arch/lifecycle/runtime/1.1.1/runtime-1.1.1.aar
+                                artifactAddress               : android.arch.lifecycle:runtime:1.1.1@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/R.txt
+                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/aidl [-]
+                                artifact                      : <M2>/android/arch/lifecycle/viewmodel/1.1.1/viewmodel-1.1.1.aar
+                                artifactAddress               : android.arch.lifecycle:viewmodel:1.1.1@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/R.txt
+                        - androidLibraries            : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/aidl [-]
+                                artifact                      : <M2>/com/android/support/constraint/constraint-layout/1.0.2/constraint-layout-1.0.2.aar
+                                artifactAddress               : com.android.support.constraint:constraint-layout:1.0.2@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/R.txt
+                        - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/animated-vector-drawable/28.0.0/animated-vector-drawable-28.0.0.aar
+                                artifactAddress               : com.android.support:animated-vector-drawable:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/appcompat-v7/28.0.0/appcompat-v7-28.0.0.aar
+                                artifactAddress               : com.android.support:appcompat-v7:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/annotations.zip
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/public.txt
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/asynclayoutinflater/28.0.0/asynclayoutinflater-28.0.0.aar
+                                artifactAddress               : com.android.support:asynclayoutinflater:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/coordinatorlayout/28.0.0/coordinatorlayout-28.0.0.aar
+                                artifactAddress               : com.android.support:coordinatorlayout:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/annotations.zip
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/public.txt
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/cursoradapter/28.0.0/cursoradapter-28.0.0.aar
+                                artifactAddress               : com.android.support:cursoradapter:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/customview/28.0.0/customview-28.0.0.aar
+                                artifactAddress               : com.android.support:customview:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/documentfile/28.0.0/documentfile-28.0.0.aar
+                                artifactAddress               : com.android.support:documentfile:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/drawerlayout/28.0.0/drawerlayout-28.0.0.aar
+                                artifactAddress               : com.android.support:drawerlayout:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/annotations.zip
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/interpolator/28.0.0/interpolator-28.0.0.aar
+                                artifactAddress               : com.android.support:interpolator:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/loader/28.0.0/loader-28.0.0.aar
+                                artifactAddress               : com.android.support:loader:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/localbroadcastmanager/28.0.0/localbroadcastmanager-28.0.0.aar
+                                artifactAddress               : com.android.support:localbroadcastmanager:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/print/28.0.0/print-28.0.0.aar
+                                artifactAddress               : com.android.support:print:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/annotations.zip
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/slidingpanelayout/28.0.0/slidingpanelayout-28.0.0.aar
+                                artifactAddress               : com.android.support:slidingpanelayout:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/aidl
+                                artifact                      : <M2>/com/android/support/support-compat/28.0.0/support-compat-28.0.0.aar
+                                artifactAddress               : com.android.support:support-compat:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/annotations.zip
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/public.txt
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/support-core-ui/28.0.0/support-core-ui-28.0.0.aar
+                                artifactAddress               : com.android.support:support-core-ui:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/support-core-utils/28.0.0/support-core-utils-28.0.0.aar
+                                artifactAddress               : com.android.support:support-core-utils:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/support-fragment/28.0.0/support-fragment-28.0.0.aar
+                                artifactAddress               : com.android.support:support-fragment:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/annotations.zip
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/support-vector-drawable/28.0.0/support-vector-drawable-28.0.0.aar
+                                artifactAddress               : com.android.support:support-vector-drawable:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/swiperefreshlayout/28.0.0/swiperefreshlayout-28.0.0.aar
+                                artifactAddress               : com.android.support:swiperefreshlayout:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/annotations.zip
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/aidl
+                                artifact                      : <M2>/com/android/support/versionedparcelable/28.0.0/versionedparcelable-28.0.0.aar
+                                artifactAddress               : com.android.support:versionedparcelable:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/R.txt
+                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/aidl [-]
+                                artifact                      : <M2>/com/android/support/viewpager/28.0.0/viewpager-28.0.0.aar
+                                artifactAddress               : com.android.support:viewpager:28.0.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
+                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
+                                artifactAddress               : android.arch.core:common:1.1.1@jar
+                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
+                                artifactAddress               : android.arch.lifecycle:common:1.1.1@jar
+                        - javaLibraries               : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                                artifactAddress               : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
+                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                                artifactAddress               : com.android.support:collections:28.0.0@jar
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                                artifactAddress               : com.android.support:support-annotations:28.0.0@jar
+                        - javaLibraries               : com.google.guava:guava:19.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.google.guava:guava:19.0 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/com/google/guava/guava/19.0/guava-19.0.jar
+                                artifactAddress               : com.google.guava:guava:19.0@jar
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.google.guava:guava:19.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.google.guava:guava:19.0 (IdeJavaLibraryImpl) (*seen*)
+                ApplicationId                 : google.simpleapplication
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    AssembleTaskOutputListingFile : <ROOT>_sm_src/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                    BundleTaskName                : bundleDebug
+                    BundleTaskOutputListingFile   : <ROOT>_sm_src/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
+                    ApkFromBundleTaskName         : extractApksForDebug
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>_sm_src/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/resValues/debug [-]
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>_sm_src/app/build/intermediates/variant_model/debug/variant_model.json [-]
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileDebugAndroidTestSources
+                AssembleTaskName              : assembleDebugAndroidTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : generateDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/javac/debugAndroidTest/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test.espresso:espresso-core:3.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test.espresso:espresso-core:3.0.2@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/aidl [-]
+                                artifact                      : <M2>/com/android/support/test/espresso/espresso-core/3.0.2/espresso-core-3.0.2.aar
+                                artifactAddress               : com.android.support.test.espresso:espresso-core:3.0.2@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/R.txt
+                        - androidLibraries            : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/aidl [-]
+                                artifact                      : <M2>/com/android/support/test/espresso/espresso-idling-resource/3.0.2/espresso-idling-resource-3.0.2.aar
+                                artifactAddress               : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/R.txt
+                        - androidLibraries            : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/aidl [-]
+                                artifact                      : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
+                                artifactAddress               : com.android.support.test:monitor:1.0.2@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/R.txt
+                        - androidLibraries            : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/aidl [-]
+                                artifact                      : <M2>/com/android/support/test/runner/1.0.2/runner-1.0.2.aar
+                                artifactAddress               : com.android.support.test:runner:1.0.2@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/R.txt
+                        - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
+                                artifactAddress               : com.google.code.findbugs:jsr305:2.0.1@jar
+                        - javaLibraries               : com.google.guava:guava:19.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.google.guava:guava:19.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.squareup:javawriter:2.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
+                                artifactAddress               : com.squareup:javawriter:2.1.1@jar
+                        - javaLibraries               : javax.inject:javax.inject:1 (IdeJavaLibraryDependencyImpl)
+                            target                        : javax.inject:javax.inject:1 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
+                                artifactAddress               : javax.inject:javax.inject:1@jar
+                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
+                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
+                                artifactAddress               : junit:junit:4.12@jar
+                        - javaLibraries               : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
+                                artifactAddress               : net.sf.kxml:kxml2:2.3.0@jar
+                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+                                artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+                        - javaLibraries               : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
+                                artifactAddress               : org.hamcrest:hamcrest-integration:1.3@jar
+                        - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
+                                artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
+                        - moduleDependencies          : <ROOT>_sm_src::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>_sm_src::app@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>_sm_src
+                                projectPath                   : :app
+                                sourceSet                     : MAIN
+                                variant                       : debug
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : com.android.support.test.espresso:espresso-core:3.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test.espresso:espresso-core:3.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.squareup:javawriter:2.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : javax.inject:javax.inject:1 (IdeJavaLibraryDependencyImpl)
+                            target                        : javax.inject:javax.inject:1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
+                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+                ProvidedDependencies
+                    - provided                    : android.arch.core:common:1.1.1
+                    - provided                    : android.arch.core:runtime:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:common:1.1.1
+                    - provided                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:livedata:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:runtime:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:viewmodel:1.1.1@aar
+                    - provided                    : com.android.support.constraint:constraint-layout-solver:1.0.2
+                    - provided                    : com.android.support.constraint:constraint-layout:1.0.2@aar
+                    - provided                    : com.android.support:animated-vector-drawable:28.0.0@aar
+                    - provided                    : com.android.support:appcompat-v7:28.0.0@aar
+                    - provided                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                    - provided                    : com.android.support:collections:28.0.0
+                    - provided                    : com.android.support:coordinatorlayout:28.0.0@aar
+                    - provided                    : com.android.support:cursoradapter:28.0.0@aar
+                    - provided                    : com.android.support:customview:28.0.0@aar
+                    - provided                    : com.android.support:documentfile:28.0.0@aar
+                    - provided                    : com.android.support:drawerlayout:28.0.0@aar
+                    - provided                    : com.android.support:interpolator:28.0.0@aar
+                    - provided                    : com.android.support:loader:28.0.0@aar
+                    - provided                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                    - provided                    : com.android.support:print:28.0.0@aar
+                    - provided                    : com.android.support:slidingpanelayout:28.0.0@aar
+                    - provided                    : com.android.support:support-compat:28.0.0@aar
+                    - provided                    : com.android.support:support-core-ui:28.0.0@aar
+                    - provided                    : com.android.support:support-core-utils:28.0.0@aar
+                    - provided                    : com.android.support:support-fragment:28.0.0@aar
+                    - provided                    : com.android.support:support-vector-drawable:28.0.0@aar
+                    - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                    - provided                    : com.android.support:versionedparcelable:28.0.0@aar
+                    - provided                    : com.android.support:viewpager:28.0.0@aar
+                    - provided                    : com.google.guava:guava:19.0
+                ApplicationId                 : google.simpleapplication.test
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>_sm_src/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/resValues/androidTest/debug [-]
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+            UnitTestArtifact
+                Name                          : UNIT_TEST
+                CompileTaskName               : compileDebugUnitTestSources
+                AssembleTaskName              : assembleDebugUnitTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : createMockableJar
+                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/javac/debugUnitTest/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.google.guava:guava:19.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.google.guava:guava:19.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
+                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>_sm_src::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>_sm_src::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support.constraint:constraint-layout-solver:1.0.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.google.guava:guava:19.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.google.guava:guava:19.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
+                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>_sm_src::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>_sm_src::app@debug (IdeModuleLibraryImpl) (*seen*)
+                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    externalProject               : :app (DefaultExternalProject) (*seen*)
+MODULE                        : project_sm_src.app.androidTest
+MODULE                        : project_sm_src.app.main
+MODULE                        : project_sm_src.app.unitTest
