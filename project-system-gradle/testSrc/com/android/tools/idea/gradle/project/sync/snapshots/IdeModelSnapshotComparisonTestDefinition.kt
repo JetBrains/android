@@ -29,8 +29,10 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT_V1
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
@@ -160,7 +162,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
     v2snapshots.assertIsEqualToSnapshot(dump)
     // Do not remove `return`.
     return when (agpVersion) {
-      AGP_CURRENT -> testV1vsV2(AGP_CURRENT_V1, AGP_CURRENT)
+      AGP_80 -> testV1vsV2(AGP_80_V1, AGP_80)
       AGP_72 -> testV1vsV2(AGP_72_V1, AGP_72)
       // Do not replace with when.
       AGP_32 -> Unit
@@ -172,7 +174,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       AGP_71 -> Unit
       AGP_72_V1 -> Unit
       AGP_73 -> Unit
-      AGP_CURRENT_V1 -> Unit
+      AGP_80_V1 -> Unit
     }
   }
 

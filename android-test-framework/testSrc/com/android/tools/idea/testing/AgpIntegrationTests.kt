@@ -17,7 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 
 /**
  * An AGP Version definition to be used in AGP integration tests.
@@ -55,11 +55,15 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_72("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2),
   AGP_73("7.3.0-rc01", gradleVersion = "7.4", modelVersion = ModelVersion.V2),
   // Must be last to represent the newest version.
-  AGP_CURRENT_V1(null, gradleVersion = null, modelVersion = ModelVersion.V1),
-  AGP_CURRENT(null, gradleVersion = null, modelVersion = ModelVersion.V2);
+  AGP_80_V1(null, gradleVersion = null, modelVersion = ModelVersion.V1),
+  AGP_80(null, gradleVersion = null, modelVersion = ModelVersion.V2);
 
   override fun toString(): String {
     return "Agp($agpVersion, g=$gradleVersion, k=$kotlinVersion, m=$modelVersion)"
+  }
+  companion object {
+    val AGP_CURRENT_V1 = AGP_80_V1
+    val AGP_CURRENT = AGP_80
   }
 }
 

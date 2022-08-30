@@ -23,7 +23,8 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT_V1
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.IntegrationTestEnvironment
@@ -520,8 +521,8 @@ private fun createEmptyGradleSettingsFile(projectRootPath: File) {
 }
 
 private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
-  AGP_CURRENT -> "_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1 -> "_NewAgp_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1 -> "_NewAgp_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_32 -> "_Agp_3.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_40 -> "_Agp_4.0_"
