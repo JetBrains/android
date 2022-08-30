@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging;
 import static com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging;
+import static com.android.utils.TraceUtils.getCurrentStack;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.concurrency.AndroidIoManager;
@@ -33,16 +34,19 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.util.Consumer;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -119,12 +123,28 @@ public class ResourceFolderRegistry implements Disposable {
   private static @NotNull ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
                                                                     @NotNull VirtualFile dir,
                                                                     @NotNull ResourceNamespace namespace) {
+    if (ResourceUpdateTracer.isTracingActive() &&
+        dir.getParent().getName().equals("main") && facet.getModule() != facet.getMainModule()) {
+      ResourceUpdateTracer.logDirect(() -> "Incorrect facet " + facet.getModule().getName() + " is associated with the " +
+                                           pathForLogging(dir) + " directory\n" + getCurrentStack());
+      Module module = facet.getModule();
+      ResourceUpdateTracer.logDirect(() -> "Content roots of " + module.getName() + ": " +
+                                           pathsForLogging(getContentRoots(module), module.getProject()));
+      Module mainModule = facet.getMainModule();
+      ResourceUpdateTracer.logDirect(() -> "Content roots of " + mainModule.getName() + ": " +
+                                           pathsForLogging(getContentRoots(mainModule), mainModule.getProject()));
+    }
+
     // Don't create a persistent cache in tests to avoid unnecessary overhead.
     Executor executor = ApplicationManager.getApplication().isUnitTestMode() ?
                         runnable -> {} : AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
     ResourceFolderRepositoryCachingData cachingData =
         ResourceFolderRepositoryFileCacheService.get().getCachingData(facet.getModule().getProject(), dir, executor);
     return ResourceFolderRepository.create(facet, dir, namespace, cachingData);
+  }
+
+  private static @NotNull List<VirtualFile> getContentRoots(@NotNull Module module) {
+    return Arrays.asList(ModuleRootManager.getInstance(module).getContentRoots());
   }
 
   public void reset() {
