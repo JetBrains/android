@@ -73,25 +73,6 @@ public class HeapAnalyzerTest {
     Assert.assertEquals(56, componentStats.get(0).getOwnedTotalSizeOfObjects());
   }
 
-  private static class TestTraverseChildProcessor extends HeapTraverseChildProcessor {
-    private static final Set<Class<?>> ALLOWED_CLASSES = Set.of(A.class, B.class, C.class, D.class, F.class, Class.class, Integer.class);
-
-    @Override
-    void processChildObjects(@Nullable final Object obj,
-                             @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
-                             @NotNull final FieldCache fieldCache) {
-      super.processChildObjects(obj, (Object value, HeapTraverseNode.RefWeight ownershipWeight) -> {
-        if (value == null) {
-          return;
-        }
-        if (!ALLOWED_CLASSES.contains(value.getClass())) {
-          return;
-        }
-        consumer.accept(value, ownershipWeight);
-      }, fieldCache);
-    }
-  }
-
   @Test
   public void testStaticFieldHigherOwnershipPriorityThanInstanceField() {
     ComponentsSet componentsSet = new ComponentsSet();
@@ -104,9 +85,9 @@ public class HeapAnalyzerTest {
     C c = new C();
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(new TestTraverseChildProcessor(), stats).walkObjects(MAX_DEPTH,
-                                                                                                      List.of(new A(new B()),
-                                                                                                              c.getClass())));
+                        new HeapSnapshotTraverse(new TestTraverseChildProcessor(stats), stats).walkObjects(MAX_DEPTH,
+                                                                                                           List.of(new A(new B()),
+                                                                                                                   c.getClass())));
 
     List<HeapSnapshotStatistics.HeapObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
@@ -118,6 +99,21 @@ public class HeapAnalyzerTest {
     Assert.assertEquals("C", componentStats.get(1).getComponentName());
     // C class object and boxed 0 static field
     Assert.assertEquals(2, componentStats.get(1).getOwnedObjectsNumber());
+  }
+
+  @Test
+  public void testTraverseMetadata() {
+    ComponentsSet componentsSet = new ComponentsSet();
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+    HeapSnapshotTraverse traverse = new HeapSnapshotTraverse(stats);
+
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        traverse.walkObjects(MAX_DEPTH, List.of(new A())));
+    Assert.assertEquals(stats.myMaxFieldsCacheSize, 7);
+    Assert.assertEquals(stats.myMaxObjectsQueueSize, 2);
+    Assert.assertEquals(stats.myEnumeratedGarbageCollectedObjects, 0);
+    Assert.assertEquals(stats.myUnsuccessfulFieldAccessCounter, 0);
+    Assert.assertEquals(stats.myHeapObjectCount, 3);
   }
 
   @Test
@@ -241,6 +237,29 @@ public class HeapAnalyzerTest {
 
     Assert.assertEquals(StatusCode.LOW_MEMORY,
                         traverse.walkObjects(MAX_DEPTH, List.of(new A())));
+  }
+
+  private static class TestTraverseChildProcessor extends HeapTraverseChildProcessor {
+    private static final Set<Class<?>> ALLOWED_CLASSES = Set.of(A.class, B.class, C.class, D.class, F.class, Class.class, Integer.class);
+
+    public TestTraverseChildProcessor(@NotNull HeapSnapshotStatistics statistics) {
+      super(statistics);
+    }
+
+    @Override
+    void processChildObjects(@Nullable final Object obj,
+                             @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
+                             @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
+      super.processChildObjects(obj, (Object value, HeapTraverseNode.RefWeight ownershipWeight) -> {
+        if (value == null) {
+          return;
+        }
+        if (!ALLOWED_CLASSES.contains(value.getClass())) {
+          return;
+        }
+        consumer.accept(value, ownershipWeight);
+      }, fieldCache);
+    }
   }
 
   private static class A {

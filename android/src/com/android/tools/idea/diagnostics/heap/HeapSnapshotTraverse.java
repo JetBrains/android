@@ -84,7 +84,7 @@ public final class HeapSnapshotTraverse {
   private int myLastObjectId = 0;
 
   public HeapSnapshotTraverse(@NotNull final HeapSnapshotStatistics statistics) {
-    this(new HeapTraverseChildProcessor(), statistics);
+    this(new HeapTraverseChildProcessor(statistics), statistics);
   }
 
   public HeapSnapshotTraverse(@NotNull final HeapTraverseChildProcessor childProcessor, @NotNull final HeapSnapshotStatistics statistics) {
@@ -114,7 +114,7 @@ public final class HeapSnapshotTraverse {
       if (!canTagObjects()) {
         return StatusCode.CANT_TAG_OBJECTS;
       }
-      final FieldCache fieldCache = new FieldCache();
+      final FieldCache fieldCache = new FieldCache(myStatistics);
 
       // enumerating heap objects in topological order
       for (Object root : startRoots) {
@@ -135,21 +135,26 @@ public final class HeapSnapshotTraverse {
         objectIdToTraverseNode.put(objectId, new HeapTraverseNode(root));
       }
 
+      myStatistics.setHeapObjectCount(myLastObjectId);
+
       // iterate over objects and update masks
       for (int i = myLastObjectId; i > 0; i--) {
         abortTraversalIfRequested();
+        myStatistics.updateMaxObjectsQueueSize(objectIdToTraverseNode.size());
         if (objectIdToTraverseNode.size() > MAX_ALLOWED_OBJECT_MAP_SIZE) {
           return StatusCode.OBJECTS_MAP_IS_TOO_BIG;
         }
         HeapTraverseNode node = objectIdToTraverseNode.get(i);
 
         if (node == null) {
+          myStatistics.incrementGarbageCollectedObjectsCounter();
           continue;
         }
         objectIdToTraverseNode.remove(i);
 
         final Object currentObject = node.getObject();
         if (currentObject == null) {
+          myStatistics.incrementGarbageCollectedObjectsCounter();
           continue;
         }
 
@@ -276,7 +281,7 @@ public final class HeapSnapshotTraverse {
   private void addStronglyReferencedChildrenToStack(@NotNull final Node node,
                                                     int maxDepth,
                                                     @NotNull final Deque<Node> stack,
-                                                    @NotNull final FieldCache fieldCache) {
+                                                    @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
     if (node.myDepth >= maxDepth) {
       return;
     }
@@ -354,7 +359,7 @@ public final class HeapSnapshotTraverse {
   private void propagateComponentMask(@NotNull final Object parentObj,
                                       @NotNull final HeapTraverseNode parentNode,
                                       final Map<Integer, HeapTraverseNode> objectIdToTraverseNode,
-                                      @NotNull final FieldCache fieldCache) {
+                                      @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
     myHeapTraverseChildProcessor.processChildObjects(parentObj, (Object value, HeapTraverseNode.RefWeight ownershipWeight) -> {
       if (value == null) {
         return;

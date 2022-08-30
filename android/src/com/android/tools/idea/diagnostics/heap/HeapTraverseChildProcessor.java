@@ -37,10 +37,13 @@ public class HeapTraverseChildProcessor {
   @NotNull
   private final Object myDisposerTree;
   private final boolean myShouldUseDisposerTreeReferences;
+  @NotNull
+  private final HeapSnapshotStatistics myStatistics;
 
-  public HeapTraverseChildProcessor() {
+  public HeapTraverseChildProcessor(@NotNull final HeapSnapshotStatistics statistics) {
     myDisposerTree = Disposer.getTree();
     myShouldUseDisposerTreeReferences = StudioFlags.USE_DISPOSER_TREE_REFERENCES.get();
+    myStatistics = statistics;
   }
 
   /**
@@ -52,7 +55,7 @@ public class HeapTraverseChildProcessor {
    */
   void processChildObjects(@Nullable final Object obj,
                            @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
-                           @NotNull final FieldCache fieldCache) {
+                           @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
     if (obj == null) {
       return;
     }
@@ -73,11 +76,11 @@ public class HeapTraverseChildProcessor {
       Object value;
       try {
         value = field.get(obj);
+        consumer.accept(value, HeapTraverseNode.RefWeight.INSTANCE_FIELD);
       }
       catch (IllegalArgumentException | IllegalAccessException e) {
-        throw new RuntimeException(e);
+        myStatistics.incrementUnsuccessfulFieldAccessCounter();
       }
-      consumer.accept(value, HeapTraverseNode.RefWeight.INSTANCE_FIELD);
     }
 
     // JVMTI_HEAP_REFERENCE_ARRAY_ELEMENT
@@ -101,6 +104,7 @@ public class HeapTraverseChildProcessor {
           consumer.accept(value, HeapTraverseNode.RefWeight.STATIC_FIELD);
         }
         catch (IllegalAccessException ignored) {
+          myStatistics.incrementUnsuccessfulFieldAccessCounter();
         }
       }
     }

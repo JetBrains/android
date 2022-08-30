@@ -32,14 +32,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class FieldCache {
+
+  private static final int MAX_ALLOWED_CACHE_SIZE = 1_000_000;
+
   @NotNull
   private final Map<Class<?>, Field[]> myStaticFieldsCache;
   @NotNull
   private final Map<Class<?>, Field[]> myInstanceFieldsCache;
+  @NotNull
+  private final HeapSnapshotStatistics myStatistics;
+  private int myCacheSize = 0;
 
-  public FieldCache() {
+  public FieldCache(@NotNull final HeapSnapshotStatistics statistics) {
     myStaticFieldsCache = new Object2ObjectOpenCustomHashMap<>(CanonicalObjectStrategy.INSTANCE);
     myInstanceFieldsCache = new Object2ObjectOpenCustomHashMap<>(CanonicalObjectStrategy.INSTANCE);
+    myStatistics = statistics;
   }
 
   static final class CanonicalObjectStrategy<T> implements Hash.Strategy<T> {
@@ -56,7 +63,8 @@ public final class FieldCache {
     }
   }
 
-  private Field[] getFieldsFromCacheOrUpdateCaches(@NotNull Class<?> aClass, @NotNull final Map<Class<?>, Field[]> cache) {
+  private Field[] getFieldsFromCacheOrUpdateCaches(@NotNull Class<?> aClass, @NotNull final Map<Class<?>, Field[]> cache)
+    throws HeapSnapshotTraverseException {
     Field[] cached = cache.get(aClass);
 
     if (cached != null) {
@@ -74,7 +82,8 @@ public final class FieldCache {
         if (isPrimitive(type)) continue; // unable to hold references, skip
         if ((declaredField.getModifiers() & Modifier.STATIC) != 0) {
           staticFields.add(declaredField);
-        } else {
+        }
+        else {
           instanceFields.add(declaredField);
         }
       }
@@ -86,7 +95,13 @@ public final class FieldCache {
       }
 
       myInstanceFieldsCache.put(aClass, instanceFields.isEmpty() ? EMPTY_FIELD_ARRAY : instanceFields.toArray(new Field[0]));
+      myCacheSize += instanceFields.size();
       myStaticFieldsCache.put(aClass, staticFields.isEmpty() ? EMPTY_FIELD_ARRAY : staticFields.toArray(new Field[0]));
+      myCacheSize += staticFields.size();
+      myStatistics.updateMaxFieldsCacheSize(myCacheSize);
+      if (myCacheSize > MAX_ALLOWED_CACHE_SIZE) {
+        throw new HeapSnapshotTraverseException(StatusCode.CLASS_FIELDS_CACHE_IS_TOO_BIG);
+      }
     }
     catch (IncompatibleClassChangeError | NoClassDefFoundError | SecurityException | InaccessibleObjectException e) {
       // this exception may be thrown because there are two different versions of org.objectweb.asm.tree.ClassNode from different plugins
@@ -96,11 +111,11 @@ public final class FieldCache {
     return cache.get(aClass);
   }
 
-  public Field[] getInstanceFields(@NotNull Class<?> aClass) {
+  public Field[] getInstanceFields(@NotNull Class<?> aClass) throws HeapSnapshotTraverseException {
     return getFieldsFromCacheOrUpdateCaches(aClass, myInstanceFieldsCache);
   }
 
-  public Field[] getStaticFields(@NotNull Class<?> aClass) {
+  public Field[] getStaticFields(@NotNull Class<?> aClass) throws HeapSnapshotTraverseException {
     return getFieldsFromCacheOrUpdateCaches(aClass, myStaticFieldsCache);
   }
 }

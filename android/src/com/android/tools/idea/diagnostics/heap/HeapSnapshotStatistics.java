@@ -40,6 +40,12 @@ public final class HeapSnapshotStatistics {
   private final Int2ObjectMap<HeapObjectsStatistics> myMaskToSharedComponentStats = new Int2ObjectOpenHashMap<>();
   @NotNull
   private final ComponentsSet myComponentsSet;
+  int myMaxFieldsCacheSize = 0;
+  int myMaxObjectsQueueSize = 0;
+  // number of objects that were enumerated during the first traverse, but GCed after that and were not reached during the second pass
+  int myEnumeratedGarbageCollectedObjects = 0;
+  int myUnsuccessfulFieldAccessCounter = 0;
+  int myHeapObjectCount = 0;
 
   public HeapSnapshotStatistics(@NotNull final ComponentsSet componentSet) {
     myComponentsSet = componentSet;
@@ -102,6 +108,26 @@ public final class HeapSnapshotStatistics {
   @NotNull
   public ComponentsSet getComponentsSet() {
     return myComponentsSet;
+  }
+
+  public void updateMaxFieldsCacheSize(int currentFieldSize) {
+    myMaxFieldsCacheSize = Math.max(myMaxFieldsCacheSize, currentFieldSize);
+  }
+
+  public void updateMaxObjectsQueueSize(int currentObjectsQueueSize) {
+    myMaxObjectsQueueSize = Math.max(myMaxObjectsQueueSize, currentObjectsQueueSize);
+  }
+
+  public void incrementGarbageCollectedObjectsCounter() {
+    myEnumeratedGarbageCollectedObjects++;
+  }
+
+  public void incrementUnsuccessfulFieldAccessCounter() {
+    myUnsuccessfulFieldAccessCounter++;
+  }
+
+  public void setHeapObjectCount(int heapObjectCount) {
+    myHeapObjectCount = heapObjectCount;
   }
 
   static class HeapObjectsStatistics {
