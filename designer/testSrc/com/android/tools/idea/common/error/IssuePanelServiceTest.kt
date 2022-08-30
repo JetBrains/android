@@ -21,10 +21,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
@@ -34,7 +32,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -63,6 +60,7 @@ class IssuePanelServiceTest {
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val contentManager = toolWindow.contentManager
     val content = contentManager.factory.createContent(null, "Current File", true).apply {
+      tabName = IssuePanelService.Tab.CURRENT_FILE.tabName
       isCloseable = false
     }
     contentManager.addContent(content)
@@ -286,6 +284,28 @@ class IssuePanelServiceTest {
     // Hide issue panel will lose the focus because the component is no longer visible.
     service.setSharedIssuePanelVisibility(false)
     assertFalse(window.isFocused())
+  }
+
+  @Test
+  fun testSetIssuePanelVisibility() {
+    val window = toolWindow as TestToolWindow
+    val contentManager = window.contentManager
+    val additionalContent = contentManager.factory.createContent(null, "Additional Content", false)
+      .apply { isCloseable = false }
+    window.hide()
+    contentManager.setSelectedContent(additionalContent)
+
+    service.setIssuePanelVisibility(true, null)
+    assertTrue(window.isVisible)
+    assertEquals(additionalContent, window.contentManager.selectedContent)
+
+    service.setIssuePanelVisibility(false, null)
+    assertFalse(window.isVisible)
+    assertEquals(additionalContent, window.contentManager.selectedContent)
+
+    service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
+    assertTrue(window.isVisible)
+    assertEquals(contentManager.selectedContent!!.tabName, IssuePanelService.Tab.CURRENT_FILE.tabName)
   }
 }
 

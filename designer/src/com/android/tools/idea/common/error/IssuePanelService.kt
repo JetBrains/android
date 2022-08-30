@@ -56,7 +56,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import javax.swing.event.TreeModelEvent
-import javax.swing.event.TreeModelListener
 
 private const val DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME = "Designer"
 
@@ -130,6 +129,7 @@ class IssuePanelService(private val project: Project) {
 
       sharedIssuePanel = issuePanel
       contentFactory.createContent(issuePanel.getComponent(), "Design Issue", true).apply {
+        tabName = Tab.DESIGN_TOOLS.tabName
         isPinnable = false
         sharedIssueTab = this
         isCloseable = false
@@ -257,6 +257,28 @@ class IssuePanelService(private val project: Project) {
       return isSharedIssueTabShowing(sharedIssueTab)
     }
     return surface?.issuePanel?.isMinimized?.not() ?: false
+  }
+
+  /**
+   * Set the visibility of IJ's problems pane and change the selected tab to the [selectedTab]. If [selectedTab] is not given or not
+   * found, only the visibility of problems pane is changed.
+   * @see setSharedIssuePanelVisibility
+   */
+  fun setIssuePanelVisibility(visible: Boolean, selectedTab: Tab?) {
+    if (selectedTab == Tab.DESIGN_TOOLS) {
+      setSharedIssuePanelVisibility(visible)
+      return
+    }
+    val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
+    val contentManager = problemsViewPanel.contentManager
+    val tab = selectedTab?.tabName?.let { contentManager.findContent(it) }
+    val runnable: Runnable? = if (tab != null) Runnable { contentManager.setSelectedContent(tab) } else null
+    if (visible) {
+      problemsViewPanel.show(runnable)
+    }
+    else {
+      problemsViewPanel.hide(runnable)
+    }
   }
 
   /**
@@ -473,6 +495,16 @@ class IssuePanelService(private val project: Project) {
     fun getInstance(project: Project): IssuePanelService = project.getService(IssuePanelService::class.java)
 
     val SELECTED_ISSUES = DataKey.create<List<Issue>>(DesignerCommonIssuePanel::class.java.name + "_selectedIssues")
+  }
+
+  /**
+   * List of the possible tabs of Problems pane. This is used by [setIssuePanelVisibility] to assign the selected tab after changing the
+   * visibility of problems pane.
+   */
+  enum class Tab(val tabName: String) {
+    CURRENT_FILE("Current File"),
+    PROJECT_ERRORS("Project Errors"),
+    DESIGN_TOOLS("Designer");
   }
 }
 
