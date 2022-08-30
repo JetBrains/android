@@ -221,11 +221,8 @@ iml_test(
     data = compose_preview_data,
     module = ":intellij.android.compose-designer.integration",
     tags_linux = ["block-network"],
-    tags_mac = ["manual"],  # Missing Maven dependency: b/243445943
-    tags_windows = [
-        "block-network",
-        "manual",  # Missing Maven dependency: b/243445943
-    ],
+    tags_mac = [],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.compose.ComposePreviewKotlin",
 )
 
