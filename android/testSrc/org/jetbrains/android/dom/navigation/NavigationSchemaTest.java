@@ -256,7 +256,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     updateContent(navigator, newContent);
     WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
     DumbService dumbService = DumbService.getInstance(getProject());
-    dumbService.queueTask(new UnindexedFilesUpdater(getProject()));
+    new UnindexedFilesUpdater(getProject()).queue(getProject());
     dumbService.completeJustSubmittedTasks();
     assertEquals(doesValidate, schema.quickValidate());
   }
@@ -298,7 +298,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(getProject(), () -> navigator.getContainingFile().delete());
     WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
     DumbService dumbService = DumbService.getInstance(getProject());
-    dumbService.queueTask(new UnindexedFilesUpdater(getProject()));
+    new UnindexedFilesUpdater(getProject()).queue(getProject());
     dumbService.completeJustSubmittedTasks();
 
     assertFalse(schema.quickValidate());
