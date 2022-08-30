@@ -40,89 +40,23 @@ import org.jetbrains.annotations.NotNull;
 final class ProcessManager implements IDeviceChangeListener {
   private Map<@NotNull Key, @NotNull State> myKeyToStateMap;
   private final @NotNull EventListenerList myListeners;
-  private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
+
   private final @NotNull NewSetKeyToStateMapFutureCallback myNewSetKeyToStateMapFutureCallback;
+  private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
 
   @UiThread
   ProcessManager() {
-    this(AvdManagerConnection::getDefaultAvdManagerConnection, ProcessManager::newSetKeyToStateMapFutureCallback);
+    this(ProcessManager::newSetKeyToStateMapFutureCallback, AvdManagerConnection::getDefaultAvdManagerConnection);
   }
 
   @UiThread
   @VisibleForTesting
-  ProcessManager(@NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
-                 @NotNull NewSetKeyToStateMapFutureCallback newSetKeyToStateMapFutureCallback) {
+  ProcessManager(@NotNull NewSetKeyToStateMapFutureCallback newSetKeyToStateMapFutureCallback,
+                 @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection) {
     myListeners = new EventListenerList();
-    myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
+
     myNewSetKeyToStateMapFutureCallback = newSetKeyToStateMapFutureCallback;
-  }
-
-  @VisibleForTesting
-  interface NewSetKeyToStateMapFutureCallback {
-    @NotNull FutureCallback<@NotNull Map<@NotNull Key, @NotNull State>> apply(@NotNull ProcessManager manager);
-  }
-
-  @UiThread
-  void addProcessManagerListener(@NotNull ProcessManagerListener listener) {
-    myListeners.add(ProcessManagerListener.class, listener);
-  }
-
-  @Override
-  public void deviceConnected(@NotNull IDevice device) {
-  }
-
-  @Override
-  public void deviceDisconnected(@NotNull IDevice device) {
-  }
-
-  /**
-   * Called by the device list monitor and the device client monitor threads
-   */
-  @WorkerThread
-  @Override
-  public void deviceChanged(@NotNull IDevice device, int mask) {
-    if (!device.isEmulator()) {
-      return;
-    }
-
-    if ((mask & IDevice.CHANGE_STATE) == 0) {
-      return;
-    }
-
-    DeviceState state = device.getState();
-
-    if (state == null) {
-      return;
-    }
-
-    switch (state) {
-      case OFFLINE:
-      case ONLINE:
-        init();
-        break;
-      default:
-        break;
-    }
-  }
-
-  /**
-   * Called by the event dispatch and the device list monitor threads
-   */
-  @AnyThread
-  void init() {
-    ListenableFuture<Map<Key, State>> future = Futures.submit(this::collectKeyToStateMap, AppExecutorUtil.getAppExecutorService());
-    Futures.addCallback(future, myNewSetKeyToStateMapFutureCallback.apply(this), EdtExecutorService.getInstance());
-  }
-
-  /**
-   * Called by an application pool thread
-   */
-  @WorkerThread
-  private @NotNull Map<@NotNull Key, @NotNull State> collectKeyToStateMap() {
-    AvdManagerConnection connection = myGetDefaultAvdManagerConnection.get();
-
-    return connection.getAvds(true).stream()
-      .collect(Collectors.toMap(avd -> new VirtualDevicePath(avd.getId()), avd -> State.valueOf(connection.isAvdRunning(avd))));
+    myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
   }
 
   @UiThread
@@ -156,6 +90,36 @@ final class ProcessManager implements IDeviceChangeListener {
     }
   }
 
+  @UiThread
+  void addProcessManagerListener(@NotNull ProcessManagerListener listener) {
+    myListeners.add(ProcessManagerListener.class, listener);
+  }
+
+  /**
+   * Called by the event dispatch and the device list monitor threads
+   */
+  @AnyThread
+  void init() {
+    ListenableFuture<Map<Key, State>> future = Futures.submit(this::collectKeyToStateMap, AppExecutorUtil.getAppExecutorService());
+    Futures.addCallback(future, myNewSetKeyToStateMapFutureCallback.apply(this), EdtExecutorService.getInstance());
+  }
+
+  /**
+   * Called by an application pool thread
+   */
+  @WorkerThread
+  private @NotNull Map<@NotNull Key, @NotNull State> collectKeyToStateMap() {
+    AvdManagerConnection connection = myGetDefaultAvdManagerConnection.get();
+
+    return connection.getAvds(true).stream()
+      .collect(Collectors.toMap(avd -> new VirtualDevicePath(avd.getId()), avd -> State.valueOf(connection.isAvdRunning(avd))));
+  }
+
+  @VisibleForTesting
+  interface NewSetKeyToStateMapFutureCallback {
+    @NotNull FutureCallback<@NotNull Map<@NotNull Key, @NotNull State>> apply(@NotNull ProcessManager manager);
+  }
+
   enum State {
     STOPPED, LAUNCHED;
 
@@ -172,8 +136,46 @@ final class ProcessManager implements IDeviceChangeListener {
     }
   }
 
+  /**
+   * Called by the device list monitor and the device client monitor threads
+   */
+  @WorkerThread
+  @Override
+  public void deviceChanged(@NotNull IDevice device, int mask) {
+    if (!device.isEmulator()) {
+      return;
+    }
+
+    if ((mask & IDevice.CHANGE_STATE) == 0) {
+      return;
+    }
+
+    DeviceState state = device.getState();
+
+    if (state == null) {
+      return;
+    }
+
+    switch (state) {
+      case OFFLINE:
+      case ONLINE:
+        init();
+        break;
+      default:
+        break;
+    }
+  }
+
   @VisibleForTesting
   @NotNull Object getKeyToStateMap() {
     return myKeyToStateMap;
+  }
+
+  @Override
+  public void deviceConnected(@NotNull IDevice device) {
+  }
+
+  @Override
+  public void deviceDisconnected(@NotNull IDevice device) {
   }
 }

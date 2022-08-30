@@ -39,43 +39,29 @@ import org.mockito.Mockito;
 public final class ProcessManagerTest {
   private static final @NotNull Object KEY = TestVirtualDevices.newKey("Pixel_6_API_33");
 
+  private final @NotNull CountDownLatch myLatch;
   private final @NotNull AvdInfo myAvd;
   private final @NotNull AvdManagerConnection myConnection;
-  private final @NotNull CountDownLatch myLatch;
   private final @NotNull ProcessManagerListener myListener;
   private final @NotNull ProcessManager myManager;
 
   public ProcessManagerTest() {
+    myLatch = new CountDownLatch(1);
+
     myAvd = Mockito.mock(AvdInfo.class);
     Mockito.when(myAvd.getId()).thenReturn(KEY.toString());
 
     myConnection = Mockito.mock(AvdManagerConnection.class);
     Mockito.when(myConnection.getAvds(true)).thenReturn(List.of(myAvd));
 
-    myLatch = new CountDownLatch(1);
     myListener = Mockito.mock(ProcessManagerListener.class);
 
-    myManager = new ProcessManager(() -> myConnection, this::newSetKeyToStateMapFutureCallback);
+    myManager = new ProcessManager(this::newSetKeyToStateMapFutureCallback, () -> myConnection);
     myManager.addProcessManagerListener(myListener);
   }
 
-  @Test
-  public void deviceChanged() throws Exception {
-    // Arrange
-    IDevice device = Mockito.mock(IDevice.class);
-    Mockito.when(device.isEmulator()).thenReturn(true);
-    Mockito.when(device.getState()).thenReturn(DeviceState.ONLINE);
-
-    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
-
-    // Act
-    myManager.deviceChanged(device, IDevice.CHANGE_STATE);
-
-    // Assert
-    CountDownLatchAssert.await(myLatch);
-
-    Mockito.verify(myListener).allStatesChanged(new ProcessManagerEvent(myManager));
-    assertEquals(Map.of(KEY, State.LAUNCHED), myManager.getKeyToStateMap());
+  private @NotNull FutureCallback<@NotNull Map<@NotNull Key, @NotNull State>> newSetKeyToStateMapFutureCallback(@NotNull ProcessManager manager) {
+    return new CountDownLatchFutureCallback<>(ProcessManager.newSetKeyToStateMapFutureCallback(manager), myLatch);
   }
 
   @Test
@@ -105,7 +91,22 @@ public final class ProcessManagerTest {
     assertEquals(Map.of(KEY, State.STOPPED), myManager.getKeyToStateMap());
   }
 
-  private @NotNull FutureCallback<@NotNull Map<@NotNull Key, @NotNull State>> newSetKeyToStateMapFutureCallback(@NotNull ProcessManager manager) {
-    return new CountDownLatchFutureCallback<>(ProcessManager.newSetKeyToStateMapFutureCallback(manager), myLatch);
+  @Test
+  public void deviceChanged() throws Exception {
+    // Arrange
+    IDevice device = Mockito.mock(IDevice.class);
+    Mockito.when(device.isEmulator()).thenReturn(true);
+    Mockito.when(device.getState()).thenReturn(DeviceState.ONLINE);
+
+    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
+
+    // Act
+    myManager.deviceChanged(device, IDevice.CHANGE_STATE);
+
+    // Assert
+    CountDownLatchAssert.await(myLatch);
+
+    Mockito.verify(myListener).allStatesChanged(new ProcessManagerEvent(myManager));
+    assertEquals(Map.of(KEY, State.LAUNCHED), myManager.getKeyToStateMap());
   }
 }
