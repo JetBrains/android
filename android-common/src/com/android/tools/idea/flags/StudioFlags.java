@@ -1433,14 +1433,6 @@ public final class StudioFlags {
       "Use gutter icons rather than code highlight to display insights in the editor",
       true);
 
-  public static final Flag<Boolean> NEW_CRASHLYTICS_API_ENABLED =
-    Flag.create(
-      APP_INSIGHTS,
-      "enable.new.crashlytics.api",
-      "Enable new Crashlytics API",
-      "If enabled, new Crashlytics API is adopted.",
-      true);
-
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     Flag.create(
       APP_INSIGHTS,
