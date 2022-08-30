@@ -933,7 +933,7 @@
     <option name="using" hit="Run Android Instrumented Tests using Gradle." />
     <option name="testing" hit="Testing" />
   </configurable>
-  <configurable id="live.edit.configurable" configurable_name="Live Edit">
+  <configurable id="live.edit.configurable" configurable_name="Compose Live Edit">
     <option name="" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
     <option name="a" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
     <option name="and" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
@@ -1000,8 +1000,9 @@
     <option name="updates" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
     <option name="used" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
     <option name="work" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
-    <option name="edit" hit="Live Edit" />
-    <option name="live" hit="Live Edit" />
+    <option name="compose" hit="Compose Live Edit" />
+    <option name="edit" hit="Compose Live Edit" />
+    <option name="live" hit="Compose Live Edit" />
     <option name="edit" hit="Live Edit of literals" />
     <option name="literals" hit="Live Edit of literals" />
     <option name="live" hit="Live Edit of literals" />
