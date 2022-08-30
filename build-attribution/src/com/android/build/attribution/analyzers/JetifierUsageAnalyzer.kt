@@ -26,8 +26,9 @@ import com.android.utils.FileUtils
 import java.io.File
 
 const val CHECK_JETIFIER_TASK_NAME = "checkJetifier"
-fun checkJetifierResultFile(buildRequest: GradleBuildInvoker.Request): File = FileUtils.join(
-  getAgpAttributionFileDir(buildRequest),
+
+fun checkJetifierResultFile(buildRequestData: GradleBuildInvoker.Request.RequestData): File = FileUtils.join(
+  getAgpAttributionFileDir(buildRequestData),
   SdkConstants.FD_BUILD_ATTRIBUTION,
   "checkJetifierResult.json"
 )
@@ -50,7 +51,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
     enableJetifierFlagState = studioProvidedInfo.enableJetifierPropertyState
     useAndroidXFlagState = studioProvidedInfo.useAndroidXPropertyState
 
-    checkJetifierResultFile(studioProvidedInfo.buildRequestHolder.buildRequest).let {
+    checkJetifierResultFile(studioProvidedInfo.buildRequestHolder.buildRequest.data).let {
       if (it.exists()) {
         checkJetifierResult = CheckJetifierResult.load(it)
         lastCheckJetifierBuildTimestamp = System.currentTimeMillis()

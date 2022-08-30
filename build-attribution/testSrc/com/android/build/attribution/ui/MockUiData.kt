@@ -64,7 +64,7 @@ class MockUiData(
   val tasksList: List<TestTaskUiData> = emptyList()
 ) : BuildAttributionReportUiData {
   override val successfulBuild = true
-  override val buildRequest: GradleBuildInvoker.Request
+  override val buildRequestData: GradleBuildInvoker.Request.RequestData
     get() = throw UnsupportedOperationException("Should be overridden for tests requiring to access the request.")
   override var buildSummary = mockBuildOverviewData()
   override var criticalPathTasks = mockCriticalPathTasksUiData()

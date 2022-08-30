@@ -266,7 +266,8 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     val buildRequest = (myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl)
       .currentBuildRequest
 
-    ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project).scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest, true, {}, {})
+    ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project)
+      .scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest.data, true, {}, {})
 
     // test metrics sent
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
@@ -293,7 +294,8 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     val buildRequest = (myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl)
       .currentBuildRequest
 
-    ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project).scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest, true, {}, {})
+    ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project)
+      .scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest.data, true, {}, {})
 
     // test metrics sent
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }

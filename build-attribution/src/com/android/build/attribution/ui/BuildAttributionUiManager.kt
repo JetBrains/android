@@ -16,7 +16,6 @@
 package com.android.build.attribution.ui
 
 import com.android.annotations.concurrency.UiThread
-import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalyzerNotificationManager
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionWarningsFilter
@@ -38,8 +37,8 @@ import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.build.attribution.BuildAnalyzerStorageManager.Listener
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.ide.ui.LafManagerListener
@@ -125,7 +124,7 @@ class BuildAttributionUiManagerImpl(
 
   override fun showNewReport(){
     val buildResults = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
-    val reportUiData = BuildAttributionReportBuilder(buildResults, buildResults.getBuildFinishedTimestamp(), buildResults.getRequestHolder()).build()
+    val reportUiData = BuildAttributionReportBuilder(buildResults, buildResults.getBuildFinishedTimestamp(), buildResults.getBuildRequestData()).build()
     val buildSessionId = buildResults.getBuildSessionID()
     showNewReport(reportUiData, buildSessionId)
   }
@@ -157,7 +156,7 @@ class BuildAttributionUiManagerImpl(
     return object : BuildAttributionReportUiData {
       override val successfulBuild: Boolean
         get() = false
-      override val buildRequest: GradleBuildInvoker.Request
+      override val buildRequestData: GradleBuildInvoker.Request.RequestData
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val buildSummary: BuildSummary
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")

@@ -30,7 +30,6 @@ import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
-import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
@@ -38,11 +37,12 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import kotlinx.collections.immutable.toImmutableMap
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 data class BuildAnalysisResults(
-  private val requestHolder: BuildRequestHolder,
+  private val buildRequestData: GradleBuildInvoker.Request.RequestData,
   private val annotationProcessorAnalyzerResult: AnnotationProcessorsAnalyzer.Result,
   private val alwaysRunTasksAnalyzerResult: AlwaysRunTasksAnalyzer.Result,
   private val criticalPathAnalyzerResult: CriticalPathAnalyzer.Result,
@@ -56,8 +56,8 @@ data class BuildAnalysisResults(
   private val buildSessionID: String
 ) : BuildEventsAnalysisResult {
 
-  fun getRequestHolder() : BuildRequestHolder{
-    return requestHolder
+  fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData {
+    return buildRequestData
   }
 
   fun getBuildStartedTimestamp() : Long{

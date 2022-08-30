@@ -72,7 +72,7 @@ class BuildAttributionManagerImpl(
     val buildFinishedTimestamp = System.currentTimeMillis()
     val buildSessionId = UUID.randomUUID().toString()
     val buildRequestHolder = BuildRequestHolder(request)
-    val attributionFileDir = getAgpAttributionFileDir(request)
+    val attributionFileDir = getAgpAttributionFileDir(request.data)
     var agpVersion: GradleVersion? = null
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
@@ -112,7 +112,7 @@ class BuildAttributionManagerImpl(
   }
 
   override fun onBuildFailure(request: GradleBuildInvoker.Request) {
-    cleanup(getAgpAttributionFileDir(request))
+    cleanup(getAgpAttributionFileDir(request.data))
     project.invokeLaterIfNotDisposed {
       val buildSessionId = UUID.randomUUID().toString()
       BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->

@@ -249,7 +249,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           commandLineArguments.add(AndroidGradleSettings.createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true))
           addAndroidSupportVersionArg(commandLineArguments)
           if (enableBuildAttribution) {
-            val attributionFileDir = getAgpAttributionFileDir(myRequest)
+            val attributionFileDir = getAgpAttributionFileDir(myRequest.data)
             commandLineArguments.add(
               AndroidGradleSettings.createProjectProperty(
                 PROPERTY_ATTRIBUTION_FILE_LOCATION,

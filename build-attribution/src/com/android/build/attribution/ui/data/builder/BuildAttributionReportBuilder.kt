@@ -16,7 +16,6 @@
 package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
-import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TaskCategoryBuildData
@@ -43,7 +42,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 class BuildAttributionReportBuilder(
   val buildAnalysisResult: BuildEventsAnalysisResult,
   val buildFinishedTimestamp: Long,
-  val buildRequestHolder: BuildRequestHolder
+  val buildRequestData: GradleBuildInvoker.Request.RequestData
 ) {
 
   private val criticalPathDurationMs: Long = buildAnalysisResult.getTasksDeterminingBuildDuration().sumByLong { it.executionTime }
@@ -56,8 +55,7 @@ class BuildAttributionReportBuilder(
     val buildSummary = createBuildSummary(pluginConfigurationTimeReport)
     return object : BuildAttributionReportUiData {
       override val successfulBuild: Boolean = true
-      override val buildRequest: GradleBuildInvoker.Request
-        get() = buildRequestHolder.buildRequest
+      override val buildRequestData: GradleBuildInvoker.Request.RequestData = this@BuildAttributionReportBuilder.buildRequestData
       override val buildSummary: BuildSummary = buildSummary
       override val criticalPathTasks = createCriticalPathTasks(buildSummary.criticalPathDuration)
       override val criticalPathPlugins = createCriticalPathPlugins(buildSummary.criticalPathDuration)

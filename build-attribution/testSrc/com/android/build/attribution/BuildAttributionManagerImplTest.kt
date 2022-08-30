@@ -38,7 +38,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Answers
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
@@ -159,9 +158,8 @@ class BuildAttributionManagerImplTest {
   @Test
   fun testCheckJetifierBuild() {
     val buildAttributionManager = BuildAttributionManagerImpl(project = projectRule.project)
-    val request = createCheckJetifierTaskRequest(
-      originalBuildRequest = builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-    )
+    val originalBuildRequest = builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+    val request = createCheckJetifierTaskRequest(projectRule.project, originalBuildRequest.data)
     val buildAttributionFile = createBuildAttributionFile(request)
     Truth.assertThat(buildAttributionFile.exists()).isTrue()
 
@@ -185,7 +183,7 @@ class BuildAttributionManagerImplTest {
 
   private fun createBuildAttributionFile(request: GradleBuildInvoker.Request): File {
     val attributionData = AndroidGradlePluginAttributionData()
-    val outputDir = getAgpAttributionFileDir(request)
+    val outputDir = getAgpAttributionFileDir(request.data)
     val file = AndroidGradlePluginAttributionData.getAttributionFile(outputDir)
     file.parentFile.mkdirs()
     BufferedWriter(FileWriter(file)).use {

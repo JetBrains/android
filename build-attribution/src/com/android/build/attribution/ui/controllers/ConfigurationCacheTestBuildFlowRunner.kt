@@ -40,13 +40,13 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     }
   }
 
-  fun startTestBuildsFlow(originalBuildRequest: GradleBuildInvoker.Request) {
-    runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequest)
+  fun startTestBuildsFlow(originalBuildRequestData: GradleBuildInvoker.Request.RequestData) {
+    runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequestData)
   }
 
   private val confirmationDialogHeader = "Configuration Cache Compatibility Assessment"
 
-  private fun runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequest: GradleBuildInvoker.Request) {
+  private fun runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequestData: GradleBuildInvoker.Request.RequestData) {
     invokeLater(ModalityState.NON_MODAL) {
       val confirmationResult = Messages.showIdeaMessageDialog(
         project,
@@ -60,10 +60,10 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         Messages.getInformationIcon(), null
       )
       if (confirmationResult == Messages.OK) {
-        scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequest, firstBuild = true, onBuildFailure = this::showFailureMessage) {
+        scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequestData, firstBuild = true, onBuildFailure = this::showFailureMessage) {
           invokeLater {
             scheduleRebuildWithCCOptionAndRunOnSuccess(
-              originalBuildRequest,
+              originalBuildRequestData,
               firstBuild = false,
               onBuildFailure = this::showFailureMessage
             ) {
@@ -95,17 +95,13 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
   }
 
   fun scheduleRebuildWithCCOptionAndRunOnSuccess(
-    originalBuildRequest: GradleBuildInvoker.Request,
+    originalBuildRequestData: GradleBuildInvoker.Request.RequestData,
     firstBuild: Boolean,
     onBuildFailure: (GradleInvocationResult) -> Unit,
     onSuccess: () -> Unit
   ) {
-    val request = GradleBuildInvoker.Request.builder(
-      originalBuildRequest.project,
-      originalBuildRequest.rootProjectPath,
-      originalBuildRequest.gradleTasks
-    )
-      .setCommandLineArguments(originalBuildRequest.commandLineArguments.plus("--configuration-cache"))
+    val request = GradleBuildInvoker.Request.Builder(project, originalBuildRequestData)
+      .setCommandLineArguments(originalBuildRequestData.commandLineArguments.plus("--configuration-cache"))
       .build()
 
     testConfigurationCacheBuildRequest = request

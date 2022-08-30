@@ -35,7 +35,7 @@ class BuildAnalyzerStorageManagerImpl(
 
   private fun createBuildResultsObject(analyzersProxy: BuildEventsAnalyzersProxy, buildSessionID : String, requestHolder : BuildRequestHolder): BuildAnalysisResults {
     return BuildAnalysisResults(
-      requestHolder = requestHolder,
+      buildRequestData = requestHolder.buildRequest.data,
       annotationProcessorAnalyzerResult = analyzersProxy.annotationProcessorsAnalyzer.result,
       alwaysRunTasksAnalyzerResult = analyzersProxy.alwaysRunTasksAnalyzer.result,
       criticalPathAnalyzerResult = analyzersProxy.criticalPathAnalyzer.result,

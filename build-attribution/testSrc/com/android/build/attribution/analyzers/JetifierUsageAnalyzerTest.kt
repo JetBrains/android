@@ -149,11 +149,11 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     prepareProjectForTest(project, null)
 
     val originalBuildRequest = builder(project, projectFolderPath, "assembleDebug").build()
-    val checkJetifierRequest = createCheckJetifierTaskRequest(originalBuildRequest)
+    val checkJetifierRequest = createCheckJetifierTaskRequest(project, originalBuildRequest.data)
     val checkJetifierResultProperty = checkJetifierRequest.commandLineArguments.first {
       it.contains(PROPERTY_CHECK_JETIFIER_RESULT_FILE)
     }
-    val expectedResultFile = checkJetifierResultFile(checkJetifierRequest)
+    val expectedResultFile = checkJetifierResultFile(checkJetifierRequest.data)
     Truth.assertThat(checkJetifierResultProperty.substringAfter("=")).isEqualTo(expectedResultFile.absolutePath)
 
     val result = invokeGradle(project) { gradleInvoker: GradleBuildInvoker ->

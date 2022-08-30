@@ -200,7 +200,7 @@ class BuildAnalyzerViewController(
   }
 
   override fun runTestConfigurationCachingBuild() {
-    ConfigurationCacheTestBuildFlowRunner.getInstance(project).startTestBuildsFlow(model.reportUiData.buildRequest)
+    ConfigurationCacheTestBuildFlowRunner.getInstance(project).startTestBuildsFlow(model.reportUiData.buildRequestData)
     analytics.rerunBuildWithConfCacheClicked()
   }
 
@@ -222,7 +222,7 @@ class BuildAnalyzerViewController(
 
   override fun runCheckJetifierTask() {
     val duration = runAndMeasureDuration {
-      val request = createCheckJetifierTaskRequest(model.reportUiData.buildRequest)
+      val request = createCheckJetifierTaskRequest(project, model.reportUiData.buildRequestData)
       GradleBuildInvoker.getInstance(project).executeTasks(request)
     }
     analytics.runCheckJetifierTaskClicked(duration)
@@ -328,12 +328,13 @@ class PluginVersionDeclarationFinder(val project: Project) {
   }
 }
 
-fun createCheckJetifierTaskRequest(originalBuildRequest: GradleBuildInvoker.Request): GradleBuildInvoker.Request {
-  return builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, listOf(CHECK_JETIFIER_TASK_NAME))
-    .setCommandLineArguments(listOf(
-      createProjectProperty(PROPERTY_CHECK_JETIFIER_RESULT_FILE, checkJetifierResultFile(originalBuildRequest).absolutePath),
-      // 'checkJetifier' task does not support configuration cache so switch it off for this run to avoid errors.
-      "--no-configuration-cache"
-    ))
-    .build()
-}
+fun createCheckJetifierTaskRequest(
+  project: Project,
+  originalBuildRequestData: GradleBuildInvoker.Request.RequestData
+): GradleBuildInvoker.Request = builder(project, originalBuildRequestData.rootProjectPath, listOf(CHECK_JETIFIER_TASK_NAME))
+  .setCommandLineArguments(listOf(
+    createProjectProperty(PROPERTY_CHECK_JETIFIER_RESULT_FILE, checkJetifierResultFile(originalBuildRequestData).absolutePath),
+    // 'checkJetifier' task does not support configuration cache so switch it off for this run to avoid errors.
+    "--no-configuration-cache"
+  ))
+  .build()

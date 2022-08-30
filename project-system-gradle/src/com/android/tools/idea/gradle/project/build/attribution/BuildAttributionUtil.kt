@@ -40,7 +40,7 @@ private fun GradleVersion.higherOrEqualToMinimal() = compareTo(minimumSupportedA
 
 fun buildOutputLine(): String = BuildAttributionOutputLinkFilter.INSIGHTS_AVAILABLE_LINE
 
-fun getAgpAttributionFileDir(request: GradleBuildInvoker.Request): File {
+fun getAgpAttributionFileDir(requestData: GradleBuildInvoker.Request.RequestData): File {
   // $projectDir/.gradle
-  return FileUtils.join(request.rootProjectPath, DOT_GRADLE)
+  return requestData.rootProjectPath.resolve(DOT_GRADLE)
 }
