@@ -25,7 +25,6 @@ import com.intellij.debugger.engine.DebugProcessImpl
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
 
 class AndroidPositionManagerFactoryTest {
@@ -38,7 +37,6 @@ class AndroidPositionManagerFactoryTest {
   @get:Rule
   val myAndroidProjectRule = inMemory()
 
-  @Mock
   private val mockDebugProcessImpl: DebugProcessImpl = mock()
 
   private val myFactory = AndroidPositionManagerFactory()
