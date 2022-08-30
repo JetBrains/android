@@ -103,6 +103,27 @@ public class Emulator implements AutoCloseable {
     pb.redirectError(Files.createFile(logsDir.resolve(name + "_stderr.txt")).toFile());
     Process process = pb.start();
 
+    // There's no easy/reliable way to determine whether an emulator even CAN start on this
+    // machine, so we check for the process crashing, that way we can report why the test will
+    // fail and potentially cut down on confusion while investigating.
+    new Thread(() -> {
+      try {
+        Thread.sleep(10000);
+      }
+      catch (InterruptedException e) {
+        // ignore
+      }
+      if (!process.isAlive()) {
+        int exitCode = process.exitValue();
+        if (exitCode != 0) {
+          System.err.printf("Emulator process (PID=%d) exited unexpectedly with code==%d. If you are running on a VM, it's possible that " +
+                            "nested virtualization is not supported. To test this, you can try starting the emulator manually. Most" +
+                            "likely though, if you're seeing this message, it means that the emulator won't work on your machine.%n",
+                            process.pid(), exitCode);
+        }
+      }
+    }).start();
+
     String portString =
       logFile.waitForMatchingLine(".*control console listening on port (\\d+), ADB on port \\d+", 2, TimeUnit.MINUTES).group(1);
 
