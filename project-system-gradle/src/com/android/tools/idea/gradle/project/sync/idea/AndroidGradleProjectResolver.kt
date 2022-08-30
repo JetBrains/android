@@ -103,7 +103,6 @@ import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.ExceptionUtil
 import com.intellij.util.PathUtil
 import com.intellij.util.SystemProperties
-import com.jetbrains.rd.util.put
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
@@ -535,25 +534,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         .orEmpty(),
       artifactToModuleIdMap = ideProject
         .getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS)
-        ?.mapValues { listOf(it.value) }
         .orEmpty()
     )
-
-  private fun mergeProjectResolvedArtifacts(
-    kmpArtifactToModuleIdMap: Map<String, List<String>>,
-    artifactToModuleIdMap: Map<String, List<String>>
-  ): Map<String, List<String>> {
-    val mergedArtifactModuleIdMap = artifactToModuleIdMap.toMutableMap()
-    kmpArtifactToModuleIdMap.forEach {
-      if (mergedArtifactModuleIdMap.getOrDefault(it.key, it.value) != it.value) {
-        error("Both artifact maps contains same key: ${it.key} with different values " +
-              "for kmp: ${it.value} and platform: ${artifactToModuleIdMap[it.key]}"
-        )
-      }
-      mergedArtifactModuleIdMap.put(it)
-    }
-    return mergedArtifactModuleIdMap
-  }
 
   private fun resolveArtifact(artifactToModuleIdMap: Map<String, List<String>>, artifact: File) =
     artifactToModuleIdMap[ExternalSystemApiUtil.toCanonicalPath(artifact.path)]
@@ -1042,3 +1024,24 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 }
 
 private val COMPOSITE_BUILD_MAP = com.intellij.openapi.util.Key.create<CompositeBuildMap>("COMPOSITE_BUILD_MAP")
+
+@VisibleForTesting
+fun mergeProjectResolvedArtifacts(
+  kmpArtifactToModuleIdMap: Map<String, List<String>>,
+  artifactToModuleIdMap: Map<String, String>
+): Map<String, List<String>> =
+  (kmpArtifactToModuleIdMap.keys + artifactToModuleIdMap.keys)
+    .associateBy({ it }, {
+      val kmpIds = kmpArtifactToModuleIdMap[it]
+      val platformId = artifactToModuleIdMap[it]
+      when {
+        kmpIds != null && platformId != null -> {
+          if (platformId !in kmpIds)
+            error("Both artifact maps contains same key: $it with different values for kmp: $kmpIds and platform: $platformId")
+          kmpIds
+        }
+        kmpIds != null -> kmpIds
+        platformId != null -> listOf(platformId)
+        else -> emptyList()
+      }
+    })
