@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.gradle.model.IdeSyncIssue.Companion.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.internal.dump
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
@@ -222,7 +223,7 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
     openPreparedProject(
       "project",
       OpenPreparedProjectOptions(
-        verifyOpened = { },
+        expectedSyncIssues = setOf(TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION),
         outputHandler = { },
         syncExceptionHandler = { fail() }
       )) { project ->

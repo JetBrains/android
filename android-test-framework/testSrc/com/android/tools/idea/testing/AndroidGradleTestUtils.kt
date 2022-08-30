@@ -1963,7 +1963,7 @@ fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatc
 
 data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val expectedSyncIssues: Set<Int> = emptySet(),
-  val verifyOpened: (Project) -> Unit = { verifySyncedSuccessfully(it, expectedSyncIssues) },
+  val verifyOpened: (Project) -> Unit = { verifySyncedSuccessfully(it) },
   val outputHandler: (Project.(String) -> Unit)? = null,
   val syncExceptionHandler: (Project.(Exception) -> Unit)? = { e ->
     println(e.message)
@@ -2072,6 +2072,7 @@ private fun <T> openPreparedProject(
         project
       }
       try {
+        verifyNoSyncIssues(project, options.expectedSyncIssues)
         options.verifyOpened(project)
         return action(project)
       } finally {
@@ -2093,13 +2094,14 @@ private fun <T> openPreparedProject(
 fun IntegrationTestEnvironment.nameToPath(name: String) =
   File(toSystemDependentName(getBaseTestPath() + "/" + name))
 
-private fun verifySyncedSuccessfully(project: Project, expectedSyncIssues: Set<Int> = emptySet()) {
+private fun verifySyncedSuccessfully(project: Project) {
   val lastSyncResult = project.getProjectSystem().getSyncManager().getLastSyncResult()
   if (!lastSyncResult.isSuccessful) {
     throw IllegalStateException(lastSyncResult.name)
   }
+}
 
-  // Also fail the test if SyncIssues with type errors are present.
+private fun verifyNoSyncIssues(project: Project, expectedSyncIssues: Set<Int>) {
   val errors = ModuleManager.getInstance(project)
     .modules
     .flatMap { it.syncIssues() }
