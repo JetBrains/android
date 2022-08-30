@@ -203,6 +203,7 @@ maven_repository(
         "@maven//:javax.annotation.javax.annotation-api_1.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.7.10",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.7.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.10",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.7.10",

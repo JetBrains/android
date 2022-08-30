@@ -806,7 +806,7 @@ android-studio/plugins/Kotlin/lib/kotlinc_sam-with-receiver-compiler-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinx-collections-immutable-jvm.jar
 android-studio/plugins/android-apk/lib/android-apk.jar
 android-studio/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
-android-studio/plugins/android-compose-ide-plugin/lib/compiler-hosted-1.2.0-SNAPSHOT.jar
+android-studio/plugins/android-compose-ide-plugin/lib/compiler-hosted-1.3.0-SNAPSHOT.jar
 android-studio/plugins/android-ndk/lib/android-ndk.jar
 android-studio/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
 android-studio/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190621-0852.jar
