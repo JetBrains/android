@@ -904,6 +904,199 @@ PROJECT                       : NonStandardSourceSetDependencies
                 ASSEMBLE                      : :common:assemble
                 REBUILD                       : :common:assemble, :common:clean
                 COMPILE_JAVA                  : :common:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.desktop
+        ExternalModuleGroup           : NonStandardSourceSetDependencies
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :desktop
+        LinkedProjectPath             : <PROJECT>/desktop
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.desktop [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.desktop [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/desktop/NonStandardSourceSetDependencies.desktop.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+            GradlePath                    : :desktop
+        CONENT_ENTRY                  : file://<PROJECT>/desktop
+            EXCLUDE_FOLDER                : file://<PROJECT>/desktop/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/desktop/build [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :desktop:assemble, :desktop:testClasses
+                REBUILD                       : :desktop:assemble, :desktop:clean, :desktop:testClasses
+                COMPILE_JAVA                  : :desktop:compileJava, :desktop:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :desktop:assemble
+                REBUILD                       : :desktop:assemble, :desktop:clean
+                COMPILE_JAVA                  : :desktop:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :desktop:assemble, :desktop:testClasses
+                REBUILD                       : :desktop:assemble, :desktop:clean, :desktop:testClasses
+                COMPILE_JAVA                  : :desktop:compileJava, :desktop:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :desktop:assemble
+                REBUILD                       : :desktop:assemble, :desktop:clean
+                COMPILE_JAVA                  : :desktop:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.desktop.main
+        ExternalModuleGroup           : NonStandardSourceSetDependencies
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :desktop:main
+        LinkedProjectPath             : <PROJECT>/desktop
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/desktop/build/classes/java/main [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/desktop/NonStandardSourceSetDependencies.desktop.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.7
+            CompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.7
+            MergedCompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONENT_ENTRY                  : file://<PROJECT>/desktop/src/main
+            JavaSource                    : file://<PROJECT>/desktop/src/main/java
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/desktop/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/desktop/src/main/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        Classes
+            -                             : file://<PROJECT>/desktop/build/classes/java/main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :desktop:assemble, :desktop:testClasses
+                REBUILD                       : :desktop:assemble, :desktop:clean, :desktop:testClasses
+                COMPILE_JAVA                  : :desktop:compileJava, :desktop:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :desktop:assemble
+                REBUILD                       : :desktop:assemble, :desktop:clean
+                COMPILE_JAVA                  : :desktop:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :desktop:assemble, :desktop:testClasses
+                REBUILD                       : :desktop:assemble, :desktop:clean, :desktop:testClasses
+                COMPILE_JAVA                  : :desktop:compileJava, :desktop:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :desktop:assemble
+                REBUILD                       : :desktop:assemble, :desktop:clean
+                COMPILE_JAVA                  : :desktop:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.desktop.test
+        ExternalModuleGroup           : NonStandardSourceSetDependencies
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :desktop:test
+        LinkedProjectPath             : <PROJECT>/desktop
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/desktop/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.desktop.main
+        ModuleFile                    : <PROJECT>/.idea/modules/desktop/NonStandardSourceSetDependencies.desktop.test.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.7
+            CompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.7
+            MergedCompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONENT_ENTRY                  : file://<PROJECT>/desktop/src/test [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/desktop/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/desktop/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/desktop/src/test/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.desktop.main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :desktop:assemble, :desktop:testClasses
+                REBUILD                       : :desktop:assemble, :desktop:clean, :desktop:testClasses
+                COMPILE_JAVA                  : :desktop:compileJava, :desktop:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :desktop:assemble
+                REBUILD                       : :desktop:assemble, :desktop:clean
+                COMPILE_JAVA                  : :desktop:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :desktop:assemble, :desktop:testClasses
+                REBUILD                       : :desktop:assemble, :desktop:clean, :desktop:testClasses
+                COMPILE_JAVA                  : :desktop:compileJava, :desktop:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :desktop:assemble
+                REBUILD                       : :desktop:assemble, :desktop:clean
+                COMPILE_JAVA                  : :desktop:compileJava
     MODULE                        : NonStandardSourceSetDependencies.feature-a
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-a
@@ -2913,33 +3106,33 @@ PROJECT                       : NonStandardSourceSetDependencies
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::common:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::common:compileJava, <PROJECT>::common:testClasses, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::common:testClasses, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::common:compileJava, <PROJECT>::common:testClasses, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::common:compileJava, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::desktop:assemble, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::common:compileJava, <PROJECT>::desktop:compileJava, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::common:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::common:compileJava, <PROJECT>::common:testClasses, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:compileDebugUnitTestSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::common:testClasses, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::common:compileJava, <PROJECT>::common:testClasses, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::lib:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::common:compileJava, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::lib:compileDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::desktop:assemble, <PROJECT>::lib:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::common:compileJava, <PROJECT>::desktop:compileJava, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

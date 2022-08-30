@@ -59,6 +59,9 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
             .common.commonTest ==> :common/commonTest
             .common.jvmMain ==> :common/jvmMain
             .common.jvmTest ==> :common/jvmTest
+            .desktop ==> :desktop
+            .desktop.main ==> :desktop/MAIN
+            .desktop.test ==> :desktop/test
             .feature-a ==> :feature-a
             .feature-a.androidTest ==> :feature-a/ANDROID_TEST
             .feature-a.main ==> :feature-a/MAIN

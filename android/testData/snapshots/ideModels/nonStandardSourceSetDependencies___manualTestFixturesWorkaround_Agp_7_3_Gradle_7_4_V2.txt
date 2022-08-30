@@ -332,6 +332,136 @@ MODULE                        : NonStandardSourceSetDependencies
                     metadataImplementation        : <empty>
                     testKotlinScriptDef           : <empty>
                     testKotlinScriptDefExtensions : <empty>
+            desktop                       : :desktop (DefaultExternalProject)
+                name                          : desktop
+                qName                         : :desktop
+                group                         : NonStandardSourceSetDependencies
+                version                       : unspecified
+                sourceCompatibility           : 1.7
+                targetCompatibility           : 1.7
+                projectDir                    : <ROOT>/desktop
+                buildDir                      : <ROOT>/desktop/build [-]
+                buildFile                     : <ROOT>/desktop/build.gradle
+                tasks
+                    test                          : test (DefaultExternalTask)
+                        qName                         : :desktop:test
+                sourceSets
+                    main                          : main (DefaultExternalSourceSet)
+                        sources
+                            RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/desktop/src/main/resources [-]
+                                outputDir                     : <ROOT>/desktop/out/production/resources [-]
+                                - gradleOutputDirs            : <ROOT>/desktop/build/resources/main [-]
+                                patterns                      : FilePatternSetImpl
+                            SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/desktop/src/main/java
+                                - srcDirs                     : <ROOT>/desktop/src/main/kotlin [-]
+                                outputDir                     : <ROOT>/desktop/out/production/classes [-]
+                                - gradleOutputDirs            : <ROOT>/desktop/build/classes/java/main [-]
+                                - gradleOutputDirs            : <ROOT>/desktop/build/classes/kotlin/main [-]
+                                patterns                      : FilePatternSetImpl
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                            source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/desktop/build/classes/java/main [-]
+                            - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
+                            - files                       : <ROOT>/desktop/build/resources/main [-]
+                        - artifacts                   : <ROOT>/desktop/build/libs/desktop.jar [-]
+                        sourceCompatibility           : 1.7
+                        targetCompatibility           : 1.7
+                    test                          : test (DefaultExternalSourceSet)
+                        sources
+                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/desktop/src/test/java [-]
+                                - srcDirs                     : <ROOT>/desktop/src/test/kotlin [-]
+                                outputDir                     : <ROOT>/desktop/out/test/classes [-]
+                                - gradleOutputDirs            : <ROOT>/desktop/build/classes/java/test [-]
+                                - gradleOutputDirs            : <ROOT>/desktop/build/classes/kotlin/test [-]
+                                patterns                      : FilePatternSetImpl
+                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                - srcDirs                     : <ROOT>/desktop/src/test/resources [-]
+                                outputDir                     : <ROOT>/desktop/out/test/resources [-]
+                                - gradleOutputDirs            : <ROOT>/desktop/build/resources/test [-]
+                                patterns                      : FilePatternSetImpl
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/desktop/build/classes/java/main [-]
+                            - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
+                            - files                       : <ROOT>/desktop/build/resources/main [-]
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                            source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/desktop/build/classes/java/test [-]
+                            - files                       : <ROOT>/desktop/build/classes/kotlin/test [-]
+                            - files                       : <ROOT>/desktop/build/resources/test [-]
+                        sourceCompatibility           : 1.7
+                        targetCompatibility           : 1.7
+                externalSystemId              : GRADLE
+                - artifacts                   : <ROOT>/desktop/build/libs/desktop.jar [-]
+                artifactsByConfiguration
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    apiDependenciesMetadata       : <empty>
+                    - apiElements                 : <ROOT>/desktop/build/libs/desktop.jar [-]
+                    - apiElements-published       : <ROOT>/desktop/build/libs/desktop.jar [-]
+                    - archives                    : <ROOT>/desktop/build/libs/desktop.jar [-]
+                    compileClasspath              : <empty>
+                    compileOnly                   : <empty>
+                    compileOnlyApi                : <empty>
+                    compileOnlyDependenciesMetadata         : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    implementationDependenciesMetadata      : <empty>
+                    intransitiveDependenciesMetadata        : <empty>
+                    kotlinCompilerClasspath       : <empty>
+                    kotlinCompilerPluginClasspath : <empty>
+                    kotlinCompilerPluginClasspathMain       : <empty>
+                    kotlinCompilerPluginClasspathTest       : <empty>
+                    kotlinKlibCommonizerClasspath : <empty>
+                    kotlinNativeCompilerPluginClasspath     : <empty>
+                    kotlinScriptDef               : <empty>
+                    kotlinScriptDefExtensions     : <empty>
+                    - mainSourceElements          : <ROOT>/desktop/src/main/java
+                    - mainSourceElements          : <ROOT>/desktop/src/main/kotlin [-]
+                    - mainSourceElements          : <ROOT>/desktop/src/main/resources [-]
+                    runtimeClasspath              : <empty>
+                    - runtimeElements             : <ROOT>/desktop/build/libs/desktop.jar [-]
+                    - runtimeElements-published   : <ROOT>/desktop/build/libs/desktop.jar [-]
+                    runtimeOnly                   : <empty>
+                    runtimeOnlyDependenciesMetadata         : <empty>
+                    - sourceArtifacts             : <ROOT>/desktop/build/libs/desktop-sources.jar [-]
+                    testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testApiDependenciesMetadata   : <empty>
+                    testCompileClasspath          : <empty>
+                    testCompileOnly               : <empty>
+                    testCompileOnlyDependenciesMetadata     : <empty>
+                    testImplementation            : <empty>
+                    testImplementationDependenciesMetadata  : <empty>
+                    testIntransitiveDependenciesMetadata    : <empty>
+                    testKotlinScriptDef           : <empty>
+                    testKotlinScriptDefExtensions : <empty>
+                    - testResultsElementsForTest  : <ROOT>/desktop/build/test-results/test/binary [-]
+                    testRuntimeClasspath          : <empty>
+                    testRuntimeOnly               : <empty>
+                    testRuntimeOnlyDependenciesMetadata     : <empty>
             feature-a                     : :feature-a (DefaultExternalProject)
                 name                          : feature-a
                 qName                         : :feature-a
@@ -919,8 +1049,7 @@ MODULE                        : NonStandardSourceSetDependencies
                             projectPath                   : :common
                             - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar [-]
                             - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar-MPP-1 [-]
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : default (DefaultExternalProjectDependency)
                             projectPath                   : :jarWrapperLib
                             - projectDependencyArtifacts  : <ROOT>/jarWrapperLib/JarWrappedLib.jar
@@ -996,17 +1125,11 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/java/testEnv [-]
                                 - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/kotlin/testEnv [-]
                                 patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                            source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/javaLibrary/build/classes/java/testEnv [-]
                             - files                       : <ROOT>/javaLibrary/build/classes/kotlin/testEnv [-]
@@ -2895,6 +3018,108 @@ MODULE                        : NonStandardSourceSetDependencies.common.commonMa
 MODULE                        : NonStandardSourceSetDependencies.common.commonTest
 MODULE                        : NonStandardSourceSetDependencies.common.jvmMain
 MODULE                        : NonStandardSourceSetDependencies.common.jvmTest
+MODULE                        : NonStandardSourceSetDependencies.desktop
+    GradleModuleModel
+        gradlePath                    : :desktop
+        gradleVersion                 : 7.4
+        buildFile                     : <ROOT>/desktop/build.gradle
+        buildFilePath                 : <ROOT>/desktop/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : org.gradle.testing.base.plugins.TestSuiteBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmTestSuitePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
+    kotlinGradleModel             : kotlin-platform-jvm (KotlinGradleModelImpl)
+        additionalVisibleSourceSets
+            main                          : <empty>
+            - test                        : main
+        cachedCompilerArgumentsBySourceSet
+            main
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    destination                   : <ROOT>/desktop/build/classes/kotlin/main
+                    jvmDefault                    : disable
+                    moduleName                    : desktop
+                    noReflect                     : true
+                    noStdlib                      : true
+                    parallelBackendThreads        : 1
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    errors                        : ArgumentParseErrors
+                    explicitApi                   : disable
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+            test
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    destination                   : <ROOT>/desktop/build/classes/kotlin/test
+                    - friendPaths                 : <ROOT>/desktop/build/classes/java/main [-]
+                    - friendPaths                 : <ROOT>/desktop/build/classes/kotlin/main [-]
+                    - friendPaths                 : <ROOT>/desktop/build/libs/desktop.jar [-]
+                    jvmDefault                    : disable
+                    moduleName                    : desktop
+                    noReflect                     : true
+                    noStdlib                      : true
+                    parallelBackendThreads        : 1
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    errors                        : ArgumentParseErrors
+                    explicitApi                   : disable
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+        gradleUserHome                : <GRADLE>
+        hasKotlinPlugin               : true
+        kotlinTarget                  : kotlin-platform-jvm
+        kotlinTaskProperties
+            main                          : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+                - pureKotlinSourceFolders     : <ROOT>/desktop/src/main/kotlin [-]
+            test                          : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+                - pureKotlinSourceFolders     : <ROOT>/desktop/src/test/kotlin [-]
+    externalProject               : :desktop (DefaultExternalProject) (*seen*)
+MODULE                        : NonStandardSourceSetDependencies.desktop.main
+MODULE                        : NonStandardSourceSetDependencies.desktop.test
 MODULE                        : NonStandardSourceSetDependencies.feature-a
     GradleModuleModel
         agpVersion                    : 7.3.0-beta05
