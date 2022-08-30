@@ -55,12 +55,12 @@ import java.nio.file.Files
  * When adding a new entry to this file add a new test method to [SyncedProjectTest].
  */
 enum class TestProject(
-  val template: String,
-  val pathToOpen: String = "",
-  val testName: String? = null,
+  private val template: String,
+  private val pathToOpen: String = "",
+  private val testName: String? = null,
   val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
-  val setup: () -> () -> Unit = { {} },
-  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
+  private val setup: () -> () -> Unit = { {} },
+  private val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
   val expectedSyncIssues: Set<Int> = emptySet()
 ) {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
@@ -311,6 +311,61 @@ enum class TestProject(
       .resolve(FileUtil.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
     return testDataDirectory.resolve(FileUtil.toSystemDependentName(testDataPath)).toFile()
   }
+
+  companion object {
+    fun IntegrationTestEnvironment.prepareTestProject(
+      testProject: TestProject,
+      name: String = "project",
+      agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT
+    ): PreparedTestProject {
+      val root = prepareGradleProject(
+        testProject.templateAbsolutePath,
+        testProject.additionalRepositories,
+        name,
+        agpVersion,
+        ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
+      )
+      testProject.patch(agpVersion, root)
+
+      return object : PreparedTestProject {
+        override val root: File = root
+        override fun <T> open(options: OpenPreparedProjectOptions, body: (Project) -> T): T {
+          val tearDown = testProject.setup()
+          try {
+            return openPreparedProject(
+              name = "$name${testProject.pathToOpen}",
+              options = options
+            ) { project ->
+              invokeAndWaitIfNeeded {
+                AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+              }
+              body(project)
+            }
+          } finally {
+            tearDown()
+          }
+        }
+      }
+    }
+  }
+}
+
+interface PreparedTestProject {
+  fun <T> open(options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(), body: (Project) -> T): T
+  val root: File
+}
+
+class SnapshotContext(
+  projectName: String,
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+  workspace: String,
+) : SnapshotComparisonTest {
+
+  private val name: String =
+    "$projectName${agpVersion.agpSuffix()}${agpVersion.gradleSuffix()}${agpVersion.modelVersion}"
+
+  override val snapshotDirectoryWorkspaceRelativePath: String = workspace
+  override fun getName(): String = name
 }
 
 private fun File.replaceContent(change: (String) -> String) {
@@ -464,7 +519,7 @@ private fun createEmptyGradleSettingsFile(projectRootPath: File) {
   refreshProjectFiles()
 }
 
-fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
+private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
   AGP_CURRENT -> "_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1 -> "_NewAgp_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_32 -> "_Agp_3.2_"
@@ -479,59 +534,7 @@ fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
   AgpVersionSoftwareEnvironmentDescriptor.AGP_73 -> "_Agp_7.3_"
 }
 
-fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
+private fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
   return gradleVersion?.let { "Gradle_${it}_" }.orEmpty()
 }
 
-class SnapshotContext(
-  projectName: String,
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
-  workspace: String,
-) : SnapshotComparisonTest {
-
-  private val name: String =
-    "$projectName${agpVersion.agpSuffix()}${agpVersion.gradleSuffix()}${agpVersion.modelVersion}"
-
-  override val snapshotDirectoryWorkspaceRelativePath: String = workspace
-  override fun getName(): String = name
-}
-
-interface PreparedTestProject {
-  fun <T> open(options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(), body: (Project) -> T): T
-  val root: File
-}
-
-fun IntegrationTestEnvironment.prepareTestProject(
-  testProject: TestProject,
-  name: String = "project",
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT
-): PreparedTestProject {
-  val root = prepareGradleProject(
-    testProject.templateAbsolutePath,
-    testProject.additionalRepositories,
-    name,
-    agpVersion,
-    ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
-  )
-  testProject.patch(agpVersion, root)
-
-  return object: PreparedTestProject {
-    override val root: File = root
-    override fun <T> open(options: OpenPreparedProjectOptions, body: (Project) -> T): T {
-      val tearDown = testProject.setup()
-      try {
-        return openPreparedProject(
-          name = "$name${testProject.pathToOpen}",
-          options = options
-        ) { project ->
-          invokeAndWaitIfNeeded {
-            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-          }
-          body(project)
-        }
-      } finally {
-        tearDown()
-      }
-    }
-  }
-}
