@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT_V1
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.IntegrationTestEnvironment
@@ -59,11 +58,11 @@ enum class TestProject(
   private val template: String,
   private val pathToOpen: String = "",
   private val testName: String? = null,
-  val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
+  override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
   private val setup: () -> () -> Unit = { {} },
   private val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
   private val expectedSyncIssues: Set<Int> = emptySet()
-) {
+) : TestProjectDefinition {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
   APP_WITH_BUILDSRC(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC),
   COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
@@ -313,51 +312,44 @@ enum class TestProject(
     return testDataDirectory.resolve(FileUtil.toSystemDependentName(testDataPath)).toFile()
   }
 
-  companion object {
-    fun IntegrationTestEnvironment.prepareTestProject(
-      testProject: TestProject,
-      name: String = "project",
-      agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT
-    ): PreparedTestProject {
-      val root = prepareGradleProject(
-        testProject.templateAbsolutePath,
-        testProject.additionalRepositories,
-        name,
-        agpVersion,
-        ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
-      )
-      testProject.patch(agpVersion, root)
+  private fun defaultOpenPreparedProjectOptions(): OpenPreparedProjectOptions {
+    return OpenPreparedProjectOptions(expectedSyncIssues = expectedSyncIssues)
+  }
 
-      return object : PreparedTestProject {
-        override val root: File = root
-        override fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions, body: (Project) -> T): T {
-          val tearDown = testProject.setup()
-          try {
-            return openPreparedProject(
-              name = "$name${testProject.pathToOpen}",
-              options = updateOptions(testProject.defaultOpenPreparedProjectOptions())
-            ) { project ->
-              invokeAndWaitIfNeeded {
-                AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-              }
-              body(project)
+  override fun preparedTestProject(
+    integrationTestEnvironment: IntegrationTestEnvironment,
+    name: String,
+    agpVersion: AgpVersionSoftwareEnvironmentDescriptor
+  ): PreparedTestProject {
+    val root = integrationTestEnvironment.prepareGradleProject(
+      templateAbsolutePath,
+      additionalRepositories,
+      name,
+      agpVersion,
+      ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
+    )
+    patch(agpVersion, root)
+
+    return object : PreparedTestProject {
+      override val root: File = root
+      override fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions, body: (Project) -> T): T {
+        val tearDown = setup()
+        try {
+          return integrationTestEnvironment.openPreparedProject(
+            name = "$name$pathToOpen",
+            options = updateOptions(defaultOpenPreparedProjectOptions())
+          ) { project ->
+            invokeAndWaitIfNeeded {
+              AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
             }
-          } finally {
-            tearDown()
+            body(project)
           }
+        } finally {
+          tearDown()
         }
       }
     }
   }
-
-  private fun defaultOpenPreparedProjectOptions(): OpenPreparedProjectOptions {
-    return OpenPreparedProjectOptions(expectedSyncIssues = expectedSyncIssues)
-  }
-}
-
-interface PreparedTestProject {
-  fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it }, body: (Project) -> T): T
-  val root: File
 }
 
 class SnapshotContext(
