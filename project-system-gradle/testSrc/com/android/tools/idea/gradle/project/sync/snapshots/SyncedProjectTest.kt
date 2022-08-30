@@ -27,7 +27,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Co
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT_V1
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ModelVersion
-import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.DumbService
@@ -281,10 +280,11 @@ abstract class SyncedProjectTest(
 
       fun run(): List<Throwable> {
         return preparedProject.open(
-          options = OpenPreparedProjectOptions(
-            expectedSyncIssues = testProject.expectedSyncIssues,
-            disableKtsRelatedIndexing = true
-          )
+          updateOptions = {
+            it.copy(
+              disableKtsRelatedIndexing = true
+            )
+          }
         ) { project ->
           tests.mapNotNull {
             println("${it::class.java.simpleName}(${testProject.projectName})\n    $preparedProject.root")

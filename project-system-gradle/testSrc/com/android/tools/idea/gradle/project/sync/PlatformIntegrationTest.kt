@@ -24,7 +24,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.requestSyncAndWait
@@ -468,38 +467,41 @@ class PlatformIntegrationTest {
     val completedChanged = CountDownLatch(1)
     val log = buildString {
       open(
-        options = OpenPreparedProjectOptions(
-          verifyOpened = { /* do nothing */ },
-          outputHandler = outputHandler,
-          subscribe = {
-            it.subscribe(GRADLE_SYNC_TOPIC, object : GradleSyncListenerWithRoot {
-              override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
-                appendLine("started(${rootProjectPath.toLocalPath()})")
-              }
+        updateOptions = {
+          it.copy(
+            verifyOpened = { /* do nothing */ },
+            outputHandler = outputHandler,
+            subscribe = {
+              it.subscribe(GRADLE_SYNC_TOPIC, object : GradleSyncListenerWithRoot {
+                override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
+                  appendLine("started(${rootProjectPath.toLocalPath()})")
+                }
 
-              override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) {
-                appendLine("failed(${rootProjectPath.toLocalPath()}): $errorMessage")
-              }
+                override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) {
+                  appendLine("failed(${rootProjectPath.toLocalPath()}): $errorMessage")
+                }
 
-              override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-                appendLine("succeeded(${rootProjectPath.toLocalPath()})")
-              }
+                override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
+                  appendLine("succeeded(${rootProjectPath.toLocalPath()})")
+                }
 
-              override fun syncSkipped(project: Project) {
-                appendLine("skipped")
-              }
+                override fun syncSkipped(project: Project) {
+                  appendLine("skipped")
+                }
 
-              override fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) {
-                appendLine("cancelled(${rootProjectPath.toLocalPath()})")
-              }
-            })
-            it.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: ProjectSystemSyncManager.SyncResultListener {
-              override fun syncEnded(result: SyncResult) {
-                appendLine("ended: $result")
-                completedChanged.countDown()
-              }
-            })
-          })
+                override fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) {
+                  appendLine("cancelled(${rootProjectPath.toLocalPath()})")
+                }
+              })
+              it.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+                override fun syncEnded(result: SyncResult) {
+                  appendLine("ended: $result")
+                  completedChanged.countDown()
+                }
+              })
+            }
+          )
+        }
       ) { project ->
         // When sync is cancelled, and it is detected by handling `FinishBuildEvent` with `SuccessResult` the `syncCancelled` event might be
         // delivered after we reach this point.

@@ -62,7 +62,7 @@ enum class TestProject(
   val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
   private val setup: () -> () -> Unit = { {} },
   private val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
-  val expectedSyncIssues: Set<Int> = emptySet()
+  private val expectedSyncIssues: Set<Int> = emptySet()
 ) {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
   APP_WITH_BUILDSRC(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC),
@@ -330,12 +330,12 @@ enum class TestProject(
 
       return object : PreparedTestProject {
         override val root: File = root
-        override fun <T> open(options: OpenPreparedProjectOptions, body: (Project) -> T): T {
+        override fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions, body: (Project) -> T): T {
           val tearDown = testProject.setup()
           try {
             return openPreparedProject(
               name = "$name${testProject.pathToOpen}",
-              options = options
+              options = updateOptions(testProject.defaultOpenPreparedProjectOptions())
             ) { project ->
               invokeAndWaitIfNeeded {
                 AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
@@ -349,10 +349,14 @@ enum class TestProject(
       }
     }
   }
+
+  private fun defaultOpenPreparedProjectOptions(): OpenPreparedProjectOptions {
+    return OpenPreparedProjectOptions(expectedSyncIssues = expectedSyncIssues)
+  }
 }
 
 interface PreparedTestProject {
-  fun <T> open(options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(), body: (Project) -> T): T
+  fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it }, body: (Project) -> T): T
   val root: File
 }
 
