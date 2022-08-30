@@ -144,13 +144,13 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
   }
 
   @Override
-  public boolean canExport() {
+  public boolean getCanExport() {
     return !isOngoing();
   }
 
   @Override
   public void export(@NotNull OutputStream outputStream) {
-    assert canExport();
+    assert getCanExport();
     CpuProfiler.saveCaptureToFile(myProfilers, getArtifactProto(), outputStream);
   }
 

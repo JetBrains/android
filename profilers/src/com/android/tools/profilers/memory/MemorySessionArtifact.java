@@ -103,7 +103,7 @@ public abstract class MemorySessionArtifact<T extends GeneratedMessageV3> implem
   }
 
   @Override
-  public boolean canExport() {
+  public boolean getCanExport() {
     return !isOngoing();
   }
 

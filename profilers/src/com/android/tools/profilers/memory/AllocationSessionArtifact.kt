@@ -24,9 +24,9 @@ import com.android.tools.profilers.memory.MemoryProfiler.Companion.getAllocation
 import com.android.tools.profilers.sessions.SessionArtifact
 import java.util.concurrent.TimeUnit
 
-class AllocationSessionArtifact(private val profilers: StudioProfilers,
-                                private val session: Common.Session,
-                                private val sessionMetadata: Common.SessionMetaData,
+class AllocationSessionArtifact(override val profilers: StudioProfilers,
+                                override val session: Common.Session,
+                                override val sessionMetaData: Common.SessionMetaData,
                                 private val info: Memory.AllocationsInfo,
                                 val startUs: Double,
                                 val endUs: Double)
@@ -34,20 +34,23 @@ class AllocationSessionArtifact(private val profilers: StudioProfilers,
 
   val subtitle: String get() = TimeFormatter.getFullClockString(timestampNs.nanosToMicros())
 
-  override fun getProfilers() = profilers
-  override fun getSession() = session
-  override fun getArtifactProto() = info
-  override fun getSessionMetaData() = sessionMetadata
-  override fun getName() = "Allocation Records"
-  override fun getTimestampNs() = info.startTime - session.startTimestamp
-  override fun isOngoing() = info.endTime == Long.MAX_VALUE
+  override val artifactProto = info
+
+  override val name = "Allocation Records"
+
+  override val timestampNs
+    get() = info.startTime - session.startTimestamp
+
+  override val isOngoing
+    get() = info.endTime == Long.MAX_VALUE
+
+  override val canExport = false
+
   override fun onSelect() {
     if (session !== profilers.session)
       profilers.sessionsManager.setSession(session)
     profilers.stage = AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = startUs, maxTrackingTimeUs = endUs)
   }
-
-  override fun canExport() = false
 
   companion object {
     @JvmStatic

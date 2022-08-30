@@ -54,7 +54,7 @@ public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpIn
 
   @Override
   public void export(@NotNull OutputStream outputStream) {
-    assert canExport();
+    assert getCanExport();
     saveHeapDumpToFile(getProfilers().getClient(), getSession(), getArtifactProto(), outputStream,
                        getProfilers().getIdeServices().getFeatureTracker());
   }

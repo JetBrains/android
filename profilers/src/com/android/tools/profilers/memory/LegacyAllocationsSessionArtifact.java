@@ -95,7 +95,7 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.
   }
 
   @Override
-  public boolean canExport() {
+  public boolean getCanExport() {
     return !isOngoing();
   }
 
@@ -134,7 +134,7 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.
 
   @Override
   public void export(@NotNull OutputStream outputStream) {
-    assert canExport();
+    assert getCanExport();
     saveLegacyAllocationToFile(myProfilers.getClient(), mySession, myInfo, outputStream, myProfilers.getIdeServices().getFeatureTracker());
   }
 }

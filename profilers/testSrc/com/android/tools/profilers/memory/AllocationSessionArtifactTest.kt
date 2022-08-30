@@ -79,7 +79,7 @@ class AllocationSessionArtifactTest {
       assertThat(name).isEqualTo("Allocation Records")
       assertThat(isOngoing).isFalse()
       assertThat(subtitle).isNotEmpty()
-      assertThat(canExport()).isTrue()
+      assertThat(canExport).isTrue()
       assertThat(this.profilers).isSameAs(profilers)
       assertThat(artifactProto).isNotNull()
     }

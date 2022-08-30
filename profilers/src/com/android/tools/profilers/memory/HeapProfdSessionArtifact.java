@@ -51,7 +51,7 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.Memor
 
   @Override
   public void export(@NotNull OutputStream outputStream) {
-    assert canExport();
+    assert getCanExport();
     MemoryProfiler.saveHeapProfdSampleToFile(getProfilers().getClient(), getSession(), getArtifactProto(), outputStream);
     File symbols = new File(String.format(Locale.US, "%s%s%d.symbols", FileUtil.getTempDirectory(), File.separator, getStartTime()));
     if (symbols.exists()) {
