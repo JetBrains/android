@@ -3,6 +3,7 @@ rootProject.name = "NonStandardSourceSetDependencies"
 
 include ':app'
 include ':common'
+include ':desktop'
 include ':feature-a'
 include ':feature-b'
 include ':javaLibrary'
