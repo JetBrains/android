@@ -31,6 +31,8 @@ import static com.android.resources.base.ResourceSerializationUtil.createPersist
 import static com.android.resources.base.ResourceSerializationUtil.writeResourcesToStream;
 import static com.android.tools.idea.res.AndroidFileChangeListener.isRelevantFile;
 import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForResourceTag;
+import static com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging;
+import static com.android.utils.TraceUtils.getCurrentStack;
 import static com.android.utils.TraceUtils.getSimpleId;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -85,6 +87,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -122,6 +125,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -286,8 +290,54 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     Disposer.register(myFacet, updateExecutor::shutdownNow);
     ResourceUpdateTracer.logDirect(() ->
-      TraceUtils.getSimpleId(this) + " " + pathForLogging(resourceDir) + " created for module " + facet.getModule().getName()
+      TraceUtils.getSimpleId(this) + " " + pathForLogging(resourceDir) + " created for module " + facet.getModule().getName() + '\n' +
+      getModuleInfo(facet) +
+      getCurrentStack()
     );
+  }
+
+  private static @NotNull String getModuleInfo(@NotNull AndroidFacet facet) {
+    Module module = facet.getModule();
+    Project project = module.getProject();
+    StringBuilder result = new StringBuilder();
+    result
+      .append("Content roots of the module ")
+      .append(module.getName())
+      .append(": ")
+      .append(pathsForLogging(getContentRoots(module), project))
+      .append('\n');
+    Module mainModule = facet.getMainModule();
+    if (mainModule != module) {
+      result
+        .append("Content roots of the associated main module ")
+        .append(mainModule.getName())
+        .append(": ")
+        .append(pathsForLogging(getContentRoots(mainModule), project))
+        .append('\n');
+    }
+    Module unitTestModule = facet.getUnitTestModule();
+    if (unitTestModule != null && unitTestModule != module) {
+      result
+        .append("Content roots of the associated unit test module ")
+        .append(unitTestModule.getName())
+        .append(": ")
+        .append(pathsForLogging(getContentRoots(unitTestModule), project))
+        .append('\n');
+    }
+    Module androidTestModule = facet.getAndroidTestModule();
+    if (androidTestModule != null && androidTestModule != module) {
+      result
+        .append("Content roots of the associated unit test module ")
+        .append(androidTestModule.getName())
+        .append(": ")
+        .append(pathsForLogging(getContentRoots(androidTestModule), project))
+        .append('\n');
+    }
+    return result.toString();
+  }
+
+  private static @NotNull List<VirtualFile> getContentRoots(@NotNull Module module) {
+    return Arrays.asList(ModuleRootManager.getInstance(module).getContentRoots());
   }
 
   @NotNull
