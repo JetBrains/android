@@ -23,6 +23,7 @@
 
 package com.android.tools.idea.res
 
+import com.android.AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_APP_PKG
 import com.android.SdkConstants.ANDROID_PKG_PREFIX
@@ -38,7 +39,6 @@ import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FD_RES_LAYOUT
 import com.android.SdkConstants.PREFIX_RESOURCE_REF
-import com.android.AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX
 import com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.TAG_ITEM
@@ -2040,10 +2040,10 @@ fun ensureFilesWritable(project: Project, files: Collection<VirtualFile>): Boole
  *
  * @param facets set of facets which may have resource directories
  */
-fun getResourceDirectoriesForFacets(facets: List<AndroidFacet?>): Map<VirtualFile, AndroidFacet?> {
-  val resDirectories: MutableMap<VirtualFile, AndroidFacet?> = HashMap()
+fun getResourceDirectoriesForFacets(facets: List<AndroidFacet>): Map<VirtualFile, AndroidFacet> {
+  val resDirectories = HashMap<VirtualFile, AndroidFacet>()
   for (facet in facets) {
-    for (resourceDir in ResourceFolderManager.getInstance(facet!!).folders) {
+    for (resourceDir in ResourceFolderManager.getInstance(facet).folders) {
       if (!resDirectories.containsKey(resourceDir)) {
         resDirectories[resourceDir] = facet
       }

@@ -44,7 +44,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
 
     @JvmStatic
     fun getInstance(facet: AndroidFacet): ResourceFolderManager {
-      return facet.module.getService(ResourceFolderManager::class.java)!!
+      return facet.module.getService(ResourceFolderManager::class.java)
     }
 
     @JvmField
@@ -135,14 +135,13 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
     }
   }
 
-
   private fun computeFolders(facet: AndroidFacet): Folders {
     return if (!AndroidModel.isRequired(facet)) {
       Folders(main = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
     }
     else {
-      // Listen to root change events. Be notified when project is initialized so we can update the
-      // resource set, if necessary.
+      // Listen to root change events. Be notified when project is initialized, so we can update
+      // the resource set when necessary.
       readFromFacetState(facet)
     }
   }
