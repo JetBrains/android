@@ -155,7 +155,7 @@ class DataSeriesPerformanceTest {
       val LOAD_JOINER = MoreExecutors.directExecutor()
     }
 
-    override fun getDataForRange(range: Range?): MutableList<SeriesData<Long>> {
+    override fun getDataForRange(range: Range): List<SeriesData<Long>> {
       liveAllocation.load(range, LOAD_JOINER)
       return mutableListOf()
     }

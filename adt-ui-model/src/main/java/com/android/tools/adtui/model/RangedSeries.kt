@@ -33,7 +33,8 @@ open class RangedSeries<E>
                           /**
                            * The range of the data
                            */
-                          protected val intersectRange: Range = Range(-Double.MAX_VALUE, Double.MAX_VALUE)) {
+                          private val intersectRange: Range = Range(-Double.MAX_VALUE, Double.MAX_VALUE)) {
+  private val maxEndPoints = listOf(Long.MAX_VALUE.toDouble(), Double.MAX_VALUE)
 
   private var lastQueriedRange = Range()
   private var lastQueriedSeries = emptyList<SeriesData<E>>()
@@ -44,7 +45,7 @@ open class RangedSeries<E>
   val intersection: Range get() = xRange.getIntersection(intersectRange)
 
   /**
-   * A new, immutable [SeriesDataList] consisting of items in the DataStore scoped to the range(s) that the RangedSeries was
+   * A new, immutable [List<SeriesData>] consisting of items in the DataStore scoped to the range(s) that the RangedSeries was
    * initialized with.
    *
    * Note - this call is frequently made by UI components on the main thread, so the last queried results are cached and returned if the
@@ -52,16 +53,25 @@ open class RangedSeries<E>
    * Long.MAX_VALUE or Double.MAX_VALUE, however, then the cache is bypassed since there might be new data that are still streaming in.
    */
   val series: List<SeriesData<E>>
-    get() = xRange.getIntersection(intersectRange).let { queryRange ->
-      when {
-        queryRange.max == Long.MAX_VALUE.toDouble() || queryRange.max == Double.MAX_VALUE -> getSeriesForRange(queryRange)
-        lastQueriedRange.isSameAs(queryRange) -> lastQueriedSeries
-        else -> getSeriesForRange(queryRange).also {
-          lastQueriedSeries = it
-          lastQueriedRange = queryRange
-        }
-      }
+    get() = getValuesInRange()
+
+  // See comments on [series] for more details on how this function works.
+  private fun getValuesInRange(): List<SeriesData<E>> {
+    val queryRange = xRange.getIntersection(intersectRange)
+
+    if (queryRange.max in maxEndPoints) {
+      return _series.getDataForRange(queryRange)
     }
+
+    if (!lastQueriedRange.isSameAs(queryRange)) {
+      val queriedSeries = _series.getDataForRange(queryRange)
+
+      lastQueriedRange = queryRange
+      lastQueriedSeries = queriedSeries.toList() // Make a copy to allow the underlying series to change freely
+    }
+
+    return lastQueriedSeries
+  }
 
   /**
    * @param range The range to which the data will be scoped.

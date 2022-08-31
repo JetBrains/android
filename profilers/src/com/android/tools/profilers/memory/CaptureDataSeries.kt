@@ -62,7 +62,8 @@ object CaptureDataSeries {
   private fun<C: CaptureObject,T> of(getSamples: (Range) -> List<T>,
                                      startTimeNs: (T) -> Long, endTimeNs: (T) -> Long,
                                      makeCapture: (T) -> C,
-                                     makeDurationData: (Long, T, CaptureEntry<C>) -> CaptureDurationData<out CaptureObject>) = DataSeries { range ->
+                                     makeDurationData: (Long, T, CaptureEntry<C>) -> CaptureDurationData<out CaptureObject>) =
+    DataSeries.using { range ->
       getSamples(range).map {
         val startNs = startTimeNs(it)
         val endNs = endTimeNs(it)

@@ -41,7 +41,7 @@ class AllocationDurationData<T: CaptureObject>(duration: Long, captureEntry: Cap
     private fun makeDurationData(dataRange: Range,
                                  allocSeries: DataSeries<CaptureDurationData<out CaptureObject>>,
                                  samplingSeries: DataSeries<AllocationSamplingRateDurationData>) =
-      DataSeries { _ ->
+      DataSeries.using { _ ->
         samplingSeries.getDataForRange(dataRange).consecutiveAllocRanges().mapNotNull {
           val startTime = it.min.toLong()
           val durationUs = it.max.toLong() - startTime

@@ -30,19 +30,20 @@ class AllocationDurationDataTest {
   fun `consecutive allocation intervals are grouped into one session`() {
     val viewRange = Range(0.0, 10.0)
     val dataRange = Range(0.0, 10.0)
-    val allocSeries = DataSeries {
-      fun make(x: Long): SeriesData<CaptureDurationData<out CaptureObject>> =
-        SeriesData(x, CaptureDurationData<CaptureObject>(1, false, false, CaptureEntry(x) {throw NotImplementedError()}))
-      listOf(make(1), make(3))
+
+    val allocSeries = DataSeries.using {
+      listOf(makeAllocData(1),
+             makeAllocData(3))
     }
-    val samplingSeries = DataSeries {
-      fun make(x: Long, dur: Long, mode: BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode) =
-        Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.value).build().let {
-          SeriesData(x, AllocationSamplingRateDurationData(dur, null, it))
-        }
-      listOf(make(1, 1, FULL), make(2, 1, NONE),
-             make(3, 1, SAMPLED), make(4, 2, FULL), make(6, 1, NONE))
+
+    val samplingSeries = DataSeries.using {
+      listOf(makeSamplingData(1, 1, FULL),
+             makeSamplingData(2, 1, NONE),
+             makeSamplingData(3, 1, SAMPLED),
+             makeSamplingData(4, 2, FULL),
+             makeSamplingData(6, 1, NONE))
     }
+
     val model = AllocationDurationData.makeModel(viewRange, dataRange, allocSeries, samplingSeries)
     model.series.series.let { series ->
       assertThat(series).hasSize(2)
@@ -56,4 +57,12 @@ class AllocationDurationDataTest {
       check(1, 3, 3.0, 6.0)
     }
   }
+
+  private fun makeAllocData(x: Long): SeriesData<CaptureDurationData<out CaptureObject>> =
+    SeriesData(x, CaptureDurationData<CaptureObject>(1, false, false, CaptureEntry(x) {throw NotImplementedError()}))
+
+  private fun makeSamplingData(x: Long, dur: Long, mode: BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode) =
+    Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.value).build().let {
+      SeriesData(x, AllocationSamplingRateDurationData(dur, null, it))
+    }
 }

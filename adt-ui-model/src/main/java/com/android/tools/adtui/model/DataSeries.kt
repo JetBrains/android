@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
-
-import java.util.List;
+package com.android.tools.adtui.model
 
 /**
  * An interface that provides data to all RangedSeries used by the UI.
  */
-public interface DataSeries<E> {
+interface DataSeries<E> {
+  fun getDataForRange(range: Range): List<SeriesData<E>>
 
-  List<SeriesData<E>> getDataForRange(Range range);
+  companion object {
+    fun <T> using(factory: (Range)->List<SeriesData<T>>) = object : DataSeries<T> {
+      override fun getDataForRange(range: Range): List<SeriesData<T>> {
+        return factory(range)
+      }
+    }
+
+    fun <T> empty(): DataSeries<T> = object : DataSeries<T> {
+      override fun getDataForRange(range: Range): List<SeriesData<T>> {
+        return emptyList()
+      }
+    }
+  }
 }

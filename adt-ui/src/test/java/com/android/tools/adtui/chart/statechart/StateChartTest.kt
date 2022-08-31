@@ -35,7 +35,7 @@ class StateChartTest {
   @Test
   fun emptyStateChartShouldNotThrowException() {
     val model = StateChartModel<Nothing>()
-    val dataSeries = DataSeries { listOf<SeriesData<Nothing>>() }
+    val dataSeries = DataSeries.empty<Nothing>()
     model.addSeries(RangedSeries(Range(0.0, 100.0), dataSeries))
     val stateChart = StateChart(model, mapOf())
     stateChart.setSize(100, 100)
@@ -47,8 +47,7 @@ class StateChartTest {
   @Test
   fun testStateChartTextConverter() {
     val model = StateChartModel<Int>()
-    val dataSeries = DataSeries { listOf(SeriesData(0, 1),
-                                         SeriesData(1000, 2)) }
+    val dataSeries = DataSeries.using { listOf(SeriesData(0, 1), SeriesData(1000, 2)) }
     model.addSeries(RangedSeries(Range(0.0, 100.0), dataSeries))
     val stateChart = StateChart(model, constColorProvider(Color.BLACK), { "123" })
     stateChart.setSize(100, 100)
@@ -62,8 +61,9 @@ class StateChartTest {
   @Test
   fun testStateChartWithDefaultTextConverterUsesToString() {
     val model = StateChartModel<ToStringTestClass>()
-    val dataSeries = DataSeries { listOf(SeriesData(0, ToStringTestClass("Test")),
-                                         SeriesData(1000, ToStringTestClass("Test2"))) }
+    val dataSeries = DataSeries.using {
+      listOf(SeriesData(0, ToStringTestClass("Test")), SeriesData(1000, ToStringTestClass("Test2")))
+    }
     model.addSeries(RangedSeries(Range(0.0, 100.0), dataSeries))
     val stateChart = StateChart(model, constColorProvider(Color.BLACK), StateChart.defaultTextConverter())
     stateChart.setSize(100, 100)
@@ -81,9 +81,9 @@ class StateChartTest {
   @Test
   fun testLargeValuesGetOverlappedAsOne() {
     val model = StateChartModel<Long>()
-    val dataSeries = DataSeries { listOf(SeriesData(100, 0L),
-                                         SeriesData(101, 1L),
-                                         SeriesData(105, 2L)) }
+    val dataSeries = DataSeries.using {
+      listOf(SeriesData(100, 0L), SeriesData(101, 1L), SeriesData(105, 2L))
+    }
     val colorMap = mapOf(0L to Color.RED,
                          1L to Color.GREEN,
                          2L to Color.BLUE)
@@ -109,9 +109,8 @@ class StateChartTest {
   @Test
   fun `click-listener called on the right state item`() {
     val model = StateChartModel<Long>()
-    fun seriesOf(vararg xs: Long) = DataSeries { xs.map { SeriesData(it, it) } }
-    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(0, 2, 4, 6, 8, 10)))
-    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(1, 3, 5, 7, 9)))
+    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(0, 2, 4, 6, 8, 10).map { SeriesData(it, it) } }))
+    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(1, 3, 5, 7, 9).map { SeriesData(it, it) } }))
 
     val stateChart = StateChart(model, constColorProvider(Color.PINK)).apply {
       setSize(100, 100)
@@ -135,9 +134,8 @@ class StateChartTest {
   @Test
   fun `series at mouse gives right-most index to mouse's left`() {
     val model = StateChartModel<Long>()
-    fun seriesOf(vararg xs: Long) = DataSeries { xs.map { SeriesData(it, it) } }
-    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(0, 2, 4, 6, 8, 10)))
-    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(1, 3, 5, 7, 9)))
+    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(0, 2, 4, 6, 8, 10).map { SeriesData(it, it) } }))
+    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(1, 3, 5, 7, 9).map { SeriesData(it, it) } }))
 
     val stateChart = StateChart(model, constColorProvider(Color.PINK)).apply {
       setSize(100, 100)
@@ -161,9 +159,8 @@ class StateChartTest {
   @Test
   fun `chart uses custom renderer`() {
     val model = StateChartModel<Long>()
-    fun seriesOf(vararg xs: Long) = DataSeries { xs.map { SeriesData(it, it) } }
-    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(0, 2, 4, 6, 8, 10)))
-    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(1, 3, 5, 7, 9)))
+    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(0, 2, 4, 6, 8, 10).map { SeriesData(it, it) } }))
+    model.addSeries(RangedSeries(Range(0.0, 10.0), DataSeries.using { longArrayOf(1, 3, 5, 7, 9).map { SeriesData(it, it) } }))
 
     fun render(g: Graphics2D, rect: Rectangle2D.Float, defaultFontMetrics: FontMetrics, hovered: Boolean, value: Long) {
       if (value % 2 == 0L) g.fill(rect) else g.drawString("hi", 25, 25)
