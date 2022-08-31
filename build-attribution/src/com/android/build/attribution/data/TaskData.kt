@@ -94,6 +94,14 @@ class TaskData(val taskName: String,
            taskType == "org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask"
   }
 
+  fun isAndroidTask(): Boolean {
+    return taskType.startsWith("com.android.build.gradle.")
+  }
+
+  fun isGradleTask(): Boolean {
+    return taskType.startsWith("org.gradle.")
+  }
+
   companion object {
     const val UNKNOWN_TASK_TYPE = "UNKNOWN"
 
