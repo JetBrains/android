@@ -160,6 +160,7 @@ public class RenderTask {
   private static final ExecutorService ourDisposeService =
     AppExecutorUtil.createBoundedApplicationPoolExecutor("RenderTask Dispose Thread", 1);
   public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
+  private static final String WINDOW_RECOMPOSER_ANDROID_KT_FQN = "androidx.compose.ui.platform.WindowRecomposer_androidKt";
 
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderContext myContext;
@@ -1421,14 +1422,27 @@ public class RenderTask {
         LOG.debug(COMPOSE_VIEW_ADAPTER_FQN + " class not found", ex);
       }
 
-      if (!disposeMethod.isPresent()) {
+      if (disposeMethod.isEmpty()) {
         LOG.warn("Unable to find dispose method in ComposeViewAdapter");
+      }
+
+      try {
+        Class<?> windowRecomposer = myLayoutlibCallback.findClass(WINDOW_RECOMPOSER_ANDROID_KT_FQN);
+        Field animationScaleField = windowRecomposer.getDeclaredField("animationScale");
+        animationScaleField.setAccessible(true);
+        Object animationScale = animationScaleField.get(windowRecomposer);
+        if (animationScale instanceof Map) {
+          ((Map)animationScale).clear();
+        }
+      }
+      catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException ex) {
+        // If the WindowRecomposer does not exist or the animationScale does not exist anymore, ignore.
+        LOG.debug("Unable to dispose the recompose animationScale", ex);
       }
     }
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
     return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> {
-
       finalDisposeMethod.ifPresent(
         m -> renderSession.execute(
           () -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m))
