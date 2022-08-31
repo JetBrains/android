@@ -133,6 +133,7 @@ fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
     IdeSyncIssue.TYPE_COMPILE_SDK_VERSION_TOO_LOW -> AndroidStudioEvent.GradleSyncIssueType.TYPE_COMPILE_SDK_VERSION_TOO_LOW
     IdeSyncIssue.TYPE_ACCESSING_DISABLED_FEATURE_VARIANT_API -> AndroidStudioEvent.GradleSyncIssueType.TYPE_ACCESSING_DISABLED_FEATURE_VARIANT_API
     IdeSyncIssue.TYPE_APPLICATION_ID_MUST_NOT_BE_DYNAMIC -> AndroidStudioEvent.GradleSyncIssueType.TYPE_APPLICATION_ID_MUST_NOT_BE_DYNAMIC
+    IdeSyncIssue.TYPE_REMOVED_API -> AndroidStudioEvent.GradleSyncIssueType.TYPE_REMOVED_API
     else -> null.also { LOG.warn("Unknown sync issue type: $this") }
-  }
+    }
 
