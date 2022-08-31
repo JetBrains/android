@@ -23,6 +23,7 @@
     <orderEntry type="module" module-name="intellij.android.smali" />
     <orderEntry type="module" module-name="test-recorder" />
     <orderEntry type="module" module-name="url-assistant" />
+    <orderEntry type="module" module-name="targetsdkversion-upgrade-assistant" />
     <orderEntry type="library" name="studio-plugin-configurationScript" level="project" />
     <orderEntry type="library" name="studio-plugin-copyright" level="project" />
     <orderEntry type="library" name="studio-plugin-coverage" level="project" />

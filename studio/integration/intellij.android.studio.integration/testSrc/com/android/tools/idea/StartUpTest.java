@@ -107,6 +107,7 @@ public class StartUpTest {
         "Shell Script",
         "Smali Support",
         "Subversion",
+        "TargetSDKVersion Upgrade Assistant",
         "Task Management",
         "Terminal",
         "Test Recorder",

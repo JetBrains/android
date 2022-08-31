@@ -2081,6 +2081,7 @@ android-studio/plugins/smali/lib/smali.jar
 android-studio/plugins/stream-debugger/lib/stream-debugger.jar
 android-studio/plugins/svn4idea/lib/sqlite.jar
 android-studio/plugins/svn4idea/lib/svn4idea.jar
+android-studio/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 android-studio/plugins/tasks/lib/tasks-core.jar
 android-studio/plugins/terminal/.zshenv
 android-studio/plugins/terminal/fish/config.fish

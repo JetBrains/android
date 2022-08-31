@@ -562,6 +562,16 @@ studio_plugin(
     ],
 )
 
+studio_plugin(
+    name = "com.google.targetsdkversionassistant",
+    directory = "targetsdkversion-upgrade-assistant",
+    modules = {"targetsdkversion-upgrade-assistant.jar": ["//tools/vendor/google/targetsdkversion-upgrade-assistant:targetsdkversion-upgrade-assistant"]},
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+    ],
+)
+
 android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
@@ -588,6 +598,7 @@ android_studio(
         ":com.android.tools.idea.smali",
         ":com.google.gct.test.recorder",
         ":com.google.urlassistant",
+        ":com.google.targetsdkversionassistant",
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
     version_code_name = "Flamingo",
@@ -712,6 +723,7 @@ iml_module(
         "//tools/adt/idea/smali:intellij.android.smali[module]",
         "//tools/studio/google/cloud/testing/test-recorder[module]",
         "//tools/vendor/google/url-assistant[module]",
+        "//tools/vendor/google/targetsdkversion-upgrade-assistant[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-configurationScript",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-copyright",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-coverage",

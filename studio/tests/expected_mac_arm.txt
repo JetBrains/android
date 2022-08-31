@@ -2628,6 +2628,7 @@ Android Studio Preview.app/Contents/plugins/smali/lib/smali.jar
 Android Studio Preview.app/Contents/plugins/stream-debugger/lib/stream-debugger.jar
 Android Studio Preview.app/Contents/plugins/svn4idea/lib/sqlite.jar
 Android Studio Preview.app/Contents/plugins/svn4idea/lib/svn4idea.jar
+Android Studio Preview.app/Contents/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/tasks-core.jar
 Android Studio Preview.app/Contents/plugins/terminal/.zshenv
 Android Studio Preview.app/Contents/plugins/terminal/fish/config.fish
