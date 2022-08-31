@@ -218,9 +218,7 @@ public:
   jmethodID FindMethod(const char* name, const char* signature) const {
     return FindMethod(GetJni(), name, signature);
   }
-  jmethodID FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
-    return jni_env->GetMethodID(ref(), name, signature);
-  }
+  jmethodID FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
 
   JObject NewObject(jmethodID constructor, ...) const;
   JObject NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const;

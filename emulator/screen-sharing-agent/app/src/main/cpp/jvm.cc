@@ -211,6 +211,15 @@ jmethodID JClass::GetDeclaredOrInheritedMethodId(JNIEnv* jni_env, const char* na
   Log::Fatal("Unable to find the declared or inherited %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
 }
 
+jmethodID JClass::FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
+  jmethodID method = jni_env->GetMethodID(ref(), name, signature);
+  jboolean exception_thrown = jni_env->ExceptionCheck();
+  if (exception_thrown) {
+    jni_env->ExceptionClear();
+  }
+  return method;
+}
+
 JClass JClass::GetSuperclass(JNIEnv* jni_env) const {
   return JClass(jni_env, jni_env->GetSuperclass(ref()));
 }
