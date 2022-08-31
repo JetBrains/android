@@ -165,14 +165,14 @@ public class DeviceExplorerPanel {
     myTree.setShowsRootHandles(true);
     myTree.setRootVisible(true);
 
-    TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myTree, path -> {
+    TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myTree, true, path -> {
       DeviceFileEntryNode node = DeviceFileEntryNode.fromNode(path.getLastPathComponent());
       if (node == null) {
         return null;
       }
 
       return node.getEntry().getName();
-    }, true);
+    });
 
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .setBackground(UIUtil.getTreeBackground())

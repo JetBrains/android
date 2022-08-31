@@ -38,9 +38,9 @@ import javax.swing.tree.TreePath
 
 class ProcessListTreeBuilder {
   fun build(myTree: Tree): JComponent {
-    val treeSpeedSearch = TreeSpeedSearch(myTree, { path: TreePath ->
+    val treeSpeedSearch = TreeSpeedSearch(myTree, true) { path: TreePath ->
       fromNode(path.lastPathComponent)?.processInfo?.processName
-    }, true)
+    }
 
     val builder = ColumnTreeBuilder(myTree)
       .setBackground(UIUtil.getTreeBackground())

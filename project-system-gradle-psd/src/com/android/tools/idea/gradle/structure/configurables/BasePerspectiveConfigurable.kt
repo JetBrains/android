@@ -223,7 +223,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     super.initTree()
     myTree.isRootVisible = false
 
-    TreeSpeedSearch(myTree, { treePath -> (treePath.lastPathComponent as MasterDetailsComponent.MyNode).displayName }, true)
+    TreeSpeedSearch(myTree, true) { treePath -> (treePath.lastPathComponent as MasterDetailsComponent.MyNode).displayName }
     ToolTipManager.sharedInstance().registerComponent(myTree)
     myTree.cellRenderer = PsModuleCellRenderer(context)
   }
