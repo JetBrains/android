@@ -24,10 +24,12 @@ import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.emulator.DeviceMirroringSettingsListener
 import com.android.tools.idea.emulator.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.emulator.constrainInside
+import com.android.tools.idea.emulator.contains
 import com.android.tools.idea.emulator.isSameAspectRatio
+import com.android.tools.idea.emulator.location
 import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
-import com.android.tools.idea.emulator.scaledUnbiased
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -129,7 +131,7 @@ class DeviceView(
         val point = lastTouchCoordinates
         if (point != null) {
           val action = if (value) MotionEventMessage.ACTION_POINTER_DOWN else MotionEventMessage.ACTION_POINTER_UP
-          sendMotionEvent(point.x, point.y, action)
+          sendMotionEvent(point, action)
         }
       }
     }
@@ -345,88 +347,48 @@ class DeviceView(
   }
 
   override fun dispatchTouch(p: Point) {
-    sendMotionEventDisplayCoordinates(p.x, p.y, MotionEventMessage.ACTION_DOWN)
+    sendMotionEventDisplayCoordinates(p, MotionEventMessage.ACTION_DOWN)
   }
 
   override fun dispatchKey(keyCode: Int) {
     deviceController?.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, metaState = 0))
   }
 
-  private fun sendMotionEvent(x: Int, y: Int, action: Int) {
-    val displayRectangle = displayRectangle ?: return
-    // Mouse pointer coordinates compensated for the device display rotation.
-    val normalizedX: Int
-    val normalizedY: Int
-    val imageWidth: Int
-    val imageHeight: Int
-    when (displayOrientationQuadrants) {
-      0 -> {
-        normalizedX = x.scaled(screenScale) - displayRectangle.x
-        normalizedY = y.scaled(screenScale) - displayRectangle.y
-        imageWidth = displayRectangle.width
-        imageHeight = displayRectangle.height
-      }
-      1 -> {
-        normalizedX = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
-        normalizedY = x.scaled(screenScale) - displayRectangle.x
-        imageWidth = displayRectangle.height
-        imageHeight = displayRectangle.width
-      }
-      2 -> {
-        normalizedX = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
-        normalizedY = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
-        imageWidth = displayRectangle.width
-        imageHeight = displayRectangle.height
-      }
-      3 -> {
-        normalizedX = y.scaled(screenScale) - displayRectangle.y
-        normalizedY = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
-        imageWidth = displayRectangle.height
-        imageHeight = displayRectangle.width
-      }
-      else -> {
-        assert(false) { "Invalid display orientation: $displayOrientationQuadrants" }
-        return
-      }
-    }
-    // Device display coordinates.
-    val displayX = normalizedX.scaledUnbiased(imageWidth, deviceDisplaySize.width)
-    val displayY = normalizedY.scaledUnbiased(imageHeight, deviceDisplaySize.height)
+  private fun sendMotionEvent(p: Point, action: Int) {
+    val displayCoordinates = toDeviceDisplayCoordinates(p) ?: return
 
-    if (displayX in 0 until deviceDisplaySize.width && displayY in 0 until deviceDisplaySize.height) {
+    if (displayCoordinates in deviceDisplaySize) {
       // Within the bounds of the device display.
-      sendMotionEventDisplayCoordinates(displayX, displayY, action)
+      sendMotionEventDisplayCoordinates(displayCoordinates, action)
     }
     else if (action == MotionEventMessage.ACTION_MOVE) {
       // Crossed the device display boundary while dragging.
       lastTouchCoordinates = null
-      val adjustedX = displayX.coerceIn(0, deviceDisplaySize.width - 1)
-      val adjustedY = displayY.coerceIn(0, deviceDisplaySize.height - 1)
-      sendMotionEventDisplayCoordinates(adjustedX, adjustedY, action)
-      sendMotionEventDisplayCoordinates(adjustedX, adjustedY, MotionEventMessage.ACTION_UP)
+      val adjusted = displayCoordinates.constrainInside(deviceDisplaySize)
+      sendMotionEventDisplayCoordinates(adjusted, action)
+      sendMotionEventDisplayCoordinates(adjusted, MotionEventMessage.ACTION_UP)
     }
   }
 
-  private fun sendMotionEventDisplayCoordinates(displayX: Int, displayY: Int, action: Int) {
+  private fun sendMotionEventDisplayCoordinates(p: Point, action: Int) {
     val deviceController = deviceController ?: return
     val message = when {
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
-          MotionEventMessage(originalAndMirroredPointer(displayX, displayY),
-                             action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), displayId)
-      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(displayX, displayY), action, displayId)
-      else -> MotionEventMessage(originalPointer(displayX, displayY), action, displayId)
+        MotionEventMessage(originalAndMirroredPointer(p),action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), displayId)
+      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(p), action, displayId)
+      else -> MotionEventMessage(originalPointer(p), action, displayId)
     }
 
     deviceController.sendControlMessage(message)
   }
 
-  private fun originalPointer(displayX: Int, displayY: Int): List<MotionEventMessage.Pointer> {
-    return listOf(MotionEventMessage.Pointer(displayX, displayY, 0))
+  private fun originalPointer(p: Point): List<MotionEventMessage.Pointer> {
+    return listOf(MotionEventMessage.Pointer(p.x, p.y, 0))
   }
 
-  private fun originalAndMirroredPointer(displayX: Int, displayY: Int): List<MotionEventMessage.Pointer> {
-    return listOf(MotionEventMessage.Pointer(displayX, displayY, 0),
-                  MotionEventMessage.Pointer(deviceDisplaySize.width - displayX, deviceDisplaySize.height - displayY, 1))
+  private fun originalAndMirroredPointer(p: Point): List<MotionEventMessage.Pointer> {
+    return listOf(MotionEventMessage.Pointer(p.x, p.y, 0),
+                  MotionEventMessage.Pointer(deviceDisplaySize.width - p.x, deviceDisplaySize.height - p.y, 1))
   }
 
   private fun isInsideDisplay(event: MouseEvent) =
@@ -542,9 +504,11 @@ class DeviceView(
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       if (isInsideDisplay(event) && event.button == BUTTON1) {
-        lastTouchCoordinates = Point(event.x, event.y)
-        updateMultiTouchMode(event)
-        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_DOWN)
+        event.location.let {
+          lastTouchCoordinates = it
+          updateMultiTouchMode(event)
+          sendMotionEvent(it, MotionEventMessage.ACTION_DOWN)
+        }
       }
     }
 
@@ -552,7 +516,7 @@ class DeviceView(
       if (event.button == BUTTON1) {
         lastTouchCoordinates = null
         updateMultiTouchMode(event)
-        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_UP)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_UP)
       }
     }
 
@@ -563,7 +527,7 @@ class DeviceView(
     override fun mouseExited(event: MouseEvent) {
       if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0 && lastTouchCoordinates != null) {
         // Moving over the edge of the display view will terminate the ongoing dragging.
-        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_MOVE)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE)
       }
       lastTouchCoordinates = null
       multiTouchMode = false
@@ -572,7 +536,7 @@ class DeviceView(
     override fun mouseDragged(event: MouseEvent) {
       updateMultiTouchMode(event)
       if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0 && lastTouchCoordinates != null) {
-        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_MOVE)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE)
       }
     }
 

@@ -39,7 +39,6 @@ import java.awt.event.KeyEvent
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
-import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.AbstractAction
 import javax.swing.Box
 import javax.swing.JButton
@@ -278,6 +277,33 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   internal abstract fun dispatchTouch(p: Point)
   /** Dispatches a keystroke to the device. */
   internal abstract fun dispatchKey(keyCode: Int)
+
+  internal fun toDeviceDisplayCoordinates(p: Point): Point? {
+    val displayRectangle = displayRectangle ?: return null
+    val imageSize = displayRectangle.size.rotatedByQuadrants(displayOrientationQuadrants)
+    // Mouse pointer coordinates compensated for the device display rotation.
+    val normalized = Point()
+    when (displayOrientationQuadrants) {
+      0 -> {
+        normalized.x = p.x.scaled(screenScale) - displayRectangle.x
+        normalized.y = p.y.scaled(screenScale) - displayRectangle.y
+      }
+      1 -> {
+        normalized.x = displayRectangle.bottom - p.y.scaled(screenScale)
+        normalized.y = p.x.scaled(screenScale) - displayRectangle.x
+      }
+      2 -> {
+        normalized.x = displayRectangle.right - p.x.scaled(screenScale)
+        normalized.y = displayRectangle.bottom - p.y.scaled(screenScale)
+      }
+      else -> {  // 3
+        normalized.x = p.y.scaled(screenScale) - displayRectangle.y
+        normalized.y = displayRectangle.right - p.x.scaled(screenScale)
+      }
+    }
+    // Device display coordinates.
+    return normalized.scaledUnbiased(imageSize, deviceDisplaySize)
+  }
 
  /** Attempts to restore a lost device connection. */
   protected inner class Reconnector(val reconnectLabel: String, val progressMessage: String, val reconnect: suspend () -> Unit) {

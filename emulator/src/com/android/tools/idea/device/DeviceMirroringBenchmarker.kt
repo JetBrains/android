@@ -16,6 +16,10 @@
 package com.android.tools.idea.device
 
 import com.android.tools.idea.emulator.AbstractDisplayView
+import com.android.tools.idea.emulator.right
+import com.android.tools.idea.emulator.bottom
+import com.android.tools.idea.emulator.rotatedByQuadrants
+import com.android.tools.idea.emulator.scaled
 import com.android.tools.idea.emulator.scaledUnbiased
 import com.android.tools.idea.util.fsm.StateMachine
 import com.google.common.math.Quantiles
@@ -141,7 +145,21 @@ class DeviceMirroringBenchmarker(
       pointsToTouch.next().let {
         outstandingTouches[it] = timeSource.markNow()
         LOG.trace("Dispatching touch at $it.")
-        abstractDisplayView.dispatchTouch(it)
+        abstractDisplayView.toDeviceDisplayCoordinates(it)?.let { converted ->
+          abstractDisplayView.dispatchTouch(converted)
+        }
+        // TODO(b/243838958): Convert this to use the below code once we figure out why it causes a
+        //  deadlock/race condition.
+        // abstractDisplayView.dispatchEvent(
+        //   MouseEvent(abstractDisplayView,
+        //              MouseEvent.MOUSE_PRESSED,
+        //              System.currentTimeMillis(),
+        //              0,
+        //              it.x,
+        //              it.y,
+        //              1,
+        //              false,
+        //              MouseEvent.BUTTON1))
       }
       if (!pointsToTouch.hasNext()) state = State.WAITING_FOR_OUTSTANDING_TOUCHES
     }
@@ -154,9 +172,8 @@ class DeviceMirroringBenchmarker(
   override fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage) {
     when (state) {
       State.FINDING_TOUCHABLE_AREA -> {
-        val touchable = displayImage.findTouchableArea()
-        if (touchable != null) {
-          touchableArea = touchable
+        displayImage.findTouchableAreaInDisplayViewCoordinates()?.let {
+          touchableArea = it
           state = State.SENDING_TOUCHES
           return
         }
@@ -165,7 +182,8 @@ class DeviceMirroringBenchmarker(
           state = State.STOPPED
         }
       }
-      State.SENDING_TOUCHES, State.WAITING_FOR_OUTSTANDING_TOUCHES -> onTouchReturned(displayImage.decodeToPoint())
+      State.SENDING_TOUCHES, State.WAITING_FOR_OUTSTANDING_TOUCHES ->
+        displayImage.decodeToPoint().toDisplayViewCoordinates()?.let { onTouchReturned(it) }
       else -> LOG.debug("Got frame for ${displayImage.decodeToPoint()} but not expecting touch. Ignoring.")
     }
   }
@@ -204,29 +222,43 @@ class DeviceMirroringBenchmarker(
   }
 
   /** Extracts the [Color] of the pixel at ([x], [y]) in the image. */
-  private fun BufferedImage.extract(x: Int, y: Int): Color {
-    if (width == deviceDisplaySize.width && height == deviceDisplaySize.height) return Color(getRGB(x, y))
-    val scaledX = x.scaledUnbiased(deviceDisplaySize.width, width).coerceAtMost(width - 1)
-    val scaledY = y.scaledUnbiased(deviceDisplaySize.height, height).coerceAtMost(height - 1)
-    return Color(getRGB(scaledX,scaledY))
+  private fun BufferedImage.extract(x: Int, y: Int): Color = Color(getRGB(x,y))
+
+  private fun BufferedImage.findTouchableAreaInDisplayViewCoordinates(): Rectangle? {
+    val imageRectangle = findTouchableArea() ?: return null
+    // Start with a nonexistent Rectangle.
+    val displayViewRectangle = Rectangle(0, 0, -1, -1)
+    // Get two opposite corners of the image rectangle.
+    listOf(imageRectangle.location, Point(imageRectangle.right, imageRectangle.bottom))
+      // Scale them to device coordinates.
+      .map { it.scaledUnbiased(size, abstractDisplayView.deviceDisplaySize) }
+      // Now use a known good function to transform them to the display view coordinates, if possible.
+      .map { it.toDisplayViewCoordinates() ?: return null }
+      // Now add each of these opposite points to the newly created Rectangle.
+      .forEach(displayViewRectangle::add)
+    return displayViewRectangle.also { LOG.info("Converted touchable area to AbstractDisplayView coordinates: $it")}
   }
+
+  private val BufferedImage.size: Dimension
+    get() = Dimension(width, height)
 
   /**
    * Finds a [Rectangle] of touchable area of the screen, which should be colored green.
    *
-   * This method assumes that the marked touchable area overlaps the center of the screen.
+   * This method assumes that the marked touchable area overlaps the center of the screen. This method also
+   * returns the [Rectangle] in image coordinates.
    */
   private fun BufferedImage.findTouchableArea(): Rectangle? {
     val threshold = 0x1F
-    val centerY = deviceDisplaySize.height / 2
-    val centerX = deviceDisplaySize.width / 2
+    val center = Point(width / 2, height / 2)
 
     fun Color.isGreenish() = red < threshold && green > 0xFF - threshold && blue < threshold
 
-    val left = (0 until deviceDisplaySize.width).find { extract(it, centerY).isGreenish() } ?: return null
-    val right = (0 until deviceDisplaySize.width).reversed().find { extract(it, centerY).isGreenish() } ?: return null
-    val top = (0 until deviceDisplaySize.height).find { extract(centerX, it).isGreenish() } ?: return null
-    val bottom = (0 until deviceDisplaySize.height).reversed().find { extract(centerX, it).isGreenish() } ?: return null
+    val left = (0 until width).find { extract(it, center.y).isGreenish() } ?: return null
+    val right = (0 until width).reversed().find { extract(it, center.y).isGreenish() } ?: return null
+    val top = (0 until height).find { extract(center.x, it).isGreenish() } ?: return null
+    val bottom = (0 until height).reversed().find { extract(center.x, it).isGreenish() } ?: return null
+
     val width = right - left + 1
     val height = bottom - top + 1
     return Rectangle(left, top, width, height).also { LOG.info("Found touchable area: $it") }
@@ -246,10 +278,37 @@ class DeviceMirroringBenchmarker(
 
   /** Decode the frame to a [Point]. */
   private fun BufferedImage.decodeToPoint(): Point {
-    val sampleY = deviceDisplaySize.height / 4
-    val sampleX1 = deviceDisplaySize.width / 4
-    val sampleX2 = deviceDisplaySize.width * 3 / 4
+    val sampleY = height / 4
+    val sampleX1 = width / 4
+    val sampleX2 = width * 3 / 4
     return Point(decode(sampleX1, sampleY), decode(sampleX2, sampleY))
+  }
+
+  private fun Point.toDisplayViewCoordinates(): Point? {
+    val displayRectangle = abstractDisplayView.displayRectangle ?: return null
+    val imageSize = displayRectangle.size.rotatedByQuadrants(abstractDisplayView.displayOrientationQuadrants)
+    val p2 = scaledUnbiased(deviceDisplaySize, imageSize)
+    val inverseScreenScale = 1.0 / abstractDisplayView.screenScalingFactor
+    val viewCoordinates = Point()
+    when (abstractDisplayView.displayOrientationQuadrants) {
+      0 -> {
+        viewCoordinates.x = (p2.x + displayRectangle.x).scaled(inverseScreenScale)
+        viewCoordinates.y = (p2.y + displayRectangle.y).scaled(inverseScreenScale)
+      }
+      3 -> {  // Inverse of 1
+        viewCoordinates.x = (displayRectangle.bottom - p2.y).scaled(inverseScreenScale)
+        viewCoordinates.y = (p2.x + displayRectangle.x).scaled(inverseScreenScale)
+      }
+      2 -> {
+        viewCoordinates.x = (displayRectangle.right - p2.x).scaled(inverseScreenScale)
+        viewCoordinates.y = (displayRectangle.bottom - p2.y).scaled(inverseScreenScale)
+      }
+      else -> {  // 1, inverse of 3
+        viewCoordinates.x = (p2.y + displayRectangle.y).scaled(inverseScreenScale)
+        viewCoordinates.y = (displayRectangle.right - p2.x).scaled(inverseScreenScale)
+      }
+    }
+    return viewCoordinates
   }
 
   data class BenchmarkResults(val raw: Map<Point, Duration>, val percentiles: Map<Int, Double>)

@@ -263,6 +263,9 @@ class DeviceMirroringBenchmarkerTest {
   }
 
   inner class TestDisplayView(override val deviceDisplaySize: Dimension) : AbstractDisplayView(0) {
+    init {
+      displayRectangle = Rectangle(deviceDisplaySize)
+    }
     override val displayOrientationQuadrants = 0
     override fun canZoom() = false
     override fun computeActualSize() = deviceDisplaySize

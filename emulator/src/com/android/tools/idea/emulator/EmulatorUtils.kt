@@ -29,6 +29,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
+import java.awt.Rectangle
+import java.awt.event.MouseEvent
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.abs
@@ -145,6 +147,12 @@ internal fun Int.scaledDown(numerator: Int, denominator: Int): Int =
 internal fun Int.scaledUnbiased(fromRange: Int, toRange: Int): Int =
   ((this * 2L + 1) * toRange / (2 * fromRange)).toInt()
 
+internal fun Point.scaledUnbiased(fromDim: Dimension, toDim: Dimension): Point =
+  Point(x.scaledUnbiased(fromDim.width, toDim.width), y.scaledUnbiased(fromDim.height, toDim.height))
+
+internal fun Dimension.scaledUnbiased(fromDim: Dimension, toDim: Dimension): Dimension =
+  Dimension(width.scaledUnbiased(fromDim.width, toDim.width), height.scaledUnbiased(fromDim.height, toDim.height))
+
 /**
  * Checks if the ratio between [width1] and [height1] is the same as the ratio between
  * [width2] and [height2] within the given relative [tolerance].
@@ -167,7 +175,7 @@ internal fun Dimension.rotatedByQuadrants(numQuadrants: Int): Dimension {
  * Returns this [Point] rotated according to [rotation].
  */
 internal fun Point.rotatedByQuadrants(rotation: Int): Point {
-  return when (rotation) {
+  return when (rotation and 0x3) { // True modulus
     1 -> Point(y, -x)
     2 -> Point(-x, -y)
     3 -> Point(-y, x)
@@ -193,3 +201,17 @@ internal val Container.sizeWithoutInsets: Dimension
 
 val Project.earlyDisposable: Disposable
   get() = (this as? ProjectEx)?.earlyDisposable ?: this
+
+internal fun Point.constrainInside(d: Dimension) =
+  if (this in d) this else Point(x.coerceIn(0, d.width - 1), y.coerceIn(0, d.height - 1))
+
+internal operator fun Dimension.contains(p: Point) = p.x in 0 until width && p.y in 0 until height
+
+internal val Rectangle.right: Int
+  get() = x + width
+
+internal val Rectangle.bottom: Int
+  get() = y + height
+
+internal val MouseEvent.location: Point
+  get() = Point(x, y)
