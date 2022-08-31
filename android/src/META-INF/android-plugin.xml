@@ -301,6 +301,8 @@
     <applicationService serviceInterface="com.android.tools.idea.serverflags.ServerFlagService"
                         serviceImplementation="com.android.tools.idea.serverflags.ServerFlagServiceImpl"/>
 
+    <projectTypesProvider implementation="com.android.tools.idea.gradle.project.importing.AndroidProjectTypesProvider"/>
+
     <applicationConfigurable groupId="build" id="configuration.execution"
                              provider="com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
