@@ -52,6 +52,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 
 /**
  * Pool of 1 thread to trigger background visual linting analysis one at a time, and wait for its completion
@@ -160,15 +161,18 @@ class VisualLintService(val project: Project): Disposable {
         for (model in modelsToAnalyze) {
           val requireRender = StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes
           createRenderResult(model, requireRender).handleAsync({ result, _ ->
-            if (result != null) {
-              updateHierarchy(result, model)
-              analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues, true)
+            try {
+              if (result != null) {
+                updateHierarchy(result, model)
+                analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues, true)
+              }
+            } finally {
+              Disposer.dispose(model)
+              latch.countDown()
             }
-            Disposer.dispose(model)
-            latch.countDown()
           }, visualLintAnalyzerExecutorService)
         }
-        latch.await()
+        latch.await(5, TimeUnit.SECONDS)
         issueModel.updateErrorsList()
       } finally {
         displayingModel.removeListener(listener)
