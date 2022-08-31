@@ -157,6 +157,7 @@ class AppInspectionInspectorClientTest {
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
   }
 
+  @Ignore("b/244336884")
   @Test
   fun treeRecompositionVisibilitySetAtConnectTime() {
     val panel = LayoutInspectorTreePanel(disposableRule.disposable)
