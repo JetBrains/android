@@ -141,7 +141,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(true);
 
-    new TreeSpeedSearch(myTree, path -> {
+    new TreeSpeedSearch(myTree, true, path -> {
       Object o = path.getLastPathComponent();
       if (!(o instanceof DexElementNode)) {
         return "";
@@ -149,7 +149,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
 
       DexElementNode node = (DexElementNode)o;
       return node.getName();
-    }, true);
+    });
 
     myDexTreeRenderer = new DexTreeNodeRenderer();
 
