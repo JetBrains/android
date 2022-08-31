@@ -48,7 +48,6 @@ import java.util.function.BiConsumer
 /**
  * Unit test for [LaunchTaskRunner].
  */
-@org.junit.Ignore("b/233935324")
 class LaunchTaskRunnerTest {
   @get:Rule
   var mockitoJunit = MockitoJUnit.rule()
@@ -83,6 +82,7 @@ class LaunchTaskRunnerTest {
   @Before
   fun setUp() {
     whenever(mockExecutor.toolWindowId).thenReturn("toolWindowId")
+    whenever(mockExecutor.id).thenReturn("id")
   }
 
   private fun createDeviceFutures(numDevices: Int = 1): DeviceFutures {
