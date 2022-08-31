@@ -1,12 +1,9 @@
-import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.AppExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+plugins {
+    id("org.jetbrains.kotlin.android")
+    id("com.android.application")
+}
 
-
-apply<AppPlugin>()
-apply<KotlinAndroidPluginWrapper>()
-
-configure<AppExtension> {
+android {
     buildToolsVersion("28.0.3")
     compileSdkVersion(28)
 

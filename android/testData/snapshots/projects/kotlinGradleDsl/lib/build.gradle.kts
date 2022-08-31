@@ -1,13 +1,10 @@
-import com.android.build.gradle.LibraryPlugin
-import com.android.build.gradle.LibraryExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
-
-apply {
-    plugin<LibraryPlugin>()
-    plugin<KotlinAndroidPluginWrapper>()
+plugins {
+    id("org.jetbrains.kotlin.android")
+    id("com.android.library")
 }
 
-configure<LibraryExtension> {
+android {
+
     compileSdkVersion(27)
 
     defaultConfig {
