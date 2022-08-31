@@ -55,7 +55,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks =
       """
               ApplicationId: com.test.compositeapp
-              File: project/app/build/outputs/apk/debug/app-debug.apk
               Files:
                 project.app -> project/app/build/outputs/apk/debug/app-debug.apk
               RequiredInstallationOptions: []
@@ -68,7 +67,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
                     ApplicationId: com.test.compositeapp
-                    File: project/app/build/intermediates/apk/debug/app-debug.apk
                     Files:
                       project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
                     RequiredInstallationOptions: []
@@ -85,7 +83,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks =
       """
               ApplicationId: com.test.composite1
-              File: project/TestCompositeLib1/app/build/outputs/apk/debug/app-debug.apk
               Files:
                 TestCompositeLib1.app -> project/TestCompositeLib1/app/build/outputs/apk/debug/app-debug.apk
               RequiredInstallationOptions: []
@@ -98,7 +95,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
               ApplicationId: com.test.composite1
-              File: project/TestCompositeLib1/app/build/intermediates/apk/debug/app-debug.apk
               Files:
                 TestCompositeLib1.app -> project/TestCompositeLib1/app/build/intermediates/apk/debug/app-debug.apk
               RequiredInstallationOptions: []
@@ -144,7 +140,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks =
       """
             ApplicationId: one.name.defaultConfig.debug
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
@@ -157,7 +152,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: one.name.defaultConfig.debug
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
@@ -174,7 +168,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(
         AGP_CURRENT to """
               ApplicationId: one.name.defaultConfig.debug
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
@@ -182,7 +175,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             """,
         AGP_40 to """
               ApplicationId: one.name.defaultConfig.debug
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/out/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/out/base-mdpi.apk
@@ -190,7 +182,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             """,
         AGP_35 to """
               ApplicationId: one.name.defaultConfig.debug
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-mdpi.apk
@@ -207,14 +198,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(
         AGP_71 to """
             ApplicationId: one.name.defaultConfig.debug
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
           """,
         AGP_CURRENT to """
             ApplicationId: one.name.defaultConfig.debug
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
@@ -230,13 +219,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks =
       """
             ApplicationId: google.simpleapplication
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
@@ -249,13 +236,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
@@ -272,26 +257,22 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(
         AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
           """,
         AGP_71 to  """
             ApplicationId: google.simpleapplication
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
@@ -307,13 +288,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks =
       """
             ApplicationId: com.example.android.app
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
                -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: com.example.android.app.testmodule
-            File: project/test/build/outputs/apk/debug/test-debug.apk
             Files:
               project.test -> project/test/build/outputs/apk/debug/test-debug.apk
             RequiredInstallationOptions: []
@@ -327,13 +306,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_CURRENT to
             """
             ApplicationId: com.example.android.app
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
                -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: com.example.android.app.testmodule
-            File: project/test/build/intermediates/apk/debug/test-debug.apk
             Files:
               project.test -> project/test/build/intermediates/apk/debug/test-debug.apk
             RequiredInstallationOptions: []
@@ -349,7 +326,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks =
       """
             ApplicationId: google.simpleapplication
-            File: *>java.lang.IllegalArgumentException
             Files:
               simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
               simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
@@ -364,7 +340,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: *>java.lang.IllegalArgumentException
             Files:
               simpleApplication.app -> project/app/build/intermediates/apk/debug/app-debug.apk
               simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/intermediates/apk/debug/dependsOnFeature1-debug.apk
@@ -384,14 +359,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(
         AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             Files:
               standalone -> project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
           """,
         AGP_35 to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
             Files:
               standalone -> project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
@@ -408,7 +381,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(
         *(arrayOf(AGP_35, AGP_40, AGP_41, AGP_42, AGP_70) eachTo """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
                 simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
@@ -416,14 +388,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
               
               ApplicationId: google.simpleapplication.test
-              File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
               Files:
                  -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
               RequiredInstallationOptions: []
             """),
         AGP_CURRENT to """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 simpleApplication.app -> project/app/build/intermediates/apk/debug/app-debug.apk
                 simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/intermediates/apk/debug/dependsOnFeature1-debug.apk
@@ -431,7 +401,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
 
               ApplicationId: google.simpleapplication.test
-              File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
               Files:
                  -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
               RequiredInstallationOptions: []
@@ -449,26 +418,22 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(
         AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             Files:
               standalone -> project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
           """,
         AGP_35 to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
             Files:
               standalone -> project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
@@ -486,7 +451,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(
         AGP_CURRENT to """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
@@ -497,21 +461,18 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
             """,
         *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73, AGP_74) eachTo """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
@@ -519,14 +480,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         ),
         *(arrayOf(AGP_71) eachTo """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/intermediates/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/intermediates/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
@@ -534,7 +493,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         ),
         AGP_40 to """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/out/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/out/base-mdpi.apk
@@ -545,14 +503,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
             """,
         AGP_35 to """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-mdpi.apk
@@ -563,7 +519,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
@@ -579,19 +534,16 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks =
       """
             ApplicationId: google.testapplication
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.testapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
 
             ApplicationId: com.linkedin.android.testbutler
-            File: <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
             Files:
                -> <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
             RequiredInstallationOptions: [FORCE_QUERYABLE, GRANT_ALL_PERMISSIONS]
@@ -604,19 +556,16 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: google.testapplication
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.testapplication.test
-            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
 
             ApplicationId: com.linkedin.android.testbutler
-            File: <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
             Files:
                -> <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
             RequiredInstallationOptions: [FORCE_QUERYABLE, GRANT_ALL_PERMISSIONS]
@@ -641,7 +590,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks =
       """
               ApplicationId: google.simpleapplication
-              File: project/app/build/outputs/apk/release/app-release-unsigned.apk
               Files:
                 project.app -> project/app/build/outputs/apk/release/app-release-unsigned.apk
               RequiredInstallationOptions: []
@@ -654,7 +602,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
               ApplicationId: google.simpleapplication
-              File: project/app/build/intermediates/apk/release/app-release-unsigned.apk
               Files:
                 project.app -> project/app/build/intermediates/apk/release/app-release-unsigned.apk
               RequiredInstallationOptions: []
@@ -671,13 +618,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.myrbsdk_10000
-         File: project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
          Files:
             -> project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
 
          ApplicationId: com.example.rubidumconsumer
-         File: project/app/build/intermediates/apk/debug/app-debug.apk
          Files:
            project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
          RequiredInstallationOptions: []
@@ -692,13 +637,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.myrbsdk_10000
-         File: project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
          Files:
             -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
 
          ApplicationId: com.example.rubidumconsumer
-         File: *>java.lang.IllegalArgumentException
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
            project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
@@ -759,7 +702,6 @@ private data class ApkProviderTest(
           .joinToString("\n        ") { "${it.moduleName} -> ${it.apkFile.toTestString()}" }
         return """
       ApplicationId: ${this.applicationId}
-      File: ${runCatching { file.toTestString() }.let { it.getOrNull() ?: "*>${it.exceptionOrNull()}" }}
       Files:
         $filesString
       RequiredInstallationOptions: ${this.requiredInstallOptions}""".trimIndent()

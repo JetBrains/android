@@ -78,15 +78,6 @@ public final class ApkInfo {
     myRequiredInstallOptions = ImmutableSet.of();
   }
 
-  /**
-   * Shortcut for {@link #getFiles() getFiles().get(0)}, used by callers that don't have to handle
-   * dynamic apps.
-   */
-  @NotNull
-  public File getFile() {
-    Preconditions.checkArgument(myFiles.size() == 1);
-    return myFiles.get(0).getApkFile();
-  }
 
   /**
    * The list of files to deploy for the given {@link #getApplicationId()}.
