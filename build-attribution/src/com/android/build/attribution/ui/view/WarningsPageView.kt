@@ -88,7 +88,7 @@ class WarningsPageView(
     isRootVisible = false
     selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
     BuildAnalyzerMasterTreeCellRenderer.install(this)
-    TreeSpeedSearch(this, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true).apply {
+    TreeSpeedSearch(this, true, TreeSpeedSearch.NODE_PRESENTATION_FUNCTION).apply {
       comparator = SpeedSearchComparator(false)
     }
     TreeUtil.installActions(this)
