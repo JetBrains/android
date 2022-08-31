@@ -747,24 +747,6 @@
     <option name="show" hit="Show application logcat messages in Run Console" />
   </configurable>
   <configurable id="emulator" configurable_name="Emulator">
-    <option name="" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="a" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="android" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="application" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="as" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="cause" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="emulator" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="enabling" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="in" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="launch" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="otherwise" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="setting" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="standalone" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="this" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="to" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="tool" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="will" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
-    <option name="window" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
     <option name="ask" hit="Ask before deleting" />
     <option name="before" hit="Ask before deleting" />
     <option name="deleting" hit="Ask before deleting" />
