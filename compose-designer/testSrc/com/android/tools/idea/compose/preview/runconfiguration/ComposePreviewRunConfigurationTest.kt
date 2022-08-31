@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsolePrinter
@@ -52,6 +54,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     val status = mock(LaunchStatus::class.java)
     val consolePrinter = mock(ConsolePrinter::class.java)
     val device = mock(IDevice::class.java)
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.S_V2))
     val noApksProvider = NoApksProvider()
     val task =
       runConfiguration.getApplicationLaunchTask(

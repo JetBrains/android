@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.model.component.ComponentType;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
@@ -251,6 +252,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     String extraFlags = ACTIVITY_EXTRA_FLAGS;
     if (!contributorsAmStartOptions.isEmpty()) {
       extraFlags += (extraFlags.isEmpty() ? "" : " ") + contributorsAmStartOptions;
+    }
+
+    // Default Activity behavior has changed to not show the splashscreen in Tiramisu. We need to add the splashscreen back.
+    if (device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)) {
+      extraFlags += (extraFlags.isEmpty() ? "" : " ") + "--splashscreen-show-icon";
     }
 
     StartActivityFlagsProvider startActivityFlagsProvider;

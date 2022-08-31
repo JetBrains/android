@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfiguration
@@ -87,6 +88,10 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment,
     }
 
     amStartOptions.appendWithSpace(activityLaunchOptions.amFlags)
+    // Default Activity behavior has changed to not show the splashscreen in Tiramisu. We need to add the splashscreen back.
+    if (device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)) {
+      amStartOptions.appendWithSpace("--splashscreen-show-icon")
+    }
 
     return amStartOptions.toString()
   }
