@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'com.example.ads_sdk_implementation'
-    compileSdk = 33
+    compileSdkPreview = 'TiramisuPrivacySandbox'
 
     defaultConfig {
         minSdk 33
@@ -18,5 +18,5 @@ android {
 }
 
 dependencies {
-  implementation 'androidx.annotation:annotation:1.2.0-rc01'
+  implementation 'androidx.annotation:annotation:1.3.0'
 }

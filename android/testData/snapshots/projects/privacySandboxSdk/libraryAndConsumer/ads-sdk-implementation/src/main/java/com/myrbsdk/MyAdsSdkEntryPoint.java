@@ -3,11 +3,11 @@ package com.myrbsdk;
 import android.app.sdksandbox.SandboxedSdkContext;
 import android.app.sdksandbox.SandboxedSdkProvider;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
-
+import android.widget.LinearLayout;
 
 import androidx.annotation.RequiresApi;
 
@@ -26,9 +26,14 @@ public class MyAdsSdkEntryPoint extends SandboxedSdkProvider {
     @Override
     public View getView(Context windowContext, Bundle bundle) {
         Log.i("SDK", "getView");
-        TextView textView = new TextView(windowContext);
-        textView.setText("Hello from the SDK!");
-        return textView;
+
+        LinearLayout layout = new LinearLayout(windowContext);
+        layout.setLayoutParams(new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
+        ));
+        layout.setBackgroundColor(Color.RED);
+        return layout;
     }
 
     @Override
@@ -36,3 +41,4 @@ public class MyAdsSdkEntryPoint extends SandboxedSdkProvider {
         Log.i("SDK", "onDataReceived");
     }
 }
+
