@@ -21,6 +21,7 @@ import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
+import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC
@@ -88,6 +89,39 @@ class AlwaysRunTasksAnalyzerTest {
     assertThat(alwaysRunTasks[1].taskData.getTaskPath()).isEqualTo(":app:sample2")
     assertThat(alwaysRunTasks[1].taskData.taskType).isEqualTo("SampleTask")
     assertThat(alwaysRunTasks[1].taskData.originPlugin.toString()).isEqualTo("binary plugin SamplePlugin")
+    assertThat(alwaysRunTasks[1].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
+  }
+
+  @Test
+  fun testAlwaysRunTasksAnalyzerWithConfigurationCachedRun() {
+    setUpProject()
+
+    FileUtil.appendToFile(
+      File(myProjectRule.project.basePath!!, FN_GRADLE_PROPERTIES),
+      "org.gradle.unsafe.configuration-cache=true"
+    )
+
+    myProjectRule.invokeTasksRethrowingErrors("clean", "lintDebug")
+
+    // configuration cached run
+
+    myProjectRule.invokeTasksRethrowingErrors("clean", "lintDebug")
+
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val alwaysRunTasks = results.getAlwaysRunTasks().sortedBy { it.taskData.taskName }
+
+    // lint analysis runs on every task intentionally, it should be filtered out at this point even in a config-cached run
+    assertThat(alwaysRunTasks).hasSize(2)
+
+    assertThat(alwaysRunTasks[0].taskData.getTaskPath()).isEqualTo(":app:sample")
+    assertThat(alwaysRunTasks[0].taskData.taskType).isEqualTo("SampleTask")
+    assertThat(alwaysRunTasks[0].taskData.originPlugin.toString()).isEqualTo("unknown plugin")
+    assertThat(alwaysRunTasks[0].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
+
+    assertThat(alwaysRunTasks[1].taskData.getTaskPath()).isEqualTo(":app:sample2")
+    assertThat(alwaysRunTasks[1].taskData.taskType).isEqualTo("SampleTask")
+    assertThat(alwaysRunTasks[1].taskData.originPlugin.toString()).isEqualTo("unknown plugin")
     assertThat(alwaysRunTasks[1].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
   }
 
