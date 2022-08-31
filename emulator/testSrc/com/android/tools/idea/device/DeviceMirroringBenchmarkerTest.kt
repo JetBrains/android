@@ -38,6 +38,9 @@ import java.util.Timer
 import java.util.TimerTask
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.TestTimeSource
@@ -72,7 +75,7 @@ class DeviceMirroringBenchmarkerTest {
     view.notifyFrame(ALL_TOUCHABLE_FRAME)
 
     // Should now be in SENDING_TOUCHES
-    val expectedFrameDurationMillis = (Duration.seconds(1) / TOUCH_RATE_HZ).inWholeMilliseconds
+    val expectedFrameDurationMillis = (1.seconds / TOUCH_RATE_HZ).inWholeMilliseconds
     val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), eq(0), eq(expectedFrameDurationMillis))
     assertThat(dispatchedTouches).isEmpty()
@@ -135,7 +138,7 @@ class DeviceMirroringBenchmarkerTest {
     assertThat(stopCallbackCalled).isFalse()
 
     // This should be plenty of time to hit the limit
-    testTimeSource += Duration.hours(1)
+    testTimeSource += 1.hours
     // Need a frame to trigger this (one that doesn't have a touchable area)
     view.notifyFrame(NONE_TOUCHABLE_FRAME)
 
@@ -199,20 +202,21 @@ class DeviceMirroringBenchmarkerTest {
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
     assertThat(dispatchedTouches).isEmpty()
 
+    val latencyMs = 15
     val numTouchablePixels = WIDTH * HEIGHT
     repeat(numTouchablePixels) {
       taskCaptor.value.run()
-      testTimeSource += Duration.seconds(it)  // Each touch will take 1s longer than the last.
-      view.notifyFrame(dispatchedTouches.last().toBufferedImage(WIDTH, HEIGHT))
+      testTimeSource += it.seconds  // Each touch will take 1s longer than the last.
+      view.notifyFrame(dispatchedTouches.last().toBufferedImage(WIDTH, HEIGHT, latencyMs))
     }
     assertThat(dispatchedTouches).hasSize(numTouchablePixels)
     assertThat(allPointsBenchmarker.isDone()).isTrue()
-    val expectedRawResults = (0 until numTouchablePixels).associate { dispatchedTouches[it] to Duration.seconds(it) }
+    val expectedRawResults = (0 until numTouchablePixels).associate { dispatchedTouches[it] to (it.seconds - latencyMs.milliseconds) }
     assertThat(benchmarkResults[0].raw).containsExactlyEntriesIn(expectedRawResults)
     // This distribution just increases linearly, so each percentile is a relative fraction of the max.
-    val maxDurationMillis = Duration.seconds(numTouchablePixels - 1).toDouble(DurationUnit.MILLISECONDS)
+    val maxDurationMillis = (numTouchablePixels - 1).seconds.toDouble(DurationUnit.MILLISECONDS)
     benchmarkResults[0].percentiles.forEach { (k, v) ->
-      assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100)
+      assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100 - latencyMs)
     }
   }
 
@@ -283,6 +287,7 @@ class DeviceMirroringBenchmarkerTest {
 
   companion object {
     private const val BITS_PER_CHANNEL = 4
+    private const val LATENCY_BITS_PER_CHANNEL = 2
     private const val MAX_TOUCHES = 10
     private const val TOUCH_RATE_HZ = 5
     private const val WIDTH = 5
@@ -293,19 +298,27 @@ class DeviceMirroringBenchmarkerTest {
         if ((i in 1 until WIDTH - 1) && (j in 1 until HEIGHT - 1)) Color.GREEN else Color.RED
     }
 
-    private fun Int.toColor() : Color {
-      val bitmask = (1 shl BITS_PER_CHANNEL) - 1
-      val emptyBits = 8 - BITS_PER_CHANNEL
-      val r = ((this shr (BITS_PER_CHANNEL* 2)) and bitmask) shl emptyBits
-      val g = ((this shr BITS_PER_CHANNEL) and bitmask) shl emptyBits
+    private fun Int.toColor(bitsPerChannel: Int = BITS_PER_CHANNEL) : Color {
+      val bitmask = (1 shl bitsPerChannel) - 1
+      val emptyBits = 8 - bitsPerChannel
+      val r = ((this shr (bitsPerChannel * 2)) and bitmask) shl emptyBits
+      val g = ((this shr bitsPerChannel) and bitmask) shl emptyBits
       val b = (this and bitmask) shl emptyBits
       return Color(r, g, b)
     }
 
-    private fun Point.toBufferedImage(width: Int, height: Int): BufferedImage {
+    private fun Point.toBufferedImage(width: Int, height: Int, latencyMs: Int = 0): BufferedImage {
       val xColor = x.toColor()
       val yColor = y.toColor()
-      return bufferedImage(width, height) { i, _ -> if (i < width / 2) xColor else yColor }
+      val latencyColor = latencyMs.toColor(LATENCY_BITS_PER_CHANNEL)
+      return bufferedImage(width, height) { i, j ->
+        if (j <= height / 2) {
+          if (i < width / 2) xColor else yColor
+        }
+        else {
+          latencyColor
+        }
+      }
     }
 
     private fun bufferedImage(width: Int, height: Int, pixelColorSupplier: (Int, Int) -> Color): BufferedImage {

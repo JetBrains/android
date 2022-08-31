@@ -35,6 +35,8 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
@@ -182,14 +184,21 @@ class DeviceMirroringBenchmarker(
           state = State.STOPPED
         }
       }
-      State.SENDING_TOUCHES, State.WAITING_FOR_OUTSTANDING_TOUCHES ->
-        displayImage.decodeToPoint().toDisplayViewCoordinates()?.let { onTouchReturned(it) }
+      State.SENDING_TOUCHES, State.WAITING_FOR_OUTSTANDING_TOUCHES -> processFrame(displayImage)
       else -> LOG.debug("Got frame for ${displayImage.decodeToPoint()} but not expecting touch. Ignoring.")
     }
   }
 
   @Synchronized
-  private fun onTouchReturned(p: Point) {
+  private fun processFrame(displayImage: BufferedImage) {
+    val frameArrived = timeSource.markNow()
+    val point = displayImage.decodeToPoint().toDisplayViewCoordinates() ?: return
+    val frameLatency = displayImage.decodeLatency().milliseconds
+    onTouchReturned(point, frameArrived - frameLatency)
+  }
+
+  @Synchronized
+  private fun onTouchReturned(p: Point, frameProcessingOffset: TimeMark) {
     if (state in listOf(State.INITIALIZED, State.STOPPED, State.COMPLETE)) return
     LOG.trace("Got touch at $p")
     if (outstandingTouches.contains(p)) {
@@ -198,7 +207,7 @@ class DeviceMirroringBenchmarker(
         // Complete all previously dispatched touches.
         val cur = iterator.next()
         iterator.remove()
-        touchRoundTrips[cur.key] = cur.value.elapsedNow()
+        touchRoundTrips[cur.key] = cur.value.elapsedNow() - frameProcessingOffset.elapsedNow()
         if (cur.key == p) break
       }
     }
@@ -265,15 +274,15 @@ class DeviceMirroringBenchmarker(
   }
 
   /** Decode the pixel at ([x],[y]) to an [Int] value. */
-  private fun BufferedImage.decode(x: Int, y: Int): Int {
+  private fun BufferedImage.decode(x: Int, y: Int, bitsPerChannel: Int = BITS_PER_CHANNEL): Int {
     val c = extract(x, y)
-    val ignoredBits = 8 - BITS_PER_CHANNEL
+    val ignoredBits = 8 - bitsPerChannel
     // Need to round the lower "ignored" bits. I.e. 0b10001111 -> 0b10010000 -> 0b1001
     val roundingFactor = (1 shl ignoredBits).toDouble()
     val r = (c.red / roundingFactor).roundToInt()
     val g = (c.green / roundingFactor).roundToInt()
     val b = (c.blue / roundingFactor).roundToInt()
-    return (((r shl BITS_PER_CHANNEL) or g) shl BITS_PER_CHANNEL) or b
+    return (((r shl bitsPerChannel) or g) shl bitsPerChannel) or b
   }
 
   /** Decode the frame to a [Point]. */
@@ -283,6 +292,9 @@ class DeviceMirroringBenchmarker(
     val sampleX2 = width * 3 / 4
     return Point(decode(sampleX1, sampleY), decode(sampleX2, sampleY))
   }
+
+  /** Get the latency associated with generating this frame. */
+  private fun BufferedImage.decodeLatency(): Int = decode(width * 9 / 10, height * 19 / 20, LATENCY_BITS_PER_CHANNEL)
 
   private fun Point.toDisplayViewCoordinates(): Point? {
     val displayRectangle = abstractDisplayView.displayRectangle ?: return null
@@ -325,8 +337,9 @@ class DeviceMirroringBenchmarker(
   companion object {
     private val LOG = Logger.getInstance(DeviceMirroringBenchmarker::class.java)
     private const val BITS_PER_CHANNEL = 4
+    private const val LATENCY_BITS_PER_CHANNEL = 2
     private const val MAX_STEP = 50
-    private val MAX_DURATION_FIND_TOUCHABLE_AREA = Duration.seconds(1)
+    private val MAX_DURATION_FIND_TOUCHABLE_AREA = 1.seconds
 
     /**
      * Returns a [Sequence] of [Point]s spiraling clockwise into the center of the [Rectangle], starting from
