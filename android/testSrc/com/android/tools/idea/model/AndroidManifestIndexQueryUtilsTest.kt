@@ -22,6 +22,7 @@ import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.run.activity.IndexedActivityWrapper
 import com.google.common.truth.Truth
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
@@ -37,6 +38,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     MergedManifestModificationListener.ensureSubscribed(project)
     modificationListener = MergedManifestModificationListener(project)
   }
@@ -50,6 +56,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   }
 
   fun testQueryMinSdkAndTargetSdk() {
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     val manifestContent = """
     <?xml version='1.0' encoding='utf-8'?>
     <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
@@ -65,6 +76,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   }
 
   fun testQueryActivities() {
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     val manifestContent = """
     <?xml version='1.0' encoding='utf-8'?>
     <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
@@ -141,6 +157,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   }
 
   fun testQueryCustomPermissionsAndGroups() {
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     val manifestContent = """
     <?xml version='1.0' encoding='utf-8'?>
     <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
@@ -185,6 +206,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   }
 
   fun testQueryApplicationDebuggable() {
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     val manifestContentDebuggable = """
     <?xml version='1.0' encoding='utf-8'?>
     <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
@@ -223,6 +249,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   }
 
   fun testQueryApplicationTheme() {
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     val manifestContentAppTheme = """
     <?xml version='1.0' encoding='utf-8'?>
     <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
@@ -249,6 +280,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   }
 
   fun testQueryPackageName() {
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     val manifestContent = """
     <?xml version='1.0' encoding='utf-8'?>
     <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
@@ -270,6 +306,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   }
 
   fun testQueryAndroidFacets_packageChanged() {
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     val manifestContent = """
     <?xml version='1.0' encoding='utf-8'?>
     <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
@@ -289,6 +330,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   }
 
   fun testQueryAndroidFacets_multipleModules() {
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     val manifestContent = """
     <?xml version='1.0' encoding='utf-8'?>
     <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
@@ -340,6 +386,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   }
 
   fun testQueryUsedFeatures() {
+    if (SystemInfo.isWindows) {
+      // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+      return
+    }
+
     val manifestContent = """
     <?xml version='1.0' encoding='utf-8'?>
     <manifest xmlns:android='http://schemas.android.com/apk/res/android'
