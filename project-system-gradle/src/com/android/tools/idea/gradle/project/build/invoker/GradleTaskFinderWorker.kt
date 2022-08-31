@@ -215,10 +215,15 @@ class GradleTaskFinderWorker private constructor(
               cleanTasks = emptySet(),
               tasks =
               // TODO(b/235567998): Review. Maybe replace with test compile mode expansion.
-              moduleToProcess.getTaskBy { (it as? IdeAndroidArtifact)?.buildInformation?.apkFromBundleTaskName }.tasks +
-                if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE && moduleToProcess.testCompileMode.compileAndroidTests)
-                  setOfNotNull(moduleToProcess.androidModel.selectedVariant.androidTestArtifact?.assembleTaskName)
-                else emptySet()
+              moduleToProcess.getTasksBy {
+                listOfNotNull(
+                  (it as? IdeAndroidArtifact)?.buildInformation?.apkFromBundleTaskName,
+                  it.getPrivacySandboxSdkTask()
+                )
+              }.tasks +
+              if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE && moduleToProcess.testCompileMode.compileAndroidTests)
+                setOfNotNull(moduleToProcess.androidModel.selectedVariant.androidTestArtifact?.assembleTaskName)
+              else emptySet()
             )
           }
         }

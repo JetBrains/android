@@ -216,9 +216,25 @@ public final class GradleApkProvider implements ApkProvider {
             baseAppModule = DynamicAppUtils.getBaseFeature(myFacet.getModule());
           }
           if (baseAppModule != null) {
-            ApkInfo apkInfo = collectAppBundleOutput(baseAppModule, myOutputModelProvider, pkgName);
-            if (apkInfo != null) {
-              apkList.add(apkInfo);
+            GradleAndroidModel baseAndroidModel = GradleAndroidModel.get(baseAppModule);
+            if (baseAndroidModel == null) {
+              getLogger().warn("Android model is null. Sync might have failed");
+            }
+            else {
+              // Privacy sandbox SDKs should be installed before the app itself.
+              IdeVariant baseVariant = baseAndroidModel.getSelectedVariant();
+              if (baseVariant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
+                apkList.addAll(getApksForPrivacySandboxSdks(
+                  baseVariant.getName(),
+                  baseVariant.getMainArtifact().getPrivacySandboxSdkInfo(),
+                  baseVariant.getMainArtifact().getAbiFilters(),
+                  deviceAbis
+                ));
+              }
+              ApkInfo apkInfo = collectAppBundleOutput(baseAndroidModel, baseAppModule, myOutputModelProvider, pkgName);
+              if (apkInfo != null) {
+                apkList.add(apkInfo);
+              }
             }
           }
           break;
@@ -597,15 +613,10 @@ public final class GradleApkProvider implements ApkProvider {
    * in case of unexpected error.
    */
   @Nullable
-  private static ApkInfo collectAppBundleOutput(@NotNull Module module,
+  private static ApkInfo collectAppBundleOutput(@NotNull GradleAndroidModel androidModel,
+                                                @NotNull Module module,
                                                 @NotNull PostBuildModelProvider outputModelProvider,
                                                 @NotNull String pkgName) {
-    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
-    if (androidModel == null) {
-      getLogger().warn("Android model is null. Sync might have failed");
-      return null;
-    }
-
     List<File> apkFiles;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
       String outputListingFile = BuildOutputUtil
