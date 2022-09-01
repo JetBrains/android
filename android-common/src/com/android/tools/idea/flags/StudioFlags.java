@@ -1469,6 +1469,14 @@ public final class StudioFlags {
       "Enable additional issue filters.",
       "Add device, OS, Play Track filters to App Quality Insights panel.",
       false);
+
+  public static final Flag<Boolean> OFFLINE_MODE_SUPPORT_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enable.offline.mode.support",
+      "Enable offline mode support.",
+      "Show previously cached data when network has issues.",
+      false);
   // endregion App Insights
 
   // region App Links Assistant
