@@ -20,6 +20,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import javax.swing.JComponent;
@@ -49,6 +50,7 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
 
   protected final void initScrollPane() {
     myScrollPane = new JBScrollPane(myTable);
+    myScrollPane.setBorder(JBUI.Borders.empty());
 
     myScrollPane.addComponentListener(new ComponentAdapter() {
       @Override
