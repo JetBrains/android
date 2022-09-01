@@ -24,6 +24,8 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.jetbrains.rd.util.concurrentMapOf
+import java.util.Collections
 
 interface DesignerCommonIssueProvider<T> : Disposable {
   var viewOptionFilter: Filter
@@ -67,7 +69,7 @@ operator fun DesignerCommonIssueProvider.Filter.plus(filter: DesignerCommonIssue
  */
 class DesignToolsIssueProvider(project: Project, private val issueFilter: DesignerCommonIssueProvider.Filter)
   : DesignerCommonIssueProvider<Any> {
-  private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
+  private val sourceToIssueMap = concurrentMapOf<Any, List<Issue>>()
 
   private val listeners = mutableListOf<Runnable>()
   private val messageBusConnection = project.messageBus.connect()
@@ -105,7 +107,7 @@ class DesignToolsIssueProvider(project: Project, private val issueFilter: Design
     })
   }
 
-  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.toMap().values.flatten()
+  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.values.flatten()
     .filter(issueFilter)
     .filter(viewOptionFilter)
     .toList()
