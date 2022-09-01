@@ -62,8 +62,12 @@ public class MultiModuleSearchTest {
   @Test
   public void testMultiModuleSearch() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    guiTest.ideFrame().invokeMenuPath("Tools", "Resource Manager");
 
+    // Testcase failing on buildbot but passes locally. Adding an extra step "make project" to make sure the
+    // project is not only imported and synced, but also complied and build.
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+
+    guiTest.ideFrame().invokeMenuPath("Tools", "Resource Manager");
     ResourceExplorerFixture resourceExplorerFixture = ResourceExplorerFixture.find(guiTest.robot());
     assertThat(resourceExplorerFixture.comboBox().selectedItem()).containsMatch("app.main");
     int selectedTabIndex = resourceExplorerFixture.tabbedPane().target().getSelectedIndex();
