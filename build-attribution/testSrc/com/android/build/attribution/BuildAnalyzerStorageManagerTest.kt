@@ -39,6 +39,7 @@ import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.testutils.truth.PathSubject
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -48,10 +49,13 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.io.IOException
 import java.time.Duration
 import java.util.UUID
 import kotlin.collections.HashMap
@@ -67,9 +71,15 @@ class BuildAnalyzerStorageManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
 
+  @Before
+  fun changeLimitSizeHistory() {
+    BuildDescriptorStorageService.getInstance(projectRule.project).limitSizeHistory = 10
+  }
+
   @After
   fun cleanup() {
     StudioFlags.BUILD_ANALYZER_HISTORY.clearOverride()
+    BuildDescriptorStorageService.getInstance(projectRule.project).onSettingsChange()
   }
 
   @Test(expected = IllegalStateException::class)
@@ -95,7 +105,7 @@ class BuildAnalyzerStorageManagerTest {
         .getInstance(projectRule.project).getSuccessfulResult().getBuildSessionID()
     ).isEqualTo("some buildID")
     Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors()).isEqualTo(
-      setOf(BuildDescriptor("some buildID", buildFinishedTimestamp, buildDuration))
+      setOf(BuildDescriptorImpl("some buildID", buildFinishedTimestamp, buildDuration))
     )
   }
 
@@ -105,7 +115,7 @@ class BuildAnalyzerStorageManagerTest {
     StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
     val buildResults = constructBuildResultsObject()
     storageManager.storeBuildResultsInFile(buildResults)
-    val buildResultsFromFile = storageManager.getHistoricBuildResultsFromFileByID(buildResults.getBuildSessionID())
+    val buildResultsFromFile = storageManager.getHistoricBuildResultByID(buildResults.getBuildSessionID())
     Truth.assertThat(buildResultsFromFile).isEqualTo(buildResults)
   }
 
@@ -214,6 +224,90 @@ class BuildAnalyzerStorageManagerTest {
       )
     )
     Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(2)
+  }
+
+  @Test
+  fun testCleanup() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    val limitSizeHistory = BuildDescriptorStorageService.getInstance(projectRule.project).limitSizeHistory
+    var totalAdded = 0
+    for (cntRecords in 1..limitSizeHistory) {
+      val buildAnalyzerResultData = constructBuildAnalyzerResultData(totalAdded.toLong(),
+                                                                     totalAdded.toLong() + 1,
+                                                                     "$totalAdded")
+      totalAdded++
+      BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+        buildAnalyzerResultData.analyzersProxy,
+        buildAnalyzerResultData.buildID,
+        buildAnalyzerResultData.buildRequestHolder)
+
+      Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors().size)
+        .isEqualTo(cntRecords)
+    }
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors().size)
+      .isEqualTo(limitSizeHistory)
+
+    val addAdditional = 5
+    repeat(addAdditional) { countOver ->
+      val oldest = BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors()
+        .minByOrNull { descriptor -> descriptor.buildFinishedTimestamp }
+      require(oldest != null)
+
+      val dataFile = getFileFromBuildID(oldest.buildSessionID)
+      PathSubject.assertThat(dataFile).exists()
+      Truth.assertThat(oldest.buildSessionID).isEqualTo("$countOver")
+
+      val buildAnalyzerResultData = constructBuildAnalyzerResultData(totalAdded.toLong(),
+                                                                     totalAdded.toLong() + 1,
+                                                                     "$totalAdded")
+      totalAdded++
+      BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+        buildAnalyzerResultData.analyzersProxy,
+        buildAnalyzerResultData.buildID,
+        buildAnalyzerResultData.buildRequestHolder)
+
+      PathSubject.assertThat(File(oldest.buildSessionID)).doesNotExist()
+      Truth.assertThat(BuildDescriptorStorageService.getInstance(projectRule.project).getDescriptors().find { it.buildSessionID == oldest.buildSessionID }).isNull()
+      assertThrows(IOException::class.java) {
+        BuildAnalyzerStorageManager.getInstance(projectRule.project).getHistoricBuildResultByID(oldest.buildSessionID)
+      }
+    }
+
+    // Check that all needed files are stored
+    for (recordNumber in addAdditional until totalAdded) {
+      val dataFile = getFileFromBuildID("$recordNumber")
+      PathSubject.assertThat(dataFile).exists()
+    }
+  }
+
+  @Test
+  fun fileCountLimitChanges() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    val limitSizeHistory = BuildDescriptorStorageService.getInstance(projectRule.project).limitSizeHistory
+    for (totalAdded in 0 until limitSizeHistory) {
+      val buildAnalyzerResultData = constructBuildAnalyzerResultData(totalAdded.toLong(),
+                                                                     totalAdded.toLong() + 1,
+                                                                     "$totalAdded")
+      BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+        buildAnalyzerResultData.analyzersProxy,
+        buildAnalyzerResultData.buildID,
+        buildAnalyzerResultData.buildRequestHolder)
+
+      Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors().size)
+        .isEqualTo(totalAdded + 1)
+    }
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors().size)
+      .isEqualTo(limitSizeHistory)
+    val newLimitSizeHistory = limitSizeHistory / 2
+    BuildAnalyzerSettings.getInstance(projectRule.project).settingsState.maxNumberOfBuildsStored = newLimitSizeHistory
+    BuildAnalyzerConfigurableProvider(projectRule.project).createConfigurable().apply() // Apply settings change
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors().size)
+      .isEqualTo(newLimitSizeHistory)
+
+    for (recordNumber in (limitSizeHistory - newLimitSizeHistory) until limitSizeHistory) {
+      val dataFile = getFileFromBuildID("$recordNumber")
+      PathSubject.assertThat(dataFile).exists()
+    }
   }
 
   data class BuildAnalyzerResultData(

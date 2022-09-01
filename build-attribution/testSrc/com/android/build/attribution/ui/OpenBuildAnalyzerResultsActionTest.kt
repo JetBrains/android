@@ -112,7 +112,7 @@ class OpenBuildAnalyzerResultsActionTest {
     openBuildAnalyzerResultsAction.actionPerformed(event)
     val popup = jbPopupRule.fakePopupFactory.getPopup<BuildDescriptor>(0)
     Truth.assertThat(popup.title).isEqualTo("Build Analysis Results")
-    Truth.assertThat(popup.items.map { it.buildSessionID }).isEqualTo(buildSessionIDs)
+    Truth.assertThat(popup.items.map {it.buildSessionID}).containsExactlyElementsIn(buildSessionIDs)
   }
 
   private fun storeDefaultData(buildSessionID: String) {

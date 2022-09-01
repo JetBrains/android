@@ -21,14 +21,14 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.proto.converters.BuildResultsProtoMessageConverter
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.project.getProjectDataPath
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 
@@ -36,10 +36,8 @@ class BuildAnalyzerStorageManagerImpl(
   val project: Project
 ) : BuildAnalyzerStorageManager {
   private var buildResults: AbstractBuildAnalysisResult? = null
-  private var historicBuildResults: MutableMap<String, BuildAnalysisResults> = mutableMapOf()
-  private val dataFolder = project.guessProjectDir()?.toIoFile()?.resolve("build-analyzer-history-data")
+  private val dataFolder = project.getProjectDataPath("build-analyzer-history-data").toFile()
   private val log: Logger get() = Logger.getInstance("Build Analyzer")
-
 
   private fun notifyDataListeners() {
     project.messageBus.syncPublisher(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC).newDataAvailable()
@@ -90,30 +88,9 @@ class BuildAnalyzerStorageManagerImpl(
    */
   @Slow
   override fun clearBuildResultsStored(): Boolean {
-    if(dataFolder != null) {
       FileUtils.deleteDirectoryContents(dataFolder)
+      BuildDescriptorStorageService.getInstance(project).clear()
       return true
-    }
-    else {
-      log.error("could not find build-analyzer-history-data folder.")
-      return false
-    }
-  }
-
-  override fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder): BuildAnalysisResults {
-    val buildResults = createBuildResultsObject(analyzersProxy, buildID, requestHolder)
-    this.buildResults = buildResults
-    notifyDataListeners()
-    if (StudioFlags.BUILD_ANALYZER_HISTORY.get()) {
-      historicBuildResults[buildID] = buildResults
-      storeBuildResultsInFile(buildResults)
-    }
-    return buildResults
-  }
-
-  override fun recordNewFailure(buildID: String, failureType: FailureResult.Type) {
-    this.buildResults = FailureResult(buildID, failureType)
-    notifyDataListeners()
   }
 
   /**
@@ -123,27 +100,43 @@ class BuildAnalyzerStorageManagerImpl(
    *
    * @return Boolean
    */
+  @Slow
   @VisibleForTesting
-  fun storeBuildResultsInFile(buildResults: BuildAnalysisResults): Boolean {
-    if (dataFolder == null) {
-      log.error("build-analyzer-history-data could not be resolved")
-      return false
-    }
+  fun storeBuildResultsInFile(buildResults: BuildAnalysisResults): Boolean =
     try {
       FileUtils.mkdirs(dataFolder)
-      val buildResultFile = File(dataFolder, buildResults.getBuildSessionID())
+      val buildResultFile = getFileFromBuildID(buildResults.getBuildSessionID())
       buildResultFile.createNewFile()
       BuildResultsProtoMessageConverter.convertBuildAnalysisResultsFromObjectToBytes(
         buildResults,
         buildResults.getPluginMap(),
         buildResults.getTaskMap()
       ).writeDelimitedTo(FileOutputStream(buildResultFile))
-      return true
+      true
     }
     catch (e: IOException) {
       log.error("Error when attempting to store build results with ID ${buildResults.getBuildSessionID()} in file.")
-      return false
+      false
     }
+  @Slow
+  override fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder): BuildAnalysisResults {
+    val buildResults = createBuildResultsObject(analyzersProxy, buildID, requestHolder)
+    this.buildResults = buildResults
+    notifyDataListeners()
+    if (StudioFlags.BUILD_ANALYZER_HISTORY.get()) {
+      storeBuildResultsInFile(buildResults)
+      BuildDescriptorStorageService.getInstance(project).add(
+        buildResults.getBuildSessionID(),
+        buildResults.getBuildFinishedTimestamp(),
+        buildResults.getTotalBuildTimeMs()
+      )
+    }
+    return buildResults
+  }
+
+  override fun recordNewFailure(buildID: String, failureType: FailureResult.Type) {
+    this.buildResults = FailureResult(buildID, failureType)
+    notifyDataListeners()
   }
 
   /**
@@ -155,23 +148,17 @@ class BuildAnalyzerStorageManagerImpl(
    * @return BuildAnalysisResults
    * @exception IOException
    */
-  @VisibleForTesting
-  fun getHistoricBuildResultsFromFileByID(buildSessionID: String): BuildAnalysisResults {
+  @Slow
+  override fun getHistoricBuildResultByID(buildSessionID: String): BuildAnalysisResults {
     try {
-      dataFolder?.let {
-        val stream = FileInputStream(dataFolder.resolve(buildSessionID))
-        val message = BuildAnalysisResultsMessage.parseDelimitedFrom(stream)
-        return BuildResultsProtoMessageConverter
-          .convertBuildAnalysisResultsFromBytesToObject(message)
-      } ?: throw IOException("No data storage folder")
+      val stream = FileInputStream(getFileFromBuildID(buildSessionID))
+      val message = BuildAnalysisResultsMessage.parseDelimitedFrom(stream)
+      return BuildResultsProtoMessageConverter
+        .convertBuildAnalysisResultsFromBytesToObject(message)
     }
     catch (e: Exception) {
       throw IOException("Error reading in build results file with ID: $buildSessionID", e)
     }
-  }
-
-  override fun getHistoricBuildResultByID(buildID: String): BuildAnalysisResults {
-    return historicBuildResults[buildID] ?: throw NoSuchElementException("No such build result was found.")
   }
 
   /**
@@ -179,13 +166,10 @@ class BuildAnalyzerStorageManagerImpl(
    * If it fails to locate the folder then 0 is returned.
    * @return Bytes
    */
+  @Slow
   override fun getCurrentBuildHistoryDataSize() : Long {
-    var size = 0L
-    if(dataFolder != null) {
-      FileUtils.mkdirs(dataFolder)
-      FileUtils.getAllFiles(dataFolder).forEach { size += it.length() }
-    }
-    return size
+    FileUtils.mkdirs(dataFolder)
+    return FileUtils.getAllFiles(dataFolder).sumOf { it.length() }
   }
 
   /**
@@ -193,26 +177,32 @@ class BuildAnalyzerStorageManagerImpl(
    * If it fails to locate the folder then 0 is returned.
    * @return Number of files in build-analyzer-history-data folder
    */
+  @Slow
   override fun getNumberOfBuildFilesStored() : Int {
-    var size = 0
-    if(dataFolder != null) {
-      FileUtils.mkdirs(dataFolder)
-      size = FileUtils.getAllFiles(dataFolder).size()
-    }
-    return size
+    FileUtils.mkdirs(dataFolder)
+    return FileUtils.getAllFiles(dataFolder).size()
   }
 
-  override fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor> {
-    return historicBuildResults.values.map { buildAnalysisResults ->
-      BuildDescriptor(
-        buildAnalysisResults.getBuildSessionID(),
-        buildAnalysisResults.getBuildFinishedTimestamp(),
-        buildAnalysisResults.getTotalBuildTimeMs()
-      )
-    }.toSet()
+  @Slow
+  override fun onSettingsChange() {
+    BuildDescriptorStorageService.getInstance(project).onSettingsChange()
   }
+
+  @Slow
+  override fun deleteHistoricBuildResultByID(buildID: String) {
+    if (!getFileFromBuildID(buildID).delete()) {
+      throw FileNotFoundException("File ${getFileFromBuildID(buildID)} was not found and cannot be deleted")
+    }
+  }
+
+  override fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor> =
+    BuildDescriptorStorageService.getInstance(project).getDescriptors()
 
   override fun hasData(): Boolean {
     return buildResults != null
+  }
+
+  private fun getFileFromBuildID(buildID: String): File {
+    return dataFolder.resolve(buildID)
   }
 }

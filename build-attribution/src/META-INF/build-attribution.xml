@@ -21,6 +21,7 @@
     <projectService serviceImplementation="com.android.build.attribution.BuildAnalyzerSettings"/>
     <projectConfigurable groupId="build" id="build.analyzer" displayName="Build Analyzer"
                          provider="com.android.build.attribution.BuildAnalyzerConfigurableProvider"/>
+    <projectService serviceImplementation="com.android.build.attribution.BuildDescriptorStorageService"/>
     <projectService serviceInterface="com.android.build.attribution.ui.BuildAttributionUiManager"
                     serviceImplementation="com.android.build.attribution.ui.BuildAttributionUiManagerImpl"/>
     <projectService serviceImplementation="com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner"/>

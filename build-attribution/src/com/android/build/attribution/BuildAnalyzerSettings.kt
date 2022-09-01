@@ -42,8 +42,8 @@ class BuildAnalyzerSettings : PersistentStateComponent<BuildAnalyzerSettings.Sta
 
   data class State(
     var notifyAboutWarnings: Boolean = true,
-    var maxNumberOfBuildsStored: Int = 0,
-    var maxStorageSpaceKilobytes: Int = 0,
+    var maxNumberOfBuildsStored: Int = 15,
+    var maxStorageSpaceKilobytes: Int = 1000,
   )
 
   override fun getState(): State = settingsState
@@ -68,6 +68,11 @@ private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableC
   helpTopic = "build.analyzer"
 ) {
   private val buildAnalyzerSettings = BuildAnalyzerSettings.getInstance(project)
+
+  override fun apply() {
+    super.apply()
+    BuildAnalyzerStorageManager.getInstance(project).onSettingsChange()
+  }
 
   override fun createPanel(): DialogPanel = panel {
     if (StudioFlags.BUILD_ANALYZER_HISTORY.get()) {
