@@ -157,32 +157,39 @@ class EmbeddedCompilerClientImpl(
         }
         catch (e: LiveEditUpdateException) {
           if (e.isCompilationError() || e.cause.isCompilationError()) {
+            log.debug("backCodeGen compilation exception ", e)
             throw NonRetriableException(e)
           }
 
           if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE || !useInlineAnalysis()) {
+            log.debug("backCodeGen exception ", e)
             throw e
           }
 
           // Add any extra source file this compilation need in order to support the input file calling an inline function
           // from another source file then perform a compilation again.
+          log.debug("inline analysis")
           val inputFilesWithInlines = inputs.flatMap {
             performInlineSourceDependencyAnalysis(resolution, it, bindingContext)
           }
 
           // We need to perform the analysis once more with the new set of input files.
+          log.debug("inline analysis with inlines ${inputFilesWithInlines.joinToString(",") { it.name }}")
           val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFilesWithInlines)
 
           // We will need to start using the binding context from the new analysis for code gen.
           val newBindingContext = newAnalysisResult.bindingContext
 
+          log.debug("backCodeGen retry")
           backendCodeGen(project, resolution, newBindingContext, inputFilesWithInlines, module, inlineCandidates,
                          AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
         }
       }
     }
+    log.debug("backCodeGen completed")
 
     generationState.factory.asList().forEach {
+      log.debug("output: ${it.relativePath}")
       val path = outputDirectory.resolve(it.relativePath)
       path.createFile()
       Files.write(path, it.asByteArray())
