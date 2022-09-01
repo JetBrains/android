@@ -47,6 +47,12 @@ class InspectorBannerService {
     notification = StatusNotificationImpl(text, actions)
   }
 
+  fun removeNotification(text: String) {
+    if (notification?.message == text) {
+      notification = null
+    }
+  }
+
   companion object {
     fun getInstance(project: Project) = project.getService(InspectorBannerService::class.java)
   }

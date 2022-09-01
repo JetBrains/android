@@ -18,6 +18,8 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.PropertySetterRule
+import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
@@ -39,12 +41,14 @@ import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.OLDER_LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -62,6 +66,7 @@ import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -70,6 +75,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -83,6 +89,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
@@ -106,6 +113,8 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
+  private val scheduler = VirtualTimeScheduler()
+  private val executorRule = PropertySetterRule({ scheduler }, Toggle3dAction::executorFactory)
   private val disposableRule = DisposableRule()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
   private val inspectorRule = LayoutInspectorRule(
@@ -114,8 +123,13 @@ class DeviceViewPanelWithFullInspectorTest {
   )
 
   @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(IconLoaderRule()).around(EdtRule()).around(disposableRule)!!
+  val ruleChain = RuleChain
+    .outerRule(appInspectorRule)
+    .around(inspectorRule)
+    .around(IconLoaderRule())
+    .around(EdtRule())
+    .around(executorRule)
+    .around(disposableRule)!!
 
   // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
@@ -126,6 +140,69 @@ class DeviceViewPanelWithFullInspectorTest {
   @Before
   fun before() {
     inspectorRule.attachDevice(MODERN_DEVICE)
+  }
+
+  @Test
+  fun testShowAndClearPerformanceWarnings() {
+    InspectorClientSettings.isCapturingModeOn = true
+
+    installCommandHandlers()
+    latch = CountDownLatch(1)
+    connect(MODERN_PROCESS)
+    assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
+
+    val settings = EditorDeviceViewSettings()
+    val panel = DeviceViewPanel(
+        deviceModel,
+        inspectorRule.processes,
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        settings,
+        inspectorRule.projectRule.fixture.testRootDisposable
+    )
+    val deviceModel = panel.getData(DEVICE_VIEW_MODEL_KEY.name) as DeviceViewPanelModel
+    delegateDataProvider(panel)
+    flatten(panel).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
+    val toggle = flatten(panel).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
+    assertThat(toggle.isEnabled).isTrue()
+    assertThat(toggle.isSelected).isFalse()
+
+    // Turn on 3D mode:
+    toggle.click()
+    scheduler.advanceBy(5, TimeUnit.SECONDS)
+    assertThat(scheduler.isShutdown).isTrue()
+    assertThat(deviceModel.isRotated).isTrue()
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message)
+      .isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
+
+    // Turn 3D mode off:
+    toggle.click()
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message).isNull()
+
+    // Hide VIEW2:
+    val view2 = inspectorRule.inspectorModel[VIEW2]!!
+    inspectorRule.inspectorModel.hideSubtree(view2)
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message)
+      .isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN))
+
+    // Show all:
+    inspectorRule.inspectorModel.showAll()
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message).isNull()
+  }
+
+  private fun delegateDataProvider(panel: DeviceViewPanel) {
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider { dataId ->
+      when {
+        LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId) -> inspectorRule.inspector
+        else -> panel.getData(dataId)
+      }
+    }
   }
 
   @Test
@@ -518,11 +595,31 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(presentation.isEnabled).isEqualTo(enabled)
   }
 
+  private var lastImageType = AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+
   private fun installCommandHandlers() {
     appInspectorRule.viewInspector.listenWhen({ true }) { command ->
       commands.add(command)
-      inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
+
+      when (command.specializedCase) {
+        UPDATE_SCREENSHOT_TYPE_COMMAND -> lastImageType = command.updateScreenshotTypeCommand.type.toImageType()
+        else -> {}
+      }
+      val window = window("w1", 1L, imageType = lastImageType) {
+        view(VIEW1, 0, 0, 10, 10, qualifiedName = "v1") {
+          view(VIEW2, 0, 0, 10, 10, qualifiedName = "v2")
+        }
+      }
+      inspectorRule.inspectorModel.update(window, listOf("w1"), 1)
       latch?.countDown()
+    }
+  }
+
+  private fun LayoutInspectorViewProtocol.Screenshot.Type.toImageType(): AndroidWindow.ImageType {
+    return when (this) {
+      LayoutInspectorViewProtocol.Screenshot.Type.SKP -> AndroidWindow.ImageType.SKP
+      LayoutInspectorViewProtocol.Screenshot.Type.BITMAP -> AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+      else -> AndroidWindow.ImageType.UNKNOWN
     }
   }
 
