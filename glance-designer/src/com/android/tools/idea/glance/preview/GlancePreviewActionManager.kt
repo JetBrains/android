@@ -18,6 +18,8 @@ package com.android.tools.idea.glance.preview
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import javax.swing.JComponent
@@ -34,4 +36,7 @@ class GlancePreviewActionManager(private val surface: DesignSurface<LayoutlibSce
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
 
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
+
+  override fun getSceneViewStatusIcon(sceneView: SceneView) =
+    createStatusIcon(GlancePreviewStatusIcon(sceneView), sceneView.surface)
 }

@@ -23,16 +23,14 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /** [ActionManager] to be used by the Compose Preview. */
 internal class PreviewSurfaceActionManager(
@@ -96,36 +94,9 @@ internal class PreviewSurfaceActionManager(
         border = JBUI.Borders.empty()
       }
 
-  override fun getSceneViewStatusIcon(sceneView: SceneView): JComponent {
-    val component =
-      ActionManagerEx.getInstanceEx()
-        .createActionToolbar(
-          "sceneView",
-          DefaultActionGroup(
-            ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview()
-          ),
-          true,
-          false
-        )
-        .apply {
-          targetComponent = sceneView.surface
-          (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
-        }
-        .component
-        .apply {
-          isOpaque = false
-          border = JBUI.Borders.empty()
-        }
-
-    return JPanel(BorderLayout()).apply {
-      border = JBUI.Borders.empty()
-      isOpaque = false
-      isVisible = true
-      add(component, BorderLayout.LINE_END)
-
-      // Make the size to be fixed, even when the no icon is visible
-      minimumSize = component.minimumSize
-      preferredSize = component.minimumSize
-    }
-  }
+  override fun getSceneViewStatusIcon(sceneView: SceneView) =
+    createStatusIcon(
+      ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview(),
+      sceneView.surface
+    )
 }

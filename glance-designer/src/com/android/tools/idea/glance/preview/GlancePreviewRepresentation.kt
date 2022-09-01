@@ -118,12 +118,18 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
           }
         }
         .setSupportedActions(GLANCE_APPWIDGET_SUPPORTED_ACTIONS)
+        .setDelegateDataProvider {
+          when (it) {
+            PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
+            else -> null
+          }
+        }
         .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),
       this
     )
   }
 
-  private val previewViewModel =
+  private val previewViewModel: GlancePreviewViewModel =
     GlancePreviewViewModel(previewView, projectBuildStatusManager, project, psiFilePointer)
 
   private val previewFreshnessTracker =

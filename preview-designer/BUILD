@@ -35,6 +35,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",

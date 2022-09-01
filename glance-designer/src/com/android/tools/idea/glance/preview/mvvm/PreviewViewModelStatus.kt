@@ -15,29 +15,10 @@
  */
 package com.android.tools.idea.glance.preview.mvvm
 
-import com.android.tools.idea.projectsystem.BuildListener
-
 /**
- * Preview ViewModel interface in the MVVM pattern. Intended to be accessed by the Model
- * (PreviewRepresentation).
+ * An interface providing [PreviewViewModel] status to the [PreviewView] entities that model can not
+ * update directly (e.g. Actions).
  */
-interface PreviewViewModel : BuildListener {
-
-  fun checkForNativeCrash(runnable: Runnable): Boolean
-
-  fun refreshStarted()
-
-  fun refreshFinished()
-
-  fun beforePreviewsRefreshed()
-
-  fun afterPreviewsRefreshed()
-
-  fun setHasPreviews(hasPreviews: Boolean)
-
-  fun refreshCompleted(isCancelled: Boolean, durationNanos: Long)
-
-  fun onEnterSmartMode()
-
-  fun activate()
+interface PreviewViewModelStatus {
+  val isRefreshing: Boolean
 }

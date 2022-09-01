@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
 import com.android.tools.idea.glance.preview.mvvm.PreviewView
 import com.android.tools.idea.glance.preview.mvvm.PreviewViewModel
+import com.android.tools.idea.glance.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -45,7 +46,7 @@ class GlancePreviewViewModel(
   private val projectBuildStatusManager: ProjectBuildStatusManager,
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>
-) : PreviewViewModel {
+) : PreviewViewModel, PreviewViewModelStatus {
   private val refreshCallsCount = AtomicInteger(0)
   private var hasRendered = false
 
@@ -67,12 +68,12 @@ class GlancePreviewViewModel(
 
   override fun refreshStarted() {
     refreshCallsCount.incrementAndGet()
-    previewView.updateToolbar()
+    updateNotifications()
   }
 
   override fun refreshFinished() {
     refreshCallsCount.decrementAndGet()
-    previewView.updateToolbar()
+    updateNotifications()
   }
 
   override fun beforePreviewsRefreshed() {
@@ -164,6 +165,9 @@ class GlancePreviewViewModel(
       }
     }
   }
+
+  override val isRefreshing: Boolean
+    get() = refreshCallsCount.get() > 0
 }
 
 /**
