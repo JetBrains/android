@@ -19,6 +19,8 @@
 
     <applicationConfigurable groupId="tools" id="emulator"
                              provider="com.android.tools.idea.emulator.settings.EmulatorConfigurableProvider"/>
+    <applicationConfigurable groupId="tools" id="device.mirroring"
+                             provider="com.android.tools.idea.device.settings.DeviceMirroringConfigurableProvider"/>
 
     <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 

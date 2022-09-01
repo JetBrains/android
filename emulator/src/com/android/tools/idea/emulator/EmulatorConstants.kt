@@ -16,23 +16,15 @@
 @file:JvmName("EmulatorConstants")
 package com.android.tools.idea.emulator
 
-import com.android.tools.idea.IdeInfo
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroup.Companion.findRegisteredGroup
 import com.intellij.openapi.actionSystem.DataKey
 
 /** Embedded Emulator constants. */
 
-const val EMULATOR_TOOL_WINDOW_ID = "Android Emulator"
+const val RUNNING_DEVICES_TOOL_WINDOW_ID = "Running Devices"
 
-val EMULATOR_TOOL_WINDOW_TITLE: String
-  get() {
-    return when {
-      DeviceMirroringSettings.getInstance().deviceMirroringEnabled -> "Running Devices"
-      IdeInfo.getInstance().isAndroidStudio -> "Emulator"
-      else -> "Android Emulator"
-    }
-  }
+const val RUNNING_DEVICES_TOOL_WINDOW_TITLE = "Running Devices"
 
 @JvmField val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
 

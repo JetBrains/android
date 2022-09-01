@@ -24,8 +24,8 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.device.settings.DeviceMirroringSettingsUi
 import com.android.tools.idea.emulator.settings.EmulatorSettingsUi
-import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.openapi.Disposable
@@ -96,8 +96,8 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
           "EmulatorSettings" -> {
             ShowSettingsUtil.getInstance().showSettingsDialog(project, EmulatorSettingsUi::class.java)
           }
-          "ExperimentalSettings" -> {
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, ExperimentalSettingsConfigurable::class.java)
+          "DeviceMirroringSettings" -> {
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, DeviceMirroringSettingsUi::class.java)
           }
         }
       }
@@ -149,7 +149,8 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
       emulatorLaunchesInToolWindow && emulatorVersionIsSufficient && deviceMirroringEnabled ->
         """
         <center>
-        <p>To launch a&nbsp;virtual device, use the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>
+        <p>To launch a&nbsp;virtual device, use
+        the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>
         or run your app while targeting a&nbsp;virtual device.</p>
         <p/>
         <p>To mirror a&nbsp;physical device, connect it via USB cable or over WiFi.</p>
@@ -158,11 +159,13 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
       emulatorLaunchesInToolWindow && emulatorVersionIsSufficient && !deviceMirroringEnabled ->
         """
         <center>
-        <p>To launch a&nbsp;virtual device, use the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>
+        <p>To launch a&nbsp;virtual device, use
+        the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>
         or run your app while targeting a&nbsp;virtual device.</p>
         <p/>
-        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i>
-        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='ExperimentalSettings'>Experimental&nbsp;settings</a></font>.</p>
+        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option
+        in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>.
+        </p>
         </center>
         """.trimIndent()
       emulatorLaunchesInToolWindow && !emulatorVersionIsSufficient && deviceMirroringEnabled ->
@@ -182,15 +185,16 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
         Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install
         the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator.</p>
         <p/>
-        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i>
-        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='ExperimentalSettings'>Experimental&nbsp;settings</a></font>.</p>
+        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option
+        in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>.
+        </p>
         </center>
         """.trimIndent()
       deviceMirroringEnabled ->
         """
         <center>
-        To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i>
-        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
+        <p>To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option
+        in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
         <p/>
         <p>To mirror a&nbsp;physical device, connect it via USB cable or over WiFi.</p>
         </center>
@@ -198,11 +202,12 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
       else ->
         """
         <center>
-        To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i>
-        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
+        <p>To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option
+        in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
         <p/>
-        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i>
-        option in&nbsp;the&nbsp;<font color = $linkColorString><a href='ExperimentalSettings'>Experimental&nbsp;settings</a></font>.</p>
+        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option
+        in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>.
+        </p>
         </center>
         """.trimIndent()
     }

@@ -866,10 +866,6 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "allow.standalone.emulators", "Allow Mirroring of Standalone Emulators",
     "Treats standalone emulators the same as physical devices for the purpose of display mirroring",
     false);
-  public static final Flag<Boolean> DEVICE_CLIPBOARD_SYNCHRONIZATION_ENABLED = Flag.create(
-    DEVICE_MIRRORING, "clipboard.synchronization.enabled", "Enable Clipboard Synchronization with Mirrored Physical Devices",
-    "Synchronizes clipboard contents between the host computer and the mirrored physical devices",
-    true);
   public static final Flag<String> DEVICE_MIRRORING_AGENT_LOG_LEVEL = Flag.create(
     DEVICE_MIRRORING, "agent.log.level", "On Device Logging Level for Mirroring",
     "The log level used by the screen sharing agent, one of \"verbose\", \"debug\", \"info\", \"warn\" or \"error\"",

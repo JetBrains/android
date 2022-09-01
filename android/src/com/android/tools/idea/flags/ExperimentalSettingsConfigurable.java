@@ -20,7 +20,6 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
 
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
-import com.android.tools.idea.emulator.DeviceMirroringSettings;
 import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
@@ -69,9 +68,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JLabel myPreviewPickerLabel;
   private JCheckBox myEnableNewLogcatToolCheckBox;
   private BrowserLink myLogcatLearnMoreBrowserLink;
-
-  private JCheckBox myEnableDeviceMirroringCheckBox;
-  private BrowserLink myDeviceMirroringLearnMoreLink;
 
   private JCheckBox myEnableParallelSync;
 
@@ -144,7 +140,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
            myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() ||
-           myEnableDeviceMirroringCheckBox.isSelected() != DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled() ||
            myEnableVersionCatalogParsing.isSelected() != GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled();
   }
 
@@ -162,7 +157,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     applyTraceSettings();
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
-    DeviceMirroringSettings.getInstance().setDeviceMirroringEnabled(myEnableDeviceMirroringCheckBox.isSelected());
     GradleDslModelExperimentalSettings.getInstance().setVersionCatalogEnabled(myEnableVersionCatalogParsing.isSelected());
 
     LogcatExperimentalSettings logcatSettings = LogcatExperimentalSettings.getInstance();
@@ -340,13 +334,11 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     updateTraceComponents();
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
     myEnableNewLogcatToolCheckBox.setSelected(LogcatExperimentalSettings.getInstance().getLogcatV2Enabled());
-    myEnableDeviceMirroringCheckBox.setSelected(DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled());
     myEnableVersionCatalogParsing.setSelected(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
   }
 
   private void createUIComponents() {
     myLogcatLearnMoreBrowserLink = new BrowserLink("Learn more", "https://d.android.com/r/studio-ui/logcat/help");
-    myDeviceMirroringLearnMoreLink = new BrowserLink("Learn more", "https://d.android.com/r/studio-ui/device-mirroring/help");
   }
 
   public enum TraceProfileItem {

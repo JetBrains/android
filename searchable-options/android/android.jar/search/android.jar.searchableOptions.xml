@@ -788,6 +788,25 @@
     <option name="keyboard" hit="ZQSDAE (for AZERTY keyboard)" />
     <option name="zqsdae" hit="ZQSDAE (for AZERTY keyboard)" />
   </configurable>
+  <configurable id="device.mirroring" configurable_name="Device Mirroring">
+    <option name="device" hit="Device Mirroring" />
+    <option name="mirroring" hit="Device Mirroring" />
+    <option name="clipboard" hit="Enable clipboard sharing" />
+    <option name="enable" hit="Enable clipboard sharing" />
+    <option name="sharing" hit="Enable clipboard sharing" />
+    <option name="android" hit="Enable mirroring of physical Android devices" />
+    <option name="devices" hit="Enable mirroring of physical Android devices" />
+    <option name="enable" hit="Enable mirroring of physical Android devices" />
+    <option name="mirroring" hit="Enable mirroring of physical Android devices" />
+    <option name="of" hit="Enable mirroring of physical Android devices" />
+    <option name="physical" hit="Enable mirroring of physical Android devices" />
+    <option name="clipboard" hit="Maximum length of synchronized clipboard text:" />
+    <option name="length" hit="Maximum length of synchronized clipboard text:" />
+    <option name="maximum" hit="Maximum length of synchronized clipboard text:" />
+    <option name="of" hit="Maximum length of synchronized clipboard text:" />
+    <option name="synchronized" hit="Maximum length of synchronized clipboard text:" />
+    <option name="text" hit="Maximum length of synchronized clipboard text:" />
+  </configurable>
   <configurable id="database.inspector" configurable_name="Database Inspector">
     <option name="database" hit="Database Inspector" />
     <option name="inspector" hit="Database Inspector" />
@@ -1211,17 +1230,9 @@
     <option name="these" hit=" Note: These settings are for features that are considered experimental." />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
-    <option name="device" hit="Device Mirroring" />
-    <option name="mirroring" hit="Device Mirroring" />
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
-    <option name="android" hit="Enable mirroring of physical Android devices" />
-    <option name="devices" hit="Enable mirroring of physical Android devices" />
-    <option name="enable" hit="Enable mirroring of physical Android devices" />
-    <option name="mirroring" hit="Enable mirroring of physical Android devices" />
-    <option name="of" hit="Enable mirroring of physical Android devices" />
-    <option name="physical" hit="Enable mirroring of physical Android devices" />
     <option name="enable" hit="Enable new Logcat tool window" />
     <option name="logcat" hit="Enable new Logcat tool window" />
     <option name="new" hit="Enable new Logcat tool window" />

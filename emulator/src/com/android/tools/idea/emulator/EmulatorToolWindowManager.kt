@@ -155,7 +155,7 @@ internal class EmulatorToolWindowManager private constructor(
 
   init {
     Disposer.register(project.earlyDisposable) {
-      ToolWindowManager.getInstance(project).getToolWindow(EMULATOR_TOOL_WINDOW_ID)?.let { destroyContent(it) }
+      ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)?.let { destroyContent(it) }
     }
 
     // Lazily initialize content since we can only have one frame.
@@ -163,7 +163,7 @@ internal class EmulatorToolWindowManager private constructor(
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
       override fun stateChanged(toolWindowManager: ToolWindowManager) {
-        val toolWindow = toolWindowManager.getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?: return
+        val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
 
         toolWindowManager.invokeLater {
           if (!project.isDisposed) {
@@ -482,8 +482,8 @@ internal class EmulatorToolWindowManager private constructor(
   }
 
   private fun getToolWindow(): ToolWindow {
-    return ToolWindowManager.getInstance(project).getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?:
-           throw IllegalStateException("Could not find the $EMULATOR_TOOL_WINDOW_TITLE tool window")
+    return ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?:
+           throw IllegalStateException("Could not find the $RUNNING_DEVICES_TOOL_WINDOW_TITLE tool window")
   }
 
   private fun showLiveIndicator(toolWindow: ToolWindow) {
@@ -518,9 +518,6 @@ internal class EmulatorToolWindowManager private constructor(
 
   @UiThread
   override fun settingsChanged(settings: DeviceMirroringSettings) {
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?: return
-    toolWindow.stripeTitle = EMULATOR_TOOL_WINDOW_TITLE
-
     if (settings.deviceMirroringEnabled) {
       if (contentCreated && physicalDeviceWatcher == null) {
         physicalDeviceWatcher = PhysicalDeviceWatcher()

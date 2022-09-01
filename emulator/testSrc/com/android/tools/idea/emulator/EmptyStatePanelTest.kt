@@ -26,8 +26,8 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.device.settings.DeviceMirroringSettingsUi
 import com.android.tools.idea.emulator.settings.EmulatorSettingsUi
-import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
@@ -121,7 +121,7 @@ class EmptyStatePanelTest {
     assertThat(text).contains("To launch virtual devices in this window, select the <i>Launch in a tool window</i> option" +
                               " in the <font color=\"589df6\"><a href=\"EmulatorSettings\">Emulator settings</a></font>.")
     assertThat(text).contains("To mirror physical devices, select the <i>Enable mirroring of physical Android devices</i> option" +
-                              " in the <font color=\"589df6\"><a href=\"ExperimentalSettings\">Experimental settings</a></font>.")
+                              " in the <font color=\"589df6\"><a href=\"DeviceMirroringSettings\">Device Mirroring settings</a></font>.")
 
     val shownSettings = mutableListOf<Class<Configurable>>()
     val mockSettings = mock<ShowSettingsUtil>()
@@ -131,8 +131,8 @@ class EmptyStatePanelTest {
     htmlComponent.clickOnHyperlink("EmulatorSettings")
     assertThat(shownSettings).containsExactly(EmulatorSettingsUi::class.java)
     shownSettings.clear()
-    htmlComponent.clickOnHyperlink("ExperimentalSettings")
-    assertThat(shownSettings).containsExactly(ExperimentalSettingsConfigurable::class.java)
+    htmlComponent.clickOnHyperlink("DeviceMirroringSettings")
+    assertThat(shownSettings).containsExactly(DeviceMirroringSettingsUi::class.java)
   }
 
   @Test
@@ -156,7 +156,7 @@ class EmptyStatePanelTest {
                               " <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>" +
                               " or run your app while targeting a virtual device.")
     assertThat(text).contains("To mirror physical devices, select the <i>Enable mirroring of physical Android devices</i> option" +
-                              " in the <font color=\"589df6\"><a href=\"ExperimentalSettings\">Experimental settings</a></font>.")
+                              " in the <font color=\"589df6\"><a href=\"DeviceMirroringSettings\">Device Mirroring settings</a></font>.")
   }
 
   @Test
@@ -185,7 +185,7 @@ class EmptyStatePanelTest {
                               " Please <font color=\"589df6\"><a href=\"CheckForUpdate\">check for updates</a></font>" +
                               " and install the latest version of the Android Emulator.")
     assertThat(text).contains("To mirror physical devices, select the <i>Enable mirroring of physical Android devices</i> option" +
-                              " in the <font color=\"589df6\"><a href=\"ExperimentalSettings\">Experimental settings</a></font>.")
+                              " in the <font color=\"589df6\"><a href=\"DeviceMirroringSettings\">Device Mirroring settings</a></font>.")
   }
 
   private fun createEmptyStatePanel(): EmptyStatePanel {

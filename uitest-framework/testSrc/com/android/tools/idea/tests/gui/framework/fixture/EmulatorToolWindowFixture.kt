@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture
 
-import com.android.tools.idea.emulator.EMULATOR_TOOL_WINDOW_ID
 import com.android.tools.idea.emulator.EmulatorView
+import com.android.tools.idea.emulator.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.intellij.openapi.project.Project
 import org.fest.swing.core.Robot
 import org.fest.swing.exception.ComponentLookupException
@@ -27,7 +27,7 @@ import javax.swing.JPanel
 /**
  * Test fixture for manipulating the Emulator tool window.
  */
-class EmulatorToolWindowFixture(project: Project, robot: Robot) : ToolWindowFixture(EMULATOR_TOOL_WINDOW_ID, project, robot) {
+class EmulatorToolWindowFixture(project: Project, robot: Robot) : ToolWindowFixture(RUNNING_DEVICES_TOOL_WINDOW_ID, project, robot) {
 
   init {
     activate()

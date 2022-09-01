@@ -27,7 +27,6 @@ import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowType
 
-
 /**
  * [ToolWindowFactory] implementation for the Emulator tool window.
  */
@@ -39,7 +38,7 @@ class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
   }
 
   override fun init(toolWindow: ToolWindow) {
-    toolWindow.stripeTitle = EMULATOR_TOOL_WINDOW_TITLE
+    toolWindow.stripeTitle = RUNNING_DEVICES_TOOL_WINDOW_TITLE
     toolWindow.setTitleActions(listOf(object : ToolWindowWindowAction() {
       override fun update(e: AnActionEvent) {
         if (getToolWindow(e)?.type.let { it == ToolWindowType.FLOATING || it == ToolWindowType.WINDOWED }) {

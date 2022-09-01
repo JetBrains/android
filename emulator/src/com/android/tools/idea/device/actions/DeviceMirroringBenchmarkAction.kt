@@ -17,7 +17,7 @@ package com.android.tools.idea.device.actions
 
 import com.android.tools.idea.device.dialogs.DeviceMirroringBenchmarkDialog
 import com.android.tools.idea.emulator.AbstractDisplayView
-import com.android.tools.idea.emulator.EMULATOR_TOOL_WINDOW_ID
+import com.android.tools.idea.emulator.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.emulator.RunningDevicePanel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -47,5 +47,5 @@ class DeviceMirroringBenchmarkAction : AnAction() {
   }
 
   private fun Project.getEmulatorToolWindow(): ToolWindow? =
-    ToolWindowManager.getInstance(this).getToolWindow(EMULATOR_TOOL_WINDOW_ID)
+    ToolWindowManager.getInstance(this).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
 }

@@ -426,7 +426,7 @@ class EmulatorToolWindowManagerTest {
     var toolWindow = TestToolWindow(project, this)
 
     override fun getToolWindow(id: String?): ToolWindow? {
-      return if (id == EMULATOR_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
+      return if (id == RUNNING_DEVICES_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
     }
 
     override fun invokeLater(runnable: Runnable) {

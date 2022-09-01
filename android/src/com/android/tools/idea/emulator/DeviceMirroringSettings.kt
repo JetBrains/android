@@ -23,7 +23,7 @@ import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 /**
- * Experimental settings for mirroring of physical Android devices.
+ * Settings for mirroring of physical Android devices.
  */
 @State(name = "DeviceMirroringSettings", storages = [(Storage("device.mirroring.xml"))])
 class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings> {
@@ -38,7 +38,7 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
       }
     }
 
-  var synchronizeClipboard: Boolean = StudioFlags.DEVICE_CLIPBOARD_SYNCHRONIZATION_ENABLED.get()
+  var synchronizeClipboard: Boolean = true
     set(value) {
       if (field != value) {
         field = value
@@ -78,6 +78,6 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
       return ApplicationManager.getApplication().getService(DeviceMirroringSettings::class.java)
     }
 
-    private const val MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT = 4096
+    const val MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT = 5000
   }
 }
