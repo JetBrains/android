@@ -25,6 +25,7 @@ import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValu
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
+import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.Key;
@@ -197,17 +198,12 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   }
 
   private void setOnline(@NotNull VirtualDevice device, @NotNull AvdManagerConnection connection) {
-    Executor executor = AppExecutorUtil.getAppExecutorService();
-
-    @SuppressWarnings("UnstableApiUsage")
-    ListenableFuture<Boolean> future = Futures.submit(() -> connection.isAvdRunning(device.getAvdInfo()), executor);
-
+    ListenableFuture<Boolean> future = DeviceManagerFutures.appExecutorServiceSubmit(() -> connection.isAvdRunning(device.getAvdInfo()));
     Futures.addCallback(future, myNewSetOnline.apply(this, device.getKey()), EdtExecutorService.getInstance());
   }
 
   private @NotNull ListenableFuture<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection() {
-    // noinspection UnstableApiUsage
-    return Futures.submit(myGetDefaultAvdManagerConnection, AppExecutorUtil.getAppExecutorService());
+    return DeviceManagerFutures.appExecutorServiceSubmit(myGetDefaultAvdManagerConnection);
   }
 
   @Override

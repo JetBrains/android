@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.prefs.AndroidLocationsException;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.util.concurrent.FutureCallback;
@@ -78,8 +79,7 @@ class VirtualDeviceWatcher implements Disposable {
               return;
             }
 
-            //noinspection UnstableApiUsage
-            ListenableFuture<Void> future = Futures.submit(() -> processAvdInfoChanges(), AppExecutorUtil.getAppExecutorService());
+            ListenableFuture<Void> future = DeviceManagerFutures.appExecutorServiceSubmit(VirtualDeviceWatcher.this::processAvdInfoChanges);
             Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
           }, 1000);
         }
@@ -92,8 +92,7 @@ class VirtualDeviceWatcher implements Disposable {
             return;
           }
 
-          //noinspection UnstableApiUsage
-          ListenableFuture<Void> future = Futures.submit(() -> snapshotAvds(), AppExecutorUtil.getAppExecutorService());
+          ListenableFuture<Void> future = DeviceManagerFutures.appExecutorServiceSubmit(VirtualDeviceWatcher.this::snapshotAvds);
           Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
         }
       });
@@ -106,7 +105,7 @@ class VirtualDeviceWatcher implements Disposable {
   private synchronized void processAvdInfoChanges() {
     Map<String, AvdInfo> currentAvds = getCurrentAvds();
 
-    for (String currentId: currentAvds.keySet()) {
+    for (String currentId : currentAvds.keySet()) {
       AvdInfo currentAvd = currentAvds.get(currentId);
       AvdInfo pastAvd = myAvds.remove(currentId);
       if (pastAvd == null) {
@@ -120,7 +119,7 @@ class VirtualDeviceWatcher implements Disposable {
     }
 
     // Any AVDs left over in myAvds are AVDs that have been deleted
-    for (AvdInfo pastAvd: myAvds.values()) {
+    for (AvdInfo pastAvd : myAvds.values()) {
       System.out.println(pastAvd.getId() + " was deleted");
     }
 

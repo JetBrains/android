@@ -18,9 +18,11 @@ package com.android.tools.idea.devicemanager;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -31,6 +33,14 @@ import org.jetbrains.annotations.Nullable;
 
 public final class DeviceManagerFutures {
   private DeviceManagerFutures() {
+  }
+
+  public static <V> @NotNull ListenableFuture<@Nullable V> appExecutorServiceSubmit(@NotNull Callable<@Nullable V> callable) {
+    return Futures.submit(callable, AppExecutorUtil.getAppExecutorService());
+  }
+
+  public static @NotNull ListenableFuture<@Nullable Void> appExecutorServiceSubmit(@NotNull Runnable runnable) {
+    return Futures.submit(runnable, AppExecutorUtil.getAppExecutorService());
   }
 
   public static <V> @NotNull V getDoneOrElse(@NotNull Future<@NotNull V> future, @NotNull V defaultValue) {

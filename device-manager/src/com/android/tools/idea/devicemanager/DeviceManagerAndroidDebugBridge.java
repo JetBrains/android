@@ -51,13 +51,10 @@ public final class DeviceManagerAndroidDebugBridge {
   }
 
   private static @NotNull ListenableFuture<@NotNull AndroidDebugBridge> getDebugBridge(@Nullable Project project) {
-    Executor executor = AppExecutorUtil.getAppExecutorService();
-
-    @SuppressWarnings("UnstableApiUsage")
-    ListenableFuture<File> future = Futures.submit(() -> AndroidSdkUtils.findAdb(project).adbPath, executor);
+    ListenableFuture<File> future = DeviceManagerFutures.appExecutorServiceSubmit(() -> AndroidSdkUtils.findAdb(project).adbPath);
 
     // noinspection UnstableApiUsage
-    return Futures.transformAsync(future, AdbService.getInstance()::getDebugBridge, executor);
+    return Futures.transformAsync(future, AdbService.getInstance()::getDebugBridge, AppExecutorUtil.getAppExecutorService());
   }
 
   @VisibleForTesting

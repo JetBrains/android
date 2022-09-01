@@ -23,12 +23,12 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IDevice.DeviceState;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
+import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.devicemanager.Key;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -100,7 +100,7 @@ final class ProcessManager implements IDeviceChangeListener {
    */
   @AnyThread
   void init() {
-    ListenableFuture<Map<Key, State>> future = Futures.submit(this::collectKeyToStateMap, AppExecutorUtil.getAppExecutorService());
+    ListenableFuture<Map<Key, State>> future = DeviceManagerFutures.appExecutorServiceSubmit(this::collectKeyToStateMap);
     Futures.addCallback(future, myNewSetKeyToStateMapFutureCallback.apply(this), EdtExecutorService.getInstance());
   }
 

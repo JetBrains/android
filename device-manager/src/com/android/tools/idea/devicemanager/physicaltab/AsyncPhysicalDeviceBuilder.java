@@ -28,9 +28,6 @@ import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Targets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,10 +47,8 @@ final class AsyncPhysicalDeviceBuilder {
     myDevice = device;
     myKey = key;
 
-    ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
-
-    myVersionFuture = service.submit(device::getVersion);
-    myTypeFuture = service.submit(this::getType);
+    myVersionFuture = DeviceManagerFutures.appExecutorServiceSubmit(device::getVersion);
+    myTypeFuture = DeviceManagerFutures.appExecutorServiceSubmit(this::getType);
     myModelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
     myManufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
   }
