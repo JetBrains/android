@@ -262,6 +262,8 @@ internal class LogcatMainPanel(
           caretLine = event.newPosition.line
         }
       }, this@LogcatMainPanel)
+
+      scrollPane.border = Borders.customLine(JBColor.border(), 1, 1, 0, 0)
     }
 
     toolbar.targetComponent = this
