@@ -34,7 +34,7 @@ import java.time.Duration
 /**
  * Maximum amount of time to wait for a fast compilation to happen.
  */
-private val FAST_PREVIEW_COMPILE_TIMEOUT = java.lang.Long.getLong("fast.preview.daemon.compile.seconds.timeout", 20)
+private val FAST_PREVIEW_COMPILE_TIMEOUT = java.lang.Long.getLong("fast.preview.daemon.compile.seconds.timeout", 30)
 
 private suspend fun PsiFile.saveIfNeeded() {
   val vFile = virtualFile ?: return
