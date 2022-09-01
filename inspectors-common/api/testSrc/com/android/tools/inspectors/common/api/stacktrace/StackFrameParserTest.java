@@ -18,42 +18,52 @@ package com.android.tools.inspectors.common.api.stacktrace;
 import static com.android.tools.idea.codenavigation.CodeLocation.INVALID_LINE_NUMBER;
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.codenavigation.CodeLocation;
 import org.junit.Test;
 
 public class StackFrameParserTest {
   @Test
   public void getLineNumber() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
-    assertEquals(274, new StackFrameParser(line).getLineNumber());
+    CodeLocation codeLocation = StackFrameParser.parseFrame(line);
+
+    // The file is 1-based, but the code location is 0-indexed, so when we call getLineNumber(), it
+    // should be one less than what the raw string contains.
+    assertEquals(273, codeLocation.getLineNumber());
   }
 
   @Test
   public void getNoLineNumber() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)";
-    assertEquals(INVALID_LINE_NUMBER, new StackFrameParser(line).getLineNumber());
+    CodeLocation codeLocation = StackFrameParser.parseFrame(line);
+    assertEquals(INVALID_LINE_NUMBER, codeLocation.getLineNumber());
   }
 
   @Test
   public void getInvalidLineNumber() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:init)";
-    assertEquals(INVALID_LINE_NUMBER, new StackFrameParser(line).getLineNumber());
+    CodeLocation codeLocation = StackFrameParser.parseFrame(line);
+    assertEquals(INVALID_LINE_NUMBER, codeLocation.getLineNumber());
   }
 
   @Test
   public void getClassName() {
     String line = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)";
-    assertEquals("com.example.android.displayingbitmaps.util.ImageFetcher", new StackFrameParser(line).getClassName());
+    CodeLocation codeLocation = StackFrameParser.parseFrame(line);
+    assertEquals("com.example.android.displayingbitmaps.util.ImageFetcher", codeLocation.getClassName());
   }
 
   @Test
   public void getClassNameIfNested() {
     String line = "com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask.doInBackground(ImageWorker.java:312)";
-    assertEquals("com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask", new StackFrameParser(line).getClassName());
+    CodeLocation codeLocation = StackFrameParser.parseFrame(line);
+    assertEquals("com.example.android.displayingbitmaps.util.ImageWorker$BitmapWorkerTask", codeLocation.getClassName());
   }
 
   @Test
   public void getClassNameIfAnonymous() {
     String line = "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:313)";
-    assertEquals("com.example.android.displayingbitmaps.util.AsyncTask$2", new StackFrameParser(line).getClassName());
+    CodeLocation codeLocation = StackFrameParser.parseFrame(line);
+    assertEquals("com.example.android.displayingbitmaps.util.AsyncTask$2", codeLocation.getClassName());
   }
 }

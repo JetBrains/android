@@ -36,5 +36,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="codenavigation" />
   </component>
 </module>

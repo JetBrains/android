@@ -49,4 +49,4 @@ class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView)
 private fun HttpData.codeLocations(): List<CodeLocation> = trace.split('\n')
   .map { line -> line.trim { it <= ' ' } }
   .filter { line -> line.isNotEmpty() }
-  .map { line -> StackFrameParser(line).toCodeLocation() }
+  .map { line -> StackFrameParser.parseFrame(line) }

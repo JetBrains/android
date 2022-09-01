@@ -18,7 +18,6 @@ package com.android.tools.inspectors.common.api.stacktrace;
 import static com.android.tools.idea.codenavigation.CodeLocation.INVALID_LINE_NUMBER;
 
 import com.android.tools.idea.codenavigation.CodeLocation;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -27,83 +26,95 @@ import org.jetbrains.annotations.Nullable;
  * E.g. "a.b.FooClass.someFunc(FooClass.java:123
  */
 public final class StackFrameParser {
-  @NotNull private final String myLine;
+  private StackFrameParser() {
+    // No-op
+  }
 
-  public StackFrameParser(@NotNull String line) {
-    myLine = line;
+  public static CodeLocation tryParseFrame(String line) {
+    String className = getClassName(line);
+    if (className == null) {
+      return null;
+    }
+
+    var builder = new CodeLocation.Builder(className);
+    builder.setFileName(getFileName(line));
+    builder.setMethodName(getMethodName(line));
+
+    // Make sure we don't do INVALID_LINE_NUMBER - 1 by checking the line number value.
+    var lineNumber = getLineNumber(line);
+    builder.setLineNumber(lineNumber == INVALID_LINE_NUMBER ? INVALID_LINE_NUMBER : lineNumber - 1);
+
+    return builder.build();
+  }
+
+  public static CodeLocation parseFrame(String line) {
+    var location = tryParseFrame(line);
+
+    if (location == null) {
+      throw new IllegalStateException(String.format(
+        "Trying to create CodeLocation from an incomplete StackFrameParser. Line contents: '%s'", line));
+    }
+
+    return location;
   }
 
   @Nullable
-  public String getClassName() {
-    int lastDot = getLastDot();
+  private static String getClassName(String line) {
+    int lastDot = getLastDot(line);
     if (lastDot == -1) {
       return null;
     }
-    return myLine.substring(0, lastDot);
+    return line.substring(0, lastDot);
   }
 
   @Nullable
-  public String getFileName() {
-    int start = getOpenParen();
-    int end = getLastColon();
+  private static String getFileName(String line) {
+    int start = getOpenParen(line);
+    int end = getLastColon(line);
     if (start == -1 || start >= end) {
       return null;
     }
-    return myLine.substring(start + 1, end);
+    return line.substring(start + 1, end);
   }
 
   @Nullable
-  public String getMethodName() {
-    int start = getLastDot();
-    int end = getOpenParen();
+  private static String getMethodName(String line) {
+    int start = getLastDot(line);
+    int end = getOpenParen(line);
     if (start == -1 || start >= end) {
       return null;
     }
-    return myLine.substring(start + 1, end);
+    return line.substring(start + 1, end);
   }
 
-  public int getLineNumber() {
-    int start = getLastColon();
-    int end = getCloseParen();
+  private static int getLineNumber(String line) {
+    int start = getLastColon(line);
+    int end = getCloseParen(line);
     if (start >= end || start == -1) {
       return INVALID_LINE_NUMBER;
     }
 
     try {
-      return Integer.parseInt(myLine.substring(start + 1, end));
+      return Integer.parseInt(line.substring(start + 1, end));
     }
     catch (Exception e) {
       return INVALID_LINE_NUMBER;
     }
   }
 
-  public int getLastColon() {
-    return myLine.lastIndexOf(':');
+  private static int getLastColon(String line) {
+    return line.lastIndexOf(':');
   }
 
-  public int getLastDot() {
-    return myLine.lastIndexOf('.', getOpenParen());
+  private static int getLastDot(String line) {
+    return line.lastIndexOf('.', getOpenParen(line));
   }
 
-  public int getOpenParen() {
-    return myLine.indexOf('(');
+  private static int getOpenParen(String line) {
+    return line.indexOf('(');
   }
 
-  public int getCloseParen() {
-    return myLine.indexOf(')');
-  }
-
-  @NotNull
-  public CodeLocation toCodeLocation() {
-    String className = getClassName();
-    if (className == null) {
-      throw new IllegalStateException(
-        String.format("Trying to create CodeLocation from an incomplete StackFrameParser. Line contents: '%s'", myLine));
-    }
-
-    return new CodeLocation.Builder(className).
-      setFileName(getFileName()).
-      setMethodName(getMethodName()).
-      setLineNumber(getLineNumber() - 1).build();
+  private static int getCloseParen(String line) {
+    return line.indexOf(')');
   }
 }

@@ -70,8 +70,9 @@ public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
   }
 
   public void setStackFrames(@NotNull String trace) {
-    updateStackFrames(ThreadId.INVALID_THREAD_ID, Arrays.stream(trace.split("\\n")).map(
-      stackFrame -> new StackFrameParser(stackFrame).toCodeLocation()).collect(Collectors.toList()));
+    updateStackFrames(
+      ThreadId.INVALID_THREAD_ID,
+      Arrays.stream(trace.split("\\n")).map(StackFrameParser::parseFrame).collect(Collectors.toList()));
   }
 
   public void clearStackFrames() {
