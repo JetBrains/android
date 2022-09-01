@@ -46,6 +46,14 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     return CompletableFuture.completedFuture(null)
   }
 
+  override fun logAsync(group: EventLogGroup,
+                        eventId: String,
+                        dataProvider: () -> Map<String, Any>?,
+                        isState: Boolean): CompletableFuture<Void> {
+    val data = dataProvider() ?: return CompletableFuture.completedFuture(null)
+    return logAsync(group, eventId, data, isState)
+  }
+
   override fun rollOver() {}
 
   private fun logFileType(eventId: String, data: Map<String, Any>) {
