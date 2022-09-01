@@ -26,7 +26,7 @@ class StackFrameParserTest {
   fun parsesFullFrame() {
     parseFrame("com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)").apply {
       assertThat(this).isNotNull()
-      assertThat(className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+      assertThat(this!!.className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
       assertThat(methodName).isEqualTo("downloadUrlToStream")
       assertThat(fileName).isEqualTo("ImageFetcher.java")
       // The line number should be one less since it will be converted from 1-base to 0-base.
@@ -40,7 +40,7 @@ class StackFrameParserTest {
   fun parsesFrameWithoutLineNumber() {
     parseFrame("com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)").apply {
       assertThat(this).isNotNull()
-      assertThat(className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+      assertThat(this!!.className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
       assertThat(methodName).isEqualTo("downloadUrlToStream")
       assertThat(fileName).isEqualTo("ImageFetcher.java")
       assertThat(lineNumber).isEqualTo(CodeLocation.INVALID_LINE_NUMBER)
@@ -51,7 +51,7 @@ class StackFrameParserTest {
   fun parsesFrameWithInvalidLineNumber() {
     parseFrame("com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:init)").apply {
       assertThat(this).isNotNull()
-      assertThat(className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+      assertThat(this!!.className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
       assertThat(methodName).isEqualTo("downloadUrlToStream")
       assertThat(fileName).isEqualTo("ImageFetcher.java")
       assertThat(lineNumber).isEqualTo(CodeLocation.INVALID_LINE_NUMBER)
@@ -62,7 +62,7 @@ class StackFrameParserTest {
   fun parsesFrameWithNestedClassName() {
     parseFrame("com.example.android.displayingbitmaps.util.ImageWorker\$BitmapWorkerTask.doInBackground(ImageWorker.java:312)").apply {
       assertThat(this).isNotNull()
-      assertThat(className).isEqualTo("com.example.android.displayingbitmaps.util.ImageWorker\$BitmapWorkerTask")
+      assertThat(this!!.className).isEqualTo("com.example.android.displayingbitmaps.util.ImageWorker\$BitmapWorkerTask")
       assertThat(methodName).isEqualTo("doInBackground")
     }
   }
@@ -71,7 +71,7 @@ class StackFrameParserTest {
   fun parsesFrameWithAnonymousClassName() {
     parseFrame("com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:313)").apply {
       assertThat(this).isNotNull()
-      assertThat(className).isEqualTo("com.example.android.displayingbitmaps.util.AsyncTask$2")
+      assertThat(this!!.className).isEqualTo("com.example.android.displayingbitmaps.util.AsyncTask$2")
       assertThat(methodName).isEqualTo("call")
     }
   }

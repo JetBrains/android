@@ -30,7 +30,7 @@ fun BackgroundTaskInspectorProtocol.Event.getId(): Long = backgroundTaskEvent.ta
 
 private fun getTopExternalClassName(trace: String, filter: String): String? {
   return trace.lines()
-    .mapNotNull { StackFrameParser.tryParseFrame(it) }
+    .mapNotNull { StackFrameParser.parseFrame(it) }
     .map { it.className }
     .firstOrNull { className -> filter != className }
 }

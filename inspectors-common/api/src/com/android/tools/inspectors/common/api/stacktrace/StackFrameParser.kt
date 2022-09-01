@@ -23,79 +23,45 @@ import com.android.tools.idea.codenavigation.CodeLocation
  * E.g. "a.b.FooClass.someFunc(FooClass.java:123
  */
 object StackFrameParser {
-  @JvmStatic
-  fun tryParseFrame(line: String): CodeLocation? {
-    val className = getClassName(line) ?: return null
+  private const val CLASS_NAME = "class"
+  private const val METHOD_NAME = "method"
+  private const val FILE_NAME = "file"
+  private const val LINE_NUMBER = "line"
 
-    return CodeLocation.Builder(className).apply {
-      setFileName(getFileName(line))
-      setMethodName(getMethodName(line))
+  private val patterns = listOf(
+    "(?<$CLASS_NAME>.+)\\.(?<$METHOD_NAME>.+)\\((?<$FILE_NAME>.+):(?<$LINE_NUMBER>.+)\\)",
+    "(?<$CLASS_NAME>.+)\\.(?<$METHOD_NAME>.+)\\((?<$FILE_NAME>.+)\\)",
+  )
 
-      // Make sure we don't do INVALID_LINE_NUMBER - 1 by checking the line number value.
-      val lineNumber = getLineNumber(line)
-      setLineNumber(if (lineNumber == CodeLocation.INVALID_LINE_NUMBER) CodeLocation.INVALID_LINE_NUMBER else lineNumber - 1)
-    }.build()
-  }
+  private val expressions = patterns.map { Regex(it, RegexOption.IGNORE_CASE) }
 
   @JvmStatic
-  fun parseFrame(line: String): CodeLocation {
-    val location = tryParseFrame(line)
+  fun parseFrame(line: String): CodeLocation? = tryParseFrame(expressions.firstNotNullOfOrNull { it.matchEntire(line) })
 
-    if (location != null) {
-      return location
+  private fun tryParseFrame(match: MatchResult?): CodeLocation? {
+    if (match == null) {
+      return null
     }
 
-    throw IllegalStateException("Trying to create CodeLocation from an incomplete StackFrameParser. Line contents: '$line'")
-  }
+    val className = match.groups[CLASS_NAME]!!.value
+    val methodName = match.groups[METHOD_NAME]!!.value
+    val fileName = match.groups[FILE_NAME]!!.value
 
-  private fun getClassName(line: String): String? {
-    val lastDot = getLastDot(line)
-    return if (lastDot == -1) {
-      null
-    } else line.substring(0, lastDot)
-  }
-
-  private fun getFileName(line: String): String? {
-    val start = getOpenParen(line)
-    val end = getLastColon(line)
-    return if (start == -1 || start >= end) {
-      null
-    } else line.substring(start + 1, end)
-  }
-
-  private fun getMethodName(line: String): String? {
-    val start = getLastDot(line)
-    val end = getOpenParen(line)
-    return if (start == -1 || start >= end) {
-      null
-    } else line.substring(start + 1, end)
-  }
-
-  private fun getLineNumber(line: String): Int {
-    val start = getLastColon(line)
-    val end = getCloseParen(line)
-    return if (start >= end || start == -1) {
-      CodeLocation.INVALID_LINE_NUMBER
-    } else try {
-      line.substring(start + 1, end).toInt()
+    // If there is no LINE_NUMBER group, we will throw an exception. If the line number is not an
+    // integer, we will throw an exception. Either way, we will use an invalid line number in the
+    // code location.
+    val lineNumber = try {
+      // Convert the line number from 1-base to 0-base. The Java stack traces use 1-base whereas we
+      // use 0-based.
+      Integer.parseInt(match.groups[LINE_NUMBER]!!.value) - 1
     } catch (e: Exception) {
       CodeLocation.INVALID_LINE_NUMBER
     }
-  }
 
-  private fun getLastColon(line: String): Int {
-    return line.lastIndexOf(':')
-  }
-
-  private fun getLastDot(line: String): Int {
-    return line.lastIndexOf('.', getOpenParen(line))
-  }
-
-  private fun getOpenParen(line: String): Int {
-    return line.indexOf('(')
-  }
-
-  private fun getCloseParen(line: String): Int {
-    return line.indexOf(')')
+    return CodeLocation.Builder(className).apply {
+      setFileName(fileName)
+      setMethodName(methodName)
+      setLineNumber(lineNumber)
+    }.build()
   }
 }
