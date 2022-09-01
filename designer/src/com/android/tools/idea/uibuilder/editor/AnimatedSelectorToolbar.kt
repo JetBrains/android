@@ -44,6 +44,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
+import java.util.UUID
 import java.util.function.Consumer
 import javax.swing.DefaultComboBoxModel
 
@@ -206,7 +207,7 @@ class AnimatedSelectorModel(originalFile: VirtualFile,
   init {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     val xmlFile = originalFile.toPsiFile(project) as XmlFile
-    tempModelFile = createTempAnimatedSelectorFile(xmlFile.name)
+    tempModelFile = createTempAnimatedSelectorFile()
     nlModelOfTempFile = createModelWithFile(parentDisposable, project, facet, componentRegistrar, config, tempModelFile)
 
     animationTags = createIdAnimationMap(xmlFile)
@@ -262,13 +263,13 @@ class AnimatedSelectorModel(originalFile: VirtualFile,
       .build()
   }
 
-  private fun createTempAnimatedSelectorFile(originalFileName: String): VirtualFile {
+  private fun createTempAnimatedSelectorFile(): VirtualFile {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
-    val nameWithoutSuffix = originalFileName.substringBefore(".")
+    val fileName = "drawable_" + UUID.randomUUID().toString().replace("-", "_")
     val systemTempDir = File(FileUtilRt.getTempDirectory()).toVirtualFile()!!
     val tempDrawableDir = systemTempDir.findChild(TEMP_ANIMATED_SELECTOR_FOLDER)
                           ?: systemTempDir.createChildDirectory(this, TEMP_ANIMATED_SELECTOR_FOLDER)
-    val physicalChildInTempDrawableFile = FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), "fake_of_$nameWithoutSuffix", ".xml", true, true)
+    val physicalChildInTempDrawableFile = FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), fileName, ".xml", true, true)
     return physicalChildInTempDrawableFile.toVirtualFile(true)!!
   }
 
