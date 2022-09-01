@@ -1465,7 +1465,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
     IsBaseSplit                   : true
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : me.monori.studioclasspathissue
-    TestNamespace                 : me.monori.gradleprojectpathissue.test
+    TestNamespace                 : me.monori.studioclasspathissue.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

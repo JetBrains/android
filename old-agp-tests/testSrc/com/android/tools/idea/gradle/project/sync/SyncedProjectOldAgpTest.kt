@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectTest
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_32
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
@@ -34,6 +35,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.applicableAgpVersions
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.annotations.Contract
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
@@ -71,3 +73,11 @@ class SyncProject_AGP_72_V1Test: SyncedProjectTest(agpVersion = AGP_72_V1)
 class SyncProject_AGP_72Test: SyncedProjectTest(agpVersion = AGP_72)
 class SyncProject_AGP_73Test: SyncedProjectTest(agpVersion = AGP_73)
 class SyncProject_AGP_74Test: SyncedProjectTest(agpVersion = AGP_74)
+
+class OldAgpTestProjectTest: TestProjectTest() {
+  @Test
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  override fun testMigratePackageAttribute_agp71() {
+    super.testMigratePackageAttribute_agp71()
+  }
+}

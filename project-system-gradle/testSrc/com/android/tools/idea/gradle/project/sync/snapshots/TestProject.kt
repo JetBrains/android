@@ -20,11 +20,14 @@ import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.testutils.TestUtils
+import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.ModelVersion
@@ -35,6 +38,7 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.utils.FileUtils
 import com.android.utils.FileUtils.writeToFile
+import com.google.common.truth.Expect
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
@@ -43,11 +47,23 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.PathUtil
+import com.intellij.util.io.exists
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.jetbrains.annotations.SystemIndependent
+import org.junit.Rule
+import org.junit.Test
+import org.w3c.dom.Document
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.Transformer
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
+import kotlin.streams.asSequence
+
 
 /**
  * Defines test projects used in [SyncedProjectTest].
@@ -59,6 +75,7 @@ enum class TestProject(
   private val pathToOpen: String = "",
   private val testName: String? = null,
   override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
+  private val autoMigratePackageAttribute: Boolean = true,
   private val setup: () -> () -> Unit = { {} },
   private val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
   private val expectedSyncIssues: Set<Int> = emptySet()
@@ -158,7 +175,11 @@ enum class TestProject(
         truncateForV2(projectRoot.resolve("settings.gradle"))
       }
     }),
-  NON_STANDARD_SOURCE_SETS(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
+  NON_STANDARD_SOURCE_SETS(
+    TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 },
+    pathToOpen = "/application"
+  ),
   NON_STANDARD_SOURCE_SET_DEPENDENCIES(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     isCompatibleWith = { it.modelVersion == ModelVersion.V2 }
@@ -264,7 +285,10 @@ enum class TestProject(
     patch = { projectRootPath ->
       createEmptyGradleSettingsFile(projectRootPath)
     }),
-  MAIN_IN_ROOT(TestProjectToSnapshotPaths.MAIN_IN_ROOT),
+  MAIN_IN_ROOT(
+    TestProjectToSnapshotPaths.MAIN_IN_ROOT,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1 }
+    ),
   NESTED_MODULE(TestProjectToSnapshotPaths.NESTED_MODULE),
   TRANSITIVE_DEPENDENCIES(TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES),
   TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS(
@@ -328,6 +352,9 @@ enum class TestProject(
       agpVersion,
       ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
     )
+    if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1) {
+      migratePackageAttribute(root)
+    }
     patch(agpVersion, root)
 
     return object : PreparedTestProject {
@@ -375,8 +402,16 @@ private fun File.replaceContent(change: (String) -> String) {
   )
 }
 
+private fun Path.replaceContent(change: (String) -> String) {
+  toFile().replaceContent(change)
+}
+
 private fun File.replaceInContent(oldValue: String, newValue: String) {
   replaceContent { it.replace(oldValue, newValue) }
+}
+
+private fun Path.replaceInContent(oldValue: String, newValue: String) {
+  toFile().replaceInContent(oldValue, newValue)
 }
 
 private fun truncateForV2(settingsFile: File) {
@@ -536,3 +571,91 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
   return gradleVersion?.let { "Gradle_${it}_" }.orEmpty()
 }
 
+private fun migratePackageAttribute(root: File) {
+  Files.walk(root.toPath()).asSequence().filter { it.endsWith("AndroidManifest.xml") }.forEach { manifestPath ->
+    val namespace = updateXmlDoc(manifestPath) { doc ->
+      val attribute = doc.documentElement.getAttribute("package").takeUnless { it.isEmpty() } ?: return@updateXmlDoc null
+      doc.documentElement.removeAttribute("package")
+      attribute
+    } ?: return@forEach
+
+    val buildFileAttribute = when (manifestPath.parent.fileName.toString()) {
+      "main" -> "namespace"
+      "androidTest" -> null // It is ignored and does not play the role of `testNamespace`.
+      else -> null
+    } ?: return@forEach
+
+    val buildGradle = manifestPath.parent?.parent?.parent?.resolve("build.gradle")
+    val buildGradleKts = manifestPath.parent?.parent?.parent?.resolve("build.gradle.kts")
+
+    when {
+      buildGradle?.exists() == true -> {
+        buildGradle.replaceContent {
+          it + """
+            android {
+              $buildFileAttribute = "$namespace"
+            }
+             """
+        }
+      }
+
+      buildGradleKts?.exists() == true -> {
+        buildGradleKts.replaceContent {
+          it + """
+            android {
+              $buildFileAttribute = "$namespace"
+            }
+             """
+        }
+      }
+
+      else -> {
+        error("Cannot find a build file to store the value of 'package' attribute in $manifestPath")
+      }
+    }
+  }
+}
+
+private fun <T : Any> updateXmlDoc(manifestPath: Path, transform: (Document) -> T?): T? {
+  val factory = DocumentBuilderFactory.newInstance()
+  val dBuilder = factory.newDocumentBuilder()
+  val doc: Document = dBuilder.parse(manifestPath.toFile())
+
+  val result = transform(doc) ?: return null
+
+  val transformerFactory = TransformerFactory.newInstance()
+  val transformer: Transformer = transformerFactory.newTransformer()
+  val source = DOMSource(doc)
+  transformer.transform(source, StreamResult(manifestPath.toFile()))
+  return result
+}
+
+open class TestProjectTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels()
+
+  @get:Rule
+  val expect: Expect = Expect.createAndEnableStackTrace()
+
+  private val namespaceSubstring = """namespace = "google.simpleapplication"""" // Do not inline as it needs to be the same in both tests.
+  private val packageSubstring = """package="google.simpleapplication"""" // Do not inline.
+
+  open fun testMigratePackageAttribute_agp71() {
+    val preparedProject71 =
+      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_71)
+
+    val root = preparedProject71.root
+    expect.that(root.resolve("app/build.gradle").readText()).doesNotContain(namespaceSubstring)
+    expect.that(root.resolve("app/src/main/AndroidManifest.xml").readText()).contains(packageSubstring)
+  }
+
+  @Test
+  @OldAgpTest(agpVersions = ["LATEST"], gradleVersions = ["LATEST"])
+  fun testMigratePackageAttribute_agp80() {
+    val preparedProject80 =
+      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_80)
+    val root = preparedProject80.root
+    expect.that(root.resolve("app/build.gradle").readText()).contains(namespaceSubstring)
+    expect.that(root.resolve("app/src/main/AndroidManifest.xml").readText()).doesNotContain(packageSubstring)
+  }
+}

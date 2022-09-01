@@ -46,7 +46,7 @@ MODULE                        : project
     IsBaseSplit                   : true
     GroupId                       :
     Namespace                     : com.android.tests.basic
-    TestNamespace                 : com.android.tests.basic.debug.test
+    TestNamespace                 : com.android.tests.basic.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
