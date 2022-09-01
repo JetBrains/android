@@ -26,11 +26,12 @@ import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.devicemanager.Key;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -42,7 +43,7 @@ final class ProcessManager implements IDeviceChangeListener {
   private final @NotNull EventListenerList myListeners;
 
   private final @NotNull NewSetKeyToStateMapFutureCallback myNewSetKeyToStateMapFutureCallback;
-  private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull Callable<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
 
   @UiThread
   ProcessManager() {
@@ -52,7 +53,7 @@ final class ProcessManager implements IDeviceChangeListener {
   @UiThread
   @VisibleForTesting
   ProcessManager(@NotNull NewSetKeyToStateMapFutureCallback newSetKeyToStateMapFutureCallback,
-                 @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection) {
+                 @NotNull Callable<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection) {
     myListeners = new EventListenerList();
 
     myNewSetKeyToStateMapFutureCallback = newSetKeyToStateMapFutureCallback;
@@ -100,17 +101,17 @@ final class ProcessManager implements IDeviceChangeListener {
    */
   @AnyThread
   void init() {
-    ListenableFuture<Map<Key, State>> future = DeviceManagerFutures.appExecutorServiceSubmit(this::collectKeyToStateMap);
-    Futures.addCallback(future, myNewSetKeyToStateMapFutureCallback.apply(this), EdtExecutorService.getInstance());
+    // noinspection UnstableApiUsage
+    FluentFuture.from(DeviceManagerFutures.appExecutorServiceSubmit(myGetDefaultAvdManagerConnection))
+      .transform(ProcessManager::collectKeyToStateMap, AppExecutorUtil.getAppExecutorService())
+      .addCallback(myNewSetKeyToStateMapFutureCallback.apply(this), EdtExecutorService.getInstance());
   }
 
   /**
    * Called by an application pool thread
    */
   @WorkerThread
-  private @NotNull Map<@NotNull Key, @NotNull State> collectKeyToStateMap() {
-    AvdManagerConnection connection = myGetDefaultAvdManagerConnection.get();
-
+  private static @NotNull Map<@NotNull Key, @NotNull State> collectKeyToStateMap(@NotNull AvdManagerConnection connection) {
     return connection.getAvds(true).stream()
       .collect(Collectors.toMap(avd -> new VirtualDevicePath(avd.getId()), avd -> State.valueOf(connection.isAvdRunning(avd))));
   }
