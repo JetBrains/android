@@ -426,8 +426,10 @@ internal class DeviceViewTest {
     val loggedErrors = executeCapturingLoggedErrors {
       fakeUi.clickOn(button)
       waitForCondition(5, TimeUnit.SECONDS) { errorMessage.text.isNotEmpty() }
-      ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      for (i in 1 until 3) {
+        ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      }
     }
     assertThat(errorMessage.text).isEqualTo("Failed to initialize the device agent. See the error log.")
     assertThat(button.text).isEqualTo("Retry")
