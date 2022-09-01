@@ -1,4 +1,5 @@
 #include "jniObjectTagger.h"
+#include <vector>
 
 jvmtiEnv *jvmti;
 
@@ -35,6 +36,45 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshot
   if (error != JVMTI_ERROR_NONE) {
     printf("JVMTI tag setting failed: %d\n", error);
   }
+}
+
+#define ACC_SYNTHETIC	0x1000
+
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClasses(JNIEnv *env, jclass klass) {
+  jint nclasses;
+  jclass *classes;
+  jint class_status;
+  jint modifiers_ptr;
+
+  jvmti->GetLoadedClasses(&nclasses, &classes);
+
+  std::vector<jclass> initialized_classes;
+  for (int i=0; i < nclasses; i++) {
+    jvmti->GetClassStatus(classes[i], &class_status);
+    if (((class_status & JVMTI_CLASS_STATUS_VERIFIED) == 0) || ((class_status & JVMTI_CLASS_STATUS_PREPARED) == 0) ||
+      ((class_status & JVMTI_CLASS_STATUS_INITIALIZED) == 0) || ((class_status & JVMTI_CLASS_STATUS_ERROR) != 0)) {
+      continue;
+    }
+    jvmti->GetClassModifiers(classes[i], &modifiers_ptr);
+    if (modifiers_ptr & ACC_SYNTHETIC) continue;
+    initialized_classes.push_back(classes[i]);
+  }
+  jvmti->Deallocate((unsigned char *)classes);
+
+  jclass objectClass = env->FindClass("java/lang/Object");
+  jobjectArray arr = env->NewObjectArray(initialized_classes.size(), objectClass, NULL);
+  for (int i=0; i < initialized_classes.size(); i++) {
+    env->SetObjectArrayElement(arr, i, initialized_classes[i]);
+  }
+  return arr;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_isClassInitialized
+  (JNIEnv *env, jclass klass, jclass classToCheck) {
+  jint class_status;
+  jvmti->GetClassStatus(classToCheck, &class_status);
+
+  return class_status & JVMTI_CLASS_STATUS_INITIALIZED;
 }
 
 JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM *vm, char *options, void *reserved) {

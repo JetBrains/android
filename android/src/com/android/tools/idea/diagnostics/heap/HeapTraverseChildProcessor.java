@@ -16,7 +16,6 @@
 package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isArrayOfPrimitives;
-import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isInitialized;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.Disposable;
@@ -67,9 +66,10 @@ public class HeapTraverseChildProcessor {
       return;
     }
     Class<?> nodeClass = obj.getClass();
+    boolean objIsReference = obj instanceof Reference;
     for (Field field : fieldCache.getInstanceFields(nodeClass)) {
       // do not follow weak/soft refs
-      if (obj instanceof Reference && REFERENCE_CLASS_FIELDS_TO_IGNORE.contains(field.getName())) {
+      if (objIsReference && REFERENCE_CLASS_FIELDS_TO_IGNORE.contains(field.getName())) {
         continue;
       }
 
@@ -97,7 +97,7 @@ public class HeapTraverseChildProcessor {
     // 2) a static method of the class is invoked,
     // 3) a static field of the class is assigned,
     // 4) a non-constant static field is used;
-    if (obj instanceof Class && isInitialized((Class<?>)obj)) {
+    if (obj instanceof Class && HeapSnapshotTraverse.isClassInitialized((Class<?>)obj)) {
       // JVMTI_HEAP_REFERENCE_STATIC_FIELD
       for (Field field : fieldCache.getStaticFields((Class<?>)obj)) {
         try {

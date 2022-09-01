@@ -21,23 +21,17 @@ import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.Memor
 
 import com.android.tools.analytics.UsageTracker;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.IdeEventQueue;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.impl.LaterInvocator;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
-import com.intellij.util.ReflectionUtil;
 import com.intellij.util.containers.WeakList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
@@ -94,8 +88,17 @@ public final class HeapSnapshotTraverse {
    * On the second pass, we directly update the masks and pass them to the referring objects.
    *
    * @param maxDepth   the maximum depth to which we will descend when traversing the object tree.
-   * @param startRoots objects from which traversal is started.
    */
+  public StatusCode walkObjects(int maxDepth) {
+    if (!canTagObjects()) {
+      return StatusCode.CANT_TAG_OBJECTS;
+    }
+    WeakList<Object> classes = new WeakList<>();
+    classes.addAll(Arrays.asList(getClasses()));
+
+    return walkObjects(maxDepth, classes);
+  }
+
   public StatusCode walkObjects(int maxDepth, @NotNull final Collection<?> startRoots) {
     try {
       if (!canTagObjects()) {
@@ -461,7 +464,7 @@ public final class HeapSnapshotTraverse {
 
   public static void collectAndPrintMemoryReport() {
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.getComponentSet());
-    new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, getRoots());
+    new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH);
     stats.print(new PrintWriter(System.out, true, StandardCharsets.UTF_8));
   }
 
@@ -469,7 +472,7 @@ public final class HeapSnapshotTraverse {
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.getComponentSet());
     long startTime = System.nanoTime();
     StatusCode statusCode =
-      new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, getRoots());
+      new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH);
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                        .setKind(AndroidStudioEvent.EventKind.MEMORY_USAGE_REPORT_EVENT)
                        .setMemoryUsageReportEvent(
@@ -483,28 +486,6 @@ public final class HeapSnapshotTraverse {
     return statusCode;
   }
 
-  @NotNull
-  private static WeakList<?> getRoots() {
-    ClassLoader classLoader = HeapSnapshotTraverse.class.getClassLoader();
-    // inspect static fields of all loaded classes
-    @SuppressWarnings("UseOfObsoleteCollectionType")
-    Vector<?> allLoadedClasses =
-      ReflectionUtil.getField(classLoader.getClass(), classLoader, Vector.class, "classes");
-
-    WeakList<Object> result = new WeakList<>();
-    Application application = ApplicationManager.getApplication();
-    if (application != null) {
-      result.add(application);
-    }
-    result.add(Disposer.getTree());
-    result.add(IdeEventQueue.getInstance());
-    result.add(LaterInvocator.getLaterInvocatorEdtQueue());
-    if (allLoadedClasses != null) {
-      result.add(allLoadedClasses);
-    }
-    return result;
-  }
-
   private static short getNextIterationId() {
     return ++ourIterationId;
   }
@@ -515,7 +496,11 @@ public final class HeapSnapshotTraverse {
 
   private static native boolean canTagObjects();
 
+  private static native Object[] getClasses();
+
   private static native long getObjectSize(@NotNull final Object obj);
+
+  static native boolean isClassInitialized(@NotNull final Class<?> classToCheck);
 
   private static final class Node {
     private final int depth;

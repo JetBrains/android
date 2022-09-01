@@ -12,6 +12,11 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshot
 JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_canTagObjects
   (JNIEnv *, jclass);
 
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClasses(JNIEnv *, jclass);
+
+JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_isClassInitialized
+  (JNIEnv *, jclass, jclass);
+
 JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getObjectSize(JNIEnv *, jclass, jobject);
 
 }
