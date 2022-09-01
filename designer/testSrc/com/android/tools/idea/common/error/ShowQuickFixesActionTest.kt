@@ -16,12 +16,18 @@
 package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.idea.ActionsBundle
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Dimension
+import java.awt.event.InputEvent
+import java.awt.event.MouseEvent
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -31,6 +37,10 @@ class ShowQuickFixesActionTest {
   @JvmField
   @Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  @JvmField
+  @Rule
+  val popupRule = JBPopupRule()
 
   @Test
   fun testUpdate() {
@@ -53,5 +63,20 @@ class ShowQuickFixesActionTest {
     action.update(eventWithFix)
     assertEquals(ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix", eventWithFix.presentation.text)
     assertTrue(eventWithFix.presentation.isEnabled)
+  }
+
+  @Test
+  fun testCreatePopupAfterPerform() {
+    val action = ShowQuickFixesAction()
+
+    val sourceButton = ActionButton(action, Presentation(), "", Dimension(1, 1))
+    val inputEvent = MouseEvent(sourceButton, 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1)
+    val eventWithFix = object : TestActionEvent({ IssueNode(null, TestIssue(fixList = listOf(mock())), null) }, action) {
+      override fun getInputEvent(): InputEvent = inputEvent
+    }
+
+    assertEquals(0, popupRule.fakePopupFactory.getChildPopups(sourceButton).size)
+    action.actionPerformed(eventWithFix)
+    assertEquals(1, popupRule.fakePopupFactory.getChildPopups(sourceButton).size)
   }
 }
