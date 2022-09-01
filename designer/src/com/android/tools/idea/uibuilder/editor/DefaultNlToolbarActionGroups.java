@@ -29,7 +29,6 @@ import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.DeviceMenuAction2;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.configurations.NightModeMenuAction;
-import com.android.tools.idea.configurations.SystemUiModeAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
@@ -109,18 +108,9 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     }
 
     group.addSeparator();
-    if (StudioFlags.NELE_DYNAMIC_THEMING_ACTION.get()) {
-      SystemUiModeAction systemUiModeAction = new SystemUiModeAction(mySurface::getConfiguration,
-                                                                     "Wallpaper",
-                                                                     "Preview for dynamic theming");
-      appendShortcutText(systemUiModeAction, ToggleDeviceNightModeAction.getInstance());
-      group.add(systemUiModeAction);
-    }
-    else {
-      NightModeMenuAction nightModeAction = new NightModeMenuAction(mySurface::getConfiguration);
-      appendShortcutText(nightModeAction, ToggleDeviceNightModeAction.getInstance());
-      group.add(nightModeAction);
-    }
+    NightModeMenuAction nightModeAction = new NightModeMenuAction(mySurface::getConfiguration);
+    appendShortcutText(nightModeAction, ToggleDeviceNightModeAction.getInstance());
+    group.add(nightModeAction);
 
     group.addSeparator();
     if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {

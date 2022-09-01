@@ -225,8 +225,6 @@ public class Configuration implements Disposable, ModificationTracker {
   private float myFontScale = 1f;
   private int myUiModeFlagValue;
   @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
-  private boolean myUseThemedIcon = false;
-  private String myWallpaperPath = null;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -337,8 +335,6 @@ public class Configuration implements Disposable, ModificationTracker {
     copy.myFontScale = original.myFontScale;
     copy.myUiModeFlagValue = original.myUiModeFlagValue;
     copy.myAdaptiveShape = original.myAdaptiveShape;
-    copy.myUseThemedIcon = original.myUseThemedIcon;
-    copy.myWallpaperPath = original.myWallpaperPath;
 
     return copy;
   }
@@ -1040,35 +1036,6 @@ public class Configuration implements Disposable, ModificationTracker {
   @NotNull
   public AdaptiveIconShape getAdaptiveShape() {
     return myAdaptiveShape;
-  }
-
-  public void setWallpaperPath(@Nullable String wallpaperPath) {
-    if (!Objects.equal(myWallpaperPath, wallpaperPath)) {
-      myWallpaperPath = wallpaperPath;
-      updated(CFG_THEME);
-    }
-  }
-
-  /**
-   * Returns the wallpaper resource path to use when rendering
-   */
-  @Nullable
-  public String getWallpaperPath() {
-    return myWallpaperPath;
-  }
-
-  public void setUseThemedIcon(boolean useThemedIcon) {
-    if (myUseThemedIcon != useThemedIcon) {
-      myUseThemedIcon = useThemedIcon;
-      updated(CFG_THEME);
-    }
-  }
-
-  /**
-   * Returns whether to use the themed version of adaptive icons
-   */
-  public boolean getUseThemedIcon() {
-    return myUseThemedIcon;
   }
 
   /**

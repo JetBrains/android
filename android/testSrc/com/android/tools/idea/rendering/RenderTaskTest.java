@@ -34,9 +34,6 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationHolder;
-import com.android.tools.idea.configurations.SystemUiModeAction;
-import com.android.tools.idea.configurations.Wallpaper;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
@@ -677,75 +674,6 @@ public class RenderTaskTest extends AndroidTestCase {
 
         BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/emoji.png"));
         ImageDiffUtil.assertImageSimilar("emojis", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      }
-      catch (Exception ex) {
-        throw new RuntimeException(ex);
-      }
-    });
-  }
-
-  public void testDynamicTheming() {
-    @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                            "    android:layout_height=\"match_parent\"\n" +
-                                            "    android:layout_width=\"match_parent\"\n" +
-                                            "    android:orientation=\"vertical\"\n" +
-                                            "    android:background=\"#FFF\">\n" +
-                                            "\n" +
-                                            "    <TextView\n" +
-                                            "        android:layout_width=\"wrap_content\"\n" +
-                                            "        android:layout_height=\"wrap_content\"\n" +
-                                            "        android:background=\"@android:color/system_accent1_500\"\n" +
-                                            "        android:textSize=\"50sp\"\n" +
-                                            "        android:text=\"Dynamic Theming\"/>\n" +
-                                            "    \n" +
-                                            "\n" +
-                                            "</LinearLayout>";
-
-    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
-    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
-    RenderLogger logger = mock(RenderLogger.class);
-
-    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
-      task.setDecorations(false);
-      try {
-        BufferedImage result = task.render().get().getRenderedImage().getCopy();
-        ImageDiffUtil.assertImageSimilar(Path.of(getTestDataPath(), "layouts/dynamic_theming_0.png"), result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      }
-      catch (Exception ex) {
-        throw new RuntimeException(ex);
-      }
-    });
-
-    configuration.setWallpaperPath(Wallpaper.WALLPAPER_1.getResourcePath());
-    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
-      task.setDecorations(false);
-      try {
-        BufferedImage result = task.render().get().getRenderedImage().getCopy();
-        ImageDiffUtil.assertImageSimilar(Path.of(getTestDataPath(), "layouts/dynamic_theming_1.png"), result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      }
-      catch (Exception ex) {
-        throw new RuntimeException(ex);
-      }
-    });
-
-    configuration.setWallpaperPath(Wallpaper.WALLPAPER_2.getResourcePath());
-    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
-      task.setDecorations(false);
-      try {
-        BufferedImage result = task.render().get().getRenderedImage().getCopy();
-        ImageDiffUtil.assertImageSimilar(Path.of(getTestDataPath(), "layouts/dynamic_theming_2.png"), result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      }
-      catch (Exception ex) {
-        throw new RuntimeException(ex);
-      }
-    });
-
-    configuration.setWallpaperPath(null);
-    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
-      task.setDecorations(false);
-      try {
-        BufferedImage result = task.render().get().getRenderedImage().getCopy();
-        ImageDiffUtil.assertImageSimilar(Path.of(getTestDataPath(), "layouts/dynamic_theming_0.png"), result, IMAGE_DIFF_THRESHOLD_PERCENT);
       }
       catch (Exception ex) {
         throw new RuntimeException(ex);
