@@ -16,38 +16,23 @@
 package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
-import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources;
 import static com.google.common.math.IntMath.isPowerOfTwo;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.util.StudioPathManager;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.impl.LaterInvocator;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ReflectionUtil;
 import com.intellij.util.containers.WeakList;
-import com.intellij.util.system.CpuArch;
-import com.sun.tools.attach.AgentInitializationException;
-import com.sun.tools.attach.AgentLoadException;
-import com.sun.tools.attach.AttachNotSupportedException;
-import com.sun.tools.attach.VirtualMachine;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -73,25 +58,9 @@ public final class HeapSnapshotTraverse {
   // 8(creation iteration id mask) + 8(current iteration id mask) + 1(visited mask)
   private static final int CURRENT_ITERATION_ID_OFFSET = 8;
 
-  private static final String DIAGNOSTICS_HEAP_NATIVE_PATH =
-    "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native";
-  private static final String JNI_OBJECT_TAGGER_LIB_NAME = "jni_object_tagger";
-  private static final String RESOURCES_NATIVE_PATH = "plugins/android/resources/native";
-  private static final Logger LOG = Logger.getInstance(HeapSnapshotTraverse.class);
-  static boolean ourAgentWasSuccessfullyLoaded = false;
   private static short ourIterationId = 0;
 
   private volatile boolean myShouldAbortTraversal = false;
-
-  static {
-    try {
-      loadObjectTaggingAgent();
-      ourAgentWasSuccessfullyLoaded = true;
-    }
-    catch (HeapSnapshotTraverseException | IOException e) {
-      LOG.warn("Native object tagging library is not available", e);
-    }
-  }
 
   @NotNull private final LowMemoryWatcher myWatcher;
   @NotNull private final HeapTraverseChildProcessor myHeapTraverseChildProcessor;
@@ -494,62 +463,8 @@ public final class HeapSnapshotTraverse {
     return result;
   }
 
-  private static @NotNull String getLibName() {
-    return System.mapLibraryName(JNI_OBJECT_TAGGER_LIB_NAME);
-  }
-
-  private static @NotNull String getPlatformName() {
-    if (SystemInfo.isWindows) {
-      return "win";
-    }
-    if (SystemInfo.isMac) {
-      return CpuArch.isArm64() ? "mac_arm" : "mac";
-    }
-    if (SystemInfo.isLinux) {
-      return "linux";
-    }
-    return "";
-  }
-
-  private static @NotNull Path getLibLocation() throws HeapSnapshotTraverseException {
-    String libName = getLibName();
-    Path homePath = Paths.get(PathManager.getHomePath());
-    // Installed Studio.
-    Path libFile = homePath.resolve(RESOURCES_NATIVE_PATH).resolve(libName);
-    if (Files.exists(libFile)) {
-      return libFile;
-    }
-
-    if (isRunningFromSources()) {
-      // Dev environment.
-      libFile = StudioPathManager.resolvePathFromSourcesRoot(DIAGNOSTICS_HEAP_NATIVE_PATH).resolve(getPlatformName()).resolve(libName);
-      if (Files.exists(libFile)) {
-        return libFile;
-      }
-    }
-    throw new HeapSnapshotTraverseException(StatusCode.AGENT_LOAD_FAILED);
-  }
-
   private static short getNextIterationId() {
     return ++ourIterationId;
-  }
-
-  private static void loadObjectTaggingAgent() throws HeapSnapshotTraverseException, IOException {
-    String vmName = ManagementFactory.getRuntimeMXBean().getName();
-    String pid = vmName.substring(0, vmName.indexOf('@'));
-    VirtualMachine vm = null;
-    try {
-      vm = VirtualMachine.attach(pid);
-      vm.loadAgentPath(getLibLocation().toString());
-    }
-    catch (AttachNotSupportedException | AgentInitializationException | AgentLoadException e) {
-      throw new HeapSnapshotTraverseException(StatusCode.AGENT_LOAD_FAILED);
-    }
-    finally {
-      if (vm != null) {
-        vm.detach();
-      }
-    }
   }
 
   private static native long getObjectTag(@NotNull final Object obj);

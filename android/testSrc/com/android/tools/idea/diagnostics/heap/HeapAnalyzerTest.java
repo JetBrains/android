@@ -49,6 +49,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     super.setUp();
     initApplication();
     getApplication().registerService(PropertiesComponent.class, new PropertiesComponentMock());
+    getApplication().registerService(HeapSnapshotTraverseService.class, new HeapSnapshotTraverseService());
+    HeapSnapshotTraverseService.getInstance().loadObjectTaggingAgent();
   }
 
   @After
