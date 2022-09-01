@@ -29,6 +29,7 @@ import com.intellij.ui.render.RenderingUtil;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tree.ui.DefaultTreeUI;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import java.awt.Adjustable;
@@ -360,6 +361,7 @@ public class ColumnTreeBuilder {
     JBScrollPane scrollPane = new JBScrollPane(panel);
     scrollPane.setColumnHeader(viewport);
     scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    scrollPane.setBorder(JBUI.Borders.empty());
 
     JPanel outerPanel = new JPanel(new BorderLayout());
     outerPanel.add(scrollPane, BorderLayout.CENTER);
