@@ -32,8 +32,6 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.event.EventListenerList;
 import org.jetbrains.annotations.NotNull;
@@ -69,26 +67,11 @@ final class ProcessManager implements IDeviceChangeListener {
   @UiThread
   private void setKeyToStateMap(@NotNull Map<@NotNull Key, @NotNull State> keyToStateMap) {
     myKeyToStateMap = keyToStateMap;
-    fire(() -> new ProcessManagerEvent(this), ProcessManagerListener::allStatesChanged);
-  }
 
-  @UiThread
-  private void fire(@NotNull Supplier<@NotNull ProcessManagerEvent> newProcessManagerEvent,
-                    @NotNull BiConsumer<@NotNull ProcessManagerListener, @NotNull ProcessManagerEvent> consumer) {
-    Object[] listeners = myListeners.getListenerList();
-    ProcessManagerEvent event = null;
-
-    for (int i = listeners.length - 2; i >= 0; i -= 2) {
-      if (listeners[i] != ProcessManagerListener.class) {
-        continue;
-      }
-
-      if (event == null) {
-        event = newProcessManagerEvent.get();
-      }
-
-      consumer.accept((ProcessManagerListener)listeners[i + 1], event);
-    }
+    EventListenerLists.fire(myListeners,
+                            ProcessManagerListener::allStatesChanged,
+                            ProcessManagerListener.class,
+                            () -> new ProcessManagerEvent(this));
   }
 
   @UiThread

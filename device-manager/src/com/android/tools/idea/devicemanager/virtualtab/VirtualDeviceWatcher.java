@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import javax.swing.event.EventListenerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,8 +48,9 @@ import org.jetbrains.annotations.Nullable;
  * Studio loses focus, and then check the differences when Studio regains focus.
  */
 class VirtualDeviceWatcher implements Disposable {
-  private final @NotNull AvdManager myAvdManager;
   private @NotNull Map<String, AvdInfo> myAvds;
+  private final @NotNull AvdManager myAvdManager;
+  private final @NotNull EventListenerList myListeners;
 
   private final @NotNull Alarm myAlarm;
 
@@ -61,8 +63,10 @@ class VirtualDeviceWatcher implements Disposable {
   @UiThread
   VirtualDeviceWatcher(@NotNull Disposable parentDisposable, @NotNull AvdManager avdManager) {
     Disposer.register(parentDisposable, this);
-    myAvdManager = avdManager;
+
     myAvds = new HashMap<>();
+    myAvdManager = avdManager;
+    myListeners = new EventListenerList();
 
     myAlarm = new Alarm(this);
 
