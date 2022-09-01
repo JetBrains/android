@@ -71,6 +71,7 @@ iml_module(
     test_data = [
         ":test_deps",
         "//prebuilts/studio/jdk",
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",

@@ -31,6 +31,7 @@ iml_module(
     test_class = "com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerTestSuite",
     # keep sorted
     test_data = [
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",

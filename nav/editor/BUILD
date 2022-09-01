@@ -42,6 +42,7 @@ iml_module(
     test_class = "com.android.tools.idea.naveditor.NavEditorTestSuite",
     test_data = [
         ":test_deps",
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",

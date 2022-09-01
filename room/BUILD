@@ -26,6 +26,7 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.room.AndroidRoomTestSuite",
     test_data = [
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
     ],

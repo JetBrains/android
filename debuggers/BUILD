@@ -29,6 +29,7 @@ iml_module(
     test_class = "com.android.tools.idea.debuggers.DebuggersTestSuite",
     # keep sorted
     test_data = [
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:platforms/android-30",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:sources",
