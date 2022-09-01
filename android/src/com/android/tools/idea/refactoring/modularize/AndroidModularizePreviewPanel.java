@@ -146,8 +146,8 @@ public class AndroidModularizePreviewPanel {
       }
 
       // We want to pre-process the resource items in order to group them by resource URLs.
-      if (myLookupMap.get(reference) instanceof AndroidModularizeProcessor.ResourceXmlUsageInfo) {
-        ResourceItem resourceItem = ((AndroidModularizeProcessor.ResourceXmlUsageInfo)myLookupMap.get(reference)).getResourceItem();
+      if (myLookupMap.get(reference) instanceof ResourceXmlUsageInfo) {
+        ResourceItem resourceItem = ((ResourceXmlUsageInfo)myLookupMap.get(reference)).getResourceItem();
         ResourceReference resourceReference = resourceItem.getReferenceToSelf();
         Set<PsiElement> otherItems = resourceGroups.computeIfAbsent(resourceReference, k -> new HashSet<>());
         otherItems.add(reference);

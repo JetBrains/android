@@ -70,7 +70,7 @@ public class AndroidModularizeHandlerTest extends AndroidTestCase {
     assertTrue("Util class is referenced from Other",
                graph.getReferencedOutsideScope().contains(myFixture.getJavaFacade().findClass("google.Util")));
 
-    assertFalse(myProcessor.shouldSelectAllReferences());
+    assertFalse(myProcessor.getShouldSelectAllReferences());
   }
 
   public void testPushDownDependency() {
@@ -80,6 +80,6 @@ public class AndroidModularizeHandlerTest extends AndroidTestCase {
     assertTrue("Util class is referenced from Other",
                graph.getReferencedOutsideScope().contains(myFixture.getJavaFacade().findClass("google.Util")));
 
-    assertTrue(myProcessor.shouldSelectAllReferences());
+    assertTrue(myProcessor.getShouldSelectAllReferences());
   }
 }
