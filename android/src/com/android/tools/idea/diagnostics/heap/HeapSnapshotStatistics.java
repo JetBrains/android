@@ -35,9 +35,6 @@ import org.jetbrains.annotations.NotNull;
 final class HeapSnapshotStatistics {
 
   @NotNull
-  private final ClusterObjectsStatistics myNonComponentStats = new ClusterObjectsStatistics();
-
-  @NotNull
   private final ClusterObjectsStatistics.MemoryTrafficStatistics
     myTotalStats = new ClusterObjectsStatistics.MemoryTrafficStatistics();
   @NotNull
@@ -107,10 +104,6 @@ final class HeapSnapshotStatistics {
     myComponentStats.get(componentID).addRetainedObject(size, objectAge);
   }
 
-  public void addNonComponentObject(long size, short objectAge) {
-    myNonComponentStats.addOwnedObject(size, objectAge);
-  }
-
   private void printClusterStats(@NotNull final PrintWriter out,
                                  @NotNull final ClusterObjectsStatistics.MemoryTrafficStatistics statistics) {
     out.printf("    [%s/%d]\n", HeapReportUtils.INSTANCE.toShortStringAsSize(statistics.myObjectsStat.getTotalSizeInBytes()),
@@ -139,9 +132,6 @@ final class HeapSnapshotStatistics {
       out.printf("  Retained stat:\n");
       printClusterStats(out, stat.getRetainedClusterStat());
     }
-
-    out.print("Non component:\n");
-    printClusterStats(out, myNonComponentStats.myOwnedClusterStat);
 
     for (ComponentClusterObjectsStatistics stat : myComponentStats) {
       out.printf("Component %s:\n", stat.getComponent().getComponentLabel());

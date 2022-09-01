@@ -153,7 +153,7 @@ public final class HeapSnapshotTraverse {
 
       myStatistics.setHeapObjectCount(myLastObjectId);
 
-      // iterate over objects and update masks
+      // iterate over objects in topological order and update masks
       for (int i = myLastObjectId; i > 0; i--) {
         abortTraversalIfRequested();
         myStatistics.updateMaxObjectsQueueSize(objectIdToTraverseNode.size());
@@ -184,10 +184,7 @@ public final class HeapSnapshotTraverse {
 
         // if it's a root of a component
         if (currentObjectComponent != null) {
-          node.myRetainedMask |= (1 << currentObjectComponent.getId());
-          node.myRetainedMaskForCategories |= (1 << currentObjectComponent.getComponentCategory().getId());
-          node.myOwnedByComponentMask = (1 << currentObjectComponent.getId());
-          node.myOwnershipWeight = HeapTraverseNode.RefWeight.DEFAULT;
+          updateComponentRootMasks(node, currentObjectComponent, HeapTraverseNode.RefWeight.DEFAULT);
         }
 
         // If current object is retained by any components - propagate their stats.
@@ -202,13 +199,15 @@ public final class HeapSnapshotTraverse {
                     (index) -> categoricalOwnedMask.set(
                       categoricalOwnedMask.get() |
                       1 << myStatistics.getComponentsSet().getComponents().get(index).getComponentCategory().getId()));
-        if (isPowerOfTwo(categoricalOwnedMask.get())) {
+        if (categoricalOwnedMask.get() != 0 && isPowerOfTwo(categoricalOwnedMask.get())) {
           processMask(categoricalOwnedMask.get(),
                       (index) -> myStatistics.addOwnedObjectSizeToCategoryComponent(index, currentObjectSize, currentObjectAge));
         }
-
         if (node.myOwnedByComponentMask == 0) {
-          myStatistics.addNonComponentObject(currentObjectSize, currentObjectAge);
+          int uncategorizedComponentId = myStatistics.getComponentsSet().getUncategorizedComponent().getId();
+          int uncategorizedCategoryId = myStatistics.getComponentsSet().getUncategorizedComponent().getComponentCategory().getId();
+          myStatistics.addOwnedObjectSizeToComponent(uncategorizedComponentId, currentObjectSize, currentObjectAge);
+          myStatistics.addOwnedObjectSizeToCategoryComponent(uncategorizedCategoryId, currentObjectSize, currentObjectAge);
         }
         else if (isPowerOfTwo(node.myOwnedByComponentMask)) {
           // if only owned by one component
@@ -231,6 +230,15 @@ public final class HeapSnapshotTraverse {
       myWatcher.stop();
     }
     return StatusCode.NO_ERROR;
+  }
+
+  private void updateComponentRootMasks(HeapTraverseNode node,
+                                        ComponentsSet.Component currentObjectComponent,
+                                        HeapTraverseNode.RefWeight weight) {
+    node.myRetainedMask |= (1 << currentObjectComponent.getId());
+    node.myRetainedMaskForCategories |= (1 << currentObjectComponent.getComponentCategory().getId());
+    node.myOwnedByComponentMask = (1 << currentObjectComponent.getId());
+    node.myOwnershipWeight = weight;
   }
 
   private void abortTraversalIfRequested() throws HeapSnapshotTraverseException {

@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.ComponentsSet.UNCATEGORIZED_CATEGORY_LABEL;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
+import com.android.tools.idea.diagnostics.TruncatingStringBuilder;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -59,15 +61,18 @@ public class HeapAnalyzerTest {
                         new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A())));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(2, componentStats.size());
-    Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
+    Assert.assertEquals(3, componentStats.size());
+    Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
+                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
     // instance of A, boxed int
-    Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(40, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    Assert.assertEquals("B", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+
+    Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals("B", componentStats.get(2).getComponent().getComponentLabel());
     // instance of B
-    Assert.assertEquals(1, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(16, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals(1, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(16, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
   }
 
   @Test
@@ -83,11 +88,13 @@ public class HeapAnalyzerTest {
                         new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(), C.class)));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(1, componentStats.size());
-    Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
+    Assert.assertEquals(2, componentStats.size());
+    Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
+                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
     // A, B, Integer
-    Assert.assertEquals(3, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(56, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(56, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
   }
 
   @Test
@@ -110,15 +117,17 @@ public class HeapAnalyzerTest {
                                                                                                                    c.getClass())));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(2, componentStats.size());
-    Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
+    Assert.assertEquals(3, componentStats.size());
+    Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
+                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
     // A instance and B instance
-    Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(40, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-
-    Assert.assertEquals("C", componentStats.get(1).getComponent().getComponentLabel());
-    // C class object and boxed 0 static field
     Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+
+    Assert.assertEquals("C", componentStats.get(2).getComponent().getComponentLabel());
+    // C class object and boxed 0 static field
+    Assert.assertEquals(2, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
   }
 
   @Test
@@ -135,10 +144,15 @@ public class HeapAnalyzerTest {
                         new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(b), new A(b))));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(1, componentStats.size());
-    Assert.assertEquals("D", componentStats.get(0).getComponent().getComponentLabel());
-    Assert.assertEquals(3, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(56, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals(2, componentStats.size());
+    Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
+                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+
+    Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(40, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(56, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
   }
 
   @Test
@@ -158,13 +172,16 @@ public class HeapAnalyzerTest {
                         new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(b), new A(b))));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(2, componentStats.size());
-    Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
-    Assert.assertEquals(3, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(56, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
-    Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals(3, componentStats.size());
+    Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
+                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+
+    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(56, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals("D", componentStats.get(2).getComponent().getComponentLabel());
+    Assert.assertEquals(2, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(40, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
   }
 
   @Test
@@ -181,11 +198,14 @@ public class HeapAnalyzerTest {
                         new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new F())));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(1, componentStats.size());
-    Assert.assertEquals("F", componentStats.get(0).getComponent().getComponentLabel());
+    Assert.assertEquals(2, componentStats.size());
+    Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
+                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+
+    Assert.assertEquals("F", componentStats.get(1).getComponent().getComponentLabel());
     // F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
-    Assert.assertEquals(4, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(96, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals(4, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(96, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
   }
 
   @Test
@@ -206,14 +226,17 @@ public class HeapAnalyzerTest {
                         new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(new B()))));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
-    Assert.assertEquals(2, componentStats.size());
-    Assert.assertEquals("B", componentStats.get(0).getComponent().getComponentLabel());
-    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals(3, componentStats.size());
+    Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
+                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
 
-    Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    Assert.assertEquals(3, componentStats.get(1).getRetainedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(56, componentStats.get(1).getRetainedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals("B", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals("D", componentStats.get(2).getComponent().getComponentLabel());
+
+    Assert.assertEquals(2, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(40, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    Assert.assertEquals(3, componentStats.get(2).getRetainedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(56, componentStats.get(2).getRetainedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
   }
 
   @org.junit.Ignore("b/243081723")
@@ -238,9 +261,12 @@ public class HeapAnalyzerTest {
                           new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(b), c)));
 
       List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
-      Assert.assertEquals(2, componentStats.size());
-      Assert.assertEquals("A", componentStats.get(0).getComponent().getComponentLabel());
-      Assert.assertEquals("C", componentStats.get(1).getComponent().getComponentLabel());
+      Assert.assertEquals(3, componentStats.size());
+      Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
+                          componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+
+      Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+      Assert.assertEquals("C", componentStats.get(2).getComponent().getComponentLabel());
 
       // a and it's static int
       Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
@@ -279,6 +305,32 @@ public class HeapAnalyzerTest {
 
     Assert.assertEquals(StatusCode.LOW_MEMORY,
                         traverse.walkObjects(MAX_DEPTH, List.of(new A())));
+  }
+
+  @Test
+  public void testUncategorizedComponent() {
+    ComponentsSet componentsSet = new ComponentsSet();
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+    B b = new B();
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(b), new D(b))));
+
+    List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
+    Assert.assertEquals(2, componentStats.size());
+    Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
+                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+
+    // HeapAnalyzerTest$A and underlying Integer
+    Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
+    // HeapAnalyzerTest$D, underlying array and HeapAnalyzerTest$B
+    Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
   }
 
   @Test
@@ -407,6 +459,15 @@ public class HeapAnalyzerTest {
     private final B[] myArray;
 
     private D(B... b) {
+      myArray = b;
+    }
+  }
+
+  private static class E {
+    private final TruncatingStringBuilder[] myArray;
+    private final Integer myInt = 1;
+
+    private E(TruncatingStringBuilder... b) {
       myArray = b;
     }
   }

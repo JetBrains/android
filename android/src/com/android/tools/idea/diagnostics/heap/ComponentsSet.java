@@ -30,6 +30,11 @@ public final class ComponentsSet {
 
   public static final String MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME = "diagnostics/memory_usage_reporting";
 
+  static final String UNCATEGORIZED_CATEGORY_LABEL = "android:uncategorized";
+  static final String UNCATEGORIZED_COMPONENT_LABEL = "main";
+
+  @NotNull
+  private final Component myUncategorizedComponent;
   @NotNull
   private final List<Component> myComponents;
   @NotNull
@@ -44,11 +49,19 @@ public final class ComponentsSet {
     myClassNameToComponent = Maps.newHashMap();
     myComponents = Lists.newArrayList();
     myComponentCategories = Lists.newArrayList();
+    myUncategorizedComponent =
+      registerComponent(UNCATEGORIZED_COMPONENT_LABEL,
+                        registerCategory(UNCATEGORIZED_CATEGORY_LABEL));
   }
 
   @NotNull
   public List<ComponentCategory> getComponentsCategories() {
     return myComponentCategories;
+  }
+
+  @NotNull
+  public Component getUncategorizedComponent() {
+    return myUncategorizedComponent;
   }
 
   @NotNull

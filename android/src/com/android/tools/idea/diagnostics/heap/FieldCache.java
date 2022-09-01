@@ -81,7 +81,7 @@ public final class FieldCache {
         declaredField.setAccessible(true);
         Class<?> type = declaredField.getType();
         if (isPrimitive(type)) continue; // unable to hold references, skip
-        if ((declaredField.getModifiers() & Modifier.STATIC) != 0) {
+        if (Modifier.isStatic(declaredField.getModifiers())) {
           staticFields.add(declaredField);
         }
         else {

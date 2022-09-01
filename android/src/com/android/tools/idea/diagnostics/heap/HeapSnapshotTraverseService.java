@@ -32,6 +32,11 @@ public final class HeapSnapshotTraverseService {
     myAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication());
   }
 
+  @NotNull
+  public static HeapSnapshotTraverseService getInstance() {
+    return ApplicationManager.getApplication().getService(HeapSnapshotTraverseService.class);
+  }
+
   public void addMemoryReportCollectionRequest() {
     if (!HeapSnapshotTraverse.ourAgentWasSuccessfullyLoaded) {
       return;
@@ -58,10 +63,5 @@ public final class HeapSnapshotTraverseService {
     finally {
       currentThread.setPriority(oldThreadPriority);
     }
-  }
-
-  @NotNull
-  public static HeapSnapshotTraverseService getInstance() {
-    return ApplicationManager.getApplication().getService(HeapSnapshotTraverseService.class);
   }
 }
