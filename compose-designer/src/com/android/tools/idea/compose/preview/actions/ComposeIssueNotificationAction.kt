@@ -53,6 +53,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.psi.PsiFile
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.Gray
@@ -97,10 +98,9 @@ private fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(
                                                                  ACTION_BORDER_THICKNESS)
 
 /**
- * Represents the Compose Preview status to be notified to the user.
+ * Represents the Preview status to be notified to the user.
  */
-@VisibleForTesting
-internal sealed class ComposePreviewStatusNotification(
+sealed class PreviewStatusNotification(
   val icon: Icon?,
   val title: String,
   val description: String,
@@ -109,13 +109,13 @@ internal sealed class ComposePreviewStatusNotification(
   val presentation: Presentation? = null
 ) {
   companion object {
-    val PRESENTATION = Key<Presentation>("ComposePreviewStatusNotificationPresentation")
+    val PRESENTATION = Key<Presentation>("PreviewStatusNotificationPresentation")
 
     /**
      * When not null, this will define the text alignment in the notification chip. One of [SwingConstants.LEADING] or
      * [SwingConstants.TRAILING].
      */
-    val TEXT_ALIGNMENT = Key<Int>("ComposePreviewStatusNotificationTextAlignment")
+    val TEXT_ALIGNMENT = Key<Int>("PreviewStatusNotificationTextAlignment")
   }
 
   /**
@@ -134,7 +134,7 @@ internal sealed class ComposePreviewStatusNotification(
   /**
    * The Preview found a syntax error and paused the updates.
    */
-  object SyntaxError : ComposePreviewStatusNotification(
+  object SyntaxError : PreviewStatusNotification(
     AllIcons.General.InspectionsPause,
     message("notification.syntax.errors.title"),
     message("notification.syntax.errors.description"),
@@ -143,7 +143,7 @@ internal sealed class ComposePreviewStatusNotification(
   /**
    * The Preview found a compilation error and paused the updates.
    */
-  object NeedsBuild : ComposePreviewStatusNotification(
+  object NeedsBuild : PreviewStatusNotification(
     AllIcons.General.Error,
     message("notification.needs.build.broken.title"),
     message("notification.needs.build.broken.description"),
@@ -154,7 +154,7 @@ internal sealed class ComposePreviewStatusNotification(
    * The Preview is refreshing.
    */
   class Refreshing(detailsMessage: String = message("notification.preview.refreshing.description"))
-    : ComposePreviewStatusNotification(
+    : PreviewStatusNotification(
     AnimatedIcon.Default(),
     message("notification.preview.refreshing.title"),
     detailsMessage)
@@ -162,7 +162,7 @@ internal sealed class ComposePreviewStatusNotification(
   /**
    * The Preview is out of date. This state will not happen if Fast Preview is enabled.
    */
-  object OutOfDate : ComposePreviewStatusNotification(
+  object OutOfDate : PreviewStatusNotification(
     AllIcons.General.Warning,
     message("notification.preview.out.of.date.title"),
     message("notification.preview.out.of.date.description"),
@@ -172,7 +172,7 @@ internal sealed class ComposePreviewStatusNotification(
   /**
    * The Preview is compiling.
    */
-  object FastPreviewCompiling : ComposePreviewStatusNotification(
+  object FastPreviewCompiling : PreviewStatusNotification(
     AnimatedIcon.Default(),
     message("notification.preview.fast.compile.title"),
     message("notification.preview.fast.compile.description"))
@@ -180,7 +180,7 @@ internal sealed class ComposePreviewStatusNotification(
   /**
    * An issue was found while rendering the Preview.
    */
-  object RenderIssues : ComposePreviewStatusNotification(
+  object RenderIssues : PreviewStatusNotification(
     AllIcons.General.Warning,
     message("notification.preview.render.issues.title"),
     message("notification.preview.render.issues.description"),
@@ -191,7 +191,7 @@ internal sealed class ComposePreviewStatusNotification(
   /**
    * The Preview has failed to compile a fast change.
    */
-  object FastPreviewFailed : ComposePreviewStatusNotification(
+  object FastPreviewFailed : PreviewStatusNotification(
     AllIcons.General.InspectionsPause,
     message("notification.preview.fast.disabled.reason.compiler.error.title"),
     message("notification.preview.fast.disabled.reason.compiler.error.description"),
@@ -201,42 +201,43 @@ internal sealed class ComposePreviewStatusNotification(
   /**
    * The Preview is fully up to date.
    */
-  object UpToDate : ComposePreviewStatusNotification(
+  object UpToDate : PreviewStatusNotification(
     AllIcons.General.InspectionsOK,
     message("notification.preview.up.to.date.title"),
     message("notification.preview.up.to.date.description"))
 }
 
 @VisibleForTesting
-internal fun ComposePreviewManager.getStatusInfo(project: Project): ComposePreviewStatusNotification {
-  val previewStatus = status()
+internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatusNotification? {
+  val composePreviewManager = dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return null
+  val previewStatus = composePreviewManager.status()
   val fastPreviewEnabled = project.fastPreviewManager.isEnabled
   return when {
     // No Fast Preview and Preview is out of date (only when is user disabled)
     !fastPreviewEnabled &&
     !project.fastPreviewManager.isAutoDisabled &&
-    previewStatus.isOutOfDate -> ComposePreviewStatusNotification.OutOfDate
+    previewStatus.isOutOfDate -> PreviewStatusNotification.OutOfDate
 
     // Refresh status
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
-      ComposePreviewStatusNotification.Refreshing(message("notification.interactive.preview.starting"))
+      PreviewStatusNotification.Refreshing(message("notification.interactive.preview.starting"))
 
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
-      ComposePreviewStatusNotification.Refreshing(message("notification.interactive.preview.stopping"))
+      PreviewStatusNotification.Refreshing(message("notification.interactive.preview.stopping"))
 
-    previewStatus.isRefreshing -> ComposePreviewStatusNotification.Refreshing()
+    previewStatus.isRefreshing -> PreviewStatusNotification.Refreshing()
 
     // Build/Syntax/Render errors
-    project.needsBuild -> ComposePreviewStatusNotification.NeedsBuild
-    previewStatus.hasSyntaxErrors -> ComposePreviewStatusNotification.SyntaxError
-    previewStatus.hasRuntimeErrors -> ComposePreviewStatusNotification.RenderIssues
+    project.needsBuild -> PreviewStatusNotification.NeedsBuild
+    previewStatus.hasSyntaxErrors -> PreviewStatusNotification.SyntaxError
+    previewStatus.hasRuntimeErrors -> PreviewStatusNotification.RenderIssues
 
     // Fast preview refresh/failures
-    !fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled -> ComposePreviewStatusNotification.FastPreviewFailed
-    fastPreviewEnabled && project.fastPreviewManager.isCompiling -> ComposePreviewStatusNotification.FastPreviewCompiling
+    !fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled -> PreviewStatusNotification.FastPreviewFailed
+    fastPreviewEnabled && project.fastPreviewManager.isCompiling -> PreviewStatusNotification.FastPreviewCompiling
 
     // Up-to-date
-    else -> ComposePreviewStatusNotification.UpToDate
+    else -> PreviewStatusNotification.UpToDate
   }
 }
 
@@ -266,13 +267,20 @@ private class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) 
   }
 }
 
+private class ComposePreviewManagerFileProvider(dataContext: DataContext): () -> PsiFile? {
+  private val composePreviewManager = WeakReference(dataContext.getData(COMPOSE_PREVIEW_MANAGER))
+
+  override fun invoke(): PsiFile? {
+    return composePreviewManager.get()?.previewedFile
+  }
+}
+
 /**
  * [AnAction] that re-enable the Fast Preview if disabled.
  */
-private class BuildAndRefresh(composePreviewManager: ComposePreviewManager) : AnAction() {
-  private val composePreviewManager = WeakReference(composePreviewManager)
+private class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
-    val file = composePreviewManager.get()?.previewedFile ?: return
+    val file = fileProvider() ?: return
     file.project.requestBuild(file.virtualFile)
   }
 }
@@ -313,10 +321,11 @@ fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext)
 @VisibleForTesting
 fun defaultCreateInformationPopup(
   project: Project,
-  composePreviewManager: ComposePreviewManager,
-  dataContext: DataContext): InformationPopup {
-  return composePreviewManager.getStatusInfo(project).let {
-    val isAutoDisabled = it is ComposePreviewStatusNotification.FastPreviewFailed && project.fastPreviewManager.isAutoDisabled
+  dataContext: DataContext,
+): InformationPopup? {
+  val fileProvider = ComposePreviewManagerFileProvider(dataContext)::invoke
+  return getStatusInfo(project, dataContext)?.let {
+    val isAutoDisabled = it is PreviewStatusNotification.FastPreviewFailed && project.fastPreviewManager.isAutoDisabled
     return@let InformationPopup(
       null,
       it.description,
@@ -327,10 +336,10 @@ fun defaultCreateInformationPopup(
         actionLink(
           message("action.build.and.refresh.title")
             .replace("&&", "&") + getBuildAndRefreshShortcut().asString(), // Remove any ampersand escaping for tooltips (not needed in these links)
-          BuildAndRefresh(composePreviewManager), dataContext),
+          BuildAndRefresh(fileProvider), dataContext),
         when (it) {
-          is ComposePreviewStatusNotification.SyntaxError -> actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
-          is ComposePreviewStatusNotification.RenderIssues -> actionLink(message("action.view.problems"), ShowIssuesPanel(), dataContext)
+          is PreviewStatusNotification.SyntaxError -> actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
+          is PreviewStatusNotification.RenderIssues -> actionLink(message("action.view.problems"), ShowIssuesPanel(), dataContext)
           else -> null
         },
         if (isAutoDisabled)
@@ -339,7 +348,7 @@ fun defaultCreateInformationPopup(
         if (isAutoDisabled)
           actionLink(message("fast.preview.disabled.notification.stop.autodisable.action.title"), ReEnableFastPreview(false), dataContext)
         else null,
-        if (it is ComposePreviewStatusNotification.FastPreviewFailed)
+        if (it is PreviewStatusNotification.FastPreviewFailed)
           actionLink(message("fast.preview.disabled.notification.show.details.action.title"), ShowEventLogAction(), dataContext)
         else null
       )).also { newPopup ->
@@ -351,18 +360,16 @@ fun defaultCreateInformationPopup(
 }
 
 /**
- * Action that reports the current state of the Compose Preview. Local issues for a given preview are reported as part of the preview itself
+ * Action that reports the current state of the Preview. Local issues for a given preview are reported as part of the preview itself
  * and not in this action.
- * This action reports:
- * - State of Live Edit or preview out of date if Live Edit is disabled
- * - Syntax errors
  *
  * Clicking on the action will open a pop-up with additional details and action buttons.
  */
 @VisibleForTesting
-class ComposeIssueNotificationAction(
-  private val createInformationPopup: (Project, ComposePreviewManager, DataContext) -> InformationPopup = ::defaultCreateInformationPopup)
-  : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {  /**
+open class IssueNotificationAction(
+  private val createStatusInfo: (Project, DataContext) -> PreviewStatusNotification?,
+  private val createInformationPopup: (Project, DataContext) -> InformationPopup?
+) : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {  /**
    * [Alarm] used to trigger the popup as a hint.
    */
   private val popupAlarm = Alarm()
@@ -379,7 +386,7 @@ class ComposeIssueNotificationAction(
           val anActionEvent = AnActionEvent.createFromInputEvent(
             me,
             ActionPlaces.EDITOR_POPUP,
-            PresentationFactory().getPresentation(this@ComposeIssueNotificationAction),
+            PresentationFactory().getPresentation(this@IssueNotificationAction),
             ActionToolbar.getDataContextFor(me.component),
             false, true)
           showPopup(anActionEvent)
@@ -395,10 +402,10 @@ class ComposeIssueNotificationAction(
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
     object : ActionButtonWithText(this, presentation, place, Dimension(0, 0)) {
       private val insets = JBUI.insets(3)
-      private val actionPresentation: ComposePreviewStatusNotification.Presentation?
-        get() = myPresentation.getClientProperty(ComposePreviewStatusNotification.PRESENTATION)
+      private val actionPresentation: PreviewStatusNotification.Presentation?
+        get() = myPresentation.getClientProperty(PreviewStatusNotification.PRESENTATION)
       val textAlignment: Int
-        get() = myPresentation.getClientProperty(ComposePreviewStatusNotification.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
+        get() = myPresentation.getClientProperty(PreviewStatusNotification.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
 
       private val font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
 
@@ -445,16 +452,15 @@ class ComposeIssueNotificationAction(
   override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
-    val composePreviewManager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val project = e.project ?: return
     val presentation = e.presentation
-    composePreviewManager.getStatusInfo(project).let {
+    createStatusInfo(project, e.dataContext)?.let {
       presentation.icon = it.icon
       presentation.text = it.title
       presentation.description = it.description
-      presentation.putClientProperty(ComposePreviewStatusNotification.PRESENTATION, it.presentation)
+      presentation.putClientProperty(PreviewStatusNotification.PRESENTATION, it.presentation)
       val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
-      presentation.putClientProperty(ComposePreviewStatusNotification.TEXT_ALIGNMENT,
+      presentation.putClientProperty(PreviewStatusNotification.TEXT_ALIGNMENT,
                                      if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
     }
   }
@@ -469,9 +475,8 @@ class ComposeIssueNotificationAction(
    */
   private fun showPopup(e: AnActionEvent) {
     popupAlarm.cancelAllRequests()
-    val composePreviewManager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val project = e.project ?: return
-    popup = createInformationPopup(project, composePreviewManager, e.dataContext).also { newPopup ->
+    popup = createInformationPopup(project, e.dataContext)?.also { newPopup ->
       Disposer.register(this, newPopup)
       newPopup.showPopup(e.inputEvent)
     }
@@ -488,7 +493,21 @@ class ComposeIssueNotificationAction(
 }
 
 /**
- * [ForceCompileAndRefreshAction] where the visibility is controlled by the [ComposePreviewStatusNotification.hasRefreshIcon].
+ * Action that reports the current state of the Compose Preview.
+ *
+ * This action reports:
+ * - State of Live Edit or preview out of date if Live Edit is disabled
+ * - Syntax errors
+ */
+class ComposeIssueNotificationAction(
+  createInformationPopup: (Project, DataContext) -> InformationPopup? = ::defaultCreateInformationPopup
+) : IssueNotificationAction(
+  ::getStatusInfo,
+  createInformationPopup
+)
+
+/**
+ * [ForceCompileAndRefreshAction] where the visibility is controlled by the [PreviewStatusNotification.hasRefreshIcon].
  */
 private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface<*>) : ForceCompileAndRefreshAction(
   surface), RightAlignedToolbarAction {
@@ -497,7 +516,7 @@ private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface
 
     val project = e.project ?: return
 
-    e.getData(COMPOSE_PREVIEW_MANAGER)?.getStatusInfo(project)?.let {
+    getStatusInfo(project, e.dataContext)?.let {
       e.presentation.isVisible = it.hasRefreshIcon
     }
   }

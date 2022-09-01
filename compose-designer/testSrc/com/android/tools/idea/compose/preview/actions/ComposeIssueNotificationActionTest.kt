@@ -50,7 +50,6 @@ import javax.swing.JPanel
  */
 @Suppress("UNUSED_PARAMETER")
 private fun noPopupFactor(project: Project,
-                          composePreviewManager: ComposePreviewManager,
                           dataContext: DataContext): InformationPopup = throw IllegalStateException("Unexpected popup created")
 
 internal class ComposeIssueNotificationActionTest {
@@ -125,9 +124,9 @@ internal class ComposeIssueNotificationActionTest {
       hasRuntimeErrors = true
     )
     action.update(event)
-    val statusInfo = event.getData(COMPOSE_PREVIEW_MANAGER)?.getStatusInfo(projectRule.project)!!
+    val statusInfo = getStatusInfo(projectRule.project, context)!!
     assertTrue(statusInfo.hasRefreshIcon)
-    assertEquals(ComposePreviewStatusNotification.Presentation.Warning, statusInfo.presentation)
+    assertEquals(PreviewStatusNotification.Presentation.Warning, statusInfo.presentation)
     assertEquals("Render Issues (Some problems were found while rendering the preview)", event.presentation.toString())
   }
 
@@ -215,9 +214,15 @@ internal class ComposeIssueNotificationActionTest {
   @Test
   fun `check InformationPopup states`() {
     val fastPreviewManager = projectRule.project.fastPreviewManager
+    val dataContext = DataContext {
+      when(it) {
+        COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
+        else -> null
+      }
+    }
     // Default state check
     run {
-      val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals("The preview is up to date", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
@@ -227,7 +232,7 @@ internal class ComposeIssueNotificationActionTest {
       composePreviewManager.currentStatus = originStatus.copy(
         isOutOfDate = true
       )
-      val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals("The preview is up to date", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
@@ -239,7 +244,7 @@ internal class ComposeIssueNotificationActionTest {
         composePreviewManager.currentStatus = originStatus.copy(
           isOutOfDate = true
         )
-        val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
+        val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
         assertEquals("The code might contain errors or might not work with Preview Live Edit.", popup.labelsDescription())
         assertEquals("""
           Build & Refresh (SHORTCUT)
@@ -260,7 +265,7 @@ internal class ComposeIssueNotificationActionTest {
         composePreviewManager.currentStatus = originStatus.copy(
           isOutOfDate = true
         )
-        val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
+        val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
         assertEquals("The preview is out of date", popup.labelsDescription())
         assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
       }
@@ -275,7 +280,7 @@ internal class ComposeIssueNotificationActionTest {
         isRefreshing = true,
         isOutOfDate = true // Leaving out of date to true to verify it does not take precedence over refresh
       )
-      val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals("The preview is updating...", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
@@ -286,7 +291,7 @@ internal class ComposeIssueNotificationActionTest {
         hasSyntaxErrors = true,
         isOutOfDate = true // Leaving out of date to true to verify it does not take precedence over refresh
       )
-      val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals("The preview will not update while your project contains syntax errors.", popup.labelsDescription())
       assertEquals("""
         Build & Refresh (SHORTCUT)
@@ -298,7 +303,7 @@ internal class ComposeIssueNotificationActionTest {
       composePreviewManager.currentStatus = originStatus.copy(
         hasRuntimeErrors = true
       )
-      val popup = defaultCreateInformationPopup(projectRule.project, composePreviewManager, DataContext.EMPTY_CONTEXT)
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals("Some problems were found while rendering the preview", popup.labelsDescription())
       assertEquals("""
         Build & Refresh (SHORTCUT)
@@ -310,7 +315,7 @@ internal class ComposeIssueNotificationActionTest {
   fun `test popup is triggered`() {
     val fakePopup = InformationPopup(null, "", emptyList(), emptyList())
     var popupRequested = 0
-    val action = ComposeIssueNotificationAction { _, _, _ ->
+    val action = ComposeIssueNotificationAction { _, _ ->
       popupRequested++
       fakePopup
     }.also {
