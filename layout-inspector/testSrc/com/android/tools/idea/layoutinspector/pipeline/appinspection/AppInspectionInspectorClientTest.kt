@@ -102,14 +102,13 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.`when`
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
@@ -157,7 +156,6 @@ class AppInspectionInspectorClientTest {
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
   }
 
-  @Ignore("b/244336884")
   @Test
   fun treeRecompositionVisibilitySetAtConnectTime() {
     val panel = LayoutInspectorTreePanel(disposableRule.disposable)
@@ -183,16 +181,17 @@ class AppInspectionInspectorClientTest {
     inspectorRule.inspector.treeSettings.showRecompositions = true
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
 
-    val modelUpdatedLatch = ReportingCountDownLatch(1)
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
-      modelUpdatedLatch.countDown()
-    }
-
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
-    // Wait for the model to be done notifying about the first update
-    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { !inspectorRule.inspectorModel.updating }
+    // Wait for client to be connected
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { inspectorRule.inspectorClient.isConnected }
+
+    // Wait for the tool window to update its actions.
+    // There is nothing we directly can rely on to be sure of the table column visibility update.
+    // The code below is a hack since the check relies on toolWindowCallback.updateActions is
+    // called (delayed) to the UI thread. Because of that we ensure that LayoutInspector.updateConnection
+    // will have finished processing after the state is set to CONNECTED.
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { updateActionsCalled > 0 }
 
     // Make sure all UI events are done
     runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
@@ -206,7 +205,6 @@ class AppInspectionInspectorClientTest {
     assertThat(table.getColumn(table.getColumnName(2)).maxWidth).isGreaterThan(0)
 
     // Check that all 3 actions were enabled initially:
-    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { updateActionsCalled > 0 }
     assertThat(updateActionsCalled).isEqualTo(1)
     assertThat(enabledActions).isEqualTo(3)
   }
