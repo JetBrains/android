@@ -6,5 +6,6 @@ android {
     viewBinding = true
     prefab = true
     renderScript = true
+    buildConfig = true
   }
 }

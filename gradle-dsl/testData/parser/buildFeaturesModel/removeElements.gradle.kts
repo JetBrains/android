@@ -6,5 +6,6 @@ android {
     viewBinding = false
     prefab = false
     renderScript = false
+    buildConfig = false
   }
 }
