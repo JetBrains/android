@@ -17,6 +17,7 @@ package com.android.tools.idea.wearpairing
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.HtmlLabel
+import com.android.tools.adtui.common.AdtUiUtils.allComponents
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.adtui.util.HelpTooltipForList
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -52,6 +53,7 @@ import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.JBUI.Borders.emptyLeft
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -69,6 +71,7 @@ import javax.swing.DefaultListSelectionModel
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JEditorPane
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
@@ -194,6 +197,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
 
         JPanel().apply {
           layout = GridBagLayout()
+
           if (value.isDisabled() && (index == 0 || !model.getElementAt(index - 1).isDisabled())) {
             if (index == 0) {
               add(
@@ -223,6 +227,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
               }
             )
           }
+
           add(
             JBLabel(getDeviceIcon(value, isSelected)).apply {
               border = emptyLeft(16)
@@ -280,6 +285,16 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
               }
             )
           }
+
+          // For accessibility purposes, pick the first visible label in this cell and use the text from
+          // it for the screen reader.
+          allComponents(this)
+            .filterIsInstance<JLabel>()
+            .filter { it.accessibleContext.accessibleName != null }
+            .firstOrNull()?.let {
+              accessibleContext.accessibleName = it.accessibleContext.accessibleName
+              accessibleContext.accessibleDescription =  it.accessibleContext.accessibleDescription
+            }
 
           isOpaque = true
           background = UIUtil.getListBackground(isSelected, isSelected)

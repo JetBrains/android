@@ -21,8 +21,11 @@ import static org.junit.Assert.assertEquals;
 
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FontMetrics;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import kotlin.sequences.SequencesKt;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -76,5 +79,39 @@ public class AdtUiUtilsTest {
     assertThat(mix.getRed()).isEqualTo(Math.round(0xF0 * 0.4f));
     assertThat(mix.getGreen()).isEqualTo(Math.round(0xCC * 0.6f));
     assertThat(mix.getBlue()).isEqualTo(Math.round(0xA0 * 0.4f + 0x0B * 0.6f));
+  }
+
+  @Test
+  public void testAllComponents() {
+    JPanel root = new JPanel();
+    root.setToolTipText("root");
+
+    JPanel childGroup = new JPanel();
+    childGroup.setToolTipText("childGroup");
+    childGroup.add(new JLabel("text1"));
+    childGroup.add(new JLabel("text2"));
+
+    root.add(childGroup);
+    childGroup.add(new JLabel("text3"));
+    childGroup.add(new JLabel("text4"));
+
+    StringBuilder output = new StringBuilder();
+    for (Component component : SequencesKt.asIterable(AdtUiUtils.allComponents(root))) {
+      output
+        .append(
+          StringUtil.notNullize(component.getAccessibleContext().getAccessibleName())
+        )
+        .append(
+          StringUtil.notNullize(component.getAccessibleContext().getAccessibleDescription())
+        )
+        .append("\n");
+    }
+    assertEquals(
+      "childGroup\n" +
+      "text1\n" +
+      "text2\n" +
+      "text3\n" +
+      "text4\n",
+      output.toString());
   }
 }
