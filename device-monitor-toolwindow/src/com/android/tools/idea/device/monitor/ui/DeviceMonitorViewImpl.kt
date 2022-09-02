@@ -154,7 +154,6 @@ class DeviceMonitorViewImpl(
     }
 
   private fun setupPanel() {
-    myPanel.component.border = IdeBorderFactory.createBorder(SideBorder.BOTTOM)
     loadingPanel.add(myPanel.component, BorderLayout.CENTER)
     myPanel.deviceCombo.renderer = myDeviceRenderer.nameRenderer
     myPanel.deviceCombo.addActionListener {
