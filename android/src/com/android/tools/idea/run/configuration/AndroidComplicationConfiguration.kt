@@ -54,7 +54,10 @@ class AndroidComplicationConfigurationType :
 
 
 class AndroidComplicationConfiguration(project: Project, factory: ConfigurationFactory) : AndroidWearConfiguration(project, factory) {
-  data class ChosenSlot(var id: Int, var type: Complication.ComplicationType?) {
+  data class ChosenSlot(var id: Int,
+                        var type: Complication.ComplicationType?,
+                        @Transient internal var slotFocused: Boolean = false,
+                        @Transient internal var slotTypeFocused: Boolean = false) {
     // We need parameterless constructor for correct work of XmlSerializer. See [AndroidWearConfiguration.readExternal]
     @Suppress("unused")
     private constructor() : this(-1, Complication.ComplicationType.LONG_TEXT)
