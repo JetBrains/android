@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.profiler
 
+import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.executors.RunExecutorSettings
 import com.intellij.execution.impl.DefaultExecutorGroup
@@ -47,9 +48,12 @@ abstract class AbstractProfilerExecutorGroup<T : AbstractProfilerExecutorGroup.A
  * When set, the profiling mode is passed to Android Gradle Plugin when building the app. Supported on AGP 7.3.0+.
  *
  * @param shouldInjectProjectProperty true if the mode should inject project property override to the build system.
+ * @param analyticsProtoType metadata for analytics tracking.
  */
-enum class ProfilingMode(val value: String, val shouldInjectProjectProperty: Boolean) {
-  NOT_SET("", false),
-  DEBUGGABLE("debuggable", true),
-  PROFILEABLE("profileable", true);
+enum class ProfilingMode(val value: String,
+                         val shouldInjectProjectProperty: Boolean,
+                         val analyticsProtoType: RunWithProfilingMetadata.ProfilingMode) {
+  NOT_SET("", false, RunWithProfilingMetadata.ProfilingMode.UNKNOWN_PROFILING_MODE),
+  DEBUGGABLE("debuggable", true, RunWithProfilingMetadata.ProfilingMode.DEBUGGABLE),
+  PROFILEABLE("profileable", true, RunWithProfilingMetadata.ProfilingMode.PROFILEABLE);
 }

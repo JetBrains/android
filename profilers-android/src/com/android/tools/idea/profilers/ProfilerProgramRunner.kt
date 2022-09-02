@@ -20,7 +20,9 @@ import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.StudioProgramRunner
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
+import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.run.util.SwapInfo
+import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
@@ -44,7 +46,8 @@ class ProfilerProgramRunner : StudioProgramRunner() {
   @Throws(ExecutionException::class)
   override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
     val descriptor = super.doExecute(state, environment)
-    createProfilerToolWindow(environment.project, descriptor, environment.getUserData(SwapInfo.SWAP_INFO_KEY) != null)
+    createProfilerToolWindow(environment.project, descriptor, environment.getUserData(SwapInfo.SWAP_INFO_KEY) != null,
+                             environment.executor.id)
     return descriptor
   }
 
@@ -54,7 +57,8 @@ class ProfilerProgramRunner : StudioProgramRunner() {
     fun createProfilerToolWindow(
       project: Project,
       descriptor: RunContentDescriptor?,
-      isSwapExecution: Boolean = false
+      isSwapExecution: Boolean = false,
+      executorId: String? = null
     ) {
       ApplicationManager.getApplication().assertIsDispatchThread()
 
@@ -86,8 +90,20 @@ class ProfilerProgramRunner : StudioProgramRunner() {
           profilers!!.sessionsManager.endCurrentSession()
         }
       }
+
+      // Metrics tracking.
       val featureTracker = StudioFeatureTracker(project)
-      featureTracker.trackRunWithProfiling()
+      val metadataBuilder = RunWithProfilingMetadata.newBuilder()
+      if (StudioFlags.PROFILEABLE_BUILDS.get() && executorId != null) {
+        // Track profiling mode.
+        // Executor will be null for legacy AGP version, which doesn't support profiling mode.
+        // ASwB does not support profiling mode either, but it uses a different ProgramRunner so no event will be recorded.
+        val profilingMode = AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId)?.profilingMode
+                            ?: ProfilingMode.NOT_SET
+        metadataBuilder.profilingMode = profilingMode.analyticsProtoType
+        // TODO(b/234158986): track build type metadata (debuggable, profileable, etc.)
+      }
+      featureTracker.trackRunWithProfiling(metadataBuilder.build())
     }
 
     private fun canRunByProfiler(executorId: String, androidRunConfig: AndroidRunConfigurationBase): Boolean {

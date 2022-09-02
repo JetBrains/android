@@ -30,6 +30,7 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.utils.Pair;
 import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
+import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +75,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private boolean myTrackSelectThreadCalled;
 
   /**
-   * Stores the last boolean value of {@link pathProvided} passed to track API tracing.
+   * Stores the last boolean value of {@code pathProvided} passed to track API tracing.
    */
   private boolean myLastCpuApiTracingPathProvided;
 
@@ -135,7 +136,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackRunWithProfiling() {
+  public void trackRunWithProfiling(@NotNull RunWithProfilingMetadata metadata) {
 
   }
 
@@ -450,7 +451,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorLoadTrace(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes) {
     myTpdQueryMetrics.add(Pair.of(
       AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE,
       TraceProcessorDaemonQueryStats.newBuilder()
@@ -463,7 +464,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorProcessMetadata(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     myTpdQueryMetrics.add(Pair.of(
       AndroidProfilerEvent.Type.TPD_QUERY_PROCESS_METADATA,
       TraceProcessorDaemonQueryStats.newBuilder()
@@ -475,7 +476,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorCpuData(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     myTpdQueryMetrics.add(Pair.of(
       AndroidProfilerEvent.Type.TPD_QUERY_LOAD_CPU_DATA,
       TraceProcessorDaemonQueryStats.newBuilder()

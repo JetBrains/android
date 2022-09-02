@@ -65,6 +65,7 @@ import com.google.wireless.android.sdk.stats.FilterMetadata;
 import com.google.wireless.android.sdk.stats.MemoryInstanceFilterMetadata;
 import com.google.wireless.android.sdk.stats.ProfilerSessionCreationMetaData;
 import com.google.wireless.android.sdk.stats.ProfilerSessionSelectionMetaData;
+import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonManagerStats;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import com.google.wireless.android.sdk.stats.TransportFailureMetadata;
@@ -217,8 +218,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackRunWithProfiling() {
-    track(AndroidProfilerEvent.Type.RUN_WITH_PROFILING);
+  public void trackRunWithProfiling(@NotNull RunWithProfilingMetadata metadata) {
+    newTracker(AndroidProfilerEvent.Type.RUN_WITH_PROFILING).setRunWithProfilingMetadata(metadata).track();
   }
 
   @Override
@@ -558,7 +559,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorLoadTrace(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes) {
     TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
       .setQueryStatus(queryStatus)
       .setMethodDurationMs(methodTimeMs)
@@ -571,7 +572,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorProcessMetadata(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
       .setQueryStatus(queryStatus)
       .setMethodDurationMs(methodTimeMs)
@@ -583,7 +584,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorCpuData(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
       .setQueryStatus(queryStatus)
       .setMethodDurationMs(methodTimeMs)
@@ -595,7 +596,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorMemoryData(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
       .setQueryStatus(queryStatus)
       .setMethodDurationMs(methodTimeMs)
@@ -723,6 +724,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
     private int myEventCount = 0;
     @Nullable private AndroidProfilerEvent.Loading myLoading;
 
+    @Nullable private RunWithProfilingMetadata myRunWithProfilingMetadata;
+
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
     public Tracker(@NotNull Project trackingProject,
@@ -847,6 +850,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    private Tracker setRunWithProfilingMetadata(@NotNull RunWithProfilingMetadata metadata) {
+      myRunWithProfilingMetadata = metadata;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
 
@@ -907,6 +916,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case LOADING:
           profilerEvent.setLoading(myLoading);
+          break;
+        case RUN_WITH_PROFILING:
+          profilerEvent.setRunWithProfilingMetadata(myRunWithProfilingMetadata);
           break;
         default:
           break;

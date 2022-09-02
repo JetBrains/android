@@ -18,18 +18,18 @@ package com.android.tools.profilers.analytics
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.profiler.proto.Common
-import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.android.tools.profiler.proto.Common.SessionMetaData
-import com.android.tools.profilers.sessions.SessionsManager.SessionCreationSource
-import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profiler.proto.Cpu.CpuTraceType
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata
 import com.android.tools.profilers.cpu.CpuCaptureMetadata
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
+import com.android.tools.profilers.sessions.SessionArtifact
+import com.android.tools.profilers.sessions.SessionsManager.SessionCreationSource
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
+import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats.QueryReturnStatus
-import java.lang.Exception
 
 /**
  * A service for tracking events that occur in our profilers, in order to understand and evaluate
@@ -71,8 +71,10 @@ interface FeatureTracker {
   /**
    * Track when the user clicks the Profile button. This can happen via the tool bar, or the run menu.
    * This is in contrast to when the user attaches profilers to an app that was already running.
+   *
+   * Can optionally set metadata like profiling mode, etc.
    */
-  fun trackRunWithProfiling()
+  fun trackRunWithProfiling(metadata: RunWithProfilingMetadata)
 
   /**
    * Track when auto profiling is requested. e.g. when the user clicks "Profile", or "Run"/"Debug"
@@ -480,13 +482,14 @@ interface FeatureTracker {
  * @param measure the size of the in-memory representation (e.g. object count, event count, etc.)
  *                that's only queried if the task succeeds
  */
-fun<A> FeatureTracker.trackLoading(type: AndroidProfilerEvent.Loading.Type, sizeKb: Int, measure: () -> Long, run: () -> A): A {
+fun <A> FeatureTracker.trackLoading(type: AndroidProfilerEvent.Loading.Type, sizeKb: Int, measure: () -> Long, run: () -> A): A {
   fun Long.bToMb() = this / (1024 * 1024)
   val totalMem = HostData.osBean?.totalPhysicalMemorySize?.bToMb() ?: 0L
   val numProcs = HostData.osBean?.availableProcessors ?: 0
   val studioMem = CommonMetricsData.jvmDetails.maximumHeapSize.bToMb()
   val studioFree = (CommonMetricsData.jvmDetails.maximumHeapSize -
                     CommonMetricsData.javaProcessStats.heapMemoryUsage).bToMb()
+
   fun track(setUp: AndroidProfilerEvent.Loading.Builder.() -> Unit) =
     trackLoading(AndroidProfilerEvent.Loading.newBuilder()
                    .setType(type)
