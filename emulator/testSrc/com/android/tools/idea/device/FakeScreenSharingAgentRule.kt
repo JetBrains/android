@@ -82,9 +82,13 @@ internal class FakeScreenSharingAgentRule : TestRule {
             writeOkay(socket.outputStream)
             runBlocking { device.agent.run(shellProtocol, args, device.hostPort!!) }
           }
-          else {
+          else if (args.contains("mkdir -p $DEVICE_PATH_BASE; chmod 700 $DEVICE_PATH_BASE")) {
+            // mkdir -p /data/local/tmp/.studio; chmod 700 /data/local/tmp/.studio
             writeOkay(socket.outputStream)
             ShellV2Protocol(socket).writeExitCode(0)
+          }
+          else {
+            throw NextHandlerException()
           }
         }
       })
