@@ -34,10 +34,13 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 import java.time.Duration
 
 class BuildResultsProtoMessageConverterTest {
@@ -201,5 +204,21 @@ class BuildResultsProtoMessageConverterTest {
     val resultMessage = BuildResultsProtoMessageConverter(projectRule.project).transformDownloadsAnalyzerResult(downloadResult)
     val resultConverted = BuildResultsProtoMessageConverter(projectRule.project).constructDownloadsAnalyzerResult(resultMessage)
     Truth.assertThat(resultConverted).isEqualTo(downloadResult)
+  }
+
+  @Test
+  fun testRequestData() {
+    val requestData = GradleBuildInvoker.Request.RequestData(
+      BuildMode.DEFAULT_BUILD_MODE,
+      File("rootproject"),
+      listOf("task1", "task2"),
+      listOf("e1", "e2"),
+      listOf("c1", "c2"),
+      mapOf(Pair("a", "b"), Pair("c","d")),
+      false
+    )
+    val requestDataMessage = BuildResultsProtoMessageConverter(projectRule.project).transformRequestData(requestData)
+    val resultConverted = BuildResultsProtoMessageConverter(projectRule.project).constructRequestData(requestDataMessage)
+    Truth.assertThat(resultConverted).isEqualTo(requestData)
   }
 }

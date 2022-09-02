@@ -94,12 +94,14 @@ class BuildResultsProtoMessageConverter(val project: Project) {
     return analyzersDataBuilder.build()
   }
 
-  private fun transformRequestData(requestData: GradleBuildInvoker.Request.RequestData) =
+  fun transformRequestData(requestData: GradleBuildInvoker.Request.RequestData): BuildAnalysisResultsMessage.RequestData =
     BuildAnalysisResultsMessage.RequestData.newBuilder()
       .setBuildMode(transformBuildMode(requestData.mode))
       .setRootProjectPathString(requestData.rootProjectPath.path)
       .addAllGradleTasks(requestData.gradleTasks)
       .addAllEnv(requestData.env.map{ transformEnv(it.key, it.value) })
+      .addAllCommandLineArguments(requestData.commandLineArguments)
+      .addAllJvmArguments(requestData.jvmArguments)
       .setIsPassParentEnvs(requestData.isPassParentEnvs)
       .build()
 
@@ -641,7 +643,7 @@ class BuildResultsProtoMessageConverter(val project: Project) {
     return downloadAnalyzerResult
   }
 
-  private fun constructRequestData(requestData: BuildAnalysisResultsMessage.RequestData)
+  fun constructRequestData(requestData: BuildAnalysisResultsMessage.RequestData)
   : GradleBuildInvoker.Request.RequestData {
     val buildMode = when (requestData.buildMode) {
       BuildAnalysisResultsMessage.RequestData.BuildMode.CLEAN -> BuildMode.CLEAN

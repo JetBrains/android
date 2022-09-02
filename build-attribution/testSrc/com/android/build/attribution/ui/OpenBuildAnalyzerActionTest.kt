@@ -47,7 +47,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 @RunsInEdt
 class OpenBuildAnalyzerActionTest {
 
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.onDisk()
   private val openBuildAnalyzerAction = OpenBuildAnalyzerAction()
   private val mapDataContext = MapDataContext()
   private lateinit var event : AnActionEvent
@@ -116,7 +116,10 @@ class OpenBuildAnalyzerActionTest {
     BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
       BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
       buildSessionID,
-      BuildRequestHolder(GradleBuildInvoker.Request
-                           .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()))
+      BuildRequestHolder(
+        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug")
+          .build()
+      )
+    )
   }
 }

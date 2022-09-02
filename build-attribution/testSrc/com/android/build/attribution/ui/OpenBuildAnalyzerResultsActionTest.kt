@@ -44,7 +44,7 @@ import java.util.UUID
 @RunsInEdt
 class OpenBuildAnalyzerResultsActionTest {
 
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.onDisk()
   private val jbPopupRule = JBPopupRule()
   private val openBuildAnalyzerResultsAction = OpenBuildAnalyzerResultsAction()
   private val mapDataContext = MapDataContext()
