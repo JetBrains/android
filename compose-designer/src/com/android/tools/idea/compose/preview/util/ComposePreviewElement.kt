@@ -38,11 +38,11 @@ import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.preview.xml.PreviewXmlBuilder
 import com.android.tools.idea.preview.xml.XmlSerializable
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
-import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
@@ -88,12 +88,12 @@ private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
 @VisibleForTesting
 const val FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD = "${'$'}FailToLoadPreviewParameterProvider"
 
-/** [FakeLightVirtualFile] for composable functions. */
+/** [InMemoryLayoutVirtualFile] for composable functions. */
 internal class ComposeAdapterLightVirtualFile(
   name: String,
   content: String,
   originFileProvider: () -> VirtualFile?
-) : FakeLightVirtualFile("compose-$name", content, originFileProvider)
+) : InMemoryLayoutVirtualFile("compose-$name", content, originFileProvider)
 
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the

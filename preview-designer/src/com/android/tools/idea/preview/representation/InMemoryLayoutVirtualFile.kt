@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.editor.multirepresentation.devkit
+package com.android.tools.idea.preview.representation
 
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
@@ -32,7 +32,7 @@ private val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
  *
  * TODO(b/227474522): Consider making this generic type so that clients do not need subclass but use a specified generic instead.
  */
-open class FakeLightVirtualFile(
+open class InMemoryLayoutVirtualFile(
   name: String,
   content: String,
   private val originFileProvider: () -> VirtualFile?

@@ -20,7 +20,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.concurrency.runReadActionWithWritePriority
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
-import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
+import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.vfs.VirtualFile
@@ -34,13 +34,13 @@ import org.jetbrains.android.util.AndroidSlowOperations
 internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 
 /**
- * [FakeLightVirtualFile] for custom views.
+ * [InMemoryLayoutVirtualFile] for custom views.
  */
 internal class CustomViewLightVirtualFile(
   name: String,
   content: String,
   originFileProvider: () -> VirtualFile?
-) : FakeLightVirtualFile(name, content, originFileProvider)
+) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
 internal fun PsiClass.extendsView(): Boolean = AndroidSlowOperations.allowSlowOperationsInIdea<Boolean, Throwable> {
   InheritanceUtil.isInheritor(this, CLASS_VIEW)

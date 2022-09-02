@@ -22,10 +22,10 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
+import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
-import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.CommonRepresentationEditorFileType
-import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -37,7 +37,7 @@ internal class GlanceAppWidgetAdapterLightVirtualFile(
   name: String,
   content: String,
   originFileProvider: () -> VirtualFile?
-) : FakeLightVirtualFile(name, content, originFileProvider)
+) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
 internal class GlanceAppWidgetPreviewToolbar(surface: DesignSurface<*>) :
   ToolbarActionGroups(surface) {

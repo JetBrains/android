@@ -19,7 +19,7 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
-import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.CommonRepresentationEditorFileType
+import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile

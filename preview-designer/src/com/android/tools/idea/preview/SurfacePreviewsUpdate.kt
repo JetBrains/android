@@ -27,7 +27,7 @@ import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.PreviewBundle.message
-import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
+import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -143,7 +143,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   progressIndicator: ProgressIndicator,
   onRenderCompleted: () -> Unit,
   previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
-  lightVirtualFileFactory: (String, String, () -> VirtualFile?) -> FakeLightVirtualFile,
+  lightVirtualFileFactory: (String, String, () -> VirtualFile?) -> InMemoryLayoutVirtualFile,
   configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
   val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()

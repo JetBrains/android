@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.editor.multirepresentation.devkit
+package com.android.tools.idea.preview.representation
 
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
@@ -32,7 +32,7 @@ import com.intellij.psi.PsiFile
  * [toolbarConstructor] should return a [ToolbarActionGroups] that will be displayed in the top of the preview for the [virtualFileClass].
  */
 open class CommonRepresentationEditorFileType(
-  private val virtualFileClass: Class<out FakeLightVirtualFile>,
+  private val virtualFileClass: Class<out InMemoryLayoutVirtualFile>,
   private val layoutEditorStateType: LayoutEditorState.Type,
   private val toolbarConstructor: (surface: DesignSurface<*>) -> ToolbarActionGroups
 ) : LayoutEditorFileType() {
