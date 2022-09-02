@@ -296,3 +296,10 @@ jvm_import(
     jars = ["//tools/vendor/google/directaccess-client/proto:ftl_client_java_proto.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "google-api-services-oauth2-v2-rev150-1.22.0",
+    jars = ["//prebuilts/tools/common/m2:google-api-services-oauth2-v2-rev150-1.22.0_files"],
+    visibility = ["//visibility:public"],
+)

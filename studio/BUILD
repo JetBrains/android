@@ -509,16 +509,12 @@ studio_plugin(
     name = "com.google.gct.login",
     directory = "google-login-as",
     libs = [
-        "//tools/studio/google/cloud/tools/google-login-plugin/third_party/jackson-core-asl:jackson-core-asl-1.9.11",
-        "//tools/studio/google/cloud/tools/google-login-plugin/third_party/javax-servlet-api:javax.servlet-api-3.0.1",
-        "//tools/studio/google/cloud/tools/google-login-plugin/lib:google-api-services-oauth2-v2-rev70-1.18.0-rc",
-        "//tools/studio/google/cloud/tools/google-login-plugin/lib:google-gct-login-context-pg",
-        "//tools/studio/google/cloud/tools/google-login-plugin/lib:google-http-client-jackson-1.18.0-rc",
-        "//tools/studio/google/cloud/tools/google-login-plugin/lib:google.gdt.eclipse.login.common",
         "//prebuilts/tools/common/google-api-java-client/1.20.0:google-api-java-client",
-    ],
-    licenses = [
-        "//tools/studio/google/cloud/tools/google-login-plugin/lib:licenses",
+        "//prebuilts/tools/common/m2:jsr305-2.0.1",
+        "//tools/adt/idea/.idea/libraries:google-api-services-oauth2-v2-rev150-1.22.0",
+        "//prebuilts/tools/common/m2:javax-servlet",
+        "@maven//:com.google.apis.google-api-services-oauth2",
+        "@maven//:com.google.auth.google-auth-library-oauth2-http",
     ],
     modules = {"google-login-as.jar": ["//tools/studio/google/cloud/tools/google-login-plugin:google-login-as"]},
 )
