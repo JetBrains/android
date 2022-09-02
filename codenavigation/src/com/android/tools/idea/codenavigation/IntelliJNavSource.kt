@@ -26,7 +26,8 @@ import com.intellij.pom.Navigatable
 class IntelliJNavSource(project: Project, symbolizer: NativeSymbolizer): NavSource {
   private val sources = listOf(ApkNavSource(project),
                                NativeNavSource(project, symbolizer),
-                               PsiNavSource(project))
+                               PsiNavSource(project),
+                               ComposeTracingNavSource(project))
 
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
     return sources.asSequence().map { it.lookUp(location, arch) }.filterNotNull().firstOrNull()

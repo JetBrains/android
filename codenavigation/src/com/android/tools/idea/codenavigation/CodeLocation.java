@@ -57,6 +57,9 @@ public final class CodeLocation {
 
   @Nullable
   private final String myNativeModuleName;
+  /** Fully qualified name of a Composable (e.g. androidx.compose.runtime.LaunchedEffect) */
+  @Nullable
+  private final String myFullComposableName;
 
   private CodeLocation(@NotNull Builder builder) {
     myClassName = builder.myClassName;
@@ -68,6 +71,7 @@ public final class CodeLocation {
     myNativeCode = builder.myNativeCode;
     myNativeVAddress = builder.myNativeVAddress;
     myNativeModuleName = builder.myNativeModuleName;
+    myFullComposableName = builder.myFullComposableName;
   }
 
   @TestOnly
@@ -121,6 +125,12 @@ public final class CodeLocation {
     return myNativeModuleName;
   }
 
+  /** Fully qualified name of a Composable (e.g. androidx.compose.runtime.LaunchedEffect) */
+  @Nullable
+  public String getFullComposableName() {
+    return myFullComposableName;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -134,7 +144,8 @@ public final class CodeLocation {
            Objects.equals(myMethodName, location.myMethodName) &&
            Objects.equals(mySignature, location.mySignature) &&
            Objects.equals(myMethodParameters, location.myMethodParameters) &&
-           Objects.equals(myNativeModuleName, location.myNativeModuleName);
+           Objects.equals(myNativeModuleName, location.myNativeModuleName) &&
+           Objects.equals(myFullComposableName, location.myFullComposableName);
   }
 
   @Override
@@ -147,7 +158,8 @@ public final class CodeLocation {
                         myLineNumber,
                         myNativeCode,
                         myNativeVAddress,
-                        myNativeModuleName);
+                        myNativeModuleName,
+                        myFullComposableName);
   }
 
   public static final class Builder {
@@ -160,6 +172,7 @@ public final class CodeLocation {
     boolean myNativeCode;
     long myNativeVAddress = -1;
     @Nullable String myNativeModuleName;
+    @Nullable String myFullComposableName;
 
     public Builder(@Nullable String className) {
       myClassName = className;
@@ -175,6 +188,7 @@ public final class CodeLocation {
       myNativeCode = rhs.myNativeCode;
       myNativeVAddress = rhs.myNativeVAddress;
       myNativeModuleName = rhs.myNativeModuleName;
+      myFullComposableName = rhs.myFullComposableName;
     }
 
     @NotNull
@@ -242,6 +256,12 @@ public final class CodeLocation {
      */
     public Builder setNativeModuleName(String name) {
       myNativeModuleName = name;
+      return this;
+    }
+
+    /** Fully qualified name of a Composable (e.g. androidx.compose.runtime.LaunchedEffect) */
+    public Builder setFullComposableName(String name) {
+      myFullComposableName = name;
       return this;
     }
 

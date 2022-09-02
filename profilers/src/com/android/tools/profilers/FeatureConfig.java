@@ -20,6 +20,7 @@ package com.android.tools.profilers;
  * to allow the IDE to communicate to the profilers that a feature should be on or off.
  */
 public interface FeatureConfig {
+  boolean isComposeTracingNavigateToSourceEnabled();
   boolean isCustomEventVisualizationEnabled();
   boolean isEnergyProfilerEnabled();
   boolean isJankDetectionUiEnabled();

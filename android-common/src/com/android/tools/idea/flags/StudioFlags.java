@@ -167,6 +167,11 @@ public final class StudioFlags {
     "A cpu trace intercept command is added that will enable perfetto instrumentation for apps" +
     " that use the perfetto SDK",
     true);
+
+  public static final Flag<Boolean> COMPOSE_TRACING_NAVIGATE_TO_SOURCE = Flag.create(
+    PROFILER, "perfetto.sdk.tracing.compose.navigation", "Navigate-to-source action for Compose Tracing",
+    "Enables navigate-to-source action in Profiler for Compose Tracing slices",
+    true);
   //endregion
 
   //region ML

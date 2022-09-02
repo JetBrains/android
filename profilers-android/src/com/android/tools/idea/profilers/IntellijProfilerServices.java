@@ -403,5 +403,10 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     public boolean isCustomEventVisualizationEnabled() {
       return StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get();
     }
+
+    @Override
+    public boolean isComposeTracingNavigateToSourceEnabled() {
+      return StudioFlags.COMPOSE_TRACING_NAVIGATE_TO_SOURCE.get();
+    }
   }
 }

@@ -124,6 +124,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myProfileablsBuildsEnabled = false;
 
   /**
+   * Whether we support navigate-to-source action for Compose Tracing
+   */
+  private boolean myComposeTracingNavigateToSourceEnabled = true;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -249,6 +254,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isUnifiedPipelineEnabled() {
         return myEventsPipelineEnabled;
+      }
+
+      @Override
+      public boolean isComposeTracingNavigateToSourceEnabled() {
+        return myComposeTracingNavigateToSourceEnabled;
       }
     };
   }
@@ -404,5 +414,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableProfileableBuilds(boolean enabled) {
     myProfileablsBuildsEnabled = enabled;
+  }
+
+  public void enableComposeTracingNavigateToSource(boolean enabled) {
+    myComposeTracingNavigateToSourceEnabled = enabled;
   }
 }

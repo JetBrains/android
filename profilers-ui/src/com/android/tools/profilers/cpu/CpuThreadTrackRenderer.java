@@ -28,6 +28,8 @@ import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.idea.codenavigation.CodeNavigator;
+import com.android.tools.profilers.FeatureConfig;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.FrameTimelineSelectionOverlayPanel.GrayOutMode;
@@ -131,25 +133,38 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       panel.addMouseListener(new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent e) {
+          handleEvent(e, true);
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+          handleEvent(e, false);
+        }
+
+        private void handleEvent(MouseEvent e, boolean updateSelection) {
           if (traceEventChart.contains(e.getPoint())) {
             // Translate mouse point to be relative of the tree chart component.
             Point p = e.getPoint();
             p.translate(-traceEventChart.getX(), -traceEventChart.getY());
-            CaptureNode node = traceEventChart.getNodeAt(p);
-            // Trace events only support single-selection.
-            if (node != null) {
-              multiSelectionModel.setSelection(
-                node,
-                Collections.singleton(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture(),
-                                                                   work -> {
-                                                                     myProfilersView.getStudioProfilers().getIdeServices()
-                                                                       .getPoolExecutor().execute(work);
-                                                                     return Unit.INSTANCE;
-                                                                   })));
-            } else {
-              multiSelectionModel.deselect();
-            }
+            if (updateSelection) performSelectionUpdate(p);
             traceEventChart.dispatchEvent(SwingUtil.convertMouseEventPoint(e, p));
+          }
+        }
+
+        private void performSelectionUpdate(Point p) {
+          CaptureNode node = traceEventChart.getNodeAt(p);
+          // Trace events only support single-selection.
+          if (node != null) {
+            multiSelectionModel.setSelection(
+              node,
+              Collections.singleton(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture(),
+                                                                 work -> {
+                                                                   myProfilersView.getStudioProfilers().getIdeServices()
+                                                                     .getPoolExecutor().execute(work);
+                                                                   return Unit.INSTANCE;
+                                                                 })));
+          } else {
+            multiSelectionModel.deselect();
           }
         }
       });
@@ -213,9 +228,11 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     }
     HTreeChart<CaptureNode> chart = builder.build();
     // Add context menu for source navigation.
-    if (callChartModel.getCapture().getSystemTraceData() == null) {
-      CodeNavigator navigator = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-      CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
+    IdeProfilerServices ideServices = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices();
+    FeatureConfig featureConfig = ideServices.getFeatureConfig();
+    if (callChartModel.getCapture().getSystemTraceData() == null || featureConfig.isComposeTracingNavigateToSourceEnabled()) {
+      CodeNavigator navigator = ideServices.getCodeNavigator();
+      CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator, featureConfig);
       chart.addMouseListener(handler);
       myProfilersView.getIdeProfilerComponents().createContextMenuInstaller()
         .installNavigationContextMenu(chart, navigator, handler::getCodeLocation);

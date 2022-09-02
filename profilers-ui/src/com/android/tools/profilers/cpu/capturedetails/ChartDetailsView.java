@@ -29,6 +29,8 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.codenavigation.CodeNavigator;
+import com.android.tools.profilers.FeatureConfig;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CaptureNode;
@@ -41,6 +43,7 @@ import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +53,8 @@ import org.jetbrains.annotations.Nullable;
  * A base class for {@link CallChartDetailsView} and {@link FlameChartDetailsView} details views.
  */
 public abstract class ChartDetailsView extends CaptureDetailsView {
+  private static final Pattern COMPOSABLE_TRACE_EVENT_PATTERN = Pattern.compile("^(.*) \\((.*\\.(kt|java)):(-?\\d+)\\)$");
+
   /**
    * Component that contains everything, e.g chart, axis, scrollbar.
    */
@@ -121,8 +126,10 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
     }
 
     if (chartDetails.getCapture().getSystemTraceData() == null) {
-      CodeNavigator navigator = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-      CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
+      IdeProfilerServices ideServices = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices();
+      CodeNavigator navigator = ideServices.getCodeNavigator();
+      FeatureConfig featureConfig = ideServices.getFeatureConfig();
+      CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator, featureConfig);
       chart.addMouseListener(handler);
       myProfilersView.getIdeProfilerComponents().createContextMenuInstaller()
         .installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
@@ -134,7 +141,7 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
    * Produces a {@link CodeLocation} corresponding to a {@link CaptureNodeModel}. Returns null if the model is not navigatable.
    */
   @Nullable
-  protected static CodeLocation modelToCodeLocation(CaptureNodeModel model) {
+  protected static CodeLocation modelToCodeLocation(CaptureNodeModel model, FeatureConfig featureConfig) {
     if (model instanceof CppFunctionModel) {
       CppFunctionModel nativeFunction = (CppFunctionModel)model;
       return new CodeLocation.Builder(nativeFunction.getClassOrNamespace())
@@ -152,6 +159,19 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
         .setMethodSignature(javaMethod.getSignature())
         .setNativeCode(false)
         .build();
+    }
+    else if (model instanceof SystemTraceNodeModel) {
+      // for SystemTraceNodeModel, only handle Compose Tracing nodes
+      if (featureConfig.isComposeTracingNavigateToSourceEnabled()) {
+        SystemTraceNodeModel systemTraceNodeModel = (SystemTraceNodeModel)model;
+        var matcher = COMPOSABLE_TRACE_EVENT_PATTERN.matcher(systemTraceNodeModel.getName());
+        if (!matcher.find()) return null;
+        return new CodeLocation.Builder((String)null)
+          .setFullComposableName(matcher.group(1))
+          .setFileName(matcher.group(2))
+          .setLineNumber(Integer.parseInt(matcher.group(4)))
+          .build();
+      }
     }
     // Code is not navigatable.
     return null;
