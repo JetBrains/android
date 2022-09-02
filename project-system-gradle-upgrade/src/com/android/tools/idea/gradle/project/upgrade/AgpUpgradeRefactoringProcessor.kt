@@ -271,6 +271,7 @@ class AgpUpgradeRefactoringProcessor(
     AndroidManifestPackageToNamespaceRefactoringProcessor(this),
     R8FullModeDefaultRefactoringProcessor(this),
     RenderScriptDefaultRefactoringProcessor(this),
+    BuildConfigDefaultRefactoringProcessor(this),
     NonTransitiveRClassDefaultRefactoringProcessor(this),
     AidlDefaultRefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
