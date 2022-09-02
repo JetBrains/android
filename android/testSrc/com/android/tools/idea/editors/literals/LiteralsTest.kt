@@ -569,6 +569,7 @@ class LiteralsTest {
     }
   }
 
+  @org.junit.Ignore("b/244774017")
   @Suppress("UnstableApiUsage")
   @Test
   fun `find literals in non-smart mode`() {
