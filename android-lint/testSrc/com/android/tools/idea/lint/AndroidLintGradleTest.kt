@@ -36,6 +36,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import java.io.File
 import java.util.Locale
 
@@ -176,8 +177,8 @@ fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLi
     for (i in startIndex until rangeEnd) sb.append("~")
     sb.append("\n")
 
-    for (pair in highlight.quickFixActionRanges) {
-      val action = pair.first.action
+    highlight.findRegisteredQuickFix { desc, range ->
+      val action = desc.action
       sb.append("    ")
       if (action.isAvailable(project, editor, psiFile)) {
         sb.append("Fix: ")
@@ -188,6 +189,7 @@ fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLi
         sb.append(action.text)
       }
       sb.append("\n")
+      null
     }
   }
 

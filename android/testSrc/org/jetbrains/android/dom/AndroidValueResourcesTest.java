@@ -39,7 +39,6 @@ import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -843,16 +842,12 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
-      List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;
-
-      if (ranges != null) {
-        for (Pair<HighlightInfo.IntentionActionDescriptor, TextRange> pair : ranges) {
-          IntentionAction action = pair.getFirst().getAction();
-          if (action instanceof CreateValueResourceQuickFix) {
-            actions.add(action);
-          }
+      info.findRegisteredQuickFix((descriptor, range) -> {
+        if (descriptor.getAction() instanceof CreateValueResourceQuickFix) {
+          actions.add(descriptor.getAction());
         }
-      }
+        return null;
+      });
     }
     assertEquals(1, actions.size());
 
