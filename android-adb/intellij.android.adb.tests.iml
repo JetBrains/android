@@ -24,6 +24,7 @@
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="zxing-core" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.adb" />
 </module>
