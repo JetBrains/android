@@ -26,6 +26,9 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.Dimension
 import java.awt.FlowLayout
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
+import java.awt.event.HierarchyEvent
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -134,11 +137,44 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
     return JPanel().apply {
       // Slot id ComboBox.
       add(JLabel("Slot").apply { border = JBUI.Borders.empty(0, 0, 0, 5) })
-      add(getSlotIdComboBox(chosenSlot))
+      val slotCombo = getSlotIdComboBox(chosenSlot).also {
+        it.addFocusListener(object: FocusListener {
+          override fun focusGained(e: FocusEvent?) {
+            chosenSlot.slotFocused = true
+          }
+
+          override fun focusLost(e: FocusEvent?) {
+            chosenSlot.slotFocused = false
+          }
+        })
+      }
+      add(slotCombo)
 
       // Slot type ComboBox.
       add(JLabel("Type").apply { border = JBUI.Borders.empty(0, 10, 0, 5) })
-      add(getSlotTypeCompoBox(chosenSlot))
+      val slotTypeCombo = getSlotTypeCompoBox(chosenSlot).also {
+        it.addFocusListener(object: FocusListener {
+          override fun focusGained(e: FocusEvent?) {
+            chosenSlot.slotTypeFocused = true
+          }
+
+          override fun focusLost(e: FocusEvent?) {
+            chosenSlot.slotTypeFocused = false
+          }
+        })
+      }
+      add(slotTypeCombo)
+
+      if (chosenSlot.slotFocused || chosenSlot.slotTypeFocused) {
+        addHierarchyListener {
+          if (it.changeFlags and HierarchyEvent.PARENT_CHANGED.toLong() == 0L) return@addHierarchyListener
+
+          when {
+            chosenSlot.slotFocused -> slotCombo.requestFocus()
+            chosenSlot.slotTypeFocused -> slotTypeCombo.requestFocus()
+          }
+        }
+      }
 
       // Delete button.
       add(JButton(StudioIcons.Common.CLOSE).apply {
