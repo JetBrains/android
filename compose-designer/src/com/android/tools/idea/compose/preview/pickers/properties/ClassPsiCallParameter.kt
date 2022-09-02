@@ -27,8 +27,9 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 /**
- * [PsiPropertyItem] for @Preview parameters that can take an Enum from the project. Can assign a fully qualified class to the value. It
- * while trying to import the class in to the parameter's file.
+ * [PsiPropertyItem] for @Preview parameters that can take an Enum from the project. Can assign a
+ * fully qualified class to the value. It while trying to import the class in to the parameter's
+ * file.
  */
 internal class ClassPsiCallParameter(
   project: Project,
@@ -37,20 +38,21 @@ internal class ClassPsiCallParameter(
   descriptor: ValueParameterDescriptor,
   argumentExpression: KtExpression?,
   initialValue: String?
-) : PsiCallParameterPropertyItem(
-  project,
-  model,
-  resolvedCall,
-  descriptor,
-  argumentExpression,
-  initialValue
-) {
+) :
+  PsiCallParameterPropertyItem(
+    project,
+    model,
+    resolvedCall,
+    descriptor,
+    argumentExpression,
+    initialValue
+  ) {
 
   /**
    * Imports the class defined by [fqClass], sets the property value from [newValue].
    *
-   * [fqValue] is a fallback for [newValue] if the importing of [fqClass] fails. It's recommended for that string to include fully qualified
-   * references of the desired imported class.
+   * [fqValue] is a fallback for [newValue] if the importing of [fqClass] fails. It's recommended
+   * for that string to include fully qualified references of the desired imported class.
    *
    * [trackableValue] is the value reflected in usage tracking.
    *
@@ -62,20 +64,25 @@ internal class ClassPsiCallParameter(
    *
    * fqValue -> android.content.res.Configuration.UI_MODE_TYPE_NORMAL
    */
-  fun importAndSetValue(fqClass: String, newValue: String, fqValue: String, trackableValue: PreviewPickerValue) {
+  fun importAndSetValue(
+    fqClass: String,
+    newValue: String,
+    fqValue: String,
+    trackableValue: PreviewPickerValue
+  ) {
     val importResult = importClass(fqClass)
 
     if (importResult != null && importResult != ImportDescriptorResult.FAIL) {
       writeNewValue(newValue, true, trackableValue)
-    }
-    else {
+    } else {
       writeNewValue(fqValue, true, trackableValue)
     }
   }
 
-  private fun importClass(fqClass: String) = model.ktFile.resolveImportReference(FqName(fqClass)).firstOrNull()?.let { importDescriptor ->
-    WriteCommandAction.runWriteCommandAction<ImportDescriptorResult>(project) {
-      ImportInsertHelper.getInstance(project).importDescriptor(model.ktFile, importDescriptor)
+  private fun importClass(fqClass: String) =
+    model.ktFile.resolveImportReference(FqName(fqClass)).firstOrNull()?.let { importDescriptor ->
+      WriteCommandAction.runWriteCommandAction<ImportDescriptorResult>(project) {
+        ImportInsertHelper.getInstance(project).importDescriptor(model.ktFile, importDescriptor)
+      }
     }
-  }
 }

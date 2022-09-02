@@ -22,13 +22,13 @@ import java.util.concurrent.Executor
 import java.util.concurrent.RejectedExecutionException
 import java.util.function.Consumer
 
-private val LOG: Logger get() = Logger.getInstance("InteractiveComposePreviewUsageTracker.kt")
-/**
- * Usage tracking implementation for compose interactive preview
- */
-class InteractiveComposePreviewUsageTracker(private val myExecutor: Executor,
-                                            private val myEventLogger: Consumer<AndroidStudioEvent.Builder>) :
-  InteractivePreviewUsageTracker {
+private val LOG: Logger
+  get() = Logger.getInstance("InteractiveComposePreviewUsageTracker.kt")
+/** Usage tracking implementation for compose interactive preview */
+class InteractiveComposePreviewUsageTracker(
+  private val myExecutor: Executor,
+  private val myEventLogger: Consumer<AndroidStudioEvent.Builder>
+) : InteractivePreviewUsageTracker {
 
   override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) {
     logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS) {
@@ -46,25 +46,27 @@ class InteractiveComposePreviewUsageTracker(private val myExecutor: Executor,
   }
 
   /**
-   * A generic method to log any [InteractivePreviewEvent]. Accepts [type] of the event and a [consumer] to customize the event fileds
-   * based on its [type].
+   * A generic method to log any [InteractivePreviewEvent]. Accepts [type] of the event and a
+   * [consumer] to customize the event fileds based on its [type].
    */
-  private fun logInteractiveEvent(type: InteractivePreviewEvent.InteractivePreviewEventType,
-    consumer: (InteractivePreviewEvent.Builder) -> Unit) {
+  private fun logInteractiveEvent(
+    type: InteractivePreviewEvent.InteractivePreviewEventType,
+    consumer: (InteractivePreviewEvent.Builder) -> Unit
+  ) {
     try {
       myExecutor.execute {
         val builder = InteractivePreviewEvent.newBuilder().setType(type)
 
         consumer(builder)
 
-        val event = AndroidStudioEvent.newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.INTERACTIVE_PREVIEW_EVENT)
-          .setInteractivePreviewEvent(builder.build())
+        val event =
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.INTERACTIVE_PREVIEW_EVENT)
+            .setInteractivePreviewEvent(builder.build())
 
         myEventLogger.accept(event)
       }
-    }
-    catch (e: RejectedExecutionException) {
+    } catch (e: RejectedExecutionException) {
       // We are hitting the throttling limit
       LOG.debug("Failed to report interactive preview metrics", e)
     }

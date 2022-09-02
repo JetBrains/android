@@ -46,26 +46,36 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 
-/**
- * List of available layouts for the Compose Preview Surface.
- */
-internal val PREVIEW_LAYOUT_MANAGER_OPTIONS = listOf(
-  SurfaceLayoutManagerOption(message("vertical.layout"),
-                             VerticalOnlyLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-                                                       NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA,
-                                                       SingleDirectionLayoutManager.Alignment.CENTER)),
-  SurfaceLayoutManagerOption(message("grid.layout"),
-                             GridSurfaceLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-                                                      NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA),
-                             DesignSurface.SceneViewAlignment.LEFT)
-)
+/** List of available layouts for the Compose Preview Surface. */
+internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
+  listOf(
+    SurfaceLayoutManagerOption(
+      message("vertical.layout"),
+      VerticalOnlyLayoutManager(
+        NlConstants.DEFAULT_SCREEN_OFFSET_X,
+        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+        NlConstants.SCREEN_DELTA,
+        NlConstants.SCREEN_DELTA,
+        SingleDirectionLayoutManager.Alignment.CENTER
+      )
+    ),
+    SurfaceLayoutManagerOption(
+      message("grid.layout"),
+      GridSurfaceLayoutManager(
+        NlConstants.DEFAULT_SCREEN_OFFSET_X,
+        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+        NlConstants.SCREEN_DELTA,
+        NlConstants.SCREEN_DELTA
+      ),
+      DesignSurface.SceneViewAlignment.LEFT
+    )
+  )
 
-/**
- * Default layout manager selected in the preview.
- */
+/** Default layout manager selected in the preview. */
 internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager
 
-private val COMPOSE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
+private val COMPOSE_SUPPORTED_ACTIONS =
+  setOf(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /**
  * Creates a [NlDesignSurface.Builder] with a common setup for the design surfaces in Compose
@@ -78,7 +88,8 @@ private fun createPreviewDesignSurfaceBuilder(
   dataProvider: DataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider
-): NlDesignSurface.Builder = NlDesignSurface.builder(project, parentDisposable)
+): NlDesignSurface.Builder =
+  NlDesignSurface.builder(project, parentDisposable)
     .setIsPreview(true)
     .setNavigationHandler(navigationHandler)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
@@ -88,14 +99,15 @@ private fun createPreviewDesignSurfaceBuilder(
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
       LayoutlibSceneManager(
-        model,
-        surface,
-        sceneComponentProvider,
-        ComposeSceneUpdateListener(),
-      ) { RealTimeSessionClock() }.also {
-        it.setListenResourceChange(false) // don't re-render on resource changes
-        it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
-      }
+          model,
+          surface,
+          sceneComponentProvider,
+          ComposeSceneUpdateListener(),
+        ) { RealTimeSessionClock() }
+        .also {
+          it.setListenResourceChange(false) // don't re-render on resource changes
+          it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+        }
     }
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
@@ -105,9 +117,7 @@ private fun createPreviewDesignSurfaceBuilder(
     .setScreenViewProvider(COMPOSE_SCREEN_VIEW_PROVIDER, false)
     .setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
 
-/**
- * Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview.
- */
+/** Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview. */
 internal fun createMainDesignSurfaceBuilder(
   project: Project,
   navigationHandler: NlDesignSurface.NavigationHandler,
@@ -115,18 +125,18 @@ internal fun createMainDesignSurfaceBuilder(
   dataProvider: DataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider
-) = createPreviewDesignSurfaceBuilder(
-  project,
-  navigationHandler,
-  delegateInteractionHandler,
-  dataProvider, // Will be overridden by the preview provider
-  parentDisposable,
-  sceneComponentProvider
-).setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)
+) =
+  createPreviewDesignSurfaceBuilder(
+      project,
+      navigationHandler,
+      delegateInteractionHandler,
+      dataProvider, // Will be overridden by the preview provider
+      parentDisposable,
+      sceneComponentProvider
+    )
+    .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)
 
-/**
- * Creates a [NlDesignSurface.Builder] for the pinned design surface in the Compose preview.
- */
+/** Creates a [NlDesignSurface.Builder] for the pinned design surface in the Compose preview. */
 internal fun createPinnedDesignSurfaceBuilder(
   project: Project,
   navigationHandler: NlDesignSurface.NavigationHandler,
@@ -134,27 +144,29 @@ internal fun createPinnedDesignSurfaceBuilder(
   dataProvider: DataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider
-) = createPreviewDesignSurfaceBuilder(
-  project,
-  navigationHandler,
-  delegateInteractionHandler,
-  dataProvider,
-  parentDisposable,
-  sceneComponentProvider
-).setLayoutManager(
-  GridSurfaceLayoutManager(
-    NlConstants.DEFAULT_SCREEN_OFFSET_X,
-    NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-    NlConstants.SCREEN_DELTA,
-    NlConstants.SCREEN_DELTA
-  )
-)
+) =
+  createPreviewDesignSurfaceBuilder(
+      project,
+      navigationHandler,
+      delegateInteractionHandler,
+      dataProvider,
+      parentDisposable,
+      sceneComponentProvider
+    )
+    .setLayoutManager(
+      GridSurfaceLayoutManager(
+        NlConstants.DEFAULT_SCREEN_OFFSET_X,
+        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+        NlConstants.SCREEN_DELTA,
+        NlConstants.SCREEN_DELTA
+      )
+    )
 
 /**
  * Compose-specific implementation of [updatePreviewsAndRefresh].
  *
- * If [quickRefresh] is true, the preview surfaces for the same [PreviewElement]s do not get reinflated, allowing to save time for the
- * static to animated preview transition.
+ * If [quickRefresh] is true, the preview surfaces for the same [PreviewElement]s do not get
+ * reinflated, allowing to save time for the static to animated preview transition.
  */
 internal suspend fun NlDesignSurface.updateComposePreviewsAndRefresh(
   quickRefresh: Boolean,
@@ -165,7 +177,9 @@ internal suspend fun NlDesignSurface.updateComposePreviewsAndRefresh(
   progressIndicator: ProgressIndicator,
   onRenderCompleted: () -> Unit,
   previewElementModelAdapter: PreviewElementModelAdapter<ComposePreviewElementInstance, NlModel>,
-  configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<ComposePreviewElementInstance> {
+  configureLayoutlibSceneManager:
+    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
+): List<ComposePreviewElementInstance> {
   return updatePreviewsAndRefresh(
     !quickRefresh,
     previewElementProvider,

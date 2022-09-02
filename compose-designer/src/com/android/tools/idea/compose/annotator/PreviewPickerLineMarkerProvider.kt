@@ -38,13 +38,13 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
+import javax.swing.Icon
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
-import javax.swing.Icon
 
 /**
  * LineMarkerProvider for the @Preview annotation for Compose.
@@ -66,25 +66,37 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     if (element.text != COMPOSE_PREVIEW_ANNOTATION_NAME) return null
 
     val annotationEntry = element.parentOfType<KtAnnotationEntry>() ?: return null
-    val uElement = (annotationEntry.toUElement() as? UAnnotation)?.takeIf { it.isPreviewAnnotation() } ?: return null
+    val uElement =
+      (annotationEntry.toUElement() as? UAnnotation)?.takeIf { it.isPreviewAnnotation() }
+        ?: return null
 
     // Do not show the picker if there are any syntax issues with the annotation
-    if (PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry).hasIssues) return null
+    if (PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry).hasIssues)
+      return null
 
     val previewElementDefinitionPsi = uElement.toSmartPsiPointer()
-    val module = element.module ?: run {
-      log.warn("Couldn't obtain current module")
-      return null
-    }
-    val info = createInfo(element, element.textRange, element.project, module, previewElementDefinitionPsi)
-    NavigateAction.setNavigateAction(info, message("picker.preview.annotator.action.title"), null, icon)
+    val module =
+      element.module
+        ?: run {
+          log.warn("Couldn't obtain current module")
+          return null
+        }
+    val info =
+      createInfo(element, element.textRange, element.project, module, previewElementDefinitionPsi)
+    NavigateAction.setNavigateAction(
+      info,
+      message("picker.preview.annotator.action.title"),
+      null,
+      icon
+    )
     return info
   }
 
   /**
-   * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for the @Preview annotation, this [LineMarkerInfo]
-   * should be available for the entire annotation entry, including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should
-   * also show the @Preview picker option.
+   * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for the
+   * @Preview annotation, this [LineMarkerInfo] should be available for the entire annotation entry,
+   * including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should also show the
+   * @Preview picker option.
    */
   private fun createInfo(
     element: PsiElement,
@@ -101,7 +113,13 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       AllIcons.Actions.InlayGear,
       { message("picker.preview.annotator.tooltip") },
       { mouseEvent, _ ->
-        val model = PreviewPickerPropertyModel.fromPreviewElement(project, module, previewElementDefinitionPsi, PreviewPickerTracker())
+        val model =
+          PreviewPickerPropertyModel.fromPreviewElement(
+            project,
+            module,
+            previewElementDefinitionPsi,
+            PreviewPickerTracker()
+          )
         PsiPickerManager.show(
           location = RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint,
           displayTitle = message("picker.preview.title"),

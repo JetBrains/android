@@ -47,10 +47,8 @@ import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerActio
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.DeviceType
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerParameter
 
-/**
- * Tracker implementation for the Preview picker.
- */
-internal open class PreviewPickerTracker: BaseComposePickerTracker() {
+/** Tracker implementation for the Preview picker. */
+internal open class PreviewPickerTracker : BaseComposePickerTracker() {
   override fun doLogUsageData(actions: List<EditorPickerAction>) {
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
@@ -59,63 +57,67 @@ internal open class PreviewPickerTracker: BaseComposePickerTracker() {
     )
   }
 
-  override fun convertModificationsToTrackerActions(modifications: List<PickerModification>): List<EditorPickerAction> {
+  override fun convertModificationsToTrackerActions(
+    modifications: List<PickerModification>
+  ): List<EditorPickerAction> {
     return modifications.map { pickerModification ->
-      val trackerParameter = when (pickerModification.propertyName) {
-        PARAMETER_NAME -> PreviewPickerParameter.NAME
-        PARAMETER_GROUP -> PreviewPickerParameter.GROUP
-        PARAMETER_WIDTH_DP,
-        PARAMETER_WIDTH -> PreviewPickerParameter.WIDTH
-        PARAMETER_HEIGHT_DP,
-        PARAMETER_HEIGHT -> PreviewPickerParameter.HEIGHT
-        PARAMETER_API_LEVEL -> PreviewPickerParameter.API_LEVEL
-        PARAMETER_FONT_SCALE -> PreviewPickerParameter.FONT_SCALE
-        PARAMETER_SHOW_DECORATION,
-        PARAMETER_SHOW_SYSTEM_UI -> PreviewPickerParameter.SHOW_SYSTEM_UI
-        PARAMETER_SHOW_BACKGROUND -> PreviewPickerParameter.SHOW_BACKGROUND
-        PARAMETER_BACKGROUND_COLOR -> PreviewPickerParameter.BACKGROUND_COLOR
-        PARAMETER_UI_MODE -> PreviewPickerParameter.UI_MODE
-        PARAMETER_LOCALE -> PreviewPickerParameter.LOCALE
-        PARAMETER_DEVICE,
-        PARAMETER_HARDWARE_DEVICE -> PreviewPickerParameter.DEVICE
-        PARAMETER_HARDWARE_WIDTH -> PreviewPickerParameter.DEVICE_WIDTH
-        PARAMETER_HARDWARE_HEIGHT -> PreviewPickerParameter.DEVICE_HEIGHT
-        PARAMETER_HARDWARE_DIM_UNIT -> PreviewPickerParameter.DEVICE_DIM_UNIT
-        PARAMETER_HARDWARE_DENSITY -> PreviewPickerParameter.DEVICE_DPI
-        PARAMETER_HARDWARE_ORIENTATION -> PreviewPickerParameter.DEVICE_ORIENTATION
-        else -> PreviewPickerParameter.UNKNOWN_PREVIEW_PICKER_PARAMETER
-      }
+      val trackerParameter =
+        when (pickerModification.propertyName) {
+          PARAMETER_NAME -> PreviewPickerParameter.NAME
+          PARAMETER_GROUP -> PreviewPickerParameter.GROUP
+          PARAMETER_WIDTH_DP, PARAMETER_WIDTH -> PreviewPickerParameter.WIDTH
+          PARAMETER_HEIGHT_DP, PARAMETER_HEIGHT -> PreviewPickerParameter.HEIGHT
+          PARAMETER_API_LEVEL -> PreviewPickerParameter.API_LEVEL
+          PARAMETER_FONT_SCALE -> PreviewPickerParameter.FONT_SCALE
+          PARAMETER_SHOW_DECORATION, PARAMETER_SHOW_SYSTEM_UI ->
+            PreviewPickerParameter.SHOW_SYSTEM_UI
+          PARAMETER_SHOW_BACKGROUND -> PreviewPickerParameter.SHOW_BACKGROUND
+          PARAMETER_BACKGROUND_COLOR -> PreviewPickerParameter.BACKGROUND_COLOR
+          PARAMETER_UI_MODE -> PreviewPickerParameter.UI_MODE
+          PARAMETER_LOCALE -> PreviewPickerParameter.LOCALE
+          PARAMETER_DEVICE, PARAMETER_HARDWARE_DEVICE -> PreviewPickerParameter.DEVICE
+          PARAMETER_HARDWARE_WIDTH -> PreviewPickerParameter.DEVICE_WIDTH
+          PARAMETER_HARDWARE_HEIGHT -> PreviewPickerParameter.DEVICE_HEIGHT
+          PARAMETER_HARDWARE_DIM_UNIT -> PreviewPickerParameter.DEVICE_DIM_UNIT
+          PARAMETER_HARDWARE_DENSITY -> PreviewPickerParameter.DEVICE_DPI
+          PARAMETER_HARDWARE_ORIENTATION -> PreviewPickerParameter.DEVICE_ORIENTATION
+          else -> PreviewPickerParameter.UNKNOWN_PREVIEW_PICKER_PARAMETER
+        }
       val deviceType = run {
         val device = pickerModification.deviceBeforeModification
         if (device?.id == Configuration.CUSTOM_DEVICE_ID) {
           return@run DeviceType.CUSTOM
         }
-        // 'groupDevices' will assign our one device to a non-empty group, so we filter out any group with empty device list
-        val resultingGroup = groupDevices(listOfNotNull(device)).entries.firstNotNullOfOrNull { (group, devices) ->
-          if (devices.isEmpty()) null else group
-        }
+        // 'groupDevices' will assign our one device to a non-empty group, so we filter out any
+        // group with empty device list
+        val resultingGroup =
+          groupDevices(listOfNotNull(device)).entries.firstNotNullOfOrNull { (group, devices) ->
+            if (devices.isEmpty()) null else group
+          }
         return@run when (resultingGroup) {
-          DeviceGroup.NEXUS,
-          DeviceGroup.NEXUS_XL -> DeviceType.PHONE
+          DeviceGroup.NEXUS, DeviceGroup.NEXUS_XL -> DeviceType.PHONE
           DeviceGroup.NEXUS_TABLET -> DeviceType.TABLET
           DeviceGroup.WEAR -> DeviceType.WEAR
           DeviceGroup.DESKTOP -> DeviceType.DESKTOP
           DeviceGroup.TV -> DeviceType.TV
-          DeviceGroup.AUTOMOTIVE -> DeviceType.UNKNOWN_DEVICE_TYPE // TODO(b/205184728): Add tracker value for Auto
+          DeviceGroup.AUTOMOTIVE ->
+            DeviceType.UNKNOWN_DEVICE_TYPE // TODO(b/205184728): Add tracker value for Auto
           DeviceGroup.GENERIC -> DeviceType.GENERIC
           DeviceGroup.OTHER, // unused in picker
           null -> DeviceType.UNKNOWN_DEVICE_TYPE
         }
       }
 
-      EditorPickerAction.newBuilder().setPreviewModification(
-        with(PreviewPickerModification.newBuilder()) {
-          parameter = trackerParameter
-          closestDeviceType = deviceType
-          assignedValue = pickerModification.assignedValue
-          build()
-        }
-      ).build()
+      EditorPickerAction.newBuilder()
+        .setPreviewModification(
+          with(PreviewPickerModification.newBuilder()) {
+            parameter = trackerParameter
+            closestDeviceType = deviceType
+            assignedValue = pickerModification.assignedValue
+            build()
+          }
+        )
+        .build()
     }
   }
 }

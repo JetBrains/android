@@ -23,11 +23,8 @@ import com.intellij.openapi.actionSystem.ToggleAction
 private const val SHOW = "Show"
 private const val HIDE = "Hide"
 
-/**
- * Action that controls when to enable the debug boundaries mode mode.
- */
-internal class ShowDebugBoundaries :
-  ToggleAction("${SHOW} Composable Bounds", null, null) {
+/** Action that controls when to enable the debug boundaries mode mode. */
+internal class ShowDebugBoundaries : ToggleAction("${SHOW} Composable Bounds", null, null) {
 
   override fun isSelected(e: AnActionEvent): Boolean =
     findComposePreviewManagersForContext(e.dataContext)
@@ -37,20 +34,18 @@ internal class ShowDebugBoundaries :
   override fun setSelected(e: AnActionEvent, isSelected: Boolean) {
     findComposePreviewManagersForContext(e.dataContext)
       .filterIsInstance<ComposePreviewManagerEx>()
-      .forEach {
-        it.showDebugBoundaries = isSelected
-    }
+      .forEach { it.showDebugBoundaries = isSelected }
   }
 
   override fun update(e: AnActionEvent) {
     super.update(e)
 
-    e.presentation.text = if (isSelected(e)) {
-      "${HIDE} Composable Bounds"
-    }
-    else {
-      "${SHOW} Composable Bounds"
-    }
+    e.presentation.text =
+      if (isSelected(e)) {
+        "${HIDE} Composable Bounds"
+      } else {
+        "${SHOW} Composable Bounds"
+      }
   }
 
   override fun displayTextInToolbar(): Boolean = true

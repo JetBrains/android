@@ -24,7 +24,8 @@ class ComposePreviewRunConfigurationStartupActivity : StartupActivity.DumbAware 
   override fun runActivity(project: Project) {
     val producerClass = ComposePreviewRunConfigurationProducer::class.java
     val producerService = RunConfigurationProducerService.getInstance(project)
-    // Make sure to remove the producer from the ignored list in case it was added at some point when the flag was disabled.
+    // Make sure to remove the producer from the ignored list in case it was added at some point
+    // when the flag was disabled.
     producerService.state.ignoredProducers.remove(producerClass.name)
   }
 }

@@ -18,45 +18,37 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import org.jetbrains.annotations.ApiStatus
 import javax.swing.Icon
+import org.jetbrains.annotations.ApiStatus
 
-/**
- * Class representing groups available for selection in the [ComposePreviewManager].
- */
+/** Class representing groups available for selection in the [ComposePreviewManager]. */
 @Suppress("DataClassPrivateConstructor")
-data class PreviewGroup private constructor(
-  val displayName: String,
-  val icon: Icon?,
-  val name: String?
-) {
+data class PreviewGroup
+private constructor(val displayName: String, val icon: Icon?, val name: String?) {
   companion object {
-    fun namedGroup(displayName: String, icon: Icon? = null, name: String = displayName): PreviewGroup = PreviewGroup(displayName, icon,
-                                                                                                                     name)
+    fun namedGroup(
+      displayName: String,
+      icon: Icon? = null,
+      name: String = displayName
+    ): PreviewGroup = PreviewGroup(displayName, icon, name)
 
-    /**
-     * [PreviewGroup] to be used when no filtering is to be applied to the preview.
-     */
-    val ALL_PREVIEW_GROUP = PreviewGroup(
-      displayName = message("group.switch.all"),
-      icon = null,
-      name = null
-    )
+    /** [PreviewGroup] to be used when no filtering is to be applied to the preview. */
+    val ALL_PREVIEW_GROUP =
+      PreviewGroup(displayName = message("group.switch.all"), icon = null, name = null)
   }
 }
 
-/**
- * Interface that provides access to the Compose Preview logic.
- */
-interface ComposePreviewManager: Disposable {
+/** Interface that provides access to the Compose Preview logic. */
+interface ComposePreviewManager : Disposable {
   /**
    * Enum that determines the current status of the interactive preview.
    *
-   * The transitions are are like:
-   * DISABLED -> STARTED -> READY -> STOPPING
+   * The transitions are are like: DISABLED -> STARTED -> READY -> STOPPING
+   * ```
    *    ^                               +
    *    |                               |
    *    +-------------------------------+
+   * ```
    */
   enum class InteractiveMode {
     DISABLED,
@@ -74,21 +66,22 @@ interface ComposePreviewManager: Disposable {
   /**
    * Status of the preview.
    *
-   * @param hasRuntimeErrors true if the project has any runtime errors that prevent the preview being up to date.
-   *  For example missing classes.
-   * @param hasSyntaxErrors true if the preview is displaying content of a file that has syntax errors.
+   * @param hasRuntimeErrors true if the project has any runtime errors that prevent the preview
+   * being up to date. For example missing classes.
+   * @param hasSyntaxErrors true if the preview is displaying content of a file that has syntax
+   * errors.
    * @param isOutOfDate true if the preview needs a refresh to be up to date.
    * @param isRefreshing true if the view is currently refreshing.
    * @param interactiveMode represents current state of preview interactivity.
    */
-  data class Status(val hasRuntimeErrors: Boolean,
-                    val hasSyntaxErrors: Boolean,
-                    val isOutOfDate: Boolean,
-                    val isRefreshing: Boolean,
-                    val interactiveMode: InteractiveMode) {
-    /**
-     * True if the preview has errors that will need a refresh
-     */
+  data class Status(
+    val hasRuntimeErrors: Boolean,
+    val hasSyntaxErrors: Boolean,
+    val isOutOfDate: Boolean,
+    val isRefreshing: Boolean,
+    val interactiveMode: InteractiveMode
+  ) {
+    /** True if the preview has errors that will need a refresh */
     val hasErrors = hasRuntimeErrors || hasSyntaxErrors
   }
 
@@ -100,59 +93,65 @@ interface ComposePreviewManager: Disposable {
   fun invalidateSavedBuildStatus()
 
   /**
-   * List of available groups in this preview. The editor can contain multiple groups and only will be displayed at a given time.
+   * List of available groups in this preview. The editor can contain multiple groups and only will
+   * be displayed at a given time.
    */
   val availableGroups: Collection<PreviewGroup>
 
   /**
-   * Group name from [availableGroups] currently selected or null if we do not want to do group filtering.
+   * Group name from [availableGroups] currently selected or null if we do not want to do group
+   * filtering.
    */
   var groupFilter: PreviewGroup
 
   /**
-   * Represents the [ComposePreviewElementInstance] open in the Interactive Preview. Null if no preview is in interactive mode.
+   * Represents the [ComposePreviewElementInstance] open in the Interactive Preview. Null if no
+   * preview is in interactive mode.
    */
   val interactivePreviewElementInstance: ComposePreviewElementInstance?
 
   /**
-   * Represents the [ComposePreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
+   * Represents the [ComposePreviewElementInstance] open in the Animation Inspector. Null if no
+   * preview is being inspected.
    */
   var animationInspectionPreviewElementInstance: ComposePreviewElementInstance?
 
   /**
-   * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo object.
+   * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo
+   * object.
    */
   val hasDesignInfoProviders: Boolean
 
   /**
-   * The [PsiFile] that this preview is representing, if any. For cases where the preview is rendering synthetic previews or
-   * elements from multiple files, this can be null.
+   * The [PsiFile] that this preview is representing, if any. For cases where the preview is
+   * rendering synthetic previews or elements from multiple files, this can be null.
    */
   val previewedFile: PsiFile?
 
   /**
-   * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance].
+   * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance]
+   * .
    */
   suspend fun startInteractivePreview(instance: ComposePreviewElementInstance)
 
-  /**
-   * Stops the interactive preview.
-   */
+  /** Stops the interactive preview. */
   fun stopInteractivePreview()
 }
 
 val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean
-  get() = animationInspectionPreviewElementInstance == null && status().interactiveMode == ComposePreviewManager.InteractiveMode.DISABLED
+  get() =
+    animationInspectionPreviewElementInstance == null &&
+      status().interactiveMode == ComposePreviewManager.InteractiveMode.DISABLED
 
 /**
- * Interface that provides access to the Compose Preview logic that is not stable or meant for public
- * use.
- * This interface contains only temporary or experimental methods.
+ * Interface that provides access to the Compose Preview logic that is not stable or meant for
+ * public use. This interface contains only temporary or experimental methods.
  */
 @ApiStatus.Experimental
 interface ComposePreviewManagerEx : ComposePreviewManager {
   /**
-   * If enabled, the bounds for the different `@Composable` elements will be displayed in the surface.
+   * If enabled, the bounds for the different `@Composable` elements will be displayed in the
+   * surface.
    */
   var showDebugBoundaries: Boolean
 }

@@ -20,45 +20,47 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.preview.message
 
-/**
- * Validates for non-negative integers, but shows a warning for 'zero' values.
- */
+/** Validates for non-negative integers, but shows a warning for 'zero' values. */
 val IntegerNormalValidator = createIntegerValidator(IntegerValidatorType.NORMAL)
 
-/**
- * Validates for positive (>0) integers.
- */
+/** Validates for positive (>0) integers. */
 val IntegerStrictValidator = createIntegerValidator(IntegerValidatorType.STRICT)
 
-/**
- * Creates an [EditingValidation] instance that validates for positive (>0) integer numbers.
- */
-private fun createIntegerValidator(type: IntegerValidatorType): EditingValidation = validator@{ editedValue: String? ->
-  if (editedValue.isNullOrBlank()) return@validator EDITOR_NO_ERROR
-  val trimmedValue = editedValue.trim()
+/** Creates an [EditingValidation] instance that validates for positive (>0) integer numbers. */
+private fun createIntegerValidator(type: IntegerValidatorType): EditingValidation =
+  validator@{ editedValue: String? ->
+    if (editedValue.isNullOrBlank()) return@validator EDITOR_NO_ERROR
+    val trimmedValue = editedValue.trim()
 
-  val numberValue =
-    if (trimmedValue.isHex()) {
-      trimmedValue.replace("0x", "", true).toIntOrNull(16)
+    val numberValue =
+      if (trimmedValue.isHex()) {
+        trimmedValue.replace("0x", "", true).toIntOrNull(16)
+      } else {
+        trimmedValue.toIntOrNull()
+      }
+        ?: return@validator Pair(
+          EditingErrorCategory.ERROR,
+          message("picker.preview.input.validation.integer.nan")
+        )
+
+    if (numberValue < 0) {
+      return@validator Pair(
+        EditingErrorCategory.ERROR,
+        message("picker.preview.input.validation.positive.value")
+      )
     }
-    else {
-      trimmedValue.toIntOrNull()
-    } ?: return@validator Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.integer.nan"))
 
-  if (numberValue < 0) {
-    return@validator Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.positive.value"))
+    if (numberValue == 0) {
+      return@validator Pair(
+        when (type) {
+          IntegerValidatorType.NORMAL -> EditingErrorCategory.WARNING
+          IntegerValidatorType.STRICT -> EditingErrorCategory.ERROR
+        },
+        message("picker.preview.input.validation.positive.value")
+      )
+    }
+    EDITOR_NO_ERROR
   }
-
-  if (numberValue == 0) {
-    return@validator Pair(
-      when (type) {
-        IntegerValidatorType.NORMAL -> EditingErrorCategory.WARNING
-        IntegerValidatorType.STRICT -> EditingErrorCategory.ERROR
-      },
-      message("picker.preview.input.validation.positive.value"))
-  }
-  EDITOR_NO_ERROR
-}
 
 private fun String.isHex() = contains("0x", true) // First character may be a sign (-) character
 

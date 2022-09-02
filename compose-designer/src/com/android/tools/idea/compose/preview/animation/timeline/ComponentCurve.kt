@@ -28,17 +28,17 @@ import java.awt.RenderingHints
 import java.awt.geom.AffineTransform
 import java.awt.geom.Path2D
 
-/**
- * Curve for one component of [AnimatedProperty].
- */
-class ComponentCurve(state: ElementState, val component: AnimatedProperty.AnimatedComponent<Double>,
-                     minX: Int,
-                     maxX: Int,
-                     rowMinY: Int,
-                     private val curve: Path2D,
-                     private val colorIndex: Int,
-                     positionProxy: PositionProxy)
-  : TimelineElement(state, minX, maxX, positionProxy) {
+/** Curve for one component of [AnimatedProperty]. */
+class ComponentCurve(
+  state: ElementState,
+  val component: AnimatedProperty.AnimatedComponent<Double>,
+  minX: Int,
+  maxX: Int,
+  rowMinY: Int,
+  private val curve: Path2D,
+  private val colorIndex: Int,
+  positionProxy: PositionProxy
+) : TimelineElement(state, minX, maxX, positionProxy) {
 
   companion object {
     /**
@@ -48,12 +48,14 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
      * @param positionProxy is [PositionProxy] for the slider
      * @param colorIndex index of the color the curve should be painted
      */
-    fun create(state: ElementState,
-               property: AnimatedProperty<Double>,
-               componentId: Int,
-               rowMinY: Int,
-               positionProxy: PositionProxy,
-               colorIndex: Int): ComponentCurve =
+    fun create(
+      state: ElementState,
+      property: AnimatedProperty<Double>,
+      componentId: Int,
+      rowMinY: Int,
+      positionProxy: PositionProxy,
+      colorIndex: Int
+    ): ComponentCurve =
       property.components[componentId].let { component ->
         val curve: Path2D = Path2D.Double()
         val animationYMin = component.minValue
@@ -63,42 +65,57 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
         val minX = positionProxy.xPositionForValue(property.startMs)
         val maxX = positionProxy.xPositionForValue(property.endMs)
         val minY = rowMinY + InspectorLayout.CURVE_TOP_OFFSET
-        val maxY = rowMinY + InspectorLayout.timelineLineRowHeightScaled() - InspectorLayout.curveBottomOffset()
+        val maxY =
+          rowMinY + InspectorLayout.timelineLineRowHeightScaled() -
+            InspectorLayout.curveBottomOffset()
         curve.moveTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
         when {
           isZeroDuration -> {
             // If animation duration is zero, for example for snap animation - draw a vertical line,
-            // It gives a visual feedback what animation is happened at that point and what graph is not missing where.
+            // It gives a visual feedback what animation is happened at that point and what graph is
+            // not missing where.
             curve.lineTo(minX.toDouble() - zeroDurationXOffset, minY.toDouble())
             curve.lineTo(maxX.toDouble() + zeroDurationXOffset, minY.toDouble())
           }
           isZeroHeight -> {
-            //Do nothing if curve is flat.
+            // Do nothing if curve is flat.
           }
           else -> {
             val stepY = (maxY - minY) / (component.maxValue - animationYMin)
             component.points.forEach { (ms, value) ->
-              curve.lineTo(positionProxy.xPositionForValue(ms).toDouble(), maxY - (value.toDouble() - animationYMin) * stepY)
+              curve.lineTo(
+                positionProxy.xPositionForValue(ms).toDouble(),
+                maxY - (value.toDouble() - animationYMin) * stepY
+              )
             }
           }
         }
         curve.lineTo(maxX.toDouble() + zeroDurationXOffset, maxY.toDouble())
         curve.lineTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
 
-        return ComponentCurve(state = state, component = component,
-                              minX = minX, maxX = maxX, rowMinY = rowMinY, curve = curve,
-                              colorIndex, positionProxy)
+        return ComponentCurve(
+          state = state,
+          component = component,
+          minX = minX,
+          maxX = maxX,
+          rowMinY = rowMinY,
+          curve = curve,
+          colorIndex,
+          positionProxy
+        )
       }
   }
 
   @VisibleForTesting
-  val curveBaseY = rowMinY + InspectorLayout.timelineCurveRowHeightScaled() - InspectorLayout.curveBottomOffset()
+  val curveBaseY =
+    rowMinY + InspectorLayout.timelineCurveRowHeightScaled() - InspectorLayout.curveBottomOffset()
   private var startDiamond = Diamond(minX, curveBaseY, colorIndex)
   private var endDiamond = Diamond(maxX, curveBaseY, colorIndex)
   private val startDiamondNoOffset = Diamond(minX, curveBaseY, colorIndex)
   private val endDiamondNoOffset = Diamond(maxX, curveBaseY, colorIndex)
 
-  private val boxedLabelPositionWithoutOffset = Point(minX + InspectorLayout.labelOffset, curveBaseY + InspectorLayout.labelOffset)
+  private val boxedLabelPositionWithoutOffset =
+    Point(minX + InspectorLayout.labelOffset, curveBaseY + InspectorLayout.labelOffset)
 
   /** Position from where [BoxedLabel] should be painted. */
   var boxedLabelPosition = boxedLabelPositionWithoutOffset
@@ -115,9 +132,14 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
   override fun moveComponents(actualDelta: Int) {
     startDiamond = Diamond(minX + offsetPx, curveBaseY, colorIndex)
     endDiamond = Diamond(maxX + offsetPx, curveBaseY, colorIndex)
-    boxedLabelPosition = Point(
-      (boxedLabelPositionWithoutOffset.x + offsetPx).coerceIn(positionProxy.minimumXPosition(), positionProxy.maximumXPosition()),
-      boxedLabelPositionWithoutOffset.y)
+    boxedLabelPosition =
+      Point(
+        (boxedLabelPositionWithoutOffset.x + offsetPx).coerceIn(
+          positionProxy.minimumXPosition(),
+          positionProxy.maximumXPosition()
+        ),
+        boxedLabelPositionWithoutOffset.y
+      )
     curveOffset += actualDelta
     curve.transform(AffineTransform.getTranslateInstance(actualDelta.toDouble(), 0.0))
   }
@@ -129,15 +151,17 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
 
   /** If point [x], [y] is hovering the curve. */
   override fun contains(x: Int, y: Int): Boolean {
-    return curve.contains(x.toDouble(), y.toDouble()) || startDiamond.contains(x, y) || endDiamond.contains(x, y)
+    return curve.contains(x.toDouble(), y.toDouble()) ||
+      startDiamond.contains(x, y) ||
+      endDiamond.contains(x, y)
   }
 
   /**
    * Painting the animation curve
-   *  * two [Diamond] shapes at the start and the end of the animation
-   *  * solid line at the bottom of the animation
-   *  * animation curve itself
-   *  * (optional) dashed lines - links to the next curve diamonds
+   * * two [Diamond] shapes at the start and the end of the animation
+   * * solid line at the bottom of the animation
+   * * animation curve itself
+   * * (optional) dashed lines - links to the next curve diamonds
    *
    * @params colorIndex index of the color from [GRAPH_COLORS]
    * @rowHeight total row height including all labels, offset, etc
@@ -160,8 +184,18 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
     g.drawLine(minX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY)
     if (component.linkToNext) {
       g.stroke = InspectorLayout.dashedStroke
-      g.drawLine(minX + offsetPx, curveBaseY, minX + offsetPx, curveBaseY + heightScaled() - Diamond.diamondSize())
-      g.drawLine(maxX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY + heightScaled() - Diamond.diamondSize())
+      g.drawLine(
+        minX + offsetPx,
+        curveBaseY,
+        minX + offsetPx,
+        curveBaseY + heightScaled() - Diamond.diamondSize()
+      )
+      g.drawLine(
+        maxX + offsetPx,
+        curveBaseY,
+        maxX + offsetPx,
+        curveBaseY + heightScaled() - Diamond.diamondSize()
+      )
       g.stroke = InspectorLayout.simpleStroke
     }
     g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
@@ -173,20 +207,33 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
       g.draw(curve)
     }
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, prevAntiAliasHint)
-    startDiamond.paint(g, status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered)
-    endDiamond.paint(g, status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered)
+    startDiamond.paint(
+      g,
+      status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered
+    )
+    endDiamond.paint(
+      g,
+      status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered
+    )
 
     if (offsetPx != 0) {
       g.stroke = InspectorLayout.dashedStroke
       g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
       if (offsetPx > 0) {
-        g.drawLine(minX + Diamond.diamondSize() + 1, curveBaseY, minX + offsetPx - Diamond.diamondSize() - 1, curveBaseY)
+        g.drawLine(
+          minX + Diamond.diamondSize() + 1,
+          curveBaseY,
+          minX + offsetPx - Diamond.diamondSize() - 1,
+          curveBaseY
+        )
         startDiamondNoOffset.paintOutline(g)
-      }
-      else if (offsetPx < 0) {
-        g.drawLine(maxX - Diamond.diamondSize() - 1, curveBaseY,
-                   maxX + offsetPx + Diamond.diamondSize() + 1,
-                   curveBaseY)
+      } else if (offsetPx < 0) {
+        g.drawLine(
+          maxX - Diamond.diamondSize() - 1,
+          curveBaseY,
+          maxX + offsetPx + Diamond.diamondSize() + 1,
+          curveBaseY
+        )
         endDiamondNoOffset.paintOutline(g)
       }
     }

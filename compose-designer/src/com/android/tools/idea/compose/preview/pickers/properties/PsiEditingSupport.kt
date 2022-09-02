@@ -20,6 +20,10 @@ import com.android.tools.adtui.model.stdui.EditingValidation
 import com.intellij.openapi.application.ApplicationManager
 
 class PsiEditingSupport(override val validation: EditingValidation) : EditingSupport {
-  override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
-  override val uiExecution = { runnable: Runnable -> ApplicationManager.getApplication().invokeLater(runnable) }
+  override val execution = { runnable: Runnable ->
+    ApplicationManager.getApplication().executeOnPooledThread(runnable)
+  }
+  override val uiExecution = { runnable: Runnable ->
+    ApplicationManager.getApplication().invokeLater(runnable)
+  }
 }

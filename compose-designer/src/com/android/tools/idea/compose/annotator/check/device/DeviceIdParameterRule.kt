@@ -22,9 +22,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.AvailableDevice
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEFAULT_DEVICE_ID
 import com.intellij.openapi.actionSystem.DataProvider
 
-/**
- * [ParameterRule] that checks that the parameter's value corresponds to an existing Device ID.
- */
+/** [ParameterRule] that checks that the parameter's value corresponds to an existing Device ID. */
 internal class DeviceIdParameterRule(override val name: String) : ParameterRule() {
 
   override val expectedType: ExpectedValueType = OpenEndedValueType("Device ID")
@@ -37,5 +35,6 @@ internal class DeviceIdParameterRule(override val name: String) : ParameterRule(
     return availableDevices.associateBy { it.id }.containsKey(value)
   }
 
-  override fun attemptFix(value: String, dataProvider: DataProvider): String? = null // can't provide any fix
+  override fun attemptFix(value: String, dataProvider: DataProvider): String? =
+    null // can't provide any fix
 }

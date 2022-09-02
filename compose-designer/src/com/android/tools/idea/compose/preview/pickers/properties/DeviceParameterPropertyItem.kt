@@ -48,8 +48,8 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 /**
- * A [PsiPropertyItem] for the Device parameter. Contains internal properties used to modify the device hardware, those are not actual
- * parameters on file and are only kept on memory.
+ * A [PsiPropertyItem] for the Device parameter. Contains internal properties used to modify the
+ * device hardware, those are not actual parameters on file and are only kept on memory.
  */
 internal class DeviceParameterPropertyItem(
   project: Project,
@@ -58,104 +58,119 @@ internal class DeviceParameterPropertyItem(
   descriptor: ValueParameterDescriptor,
   argumentExpression: KtExpression?,
   defaultValue: String?
-) : PsiCallParameterPropertyItem(
-  project,
-  model,
-  resolvedCall,
-  descriptor,
-  argumentExpression,
-  defaultValue) {
+) :
+  PsiCallParameterPropertyItem(
+    project,
+    model,
+    resolvedCall,
+    descriptor,
+    argumentExpression,
+    defaultValue
+  ) {
   private val log = Logger.getInstance(this.javaClass)
 
   private val defaultDeviceValues: DeviceConfig =
-    ConfigurationManager.findExistingInstance(model.module)?.getDefaultPreviewDevice()?.toDeviceConfig() ?: DeviceConfig(
-      shape = DEFAULT_SHAPE,
-      width = DEFAULT_WIDTH_DP.toFloat(),
-      height = DEFAULT_HEIGHT_DP.toFloat(),
-      dimUnit = DEFAULT_UNIT,
-      dpi = DEFAULT_DPI
-    )
+    ConfigurationManager.findExistingInstance(model.module)
+      ?.getDefaultPreviewDevice()
+      ?.toDeviceConfig()
+      ?: DeviceConfig(
+        shape = DEFAULT_SHAPE,
+        width = DEFAULT_WIDTH_DP.toFloat(),
+        height = DEFAULT_HEIGHT_DP.toFloat(),
+        dimUnit = DEFAULT_UNIT,
+        dpi = DEFAULT_DPI
+      )
 
   override var name: String = PARAMETER_HARDWARE_DEVICE
 
-  val innerProperties = listOf<MemoryParameterPropertyItem>(
-    DevicePropertyItem(
-      name = PARAMETER_HARDWARE_WIDTH,
-      defaultValue = defaultDeviceValues.widthString,
-      inputValidation = DeviceSpecDimValidator(strictPositive = true),
-      getter = { it.widthString }) { config, newValue ->
-      newValue.toFloatOrNull()?.let {
-        config.width = it
-      }
-      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
-    },
-    DevicePropertyItem(
-      name = PARAMETER_HARDWARE_HEIGHT,
-      defaultValue = defaultDeviceValues.heightString,
-      inputValidation = DeviceSpecDimValidator(strictPositive = true),
-      getter = { it.heightString }) { config, newValue ->
-      newValue.toFloatOrNull()?.let {
-        config.height = it
-      }
-      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
-    },
-    DevicePropertyItem(
-      name = PARAMETER_HARDWARE_DIM_UNIT,
-      defaultValue = defaultDeviceValues.dimUnit.name,
-      getter = { it.dimUnit.name }) { config, newValue ->
-      val newUnit = enumValueOfOrNull<DimUnit>(newValue)
-      newUnit?.let {
-        config.dimUnit = newUnit
-        newUnit.trackableValue
-      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
-    },
-    DevicePropertyItem(
-      name = PARAMETER_HARDWARE_DENSITY,
-      defaultValue = defaultDeviceValues.dpi.toString(),
-      inputValidation = IntegerStrictValidator,
-      getter = { it.dpi.toString() }) { config, newValue ->
-      val newDpi = newValue.toIntOrNull()
-      newDpi?.let {
-        config.dpi = newDpi
-        PickerTrackerHelper.densityBucketOfDeviceConfig(config)
-      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
-    },
-    DevicePropertyItem(
-      name = PARAMETER_HARDWARE_ORIENTATION,
-      defaultValue = defaultDeviceValues.orientation.name,
-      getter = { it.orientation.name }) { config, newValue ->
-      val newOrientation = enumValueOfOrNull<Orientation>(newValue)
-      newOrientation?.let {
-        config.orientation = newOrientation
-        newOrientation.trackableValue
-      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
-    },
-    DevicePropertyItem(
-      name = PARAMETER_HARDWARE_IS_ROUND,
-      defaultValue = defaultDeviceValues.isRound.toString(),
-      inputValidation = BooleanValidator,
-      getter = { it.isRound.toString() }) { config, newValue ->
-      val newIsRound = newValue.toBooleanStrictOrNull()
-      newIsRound?.let {
-        config.shape = if (it) Shape.Round else Shape.Normal
-        PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE // TODO(b/205184728): Update tracking values
-      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
-    },
-    DevicePropertyItem(
-      name = PARAMETER_HARDWARE_CHIN_SIZE,
-      defaultValue = defaultDeviceValues.chinSizeString,
-      inputValidation = DeviceSpecDimValidator(strictPositive = false),
-      getter = { it.chinSizeString }) { config, newValue ->
-      val newChinSize = newValue.toFloatOrNull()
-      newChinSize?.let {
-        if (it > 0) {
-          config.shape = Shape.Round
-        }
-        config.chinSize = newChinSize
+  val innerProperties =
+    listOf<MemoryParameterPropertyItem>(
+      DevicePropertyItem(
+        name = PARAMETER_HARDWARE_WIDTH,
+        defaultValue = defaultDeviceValues.widthString,
+        inputValidation = DeviceSpecDimValidator(strictPositive = true),
+        getter = { it.widthString }
+      ) { config, newValue ->
+        newValue.toFloatOrNull()?.let { config.width = it }
         PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
-      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
-    }
-  )
+      },
+      DevicePropertyItem(
+        name = PARAMETER_HARDWARE_HEIGHT,
+        defaultValue = defaultDeviceValues.heightString,
+        inputValidation = DeviceSpecDimValidator(strictPositive = true),
+        getter = { it.heightString }
+      ) { config, newValue ->
+        newValue.toFloatOrNull()?.let { config.height = it }
+        PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
+      },
+      DevicePropertyItem(
+        name = PARAMETER_HARDWARE_DIM_UNIT,
+        defaultValue = defaultDeviceValues.dimUnit.name,
+        getter = { it.dimUnit.name }
+      ) { config, newValue ->
+        val newUnit = enumValueOfOrNull<DimUnit>(newValue)
+        newUnit?.let {
+          config.dimUnit = newUnit
+          newUnit.trackableValue
+        }
+          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+      },
+      DevicePropertyItem(
+        name = PARAMETER_HARDWARE_DENSITY,
+        defaultValue = defaultDeviceValues.dpi.toString(),
+        inputValidation = IntegerStrictValidator,
+        getter = { it.dpi.toString() }
+      ) { config, newValue ->
+        val newDpi = newValue.toIntOrNull()
+        newDpi?.let {
+          config.dpi = newDpi
+          PickerTrackerHelper.densityBucketOfDeviceConfig(config)
+        }
+          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+      },
+      DevicePropertyItem(
+        name = PARAMETER_HARDWARE_ORIENTATION,
+        defaultValue = defaultDeviceValues.orientation.name,
+        getter = { it.orientation.name }
+      ) { config, newValue ->
+        val newOrientation = enumValueOfOrNull<Orientation>(newValue)
+        newOrientation?.let {
+          config.orientation = newOrientation
+          newOrientation.trackableValue
+        }
+          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+      },
+      DevicePropertyItem(
+        name = PARAMETER_HARDWARE_IS_ROUND,
+        defaultValue = defaultDeviceValues.isRound.toString(),
+        inputValidation = BooleanValidator,
+        getter = { it.isRound.toString() }
+      ) { config, newValue ->
+        val newIsRound = newValue.toBooleanStrictOrNull()
+        newIsRound?.let {
+          config.shape = if (it) Shape.Round else Shape.Normal
+          PreviewPickerValue
+            .UNKNOWN_PREVIEW_PICKER_VALUE // TODO(b/205184728): Update tracking values
+        }
+          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+      },
+      DevicePropertyItem(
+        name = PARAMETER_HARDWARE_CHIN_SIZE,
+        defaultValue = defaultDeviceValues.chinSizeString,
+        inputValidation = DeviceSpecDimValidator(strictPositive = false),
+        getter = { it.chinSizeString }
+      ) { config, newValue ->
+        val newChinSize = newValue.toFloatOrNull()
+        newChinSize?.let {
+          if (it > 0) {
+            config.shape = Shape.Round
+          }
+          config.chinSize = newChinSize
+          PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
+        }
+          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+      }
+    )
 
   private var lastValueToDevice: Pair<String, DeviceConfig>? = null
 
@@ -171,16 +186,18 @@ internal class DeviceParameterPropertyItem(
     }
 
     // Translate the current value, the value could either be a DeviceConfig string or a Device ID
-    val resolvedDeviceConfig = DeviceConfig.toDeviceConfigOrNull(currentValue, availableDevices)
-                               ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
-                               ?: defaultDeviceValues
+    val resolvedDeviceConfig =
+      DeviceConfig.toDeviceConfigOrNull(currentValue, availableDevices)
+        ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
+          ?: defaultDeviceValues
 
     lastValueToDevice = Pair(currentValue, resolvedDeviceConfig)
     return resolvedDeviceConfig.toMutableConfig()
   }
 
   /**
-   * PropertyItem for internal device parameters, so that they all read and write to one single source.
+   * PropertyItem for internal device parameters, so that they all read and write to one single
+   * source.
    */
   private inner class DevicePropertyItem(
     name: String,
@@ -188,9 +205,7 @@ internal class DeviceParameterPropertyItem(
     inputValidation: EditingValidation = { EDITOR_NO_ERROR },
     private val getter: (MutableDeviceConfig) -> String,
     private val setter: (MutableDeviceConfig, String) -> PreviewPickerValue
-  ) : MemoryParameterPropertyItem(
-    name, defaultValue, inputValidation
-  ) {
+  ) : MemoryParameterPropertyItem(name, defaultValue, inputValidation) {
     override var value: String?
       get() = getter(getCurrentDeviceConfig())
       set(newValue) {

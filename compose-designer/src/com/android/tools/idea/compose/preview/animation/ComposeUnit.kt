@@ -18,9 +18,7 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import java.lang.reflect.Method
 
-/**
- * Compose units represented as multi-dimensional properties.
- */
+/** Compose units represented as multi-dimensional properties. */
 object ComposeUnit {
 
   class TimelineUnit(val propertyLabel: String, val unit: Unit<*>?)
@@ -31,59 +29,75 @@ object ComposeUnit {
     fun toString(componentId: Int): String
     override fun toString(): String
 
-    /** Transforms a component to a [Double]. It unifies painting of the curves in [InspectorPainter]. */
+    /**
+     * Transforms a component to a [Double]. It unifies painting of the curves in [InspectorPainter]
+     * .
+     */
     fun componentAsDouble(componentId: Int) = components[componentId].toDouble()
   }
 
-  abstract class Unit1D<A>(val component1: A) :
-    Unit<A> where A : Number, A : Comparable<A> {
+  abstract class Unit1D<A>(val component1: A) : Unit<A> where A : Number, A : Comparable<A> {
     override val components = listOf(component1)
     override fun toString(componentId: Int) = component1.toString()
     override fun toString(): String = components.joinToString() { it.toString() }
   }
 
-  abstract class Unit2D<A>(val component1: A, val component2: A) :
-    Unit<A> where A : Number, A : Comparable<A> {
+  abstract class Unit2D<A>(val component1: A, val component2: A) : Unit<A> where
+  A : Number,
+  A : Comparable<A> {
     override val components = listOf(component1, component2)
-    override fun toString(componentId: Int) = "( " +
-                                              "${if (componentId == 0) component1 else "_"} , " +
-                                              "${if (componentId == 1) component2 else "_"} )"
+    override fun toString(componentId: Int) =
+      "( " +
+        "${if (componentId == 0) component1 else "_"} , " +
+        "${if (componentId == 1) component2 else "_"} )"
 
-    override fun toString(): String = components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
+    override fun toString(): String =
+      components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
   }
 
-  abstract class Unit3D<A>(val component1: A, val component2: A, val component3: A) :
-    Unit<A> where A : Number, A : Comparable<A> {
+  abstract class Unit3D<A>(val component1: A, val component2: A, val component3: A) : Unit<A> where
+  A : Number,
+  A : Comparable<A> {
     override val components = listOf(component1, component2, component3)
-    override fun toString(componentId: Int) = "( " +
-                                              "${if (componentId == 0) component1 else "_"} , " +
-                                              "${if (componentId == 1) component2 else "_"} , " +
-                                              "${if (componentId == 2) component3 else "_"} )"
+    override fun toString(componentId: Int) =
+      "( " +
+        "${if (componentId == 0) component1 else "_"} , " +
+        "${if (componentId == 1) component2 else "_"} , " +
+        "${if (componentId == 2) component3 else "_"} )"
 
-    override fun toString(): String = components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
+    override fun toString(): String =
+      components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
   }
 
-  abstract class Unit4D<A>(val component1: A, val component2: A, val component3: A, val component4: A) :
-    Unit<A> where A : Number, A : Comparable<A> {
+  abstract class Unit4D<A>(
+    val component1: A,
+    val component2: A,
+    val component3: A,
+    val component4: A
+  ) : Unit<A> where A : Number, A : Comparable<A> {
     override val components = listOf(component1, component2, component3, component4)
-    override fun toString(componentId: Int) = "( " +
-                                              "${if (componentId == 0) component1 else "_"} , " +
-                                              "${if (componentId == 1) component2 else "_"} , " +
-                                              "${if (componentId == 2) component3 else "_"} , " +
-                                              "${if (componentId == 3) component4 else "_"} )"
+    override fun toString(componentId: Int) =
+      "( " +
+        "${if (componentId == 0) component1 else "_"} , " +
+        "${if (componentId == 1) component2 else "_"} , " +
+        "${if (componentId == 2) component3 else "_"} , " +
+        "${if (componentId == 3) component4 else "_"} )"
 
-    override fun toString(): String = components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
+    override fun toString(): String =
+      components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
   }
 
   /**
    * Parses and creates a [Unit] from [ComposeAnimatedProperty.value].
-   * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D], [Unit3D], [Unit4D] respectively.
+   * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
+   * [Unit3D], [Unit4D] respectively.
    */
   fun parse(property: ComposeAnimatedProperty): Unit<*>? = parseValue(property.value)
 
   /**
    * Parses and creates a [Unit]
-   * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D], [Unit3D], [Unit4D] respectively.
+   * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
+   * [Unit3D], [Unit4D] respectively.
    */
   fun parseValue(value: Any?): Unit<*>? {
     if (value == null) return null
@@ -124,8 +138,8 @@ object ComposeUnit {
       }
     }
 
-    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
-
+    override fun toString(componentId: Int) =
+      "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
   }
 
   class IntOffset(component1: Int, component2: Int) : Unit2D<Int>(component1, component2) {
@@ -144,8 +158,8 @@ object ComposeUnit {
       }
     }
 
-    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
-
+    override fun toString(componentId: Int) =
+      "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
   }
 
   class Dp(component1: Float) : Unit1D<Float>(component1) {
@@ -180,16 +194,12 @@ object ComposeUnit {
       }
     }
 
-    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
-
+    override fun toString(componentId: Int) =
+      "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
   }
 
-  class Rect(
-    component1: Float,
-    component2: Float,
-    component3: Float,
-    component4: Float
-  ) : Unit4D<Float>(component1, component2, component3, component4) {
+  class Rect(component1: Float, component2: Float, component3: Float, component4: Float) :
+    Unit4D<Float>(component1, component2, component3, component4) {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.geometry.Rect"
       private val COMPONENT_NAMES = arrayOf("left", "top", "right", "bottom")
@@ -206,8 +216,8 @@ object ComposeUnit {
       }
     }
 
-    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
-
+    override fun toString(componentId: Int) =
+      "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
   }
 
   class Offset(component1: Float, component2: Float) : Unit2D<Float>(component1, component2) {
@@ -226,16 +236,12 @@ object ComposeUnit {
       }
     }
 
-    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
-
+    override fun toString(componentId: Int) =
+      "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
   }
 
-  class Color(
-    component1: Float,
-    component2: Float,
-    component3: Float,
-    component4: Float
-  ) : Unit4D<Float>(component1, component2, component3, component4) {
+  class Color(component1: Float, component2: Float, component3: Float, component4: Float) :
+    Unit4D<Float>(component1, component2, component3, component4) {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.graphics.Color"
       private val COMPONENT_NAMES = arrayOf("red", "green", "blue", "alpha")
@@ -254,18 +260,20 @@ object ComposeUnit {
       }
     }
 
-    val color: java.awt.Color? = try {
-      java.awt.Color(component1, component2, component3, component4)
-    }
-    catch (_: IllegalArgumentException) {
-      null
-    }
+    val color: java.awt.Color? =
+      try {
+        java.awt.Color(component1, component2, component3, component4)
+      } catch (_: IllegalArgumentException) {
+        null
+      }
 
-    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
+    override fun toString(componentId: Int) =
+      "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
   }
 
   private fun findMethodByName(methodName: String, property: Any): Method? {
-    return property::class.java.methods.singleOrNull { it.name == methodName }
-      ?.apply { this.isAccessible = true }
+    return property::class.java.methods.singleOrNull { it.name == methodName }?.apply {
+      this.isAccessible = true
+    }
   }
 }

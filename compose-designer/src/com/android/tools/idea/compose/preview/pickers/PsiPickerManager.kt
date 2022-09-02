@@ -46,11 +46,13 @@ import javax.swing.LayoutFocusTraversalPolicy
 internal object PsiPickerManager {
 
   /**
-   * Shows a picker for editing a [PsiPropertyModel]s. The user can modify the model using this dialog.
+   * Shows a picker for editing a [PsiPropertyModel]s. The user can modify the model using this
+   * dialog.
    *
    * @param location the location on screen from which the Picker popup will be shown
    * @param displayTitle Title displayed at the top of the Picker popup
-   * @param model model used to drive the picker, defines how properties are edited and how the UI is built
+   * @param model model used to drive the picker, defines how properties are edited and how the UI
+   * is built
    */
   fun show(location: Point, displayTitle: String, model: PsiPropertyModel) {
     val tracker = model.tracker
@@ -64,7 +66,8 @@ internal object PsiPickerManager {
       tracker.pickerClosed()
       ApplicationManager.getApplication().executeOnPooledThread(tracker::logUsageData)
     }
-    popup = LightCalloutPopup(closedCallback = onClosedOrCancelled, cancelCallBack = onClosedOrCancelled)
+    popup =
+      LightCalloutPopup(closedCallback = onClosedOrCancelled, cancelCallBack = onClosedOrCancelled)
     val pickerPanel = createPickerPanel(disposable, popup::close, displayTitle, model)
 
     tracker.pickerShown()
@@ -84,33 +87,41 @@ private fun createPickerPanel(
   displayTitle: String,
   model: PsiPropertyModel
 ): JPanel {
-  val propertiesPanel = PropertiesPanel<PsiPropertyItem>(disposable).also {
-    it.addView(PsiPropertyView(model))
-  }
+  val propertiesPanel =
+    PropertiesPanel<PsiPropertyItem>(disposable).also { it.addView(PsiPropertyView(model)) }
 
   return JPanel().apply {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
     isOpaque = false
     border = JBUI.Borders.empty(0, 4)
-    add(JLabel(displayTitle).apply {
-      border = JBUI.Borders.empty(8, 0)
-    })
+    add(JLabel(displayTitle).apply { border = JBUI.Borders.empty(8, 0) })
     add(JSeparator())
-    add(propertiesPanel.component.apply {
-      isOpaque = false
-      border = JBUI.Borders.empty(0, 0, 8, 0)
-    })
+    add(
+      propertiesPanel.component.apply {
+        isOpaque = false
+        border = JBUI.Borders.empty(0, 0, 8, 0)
+      }
+    )
     isFocusCycleRoot = true
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
-    registerActionKey(closePopupCallBack, KeyStrokes.ESCAPE, name = "close", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey(
+      closePopupCallBack,
+      KeyStrokes.ESCAPE,
+      name = "close",
+      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+    )
   }
 }
 
 /**
- * [AWTEventListener] that makes it so that the [LightCalloutPopup] is only closed when a click happened outside of ANY popup.
+ * [AWTEventListener] that makes it so that the [LightCalloutPopup] is only closed when a click
+ * happened outside of ANY popup.
  */
-private class PopupCloseHandler(private val ownerWindow: Window, private val closePopupCallback: () -> Unit) : AWTEventListener {
+private class PopupCloseHandler(
+  private val ownerWindow: Window,
+  private val closePopupCallback: () -> Unit
+) : AWTEventListener {
   override fun eventDispatched(event: AWTEvent?) {
     if (event is MouseEvent) {
       if (event.id != MouseEvent.MOUSE_PRESSED) return

@@ -31,28 +31,35 @@ internal interface ComposePickerTracker {
   /**
    * Register a modification to the [name] parameter of the Preview annotation.
    *
-   * [value] is one of the tracking relevant options that best represents the value assigned to the parameter.
+   * [value] is one of the tracking relevant options that best represents the value assigned to the
+   * parameter.
    *
-   * [device] should be the currently active [Device] in the preview when the change was made (right before the change is applied).
+   * [device] should be the currently active [Device] in the preview when the change was made (right
+   * before the change is applied).
    */
   fun registerModification(name: String, value: PreviewPickerValue, device: Device?)
 
   /**
-   * Potentially slow, since some modification data will have to be converted to Studio Event objects (eg: the name of the modified field)
+   * Potentially slow, since some modification data will have to be converted to Studio Event
+   * objects (eg: the name of the modified field)
    */
-  @Slow
-  fun logUsageData()
+  @Slow fun logUsageData()
 }
 
 /**
- * Implementation with no operations. For cases of pickers which tracking classes are not available yet.
+ * Implementation with no operations. For cases of pickers which tracking classes are not available
+ * yet.
  */
 internal object NoOpTracker : ComposePickerTracker {
   override fun pickerShown() {} // Do nothing
 
   override fun pickerClosed() {} // Do nothing
 
-  override fun registerModification(name: String, value: PreviewPickerValue, device: Device?) {} // Do nothing
+  override fun registerModification(
+    name: String,
+    value: PreviewPickerValue,
+    device: Device?
+  ) {} // Do nothing
 
   override fun logUsageData() {} // Do nothing
 }
@@ -60,8 +67,8 @@ internal object NoOpTracker : ComposePickerTracker {
 /**
  * Base class to log usage for Compose pickers.
  *
- * Registers field modifications for a session when using the picker (a session starts when the user opens the picker and ends when it's
- * closed).
+ * Registers field modifications for a session when using the picker (a session starts when the user
+ * opens the picker and ends when it's closed).
  *
  * So a session may contain several modifications.
  *
@@ -98,9 +105,7 @@ internal abstract class BaseComposePickerTracker : ComposePickerTracker {
     modifications.add(PickerModification(name, value, device))
   }
 
-  /**
-   * Submit all registered modifications.
-   */
+  /** Submit all registered modifications. */
   @Slow
   final override fun logUsageData() {
     if (!allowSubmittingTrackingInfo) {
@@ -113,19 +118,15 @@ internal abstract class BaseComposePickerTracker : ComposePickerTracker {
     allowSubmittingTrackingInfo = false
   }
 
-  /**
-   * Send tracking data.
-   */
+  /** Send tracking data. */
   protected abstract fun doLogUsageData(actions: List<EditorPickerAction>)
 
-  /**
-   * Converts the basic data format: [PickerModification] to the data class used for tracking.
-   */
-  protected abstract fun convertModificationsToTrackerActions(modifications: List<PickerModification>): List<EditorPickerAction>
+  /** Converts the basic data format: [PickerModification] to the data class used for tracking. */
+  protected abstract fun convertModificationsToTrackerActions(
+    modifications: List<PickerModification>
+  ): List<EditorPickerAction>
 
-  /**
-   * Holds basic data that will later be processed for tracking.
-   */
+  /** Holds basic data that will later be processed for tracking. */
   protected data class PickerModification(
     val propertyName: String,
     val assignedValue: PreviewPickerValue,

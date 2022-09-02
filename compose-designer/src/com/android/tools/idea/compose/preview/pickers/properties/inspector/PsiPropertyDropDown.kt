@@ -36,7 +36,6 @@ import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 import javax.swing.event.PopupMenuEvent
 
-
 /**
  * Dropdown component for PsiProperties.
  *
@@ -68,18 +67,33 @@ private class WrappedComboBox(
   init {
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     @Suppress("UnstableApiUsage")
-    putClientProperty(USE_LIVE_UPDATE_MODEL, true) // Ask Intellij's popup list model to update automatically
+    putClientProperty(
+      USE_LIVE_UPDATE_MODEL,
+      true
+    ) // Ask Intellij's popup list model to update automatically
     setRenderer(renderer)
     background = secondaryPanelBackground
     isSwingPopup = false // Use Intellij's popup component
-    preferredSize = preferredSize // Make sure the size cannot be modified by layout managers, otherwise the popup may close unexpectedly
+    preferredSize =
+      preferredSize // Make sure the size cannot be modified by layout managers, otherwise the popup
+    // may close unexpectedly
     isOpaque = false
 
     // Register key stroke navigation for dropdowns
     unregisterKeyboardAction(KeyStrokes.ESCAPE) // Remove existing bindings
     registerActionKey(this::escape, KeyStrokes.ESCAPE, "escape", { wouldConsumeEscape() })
-    registerActionKey(this::transferFocus, KeyStrokes.TAB, "tab", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey(this::transferFocusBackward, KeyStrokes.BACKTAB, "backtab", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey(
+      this::transferFocus,
+      KeyStrokes.TAB,
+      "tab",
+      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+    )
+    registerActionKey(
+      this::transferFocusBackward,
+      KeyStrokes.BACKTAB,
+      "backtab",
+      condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+    )
 
     // We consume the shift, otherwise the popup will show when backtab-ing
     registerActionKey(
@@ -90,7 +104,11 @@ private class WrappedComboBox(
     )
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
 
-    HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    HelpSupportBinding.registerHelpKeyActions(
+      this,
+      { model.property },
+      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+    )
     if (asTableCellEditor) {
       putClientProperty("JComboBox.isTableCellEditor", true)
     }
@@ -101,14 +119,16 @@ private class WrappedComboBox(
 
     setFromModel()
 
-    // This action is fired when changes to the selectedIndex is made, which includes mouse clicks and certain keystrokes
+    // This action is fired when changes to the selectedIndex is made, which includes mouse clicks
+    // and certain keystrokes
     addActionListener {
       if (!inSetup) {
         model.selectEnumValue()
       }
     }
     addPopupMenuListener(
-      // Popup contents should load as needed, so we ask the model to do so when the popup will be shown
+      // Popup contents should load as needed, so we ask the model to do so when the popup will be
+      // shown
       object : PopupMenuListenerAdapter() {
         override fun popupMenuWillBecomeVisible(event: PopupMenuEvent) {
           model.popupMenuWillBecomeVisible updatePopup@{
@@ -125,7 +145,8 @@ private class WrappedComboBox(
             popupMenu.show()
           }
         }
-      })
+      }
+    )
   }
 
   private fun wouldConsumeEscape(): Boolean = isPopupVisible
@@ -153,8 +174,7 @@ private class WrappedComboBox(
         if (currentIndex < 0) {
           model.updateValueFromProperty()
         }
-      }
-      finally {
+      } finally {
         inSetup = false
       }
     }

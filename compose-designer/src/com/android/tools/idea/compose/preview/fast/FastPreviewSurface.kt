@@ -18,13 +18,12 @@ package com.android.tools.idea.compose.preview.fast
 import com.android.tools.idea.editors.fast.CompilationResult
 import kotlinx.coroutines.Deferred
 
-/**
- * Interface to be implemented by surfaces (like the Preview) that support FastPreview.
- */
+/** Interface to be implemented by surfaces (like the Preview) that support FastPreview. */
 interface FastPreviewSurface {
   /**
-   * Request a fast preview refresh. The result [Deferred] will contain the result of the compilation or the method
-   * will return null if the compilation request could not be scheduled (e.g. the code has syntax errors).
+   * Request a fast preview refresh. The result [Deferred] will contain the result of the
+   * compilation or the method will return null if the compilation request could not be scheduled
+   * (e.g. the code has syntax errors).
    */
   fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult?>
 }

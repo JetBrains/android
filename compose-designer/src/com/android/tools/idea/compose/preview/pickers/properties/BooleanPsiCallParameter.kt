@@ -6,9 +6,7 @@ import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
-/**
- * A [PsiPropertyItem] for three state Boolean parameters.
- */
+/** A [PsiPropertyItem] for three state Boolean parameters. */
 internal class BooleanPsiCallParameter(
   project: Project,
   model: PsiCallPropertyModel,
@@ -16,12 +14,13 @@ internal class BooleanPsiCallParameter(
   descriptor: ValueParameterDescriptor,
   argumentExpression: KtExpression?,
   initialValue: String?
-) : PsiCallParameterPropertyItem(
-  project,
-  model,
-  resolvedCall,
-  descriptor,
-  argumentExpression,
-  initialValue,
-  BooleanValidator
-)
+) :
+  PsiCallParameterPropertyItem(
+    project,
+    model,
+    resolvedCall,
+    descriptor,
+    argumentExpression,
+    initialValue,
+    BooleanValidator
+  )

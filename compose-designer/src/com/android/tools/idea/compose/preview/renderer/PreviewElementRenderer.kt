@@ -29,31 +29,46 @@ import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Returns a [CompletableFuture] that creates a [RenderTask] for a single [ComposePreviewElementInstance]. It is the
- * responsibility of a client of this function to dispose the resulting [RenderTask] when no loner needed.
+ * Returns a [CompletableFuture] that creates a [RenderTask] for a single
+ * [ComposePreviewElementInstance]. It is the responsibility of a client of this function to dispose
+ * the resulting [RenderTask] when no loner needed.
  */
 @VisibleForTesting
-fun createRenderTaskFuture(facet: AndroidFacet,
-                           previewElement: ComposePreviewElementInstance,
-                           privateClassLoader: Boolean = false,
-                           classesToPreload: Collection<String> = emptyList()): CompletableFuture<RenderTask> {
+fun createRenderTaskFuture(
+  facet: AndroidFacet,
+  previewElement: ComposePreviewElementInstance,
+  privateClassLoader: Boolean = false,
+  classesToPreload: Collection<String> = emptyList()
+): CompletableFuture<RenderTask> {
   val project = facet.module.project
 
-  val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXml().buildString()) { previewElement.previewElementDefinitionPsi?.virtualFile }
-  val psiFile = AndroidPsiUtils.getPsiFileSafely(project, file) ?: return CompletableFuture.completedFuture(null)
-  val configuration = Configuration.create(ConfigurationManager.getOrCreateInstance(facet), null, FolderConfiguration.createDefault())
+  val file =
+    ComposeAdapterLightVirtualFile(
+      "singlePreviewElement.xml",
+      previewElement.toPreviewXml().buildString()
+    ) { previewElement.previewElementDefinitionPsi?.virtualFile }
+  val psiFile =
+    AndroidPsiUtils.getPsiFileSafely(project, file)
+      ?: return CompletableFuture.completedFuture(null)
+  val configuration =
+    Configuration.create(
+      ConfigurationManager.getOrCreateInstance(facet),
+      null,
+      FolderConfiguration.createDefault()
+    )
   previewElement.applyTo(configuration)
 
   return RenderService.getInstance(project)
     .taskBuilder(facet, configuration)
     .withPsiFile(psiFile)
-    .disableDecorations().apply {
+    .disableDecorations()
+    .apply {
       if (privateClassLoader) {
         usePrivateClassLoader()
       }
@@ -68,19 +83,31 @@ fun createRenderTaskFuture(facet: AndroidFacet,
 }
 
 /**
- * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
- * This method will render the element asynchronously and will return immediately.
+ * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result
+ * or null if the preview could not be rendered. This method will render the element asynchronously
+ * and will return immediately.
  */
 @VisibleForTesting
-fun renderPreviewElementForResult(facet: AndroidFacet,
-                                  previewElement: ComposePreviewElementInstance,
-                                  privateClassLoader: Boolean = false,
-                                  executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<RenderResult?> {
+fun renderPreviewElementForResult(
+  facet: AndroidFacet,
+  previewElement: ComposePreviewElementInstance,
+  privateClassLoader: Boolean = false,
+  executor: Executor = AppExecutorUtil.getAppExecutorService()
+): CompletableFuture<RenderResult?> {
   val renderTaskFuture = createRenderTaskFuture(facet, previewElement, privateClassLoader)
 
-  val renderResultFuture = CompletableFuture.supplyAsync({ renderTaskFuture.get() }, executor)
-    .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
-    .thenApply { if (it != null && it.renderResult.isSuccess && it.logger.brokenClasses.isEmpty() && !it.logger.hasErrors()) it else null }
+  val renderResultFuture =
+    CompletableFuture.supplyAsync({ renderTaskFuture.get() }, executor)
+      .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
+      .thenApply {
+        if (it != null &&
+            it.renderResult.isSuccess &&
+            it.logger.brokenClasses.isEmpty() &&
+            !it.logger.hasErrors()
+        )
+          it
+        else null
+      }
 
   renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
 
@@ -88,10 +115,13 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
 }
 
 /**
- * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
- * This method will render the element asynchronously and will return immediately.
+ * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result
+ * or null if the preview could not be rendered. This method will render the element asynchronously
+ * and will return immediately.
  */
-fun renderPreviewElement(facet: AndroidFacet,
-                         previewElement: ComposePreviewElementInstance): CompletableFuture<BufferedImage?> {
+fun renderPreviewElement(
+  facet: AndroidFacet,
+  previewElement: ComposePreviewElementInstance
+): CompletableFuture<BufferedImage?> {
   return renderPreviewElementForResult(facet, previewElement).thenApply { it?.renderedImage?.copy }
 }

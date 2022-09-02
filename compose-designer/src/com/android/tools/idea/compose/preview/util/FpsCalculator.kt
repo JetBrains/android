@@ -18,8 +18,8 @@ package com.android.tools.idea.compose.preview.util
 import java.time.Duration
 
 /**
- * Wraps frame per second calculation functionality. [resetAndStart] has to be explicitly called to start tracking the period of time for
- * FPS calculation.
+ * Wraps frame per second calculation functionality. [resetAndStart] has to be explicitly called to
+ * start tracking the period of time for FPS calculation.
  */
 class FpsCalculator(private val timeNanosProvider: () -> Long) {
   private var startTimeNanos = 0L
@@ -37,7 +37,7 @@ class FpsCalculator(private val timeNanosProvider: () -> Long) {
     if (timePeriodNanos <= 0) {
       return 0
     }
-    return (frameCounter  * 1000_000_000 / timePeriodNanos).toInt()
+    return (frameCounter * 1000_000_000 / timePeriodNanos).toInt()
   }
 
   @Synchronized
@@ -46,5 +46,7 @@ class FpsCalculator(private val timeNanosProvider: () -> Long) {
   }
 
   @Synchronized
-  fun incrementFrameCounter() { ++frameCounter }
+  fun incrementFrameCounter() {
+    ++frameCounter
+  }
 }

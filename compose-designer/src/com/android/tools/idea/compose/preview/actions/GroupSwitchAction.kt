@@ -24,16 +24,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 
-/**
- * [DropDownAction] that allows the user filtering the visible previews by group.
- */
-internal class GroupSwitchAction : DropDownAction(
-  null, message("action.group.switch.title"), null) {
-  /**
-   * [ToggleAction] that sets the given [group] as filter.
-   */
-  inner class SetGroupAction(private val group: PreviewGroup,
-                             private val isSelected: Boolean) : ToggleAction(group.displayName) {
+/** [DropDownAction] that allows the user filtering the visible previews by group. */
+internal class GroupSwitchAction :
+  DropDownAction(null, message("action.group.switch.title"), null) {
+  /** [ToggleAction] that sets the given [group] as filter. */
+  inner class SetGroupAction(private val group: PreviewGroup, private val isSelected: Boolean) :
+    ToggleAction(group.displayName) {
     override fun isSelected(e: AnActionEvent): Boolean = isSelected
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
@@ -52,7 +48,8 @@ internal class GroupSwitchAction : DropDownAction(
     val previewManagers = findComposePreviewManagersForContext(e.dataContext)
     val availableGroups = previewManagers.flatMap { it.availableGroups }.toSet()
     presentation.isVisible = availableGroups.isNotEmpty()
-    presentation.isEnabled = availableGroups.isNotEmpty() && !previewManagers.any { it.status().isRefreshing }
+    presentation.isEnabled =
+      availableGroups.isNotEmpty() && !previewManagers.any { it.status().isRefreshing }
     if (presentation.isEnabledAndVisible) {
       presentation.text = previewManagers.map { it.groupFilter.displayName }.firstOrNull()
     }

@@ -27,10 +27,9 @@ import javax.swing.JComponent
 import kotlin.math.max
 
 /**
- * [AnimationManager] is handling the state of one subscribed [animation].
- * Each [animation] is represented by one row in coordination panel.
- * Supported animation types could also be opened in a new tab.
- * All supported managers are part of [AnimationPreview].
+ * [AnimationManager] is handling the state of one subscribed [animation]. Each [animation] is
+ * represented by one row in coordination panel. Supported animation types could also be opened in a
+ * new tab. All supported managers are part of [AnimationPreview].
  */
 abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: String) {
   /** State of the [TimelineElement] for the [animation]. */
@@ -39,7 +38,7 @@ abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: S
   /** [Card] for the current animation in the coordination panel. */
   abstract val card: Card
 
-  /** Callback when [currentTransition] has been changed.*/
+  /** Callback when [currentTransition] has been changed. */
   var currentTransitionCallback: (Transition) -> Unit = {}
   /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
   var currentTransition = Transition()
@@ -50,12 +49,11 @@ abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: S
       currentTransitionCallback(value)
     }
 
-  /** Callback when [selectedProperties] has been changed.*/
+  /** Callback when [selectedProperties] has been changed. */
   var selectedPropertiesCallback: (List<ComposeUnit.TimelineUnit>) -> Unit = {}
   /**
-   * Currently selected properties in the timeline.
-   * Updated everytime the slider has moved or the state of animation has changed.
-   * Could be empty if transition is not loaded or not supported.
+   * Currently selected properties in the timeline. Updated everytime the slider has moved or the
+   * state of animation has changed. Could be empty if transition is not loaded or not supported.
    */
   var selectedProperties = listOf<ComposeUnit.TimelineUnit>()
     protected set(value) {
@@ -64,7 +62,11 @@ abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: S
     }
 
   /** [TimelineElement] for the current transition displayed in the timeline. */
-  abstract fun createTimelineElement(parent: JComponent, minY: Int, positionProxy: PositionProxy): TimelineElement
+  abstract fun createTimelineElement(
+    parent: JComponent,
+    minY: Int,
+    positionProxy: PositionProxy
+  ): TimelineElement
 
   /** Called everytime if [selectedProperties] should be updated. */
   abstract fun loadProperties()
@@ -75,5 +77,4 @@ abstract class AnimationManager(val animation: ComposeAnimation, val tabTitle: S
   /** Maximum ms for [currentTransition] required in the timeline. */
   val timelineMaximumMs: Int?
     get() = currentTransition.endMillis?.let { max(it + elementState.valueOffset, it) }
-
 }

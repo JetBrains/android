@@ -20,7 +20,6 @@ import com.android.tools.property.panel.api.HeaderEnumValue
 import com.android.tools.property.panel.impl.ui.EnumValueListCellRenderer
 import com.intellij.openapi.util.text.HtmlChunk
 import com.intellij.ui.JBColor
-import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.GRAYED_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.ui.TitledSeparator
@@ -32,19 +31,16 @@ import java.awt.Component
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 
-/**
- * Cell renderer for Dropdown popups, supports separators and tooltips.
- */
+/** Cell renderer for Dropdown popups, supports separators and tooltips. */
 internal class PsiEnumValueCellRenderer : EnumValueListCellRenderer() {
-  private val headerLabel = JBLabel().apply {
-    foreground = JBColor(0x444444, 0xCCCCCC)
-  }
-  private val headerRenderer = TitledSeparator().apply {
-    this@apply.layout = BorderLayout()
-    this@apply.border = JBUI.Borders.empty(2, 2)
-    this@apply.removeAll()
-    this@apply.add(headerLabel)
-  }
+  private val headerLabel = JBLabel().apply { foreground = JBColor(0x444444, 0xCCCCCC) }
+  private val headerRenderer =
+    TitledSeparator().apply {
+      this@apply.layout = BorderLayout()
+      this@apply.border = JBUI.Borders.empty(2, 2)
+      this@apply.removeAll()
+      this@apply.add(headerLabel)
+    }
 
   override fun customize(item: EnumValue) {
     when (item) {
@@ -68,10 +64,16 @@ internal class PsiEnumValueCellRenderer : EnumValueListCellRenderer() {
     if (iterator.hasNext()) {
       // Make sure the cell renderer has any content
       iterator.next()
-      val description = iterator.tag // The tag should correspond to the description attached from DescriptionEnumValue
+      val description =
+        iterator
+          .tag // The tag should correspond to the description attached from DescriptionEnumValue
       if (description is String) {
         // Limit the width of the resulting text using html
-        return HtmlChunk.div().attr("width", JBUIScale.scale(250)).addRaw(description).wrapWith(HtmlChunk.html()).toString()
+        return HtmlChunk.div()
+          .attr("width", JBUIScale.scale(250))
+          .addRaw(description)
+          .wrapWith(HtmlChunk.html())
+          .toString()
       }
     }
     return null

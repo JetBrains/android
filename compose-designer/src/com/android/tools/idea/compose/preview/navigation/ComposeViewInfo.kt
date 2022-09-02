@@ -18,12 +18,12 @@ package com.android.tools.idea.compose.preview.navigation
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.google.common.annotations.VisibleForTesting
 
-/**
- * Information needed for creating custom scene components later.
- */
-data class ComposeViewInfo(val sourceLocation: SourceLocation,
-                           val bounds: PxBounds,
-                           val children: List<ComposeViewInfo>) {
+/** Information needed for creating custom scene components later. */
+data class ComposeViewInfo(
+  val sourceLocation: SourceLocation,
+  val bounds: PxBounds,
+  val children: List<ComposeViewInfo>
+) {
   override fun toString(): String =
     """${sourceLocation}
       |   bounds=(top=${bounds.top}, left=${bounds.left}, bottom=${bounds.bottom}, right=${bounds.right})
@@ -33,18 +33,22 @@ data class ComposeViewInfo(val sourceLocation: SourceLocation,
 }
 
 @VisibleForTesting
-fun ComposeViewInfo.findHitWithDepth(x: Int, y: Int, depth: Int = 0): Collection<Pair<Int, ComposeViewInfo>> =
+fun ComposeViewInfo.findHitWithDepth(
+  x: Int,
+  y: Int,
+  depth: Int = 0
+): Collection<Pair<Int, ComposeViewInfo>> =
   if (bounds.isNotEmpty() && bounds.containsPoint(x, y)) {
-    listOf(Pair(depth, this)) + children
-      .flatMap { it.findHitWithDepth(x, y, depth + 1) }
-      .toList()
-  }
-  else {
+    listOf(Pair(depth, this)) + children.flatMap { it.findHitWithDepth(x, y, depth + 1) }.toList()
+  } else {
     listOf()
   }
 
-fun List<ComposeViewInfo>.findHitWithDepth(x: Int, y: Int, depth: Int = 0): Collection<Pair<Int, ComposeViewInfo>> =
-  flatMap { it.findHitWithDepth(x, y, depth) }
+fun List<ComposeViewInfo>.findHitWithDepth(
+  x: Int,
+  y: Int,
+  depth: Int = 0
+): Collection<Pair<Int, ComposeViewInfo>> = flatMap { it.findHitWithDepth(x, y, depth) }
 
 fun ComposeViewInfo.findDeepestHits(x: Int, y: Int): Collection<ComposeViewInfo> =
   findHitWithDepth(x, y)
@@ -52,29 +56,21 @@ fun ComposeViewInfo.findDeepestHits(x: Int, y: Int): Collection<ComposeViewInfo>
     .maxByOrNull { it.key }
     ?.value
     ?.map { it.second }
-    ?.toList() ?: emptyList()
+    ?.toList()
+    ?: emptyList()
 
-/**
- * Pixel bounds. The model closely resembles how Compose Stack is returned.
- */
-data class PxBounds(
-  val left: Int,
-  val top: Int,
-  val right: Int,
-  val bottom: Int) {
+/** Pixel bounds. The model closely resembles how Compose Stack is returned. */
+data class PxBounds(val left: Int, val top: Int, val right: Int, val bottom: Int) {
   val width = right - left
   val height = bottom - top
 }
 
 @VisibleForTesting
-fun PxBounds.containsPoint(@AndroidCoordinate x: Int, @AndroidCoordinate  y: Int): Boolean =
+fun PxBounds.containsPoint(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int): Boolean =
   x in left..right && y in top..bottom
 
-@VisibleForTesting
-fun PxBounds.area(): Int = (right - left) * (bottom - top)
+@VisibleForTesting fun PxBounds.area(): Int = (right - left) * (bottom - top)
 
-@VisibleForTesting
-fun PxBounds.isEmpty(): Boolean = area() == 0
+@VisibleForTesting fun PxBounds.isEmpty(): Boolean = area() == 0
 
-@VisibleForTesting
-fun PxBounds.isNotEmpty(): Boolean = !isEmpty()
+@VisibleForTesting fun PxBounds.isNotEmpty(): Boolean = !isEmpty()

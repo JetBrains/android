@@ -21,14 +21,13 @@ import com.intellij.openapi.actionSystem.DataKey
 /**
  * Key to obtain the currently active Device based on the @Preview.device field.
  *
- * If the value corresponds to device specs ("spec:...") it will return a custom Device instance with those parameters, otherwise, it will
- * be a Device that matches the display name or id.
+ * If the value corresponds to device specs ("spec:...") it will return a custom Device instance
+ * with those parameters, otherwise, it will be a Device that matches the display name or id.
  *
  * @see com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
  */
 internal val CurrentDeviceKey = DataKey.create<Device?>("preview.picker.current.device")
 
-/**
- * Key to obtain the list of all available devices from the device manager.
- */
-internal val AvailableDevicesKey = DataKey.create<Collection<Device>>("preview.picker.available.devices")
+/** Key to obtain the list of all available devices from the device manager. */
+internal val AvailableDevicesKey =
+  DataKey.create<Collection<Device>>("preview.picker.available.devices")

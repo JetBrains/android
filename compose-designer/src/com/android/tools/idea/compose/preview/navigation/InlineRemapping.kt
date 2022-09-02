@@ -23,113 +23,121 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
+import kotlin.math.absoluteValue
 import org.jetbrains.kotlin.idea.debugger.SourceLineKind
 import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinDebuggerCaches
 import org.jetbrains.kotlin.idea.debugger.isInlineFunctionLineNumber
 import org.jetbrains.kotlin.idea.debugger.mapStacktraceLineToSource
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
-import kotlin.math.absoluteValue
 
 /**
- * Mapping function used to correct the inline code references. Given a [SourceLocation] it returns a new one that points to the correct
- * place in the source file.
- * The returned [Pair] maps the source [KtFile] to the 1-indexed line information.
+ * Mapping function used to correct the inline code references. Given a [SourceLocation] it returns
+ * a new one that points to the correct place in the source file. The returned [Pair] maps the
+ * source [KtFile] to the 1-indexed line information.
  */
 internal fun remapInlineLocation(
   module: Module,
   ktFile: KtFile,
   className: String,
   line: Int,
-  searchScope: GlobalSearchScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)): Pair<KtFile, Int> {
+  searchScope: GlobalSearchScope =
+    GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
+): Pair<KtFile, Int> {
   val virtualFile = PsiUtil.getVirtualFile(ktFile) ?: return Pair(ktFile, line)
   val internalClassName = JvmClassName.byInternalName(className.replace(".", "/"))
-  val smapData = KotlinDebuggerCaches.getSmapCached(module.project, internalClassName, virtualFile) ?: return ktFile to line
+  val smapData =
+    KotlinDebuggerCaches.getSmapCached(module.project, internalClassName, virtualFile)
+      ?: return ktFile to line
 
-  val inlineRemapped = mapStacktraceLineToSource(smapData,
-                                                 line,
-                                                 module.project,
-                                                 SourceLineKind.CALL_LINE,
-                                                 searchScope) ?: return ktFile to line
+  val inlineRemapped =
+    mapStacktraceLineToSource(smapData, line, module.project, SourceLineKind.CALL_LINE, searchScope)
+      ?: return ktFile to line
 
-  return inlineRemapped.first to inlineRemapped.second + 1 // Remapped lines are 0 based so add 1 here
+  return inlineRemapped.first to
+    inlineRemapped.second + 1 // Remapped lines are 0 based so add 1 here
 }
 
 /**
- * [SourceLocation] associated to the [VirtualFile] that the location points to. This class is merely used as a cache to avoid the complex
- * task of mapping the string location to a VirtualFile.
+ * [SourceLocation] associated to the [VirtualFile] that the location points to. This class is
+ * merely used as a cache to avoid the complex task of mapping the string location to a VirtualFile.
  */
-internal class SourceLocationWithVirtualFile(internal val virtualFile: VirtualFile,
-                                             override val className: String,
-                                             override val methodName: String,
-                                             override val lineNumber: Int,
-                                             override val packageHash: Int) : SourceLocation {
+internal class SourceLocationWithVirtualFile(
+  internal val virtualFile: VirtualFile,
+  override val className: String,
+  override val methodName: String,
+  override val lineNumber: Int,
+  override val packageHash: Int
+) : SourceLocation {
   override val fileName: String
     get() = virtualFile.name
 
   override fun toString(): String {
-    val classNameInformation = if (className.isNotEmpty() || methodName.isNotEmpty()) {
-      "className=$className, methodName=$methodName, "
-    }
-    else ""
+    val classNameInformation =
+      if (className.isNotEmpty() || methodName.isNotEmpty()) {
+        "className=$className, methodName=$methodName, "
+      } else ""
 
     return "SourceLocationWithVirtualFile(${classNameInformation}fileName=${virtualFile.name}, lineNumber=$lineNumber, packageHash=$packageHash)"
   }
 }
 
-/**
- * Returns true if any of the classes contained in the [file] match the given [rootClassName].
- */
+/** Returns true if any of the classes contained in the [file] match the given [rootClassName]. */
 private fun matchesFile(file: PsiClassOwner, rootClassName: String): Boolean =
   rootClassName.isNotEmpty() && file.classes?.any { it.qualifiedName == rootClassName } ?: false
 
 /**
- * Calculates the hash of the given [packageName]. This calculation must match the one done in the Compose runtime
- * so we can match the package names.
+ * Calculates the hash of the given [packageName]. This calculation must match the one done in the
+ * Compose runtime so we can match the package names.
  */
 private fun packageNameHash(packageName: String): Int =
   packageName.fold(0) { hash, char -> hash * 31 + char.toInt() }.absoluteValue
 
-/**
- * Returns true if the given [file] package matches the [packageHash].
- */
+/** Returns true if the given [file] package matches the [packageHash]. */
 private fun matchesPackage(file: PsiClassOwner, packageHash: Int): Boolean =
   packageHash != -1 && packageNameHash(file.packageName) == packageHash
 
 /**
- * Returns a [SourceLocationWithVirtualFile] from a given [SourceLocation] if the mapping can be done. If there is no mapping, for example
- * the reference file does not exist in the project, then the method returns null.
+ * Returns a [SourceLocationWithVirtualFile] from a given [SourceLocation] if the mapping can be
+ * done. If there is no mapping, for example the reference file does not exist in the project, then
+ * the method returns null.
  *
  * @param module the module to use for the file resolution
- * @param scope the resolution [GlobalSearchScope]. By default, files will be found in the whole project but you can limit the search scope
- * by passing a different scope.
+ * @param scope the resolution [GlobalSearchScope]. By default, files will be found in the whole
+ * project but you can limit the search scope by passing a different scope.
  */
-internal fun SourceLocation.asSourceLocationWithVirtualFile(module: Module,
-                                                            scope: GlobalSearchScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(
-                                                              module, false)): SourceLocationWithVirtualFile? {
+internal fun SourceLocation.asSourceLocationWithVirtualFile(
+  module: Module,
+  scope: GlobalSearchScope =
+    GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
+): SourceLocationWithVirtualFile? {
   if (isEmpty()) return null
 
   // Lookup in the filename index for matches of the filename. Multiple matches are possible.
-  val filesWithName = FilenameIndex.getFilesByName(module.project, fileName, scope)
-    .filterIsInstance<PsiClassOwner>()
-    .toList()
+  val filesWithName =
+    FilenameIndex.getFilesByName(module.project, fileName, scope)
+      .filterIsInstance<PsiClassOwner>()
+      .toList()
 
-  val originalPsiFile = when {
-    packageHash != -1 -> filesWithName.find {
-      // File names are not unique. If the class name is available, disambiguate by class name.
-      matchesPackage(it, packageHash)
+  val originalPsiFile =
+    when {
+      packageHash != -1 ->
+        filesWithName.find {
+          // File names are not unique. If the class name is available, disambiguate by class name.
+          matchesPackage(it, packageHash)
+        }
+      filesWithName.size == 1 -> filesWithName.single()
+      else -> null
     }
-    filesWithName.size == 1 -> filesWithName.single()
-    else -> null
-  } ?: return null
+      ?: return null
 
-  val remappedLocation = if (isInlineFunctionLineNumber(originalPsiFile.virtualFile, lineNumber, module.project)) {
-    // re-map inline
-    remapInlineLocation(module, originalPsiFile as KtFile, className, lineNumber, scope)
-  }
-  else {
-    Pair(originalPsiFile as KtFile, lineNumber)
-  }
+  val remappedLocation =
+    if (isInlineFunctionLineNumber(originalPsiFile.virtualFile, lineNumber, module.project)) {
+      // re-map inline
+      remapInlineLocation(module, originalPsiFile as KtFile, className, lineNumber, scope)
+    } else {
+      Pair(originalPsiFile as KtFile, lineNumber)
+    }
 
   val remappedFile = remappedLocation.first as PsiFile
   val remappedVirtualFile = PsiUtil.getVirtualFile(remappedFile) ?: return null
@@ -143,8 +151,8 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(module: Module,
 }
 
 /**
- * Returns a [SourceLocation] that maps any inlined references. If the [SourceLocation] does not belong to an inline call, the same
- * [SourceLocation] is returned.
+ * Returns a [SourceLocation] that maps any inlined references. If the [SourceLocation] does not
+ * belong to an inline call, the same [SourceLocation] is returned.
  */
 fun remapInline(module: Module): (SourceLocation) -> SourceLocation = { sourceLocation ->
   runReadAction { sourceLocation.asSourceLocationWithVirtualFile(module) } ?: sourceLocation

@@ -58,25 +58,26 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
-/**
- * The model for pickers that handles calls to the Preview annotation in Compose.
- */
-internal class PreviewPickerPropertyModel private constructor(
+/** The model for pickers that handles calls to the Preview annotation in Compose. */
+internal class PreviewPickerPropertyModel
+private constructor(
   project: Project,
   module: Module,
   resolvedCall: ResolvedCall<*>,
   psiPropertiesProvider: PreviewPropertiesProvider,
   valuesProvider: EnumSupportValuesProvider,
   tracker: ComposePickerTracker
-) : PsiCallPropertyModel(
-  project = project,
-  module = module,
-  resolvedCall = resolvedCall,
-  psiPropertiesProvider = psiPropertiesProvider,
-  tracker = tracker
-) {
+) :
+  PsiCallPropertyModel(
+    project = project,
+    module = module,
+    resolvedCall = resolvedCall,
+    psiPropertiesProvider = psiPropertiesProvider,
+    tracker = tracker
+  ) {
 
-  override val inspectorBuilder: PsiPropertiesInspectorBuilder = PreviewPropertiesInspectorBuilder(valuesProvider)
+  override val inspectorBuilder: PsiPropertiesInspectorBuilder =
+    PreviewPropertiesInspectorBuilder(valuesProvider)
 
   private val availableDevices = getSdkDevices(module)
 
@@ -84,9 +85,11 @@ internal class PreviewPickerPropertyModel private constructor(
     when (dataId) {
       CurrentDeviceKey.name -> {
         val currentDeviceValue = properties.getOrNull("", PARAMETER_HARDWARE_DEVICE)?.value
-        val deviceFromParameterValue = currentDeviceValue?.let(availableDevices::findOrParseFromDefinition)
+        val deviceFromParameterValue =
+          currentDeviceValue?.let(availableDevices::findOrParseFromDefinition)
 
-        deviceFromParameterValue ?: ConfigurationManager.findExistingInstance(module)?.getDefaultPreviewDevice()
+        deviceFromParameterValue
+          ?: ConfigurationManager.findExistingInstance(module)?.getDefaultPreviewDevice()
       }
       AvailableDevicesKey.name -> {
         availableDevices
@@ -102,38 +105,48 @@ internal class PreviewPickerPropertyModel private constructor(
       tracker: ComposePickerTracker
     ): PreviewPickerPropertyModel {
       val annotationEntry = previewElementDefinitionPsi?.element as? KtAnnotationEntry
-      val resolvedCall = annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
+      val resolvedCall =
+        annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
       val libraryDefaultValues: Map<String, String?> =
-        (annotationEntry.toUElement() as? UAnnotation)?.findPreviewDefaultValues() ?: kotlin.run {
-          Logger.getInstance(PsiCallPropertyModel::class.java).warn("Could not obtain default values")
-          emptyMap()
-        }
-      val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(
-        module = module,
-        containingFile = previewElementDefinitionPsi.virtualFile
-      )
-      val defaultApiLevel = ConfigurationManager.findExistingInstance(module)?.defaultTarget?.version?.apiLevel?.toString()
+        (annotationEntry.toUElement() as? UAnnotation)?.findPreviewDefaultValues()
+          ?: kotlin.run {
+            Logger.getInstance(PsiCallPropertyModel::class.java)
+              .warn("Could not obtain default values")
+            emptyMap()
+          }
+      val valuesProvider =
+        PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(
+          module = module,
+          containingFile = previewElementDefinitionPsi.virtualFile
+        )
+      val defaultApiLevel =
+        ConfigurationManager.findExistingInstance(module)
+          ?.defaultTarget
+          ?.version
+          ?.apiLevel
+          ?.toString()
 
       /**
        * Contains the default values for each parameter of the Preview annotation.
        *
-       * This either makes the existing default values of the @Preview Class presentable, or changes the value based on what the value
-       * actually represents on the preview.
+       * This either makes the existing default values of the @Preview Class presentable, or changes
+       * the value based on what the value actually represents on the preview.
        */
-      val defaultValues = libraryDefaultValues.mapValues { entry ->
-        when (entry.key) {
-          PARAMETER_API_LEVEL -> entry.value?.apiToReadable() ?: defaultApiLevel
-          PARAMETER_WIDTH,
-          PARAMETER_WIDTH_DP,
-          PARAMETER_HEIGHT,
-          PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
-          PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
-          PARAMETER_UI_MODE -> UiMode.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "Unknown"
-          PARAMETER_DEVICE -> entry.value ?: "Default"
-          PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
-          else -> entry.value
+      val defaultValues =
+        libraryDefaultValues.mapValues { entry ->
+          when (entry.key) {
+            PARAMETER_API_LEVEL -> entry.value?.apiToReadable() ?: defaultApiLevel
+            PARAMETER_WIDTH, PARAMETER_WIDTH_DP, PARAMETER_HEIGHT, PARAMETER_HEIGHT_DP ->
+              entry.value?.sizeToReadable()
+            PARAMETER_BACKGROUND_COLOR ->
+              null // We ignore background color, as the default value is set by Studio
+            PARAMETER_UI_MODE ->
+              UiMode.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "Unknown"
+            PARAMETER_DEVICE -> entry.value ?: "Default"
+            PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
+            else -> entry.value
+          }
         }
-      }
 
       return PreviewPickerPropertyModel(
         project = project,
@@ -145,16 +158,20 @@ internal class PreviewPickerPropertyModel private constructor(
       )
     }
 
-    private fun String.sizeToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_DIMENSION }?.toString()
+    private fun String.sizeToReadable(): String? =
+      this.takeIf { it.toInt() != UNDEFINED_DIMENSION }?.toString()
 
-    private fun String.apiToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_API_LEVEL }?.toString()
+    private fun String.apiToReadable(): String? =
+      this.takeIf { it.toInt() != UNDEFINED_API_LEVEL }?.toString()
   }
 }
 
 /**
- * [PsiPropertiesProvider] for the Preview annotation. Provides specific implementations for known parameters of the annotation.
+ * [PsiPropertiesProvider] for the Preview annotation. Provides specific implementations for known
+ * parameters of the annotation.
  */
-private class PreviewPropertiesProvider(private val defaultValues: Map<String, String?>) : PsiPropertiesProvider {
+private class PreviewPropertiesProvider(private val defaultValues: Map<String, String?>) :
+  PsiPropertiesProvider {
   override fun invoke(
     project: Project,
     model: PsiCallPropertyModel,
@@ -162,36 +179,97 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
   ): Collection<PsiPropertyItem> {
     val properties = mutableListOf<PsiPropertyItem>()
     ReadAction.run<Throwable> {
-      resolvedCall.valueArguments.toList().sortedBy { (descriptor, _) ->
-        descriptor.index
-      }.forEach { (descriptor, resolved) ->
-        val argumentExpression = (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
-        val defaultValue = defaultValues[descriptor.name.asString()]
-        when (descriptor.name.asString()) {
-          // TODO(b/197021783): Capitalize the displayed name of the parameters, without affecting the output of the model or hardcoding the names
-          PARAMETER_FONT_SCALE -> FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
-          PARAMETER_BACKGROUND_COLOR -> ColorPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
-          PARAMETER_WIDTH,
-          PARAMETER_WIDTH_DP,
-          PARAMETER_HEIGHT,
-          PARAMETER_HEIGHT_DP ->
-            PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue, IntegerNormalValidator)
-          PARAMETER_API_LEVEL ->
-            PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue, IntegerStrictValidator)
-          PARAMETER_DEVICE -> {
-            // Note that DeviceParameterPropertyItem sets its own name to PARAMETER_HARDWARE_DEVICE
-            DeviceParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue).also {
-              properties.addAll(it.innerProperties)
+      resolvedCall
+        .valueArguments
+        .toList()
+        .sortedBy { (descriptor, _) -> descriptor.index }
+        .forEach { (descriptor, resolved) ->
+          val argumentExpression =
+            (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
+          val defaultValue = defaultValues[descriptor.name.asString()]
+          when (descriptor.name.asString()) {
+            // TODO(b/197021783): Capitalize the displayed name of the parameters, without affecting
+            // the output of the model or hardcoding the names
+            PARAMETER_FONT_SCALE ->
+              FloatPsiCallParameter(
+                project,
+                model,
+                resolvedCall,
+                descriptor,
+                argumentExpression,
+                defaultValue
+              )
+            PARAMETER_BACKGROUND_COLOR ->
+              ColorPsiCallParameter(
+                project,
+                model,
+                resolvedCall,
+                descriptor,
+                argumentExpression,
+                defaultValue
+              )
+            PARAMETER_WIDTH, PARAMETER_WIDTH_DP, PARAMETER_HEIGHT, PARAMETER_HEIGHT_DP ->
+              PsiCallParameterPropertyItem(
+                project,
+                model,
+                resolvedCall,
+                descriptor,
+                argumentExpression,
+                defaultValue,
+                IntegerNormalValidator
+              )
+            PARAMETER_API_LEVEL ->
+              PsiCallParameterPropertyItem(
+                project,
+                model,
+                resolvedCall,
+                descriptor,
+                argumentExpression,
+                defaultValue,
+                IntegerStrictValidator
+              )
+            PARAMETER_DEVICE -> {
+              // Note that DeviceParameterPropertyItem sets its own name to
+              // PARAMETER_HARDWARE_DEVICE
+              DeviceParameterPropertyItem(
+                  project,
+                  model,
+                  resolvedCall,
+                  descriptor,
+                  argumentExpression,
+                  defaultValue
+                )
+                .also { properties.addAll(it.innerProperties) }
             }
-          }
-          PARAMETER_UI_MODE -> ClassPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
-          PARAMETER_SHOW_SYSTEM_UI,
-          PARAMETER_SHOW_BACKGROUND -> BooleanPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
-          else -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
-        }.also {
-          properties.add(it)
+            PARAMETER_UI_MODE ->
+              ClassPsiCallParameter(
+                project,
+                model,
+                resolvedCall,
+                descriptor,
+                argumentExpression,
+                defaultValue
+              )
+            PARAMETER_SHOW_SYSTEM_UI, PARAMETER_SHOW_BACKGROUND ->
+              BooleanPsiCallParameter(
+                project,
+                model,
+                resolvedCall,
+                descriptor,
+                argumentExpression,
+                defaultValue
+              )
+            else ->
+              PsiCallParameterPropertyItem(
+                project,
+                model,
+                resolvedCall,
+                descriptor,
+                argumentExpression,
+                defaultValue
+              )
+          }.also { properties.add(it) }
         }
-      }
     }
     return properties
   }

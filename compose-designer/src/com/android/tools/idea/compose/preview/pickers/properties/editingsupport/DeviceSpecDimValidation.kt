@@ -24,14 +24,16 @@ import com.android.tools.adtui.model.stdui.EditingValidation
  *
  * A dimension parameter value is a float number that may have up to one decimal.
  *
- * @param strictPositive If true, [EditingErrorCategory.ERROR] will be used when the value is effectively zero (<0.5f).
+ * @param strictPositive If true, [EditingErrorCategory.ERROR] will be used when the value is
+ * effectively zero (<0.5f).
  */
 internal class DeviceSpecDimValidator(private val strictPositive: Boolean) : EditingValidation {
   override fun invoke(editedValue: String?): Pair<EditingErrorCategory, String> {
     if (editedValue == null || editedValue.isBlank()) return EDITOR_NO_ERROR
     val trimmedValue = editedValue.trim()
 
-    val validFloatResult = validateFloat(editedValue = trimmedValue, validateSuffix = false, canBeZero = !strictPositive)
+    val validFloatResult =
+      validateFloat(editedValue = trimmedValue, validateSuffix = false, canBeZero = !strictPositive)
     if (validFloatResult != EDITOR_NO_ERROR) {
       return validFloatResult
     }

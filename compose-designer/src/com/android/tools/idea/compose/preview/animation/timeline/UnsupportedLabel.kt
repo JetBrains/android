@@ -37,19 +37,28 @@ import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-private const val LEARN_MORE_LINK = "https://developer.android.com/jetpack/compose/tooling#animations"
+private const val LEARN_MORE_LINK =
+  "https://developer.android.com/jetpack/compose/tooling#animations"
 
 /** Label displayed in [TimelinePanel] for unsupported components. */
-class UnsupportedLabel(parent: JComponent, state: ElementState, private val rowMinY: Int, positionProxy: PositionProxy) :
-  TimelineElement(state, positionProxy.minimumXPosition(), positionProxy.maximumXPosition(), positionProxy) {
+class UnsupportedLabel(
+  parent: JComponent,
+  state: ElementState,
+  private val rowMinY: Int,
+  positionProxy: PositionProxy
+) :
+  TimelineElement(
+    state,
+    positionProxy.minimumXPosition(),
+    positionProxy.maximumXPosition(),
+    positionProxy
+  ) {
 
   init {
     JBUIScale.addUserScaleChangeListener { resize() }
   }
 
-  private val label = LabelPanel.findOrCreateNew(parent).apply {
-    this.location = labelPosition
-  }
+  private val label = LabelPanel.findOrCreateNew(parent).apply { this.location = labelPosition }
 
   private fun resize() {
     // Adjust label position if parent component was resized.
@@ -57,8 +66,12 @@ class UnsupportedLabel(parent: JComponent, state: ElementState, private val rowM
   }
 
   private val labelPosition: Point
-    get() = Point(positionProxy.minimumXPosition() + InspectorLayout.labelOffset - InspectorLayout.boxedLabelOffset,
-                  rowMinY + InspectorLayout.labelOffset / 2)
+    get() =
+      Point(
+        positionProxy.minimumXPosition() + InspectorLayout.labelOffset -
+          InspectorLayout.boxedLabelOffset,
+        rowMinY + InspectorLayout.labelOffset / 2
+      )
 
   /** [UnsupportedLabel] has a fixed height. */
   override var height: Int
@@ -75,28 +88,40 @@ class UnsupportedLabel(parent: JComponent, state: ElementState, private val rowM
     JBUIScale.removeUserScaleChangeListener { resize() }
   }
 
-  private class LabelPanel private constructor(parent: JComponent) : JPanel(TabularLayout("Fit,5px,Fit,5px,Fit", "Fit")) {
+  private class LabelPanel private constructor(parent: JComponent) :
+    JPanel(TabularLayout("Fit,5px,Fit,5px,Fit", "Fit")) {
 
     companion object {
       fun findOrCreateNew(parent: JComponent): LabelPanel {
-        val search = parent.components.filterIsInstance<LabelPanel>().firstOrNull { !it.isVisible }.apply { this?.isVisible = true }
+        val search =
+          parent.components.filterIsInstance<LabelPanel>().firstOrNull { !it.isVisible }.apply {
+            this?.isVisible = true
+          }
         return search ?: LabelPanel(parent).apply { parent.add(this) }
       }
     }
 
     private val mouseListener = DispatchToTargetAdapter(parent)
     private val labelBorder = 2
-    private val resizeAdapter = object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent?) {
-        val width = components.maxOf { it.width + it.location.x }
-        val height = components.maxOf { it.height + it.location.y }
-        size = Dimension(width + labelBorder * 2, height + labelBorder * 2)
+    private val resizeAdapter =
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent?) {
+          val width = components.maxOf { it.width + it.location.x }
+          val height = components.maxOf { it.height + it.location.y }
+          size = Dimension(width + labelBorder * 2, height + labelBorder * 2)
+        }
       }
-    }
 
     override fun paintComponent(g: Graphics?) {
       g?.color = InspectorColors.BOXED_LABEL_BACKGROUND
-      g?.fillRoundRect(0, 0, width, height, InspectorLayout.boxedLabelColorBoxArc.width, InspectorLayout.boxedLabelColorBoxArc.height)
+      g?.fillRoundRect(
+        0,
+        0,
+        width,
+        height,
+        InspectorLayout.boxedLabelColorBoxArc.width,
+        InspectorLayout.boxedLabelColorBoxArc.height
+      )
     }
 
     init {
@@ -111,16 +136,22 @@ class UnsupportedLabel(parent: JComponent, state: ElementState, private val rowM
 
       add(JBLabel(StudioIcons.Common.WARNING), TabularLayout.Constraint(0, 0))
 
-      add(JBLabel(message("animation.inspector.message.not.supported")).apply {
-        font = JBFont.medium()
-        foreground = InspectorColors.BOXED_LABEL_NAME_COLOR
-      }, TabularLayout.Constraint(0, 2))
+      add(
+        JBLabel(message("animation.inspector.message.not.supported")).apply {
+          font = JBFont.medium()
+          foreground = InspectorColors.BOXED_LABEL_NAME_COLOR
+        },
+        TabularLayout.Constraint(0, 2)
+      )
 
-      add(HyperlinkLabel().apply {
-        font = JBFont.medium()
-        setHyperlinkTarget(LEARN_MORE_LINK)
-        setHyperlinkText(message("animation.inspector.message.not.supported.learn.more"))
-      }, TabularLayout.Constraint(0, 4))
+      add(
+        HyperlinkLabel().apply {
+          font = JBFont.medium()
+          setHyperlinkTarget(LEARN_MORE_LINK)
+          setHyperlinkText(message("animation.inspector.message.not.supported.learn.more"))
+        },
+        TabularLayout.Constraint(0, 4)
+      )
 
       components.forEach {
         it.addMouseListener(mouseListener)
@@ -130,5 +161,4 @@ class UnsupportedLabel(parent: JComponent, state: ElementState, private val rowM
       resizeAdapter.componentResized(null)
     }
   }
-
 }

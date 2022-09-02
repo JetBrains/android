@@ -18,15 +18,16 @@ internal class FloatPsiCallParameter(
   descriptor: ValueParameterDescriptor,
   argumentExpression: KtExpression?,
   initialValue: String?
-) : PsiCallParameterPropertyItem(
-  project,
-  model,
-  resolvedCall,
-  descriptor,
-  argumentExpression,
-  initialValue,
-  FloatValidator
-) {
+) :
+  PsiCallParameterPropertyItem(
+    project,
+    model,
+    resolvedCall,
+    descriptor,
+    argumentExpression,
+    initialValue,
+    FloatValidator
+  ) {
   override var value: String?
     get() = super.value
     set(newValue) {

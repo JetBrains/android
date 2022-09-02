@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
 import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
 import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
@@ -30,9 +30,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 
-/**
- * [AnAction] that can be used to show an icon according to the Compose Preview status
- */
+/** [AnAction] that can be used to show an icon according to the Compose Preview status */
 internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?) : AnAction() {
   override fun update(e: AnActionEvent) {
     val composePreviewManager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
@@ -44,8 +42,7 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
         isEnabled = true
         icon = StudioIcons.Common.WARNING
         text = message("action.open.issues.panel.title")
-      }
-      else {
+      } else {
         isVisible = false
         isEnabled = false
         text = null
@@ -54,7 +51,9 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
   }
 
   private fun isLoading(project: Project, previewStatus: ComposePreviewManager.Status): Boolean =
-    previewStatus.interactiveMode.isStartingOrStopping() || previewStatus.isRefreshing || project.fastPreviewManager.isCompiling
+    previewStatus.interactiveMode.isStartingOrStopping() ||
+      previewStatus.isRefreshing ||
+      project.fastPreviewManager.isCompiling
 
   override fun actionPerformed(e: AnActionEvent) {
     e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true, userInvoked = true) {

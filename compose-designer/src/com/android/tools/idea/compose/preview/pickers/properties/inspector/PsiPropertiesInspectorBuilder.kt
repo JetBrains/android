@@ -24,14 +24,18 @@ import com.android.tools.property.panel.api.PropertiesTable
 internal abstract class PsiPropertiesInspectorBuilder : InspectorBuilder<PsiPropertyItem> {
   protected abstract val editorProvider: EditorProvider<PsiPropertyItem>
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<PsiPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<PsiPropertyItem>
+  ) {
     inspector.addEditorsForProperties(properties.values)
   }
 
   protected fun InspectorPanel.addEditorsForProperties(properties: Collection<PsiPropertyItem>) {
     properties.forEach {
       val modelEditor = editorProvider.createEditor(it)
-      // Set the preferred size, to avoid layout managers from changing it, which may cause popups close unexpectedly
+      // Set the preferred size, to avoid layout managers from changing it, which may cause popups
+      // close unexpectedly
       modelEditor.second.preferredSize = modelEditor.second.preferredSize
       this.addEditor(modelEditor)
     }

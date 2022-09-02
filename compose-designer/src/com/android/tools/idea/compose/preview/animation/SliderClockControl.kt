@@ -21,14 +21,10 @@ import javax.swing.JSlider
 /** Clock control for a [JSlider]. */
 class SliderClockControl(val slider: JSlider) {
 
-  /**
-   * Speed multiplier of the timeline clock. [TimelineSpeed.X_1] by default (normal speed).
-   */
+  /** Speed multiplier of the timeline clock. [TimelineSpeed.X_1] by default (normal speed). */
   var speed: TimelineSpeed = TimelineSpeed.X_1
 
-  /**
-   * Whether the timeline should play in loop or stop when reaching the end.
-   */
+  /** Whether the timeline should play in loop or stop when reaching the end. */
   var playInLoop = false
 
   fun isAtStart() = slider.value <= slider.minimum
@@ -47,9 +43,7 @@ class SliderClockControl(val slider: JSlider) {
     slider.maximum = durationMs.toInt()
   }
 
-  /**
-   * Increments the clock by the given value, taking the current [speed] into account.
-   */
+  /** Increments the clock by the given value, taking the current [speed] into account. */
   fun incrementClockBy(increment: Int) {
     slider.value += (increment * speed.speedMultiplier).toInt()
   }

@@ -22,26 +22,37 @@ import com.android.tools.idea.compose.preview.animation.TooltipInfo
 import java.awt.Graphics2D
 import java.awt.Point
 
-/**
- * Curves for all components of [AnimatedProperty].
- */
-class PropertyCurve private constructor(
+/** Curves for all components of [AnimatedProperty]. */
+class PropertyCurve
+private constructor(
   state: ElementState,
   private val property: AnimatedProperty<Double>,
   private val componentCurves: List<ComponentCurve>,
-  positionProxy: PositionProxy)
-  : ParentTimelineElement(state, componentCurves, positionProxy) {
+  positionProxy: PositionProxy
+) : ParentTimelineElement(state, componentCurves, positionProxy) {
 
   companion object {
-    fun create(state: ElementState,
-               property: AnimatedProperty<Double>,
-               rowMinY: Int,
-               colorIndex: Int,
-               positionProxy: PositionProxy): PropertyCurve {
-      val curves = property.components.mapIndexed { componentId, _ ->
-        ComponentCurve.create(state, property, componentId,
-                              rowMinY + componentId * InspectorLayout.timelineCurveRowHeightScaled(), positionProxy, colorIndex)
-      }.toList()
+    fun create(
+      state: ElementState,
+      property: AnimatedProperty<Double>,
+      rowMinY: Int,
+      colorIndex: Int,
+      positionProxy: PositionProxy
+    ): PropertyCurve {
+      val curves =
+        property
+          .components
+          .mapIndexed { componentId, _ ->
+            ComponentCurve.create(
+              state,
+              property,
+              componentId,
+              rowMinY + componentId * InspectorLayout.timelineCurveRowHeightScaled(),
+              positionProxy,
+              colorIndex
+            )
+          }
+          .toList()
       return PropertyCurve(state, property, curves, positionProxy)
     }
   }
@@ -52,15 +63,16 @@ class PropertyCurve private constructor(
       boxedLabels.forEach { it.timelineUnit = value }
     }
 
-  private var boxedLabels: List<BoxedLabel> = componentCurves.mapIndexed { index, curve ->
-    BoxedLabel(index, property.grouped) { curve.boxedLabelPosition }
-  }
+  private var boxedLabels: List<BoxedLabel> =
+    componentCurves.mapIndexed { index, curve ->
+      BoxedLabel(index, property.grouped) { curve.boxedLabelPosition }
+    }
 
   override fun paint(g: Graphics2D) {
     componentCurves.forEach { it.paint(g) }
     boxedLabels.forEach { it.paint(g) }
   }
 
-  override fun getTooltip(point: Point): TooltipInfo? = boxedLabels.firstNotNullOfOrNull { it.getTooltip(point) }
-
+  override fun getTooltip(point: Point): TooltipInfo? =
+    boxedLabels.firstNotNullOfOrNull { it.getTooltip(point) }
 }

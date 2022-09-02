@@ -19,26 +19,35 @@ import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.Transition
 
-/**
- * Curves for all properties of [Transition].
- */
-class TransitionCurve private constructor(state : ElementState, private val propertyCurves: List<PropertyCurve>, positionProxy: PositionProxy) :
-  ParentTimelineElement(state, propertyCurves, positionProxy) {
+/** Curves for all properties of [Transition]. */
+class TransitionCurve
+private constructor(
+  state: ElementState,
+  private val propertyCurves: List<PropertyCurve>,
+  positionProxy: PositionProxy
+) : ParentTimelineElement(state, propertyCurves, positionProxy) {
 
   companion object {
-    fun create(state: ElementState, transition: Transition,
-               rowMinY: Int,
-               positionProxy: PositionProxy): TransitionCurve {
+    fun create(
+      state: ElementState,
+      transition: Transition,
+      rowMinY: Int,
+      positionProxy: PositionProxy
+    ): TransitionCurve {
       var currentMinY = rowMinY
-      val curves = transition.properties.values.filterNotNull().mapIndexed { index, it ->
-        val curve = PropertyCurve.create(state, it, currentMinY, index, positionProxy)
-        currentMinY += curve.heightScaled()
-        curve
-      }
+      val curves =
+        transition.properties.values.filterNotNull().mapIndexed { index, it ->
+          val curve = PropertyCurve.create(state, it, currentMinY, index, positionProxy)
+          currentMinY += curve.heightScaled()
+          curve
+        }
       return TransitionCurve(state, curves, positionProxy)
     }
 
-    fun expectedHeight(transition: Transition) =  transition.properties.values.filterNotNull().sumOf { it.components.size * InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT }
+    fun expectedHeight(transition: Transition) =
+      transition.properties.values.filterNotNull().sumOf {
+        it.components.size * InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT
+      }
   }
 
   var timelineUnits: List<ComposeUnit.TimelineUnit?> = listOf()

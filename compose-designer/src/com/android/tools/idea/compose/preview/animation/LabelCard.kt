@@ -27,13 +27,14 @@ import javax.swing.border.MatteBorder
 class LabelCard(override val state: ElementState) : Card, JPanel(TabularLayout("*", "30px")) {
 
   // ⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽
-  //⎹    transitionName                          ⎹ ⬅ component
+  // ⎹    transitionName                          ⎹ ⬅ component
   //  ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅
 
-  private val firstRow = JPanel(TabularLayout("30px,*,Fit", "30px")).apply {
-    border = JBUI.Borders.empty(0, 0, 0, 8)
-    add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
-  }
+  private val firstRow =
+    JPanel(TabularLayout("30px,*,Fit", "30px")).apply {
+      border = JBUI.Borders.empty(0, 0, 0, 8)
+      add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
+    }
 
   override val component: JPanel = this
 

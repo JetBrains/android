@@ -51,6 +51,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
+import java.awt.Dimension
+import java.util.Objects
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.reflect.full.functions
+import kotlin.reflect.jvm.isAccessible
 import org.jetbrains.android.sdk.CompatibilityRenderTarget
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.android.uipreview.ModuleRenderContext
@@ -61,39 +67,28 @@ import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
-import java.awt.Dimension
-import java.util.Objects
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.reflect.full.functions
-import kotlin.reflect.jvm.isAccessible
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
 
 // Max allowed API
-@VisibleForTesting
-const val MAX_WIDTH = 2000
+@VisibleForTesting const val MAX_WIDTH = 2000
 
-@VisibleForTesting
-const val MAX_HEIGHT = 2000
+@VisibleForTesting const val MAX_HEIGHT = 2000
 
-/**
- * Default background to be used by the rendered elements when showBackground is set to true.
- */
+/** Default background to be used by the rendered elements when showBackground is set to true. */
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
 
 /**
- * Method name to be used when we fail to load a PreviewParameterProvider. In this case, we should create a fake [PreviewElement] and pass
- * this fake method + the PreviewParameterProvider as the composable FQN. `ComposeRenderErrorContributor` should handle the resulting
+ * Method name to be used when we fail to load a PreviewParameterProvider. In this case, we should
+ * create a fake [PreviewElement] and pass this fake method + the PreviewParameterProvider as the
+ * composable FQN. `ComposeRenderErrorContributor` should handle the resulting
  * [NoSuchMethodException] that will be thrown.
  */
 @VisibleForTesting
 const val FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD = "${'$'}FailToLoadPreviewParameterProvider"
 
-/**
- * [FakeLightVirtualFile] for composable functions.
- */
+/** [FakeLightVirtualFile] for composable functions. */
 internal class ComposeAdapterLightVirtualFile(
   name: String,
   content: String,
@@ -101,25 +96,28 @@ internal class ComposeAdapterLightVirtualFile(
 ) : FakeLightVirtualFile("compose-$name", content, originFileProvider)
 
 /**
- * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
- * is converted to `wrap_content`. Otherwise, the value is returned concatenated with `dp`.
+ * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the
+ * dimension is [UNDEFINED_DIMENSION], the value is converted to `wrap_content`. Otherwise, the
+ * value is returned concatenated with `dp`.
  * @param dimension the dimension in dp or [UNDEFINED_DIMENSION]
  * @param defaultValue the value to be used when the given dimension is [UNDEFINED_DIMENSION]
  */
-fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT) = if (dimension == UNDEFINED_DIMENSION) {
-  defaultValue
-}
-else {
-  "${dimension}dp"
-}
+fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT) =
+  if (dimension == UNDEFINED_DIMENSION) {
+    defaultValue
+  } else {
+    "${dimension}dp"
+  }
 
-private fun KtClass.hasDefaultConstructor() = allConstructors.isEmpty().or(allConstructors.any { it.getValueParameters().isEmpty() })
+private fun KtClass.hasDefaultConstructor() =
+  allConstructors.isEmpty().or(allConstructors.any { it.getValueParameters().isEmpty() })
 
 /**
- * Returns whether a `@Composable` [COMPOSE_PREVIEW_ANNOTATION_FQN] is defined in a valid location, which can be either:
+ * Returns whether a `@Composable` [COMPOSE_PREVIEW_ANNOTATION_FQN] is defined in a valid location,
+ * which can be either:
  * 1. Top-level functions
- * 2. Non-nested functions defined in top-level classes that have a default (no parameter) constructor
- *
+ * 2. Non-nested functions defined in top-level classes that have a default (no parameter)
+ * constructor
  */
 internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
   if (isTopLevel) {
@@ -130,7 +128,8 @@ internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
     // This is not a nested method
     val containingClass = containingClass()
     if (containingClass != null) {
-      // We allow functions that are not top level defined in top level classes that have a default (no parameter) constructor.
+      // We allow functions that are not top level defined in top level classes that have a default
+      // (no parameter) constructor.
       if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
         return true
       }
@@ -139,23 +138,27 @@ internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
   return false
 }
 
-internal fun KtNamedFunction.isInTestFile() = isTestFile(this.project, this.containingFile.virtualFile)
+internal fun KtNamedFunction.isInTestFile() =
+  isTestFile(this.project, this.containingFile.virtualFile)
 
-internal fun KtNamedFunction.isInUnitTestFile() = isUnitTestFile(this.project, this.containingFile.virtualFile)
+internal fun KtNamedFunction.isInUnitTestFile() =
+  isUnitTestFile(this.project, this.containingFile.virtualFile)
 
 /**
- *  Whether this function is not in a test file and is properly annotated
- *  with [COMPOSE_PREVIEW_ANNOTATION_FQN], considering indirect annotations when
- *  the Multipreview flag is enabled, and validating the location of Previews
+ * Whether this function is not in a test file and is properly annotated with
+ * [COMPOSE_PREVIEW_ANNOTATION_FQN], considering indirect annotations when the Multipreview flag is
+ * enabled, and validating the location of Previews
  *
- *  @see [isValidPreviewLocation]
+ * @see [isValidPreviewLocation]
  */
 fun KtNamedFunction.isValidComposePreview() =
-  !isInTestFile() && isValidPreviewLocation() && this.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true
+  !isInTestFile() &&
+    isValidPreviewLocation() &&
+    this.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true
 
 /**
- * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,
- * this will return null.
+ * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is
+ * null, this will return null.
  */
 private fun Int?.truncate(min: Int, max: Int): Int? {
   if (this == null) {
@@ -172,47 +175,48 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
 /** Empty device spec when the user has not specified any. */
 private const val NO_DEVICE_SPEC = ""
 
-/**
- * Returns if the device has any state with [ScreenRound.ROUND] configuration.
- */
+/** Returns if the device has any state with [ScreenRound.ROUND] configuration. */
 private fun Device.hasRoundFrame(): Boolean =
   allStates.any { it.hardware.screen.screenRound == ScreenRound.ROUND }
 
-/**
- * Returns the same device without any round screen frames.
- */
-private fun Device.withoutRoundScreenFrame(): Device = if (hasRoundFrame()) {
-  Device.Builder(this).build().also { newDevice ->
-    newDevice.allStates
-      .filter { it.hardware.screen.screenRound == ScreenRound.ROUND }
-      .onEach { it.hardware.screen.screenRound = ScreenRound.NOTROUND }
-  }
-}
-else this
+/** Returns the same device without any round screen frames. */
+private fun Device.withoutRoundScreenFrame(): Device =
+  if (hasRoundFrame()) {
+    Device.Builder(this).build().also { newDevice ->
+      newDevice.allStates.filter { it.hardware.screen.screenRound == ScreenRound.ROUND }.onEach {
+        it.hardware.screen.screenRound = ScreenRound.NOTROUND
+      }
+    }
+  } else this
 
 /**
  * Applies the [PreviewConfiguration] to the given [Configuration].
  *
  * [highestApiTarget] should return the highest api target available for a given [Configuration].
  * [devicesProvider] should return all the devices available for a [Configuration].
- * [defaultDeviceProvider] should return which device to use for a [Configuration] if the device specified in the
- * [PreviewConfiguration.deviceSpec] is not available or does not exist in the devices returned by [devicesProvider].
+ * [defaultDeviceProvider] should return which device to use for a [Configuration] if the device
+ * specified in the [PreviewConfiguration.deviceSpec] is not available or does not exist in the
+ * devices returned by [devicesProvider].
  *
- * If [useDeviceFrame] is false, the device frame configuration will be not used. For example, if the frame is round, this will be ignored
- * and a regular square frame will be applied. This can be used when the `@Preview` element is not displaying the device decorations so the
- * device frame sizes and ratios would not match.
+ * If [useDeviceFrame] is false, the device frame configuration will be not used. For example, if
+ * the frame is round, this will be ignored and a regular square frame will be applied. This can be
+ * used when the `@Preview` element is not displaying the device decorations so the device frame
+ * sizes and ratios would not match.
  *
- * If [customSize] is not null, the dimensions will be forced
- * in the resulting configuration.
+ * If [customSize] is not null, the dimensions will be forced in the resulting configuration.
  */
-private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
-                                         highestApiTarget: (Configuration) -> IAndroidTarget?,
-                                         devicesProvider: (Configuration) -> Collection<Device>,
-                                         defaultDeviceProvider: (Configuration) -> Device?,
-                                         @AndroidDpCoordinate customSize: Dimension? = null,
-                                         useDeviceFrame: Boolean = false) {
+private fun PreviewConfiguration.applyTo(
+  renderConfiguration: Configuration,
+  highestApiTarget: (Configuration) -> IAndroidTarget?,
+  devicesProvider: (Configuration) -> Collection<Device>,
+  defaultDeviceProvider: (Configuration) -> Device?,
+  @AndroidDpCoordinate customSize: Dimension? = null,
+  useDeviceFrame: Boolean = false
+) {
   fun updateRenderConfigurationTargetIfChanged(newTarget: CompatibilityRenderTarget) {
-    if ((renderConfiguration.target as? CompatibilityRenderTarget)?.hashString() != newTarget.hashString()) {
+    if ((renderConfiguration.target as? CompatibilityRenderTarget)?.hashString() !=
+        newTarget.hashString()
+    ) {
       renderConfiguration.target = newTarget
     }
   }
@@ -222,11 +226,12 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
     highestApiTarget(renderConfiguration)?.let {
       updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, it))
     }
-  }
-  else {
+  } else {
     // Use the highest available one when not defined.
     highestApiTarget(renderConfiguration)?.let {
-      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, it.version.apiLevel, it))
+      updateRenderConfigurationTargetIfChanged(
+        CompatibilityRenderTarget(it, it.version.apiLevel, it)
+      )
     }
   }
 
@@ -239,123 +244,153 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
   renderConfiguration.fontScale = max(0f, fontScale)
 
   val allDevices = devicesProvider(renderConfiguration)
-  val device = allDevices.findOrParseFromDefinition(deviceSpec) ?: defaultDeviceProvider(renderConfiguration)
+  val device =
+    allDevices.findOrParseFromDefinition(deviceSpec) ?: defaultDeviceProvider(renderConfiguration)
   if (device != null) {
     // Ensure the device is reset
     renderConfiguration.setEffectiveDevice(null, null)
-    // If the user is not using the device frame, we never want to use the round frame around. See b/215362733
+    // If the user is not using the device frame, we never want to use the round frame around. See
+    // b/215362733
     renderConfiguration.setDevice(device, false)
   }
 
   customSize?.let {
-    // When the device frame is not being displayed and the user has given us some specific sizes, we want to apply those to the
+    // When the device frame is not being displayed and the user has given us some specific sizes,
+    // we want to apply those to the
     // device itself.
     // This is to match the intuition that those sizes always determine the size of the composable.
     renderConfiguration.device?.let { device ->
-      // The PX are converted to DP by multiplying it by the dpiFactor that is the ratio of the current dpi vs the default dpi (160).
+      // The PX are converted to DP by multiplying it by the dpiFactor that is the ratio of the
+      // current dpi vs the default dpi (160).
       val dpiFactor = renderConfiguration.density.dpiValue / Density.DEFAULT_DENSITY
-      updateConfigurationScreenSize(renderConfiguration,
-                                    it.width * dpiFactor,
-                                    it.height * dpiFactor, device)
+      updateConfigurationScreenSize(
+        renderConfiguration,
+        it.width * dpiFactor,
+        it.height * dpiFactor,
+        device
+      )
     }
   }
   renderConfiguration.finishBulkEditing()
 }
 
 /**
- * If specified in the [ComposePreviewElement], this method will return the `widthDp` and `heightDp` dimensions as a [Pair] as long as
- * the device frame is disabled (i.e. `showDecorations` is false).
+ * If specified in the [ComposePreviewElement], this method will return the `widthDp` and `heightDp`
+ * dimensions as a [Pair] as long as the device frame is disabled (i.e. `showDecorations` is false).
  */
 @AndroidDpCoordinate
 private fun ComposePreviewElement.getCustomDeviceSize(): Dimension? =
   if (!displaySettings.showDecoration && configuration.width != -1 && configuration.height != -1) {
     Dimension(configuration.width, configuration.height)
-  }
-  else null
+  } else null
 
-/**
- * Applies the [ComposePreviewElement] settings to the given [renderConfiguration].
- */
+/** Applies the [ComposePreviewElement] settings to the given [renderConfiguration]. */
 fun ComposePreviewElement.applyTo(renderConfiguration: Configuration) {
-  configuration.applyTo(renderConfiguration,
-                        { it.configurationManager.highestApiTarget },
-                        { it.configurationManager.devices },
-                        { it.configurationManager.getDefaultPreviewDevice() },
-                        getCustomDeviceSize(),
-                        this.displaySettings.showDecoration)
+  configuration.applyTo(
+    renderConfiguration,
+    { it.configurationManager.highestApiTarget },
+    { it.configurationManager.devices },
+    { it.configurationManager.getDefaultPreviewDevice() },
+    getCustomDeviceSize(),
+    this.displaySettings.showDecoration
+  )
 }
 
 @TestOnly
-fun PreviewConfiguration.applyConfigurationForTest(renderConfiguration: Configuration,
-                                                   highestApiTarget: (Configuration) -> IAndroidTarget?,
-                                                   devicesProvider: (Configuration) -> Collection<Device>,
-                                                   defaultDeviceProvider: (Configuration) -> Device?,
-                                                   useDeviceFrame: Boolean = false) {
-  applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider, null, useDeviceFrame)
+fun PreviewConfiguration.applyConfigurationForTest(
+  renderConfiguration: Configuration,
+  highestApiTarget: (Configuration) -> IAndroidTarget?,
+  devicesProvider: (Configuration) -> Collection<Device>,
+  defaultDeviceProvider: (Configuration) -> Device?,
+  useDeviceFrame: Boolean = false
+) {
+  applyTo(
+    renderConfiguration,
+    highestApiTarget,
+    devicesProvider,
+    defaultDeviceProvider,
+    null,
+    useDeviceFrame
+  )
 }
 
 @TestOnly
-fun ComposePreviewElement.applyConfigurationForTest(renderConfiguration: Configuration,
-                                                    highestApiTarget: (Configuration) -> IAndroidTarget?,
-                                                    devicesProvider: (Configuration) -> Collection<Device>,
-                                                    defaultDeviceProvider: (Configuration) -> Device?) {
-  configuration.applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider, getCustomDeviceSize())
+fun ComposePreviewElement.applyConfigurationForTest(
+  renderConfiguration: Configuration,
+  highestApiTarget: (Configuration) -> IAndroidTarget?,
+  devicesProvider: (Configuration) -> Collection<Device>,
+  defaultDeviceProvider: (Configuration) -> Device?
+) {
+  configuration.applyTo(
+    renderConfiguration,
+    highestApiTarget,
+    devicesProvider,
+    defaultDeviceProvider,
+    getCustomDeviceSize()
+  )
 }
 
-/**
- * Contains settings for rendering.
- */
-data class PreviewConfiguration internal constructor(val apiLevel: Int,
-                                                     val theme: String?,
-                                                     val width: Int,
-                                                     val height: Int,
-                                                     val locale: String,
-                                                     val fontScale: Float,
-                                                     val uiMode: Int,
-                                                     val deviceSpec: String) {
+/** Contains settings for rendering. */
+data class PreviewConfiguration
+internal constructor(
+  val apiLevel: Int,
+  val theme: String?,
+  val width: Int,
+  val height: Int,
+  val locale: String,
+  val fontScale: Float,
+  val uiMode: Int,
+  val deviceSpec: String
+) {
   companion object {
     /**
-     * Cleans the given values and creates a PreviewConfiguration. The cleaning ensures that the user inputted value are within
-     * reasonable values before the PreviewConfiguration is created
+     * Cleans the given values and creates a PreviewConfiguration. The cleaning ensures that the
+     * user inputted value are within reasonable values before the PreviewConfiguration is created
      */
     @JvmStatic
-    fun cleanAndGet(apiLevel: Int? = null,
-                    theme: String? = null,
-                    width: Int? = null,
-                    height: Int? = null,
-                    locale: String? = null,
-                    fontScale: Float? = null,
-                    uiMode: Int? = null,
-                    device: String? = null): PreviewConfiguration =
-      // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
+    fun cleanAndGet(
+      apiLevel: Int? = null,
+      theme: String? = null,
+      width: Int? = null,
+      height: Int? = null,
+      locale: String? = null,
+      fontScale: Float? = null,
+      uiMode: Int? = null,
+      device: String? = null
+    ): PreviewConfiguration =
+      // We only limit the sizes. We do not limit the API because using an incorrect API level will
+      // throw an exception that
       // we will handle and any other error.
-      PreviewConfiguration(apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
-                           theme = theme,
-                           width = width.truncate(1, MAX_WIDTH) ?: UNDEFINED_DIMENSION,
-                           height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
-                           locale = locale ?: "",
-                           fontScale = fontScale ?: 1f,
-                           uiMode = uiMode ?: 0,
-                           deviceSpec = device ?: NO_DEVICE_SPEC)
+      PreviewConfiguration(
+        apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
+        theme = theme,
+        width = width.truncate(1, MAX_WIDTH) ?: UNDEFINED_DIMENSION,
+        height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
+        locale = locale ?: "",
+        fontScale = fontScale ?: 1f,
+        uiMode = uiMode ?: 0,
+        deviceSpec = device ?: NO_DEVICE_SPEC
+      )
   }
 }
 
 /**
- * Definition of a preview parameter provider. This is defined by annotating parameters with `PreviewParameter`
+ * Definition of a preview parameter provider. This is defined by annotating parameters with
+ * `PreviewParameter`
  *
  * @param name the name of the parameter using the provider
  * @param index the parameter position
  * @param providerClassFqn the class name for the provider
  * @param limit the limit passed to the annotation
  */
-data class PreviewParameter(val name: String,
-                            val index: Int,
-                            val providerClassFqn: String,
-                            val limit: Int)
+data class PreviewParameter(
+  val name: String,
+  val index: Int,
+  val providerClassFqn: String,
+  val limit: Int
+)
 
-/**
- * Definition of a Composable preview element
- */
+/** Definition of a Composable preview element */
 interface ComposePreviewElement : PreviewElement {
   /** Fully Qualified Name of the composable method */
   val composableMethodFqn: String
@@ -364,48 +399,60 @@ interface ComposePreviewElement : PreviewElement {
   val configuration: PreviewConfiguration
 }
 /**
- * Definition of a preview element template. This element can dynamically spawn one or more [ComposePreviewElementInstance]s.
+ * Definition of a preview element template. This element can dynamically spawn one or more
+ * [ComposePreviewElementInstance]s.
  */
 interface ComposePreviewElementTemplate : ComposePreviewElement {
   fun instances(): Sequence<ComposePreviewElementInstance>
 }
 
-/**
- * Definition of a preview element
- */
+/** Definition of a preview element */
 abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSerializable {
-  /**
-   * Unique identifier that can be used for filtering.
-   */
+  /** Unique identifier that can be used for filtering. */
   abstract val instanceId: String
 
   /**
-   * Whether the Composable being previewed contains animations. If true, the Preview should allow opening the animation inspector.
+   * Whether the Composable being previewed contains animations. If true, the Preview should allow
+   * opening the animation inspector.
    */
   var hasAnimations = false
 
   override fun toPreviewXml(): PreviewXmlBuilder {
     val matchParent = displaySettings.showDecoration
-    val width = dimensionToString(configuration.width, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
-    val height = dimensionToString(configuration.height, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
-    val xmlBuilder = PreviewXmlBuilder(COMPOSE_VIEW_ADAPTER_FQN)
-      .androidAttribute(ATTR_LAYOUT_WIDTH, width)
-      .androidAttribute(ATTR_LAYOUT_HEIGHT, height)
-      // Compose will fail if the top parent is 0,0 in size so avoid that case by setting a min 1x1 parent (b/169230467).
-      .androidAttribute(ATTR_MIN_WIDTH, "1px")
-      .androidAttribute(ATTR_MIN_HEIGHT, "1px")
-      // [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call
-      .toolsAttribute("composableName", composableMethodFqn)
+    val width =
+      dimensionToString(
+        configuration.width,
+        if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT
+      )
+    val height =
+      dimensionToString(
+        configuration.height,
+        if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT
+      )
+    val xmlBuilder =
+      PreviewXmlBuilder(COMPOSE_VIEW_ADAPTER_FQN)
+        .androidAttribute(ATTR_LAYOUT_WIDTH, width)
+        .androidAttribute(ATTR_LAYOUT_HEIGHT, height)
+        // Compose will fail if the top parent is 0,0 in size so avoid that case by setting a min
+        // 1x1 parent (b/169230467).
+        .androidAttribute(ATTR_MIN_WIDTH, "1px")
+        .androidAttribute(ATTR_MIN_HEIGHT, "1px")
+        // [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call
+        .toolsAttribute("composableName", composableMethodFqn)
 
     if (displaySettings.showBackground) {
-      xmlBuilder.androidAttribute(ATTR_BACKGROUND, displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND)
+      xmlBuilder.androidAttribute(
+        ATTR_BACKGROUND,
+        displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND
+      )
     }
 
     return xmlBuilder
   }
 
   final override fun equals(other: Any?): Boolean {
-    // PreviewElement objects can be repeated in the same element. They are considered equals only if they annotate exactly the same
+    // PreviewElement objects can be repeated in the same element. They are considered equals only
+    // if they annotate exactly the same
     // element with the same configuration.
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -413,9 +460,9 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
     other as ComposePreviewElementInstance
 
     return composableMethodFqn == other.composableMethodFqn &&
-           instanceId == other.instanceId &&
-           displaySettings == other.displaySettings &&
-           configuration == other.configuration
+      instanceId == other.instanceId &&
+      displaySettings == other.displaySettings &&
+      configuration == other.configuration
   }
 
   override fun hashCode(): Int =
@@ -425,23 +472,28 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
 /**
  * Definition of a single preview element instance. This represents a `Preview` with no parameters.
  */
-class SingleComposePreviewElementInstance(override val composableMethodFqn: String,
-                                          override val displaySettings: PreviewDisplaySettings,
-                                          override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-                                          override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                                          override val configuration: PreviewConfiguration) : ComposePreviewElementInstance() {
+class SingleComposePreviewElementInstance(
+  override val composableMethodFqn: String,
+  override val displaySettings: PreviewDisplaySettings,
+  override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
+  override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+  override val configuration: PreviewConfiguration
+) : ComposePreviewElementInstance() {
   override val instanceId: String = composableMethodFqn
 
   companion object {
     @JvmStatic
     @TestOnly
-    fun forTesting(composableMethodFqn: String,
-                   displayName: String = "", groupName: String? = null,
-                   showDecorations: Boolean = false,
-                   showBackground: Boolean = false,
-                   backgroundColor: String? = null,
-                   displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
-                   configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet()) =
+    fun forTesting(
+      composableMethodFqn: String,
+      displayName: String = "",
+      groupName: String? = null,
+      showDecorations: Boolean = false,
+      showBackground: Boolean = false,
+      backgroundColor: String? = null,
+      displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
+      configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet()
+    ) =
       SingleComposePreviewElementInstance(
         composableMethodFqn,
         PreviewDisplaySettings(
@@ -450,26 +502,31 @@ class SingleComposePreviewElementInstance(override val composableMethodFqn: Stri
           showDecorations,
           showBackground,
           backgroundColor,
-          displayPositioning),
+          displayPositioning
+        ),
         null,
         null,
-        configuration)
+        configuration
+      )
   }
 }
 
-private class ParametrizedComposePreviewElementInstance(private val basePreviewElement: ComposePreviewElement,
-                                                        parameterName: String,
-                                                        val providerClassFqn: String,
-                                                        val index: Int) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
+private class ParametrizedComposePreviewElementInstance(
+  private val basePreviewElement: ComposePreviewElement,
+  parameterName: String,
+  val providerClassFqn: String,
+  val index: Int
+) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
   override val instanceId: String = "$composableMethodFqn#$parameterName$index"
 
-  override val displaySettings: PreviewDisplaySettings = PreviewDisplaySettings(
-    "${basePreviewElement.displaySettings.name} ($parameterName $index)",
-    basePreviewElement.displaySettings.group,
-    basePreviewElement.displaySettings.showDecoration,
-    basePreviewElement.displaySettings.showBackground,
-    basePreviewElement.displaySettings.backgroundColor
-  )
+  override val displaySettings: PreviewDisplaySettings =
+    PreviewDisplaySettings(
+      "${basePreviewElement.displaySettings.name} ($parameterName $index)",
+      basePreviewElement.displaySettings.group,
+      basePreviewElement.displaySettings.showDecoration,
+      basePreviewElement.displaySettings.showBackground,
+      basePreviewElement.displaySettings.backgroundColor
+    )
 
   override fun toPreviewXml(): PreviewXmlBuilder {
     return super.toPreviewXml()
@@ -481,75 +538,104 @@ private class ParametrizedComposePreviewElementInstance(private val basePreviewE
 }
 
 /**
- * If the [ComposePreviewElement] is a [ParametrizedComposePreviewElementInstance], returns the provider class FQN and the target value index.
+ * If the [ComposePreviewElement] is a [ParametrizedComposePreviewElementInstance], returns the
+ * provider class FQN and the target value index.
  */
 internal fun ComposePreviewElement.previewProviderClassAndIndex() =
   if (this is ParametrizedComposePreviewElementInstance) Pair(providerClassFqn, index) else null
 
 /**
- * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on parameters.
+ * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on
+ * parameters.
  */
-class ParametrizedComposePreviewElementTemplate(private val basePreviewElement: ComposePreviewElement,
-                                                val parameterProviders: Collection<PreviewParameter>) : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
+class ParametrizedComposePreviewElementTemplate(
+  private val basePreviewElement: ComposePreviewElement,
+  val parameterProviders: Collection<PreviewParameter>
+) : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
   /**
-   * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The will be [ComposePreviewElement] populated with data from the parameter
-   * providers.
+   * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The will be
+   * [ComposePreviewElement] populated with data from the parameter providers.
    */
   override fun instances(): Sequence<ComposePreviewElementInstance> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
     val file = basePreviewElement.containingFile ?: return sequenceOf()
     if (parameterProviders.size > 1) {
-      Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java).warn(
-        "Currently only one ParameterProvider is supported, rest will be ignored")
+      Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
+        .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
     val moduleRenderContext = ModuleRenderContext.forFile(file)
-    val classLoader = ModuleClassLoaderManager.get().getPrivate(ParametrizedComposePreviewElementTemplate::class.java.classLoader,
-                                                                moduleRenderContext, this)
-    try {
-      return parameterProviders.map { previewParameter ->
-        try {
-          val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn).kotlin
-          val parameterProviderSizeMethod = parameterProviderClass
-            .functions
-            .single { "getCount" == it.name }
-            .also { it.isAccessible = true }
-          val parameterProvider = parameterProviderClass.constructors
-            .single { it.parameters.isEmpty() } // Find the default constructor
-            .also { it.isAccessible = true }
-            .call()
-          val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), previewParameter.limit)
-
-          return (0 until providerCount).map { index ->
-            ParametrizedComposePreviewElementInstance(basePreviewElement = basePreviewElement,
-                                                      parameterName = previewParameter.name,
-                                                      index = index,
-                                                      providerClassFqn = previewParameter.providerClassFqn)
-          }.asSequence()
-        }
-        catch (e: Throwable) {
-          Logger.getInstance(
-            ParametrizedComposePreviewElementTemplate::class.java
-          ).warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider", e)
-        }
-        // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor should handle the exception that will be
-        // thrown for this method not being found.
-        // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
-        val fakeElementFqn = "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
-        return sequenceOf(
-          SingleComposePreviewElementInstance(fakeElementFqn,
-                                              PreviewDisplaySettings(
-                                                basePreviewElement.displaySettings.name, null, false, false, null
-                                              ),
-                                              null,
-                                              null,
-                                              PreviewConfiguration.cleanAndGet()
-          )
+    val classLoader =
+      ModuleClassLoaderManager.get()
+        .getPrivate(
+          ParametrizedComposePreviewElementTemplate::class.java.classLoader,
+          moduleRenderContext,
+          this
         )
-      }.first()
-    }
-    finally {
+    try {
+      return parameterProviders
+        .map { previewParameter ->
+          try {
+            val parameterProviderClass =
+              classLoader.loadClass(previewParameter.providerClassFqn).kotlin
+            val parameterProviderSizeMethod =
+              parameterProviderClass.functions.single { "getCount" == it.name }.also {
+                it.isAccessible = true
+              }
+            val parameterProvider =
+              parameterProviderClass
+                .constructors
+                .single { it.parameters.isEmpty() } // Find the default constructor
+                .also { it.isAccessible = true }
+                .call()
+            val providerCount =
+              min(
+                (parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0),
+                previewParameter.limit
+              )
+
+            return (0 until providerCount)
+              .map { index ->
+                ParametrizedComposePreviewElementInstance(
+                  basePreviewElement = basePreviewElement,
+                  parameterName = previewParameter.name,
+                  index = index,
+                  providerClassFqn = previewParameter.providerClassFqn
+                )
+              }
+              .asSequence()
+          } catch (e: Throwable) {
+            Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
+              .warn(
+                "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider",
+                e
+              )
+          }
+          // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor
+          // should handle the exception that will be
+          // thrown for this method not being found.
+          // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
+          val fakeElementFqn =
+            "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
+          return sequenceOf(
+            SingleComposePreviewElementInstance(
+              fakeElementFqn,
+              PreviewDisplaySettings(
+                basePreviewElement.displaySettings.name,
+                null,
+                false,
+                false,
+                null
+              ),
+              null,
+              null,
+              PreviewConfiguration.cleanAndGet()
+            )
+          )
+        }
+        .first()
+    } finally {
       ModuleClassLoaderManager.get().release(classLoader, this)
     }
   }
@@ -561,26 +647,27 @@ class ParametrizedComposePreviewElementTemplate(private val basePreviewElement: 
     other as ParametrizedComposePreviewElementTemplate
 
     return basePreviewElement == other.basePreviewElement &&
-           parameterProviders == other.parameterProviders
+      parameterProviders == other.parameterProviders
   }
 
-  override fun hashCode(): Int =
-    Objects.hash(basePreviewElement, parameterProviders)
+  override fun hashCode(): Int = Objects.hash(basePreviewElement, parameterProviders)
 }
 
 /**
- * A [PreviewElementProvider] that instantiates any [ComposePreviewElementTemplate]s in the [delegate].
+ * A [PreviewElementProvider] that instantiates any [ComposePreviewElementTemplate]s in the
+ * [delegate].
  */
-class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElementProvider<ComposePreviewElement>)
-  : PreviewElementProvider<ComposePreviewElementInstance> {
+class PreviewElementTemplateInstanceProvider(
+  private val delegate: PreviewElementProvider<ComposePreviewElement>
+) : PreviewElementProvider<ComposePreviewElementInstance> {
   override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
     delegate.previewElements().flatMap {
       when (it) {
         is ComposePreviewElementTemplate -> it.instances()
         is ComposePreviewElementInstance -> sequenceOf(it)
         else -> {
-          Logger.getInstance(PreviewElementTemplateInstanceProvider::class.java).warn(
-            "Class was not instance or template ${it::class.qualifiedName}")
+          Logger.getInstance(PreviewElementTemplateInstanceProvider::class.java)
+            .warn("Class was not instance or template ${it::class.qualifiedName}")
           emptySequence()
         }
       }
@@ -592,14 +679,15 @@ class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElemen
  */
 interface FilePreviewElementFinder {
   /**
-   * Returns whether this Preview element finder might apply to the given Kotlin file.
-   * The main difference with [findPreviewMethods] is that method might be called on Dumb mode so it must not use any indexes.
+   * Returns whether this Preview element finder might apply to the given Kotlin file. The main
+   * difference with [findPreviewMethods] is that method might be called on Dumb mode so it must not
+   * use any indexes.
    */
   fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean
 
   /**
-   * Returns if this file contains `@Composable` methods. This is similar to [hasPreviewMethods] but allows deciding
-   * if this file might allow previews to be added.
+   * Returns if this file contains `@Composable` methods. This is similar to [hasPreviewMethods] but
+   * allows deciding if this file might allow previews to be added.
    */
   fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean
 
@@ -608,5 +696,8 @@ interface FilePreviewElementFinder {
    *
    * This method always runs on smart mode.
    */
-  suspend fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<ComposePreviewElement>
+  suspend fun findPreviewMethods(
+    project: Project,
+    vFile: VirtualFile
+  ): Collection<ComposePreviewElement>
 }

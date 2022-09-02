@@ -25,19 +25,17 @@ import com.android.tools.property.panel.api.PropertiesView
 
 private const val PSI_PROPERTIES_VIEW_NAME = "PsiProperties"
 
-/**
- * Base class for properties of the [PsiPropertyModel].
- */
+/** Base class for properties of the [PsiPropertyModel]. */
 interface PsiPropertyItem : NewPropertyItem {
   override fun isSameProperty(qualifiedName: String): Boolean = false
-  override val namespace: String get() = ""
+  override val namespace: String
+    get() = ""
 }
 
-/**
- * Base [PropertiesModel] for pickers interacting with PSI elements.
- */
+/** Base [PropertiesModel] for pickers interacting with PSI elements. */
 internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
-  private val listeners = ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
+  private val listeners =
+    ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
 
   /**
    * Builder to generate the properties Table UI.
@@ -46,13 +44,12 @@ internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
    */
   abstract val inspectorBuilder: PsiPropertiesInspectorBuilder
 
-  /**
-   * Usage tracker, called on every [PsiPropertyItem] modification.
-   */
+  /** Usage tracker, called on every [PsiPropertyItem] modification. */
   abstract val tracker: ComposePickerTracker
 
   override fun addListener(listener: PropertiesModelListener<PsiPropertyItem>) {
-    // For now, the properties are always generated at load time, so we can always make this call when the listener is added.
+    // For now, the properties are always generated at load time, so we can always make this call
+    // when the listener is added.
     listener.propertiesGenerated(this)
     listeners.add(listener)
   }
@@ -62,24 +59,17 @@ internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
   }
 
   internal fun firePropertyValuesChanged() {
-    listeners.forEach {
-      it.propertyValuesChanged(this)
-    }
+    listeners.forEach { it.propertyValuesChanged(this) }
   }
 
   override fun deactivate() {}
 }
 
-/**
- * A [PropertiesView] for editing [PsiPropertyModel]s.
- */
-internal class PsiPropertyView(
-  model: PsiPropertyModel
-) : PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
+/** A [PropertiesView] for editing [PsiPropertyModel]s. */
+internal class PsiPropertyView(model: PsiPropertyModel) :
+  PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
 
   init {
-    addTab("").apply {
-      builders.add(model.inspectorBuilder)
-    }
+    addTab("").apply { builders.add(model.inspectorBuilder) }
   }
 }

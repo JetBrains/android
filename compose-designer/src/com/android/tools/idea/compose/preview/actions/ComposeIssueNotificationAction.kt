@@ -63,7 +63,6 @@ import com.intellij.ui.components.AnActionLink
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Insets
@@ -75,17 +74,22 @@ import javax.swing.JComponent
 import javax.swing.JToolTip
 import javax.swing.SwingConstants
 import javax.swing.border.Border
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Utility getter that indicates if the project needs a build. This is the case if the previews build is not valid, like after a clean or
- * cancelled, or if it has failed.
+ * Utility getter that indicates if the project needs a build. This is the case if the previews
+ * build is not valid, like after a clean or cancelled, or if it has failed.
  */
 internal val Project.needsBuild: Boolean
   get() {
-    val lastBuildResult = ProjectSystemService.getInstance(project = this).projectSystem.getBuildManager().getLastBuildResult()
+    val lastBuildResult =
+      ProjectSystemService.getInstance(project = this)
+        .projectSystem
+        .getBuildManager()
+        .getLastBuildResult()
     return lastBuildResult.status == ProjectSystemBuildManager.BuildStatus.CANCELLED ||
-           lastBuildResult.status == ProjectSystemBuildManager.BuildStatus.FAILED ||
-           lastBuildResult.mode == ProjectSystemBuildManager.BuildMode.CLEAN
+      lastBuildResult.status == ProjectSystemBuildManager.BuildStatus.FAILED ||
+      lastBuildResult.mode == ProjectSystemBuildManager.BuildMode.CLEAN
   }
 
 private const val ACTION_BACKGROUND_ALPHA = 0x1A
@@ -93,13 +97,14 @@ private const val ACTION_BORDER_ALPHA = 0xBF
 private const val ACTION_BORDER_ARC_SIZE = 5
 private const val ACTION_BORDER_THICKNESS = 1
 
-private fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA),
-                                                                 ACTION_BORDER_ARC_SIZE,
-                                                                 ACTION_BORDER_THICKNESS)
+private fun chipBorder(color: Color): Border =
+  RoundedLineBorder(
+    UIUtil.toAlpha(color, ACTION_BORDER_ALPHA),
+    ACTION_BORDER_ARC_SIZE,
+    ACTION_BORDER_THICKNESS
+  )
 
-/**
- * Represents the Preview status to be notified to the user.
- */
+/** Represents the Preview status to be notified to the user. */
 sealed class PreviewStatusNotification(
   val icon: Icon?,
   val title: String,
@@ -112,99 +117,102 @@ sealed class PreviewStatusNotification(
     val PRESENTATION = Key<Presentation>("PreviewStatusNotificationPresentation")
 
     /**
-     * When not null, this will define the text alignment in the notification chip. One of [SwingConstants.LEADING] or
-     * [SwingConstants.TRAILING].
+     * When not null, this will define the text alignment in the notification chip. One of
+     * [SwingConstants.LEADING] or [SwingConstants.TRAILING].
      */
     val TEXT_ALIGNMENT = Key<Int>("PreviewStatusNotificationTextAlignment")
   }
 
   /**
-   * Enum representing the different UI color states that the action might have for the border and background.
+   * Enum representing the different UI color states that the action might have for the border and
+   * background.
    */
   enum class Presentation(baseColorLight: Int, baseColorDark: Int = baseColorLight) {
     Error(0xE53E4D),
     Warning(0xEDA200);
 
-    val color = JBColor(UIUtil.toAlpha(Color(baseColorLight), ACTION_BACKGROUND_ALPHA),
-                        UIUtil.toAlpha(Color(baseColorDark), ACTION_BACKGROUND_ALPHA))
+    val color =
+      JBColor(
+        UIUtil.toAlpha(Color(baseColorLight), ACTION_BACKGROUND_ALPHA),
+        UIUtil.toAlpha(Color(baseColorDark), ACTION_BACKGROUND_ALPHA)
+      )
     val border = chipBorder(color)
   }
 
+  /** The Preview found a syntax error and paused the updates. */
+  object SyntaxError :
+    PreviewStatusNotification(
+      AllIcons.General.InspectionsPause,
+      message("notification.syntax.errors.title"),
+      message("notification.syntax.errors.description"),
+      false
+    )
 
-  /**
-   * The Preview found a syntax error and paused the updates.
-   */
-  object SyntaxError : PreviewStatusNotification(
-    AllIcons.General.InspectionsPause,
-    message("notification.syntax.errors.title"),
-    message("notification.syntax.errors.description"),
-    false)
+  /** The Preview found a compilation error and paused the updates. */
+  object NeedsBuild :
+    PreviewStatusNotification(
+      AllIcons.General.Error,
+      message("notification.needs.build.broken.title"),
+      message("notification.needs.build.broken.description"),
+      true,
+      Presentation.Error
+    )
 
-  /**
-   * The Preview found a compilation error and paused the updates.
-   */
-  object NeedsBuild : PreviewStatusNotification(
-    AllIcons.General.Error,
-    message("notification.needs.build.broken.title"),
-    message("notification.needs.build.broken.description"),
-    true,
-    Presentation.Error)
+  /** The Preview is refreshing. */
+  class Refreshing(
+    detailsMessage: String = message("notification.preview.refreshing.description")
+  ) :
+    PreviewStatusNotification(
+      AnimatedIcon.Default(),
+      message("notification.preview.refreshing.title"),
+      detailsMessage
+    )
 
-  /**
-   * The Preview is refreshing.
-   */
-  class Refreshing(detailsMessage: String = message("notification.preview.refreshing.description"))
-    : PreviewStatusNotification(
-    AnimatedIcon.Default(),
-    message("notification.preview.refreshing.title"),
-    detailsMessage)
+  /** The Preview is out of date. This state will not happen if Fast Preview is enabled. */
+  object OutOfDate :
+    PreviewStatusNotification(
+      AllIcons.General.Warning,
+      message("notification.preview.out.of.date.title"),
+      message("notification.preview.out.of.date.description"),
+      true,
+      Presentation.Warning
+    )
 
-  /**
-   * The Preview is out of date. This state will not happen if Fast Preview is enabled.
-   */
-  object OutOfDate : PreviewStatusNotification(
-    AllIcons.General.Warning,
-    message("notification.preview.out.of.date.title"),
-    message("notification.preview.out.of.date.description"),
-    true,
-    Presentation.Warning)
+  /** The Preview is compiling. */
+  object FastPreviewCompiling :
+    PreviewStatusNotification(
+      AnimatedIcon.Default(),
+      message("notification.preview.fast.compile.title"),
+      message("notification.preview.fast.compile.description")
+    )
 
-  /**
-   * The Preview is compiling.
-   */
-  object FastPreviewCompiling : PreviewStatusNotification(
-    AnimatedIcon.Default(),
-    message("notification.preview.fast.compile.title"),
-    message("notification.preview.fast.compile.description"))
+  /** An issue was found while rendering the Preview. */
+  object RenderIssues :
+    PreviewStatusNotification(
+      AllIcons.General.Warning,
+      message("notification.preview.render.issues.title"),
+      message("notification.preview.render.issues.description"),
+      true,
+      Presentation.Warning
+    )
 
-  /**
-   * An issue was found while rendering the Preview.
-   */
-  object RenderIssues : PreviewStatusNotification(
-    AllIcons.General.Warning,
-    message("notification.preview.render.issues.title"),
-    message("notification.preview.render.issues.description"),
-    true,
-    Presentation.Warning
-  )
+  /** The Preview has failed to compile a fast change. */
+  object FastPreviewFailed :
+    PreviewStatusNotification(
+      AllIcons.General.InspectionsPause,
+      message("notification.preview.fast.disabled.reason.compiler.error.title"),
+      message("notification.preview.fast.disabled.reason.compiler.error.description"),
+      true,
+      Presentation.Error
+    )
 
-  /**
-   * The Preview has failed to compile a fast change.
-   */
-  object FastPreviewFailed : PreviewStatusNotification(
-    AllIcons.General.InspectionsPause,
-    message("notification.preview.fast.disabled.reason.compiler.error.title"),
-    message("notification.preview.fast.disabled.reason.compiler.error.description"),
-    true,
-    Presentation.Error)
-
-  /**
-   * The Preview is fully up to date.
-   */
-  object UpToDate : PreviewStatusNotification(
-    AllIcons.General.InspectionsOK,
-    message("notification.preview.up.to.date.title"),
-    message("notification.preview.up.to.date.description"))
+  /** The Preview is fully up to date. */
+  object UpToDate :
+    PreviewStatusNotification(
+      AllIcons.General.InspectionsOK,
+      message("notification.preview.up.to.date.title"),
+      message("notification.preview.up.to.date.description")
+    )
 }
 
 @VisibleForTesting
@@ -215,16 +223,14 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewS
   return when {
     // No Fast Preview and Preview is out of date (only when is user disabled)
     !fastPreviewEnabled &&
-    !project.fastPreviewManager.isAutoDisabled &&
-    previewStatus.isOutOfDate -> PreviewStatusNotification.OutOfDate
+      !project.fastPreviewManager.isAutoDisabled &&
+      previewStatus.isOutOfDate -> PreviewStatusNotification.OutOfDate
 
     // Refresh status
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
       PreviewStatusNotification.Refreshing(message("notification.interactive.preview.starting"))
-
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
       PreviewStatusNotification.Refreshing(message("notification.interactive.preview.stopping"))
-
     previewStatus.isRefreshing -> PreviewStatusNotification.Refreshing()
 
     // Build/Syntax/Render errors
@@ -233,27 +239,26 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewS
     previewStatus.hasRuntimeErrors -> PreviewStatusNotification.RenderIssues
 
     // Fast preview refresh/failures
-    !fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled -> PreviewStatusNotification.FastPreviewFailed
-    fastPreviewEnabled && project.fastPreviewManager.isCompiling -> PreviewStatusNotification.FastPreviewCompiling
+    !fastPreviewEnabled && project.fastPreviewManager.isAutoDisabled ->
+      PreviewStatusNotification.FastPreviewFailed
+    fastPreviewEnabled && project.fastPreviewManager.isCompiling ->
+      PreviewStatusNotification.FastPreviewCompiling
 
     // Up-to-date
     else -> PreviewStatusNotification.UpToDate
   }
 }
 
-/**
- * [AnAction] that will show the Event Log.
- */
+/** [AnAction] that will show the Event Log. */
 private class ShowEventLogAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    EventLog.getEventLog(project)?.activate(null) ?: ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
+    EventLog.getEventLog(project)?.activate(null)
+      ?: ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
   }
 }
 
-/**
- * [AnAction] that re-enable the Fast Preview if disabled.
- */
+/** [AnAction] that re-enable the Fast Preview if disabled. */
 private class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
@@ -267,7 +272,7 @@ private class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) 
   }
 }
 
-private class ComposePreviewManagerFileProvider(dataContext: DataContext): () -> PsiFile? {
+private class ComposePreviewManagerFileProvider(dataContext: DataContext) : () -> PsiFile? {
   private val composePreviewManager = WeakReference(dataContext.getData(COMPOSE_PREVIEW_MANAGER))
 
   override fun invoke(): PsiFile? {
@@ -275,9 +280,7 @@ private class ComposePreviewManagerFileProvider(dataContext: DataContext): () ->
   }
 }
 
-/**
- * [AnAction] that re-enable the Fast Preview if disabled.
- */
+/** [AnAction] that re-enable the Fast Preview if disabled. */
 private class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val file = fileProvider() ?: return
@@ -285,9 +288,7 @@ private class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnActi
   }
 }
 
-/**
- * [AnAction] that shows the "Problems" panel.
- */
+/** [AnAction] that shows the "Problems" panel. */
 private class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
@@ -295,9 +296,7 @@ private class ShowProblemsPanel : AnAction() {
   }
 }
 
-/**
- * [AnAction] that shows the "Problems" panel.
- */
+/** [AnAction] that shows the "Problems" panel. */
 private class ShowIssuesPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     e.getData(DESIGN_SURFACE)?.let { surface ->
@@ -307,8 +306,8 @@ private class ShowIssuesPanel : AnAction() {
 }
 
 /**
- * Creates a new [AnActionLink] with the given [text]. The returned [AnActionLink] will use the given [delegateDataContext] to obtain
- * the associated information when calling into the [action].
+ * Creates a new [AnActionLink] with the given [text]. The returned [AnActionLink] will use the
+ * given [delegateDataContext] to obtain the associated information when calling into the [action].
  */
 fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext): AnActionLink =
   AnActionLink(text, action).apply {
@@ -316,7 +315,8 @@ fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext)
   }
 
 /**
- * Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for things like the current editor.
+ * Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for
+ * things like the current editor.
  */
 @VisibleForTesting
 fun defaultCreateInformationPopup(
@@ -325,43 +325,66 @@ fun defaultCreateInformationPopup(
 ): InformationPopup? {
   val fileProvider = ComposePreviewManagerFileProvider(dataContext)::invoke
   return getStatusInfo(project, dataContext)?.let {
-    val isAutoDisabled = it is PreviewStatusNotification.FastPreviewFailed && project.fastPreviewManager.isAutoDisabled
+    val isAutoDisabled =
+      it is PreviewStatusNotification.FastPreviewFailed && project.fastPreviewManager.isAutoDisabled
     return@let InformationPopup(
-      null,
-      it.description,
-      listOfNotNull(
-        StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled { ToggleFastPreviewAction() }
-      ),
-      listOfNotNull(
-        actionLink(
-          message("action.build.and.refresh.title")
-            .replace("&&", "&") + getBuildAndRefreshShortcut().asString(), // Remove any ampersand escaping for tooltips (not needed in these links)
-          BuildAndRefresh(fileProvider), dataContext),
-        when (it) {
-          is PreviewStatusNotification.SyntaxError -> actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
-          is PreviewStatusNotification.RenderIssues -> actionLink(message("action.view.problems"), ShowIssuesPanel(), dataContext)
-          else -> null
-        },
-        if (isAutoDisabled)
-          actionLink(message("fast.preview.disabled.notification.reenable.action.title"), ReEnableFastPreview(), dataContext)
-        else null,
-        if (isAutoDisabled)
-          actionLink(message("fast.preview.disabled.notification.stop.autodisable.action.title"), ReEnableFastPreview(false), dataContext)
-        else null,
-        if (it is PreviewStatusNotification.FastPreviewFailed)
-          actionLink(message("fast.preview.disabled.notification.show.details.action.title"), ShowEventLogAction(), dataContext)
-        else null
-      )).also { newPopup ->
-      // Register the data provider of the popup to be the same as the one used in the toolbar. This allows for actions within the
-      // popup to query for things like the Editor even when the Editor is not directly related to the popup.
-      DataManager.registerDataProvider(newPopup.component()) { dataId -> dataContext.getData(dataId) }
-    }
+        null,
+        it.description,
+        listOfNotNull(StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled { ToggleFastPreviewAction() }),
+        listOfNotNull(
+          actionLink(
+            message("action.build.and.refresh.title").replace("&&", "&") +
+              getBuildAndRefreshShortcut()
+                .asString(), // Remove any ampersand escaping for tooltips (not needed in these
+            // links)
+            BuildAndRefresh(fileProvider),
+            dataContext
+          ),
+          when (it) {
+            is PreviewStatusNotification.SyntaxError ->
+              actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
+            is PreviewStatusNotification.RenderIssues ->
+              actionLink(message("action.view.problems"), ShowIssuesPanel(), dataContext)
+            else -> null
+          },
+          if (isAutoDisabled)
+            actionLink(
+              message("fast.preview.disabled.notification.reenable.action.title"),
+              ReEnableFastPreview(),
+              dataContext
+            )
+          else null,
+          if (isAutoDisabled)
+            actionLink(
+              message("fast.preview.disabled.notification.stop.autodisable.action.title"),
+              ReEnableFastPreview(false),
+              dataContext
+            )
+          else null,
+          if (it is PreviewStatusNotification.FastPreviewFailed)
+            actionLink(
+              message("fast.preview.disabled.notification.show.details.action.title"),
+              ShowEventLogAction(),
+              dataContext
+            )
+          else null
+        )
+      )
+      .also { newPopup ->
+        // Register the data provider of the popup to be the same as the one used in the toolbar.
+        // This allows for actions within the
+        // popup to query for things like the Editor even when the Editor is not directly related to
+        // the popup.
+        DataManager.registerDataProvider(newPopup.component()) { dataId ->
+          dataContext.getData(dataId)
+        }
+      }
   }
 }
 
 /**
- * Action that reports the current state of the Preview. Local issues for a given preview are reported as part of the preview itself
- * and not in this action.
+ * Action that reports the current state of the Preview. Local issues for a given preview are
+ * reported as part of the preview itself and not in this action.
  *
  * Clicking on the action will open a pop-up with additional details and action buttons.
  */
@@ -369,85 +392,84 @@ fun defaultCreateInformationPopup(
 open class IssueNotificationAction(
   private val createStatusInfo: (Project, DataContext) -> PreviewStatusNotification?,
   private val createInformationPopup: (Project, DataContext) -> InformationPopup?
-) : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {  /**
-   * [Alarm] used to trigger the popup as a hint.
-   */
+) : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {
+  /** [Alarm] used to trigger the popup as a hint. */
   private val popupAlarm = Alarm()
 
-  /**
-   * [MouseAdapter] that schedules the popup.
-   */
-  private val mouseListener = object : MouseAdapter() {
-    override fun mouseEntered(me: MouseEvent) {
-      popupAlarm.cancelAllRequests()
-      popupAlarm.addRequest(
-        {
-          if (popup?.isVisible() == true) return@addRequest // Do not show if already showing
-          val anActionEvent = AnActionEvent.createFromInputEvent(
-            me,
-            ActionPlaces.EDITOR_POPUP,
-            PresentationFactory().getPresentation(this@IssueNotificationAction),
-            ActionToolbar.getDataContextFor(me.component),
-            false, true)
-          showPopup(anActionEvent)
-        },
-        Registry.intValue("ide.tooltip.initialReshowDelay"))
-    }
+  /** [MouseAdapter] that schedules the popup. */
+  private val mouseListener =
+    object : MouseAdapter() {
+      override fun mouseEntered(me: MouseEvent) {
+        popupAlarm.cancelAllRequests()
+        popupAlarm.addRequest(
+          {
+            if (popup?.isVisible() == true) return@addRequest // Do not show if already showing
+            val anActionEvent =
+              AnActionEvent.createFromInputEvent(
+                me,
+                ActionPlaces.EDITOR_POPUP,
+                PresentationFactory().getPresentation(this@IssueNotificationAction),
+                ActionToolbar.getDataContextFor(me.component),
+                false,
+                true
+              )
+            showPopup(anActionEvent)
+          },
+          Registry.intValue("ide.tooltip.initialReshowDelay")
+        )
+      }
 
-    override fun mouseExited(me: MouseEvent) {
-      popupAlarm.cancelAllRequests()
+      override fun mouseExited(me: MouseEvent) {
+        popupAlarm.cancelAllRequests()
+      }
     }
-  }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
     object : ActionButtonWithText(this, presentation, place, Dimension(0, 0)) {
-      private val insets = JBUI.insets(3)
-      private val actionPresentation: PreviewStatusNotification.Presentation?
-        get() = myPresentation.getClientProperty(PreviewStatusNotification.PRESENTATION)
-      val textAlignment: Int
-        get() = myPresentation.getClientProperty(PreviewStatusNotification.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
+        private val insets = JBUI.insets(3)
+        private val actionPresentation: PreviewStatusNotification.Presentation?
+          get() = myPresentation.getClientProperty(PreviewStatusNotification.PRESENTATION)
+        val textAlignment: Int
+          get() =
+            myPresentation.getClientProperty(PreviewStatusNotification.TEXT_ALIGNMENT)
+              ?: SwingConstants.LEADING
 
-      private val font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
+        private val font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
 
-      private val textColor = JBColor(Gray._110, Gray._187)
+        private val textColor = JBColor(Gray._110, Gray._187)
 
-      override fun isBackgroundSet(): Boolean =
-        actionPresentation != null || super.isBackgroundSet()
+        override fun isBackgroundSet(): Boolean =
+          actionPresentation != null || super.isBackgroundSet()
 
-      override fun getBackground(): Color? =
-        actionPresentation?.color ?: super.getBackground()
+        override fun getBackground(): Color? = actionPresentation?.color ?: super.getBackground()
 
-      override fun getFont() = font
+        override fun getFont() = font
 
-      override fun getForeground() = textColor
+        override fun getForeground() = textColor
 
-      override fun getBorder(): Border =
-        if (popState == POPPED)
-          chipBorder(JBUI.CurrentTheme.ActionButton.hoverBorder())
-        else
-          actionPresentation?.border ?: JBUI.Borders.empty()
+        override fun getBorder(): Border =
+          if (popState == POPPED) chipBorder(JBUI.CurrentTheme.ActionButton.hoverBorder())
+          else actionPresentation?.border ?: JBUI.Borders.empty()
 
-      override fun getMargins(): Insets = insets
+        override fun getMargins(): Insets = insets
 
-      override fun addNotify() {
-        super.addNotify()
-        addMouseListener(mouseListener)
-        setHorizontalTextPosition(textAlignment)
+        override fun addNotify() {
+          super.addNotify()
+          addMouseListener(mouseListener)
+          setHorizontalTextPosition(textAlignment)
+        }
+
+        override fun removeNotify() {
+          removeMouseListener(mouseListener)
+          super.removeNotify()
+        }
+
+        override fun createToolTip(): JToolTip? = null
+
+        // Do not display the regular tooltip
+        override fun updateToolTipText() {}
       }
-
-      override fun removeNotify() {
-        removeMouseListener(mouseListener)
-        super.removeNotify()
-      }
-
-      override fun createToolTip(): JToolTip? = null
-
-      // Do not display the regular tooltip
-      override fun updateToolTipText() {}
-
-    }.apply {
-      setHorizontalTextPosition(textAlignment)
-    }
+      .apply { setHorizontalTextPosition(textAlignment) }
 
   override fun displayTextInToolbar(): Boolean = true
 
@@ -459,27 +481,27 @@ open class IssueNotificationAction(
       presentation.text = it.title
       presentation.description = it.description
       presentation.putClientProperty(PreviewStatusNotification.PRESENTATION, it.presentation)
-      val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
-      presentation.putClientProperty(PreviewStatusNotification.TEXT_ALIGNMENT,
-                                     if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
+      val isErrorOrWarningIcon =
+        it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
+      presentation.putClientProperty(
+        PreviewStatusNotification.TEXT_ALIGNMENT,
+        if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING
+      )
     }
   }
 
-  /**
-   * The currently opened popup.
-   */
+  /** The currently opened popup. */
   private var popup: InformationPopup? = null
 
-  /**
-   * Shows the actions popup.
-   */
+  /** Shows the actions popup. */
   private fun showPopup(e: AnActionEvent) {
     popupAlarm.cancelAllRequests()
     val project = e.project ?: return
-    popup = createInformationPopup(project, e.dataContext)?.also { newPopup ->
-      Disposer.register(this, newPopup)
-      newPopup.showPopup(e.inputEvent)
-    }
+    popup =
+      createInformationPopup(project, e.dataContext)?.also { newPopup ->
+        Disposer.register(this, newPopup)
+        newPopup.showPopup(e.inputEvent)
+      }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -500,33 +522,30 @@ open class IssueNotificationAction(
  * - Syntax errors
  */
 class ComposeIssueNotificationAction(
-  createInformationPopup: (Project, DataContext) -> InformationPopup? = ::defaultCreateInformationPopup
-) : IssueNotificationAction(
-  ::getStatusInfo,
-  createInformationPopup
-)
+  createInformationPopup: (Project, DataContext) -> InformationPopup? =
+    ::defaultCreateInformationPopup
+) : IssueNotificationAction(::getStatusInfo, createInformationPopup)
 
 /**
- * [ForceCompileAndRefreshAction] where the visibility is controlled by the [PreviewStatusNotification.hasRefreshIcon].
+ * [ForceCompileAndRefreshAction] where the visibility is controlled by the
+ * [PreviewStatusNotification.hasRefreshIcon].
  */
-private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface<*>) : ForceCompileAndRefreshAction(
-  surface), RightAlignedToolbarAction {
+private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface<*>) :
+  ForceCompileAndRefreshAction(surface), RightAlignedToolbarAction {
   override fun update(e: AnActionEvent) {
     super.update(e)
 
     val project = e.project ?: return
 
-    getStatusInfo(project, e.dataContext)?.let {
-      e.presentation.isVisible = it.hasRefreshIcon
-    }
+    getStatusInfo(project, e.dataContext)?.let { e.presentation.isVisible = it.hasRefreshIcon }
   }
 }
 
 /**
- * [DefaultActionGroup] that shows the notification chip and the [ForceCompileAndRefreshActionForNotification] button when applicable.
+ * [DefaultActionGroup] that shows the notification chip and the
+ * [ForceCompileAndRefreshActionForNotification] button when applicable.
  */
-class ComposeNotificationGroup(surface: DesignSurface<*>) : DefaultActionGroup(
-  listOf(
-    ComposeIssueNotificationAction(),
-    ForceCompileAndRefreshActionForNotification(surface))
-)
+class ComposeNotificationGroup(surface: DesignSurface<*>) :
+  DefaultActionGroup(
+    listOf(ComposeIssueNotificationAction(), ForceCompileAndRefreshActionForNotification(surface))
+  )

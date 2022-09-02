@@ -43,13 +43,12 @@ import kotlin.math.max
  */
 internal const val DEFAULT_MAX_DURATION_MS = 10000L
 
-/**
- * Timeline slider with auto-resized ticks and labels distance.
- */
-open class TimelinePanel(val tooltip: Tooltip,
-                         val previewState: AnimationPreviewState,
-                         val tracker: ComposeAnimationEventTracker)
-  : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
+/** Timeline slider with auto-resized ticks and labels distance. */
+open class TimelinePanel(
+  val tooltip: Tooltip,
+  val previewState: AnimationPreviewState,
+  val tracker: ComposeAnimationEventTracker
+) : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
   private var cachedSliderWidth = 0
   private var cachedMax = 0
 
@@ -61,7 +60,8 @@ open class TimelinePanel(val tooltip: Tooltip,
         g as Graphics2D,
         x = sliderUI.thumbRect().x + sliderUI.thumbRect().width / 2,
         y = InspectorLayout.timelineHeaderHeightScaled(),
-        height = sliderUI.thumbRect().height)
+        height = sliderUI.thumbRect().height
+      )
     }
 
     fun resizeThumb() {
@@ -70,11 +70,12 @@ open class TimelinePanel(val tooltip: Tooltip,
       location = Point(0, 0)
     }
 
-    val resizeAdapter = object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent?) {
-        resizeThumb()
+    val resizeAdapter =
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent?) {
+          resizeThumb()
+        }
       }
-    }
 
     init {
       background = UIUtil.TRANSPARENT_COLOR
@@ -88,9 +89,11 @@ open class TimelinePanel(val tooltip: Tooltip,
     paintLabels = true
     updateMajorTicks()
     setUI(createSliderUI())
-    addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent?) = updateMajorTicks()
-    })
+    addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent?) = updateMajorTicks()
+      }
+    )
 
     Thumb().let {
       add(it)
@@ -122,55 +125,59 @@ open class TimelinePanel(val tooltip: Tooltip,
   }
 
   override fun getPreferredSize(): Dimension {
-    return Dimension(zoomValue * width - 50,
-                     InspectorLayout.timelineHeaderHeightScaled() + sliderUI.elements.sumOf { it.heightScaled() })
+    return Dimension(
+      zoomValue * width - 50,
+      InspectorLayout.timelineHeaderHeightScaled() + sliderUI.elements.sumOf { it.heightScaled() }
+    )
   }
 
   override fun getFont(): Font = UIUtil.getFont(UIUtil.FontSize.SMALL, null)
-
 
   private fun updateMajorTicks() {
     if (width == cachedSliderWidth && maximum == cachedMax) return
     cachedSliderWidth = width
     cachedMax = maximum
     val tickIncrement = InspectorPainter.Slider.getTickIncrement(this)
-    // First, calculate where the labels are going to be painted, based on the maximum. We won't paint the major ticks themselves, as
-    // minor ticks will be painted instead. The major ticks spacing is only set so the labels are painted in the right place.
+    // First, calculate where the labels are going to be painted, based on the maximum. We won't
+    // paint the major ticks themselves, as
+    // minor ticks will be painted instead. The major ticks spacing is only set so the labels are
+    // painted in the right place.
     setMajorTickSpacing(tickIncrement)
-    labelTable = if (tickIncrement == 0) {
-      // Handle the special case where maximum == 0 and we only have the "0ms" label.
-      labelTable
-    }
-    else {
-      createStandardLabels(tickIncrement)
-    }
+    labelTable =
+      if (tickIncrement == 0) {
+        // Handle the special case where maximum == 0 and we only have the "0ms" label.
+        labelTable
+      } else {
+        createStandardLabels(tickIncrement)
+      }
   }
 }
 
-
 /**
- * Modified [JSlider] UI to simulate a timeline-like view. In general lines, the following modifications are made:
- *   * The horizontal track is hidden, so only the vertical thumb is shown
- *   * The vertical thumb is a vertical line that matches the parent height
- *   * The tick lines also match the parent height
+ * Modified [JSlider] UI to simulate a timeline-like view. In general lines, the following
+ * modifications are made:
+ * * The horizontal track is hidden, so only the vertical thumb is shown
+ * * The vertical thumb is a vertical line that matches the parent height
+ * * The tick lines also match the parent height
  */
 open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timeline) {
 
-  val positionProxy = object : PositionProxy {
-    override fun valueForXPosition(value: Int): Int =
-      this@TimelineSliderUI.valueForXPosition(value)
+  val positionProxy =
+    object : PositionProxy {
+      override fun valueForXPosition(value: Int): Int =
+        this@TimelineSliderUI.valueForXPosition(value)
 
-    override fun xPositionForValue(value: Int): Int =
-      this@TimelineSliderUI.xPositionForValue(value)
+      override fun xPositionForValue(value: Int): Int =
+        this@TimelineSliderUI.xPositionForValue(value)
 
-    override fun maximumXPosition(): Int = xPositionForValue(slider.maximum)
+      override fun maximumXPosition(): Int = xPositionForValue(slider.maximum)
 
-    override fun minimumXPosition(): Int = xPositionForValue(slider.minimum)
+      override fun minimumXPosition(): Int = xPositionForValue(slider.minimum)
 
-    override fun maximumValue(): Int = slider.maximum
+      override fun maximumValue(): Int = slider.maximum
 
-    override fun minimumValue(): Int = slider.minimum
-  }
+      override fun minimumValue(): Int = slider.minimum
+    }
 
   val thumbRect: () -> Rectangle = { thumbRect }
 
@@ -180,22 +187,29 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   /** Element currently hovered or dragged. */
   var activeElement: TimelineElement? = null
     private set(value) {
-      field = if (timeline.previewState.isCoordinationAvailable() && COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) value else null
+      field =
+        if (timeline.previewState.isCoordinationAvailable() &&
+            COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()
+        )
+          value
+        else null
     }
 
   /** Separate elements with a line. */
   private fun separateElements() = elements.size > 1
 
   open fun paintElements(g: Graphics2D) {
-    elements.forEach {
-      it.paint(g)
-    }
+    elements.forEach { it.paint(g) }
   }
 
   final override fun getThumbSize(): Dimension {
     val originalSize = super.getThumbSize()
     return if (slider.parent == null) originalSize
-    else Dimension(originalSize.width, slider.parent.height - InspectorLayout.timelineHeaderHeightScaled())
+    else
+      Dimension(
+        originalSize.width,
+        slider.parent.height - InspectorLayout.timelineHeaderHeightScaled()
+      )
   }
 
   final override fun calculateTickRect() {
@@ -221,7 +235,8 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   }
 
   final override fun paintFocus(g: Graphics?) {
-    // BasicSliderUI paints a dashed rect around the slider when it's focused. We shouldn't paint anything.
+    // BasicSliderUI paints a dashed rect around the slider when it's focused. We shouldn't paint
+    // anything.
   }
 
   final override fun paintLabels(g: Graphics?) {
@@ -242,22 +257,28 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
   private fun paintMajorTicks(g: Graphics2D) {
     // Set background color
-    g.color = if (!separateElements() && elements.firstOrNull()?.frozen == true) {
-      InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
-    }
-    else {
-      InspectorColors.TIMELINE_BACKGROUND_COLOR
-    }
-    g.fillRect(0, InspectorLayout.timelineHeaderHeightScaled(), slider.width, slider.height - InspectorLayout.timelineHeaderHeightScaled())
+    g.color =
+      if (!separateElements() && elements.firstOrNull()?.frozen == true) {
+        InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
+      } else {
+        InspectorColors.TIMELINE_BACKGROUND_COLOR
+      }
+    g.fillRect(
+      0,
+      InspectorLayout.timelineHeaderHeightScaled(),
+      slider.width,
+      slider.height - InspectorLayout.timelineHeaderHeightScaled()
+    )
 
     var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
-    if (separateElements()) elements.forEach { element ->
-      if (element.frozen) {
-        g.color = InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
-        g.fillRect(0, totalHeight, slider.width, element.heightScaled())
+    if (separateElements())
+      elements.forEach { element ->
+        if (element.frozen) {
+          g.color = InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
+          g.fillRect(0, totalHeight, slider.width, element.heightScaled())
+        }
+        totalHeight += element.heightScaled()
       }
-      totalHeight += element.heightScaled()
-    }
     // Add vertical ticks.
     g.color = InspectorColors.TIMELINE_TICK_COLOR
     val tickIncrement = max(1, slider.majorTickSpacing / InspectorLayout.TIMELINE_TICKS_PER_LABEL)
@@ -267,40 +288,49 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     }
     totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     g.color = InspectorColors.TIMELINE_HORIZONTAL_TICK_COLOR
-    if (separateElements()) elements.forEach { element ->
-      totalHeight += element.heightScaled()
-      g.drawLine(0, totalHeight, slider.width, totalHeight)
-    }
+    if (separateElements())
+      elements.forEach { element ->
+        totalHeight += element.heightScaled()
+        g.drawLine(0, totalHeight, slider.width, totalHeight)
+      }
   }
 
   /**
-   * Paint vertical freeze lines for all frozen elements.
-   * If [separateElements] is not true, the line will have the height of the panel.
-   * */
+   * Paint vertical freeze lines for all frozen elements. If [separateElements] is not true, the
+   * line will have the height of the panel.
+   */
   private fun paintFreezeLines(g: Graphics2D) {
     g.color = InspectorColors.FREEZE_LINE_COLOR
     g.stroke = InspectorLayout.freezeLineStroke
     var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
-    if (separateElements()) elements.forEach { element ->
-      if (element.frozen) {
-        val frozenValue = element.state.frozenValue
-        g.drawLine(xPositionForValue(frozenValue), totalHeight + 2,
-                   xPositionForValue(frozenValue), totalHeight + element.heightScaled() - 2)
+    if (separateElements())
+      elements.forEach { element ->
+        if (element.frozen) {
+          val frozenValue = element.state.frozenValue
+          g.drawLine(
+            xPositionForValue(frozenValue),
+            totalHeight + 2,
+            xPositionForValue(frozenValue),
+            totalHeight + element.heightScaled() - 2
+          )
+        }
+        totalHeight += element.heightScaled()
       }
-      totalHeight += element.heightScaled()
-    }
-    else elements.firstOrNull()?.also {
-      if (it.frozen) {
-        val frozenValue = it.state.frozenValue
-        g.drawLine(xPositionForValue(frozenValue), InspectorLayout.timelineHeaderHeightScaled() + 2,
-                   xPositionForValue(frozenValue), slider.height - 2)
+    else
+      elements.firstOrNull()?.also {
+        if (it.frozen) {
+          val frozenValue = it.state.frozenValue
+          g.drawLine(
+            xPositionForValue(frozenValue),
+            InspectorLayout.timelineHeaderHeightScaled() + 2,
+            xPositionForValue(frozenValue),
+            slider.height - 2
+          )
+        }
       }
-    }
   }
 
-  /**
-   * [TrackListener] to allow setting [slider] value when clicking and scrubbing the timeline.
-   */
+  /** [TrackListener] to allow setting [slider] value when clicking and scrubbing the timeline. */
   inner class TimelineTrackListener : TrackListener() {
 
     private val tooltipAdapter = timeline.tooltip.adapter
@@ -310,10 +340,14 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     private var dragStartXPoint = 0
 
     override fun mousePressed(e: MouseEvent) {
-      // We override the parent class behavior completely because it executes more operations than we need, being less performant than
-      // this method. Since it recalculates the geometry of all components, the resulting UI on mouse press is not what we aim for.
+      // We override the parent class behavior completely because it executes more operations than
+      // we need, being less performant than
+      // this method. Since it recalculates the geometry of all components, the resulting UI on
+      // mouse press is not what we aim for.
       currentMouseX = e.x
-      slider.parent?.requestFocus() // Request focus to the timeline, so the selected tab actually gets the focus
+      slider.parent
+        ?.requestFocus() // Request focus to the timeline, so the selected tab actually gets the
+      // focus
       dragStartXPoint = e.x
       activeElement?.status = TimelineElementStatus.Dragged
       if (activeElement == null) updateThumbLocationAndSliderValue()
@@ -325,8 +359,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       if (activeElement?.status == TimelineElementStatus.Dragged) {
         activeElement?.move(e.x - dragStartXPoint)
         dragStartXPoint = e.x
-      }
-      else {
+      } else {
         updateThumbLocationAndSliderValue()
       }
       isDragging = true
@@ -338,13 +371,19 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       super.mouseReleased(e)
       timeline.tracker.invoke(
         if (activeElement == null) {
-          if (isDragging) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_ANIMATION_INSPECTOR_TIMELINE
-          else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE
-        }
-        else {
-          if (isDragging) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE
-          //TODO Add click event for timeline element.
-          else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE
+          if (isDragging)
+            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
+              .DRAG_ANIMATION_INSPECTOR_TIMELINE
+          else
+            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
+              .CLICK_ANIMATION_INSPECTOR_TIMELINE
+        } else {
+          if (isDragging)
+            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE
+          // TODO Add click event for timeline element.
+          else
+            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
+              .CLICK_ANIMATION_INSPECTOR_TIMELINE
         }
       )
       isDragging = false
@@ -377,8 +416,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       if (tooltipInfo != null) {
         if (timeline.tooltip.tooltipInfo == null) tooltipAdapter.mouseEntered(e)
         timeline.tooltip.tooltipInfo = tooltipInfo
-      }
-      else {
+      } else {
         if (timeline.tooltip.tooltipInfo != null) tooltipAdapter.mouseExited(e)
         timeline.tooltip.tooltipInfo = null
       }
@@ -386,8 +424,13 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     private fun updateThumbLocationAndSliderValue() {
       val halfWidth = thumbRect.width / 2
-      // Make sure the thumb X coordinate is within the slider's min and max. Also, subtract half of the width so the center is aligned.
-      val thumbX = currentMouseX.coerceIn(xPositionForValue(slider.minimum), xPositionForValue(slider.maximum)) - halfWidth
+      // Make sure the thumb X coordinate is within the slider's min and max. Also, subtract half of
+      // the width so the center is aligned.
+      val thumbX =
+        currentMouseX.coerceIn(
+          xPositionForValue(slider.minimum),
+          xPositionForValue(slider.maximum)
+        ) - halfWidth
       setThumbLocation(thumbX, thumbRect.y)
       slider.value = valueForXPosition(currentMouseX)
     }

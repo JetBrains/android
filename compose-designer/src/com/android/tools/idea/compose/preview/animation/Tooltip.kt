@@ -41,30 +41,26 @@ class Tooltip(owner: JComponent, pane: TooltipLayeredPane) {
       }
     }
 
-  private val tooltipHeader = JLabel("").apply {
-    font = JBFont.medium().asBold()
-  }
-  private val tooltipDescription = JLabel("").apply {
-    font = JBFont.medium()
-  }
+  private val tooltipHeader = JLabel("").apply { font = JBFont.medium().asBold() }
+  private val tooltipDescription = JLabel("").apply { font = JBFont.medium() }
 
   private val tooltipComponent: TooltipComponent
 
   init {
-    val textPane = JPanel(TabularLayout("Fit-")).also {
-      it.border = JBEmptyBorder(8, 10, 8, 10)
-      it.background = InspectorColors.TOOLTIP_BACKGROUND_COLOR
-      it.foreground = InspectorColors.TOOLTIP_TEXT_COLOR
-      it.add(tooltipHeader, TabularLayout.Constraint(0, 0))
-      it.add(tooltipDescription, TabularLayout.Constraint(1, 0))
-    }
-    tooltipComponent = TooltipComponent.Builder(textPane, owner, pane).build().apply {
-      this.registerListenersOn(textPane)
-      adapter = textPane.mouseListeners.first() as MouseAdapter
-      textPane.removeMouseListener(adapter)
-      textPane.mouseMotionListeners.first().let {
-        textPane.removeMouseMotionListener(it)
+    val textPane =
+      JPanel(TabularLayout("Fit-")).also {
+        it.border = JBEmptyBorder(8, 10, 8, 10)
+        it.background = InspectorColors.TOOLTIP_BACKGROUND_COLOR
+        it.foreground = InspectorColors.TOOLTIP_TEXT_COLOR
+        it.add(tooltipHeader, TabularLayout.Constraint(0, 0))
+        it.add(tooltipDescription, TabularLayout.Constraint(1, 0))
       }
-    }
+    tooltipComponent =
+      TooltipComponent.Builder(textPane, owner, pane).build().apply {
+        this.registerListenersOn(textPane)
+        adapter = textPane.mouseListeners.first() as MouseAdapter
+        textPane.removeMouseListener(adapter)
+        textPane.mouseMotionListeners.first().let { textPane.removeMouseMotionListener(it) }
+      }
   }
 }

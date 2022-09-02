@@ -24,47 +24,44 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.properties.Delegates
 
-class PreviewFilters(previewProvider: PreviewElementProvider<ComposePreviewElement>) : PreviewElementInstanceProvider {
+class PreviewFilters(previewProvider: PreviewElementProvider<ComposePreviewElement>) :
+  PreviewElementInstanceProvider {
   private val LOG = Logger.getInstance(PreviewFilters::class.java)
 
   /**
-   * Filter to be applied for the group filtering. This allows multiple [ComposePreviewElement]s belonging to the same group
+   * Filter to be applied for the group filtering. This allows multiple [ComposePreviewElement]s
+   * belonging to the same group
    */
   private val groupNameFilteredProvider = GroupNameFilteredPreviewProvider(previewProvider)
 
-  /**
-   * [PreviewElementProvider] that instantiates the templates and creates specific instances.
-   */
-  private val instantiatedElementProvider = PreviewElementTemplateInstanceProvider(groupNameFilteredProvider)
+  /** [PreviewElementProvider] that instantiates the templates and creates specific instances. */
+  private val instantiatedElementProvider =
+    PreviewElementTemplateInstanceProvider(groupNameFilteredProvider)
 
   /**
-   * Filter to be applied for the preview to display a single [ComposePreviewElement]. Used in interactive mode to focus on a
-   * single element.
+   * Filter to be applied for the preview to display a single [ComposePreviewElement]. Used in
+   * interactive mode to focus on a single element.
    */
-  private val singleElementFilteredProvider = SinglePreviewElementInstanceFilteredPreviewProvider(instantiatedElementProvider)
+  private val singleElementFilteredProvider =
+    SinglePreviewElementInstanceFilteredPreviewProvider(instantiatedElementProvider)
 
-  /**
-   * Name of the group to filter elements.
-   */
-  var groupNameFilter: PreviewGroup by Delegates.observable(ALL_PREVIEW_GROUP) { _, oldValue, newValue ->
-    if (oldValue != newValue) {
-      LOG.debug("New group preview element selection: $newValue")
-      this.groupNameFilteredProvider.groupName = newValue.name
+  /** Name of the group to filter elements. */
+  var groupNameFilter: PreviewGroup by
+    Delegates.observable(ALL_PREVIEW_GROUP) { _, oldValue, newValue ->
+      if (oldValue != newValue) {
+        LOG.debug("New group preview element selection: $newValue")
+        this.groupNameFilteredProvider.groupName = newValue.name
+      }
     }
-  }
 
-  /**
-   * Returns a [Set] of all the available [PreviewGroup]s in this preview.
-   */
+  /** Returns a [Set] of all the available [PreviewGroup]s in this preview. */
   @Slow
   suspend fun allAvailableGroups(): Set<PreviewGroup> =
-    groupNameFilteredProvider.allAvailableGroups().map {
-      PreviewGroup.namedGroup(it)
-    }.toSet()
+    groupNameFilteredProvider.allAvailableGroups().map { PreviewGroup.namedGroup(it) }.toSet()
 
   /**
-   * [ComposePreviewElementInstance] to select or null if no instance should be selected. If the instance does not exist all instances are
-   * returned.
+   * [ComposePreviewElementInstance] to select or null if no instance should be selected. If the
+   * instance does not exist all instances are returned.
    */
   var instanceFilter: ComposePreviewElementInstance?
     set(value) {
@@ -72,9 +69,7 @@ class PreviewFilters(previewProvider: PreviewElementProvider<ComposePreviewEleme
     }
     get() = singleElementFilteredProvider.instance
 
-  /**
-   * Clears the instance id filter.
-   */
+  /** Clears the instance id filter. */
   fun clearInstanceIdFilter() {
     singleElementFilteredProvider.instance = null
   }
@@ -82,5 +77,4 @@ class PreviewFilters(previewProvider: PreviewElementProvider<ComposePreviewEleme
   @Slow
   override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
     singleElementFilteredProvider.previewElements()
-
 }

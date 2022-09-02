@@ -58,11 +58,12 @@ internal const val PARAMETER_STIFFNESS = "stiffness"
 internal const val PARAMETER_THRESHOLD = "visibilityThreshold"
 // endregion
 
-
 object Preview {
   object DeviceSpec {
-    // TODO(205051960): Namespace other Preview parameters, and make a clear distinction of PropertyItem name and parameter name,
-    //  alternatively restructure properties so that they are not a flat list, so that the 'device' PropertyItem has its own PropertyItems
+    // TODO(205051960): Namespace other Preview parameters, and make a clear distinction of
+    // PropertyItem name and parameter name,
+    //  alternatively restructure properties so that they are not a flat list, so that the 'device'
+    // PropertyItem has its own PropertyItems
     internal const val PREFIX = "spec:"
     internal const val SEPARATOR = ','
     internal const val OPERATOR = '='
@@ -99,14 +100,13 @@ object Preview {
     internal val DEFAULT_ORIENTATION = Orientation.portrait
 
     /**
-     * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes an Android dimension value
-     * (with a dp/px suffix).
+     * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes
+     * an Android dimension value (with a dp/px suffix).
      */
-    internal fun isDimensionParameter(parameterName: String): Boolean = when (parameterName) {
-      PARAMETER_WIDTH,
-      PARAMETER_HEIGHT,
-      PARAMETER_CHIN_SIZE -> true
-      else -> false
-    }
+    internal fun isDimensionParameter(parameterName: String): Boolean =
+      when (parameterName) {
+        PARAMETER_WIDTH, PARAMETER_HEIGHT, PARAMETER_CHIN_SIZE -> true
+        else -> false
+      }
   }
 }

@@ -46,14 +46,12 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
-/**
- * [EnumSupportValuesProvider] that uses a backing map to return the provider functions.
- */
-class PsiCallEnumSupportValuesProvider private constructor(
-  private val providersMap: Map<String, () -> List<EnumValue>>
-) : EnumSupportValuesProvider {
+/** [EnumSupportValuesProvider] that uses a backing map to return the provider functions. */
+class PsiCallEnumSupportValuesProvider
+private constructor(private val providersMap: Map<String, () -> List<EnumValue>>) :
+  EnumSupportValuesProvider {
 
-  override fun getValuesProvider(key: String): (EnumValuesProvider)? = providersMap[key]
+  override fun getValuesProvider(key: String): EnumValuesProvider? = providersMap[key]
 
   companion object {
     @JvmStatic
@@ -80,24 +78,22 @@ class PsiCallEnumSupportValuesProvider private constructor(
   }
 }
 
-private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
-  {
-    val devicesEnumValueBuilder = DeviceEnumValueBuilder()
-    getGroupedDevices(module).forEach { (group, devices) ->
-      when (group) {
-        DeviceGroup.NEXUS,
-        DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
-        DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
-        DeviceGroup.OTHER, // Group other with generic to guarantee all devices are available
-        DeviceGroup.GENERIC -> devices.forEach(devicesEnumValueBuilder::addGeneric)
-        DeviceGroup.WEAR -> devices.forEach(devicesEnumValueBuilder::addWear)
-        DeviceGroup.TV -> devices.forEach(devicesEnumValueBuilder::addTv)
-        DeviceGroup.AUTOMOTIVE -> devices.forEach(devicesEnumValueBuilder::addAuto)
-        DeviceGroup.DESKTOP -> devices.forEach(devicesEnumValueBuilder::addDesktop)
-      }
+private fun createDeviceEnumProvider(module: Module): EnumValuesProvider = {
+  val devicesEnumValueBuilder = DeviceEnumValueBuilder()
+  getGroupedDevices(module).forEach { (group, devices) ->
+    when (group) {
+      DeviceGroup.NEXUS, DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
+      DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
+      DeviceGroup.OTHER, // Group other with generic to guarantee all devices are available
+      DeviceGroup.GENERIC -> devices.forEach(devicesEnumValueBuilder::addGeneric)
+      DeviceGroup.WEAR -> devices.forEach(devicesEnumValueBuilder::addWear)
+      DeviceGroup.TV -> devices.forEach(devicesEnumValueBuilder::addTv)
+      DeviceGroup.AUTOMOTIVE -> devices.forEach(devicesEnumValueBuilder::addAuto)
+      DeviceGroup.DESKTOP -> devices.forEach(devicesEnumValueBuilder::addDesktop)
     }
-    devicesEnumValueBuilder.includeDefaultsAndBuild()
   }
+  devicesEnumValueBuilder.includeDefaultsAndBuild()
+}
 
 private fun DeviceEnumValueBuilder.addPhone(device: Device) {
   addPhoneById(displayName = device.displayName, id = device.id)
@@ -127,9 +123,7 @@ private fun DeviceEnumValueBuilder.addDesktop(device: Device) {
   addById(displayName = device.displayName, id = device.id, type = DeviceClass.Desktop)
 }
 
-/**
- * Returns grouped devices from the DeviceManager.
- */
+/** Returns grouped devices from the DeviceManager. */
 private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
   val studioDevices = getSdkDevices(module)
   return groupDevices(studioDevices)
@@ -137,40 +131,48 @@ private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
 
 private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
   uiModeProvider@{
-    val configurationClass = findClass(module, SdkConstants.CLASS_CONFIGURATION) ?: return@uiModeProvider emptyList()
-    val uiModeValueParams = configurationClass.fields.filter {
-      it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK")
-    }.mapNotNull { uiMode ->
-      (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
-        val displayName = if (UiMode.VR.resolvedValue == it.toString()) {
-          UiMode.VR.display
+    val configurationClass =
+      findClass(module, SdkConstants.CLASS_CONFIGURATION) ?: return@uiModeProvider emptyList()
+    val uiModeValueParams =
+      configurationClass
+        .fields
+        .filter { it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK") }
+        .mapNotNull { uiMode ->
+          (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
+            val displayName =
+              if (UiMode.VR.resolvedValue == it.toString()) {
+                UiMode.VR.display
+              } else {
+                uiMode
+                  .name
+                  .substringAfter("UI_MODE_TYPE_")
+                  .replace('_', ' ')
+                  .toLowerCaseAsciiOnly()
+                  .capitalizeAsciiOnly()
+              }
+            ClassEnumValueParams(uiMode.name, displayName, it.toString())
+          }
         }
-        else {
-          uiMode.name.substringAfter("UI_MODE_TYPE_").replace('_', ' ').toLowerCaseAsciiOnly().capitalizeAsciiOnly()
-        }
-        ClassEnumValueParams(uiMode.name, displayName, it.toString())
+        .filter { params -> UiMode.NORMAL.resolvedValue != params.resolvedValue }
+        .sortedBy { params -> params.resolvedValue }
+
+    val uiModeNoNightValues =
+      uiModeValueParams.map { uiModeParams ->
+        UiModeWithNightMaskEnumValue.createNotNightUiModeEnumValue(
+          uiModeParams.value,
+          uiModeParams.displayName,
+          uiModeParams.resolvedValue
+        )
       }
-    }.filter { params ->
-      UiMode.NORMAL.resolvedValue != params.resolvedValue
-    }.sortedBy { params ->
-      params.resolvedValue
-    }
 
-    val uiModeNoNightValues = uiModeValueParams.map { uiModeParams ->
-      UiModeWithNightMaskEnumValue.createNotNightUiModeEnumValue(
-        uiModeParams.value,
-        uiModeParams.displayName,
-        uiModeParams.resolvedValue
-      )
-    }
-
-    val uiModeNightValues = uiModeValueParams.map { uiModeParams ->
-      UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
-        uiModeParams.value,
-        uiModeParams.displayName,
-        uiModeParams.resolvedValue
-      )
-    }
+    val uiModeNightValues =
+      uiModeValueParams.map { uiModeParams ->
+        UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
+          uiModeParams.value,
+          uiModeParams.displayName,
+          uiModeParams.resolvedValue
+        )
+      }
     return@uiModeProvider listOf(
       EnumValue.header(message("picker.preview.uimode.header.notnight")),
       UiModeWithNightMaskEnumValue.NormalNotNightEnumValue,
@@ -182,36 +184,48 @@ private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
   }
 
 /**
- * Provides a list of targets within the appropriate range (by minimum sdk) and that are valid for rendering.
+ * Provides a list of targets within the appropriate range (by minimum sdk) and that are valid for
+ * rendering.
  */
-private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider =
-  {
-    val configurationManager = ConfigurationManager.findExistingInstance(module)
-    val minTargetSdk = AndroidModuleInfo.getInstance(module)?.minSdkVersion?.apiLevel ?: AndroidVersion.VersionCodes.BASE
-    configurationManager?.targets?.filter {
-      ConfigurationManager.isLayoutLibTarget(it) && it.version.apiLevel >= minTargetSdk
-    }?.map { target ->
-      EnumValue.item(target.version.apiLevel.toString(), "${target.version.apiLevel} (Android ${target.versionName})")
-    } ?: emptyList()
-  }
-
-private fun createGroupEnumProvider(module: Module, containingFile: VirtualFile): EnumValuesProvider =
-  {
-    runBlocking { AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile) }.mapNotNull { previewElement ->
-      previewElement.displaySettings.group
-    }.distinct().map { group ->
-      EnumValue.Companion.item(group)
+private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
+  val configurationManager = ConfigurationManager.findExistingInstance(module)
+  val minTargetSdk =
+    AndroidModuleInfo.getInstance(module)?.minSdkVersion?.apiLevel
+      ?: AndroidVersion.VersionCodes.BASE
+  configurationManager?.targets
+    ?.filter { ConfigurationManager.isLayoutLibTarget(it) && it.version.apiLevel >= minTargetSdk }
+    ?.map { target ->
+      EnumValue.item(
+        target.version.apiLevel.toString(),
+        "${target.version.apiLevel} (Android ${target.versionName})"
+      )
     }
+    ?: emptyList()
+}
+
+private fun createGroupEnumProvider(
+  module: Module,
+  containingFile: VirtualFile
+): EnumValuesProvider = {
+  runBlocking {
+    AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile)
   }
+    .mapNotNull { previewElement -> previewElement.displaySettings.group }
+    .distinct()
+    .map { group -> EnumValue.Companion.item(group) }
+}
 
 private fun createLocaleEnumProvider(module: Module): EnumValuesProvider =
   localesProvider@{
     val enumValueLocales = mutableListOf<EnumValue>(EnumValue.empty("Default (en-US)"))
-    ResourceRepositoryManager.getInstance(module)?.localesInProject?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)?.forEach { locale ->
-      locale.qualifier.full.nullize()?.let {
-        enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId()))
+    ResourceRepositoryManager.getInstance(module)
+      ?.localesInProject
+      ?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
+      ?.forEach { locale ->
+        locale.qualifier.full.nullize()?.let {
+          enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId()))
+        }
       }
-    }
     return@localesProvider enumValueLocales
   }
 

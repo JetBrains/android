@@ -32,61 +32,73 @@ import com.intellij.util.text.nullize
 internal fun createDeviceEnumSupport(
   enumSupportValuesProvider: EnumSupportValuesProvider,
   property: PsiPropertyItem
-) = EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
-  val trimmedValue = stringValue.trim()
-  Device.values().firstOrNull { it.resolvedValue == trimmedValue }?.let {
-    // First try to parse to a pre-defined device
-    return@EnumSupportWithConstantData it
-  }
+) =
+  EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
+    val trimmedValue = stringValue.trim()
+    Device.values().firstOrNull { it.resolvedValue == trimmedValue }?.let {
+      // First try to parse to a pre-defined device
+      return@EnumSupportWithConstantData it
+    }
 
-  trimmedValue.nullize()?.let {
-    val isDeviceSpec = it.startsWith("spec:") // TODO(b/197021783): Reuse constant from PreviewElement.kt
-    if (isDeviceSpec) {
-      val knownSpec = DeviceEnumValueBuilder().includeDefaultsAndBuild()
-        .filter { enumValue ->
-          enumValue.value?.isNotBlank() == true
-        }.firstOrNull { enumValue ->
-          enumValue.value == stringValue
+    trimmedValue.nullize()?.let {
+      val isDeviceSpec =
+        it.startsWith("spec:") // TODO(b/197021783): Reuse constant from PreviewElement.kt
+      if (isDeviceSpec) {
+        val knownSpec =
+          DeviceEnumValueBuilder()
+            .includeDefaultsAndBuild()
+            .filter { enumValue -> enumValue.value?.isNotBlank() == true }
+            .firstOrNull { enumValue -> enumValue.value == stringValue }
+        if (knownSpec != null) {
+          return@EnumSupportWithConstantData knownSpec
         }
-      if (knownSpec != null) {
-        return@EnumSupportWithConstantData knownSpec
+        // If the Device definition is a hardware spec. Just show as 'Custom'
+        return@EnumSupportWithConstantData EnumValue.item(stringValue, "Custom")
+      } else {
+        val displayName =
+          enumSupportValuesProvider
+            .getValuesProvider(PARAMETER_HARDWARE_DEVICE)
+            ?.invoke()
+            ?.firstOrNull { enum -> enum.value.equals(it) }
+            ?.display
+        // Show an item with the initial value and make it better to read
+        val readableValue = displayName ?: it.substringAfter(':', it).replace('_', ' ')
+        return@EnumSupportWithConstantData EnumValue.item(it, readableValue)
       }
-      // If the Device definition is a hardware spec. Just show as 'Custom'
-      return@EnumSupportWithConstantData EnumValue.item(stringValue, "Custom")
     }
-    else {
-      val displayName = enumSupportValuesProvider.getValuesProvider(PARAMETER_HARDWARE_DEVICE)?.invoke()
-        ?.firstOrNull { enum -> enum.value.equals(it) }?.display
-      // Show an item with the initial value and make it better to read
-      val readableValue = displayName ?: it.substringAfter(':', it).replace('_', ' ')
-      return@EnumSupportWithConstantData EnumValue.item(it, readableValue)
-    }
-  }
 
-  // For the scenario when there's no value or it's empty (Default device is an empty string)
-  return@EnumSupportWithConstantData Device.DEFAULT
-}
+    // For the scenario when there's no value or it's empty (Default device is an empty string)
+    return@EnumSupportWithConstantData Device.DEFAULT
+  }
 
 internal object DensityEnumSupport : EnumSupport {
-  override val values: List<EnumValue> = listOf(
-    Density.LOW,
-    Density.MEDIUM,
-    Density.HIGH,
-    Density.XHIGH,
-    Density.XXHIGH,
-    Density.XXXHIGH
-  ).map { it.toEnumValue() }
+  override val values: List<EnumValue> =
+    listOf(
+        Density.LOW,
+        Density.MEDIUM,
+        Density.HIGH,
+        Density.XHIGH,
+        Density.XXHIGH,
+        Density.XXXHIGH
+      )
+      .map { it.toEnumValue() }
 
   override fun createValue(stringValue: String): EnumValue =
-    AvdScreenData.getScreenDensity(null, false, stringValue.toDoubleOrNull() ?: Density.XXHIGH.dpiValue.toDouble(), 0).toEnumValue()
+    AvdScreenData.getScreenDensity(
+        null,
+        false,
+        stringValue.toDoubleOrNull() ?: Density.XXHIGH.dpiValue.toDouble(),
+        0
+      )
+      .toEnumValue()
 
-  private fun Density.toEnumValue() = EnumValue.item(dpiValue.toString(), "$resourceValue (${dpiValue} dpi)")
+  private fun Density.toEnumValue() =
+    EnumValue.item(dpiValue.toString(), "$resourceValue (${dpiValue} dpi)")
 }
 
 internal object OrientationEnumSupport : EnumSupport {
-  override val values: List<EnumValue> = Orientation.values().map { orientation ->
-    EnumValue.item(orientation.name)
-  }
+  override val values: List<EnumValue> =
+    Orientation.values().map { orientation -> EnumValue.item(orientation.name) }
 
   override fun createValue(stringValue: String): EnumValue {
     val orientation = enumValueOfOrDefault(stringValue, Orientation.portrait)
@@ -95,9 +107,8 @@ internal object OrientationEnumSupport : EnumSupport {
 }
 
 internal object DimensionUnitEnumSupport : EnumSupport {
-  override val values: List<EnumValue> = DimUnit.values().map { dimUnit ->
-    EnumValue.item(dimUnit.name)
-  }
+  override val values: List<EnumValue> =
+    DimUnit.values().map { dimUnit -> EnumValue.item(dimUnit.name) }
 
   override fun createValue(stringValue: String): EnumValue {
     val dimUnit = enumValueOfOrDefault(stringValue, DimUnit.px)

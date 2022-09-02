@@ -22,32 +22,52 @@ import com.android.tools.idea.compose.preview.message
 /**
  * Validates that [editedValue] corresponds to a valid Float number.
  *
- * @return An [EditingErrorCategory] representing the validation result with its corresponding display message [String].
+ * @return An [EditingErrorCategory] representing the validation result with its corresponding
+ * display message [String].
  */
-fun validateFloat(editedValue: String, validateSuffix: Boolean, canBeZero: Boolean): Pair<EditingErrorCategory, String> {
+fun validateFloat(
+  editedValue: String,
+  validateSuffix: Boolean,
+  canBeZero: Boolean
+): Pair<EditingErrorCategory, String> {
   if (editedValue.isBlank()) return EDITOR_NO_ERROR
   val trimmedValue = editedValue.trim()
 
-  val numberValue = trimmedValue.toFloatOrNull() ?: return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.float.nan"))
+  val numberValue =
+    trimmedValue.toFloatOrNull()
+      ?: return Pair(
+        EditingErrorCategory.ERROR,
+        message("picker.preview.input.validation.float.nan")
+      )
 
   if (numberValue < 0f) {
-    return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.positive.value"))
+    return Pair(
+      EditingErrorCategory.ERROR,
+      message("picker.preview.input.validation.positive.value")
+    )
   }
 
   if (numberValue < 0.5f && !canBeZero) {
-    return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.positive.value"))
+    return Pair(
+      EditingErrorCategory.ERROR,
+      message("picker.preview.input.validation.positive.value")
+    )
   }
 
   if (validateSuffix && !trimmedValue.isValidFloatFormat()) {
-    return Pair(EditingErrorCategory.WARNING, message("picker.preview.input.validation.float.format"))
+    return Pair(
+      EditingErrorCategory.WARNING,
+      message("picker.preview.input.validation.float.format")
+    )
   }
 
   return EDITOR_NO_ERROR
 }
 
 /**
- * The user may type several strings that return a non-null value from [String.toFloatOrNull] but are not valid Float syntax, we issue
- * warnings for these identified cases since we don't control what the parser considers as a valid Float, or how they are parsed.
+ * The user may type several strings that return a non-null value from [String.toFloatOrNull] but
+ * are not valid Float syntax, we issue warnings for these identified cases since we don't control
+ * what the parser considers as a valid Float, or how they are parsed.
  *
  * Cases of Strings that can be parsed but are not correct syntax for Float:
  *

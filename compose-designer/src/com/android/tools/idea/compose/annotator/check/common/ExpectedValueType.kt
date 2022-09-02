@@ -18,17 +18,19 @@ package com.android.tools.idea.compose.annotator.check.common
 /**
  * Base interface that describes an expectation of value for a ParameterRule.
  *
- * These are meant to be use by an Inspection to provide readable feedback when we identify that the value of a parameter is incorrect.
+ * These are meant to be use by an Inspection to provide readable feedback when we identify that the
+ * value of a parameter is incorrect.
  */
 internal sealed interface ExpectedValueType
 
 /**
- * For open-ended values. [valueTypeName] should be a short name for a easily recognizable type of value. Eg: Integer, String, Float, etc.
+ * For open-ended values. [valueTypeName] should be a short name for a easily recognizable type of
+ * value. Eg: Integer, String, Float, etc.
  */
-internal class OpenEndedValueType(val valueTypeName: String): ExpectedValueType
+internal class OpenEndedValueType(val valueTypeName: String) : ExpectedValueType
 
 /**
- * For parameters that have a bound choice of values. The list of [acceptableValues] should be the list of values that the parameter may
- * take. Eg: For Boolean: "true", "false".
+ * For parameters that have a bound choice of values. The list of [acceptableValues] should be the
+ * list of values that the parameter may take. Eg: For Boolean: "true", "false".
  */
-internal class MultipleChoiceValueType(val acceptableValues: List<String>): ExpectedValueType
+internal class MultipleChoiceValueType(val acceptableValues: List<String>) : ExpectedValueType

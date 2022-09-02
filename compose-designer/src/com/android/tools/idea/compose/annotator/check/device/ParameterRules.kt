@@ -29,87 +29,101 @@ import com.android.tools.idea.kotlin.enumValueOfOrNull
  * For example: `spec:shape=Normal,width=1080,height=1920,unit=px,dpi=480`
  */
 internal object LegacyParameterRule {
-  val shape = simpleParameterRule(
-    name = DeviceSpec.PARAMETER_SHAPE,
-    expectedType = ExpectedShape,
-    defaultValue = DeviceSpec.DEFAULT_SHAPE.name
-  ) { enumValueOfOrNull<Shape>(it) != null }
+  val shape =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_SHAPE,
+      expectedType = ExpectedShape,
+      defaultValue = DeviceSpec.DEFAULT_SHAPE.name
+    ) { enumValueOfOrNull<Shape>(it) != null }
 
-  val width = simpleParameterRule(
-    name = DeviceSpec.PARAMETER_WIDTH,
-    expectedType = ExpectedInteger,
-    defaultValue = DeviceSpec.DEFAULT_WIDTH_DP.toString()
-  ) { it.toIntOrNull() != null }
+  val width =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_WIDTH,
+      expectedType = ExpectedInteger,
+      defaultValue = DeviceSpec.DEFAULT_WIDTH_DP.toString()
+    ) { it.toIntOrNull() != null }
 
-  val height = simpleParameterRule(
-    name = DeviceSpec.PARAMETER_HEIGHT,
-    expectedType = ExpectedInteger,
-    defaultValue = DeviceSpec.DEFAULT_HEIGHT_DP.toString()
-  ) { it.toIntOrNull() != null }
+  val height =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_HEIGHT,
+      expectedType = ExpectedInteger,
+      defaultValue = DeviceSpec.DEFAULT_HEIGHT_DP.toString()
+    ) { it.toIntOrNull() != null }
 
-  val unit = simpleParameterRule(
-    name = DeviceSpec.PARAMETER_UNIT,
-    expectedType = ExpectedDimUnit,
-    defaultValue = DeviceSpec.DEFAULT_UNIT.name
-  ) { enumValueOfOrNull<DimUnit>(it) != null }
+  val unit =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_UNIT,
+      expectedType = ExpectedDimUnit,
+      defaultValue = DeviceSpec.DEFAULT_UNIT.name
+    ) { enumValueOfOrNull<DimUnit>(it) != null }
 
-  val dpi = simpleParameterRule(
-    name = DeviceSpec.PARAMETER_DPI,
-    expectedType = ExpectedInteger,
-    defaultValue = DeviceSpec.DEFAULT_DPI.toString()
-  ) { it.toIntOrNull() != null }
+  val dpi =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_DPI,
+      expectedType = ExpectedInteger,
+      defaultValue = DeviceSpec.DEFAULT_DPI.toString()
+    ) { it.toIntOrNull() != null }
 
   /**
-   * Unused in the picker, so this rule is just to cover the possibility of the parameter, regardless of value, see b/234620152.
+   * Unused in the picker, so this rule is just to cover the possibility of the parameter,
+   * regardless of value, see b/234620152.
    */
-  val id = simpleParameterRule(
-    name = DeviceSpec.PARAMETER_ID,
-    expectedType = OpenEndedValueType("String"),
-    defaultValue = ""
-  ) { true }
+  val id =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_ID,
+      expectedType = OpenEndedValueType("String"),
+      defaultValue = ""
+    ) { true }
 }
 
 /**
  * Parameter rules for the language based DeviceSpec.
  *
- * For example: `spec:parent=<device_id>,width=1080px,orientation=portrait,height=1920px,isRound=true,chinSize=30dp`
+ * For example:
+ * `spec:parent=<device_id>,width=1080px,orientation=portrait,height=1920px,isRound=true,chinSize=30dp`
  *
  * @see com.android.tools.idea.compose.preview.util.device.DeviceSpecLanguage
  */
 internal object LanguageParameterRule {
 
-  val width = DimensionParameterRule(
-    name = DeviceSpec.PARAMETER_WIDTH,
-    defaultNumber = DeviceSpec.DEFAULT_WIDTH_DP,
-  )
+  val width =
+    DimensionParameterRule(
+      name = DeviceSpec.PARAMETER_WIDTH,
+      defaultNumber = DeviceSpec.DEFAULT_WIDTH_DP,
+    )
 
-  val height = DimensionParameterRule(
-    name = DeviceSpec.PARAMETER_HEIGHT,
-    defaultNumber = DeviceSpec.DEFAULT_HEIGHT_DP,
-  )
+  val height =
+    DimensionParameterRule(
+      name = DeviceSpec.PARAMETER_HEIGHT,
+      defaultNumber = DeviceSpec.DEFAULT_HEIGHT_DP,
+    )
 
-  val chinSize = DimensionParameterRule(
-    name = DeviceSpec.PARAMETER_CHIN_SIZE,
-    defaultNumber = DeviceSpec.DEFAULT_CHIN_SIZE_ZERO,
-  )
+  val chinSize =
+    DimensionParameterRule(
+      name = DeviceSpec.PARAMETER_CHIN_SIZE,
+      defaultNumber = DeviceSpec.DEFAULT_CHIN_SIZE_ZERO,
+    )
 
-  val round = simpleParameterRule(
-    name = DeviceSpec.PARAMETER_IS_ROUND,
-    expectedType = ExpectedStrictBoolean,
-    defaultValue = false.toString()
-  ) { it.toBooleanStrictOrNull() != null }
+  val round =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_IS_ROUND,
+      expectedType = ExpectedStrictBoolean,
+      defaultValue = false.toString()
+    ) { it.toBooleanStrictOrNull() != null }
 
-  val orientation = simpleParameterRule(
-    name = DeviceSpec.PARAMETER_ORIENTATION,
-    expectedType = ExpectedOrientation,
-    defaultValue = Orientation.portrait.name
-  ) { enumValueOfOrNull<Orientation>(it) != null }
+  val orientation =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_ORIENTATION,
+      expectedType = ExpectedOrientation,
+      defaultValue = Orientation.portrait.name
+    ) { enumValueOfOrNull<Orientation>(it) != null }
 
-  val dpi = simpleParameterRule(
-    name = DeviceSpec.PARAMETER_DPI,
-    expectedType = ExpectedInteger,
-    defaultValue = DeviceSpec.DEFAULT_DPI.toString()
-  ) { it.toIntOrNull() != null }
+  val dpi =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_DPI,
+      expectedType = ExpectedInteger,
+      defaultValue = DeviceSpec.DEFAULT_DPI.toString()
+    ) { it.toIntOrNull() != null }
 
   val parent = DeviceIdParameterRule(name = DeviceSpec.PARAMETER_PARENT)
 }

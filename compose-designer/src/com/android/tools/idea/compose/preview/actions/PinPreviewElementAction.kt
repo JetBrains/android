@@ -31,10 +31,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.refactoring.project
 
-fun DataContext.getPreviewElementInstance(): ComposePreviewElementInstance? = getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as? ComposePreviewElementInstance
+fun DataContext.getPreviewElementInstance(): ComposePreviewElementInstance? =
+  getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as? ComposePreviewElementInstance
 
-internal object UnpinAllPreviewElementsAction
-  : ToggleAction(message("action.unpin.all.title"), message("action.unpin.all.description"), AllIcons.General.Pin_tab) {
+internal object UnpinAllPreviewElementsAction :
+  ToggleAction(
+    message("action.unpin.all.title"),
+    message("action.unpin.all.description"),
+    AllIcons.General.Pin_tab
+  ) {
   override fun isSelected(e: AnActionEvent): Boolean = true
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     if (!state) {
@@ -48,17 +53,25 @@ internal object UnpinAllPreviewElementsAction
 
     val project = e.project ?: return
     val pinnedElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
-    val singleFileName = runBlocking {  pinnedElementProvider.previewElements() }.mapNotNull { it.previewBodyPsi?.virtualFile?.name }
-                           .distinct()
-                           .singleOrNull() ?: "Pinned"
+    val singleFileName =
+      runBlocking { pinnedElementProvider.previewElements() }
+        .mapNotNull { it.previewBodyPsi?.virtualFile?.name }
+        .distinct()
+        .singleOrNull()
+        ?: "Pinned"
     e.presentation.text = "  -  $singleFileName"
   }
 }
 
 internal class PinAllPreviewElementsAction(
   private val isPinned: () -> Boolean,
-  private val previewElementProvider: PreviewElementProvider<ComposePreviewElementInstance>)
-  : ToggleAction(message("action.pin.file.title"), message("action.pin.file.description"), AllIcons.General.Pin_tab) {
+  private val previewElementProvider: PreviewElementProvider<ComposePreviewElementInstance>
+) :
+  ToggleAction(
+    message("action.pin.file.title"),
+    message("action.pin.file.description"),
+    AllIcons.General.Pin_tab
+  ) {
   override fun isSelected(e: AnActionEvent): Boolean = isPinned()
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
@@ -69,8 +82,7 @@ internal class PinAllPreviewElementsAction(
         // Unpin any previous pins
         pinManager.unpinAll()
         pinManager.pin(previewElementProvider.previewElements().toList())
-      }
-      else {
+      } else {
         pinManager.unpin(previewElementProvider.previewElements().toList())
       }
     }
@@ -83,7 +95,8 @@ internal class PinAllPreviewElementsAction(
   }
 }
 
-internal class PinPreviewElementAction(private val dataContextProvider: () -> DataContext) : ToggleAction(PIN_EMOJI, null, null) {
+internal class PinPreviewElementAction(private val dataContextProvider: () -> DataContext) :
+  ToggleAction(PIN_EMOJI, null, null) {
 
   override fun displayTextInToolbar(): Boolean = true
 
@@ -91,7 +104,9 @@ internal class PinPreviewElementAction(private val dataContextProvider: () -> Da
     super.update(e)
 
     // Only instances can be pinned (except pinned ones)
-    val isInstance = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) is ComposePreviewElementInstance
+    val isInstance =
+      dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) is
+        ComposePreviewElementInstance
     e.presentation.isVisible = isInstance
     e.presentation.isEnabled = isInstance
   }
@@ -99,15 +114,14 @@ internal class PinPreviewElementAction(private val dataContextProvider: () -> Da
   override fun isSelected(e: AnActionEvent): Boolean =
     dataContextProvider().getPreviewElementInstance()?.let {
       PinnedPreviewElementManager.getInstance(e.dataContext.project).isPinned(it)
-    } ?: false
+    }
+      ?: false
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val project = e.dataContext.project
     dataContextProvider().getPreviewElementInstance()?.let {
-      if (state)
-        PinnedPreviewElementManager.getInstance(project).pin(it)
-      else
-        PinnedPreviewElementManager.getInstance(project).unpin(it)
+      if (state) PinnedPreviewElementManager.getInstance(project).pin(it)
+      else PinnedPreviewElementManager.getInstance(project).unpin(it)
     }
   }
 }

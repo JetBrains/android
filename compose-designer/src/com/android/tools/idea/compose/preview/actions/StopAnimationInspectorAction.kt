@@ -22,21 +22,28 @@ import com.intellij.ui.AnActionButton
 import icons.StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
 
 /**
- * Action to stop the animation inspector, displayed when the inspector is open for the current preview.
+ * Action to stop the animation inspector, displayed when the inspector is open for the current
+ * preview.
  */
-class StopAnimationInspectorAction: AnActionButton(message("action.stop.animation.inspector.title"),
-                                                   message("action.stop.animation.inspector.description"),
-                                                   // TODO(b/157895086): Generalize the icon or use a specific one for animation inspector
-                                                   STOP_INTERACTIVE_MODE) {
+class StopAnimationInspectorAction :
+  AnActionButton(
+    message("action.stop.animation.inspector.title"),
+    message("action.stop.animation.inspector.description"),
+    // TODO(b/157895086): Generalize the icon or use a specific one for animation inspector
+    STOP_INTERACTIVE_MODE
+  ) {
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {
     val composePreviewManagers = findComposePreviewManagersForContext(e.dataContext)
     e.presentation.isEnabled = !composePreviewManagers.any { it.status().isRefreshing }
-    e.presentation.isVisible = composePreviewManagers.any { it.animationInspectionPreviewElementInstance != null }
+    e.presentation.isVisible =
+      composePreviewManagers.any { it.animationInspectionPreviewElementInstance != null }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach { it.animationInspectionPreviewElementInstance = null }
+    findComposePreviewManagersForContext(e.dataContext).forEach {
+      it.animationInspectionPreviewElementInstance = null
+    }
   }
 }

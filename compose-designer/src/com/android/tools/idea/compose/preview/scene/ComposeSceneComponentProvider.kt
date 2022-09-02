@@ -32,73 +32,89 @@ import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * [SceneManager.SceneComponentHierarchyProvider] for Compose Preview.
- * It provides the ability to sync Compose bounding boxes into SceneComponents.
+ * [SceneManager.SceneComponentHierarchyProvider] for Compose Preview. It provides the ability to
+ * sync Compose bounding boxes into SceneComponents.
  */
-class ComposeSceneComponentProvider: SceneManager.SceneComponentHierarchyProvider {
+class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvider {
   private val LOG = Logger.getInstance(ComposeSceneComponentProvider::class.java)
 
   /**
-   * When true, we will map the existing Composables to SceneComponents. If false, we disable the mapping.
+   * When true, we will map the existing Composables to SceneComponents. If false, we disable the
+   * mapping.
    */
   var enabled = true
   private val hitProvider = DefaultHitProvider()
 
   /**
-   * Maps a [ComposeViewInfo] into one or more [SceneComponent]s.
-   * This method will remove [ComposeViewInfo]s if they have empty bounds or if their bounds are already present
-   * in the hierarchy but it will still process the children.
+   * Maps a [ComposeViewInfo] into one or more [SceneComponent]s. This method will remove
+   * [ComposeViewInfo]s if they have empty bounds or if their bounds are already present in the
+   * hierarchy but it will still process the children.
    */
-  private fun ComposeViewInfo.mapToSceneComponent(manager: SceneManager, component: NlComponent, boundsSet: MutableSet<PxBounds>): List<SceneComponent> =
+  private fun ComposeViewInfo.mapToSceneComponent(
+    manager: SceneManager,
+    component: NlComponent,
+    boundsSet: MutableSet<PxBounds>
+  ): List<SceneComponent> =
     if (bounds.isEmpty() || boundsSet.contains(bounds)) {
       children.flatMap { it.mapToSceneComponent(manager, component, boundsSet) }
-    }
-    else {
-      listOf(SceneComponent(manager.scene, component, hitProvider).also {
-        it.setPosition(Coordinates.pxToDp(manager, bounds.left), Coordinates.pxToDp(manager, bounds.top))
-        it.setSize(Coordinates.pxToDp(manager, bounds.width), Coordinates.pxToDp(manager, bounds.height))
-        boundsSet.add(bounds)
-        children
-          .flatMap { child ->
-            child.mapToSceneComponent(manager, component, boundsSet)
-          }
-          .forEach { newComponent ->
-            it.addChild(newComponent)
-          }
-      })
+    } else {
+      listOf(
+        SceneComponent(manager.scene, component, hitProvider).also {
+          it.setPosition(
+            Coordinates.pxToDp(manager, bounds.left),
+            Coordinates.pxToDp(manager, bounds.top)
+          )
+          it.setSize(
+            Coordinates.pxToDp(manager, bounds.width),
+            Coordinates.pxToDp(manager, bounds.height)
+          )
+          boundsSet.add(bounds)
+          children
+            .flatMap { child -> child.mapToSceneComponent(manager, component, boundsSet) }
+            .forEach { newComponent -> it.addChild(newComponent) }
+        }
+      )
     }
 
-  /**
-   * Walks the given list of [SceneComponent] for debugging displaying all children.
-   */
-  private fun debugResult(result: List<SceneComponent>, indent: Int = 0): List<SceneComponent> = if (LOG.isDebugEnabled()) {
-    result
-  }
-  else {
-    result.onEach {
-      val indentStr = " ".repeat(indent)
+  /** Walks the given list of [SceneComponent] for debugging displaying all children. */
+  private fun debugResult(result: List<SceneComponent>, indent: Int = 0): List<SceneComponent> =
+    if (LOG.isDebugEnabled()) {
+      result
+    } else {
+      result.onEach {
+        val indentStr = " ".repeat(indent)
 
-      LOG.debug("${indentStr}${it.drawX}, ${it.drawY} -> ${it.drawWidth}, ${it.drawHeight}")
-      debugResult(it.children, indent = indent + 1)
+        LOG.debug("${indentStr}${it.drawX}, ${it.drawY} -> ${it.drawWidth}, ${it.drawHeight}")
+        debugResult(it.children, indent = indent + 1)
+      }
     }
-  }
 
-  override fun createHierarchy(manager: SceneManager, component: NlComponent): List<SceneComponent> {
+  override fun createHierarchy(
+    manager: SceneManager,
+    component: NlComponent
+  ): List<SceneComponent> {
     if (!enabled) return listOf()
     val viewInfo = component.viewInfo ?: return listOf()
 
     if (LOG.isDebugEnabled) {
-      component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name?.let {
-        LOG.debug(" ${it} component=${component} model=${component.model}")
-      }
+      component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+        ?.displaySettings
+        ?.name
+        ?.let { LOG.debug(" ${it} component=${component} model=${component.model}") }
     }
 
-    val sceneComponents = debugResult(parseViewInfo(viewInfo, logger = LOG).flatMap {
-      it.mapToSceneComponent(manager, component, mutableSetOf())
-    })
+    val sceneComponents =
+      debugResult(
+        parseViewInfo(viewInfo, logger = LOG).flatMap {
+          it.mapToSceneComponent(manager, component, mutableSetOf())
+        }
+      )
 
     if (StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get()) {
-      sceneComponents.getOrNull(0)?.myCache?.put(DESIGN_INFO_LIST_KEY, parseDesignInfoList(viewInfo))
+      sceneComponents
+        .getOrNull(0)
+        ?.myCache
+        ?.put(DESIGN_INFO_LIST_KEY, parseDesignInfoList(viewInfo))
     }
     return sceneComponents
   }

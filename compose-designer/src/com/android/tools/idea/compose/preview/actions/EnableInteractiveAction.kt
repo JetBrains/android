@@ -29,10 +29,15 @@ import kotlinx.coroutines.launch
 /**
  * Action that controls when to enable the Interactive mode.
  *
- * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
+ * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
+ * information.
  */
-internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) : AnActionButton(
-  message("action.interactive.title"), message("action.interactive.description"), INTERACTIVE_PREVIEW) {
+internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) :
+  AnActionButton(
+    message("action.interactive.title"),
+    message("action.interactive.description"),
+    INTERACTIVE_PREVIEW
+  ) {
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
@@ -42,10 +47,10 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
   override fun actionPerformed(e: AnActionEvent) {
     val modelDataContext = dataContextProvider()
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    val instanceId = (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as? ComposePreviewElementInstance) ?: return
+    val instanceId =
+      (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as? ComposePreviewElementInstance)
+        ?: return
 
-    AndroidCoroutineScope(manager).launch {
-      manager.startInteractivePreview(instanceId)
-    }
+    AndroidCoroutineScope(manager).launch { manager.startInteractivePreview(instanceId) }
   }
 }

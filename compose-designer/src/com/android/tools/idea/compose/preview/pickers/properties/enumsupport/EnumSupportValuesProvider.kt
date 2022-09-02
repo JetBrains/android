@@ -20,18 +20,20 @@ import com.android.tools.property.panel.api.EnumValue
 import javax.swing.ListCellRenderer
 
 /**
- * Interface that may be used by [EnumSupport] instances to retrieve values the moment they're called.
+ * Interface that may be used by [EnumSupport] instances to retrieve values the moment they're
+ * called.
  *
  * @see EnumSupportWithConstantData
  */
 interface EnumSupportValuesProvider {
 
-  fun getValuesProvider(key: String): (EnumValuesProvider)?
+  fun getValuesProvider(key: String): EnumValuesProvider?
 
   companion object {
-    val EMPTY = object : EnumSupportValuesProvider {
-      override fun getValuesProvider(key: String): (EnumValuesProvider)? = null
-    }
+    val EMPTY =
+      object : EnumSupportValuesProvider {
+        override fun getValuesProvider(key: String): EnumValuesProvider? = null
+      }
   }
 }
 
@@ -40,8 +42,9 @@ typealias EnumValuesProvider = (() -> List<EnumValue>)
 /**
  * [EnumSupport] that provides its values lazily.
  *
- * Normally, if we are going to run long execution when acquiring values, we are expected to do it every time the property is called, but if
- * we don't expect different data after the first invocation, we can use a lazy property.
+ * Normally, if we are going to run long execution when acquiring values, we are expected to do it
+ * every time the property is called, but if we don't expect different data after the first
+ * invocation, we can use a lazy property.
  */
 internal class EnumSupportWithConstantData(
   enumSupportValuesProvider: EnumSupportValuesProvider,

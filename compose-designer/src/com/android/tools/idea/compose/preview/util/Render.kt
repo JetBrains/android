@@ -23,29 +23,30 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeCallbacks
 
 /**
- * Extension implementing some heuristics to detect Compose rendering errors. This allows to identify render
- * errors better.
+ * Extension implementing some heuristics to detect Compose rendering errors. This allows to
+ * identify render errors better.
  */
 internal fun RenderResult?.isComposeErrorResult(): Boolean {
   if (this == null) {
     return true
   }
 
-  // Compose renders might fail with onLayout exceptions hiding actual errors. This will return an empty image
+  // Compose renders might fail with onLayout exceptions hiding actual errors. This will return an
+  // empty image
   // result. We can detect this by checking for a 1x1 or 0x0 image and the logger having errors.
   if (logger.hasErrors() && renderedImage.width <= 1 && renderedImage.height <= 1) {
     return true
   }
 
-  return logger.brokenClasses.values
-    .any {
-      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER_FQN == ex.className }
-    }
+  return logger.brokenClasses.values.any {
+    it is ReflectiveOperationException &&
+      it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER_FQN == ex.className }
+  }
 }
 
 /**
- * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that specific to compose to render components
- * that do not simply render in a first pass.
+ * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that
+ * specific to compose to render components that do not simply render in a first pass.
  */
 internal suspend fun LayoutlibSceneManager.requestDoubleRender() {
   render()

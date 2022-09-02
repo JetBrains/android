@@ -20,12 +20,13 @@ package com.android.tools.idea.compose.annotator.check.common
  *
  * @param parameterName name of the parameter associated with the issue
  */
-internal sealed class IssueReason(
-  open val parameterName: String
-)
+internal sealed class IssueReason(open val parameterName: String)
 
-/** Used when the existing value doesn't match the expected type for the parameter it's assigned to. */
-internal class BadType(parameterName: String, val expected: ExpectedValueType) : IssueReason(parameterName)
+/**
+ * Used when the existing value doesn't match the expected type for the parameter it's assigned to.
+ */
+internal class BadType(parameterName: String, val expected: ExpectedValueType) :
+  IssueReason(parameterName)
 
 /** For parameters not found that are expected to be present. */
 internal class Missing(parameterName: String) : IssueReason(parameterName)
@@ -36,5 +37,8 @@ internal class Repeated(parameterName: String) : IssueReason(parameterName)
 /** For parameters found that are not expected/supported. */
 internal class Unknown(parameterName: String) : IssueReason(parameterName)
 
-/** Represents issues external to the contents of the annotation (e.g: Failed to read the annotation content).  */
+/**
+ * Represents issues external to the contents of the annotation (e.g: Failed to read the annotation
+ * content).
+ */
 internal class Failure(val failureMessage: String) : IssueReason("")

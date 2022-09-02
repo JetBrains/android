@@ -37,30 +37,38 @@ import com.intellij.util.ui.update.Update
 import java.util.concurrent.TimeUnit
 
 /**
- * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview import. The notification will close
- * the current editor and open one with the preview.
+ * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview
+ * import. The notification will close the current editor and open one with the preview.
  */
-internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
-  private val filePreviewElementProvider: () -> FilePreviewElementFinder) : EditorNotifications.Provider<EditorNotificationPanel>() {
-  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.new.notification")
+internal class ComposeNewPreviewNotificationProvider
+@NonInjectable
+constructor(private val filePreviewElementProvider: () -> FilePreviewElementFinder) :
+  EditorNotifications.Provider<EditorNotificationPanel>() {
+  private val COMPONENT_KEY =
+    Key.create<EditorNotificationPanel>("android.tools.compose.preview.new.notification")
 
-  constructor(): this(::defaultFilePreviewElementFinder)
+  constructor() : this(::defaultFilePreviewElementFinder)
 
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? =
+  override fun createNotificationPanel(
+    file: VirtualFile,
+    fileEditor: FileEditor,
+    project: Project
+  ): EditorNotificationPanel? =
     when {
       StudioFlags.NELE_SOURCE_CODE_EDITOR.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
-      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel(fileEditor).apply {
-        setText(message("notification.new.preview"))
-        createActionLabel(message("notification.new.preview.action")) {
-          if (fileEditor.isValid) {
-            FileEditorManager.getInstance(project).closeFile(file)
-            FileEditorManager.getInstance(project).openFile(file, true)
-            project.requestBuild(file)
+      filePreviewElementProvider().hasPreviewMethods(project, file) ->
+        EditorNotificationPanel(fileEditor).apply {
+          setText(message("notification.new.preview"))
+          createActionLabel(message("notification.new.preview.action")) {
+            if (fileEditor.isValid) {
+              FileEditorManager.getInstance(project).closeFile(file)
+              FileEditorManager.getInstance(project).openFile(file, true)
+              project.requestBuild(file)
+            }
           }
         }
-      }
       else -> null
     }
 
@@ -68,53 +76,63 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
 }
 
 /**
- * [ProjectComponent] that listens for Kotlin file additions or removals and triggers a notification update
+ * [ProjectComponent] that listens for Kotlin file additions or removals and triggers a notification
+ * update
  */
-internal class ComposeNewPreviewNotificationManager(private val project: Project) : ProjectComponent {
+internal class ComposeNewPreviewNotificationManager(private val project: Project) :
+  ProjectComponent {
   private val LOG = Logger.getInstance(ComposeNewPreviewNotificationManager::class.java)
 
   private val updateNotificationQueue: MergingUpdateQueue by lazy {
-    MergingUpdateQueue("Update notifications",
-                       TimeUnit.SECONDS.toMillis(2).toInt(),
-                       true,
-                       null,
-                       project)
+    MergingUpdateQueue(
+      "Update notifications",
+      TimeUnit.SECONDS.toMillis(2).toInt(),
+      true,
+      null,
+      project
+    )
   }
 
   override fun projectOpened() {
     LOG.debug("projectOpened")
 
-    PsiManager.getInstance(project).addPsiTreeChangeListener(object : PsiTreeChangeAdapter() {
-      private fun onEvent(event: PsiTreeChangeEvent) {
-        val file = event.file?.virtualFile ?: return
-        if (!file.isKotlinFileType()) return
-        updateNotificationQueue.queue(object : Update(file) {
-          override fun run() {
-            if (project.isDisposed || !file.isValid) {
-              return
-            }
+    PsiManager.getInstance(project)
+      .addPsiTreeChangeListener(
+        object : PsiTreeChangeAdapter() {
+          private fun onEvent(event: PsiTreeChangeEvent) {
+            val file = event.file?.virtualFile ?: return
+            if (!file.isKotlinFileType()) return
+            updateNotificationQueue.queue(
+              object : Update(file) {
+                override fun run() {
+                  if (project.isDisposed || !file.isValid) {
+                    return
+                  }
 
-            if (LOG.isDebugEnabled) {
-              LOG.debug("updateNotifications for ${file.name}")
-            }
+                  if (LOG.isDebugEnabled) {
+                    LOG.debug("updateNotifications for ${file.name}")
+                  }
 
-            if (FileEditorManager.getInstance(project).getEditors(file).isEmpty()) {
-              LOG.debug("No editor found")
-              return
-            }
+                  if (FileEditorManager.getInstance(project).getEditors(file).isEmpty()) {
+                    LOG.debug("No editor found")
+                    return
+                  }
 
-            EditorNotifications.getInstance(project).updateNotifications(file)
+                  EditorNotifications.getInstance(project).updateNotifications(file)
+                }
+              }
+            )
           }
-        })
-      }
 
-      override fun childAdded(event: PsiTreeChangeEvent) {
-        onEvent(event)
-      }
+          override fun childAdded(event: PsiTreeChangeEvent) {
+            onEvent(event)
+          }
 
-      override fun childRemoved(event: PsiTreeChangeEvent) {
-        onEvent(event)
-      }
-    }, project)
+          override fun childRemoved(event: PsiTreeChangeEvent) {
+            onEvent(event)
+          }
+        },
+        project
+      )
   }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.analytics
 
 class InteractiveNopTracker : InteractivePreviewUsageTracker {
-  override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) { }
+  override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) {}
 
-  override fun logStartupTime(timeMs: Int, peers: Int) { }
+  override fun logStartupTime(timeMs: Int, peers: Int) {}
 }

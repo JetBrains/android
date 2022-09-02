@@ -21,37 +21,24 @@ import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 
-/**
- * Expected the value to be an Integer.
- */
+/** Expected the value to be an Integer. */
 internal val ExpectedInteger = OpenEndedValueType("Integer")
 
-/**
- * Value should be one of the supported Shapes.
- */
+/** Value should be one of the supported Shapes. */
 internal val ExpectedShape = MultipleChoiceValueType(Shape.values().map { it.name })
 
-/**
- * Value should be a unit used in dimension. Ie: "px", "dp".
- */
+/** Value should be a unit used in dimension. Ie: "px", "dp". */
 internal val ExpectedDimUnit = MultipleChoiceValueType(DimUnit.values().map { it.name })
 
-/**
- * Value should be a boolean, either 'true' or 'false'.
- */
-internal val ExpectedStrictBoolean = MultipleChoiceValueType(listOf(true.toString(), false.toString()))
+/** Value should be a boolean, either 'true' or 'false'. */
+internal val ExpectedStrictBoolean =
+  MultipleChoiceValueType(listOf(true.toString(), false.toString()))
 
-/**
- * Value should be either 'landscape' or 'portrait'.
- */
+/** Value should be either 'landscape' or 'portrait'. */
 internal val ExpectedOrientation = MultipleChoiceValueType(Orientation.values().map { it.name })
 
-/**
- * Value should be an Integer with a unit suffix. Eg: 120dp
- */
+/** Value should be an Integer with a unit suffix. Eg: 120dp */
 internal val ExpectedIntegerWithUnit = OpenEndedValueType("Integer(dp/px)")
 
-/**
- * Value should be a Float with a unit suffix. Eg: 120.1dp
- */
+/** Value should be a Float with a unit suffix. Eg: 120.1dp */
 internal val ExpectedFloatWithUnit = OpenEndedValueType("Float(dp/px)")

@@ -31,8 +31,17 @@ internal object PickerTrackerHelper {
    * Note that the dpi is converted to one of the common Density buckets.
    */
   fun densityBucketOfDeviceConfig(config: DeviceConfig): PreviewPickerValue {
-    val configCopy = config.toMutableConfig().apply { dimUnit = DimUnit.px } // We need pixel dimensions to calculate density
-    val density = AvdScreenData.getScreenDensity(null, false, configCopy.dpi.toDouble(), configCopy.height.roundToInt())
+    val configCopy =
+      config.toMutableConfig().apply {
+        dimUnit = DimUnit.px
+      } // We need pixel dimensions to calculate density
+    val density =
+      AvdScreenData.getScreenDensity(
+        null,
+        false,
+        configCopy.dpi.toDouble(),
+        configCopy.height.roundToInt()
+      )
     return when (density) {
       Density.LOW -> PreviewPickerValue.DENSITY_LOW
       Density.MEDIUM -> PreviewPickerValue.DENSITY_MEDIUM

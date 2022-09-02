@@ -23,46 +23,42 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import java.io.File
+import java.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.withTimeout
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.kotlin.idea.util.module
-import java.io.File
-import java.time.Duration
 
-/**
- * Maximum amount of time to wait for a fast compilation to happen.
- */
-private val FAST_PREVIEW_COMPILE_TIMEOUT = java.lang.Long.getLong("fast.preview.daemon.compile.seconds.timeout", 30)
+/** Maximum amount of time to wait for a fast compilation to happen. */
+private val FAST_PREVIEW_COMPILE_TIMEOUT =
+  java.lang.Long.getLong("fast.preview.daemon.compile.seconds.timeout", 30)
 
 private suspend fun PsiFile.saveIfNeeded() {
   val vFile = virtualFile ?: return
   val fileManager = FileDocumentManager.getInstance()
   val document = fileManager.getCachedDocument(vFile) ?: return
   if (!fileManager.isDocumentUnsaved(document)) return
-  runWriteActionAndWait {
-    fileManager.saveDocument(document)
-  }
+  runWriteActionAndWait { fileManager.saveDocument(document) }
 }
 
 /**
- * Starts a new fast compilation for the current file in the Preview and returns the result of the compilation.
+ * Starts a new fast compilation for the current file in the Preview and returns the result of the
+ * compilation.
  */
-suspend fun fastCompile(parentDisposable: Disposable,
-                        file: PsiFile,
-                        fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(file.project),
-                        requestTracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(file.project).trackRequest()): CompilationResult = coroutineScope {
+suspend fun fastCompile(
+  parentDisposable: Disposable,
+  file: PsiFile,
+  fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(file.project),
+  requestTracker: FastPreviewTrackerManager.Request =
+    FastPreviewTrackerManager.getInstance(file.project).trackRequest()
+): CompilationResult = coroutineScope {
   val contextModule = file.module ?: throw Throwable("No module")
   val project = file.project
 
-  val compileProgressIndicator = BackgroundableProcessIndicator(
-    project,
-    message("notification.compiling"),
-    "",
-    "",
-    false
-  )
+  val compileProgressIndicator =
+    BackgroundableProcessIndicator(project, message("notification.compiling"), "", "", false)
   compileProgressIndicator.isIndeterminate = true
   Disposer.register(parentDisposable, compileProgressIndicator)
   try {
@@ -70,23 +66,22 @@ suspend fun fastCompile(parentDisposable: Disposable,
 
     file.saveIfNeeded()
 
-    val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
-      fastPreviewManager.compileRequest(listOf(file), contextModule, tracker = requestTracker)
-    }
+    val (result, outputAbsolutePath) =
+      withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
+        fastPreviewManager.compileRequest(listOf(file), contextModule, tracker = requestTracker)
+      }
     val isSuccess = result == CompilationResult.Success
     if (isSuccess) {
-      ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath = File(outputAbsolutePath).toPath()
+      ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath =
+        File(outputAbsolutePath).toPath()
     }
 
     return@coroutineScope result
-  }
-  catch (_: CancellationException) {
+  } catch (_: CancellationException) {
     return@coroutineScope CompilationResult.CompilationAborted()
-  }
-  catch (_: ProcessCanceledException) {
+  } catch (_: ProcessCanceledException) {
     return@coroutineScope CompilationResult.CompilationAborted()
-  }
-  finally {
+  } finally {
     compileProgressIndicator.stop()
     compileProgressIndicator.processFinish()
   }

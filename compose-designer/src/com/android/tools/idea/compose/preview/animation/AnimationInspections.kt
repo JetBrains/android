@@ -43,21 +43,33 @@ private const val TRANSITION_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.Trans
 private const val ANIMATE_PREFIX = "animate" // e.g. animateColor, animateFloat, animateValue
 
 /**
- * Inspection to verify that the `label` parameter is set for `updateTransition` calls that create Compose transition animations. This
- * parameter is used by the animation tooling to identify the transition when inspecting animations in the Animation Preview.
+ * Inspection to verify that the `label` parameter is set for `updateTransition` calls that create
+ * Compose transition animations. This parameter is used by the animation tooling to identify the
+ * transition when inspecting animations in the Animation Preview.
  */
 class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
-  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor =
+  override fun buildVisitor(
+    holder: ProblemsHolder,
+    isOnTheFly: Boolean,
+    session: LocalInspectionToolSession
+  ): PsiElementVisitor =
     if (session.file.androidFacet != null) {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
           val resolvedExpression = expression.resolveToCall() ?: return
           // First, check we're analyzing an updateTransition call
-          if (resolvedExpression.resultingDescriptor.fqNameOrNull()?.asString() != UPDATE_TRANSITION_FQN) return
+          if (resolvedExpression.resultingDescriptor.fqNameOrNull()?.asString() !=
+              UPDATE_TRANSITION_FQN
+          )
+            return
 
-          // Finally, verify the updateTransition has the `label` parameter set, otherwise show a weak warning.
-          if (expression.valueArguments.any { resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER }) {
+          // Finally, verify the updateTransition has the `label` parameter set, otherwise show a
+          // weak warning.
+          if (expression.valueArguments.any {
+              resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER
+            }
+          ) {
             // This updateTransition call already has the label parameter set.
             return
           }
@@ -65,42 +77,57 @@ class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
             expression,
             message("inspection.update.transition.no.label.parameter.set.description"),
             ProblemHighlightType.WEAK_WARNING,
-            AddLabelFieldQuickFix(expression))
+            AddLabelFieldQuickFix(expression)
+          )
         }
       }
-    }
-    else {
+    } else {
       PsiElementVisitor.EMPTY_VISITOR
     }
 }
 
 /**
- * Inspection to verify that the `label` parameter is set for `animate*` (e.g. animateFloat, animateColor) calls that create Compose
- * transition properties. This parameter is used by the animation tooling to identify the transition property when inspecting animations in
- * the Animation Preview. Otherwise, a default name will be used (e.g. FloatProperty, ColorProperty).
+ * Inspection to verify that the `label` parameter is set for `animate*` (e.g. animateFloat,
+ * animateColor) calls that create Compose transition properties. This parameter is used by the
+ * animation tooling to identify the transition property when inspecting animations in the Animation
+ * Preview. Otherwise, a default name will be used (e.g. FloatProperty, ColorProperty).
  */
 class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
-  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor =
+  override fun buildVisitor(
+    holder: ProblemsHolder,
+    isOnTheFly: Boolean,
+    session: LocalInspectionToolSession
+  ): PsiElementVisitor =
     if (session.file.androidFacet != null) {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
           val resolvedExpression = expression.resolveToCall() ?: return
           // First, check we're visiting an extension method of Transition<T>
-          if ((resolvedExpression.extensionReceiver?.type as? SimpleType)?.fqName?.asString() != TRANSITION_FQN) return
+          if ((resolvedExpression.extensionReceiver?.type as? SimpleType)?.fqName?.asString() !=
+              TRANSITION_FQN
+          )
+            return
 
-          // Now, check that we're visiting a method named animate* (e.g. animateFloat, animateValue, animateColor) defined on a compose
-          // animation (sub-)package (e.g. androidx.compose.animation, androidx.compose.animation.core).
+          // Now, check that we're visiting a method named animate* (e.g. animateFloat,
+          // animateValue, animateColor) defined on a compose
+          // animation (sub-)package (e.g. androidx.compose.animation,
+          // androidx.compose.animation.core).
           val animateCall = resolvedExpression.resultingDescriptor.fqNameOrNull() ?: return
           val shortName = animateCall.shortNameOrSpecial()
-          if (shortName.isSpecial
-              || !shortName.asString().startsWith(ANIMATE_PREFIX)
-              || !animateCall.parent().asString().startsWith(COMPOSE_ANIMATION_PACKAGE_PREFIX)) {
+          if (shortName.isSpecial ||
+              !shortName.asString().startsWith(ANIMATE_PREFIX) ||
+              !animateCall.parent().asString().startsWith(COMPOSE_ANIMATION_PACKAGE_PREFIX)
+          ) {
             return
           }
 
-          // Finally, verify the animate call has the `label` parameter set, otherwise show a weak warning.
-          if (expression.valueArguments.any { resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER }) {
+          // Finally, verify the animate call has the `label` parameter set, otherwise show a weak
+          // warning.
+          if (expression.valueArguments.any {
+              resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER
+            }
+          ) {
             // This Transition<T>.animate* call already has the label parameter set.
             return
           }
@@ -108,28 +135,36 @@ class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
             expression,
             message("inspection.transition.properties.no.label.parameter.set.description"),
             ProblemHighlightType.WEAK_WARNING,
-            AddLabelFieldQuickFix(expression))
+            AddLabelFieldQuickFix(expression)
+          )
         }
       }
-    }
-    else {
+    } else {
       PsiElementVisitor.EMPTY_VISITOR
     }
 }
 
 /**
- * Add the `label` parameter to a call expression. For example:
- * `updateTransition(targetState = state)` -> `updateTransition(targetState = state, label = "")`
- * `animateFloat(transitionSpec = ...)` -> `animateFloat(transitionSpec = ..., label = "")`
+ * Add the `label` parameter to a call expression. For example: `updateTransition(targetState =
+ * state)` -> `updateTransition(targetState = state, label = "")` `animateFloat(transitionSpec =
+ * ...)` -> `animateFloat(transitionSpec = ..., label = "")`
  */
-private class AddLabelFieldQuickFix(updateTransition: KtCallExpression) : LocalQuickFixOnPsiElement(updateTransition) {
+private class AddLabelFieldQuickFix(updateTransition: KtCallExpression) :
+  LocalQuickFixOnPsiElement(updateTransition) {
   override fun getFamilyName() = message("inspection.group.name")
 
   override fun getText() = message("inspection.no.label.parameter.set.quick.fix.text")
 
-  override fun invoke(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement) {
+  override fun invoke(
+    project: Project,
+    file: PsiFile,
+    startElement: PsiElement,
+    endElement: PsiElement
+  ) {
     val psiFactory = KtPsiFactory(project)
     val statementText = "$LABEL_PARAMETER = \"\""
-    (startElement as KtCallExpression).getOrCreateValueArgumentList().addArgument(psiFactory.createArgument(statementText))
+    (startElement as KtCallExpression)
+      .getOrCreateValueArgumentList()
+      .addArgument(psiFactory.createArgument(statementText))
   }
 }

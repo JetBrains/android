@@ -24,13 +24,13 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
-/**
- * Returns the [PsiPropertyItem]s that will be available for the given [PsiCallPropertyModel].
- */
-internal typealias PsiPropertiesProvider = (Project, PsiCallPropertyModel, ResolvedCall<*>) -> Collection<PsiPropertyItem>
+/** Returns the [PsiPropertyItem]s that will be available for the given [PsiCallPropertyModel]. */
+internal typealias PsiPropertiesProvider =
+  (Project, PsiCallPropertyModel, ResolvedCall<*>) -> Collection<PsiPropertyItem>
 
 /**
- * [PsiPropertyModel] for pickers handling calls. This is common in Compose where most pickers interact with method calls.
+ * [PsiPropertyModel] for pickers handling calls. This is common in Compose where most pickers
+ * interact with method calls.
  *
  * For example, a theme in Compose is a method call. This model allows editing those properties.
  * ```
@@ -39,29 +39,34 @@ internal typealias PsiPropertiesProvider = (Project, PsiCallPropertyModel, Resol
  * )
  * ```
  *
- * The same applies for annotations, where the parameters are considered by the PSI parsing as a method call.
+ * The same applies for annotations, where the parameters are considered by the PSI parsing as a
+ * method call.
  * ```
  * @Preview(name = "Hello", group = "group")
  * ```
  *
  * In both cases, this [PsiCallPropertyModel] will deal with the named parameters as properties.
  */
-internal abstract class PsiCallPropertyModel internal constructor(
+internal abstract class PsiCallPropertyModel
+internal constructor(
   val project: Project,
   val module: Module,
   resolvedCall: ResolvedCall<*>,
   psiPropertiesProvider: PsiPropertiesProvider,
-  override val tracker: ComposePickerTracker // TODO(b/205195408): Refactor tracker to a more general use
+  override val tracker:
+    ComposePickerTracker // TODO(b/205195408): Refactor tracker to a more general use
 ) : PsiPropertyModel(), DataProvider {
 
   val psiFactory: KtPsiFactory by lazy { KtPsiFactory(project, true) }
 
   val ktFile = resolvedCall.call.callElement.containingKtFile
 
-  override val properties: PropertiesTable<PsiPropertyItem> = PropertiesTable.create(
-    HashBasedTable.create<String, String, PsiPropertyItem>().also { table ->
-      psiPropertiesProvider(project, this@PsiCallPropertyModel, resolvedCall).forEach {
-        table.put(it.namespace, it.name, it)
+  override val properties: PropertiesTable<PsiPropertyItem> =
+    PropertiesTable.create(
+      HashBasedTable.create<String, String, PsiPropertyItem>().also { table ->
+        psiPropertiesProvider(project, this@PsiCallPropertyModel, resolvedCall).forEach {
+          table.put(it.namespace, it.name, it)
+        }
       }
-    })
+    )
 }

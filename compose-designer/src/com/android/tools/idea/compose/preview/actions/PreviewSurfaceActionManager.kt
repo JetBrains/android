@@ -34,75 +34,88 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * [ActionManager] to be used by the Compose Preview.
- */
-internal class PreviewSurfaceActionManager(private val surface: DesignSurface<LayoutlibSceneManager>) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
-  private val copyResultImageAction = CopyResultImageAction(
-    {
-      // Copy the model of the current selected object (if any)
-      surface.selectionModel.primary?.model?.let {
-        return@CopyResultImageAction surface.getSceneManager(it) as LayoutlibSceneManager
-      }
+/** [ActionManager] to be used by the Compose Preview. */
+internal class PreviewSurfaceActionManager(
+  private val surface: DesignSurface<LayoutlibSceneManager>
+) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
+  private val copyResultImageAction =
+    CopyResultImageAction(
+      {
+        // Copy the model of the current selected object (if any)
+        surface.selectionModel.primary?.model?.let {
+          return@CopyResultImageAction surface.getSceneManager(it) as LayoutlibSceneManager
+        }
 
-      surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
-    },
-    message("copy.result.image.action.title"),
-    message("copy.result.image.action.done.text")
-  )
+        surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
+      },
+      message("copy.result.image.action.title"),
+      message("copy.result.image.action.done.text")
+    )
 
   override fun registerActionsShortcuts(component: JComponent) {
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
   }
 
-  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup = DefaultActionGroup().apply {
-    add(copyResultImageAction)
-  }
+  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup =
+    DefaultActionGroup().apply { add(copyResultImageAction) }
 
   override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()
 
   override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent =
-    ActionManagerEx.getInstanceEx().createActionToolbar(
-      "sceneView",
-      DefaultActionGroup(
-        listOf(Separator()) +
-        listOfNotNull(
-          StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
-            StudioFlags.COMPOSE_INDIVIDUAL_PIN_PREVIEW.ifEnabled {
-              PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }
-            }
-          },
-          AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext },
-          EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
-          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
-        ).disabledIfRefreshingOrRenderErrors(sceneView).visibleOnlyInComposeStaticPreview()
-      ),
-      true,
-      false
-    ).apply {
-      // Do not allocate space for the "see more" chevron if not needed
-      setReservePlaceAutoPopupIcon(false)
-      setShowSeparatorTitles(true)
-      targetComponent = sceneView.surface
-    }.component.apply {
-      isOpaque = false
-      border = JBUI.Borders.empty()
-    }
+    ActionManagerEx.getInstanceEx()
+      .createActionToolbar(
+        "sceneView",
+        DefaultActionGroup(
+          listOf(Separator()) +
+            listOfNotNull(
+                StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
+                  StudioFlags.COMPOSE_INDIVIDUAL_PIN_PREVIEW.ifEnabled {
+                    PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }
+                  }
+                },
+                AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext },
+                EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
+                DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
+              )
+              .disabledIfRefreshingOrRenderErrors(sceneView)
+              .visibleOnlyInComposeStaticPreview()
+        ),
+        true,
+        false
+      )
+      .apply {
+        // Do not allocate space for the "see more" chevron if not needed
+        setReservePlaceAutoPopupIcon(false)
+        setShowSeparatorTitles(true)
+        targetComponent = sceneView.surface
+      }
+      .component
+      .apply {
+        isOpaque = false
+        border = JBUI.Borders.empty()
+      }
 
   override fun getSceneViewStatusIcon(sceneView: SceneView): JComponent {
-    val component = ActionManagerEx.getInstanceEx().createActionToolbar(
-      "sceneView",
-      DefaultActionGroup(ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview()),
-      true,
-      false
-    ).apply {
-      targetComponent = sceneView.surface
-      (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
-    }.component.apply {
-      isOpaque = false
-      border = JBUI.Borders.empty()
-    }
+    val component =
+      ActionManagerEx.getInstanceEx()
+        .createActionToolbar(
+          "sceneView",
+          DefaultActionGroup(
+            ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview()
+          ),
+          true,
+          false
+        )
+        .apply {
+          targetComponent = sceneView.surface
+          (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
+        }
+        .component
+        .apply {
+          isOpaque = false
+          border = JBUI.Borders.empty()
+        }
 
     return JPanel(BorderLayout()).apply {
       border = JBUI.Borders.empty()

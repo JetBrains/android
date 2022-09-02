@@ -22,24 +22,29 @@ import java.awt.BasicStroke
 import java.awt.Stroke
 
 /**
- * Layout sizes for Animation Inspector. All sizes are in px.
- * TODO Check how layout is resized and scale it appropriately if needed.
+ * Layout sizes for Animation Inspector. All sizes are in px. TODO Check how layout is resized and
+ * scale it appropriately if needed.
  */
 @SuppressLint("JbUiStored")
 object InspectorLayout {
 
   init {
     updateSizes()
-    JBUIScale.addUserScaleChangeListener {
-      updateSizes()
-    }
+    JBUIScale.addUserScaleChangeListener { updateSizes() }
   }
 
   private fun updateSizes() {
     boxedLabelOffset = JBUI.scale(6)
     labelOffset = JBUI.scale(10)
-    dashedStroke = BasicStroke(JBUI.scale(1).toFloat(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f,
-                               floatArrayOf(JBUI.scale(3).toFloat()), 0f)
+    dashedStroke =
+      BasicStroke(
+        JBUI.scale(1).toFloat(),
+        BasicStroke.CAP_BUTT,
+        BasicStroke.JOIN_BEVEL,
+        0f,
+        floatArrayOf(JBUI.scale(3).toFloat()),
+        0f
+      )
     simpleStroke = BasicStroke(JBUI.scale(1).toFloat())
     freezeLineStroke = BasicStroke(JBUI.scale(3).toFloat())
   }
@@ -83,16 +88,18 @@ object InspectorLayout {
   fun curveBottomOffset() = JBUI.scale(CURVE_BOTTOM_OFFSET)
 
   /**
-   * Height of the animation inspector timeline header, i.e. Transition Properties panel title and timeline labels.
+   * Height of the animation inspector timeline header, i.e. Transition Properties panel title and
+   * timeline labels.
    */
   const val TIMELINE_HEADER_HEIGHT = 25
 
   /**
-   * Scaled height of the animation inspector timeline header, i.e. Transition Properties panel title and timeline labels.
+   * Scaled height of the animation inspector timeline header, i.e. Transition Properties panel
+   * title and timeline labels.
    */
   fun timelineHeaderHeightScaled() = JBUI.scale(TIMELINE_HEADER_HEIGHT)
 
-  /** Vertical margin for labels.  */
+  /** Vertical margin for labels. */
   private const val TIMELINE_LABEL_VERTICAL_MARGIN = 5
 
   /** Scaled vertical margin for labels. */

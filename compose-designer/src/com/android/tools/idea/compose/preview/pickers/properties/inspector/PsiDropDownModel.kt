@@ -33,19 +33,21 @@ import javax.swing.event.ListDataListener
  *
  * Manages how values are loaded and selected into the dropdown popup menu.
  */
-internal class PsiDropDownModel(
-  property: PsiPropertyItem,
-  private val enumSupport: EnumSupport
-) : BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
+internal class PsiDropDownModel(property: PsiPropertyItem, private val enumSupport: EnumSupport) :
+  BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
   private val syncNewValues = Object()
-  /** Provisional list used before values are loaded from [enumSupport]. Used to have a Loading indicator if the loading takes too long. */
+  /**
+   * Provisional list used before values are loaded from [enumSupport]. Used to have a Loading
+   * indicator if the loading takes too long.
+   */
   private val loading = mutableListOf(EnumValue.LOADING)
   /** Reference to the current list of [EnumValue], this is the one reflected in the DropDown. */
   private var values: List<EnumValue> = loading
 
-  /** Provisional list reference to safely handle the new set of values loaded from [enumSupport]. */
-  @GuardedBy("syncNewValues")
-  private var newValues: List<EnumValue> = loading
+  /**
+   * Provisional list reference to safely handle the new set of values loaded from [enumSupport].
+   */
+  @GuardedBy("syncNewValues") private var newValues: List<EnumValue> = loading
   private var selectedValue: EnumValue? = null
   private val listListeners = mutableListOf<ListDataListener>()
 
@@ -75,8 +77,7 @@ internal class PsiDropDownModel(
     val currentIndex = getIndexOfCurrentValue()
     if (currentIndex >= 0) {
       selectedItem = getElementAt(currentIndex)
-    }
-    else {
+    } else {
       setInitialDropDownValue()
     }
   }
@@ -99,13 +100,13 @@ internal class PsiDropDownModel(
     val currentValueString = value
     val defaultValueString = property.defaultValue.orEmpty()
     val stringToUse = currentValueString.ifEmpty { defaultValueString }
-    val valueHandler: (String) -> EnumValue = if (currentValueString.isNotEmpty()) {
-      { enumSupport.createValue(it) }
-    }
-    else {
-      // For default values we should use an EnumValue that assigns null
-      { EnumValue.empty(it) }
-    }
+    val valueHandler: (String) -> EnumValue =
+      if (currentValueString.isNotEmpty()) {
+        { enumSupport.createValue(it) }
+      } else {
+        // For default values we should use an EnumValue that assigns null
+        { EnumValue.empty(it) }
+      }
 
     if (stringToUse.isNotEmpty()) {
       val newValue = valueHandler(stringToUse)
@@ -118,39 +119,43 @@ internal class PsiDropDownModel(
   override fun cancelEditing(): Boolean = true
 
   /**
-   * Call to indicate the model that it should load the values from [enumSupport], considers that the values might take a noticeable long
-   * time to populate, in which case [updatePopup] will be called to indicate the Component that there are new values on the list, and it
-   * should update the contents of the popup.
+   * Call to indicate the model that it should load the values from [enumSupport], considers that
+   * the values might take a noticeable long time to populate, in which case [updatePopup] will be
+   * called to indicate the Component that there are new values on the list, and it should update
+   * the contents of the popup.
    */
   fun popupMenuWillBecomeVisible(updatePopup: () -> Unit): Future<*> {
     var result: Future<*> = Futures.immediateFuture(null)
     if (values === loading) {
-      result = editingSupport.execution(Runnable {
-        // The call to enumSupport.values may be slow.
-        // Call it from a non UI thread:
-        val newEnumValues = enumSupport.values
-        synchronized(syncNewValues) {
-          // The "newValues" property is accessed from multiple threads.
-          // Make the update inside a synchronized section.
-          newValues = newEnumValues
-
-          // Notify the UI thread that newValues has been updated.
-          syncNewValues.notify()
-        }
-        editingSupport.uiExecution(Runnable {
-          if (values === loading) {
-            // New values have been loaded but the list model has not been updated.
+      result =
+        editingSupport.execution(
+          Runnable {
+            // The call to enumSupport.values may be slow.
+            // Call it from a non UI thread:
+            val newEnumValues = enumSupport.values
             synchronized(syncNewValues) {
-              values = newValues
-            }
-            // Update the data in the list of the popup.
-            fireListDataInserted()
+              // The "newValues" property is accessed from multiple threads.
+              // Make the update inside a synchronized section.
+              newValues = newEnumValues
 
-            // Notify the UI that there are new items in the list.
-            updatePopup()
+              // Notify the UI thread that newValues has been updated.
+              syncNewValues.notify()
+            }
+            editingSupport.uiExecution(
+              Runnable {
+                if (values === loading) {
+                  // New values have been loaded but the list model has not been updated.
+                  synchronized(syncNewValues) { values = newValues }
+                  // Update the data in the list of the popup.
+                  fireListDataInserted()
+
+                  // Notify the UI that there are new items in the list.
+                  updatePopup()
+                }
+              }
+            )
           }
-        })
-      })
+        )
       if (values === loading) {
         synchronized(syncNewValues) {
           // To avoid flickering from quick enumSupport.values call:
@@ -193,8 +198,10 @@ internal class PsiDropDownModel(
 
   override fun setSelectedItem(item: Any?) {
     if (values === loading) {
-      // The values have not loaded yet, so we should avoid changing the item set by 'setInitialDropDownValue', this might happen from
-      // internal classes making assumptions, but this condition won't trigger if it's the user that selects the item
+      // The values have not loaded yet, so we should avoid changing the item set by
+      // 'setInitialDropDownValue', this might happen from
+      // internal classes making assumptions, but this condition won't trigger if it's the user that
+      // selects the item
       return
     }
     val newValue = item as? EnumValue

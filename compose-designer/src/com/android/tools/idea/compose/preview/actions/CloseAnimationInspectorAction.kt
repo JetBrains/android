@@ -29,7 +29,8 @@ import icons.StudioIcons
 import kotlinx.coroutines.launch
 
 internal class CloseAnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
-  AnActionButton(message("action.stop.animation.inspector.title"), "", StudioIcons.Common.CLOSE), CustomComponentAction {
+  AnActionButton(message("action.stop.animation.inspector.title"), "", StudioIcons.Common.CLOSE),
+  CustomComponentAction {
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
@@ -42,13 +43,13 @@ internal class CloseAnimationInspectorAction(private val dataContextProvider: ()
 
     val instance = manager.animationInspectionPreviewElementInstance
     AndroidCoroutineScope(manager).launch {
-      if (instance != null)
-        manager.startInteractivePreview(instance)
-      else
-        manager.stopInteractivePreview()
+      if (instance != null) manager.startInteractivePreview(instance)
+      else manager.stopInteractivePreview()
     }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
+    ActionButtonWithToolTipDescription(this, presentation, place).apply {
+      border = JBUI.Borders.empty(1, 2)
+    }
 }

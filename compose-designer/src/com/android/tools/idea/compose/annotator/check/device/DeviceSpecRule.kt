@@ -23,27 +23,28 @@ internal enum class DeviceSpecRule(
   override val optionalParameters: List<ParameterRule>
 ) : CheckRule {
   Legacy(
-    requiredParameters = listOf(
-      LegacyParameterRule.shape, LegacyParameterRule.width, LegacyParameterRule.height, LegacyParameterRule.unit, LegacyParameterRule.dpi
-    ),
-    optionalParameters = listOf(
-      LegacyParameterRule.id
-    )
+    requiredParameters =
+      listOf(
+        LegacyParameterRule.shape,
+        LegacyParameterRule.width,
+        LegacyParameterRule.height,
+        LegacyParameterRule.unit,
+        LegacyParameterRule.dpi
+      ),
+    optionalParameters = listOf(LegacyParameterRule.id)
   ),
   LanguageBased(
-    requiredParameters = listOf(
-      LanguageParameterRule.width, LanguageParameterRule.height
-    ),
-    optionalParameters = listOf(
-      LanguageParameterRule.round, LanguageParameterRule.orientation, LanguageParameterRule.chinSize, LanguageParameterRule.dpi
-    )
+    requiredParameters = listOf(LanguageParameterRule.width, LanguageParameterRule.height),
+    optionalParameters =
+      listOf(
+        LanguageParameterRule.round,
+        LanguageParameterRule.orientation,
+        LanguageParameterRule.chinSize,
+        LanguageParameterRule.dpi
+      )
   ),
   LanguageWithParentId(
-    requiredParameters = listOf(
-      LanguageParameterRule.parent
-    ),
-    optionalParameters = listOf(
-      LanguageParameterRule.orientation
-    )
+    requiredParameters = listOf(LanguageParameterRule.parent),
+    optionalParameters = listOf(LanguageParameterRule.orientation)
   )
 }

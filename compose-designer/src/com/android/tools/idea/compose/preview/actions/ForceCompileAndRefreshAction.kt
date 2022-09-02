@@ -33,22 +33,30 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 
-private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
-                                                                            JBColor(0x59A869, 0x499C54))
+private val GREEN_REFRESH_BUTTON =
+  ColoredIconGenerator.generateColoredIcon(
+    AllIcons.Actions.ForceRefresh,
+    JBColor(0x59A869, 0x499C54)
+  )
 
-internal fun requestBuildForSurface(surface: DesignSurface<*>, requestedByUser: Boolean) = surface.models.map { it.virtualFile }
-  .distinct().also { surface.project.requestBuild(it) }
-  .isNotEmpty()
+internal fun requestBuildForSurface(surface: DesignSurface<*>, requestedByUser: Boolean) =
+  surface
+    .models
+    .map { it.virtualFile }
+    .distinct()
+    .also { surface.project.requestBuild(it) }
+    .isNotEmpty()
 
 /**
- * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
- * of the surface.
+ * [AnAction] that triggers a compilation of the current module. The build will automatically
+ * trigger a refresh of the surface.
  */
 internal open class ForceCompileAndRefreshAction(private val surface: DesignSurface<*>) :
   AnAction(
     message("action.build.and.refresh.title"),
     message("action.build.and.refresh.description"),
-    GREEN_REFRESH_BUTTON),
+    GREEN_REFRESH_BUTTON
+  ),
   CustomComponentAction {
   override fun actionPerformed(e: AnActionEvent) {
     // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
@@ -59,9 +67,7 @@ internal open class ForceCompileAndRefreshAction(private val surface: DesignSurf
     if (!requestBuildForSurface(surface, true)) {
       // If there are no models in the surface, we can not infer which models we should trigger
       // the build for. The fallback is to find the virtual file for the editor and trigger that.
-      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let {
-        surface.project.requestBuild(it)
-      }
+      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let { surface.project.requestBuild(it) }
     }
   }
 
@@ -71,11 +77,16 @@ internal open class ForceCompileAndRefreshAction(private val surface: DesignSurf
       presentation.isEnabledAndVisible = false
       return
     }
-    val isRefreshing = findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
+    val isRefreshing =
+      findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
     presentation.isEnabled = !isRefreshing
-    templateText?.let { presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false) }
+    templateText?.let {
+      presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false)
+    }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
+    ActionButtonWithToolTipDescription(this, presentation, place).apply {
+      border = JBUI.Borders.empty(1, 2)
+    }
 }

@@ -26,6 +26,5 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
   return SmartPointerManager.createPointer(bodyPsiElement)
 }
 
-fun Segment?.containsOffset(offset: Int) = this?.let {
-  it.startOffset <= offset && offset <= it.endOffset
-} ?: false
+fun Segment?.containsOffset(offset: Int) =
+  this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false

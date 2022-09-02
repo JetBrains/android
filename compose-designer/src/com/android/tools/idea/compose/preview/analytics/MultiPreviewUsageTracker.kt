@@ -24,25 +24,24 @@ import com.google.common.hash.Hashing
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.diagnostic.Logger
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.Objects
 import java.util.concurrent.Executor
 import java.util.function.Consumer
+import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Usage tracker implementation for Compose MultiPreview.
- */
+/** Usage tracker implementation for Compose MultiPreview. */
 interface MultiPreviewUsageTracker {
   /**
-   * Cache to store a hash value of the last MultiPreview graph logged for a given file.
-   * This data is intended to be used to avoid logging a repeated Event when the graph hasn't changed.
+   * Cache to store a hash value of the last MultiPreview graph logged for a given file. This data
+   * is intended to be used to avoid logging a repeated Event when the graph hasn't changed.
    */
   val graphCache: Cache<String, Int>?
   fun logEvent(event: MultiPreviewEvent): AndroidStudioEvent.Builder
 
   companion object {
     private val NOP_TRACKER = MultiPreviewNopTracker()
-    private val MANAGER = DesignerUsageTrackerManager(::InternalMultiPreviewUsageTracker, NOP_TRACKER)
+    private val MANAGER =
+      DesignerUsageTrackerManager(::InternalMultiPreviewUsageTracker, NOP_TRACKER)
 
     fun getInstance(facet: AndroidFacet?) = MANAGER.getInstance(facet)
   }
@@ -64,9 +63,7 @@ private class InternalMultiPreviewUsageTracker(
   private val facet: AndroidFacet?,
   private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>
 ) : MultiPreviewUsageTracker {
-  override val graphCache: Cache<String, Int> = CacheBuilder
-    .newBuilder()
-    .build()
+  override val graphCache: Cache<String, Int> = CacheBuilder.newBuilder().build()
 
   override fun logEvent(event: MultiPreviewEvent): AndroidStudioEvent.Builder {
     val graphHashValue = event.hashCode()
@@ -86,10 +83,15 @@ private class InternalMultiPreviewUsageTracker(
  * Represents a [ComposeMultiPreviewEvent] to be tracked, and uses the builder pattern to create it.
  */
 class MultiPreviewEvent(private val nodes: List<MultiPreviewNode>, val fileFqName: String) {
-  private val eventBuilder = ComposeMultiPreviewEvent
-    .newBuilder()
-    .addAllMultiPreviewNodes( // Don't log useless nor Preview nodes
-      nodes.filter { it.nodeInfo != null && !it.nodeInfo!!.isUseless() && !it.nodeInfo!!.isPreviewType() }.map { it.nodeInfo!!.build() })
+  private val eventBuilder =
+    ComposeMultiPreviewEvent.newBuilder()
+      .addAllMultiPreviewNodes( // Don't log useless nor Preview nodes
+        nodes
+          .filter {
+            it.nodeInfo != null && !it.nodeInfo!!.isUseless() && !it.nodeInfo!!.isPreviewType()
+          }
+          .map { it.nodeInfo!!.build() }
+      )
 
   fun build(): ComposeMultiPreviewEvent {
     return eventBuilder.build()
@@ -102,26 +104,23 @@ class MultiPreviewEvent(private val nodes: List<MultiPreviewNode>, val fileFqNam
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
 
-    return other is MultiPreviewEvent && javaClass == other.javaClass && fileFqName == other.fileFqName && nodes == other.nodes
+    return other is MultiPreviewEvent &&
+      javaClass == other.javaClass &&
+      fileFqName == other.fileFqName &&
+      nodes == other.nodes
   }
 }
 
-/**
- * Creates and returns an [AndroidStudioEvent.Builder] from an [MultiPreviewEvent].
- */
+/** Creates and returns an [AndroidStudioEvent.Builder] from an [MultiPreviewEvent]. */
 private fun MultiPreviewEvent.createAndroidStudioEvent(): AndroidStudioEvent.Builder {
   return AndroidStudioEvent.newBuilder()
     .setKind(AndroidStudioEvent.EventKind.COMPOSE_MULTI_PREVIEW)
     .setComposeMultiPreviewEvent(build())
 }
 
-/**
- * Represents a node in the MultiPreview graph with analytics information
- */
-interface MultiPreviewNode: PreviewNode {
-  /**
-   * Analytics information about this node, as part of a MultiPreview graph
-   */
+/** Represents a node in the MultiPreview graph with analytics information */
+interface MultiPreviewNode : PreviewNode {
+  /** Analytics information about this node, as part of a MultiPreview graph */
   val nodeInfo: MultiPreviewNodeInfo
 }
 
@@ -132,19 +131,22 @@ class MultiPreviewNodeImpl(override val nodeInfo: MultiPreviewNodeInfo) : MultiP
  */
 class MultiPreviewNodeInfo(type: ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType) {
   private val LOG = Logger.getInstance(MultiPreviewNodeInfo::class.java)
-  private val nodeInfoBuilder = ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.newBuilder().setNodeType(type)
+  private val nodeInfoBuilder =
+    ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.newBuilder().setNodeType(type)
 
-  /**
-   * True for nodes that don't contain any Preview in its whole DFS subtree
-   */
+  /** True for nodes that don't contain any Preview in its whole DFS subtree */
   fun isUseless() = nodeInfoBuilder.subtreePreviewsCount == 0
 
-  fun isPreviewType() = nodeInfoBuilder.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.PREVIEW_NODE
+  fun isPreviewType() =
+    nodeInfoBuilder.nodeType ==
+      ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.PREVIEW_NODE
   private fun isMultiPreviewType() =
-    nodeInfoBuilder.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
+    nodeInfoBuilder.nodeType ==
+      ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
 
   private fun isRootComposableType() =
-    nodeInfoBuilder.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
+    nodeInfoBuilder.nodeType ==
+      ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
 
   private fun clearCounters() {
     nodeInfoBuilder.clearPreviewChildsCount()
@@ -155,12 +157,17 @@ class MultiPreviewNodeInfo(type: ComposeMultiPreviewEvent.ComposeMultiPreviewNod
   }
 
   /**
-   * Set the counters using the information form this node's child nodes.
-   * Note: any node of a type different that MultiPreview in [multiPreviewChildNodes] will be ignored.
+   * Set the counters using the information form this node's child nodes. Note: any node of a type
+   * different that MultiPreview in [multiPreviewChildNodes] will be ignored.
    */
-  fun withChildNodes(multiPreviewChildNodes: Collection<MultiPreviewNodeInfo?>, previewChildrenCount: Int): MultiPreviewNodeInfo {
+  fun withChildNodes(
+    multiPreviewChildNodes: Collection<MultiPreviewNodeInfo?>,
+    previewChildrenCount: Int
+  ): MultiPreviewNodeInfo {
     if (!this.isMultiPreviewType() && !this.isRootComposableType()) {
-      LOG.error("Nodes of a type different that MultiPreview and RootComposable shouldn't have child nodes")
+      LOG.error(
+        "Nodes of a type different that MultiPreview and RootComposable shouldn't have child nodes"
+      )
       return this
     }
 
@@ -195,10 +202,12 @@ class MultiPreviewNodeInfo(type: ComposeMultiPreviewEvent.ComposeMultiPreviewNod
 
   @Suppress("UnstableApiUsage")
   fun withComposableFqn(composableFqn: String): MultiPreviewNodeInfo {
-    nodeInfoBuilder.anonymizedComposableId = Hashing.farmHashFingerprint64().newHasher()
-      .putString(composableFqn, Charsets.UTF_8)
-      .hash()
-      .asLong()
+    nodeInfoBuilder.anonymizedComposableId =
+      Hashing.farmHashFingerprint64()
+        .newHasher()
+        .putString(composableFqn, Charsets.UTF_8)
+        .hash()
+        .asLong()
     return this
   }
 
@@ -213,6 +222,8 @@ class MultiPreviewNodeInfo(type: ComposeMultiPreviewEvent.ComposeMultiPreviewNod
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
 
-    return other is MultiPreviewNodeInfo && javaClass == other.javaClass && nodeInfoBuilder.build() == other.nodeInfoBuilder.build()
+    return other is MultiPreviewNodeInfo &&
+      javaClass == other.javaClass &&
+      nodeInfoBuilder.build() == other.nodeInfoBuilder.build()
   }
 }

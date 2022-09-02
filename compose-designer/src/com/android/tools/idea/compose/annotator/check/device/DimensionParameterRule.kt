@@ -29,15 +29,15 @@ import com.intellij.openapi.diagnostic.Logger
  *
  * Dimension parameters are formed by a float value with a unit suffix. I.e: `10.2dp`
  *
- * Dimension parameters should share the same unit. The common unit is defined by the unit of the first valid parameter checked or
- * [DeviceSpec.DEFAULT_UNIT] if there are no valid dimension parameters.
+ * Dimension parameters should share the same unit. The common unit is defined by the unit of the
+ * first valid parameter checked or [DeviceSpec.DEFAULT_UNIT] if there are no valid dimension
+ * parameters.
  *
- * There are different fixes that can be applied to a Dimension value. See [DimensionParameterCheckResult].
+ * There are different fixes that can be applied to a Dimension value. See
+ * [DimensionParameterCheckResult].
  */
-internal class DimensionParameterRule(
-  override val name: String,
-  private val defaultNumber: Int
-) : ParameterRule() {
+internal class DimensionParameterRule(override val name: String, private val defaultNumber: Int) :
+  ParameterRule() {
   private val log = Logger.getInstance(this.javaClass)
 
   override val defaultValue: String = defaultNumber.toString() + DeviceSpec.DEFAULT_UNIT
@@ -54,8 +54,7 @@ internal class DimensionParameterRule(
         // No unit and bad number value, entire statement is wrong
         deviceSpecState?.setCheckResult(name, DimensionParameterCheckResult.BadStatement)
         return false
-      }
-      else {
+      } else {
         // Only the unit is missing
         deviceSpecState?.setCheckResult(name, DimensionParameterCheckResult.MissingUnit)
         return false
@@ -63,18 +62,17 @@ internal class DimensionParameterRule(
     }
 
     if (isBadNumber(value.dropLast(2))) {
-      // Unit exist, but has an incorrect Number value (not a Float/Integer or more than one decimal)
+      // Unit exist, but has an incorrect Number value (not a Float/Integer or more than one
+      // decimal)
       deviceSpecState?.setCheckResult(name, DimensionParameterCheckResult.BadNumber)
       return false
-    }
-    else {
+    } else {
       val expectedUnit = deviceSpecState?.commonUnit
       return if (expectedUnit != null && currentUnit != expectedUnit) {
         // Wrong unit, doesn't match the expected/common unit
         deviceSpecState.setCheckResult(name, DimensionParameterCheckResult.WrongUnit)
         false
-      }
-      else {
+      } else {
         // Everything is ok, update the common unit if it hasn't been set
         if (deviceSpecState != null && deviceSpecState.commonUnit == null) {
           deviceSpecState.commonUnit = currentUnit
@@ -86,19 +84,24 @@ internal class DimensionParameterRule(
   }
 
   override fun attemptFix(value: String, dataProvider: DataProvider): String? {
-    val deviceSpecState = DeviceSpecCheckStateKey.getData(dataProvider) ?: run {
-      log.error("Expected a ${DeviceSpecCheckState::class.simpleName} object")
-      return null
-    }
-    val parameterState = deviceSpecState.getCheckResult(name) as? DimensionParameterCheckResult ?: run {
-      log.error("Expected ${DimensionParameterCheckResult::class.simpleName} for $name")
-      return null
-    }
+    val deviceSpecState =
+      DeviceSpecCheckStateKey.getData(dataProvider)
+        ?: run {
+          log.error("Expected a ${DeviceSpecCheckState::class.simpleName} object")
+          return null
+        }
+    val parameterState =
+      deviceSpecState.getCheckResult(name) as? DimensionParameterCheckResult
+        ?: run {
+          log.error("Expected ${DimensionParameterCheckResult::class.simpleName} for $name")
+          return null
+        }
     val commonUnit = deviceSpecState.commonUnit ?: DeviceSpec.DEFAULT_UNIT
     return when (parameterState) {
       DimensionParameterCheckResult.WrongUnit -> value.dropLast(2) + commonUnit.name
       DimensionParameterCheckResult.MissingUnit -> value + commonUnit.name
-      DimensionParameterCheckResult.BadNumber -> fixNumberOrDefault(value.dropLast(2)).toString() + commonUnit.name
+      DimensionParameterCheckResult.BadNumber ->
+        fixNumberOrDefault(value.dropLast(2)).toString() + commonUnit.name
       DimensionParameterCheckResult.BadStatement -> defaultNumber.toString() + commonUnit.name
       DimensionParameterCheckResult.Ok -> {
         log.warn("Call to fix value, but nothing to fix")
@@ -126,6 +129,7 @@ internal class DimensionParameterRule(
   private fun isBadNumber(numberString: String): Boolean {
     val decimalIndex = numberString.indexOfLast { it == '.' }
     // Is a bad number if the string can't be parsed to a float, or if there's more than one decimal
-    return numberString.toFloatOrNull() == null || (decimalIndex >= 0 && numberString.length - decimalIndex > 2)
+    return numberString.toFloatOrNull() == null ||
+      (decimalIndex >= 0 && numberString.length - decimalIndex > 2)
   }
 }

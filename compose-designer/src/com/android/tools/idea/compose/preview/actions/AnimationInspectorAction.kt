@@ -25,14 +25,22 @@ import com.intellij.ui.AnActionButton
 import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 
 /**
- * Action to open the Compose Animation Preview to analyze animations of a Compose Preview in details.
+ * Action to open the Compose Animation Preview to analyze animations of a Compose Preview in
+ * details.
  *
- * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
+ * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
+ * information.
  */
-internal class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) : AnActionButton(
-  message("action.animation.inspector.title"), message("action.animation.inspector.description"), ANIMATION_INSPECTOR) {
+internal class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
+  AnActionButton(
+    message("action.animation.inspector.title"),
+    message("action.animation.inspector.description"),
+    ANIMATION_INSPECTOR
+  ) {
 
-  private fun getPreviewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as? ComposePreviewElementInstance
+  private fun getPreviewElement() =
+    dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as?
+      ComposePreviewElementInstance
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
@@ -41,11 +49,14 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
       // Only display the animation inspector icon if there are animations to be inspected.
       isVisible = getPreviewElement()?.hasAnimations == true
       description =
-        if (isEnabled) message("action.animation.inspector.description") else message("action.animation.inspector.unavailable.title")
+        if (isEnabled) message("action.animation.inspector.description")
+        else message("action.animation.inspector.unavailable.title")
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)?.let { it.animationInspectionPreviewElementInstance = getPreviewElement() }
+    dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)?.let {
+      it.animationInspectionPreviewElementInstance = getPreviewElement()
+    }
   }
 }

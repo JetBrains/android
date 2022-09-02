@@ -42,17 +42,15 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-/**
- * Object to get a class-named Logger.
- */
+/** Object to get a class-named Logger. */
 private object HardwarePanelHelper
 
 private val LOG: Logger
   get() = Logger.getInstance(HardwarePanelHelper.javaClass)
 
-
 /**
- * Generates the UI for the Hardware section in the @Preview picker. See [PreviewPropertiesInspectorBuilder].
+ * Generates the UI for the Hardware section in the @Preview picker. See
+ * [PreviewPropertiesInspectorBuilder].
  */
 internal fun addHardwareView(
   inspector: InspectorPanel,
@@ -63,7 +61,8 @@ internal fun addHardwareView(
   val editors = mutableListOf<PropertyEditorModel>()
 
   /**
-   * Adds a new line on the [HardwarePanelBuilder] for the given [propertyName] with its corresponding editor.
+   * Adds a new line on the [HardwarePanelBuilder] for the given [propertyName] with its
+   * corresponding editor.
    */
   fun addSinglePropertyLine(propertyName: String) {
     val property = properties[propertyName]
@@ -77,7 +76,10 @@ internal fun addHardwareView(
   addSinglePropertyLine(PARAMETER_HARDWARE_DEVICE)
 
   // The Dimensions parameter actually uses 3 other parameters: width, height, dimensionUnit.
-  panelBuilder.addLine(PARAMETER_HARDWARE_DIMENSIONS, createDimensionLine(properties, editorProvider, editors))
+  panelBuilder.addLine(
+    PARAMETER_HARDWARE_DIMENSIONS,
+    createDimensionLine(properties, editorProvider, editors)
+  )
 
   addSinglePropertyLine(PARAMETER_HARDWARE_DENSITY)
 
@@ -107,34 +109,38 @@ private fun createDimensionLine(
     add(component, gbc)
   }
 
-  /** The added [component] will expand horizontally proportionally to other components added with this method. */
+  /**
+   * The added [component] will expand horizontally proportionally to other components added with
+   * this method.
+   */
   fun JPanel.addExpand(component: Component, gbc: GridBagConstraints) {
     gbc.fill = GridBagConstraints.HORIZONTAL
     gbc.weightx = 1.0
     add(component, gbc)
   }
 
-  val dimensionLine = JPanel(GridBagLayout()).apply {
-    isOpaque = false
-    val widthProperty = properties[PARAMETER_HARDWARE_WIDTH]!!
-    val heightProperty = properties[PARAMETER_HARDWARE_HEIGHT]!!
-    val unitProperty = properties[PARAMETER_HARDWARE_DIM_UNIT]!!
-    val gbc = GridBagConstraints()
-    gbc.gridwidth = 4
-    addExpand(editorProvider.createEditor(widthProperty, editors), gbc)
+  val dimensionLine =
+    JPanel(GridBagLayout()).apply {
+      isOpaque = false
+      val widthProperty = properties[PARAMETER_HARDWARE_WIDTH]!!
+      val heightProperty = properties[PARAMETER_HARDWARE_HEIGHT]!!
+      val unitProperty = properties[PARAMETER_HARDWARE_DIM_UNIT]!!
+      val gbc = GridBagConstraints()
+      gbc.gridwidth = 4
+      addExpand(editorProvider.createEditor(widthProperty, editors), gbc)
 
-    addShrink(JLabel("x"), gbc)
+      addShrink(JLabel("x"), gbc)
 
-    addExpand(editorProvider.createEditor(heightProperty, editors), gbc)
+      addExpand(editorProvider.createEditor(heightProperty, editors), gbc)
 
-    addShrink(
-      editorProvider.createEditor(unitProperty, editors).also { component ->
-        component.preferredSize = Dimension(JBUI.scale(52), preferredSize.height)
-        component.minimumSize = Dimension(JBUI.scale(52), minimumSize.height)
-      },
-      gbc
-    )
-  }
+      addShrink(
+        editorProvider.createEditor(unitProperty, editors).also { component ->
+          component.preferredSize = Dimension(JBUI.scale(52), preferredSize.height)
+          component.minimumSize = Dimension(JBUI.scale(52), minimumSize.height)
+        },
+        gbc
+      )
+    }
   return dimensionLine
 }
 
@@ -144,15 +150,14 @@ private fun EditorProvider<PsiPropertyItem>.createEditor(
 ): JComponent {
   val editorPair = createEditor(property)
   existing.add(editorPair.first)
-  // Set the preferred size, to avoid layout managers from changing it, which may cause popups close unexpectedly
+  // Set the preferred size, to avoid layout managers from changing it, which may cause popups close
+  // unexpectedly
   editorPair.second.preferredSize = editorPair.second.preferredSize
   return editorPair.second
 }
 
 private class HardwarePanelBuilder {
-  private val panel = JPanel(InspectorLayoutManager()).apply {
-    isOpaque = false
-  }
+  private val panel = JPanel(InspectorLayoutManager()).apply { isOpaque = false }
 
   fun addLine(name: String, component: JComponent) {
     val label = JLabel(name)

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
@@ -26,10 +26,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.EditorNotifications
 
-/**
- * Action that toggles the Fast Preview state.
- */
-class ToggleFastPreviewAction: AnAction(null, null, null) {
+/** Action that toggles the Fast Preview state. */
+class ToggleFastPreviewAction : AnAction(null, null, null) {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val fastPreviewManager = project.fastPreviewManager
@@ -62,17 +60,16 @@ class ToggleFastPreviewAction: AnAction(null, null, null) {
       return
     }
     if (PreviewPowerSaveManager.isInPowerSaveMode) {
-      presentation.description = message("action.preview.fast.refresh.disabled.in.power.save.description")
+      presentation.description =
+        message("action.preview.fast.refresh.disabled.in.power.save.description")
       presentation.isEnabled = false
-    }
-    else {
+    } else {
       presentation.description = message("action.preview.fast.refresh.toggle.description")
       presentation.isEnabled = true
     }
 
-    presentation.text = if (project.fastPreviewManager.isEnabled)
-      message("action.preview.fast.refresh.disable.title")
-    else
-      message("action.preview.fast.refresh.enable.title")
+    presentation.text =
+      if (project.fastPreviewManager.isEnabled) message("action.preview.fast.refresh.disable.title")
+      else message("action.preview.fast.refresh.enable.title")
   }
 }

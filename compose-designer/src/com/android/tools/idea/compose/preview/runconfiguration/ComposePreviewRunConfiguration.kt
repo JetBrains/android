@@ -38,34 +38,40 @@ import org.jetbrains.uast.toUElementOfType
 private const val CONFIGURATION_ELEMENT_NAME = "compose-preview-run-configuration"
 private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
 
-/** A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a @Composable via intent parameter. */
+/**
+ * A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a
+ * @Composable via intent parameter.
+ */
 open class ComposePreviewRunConfiguration(
   project: Project,
   factory: ConfigurationFactory,
-  activityName: String = "androidx.compose.ui.tooling.PreviewActivity") : AndroidRunConfiguration(project, factory) {
+  activityName: String = "androidx.compose.ui.tooling.PreviewActivity"
+) : AndroidRunConfiguration(project, factory) {
 
   /**
-   * To be able to support deploying compose preview to devices for library projects, the android test artifact and .apk is used.
-   * The validations needed to make sure that is possible to provide this support are already part of [AndroidRunConfigurationBase.validate]
+   * To be able to support deploying compose preview to devices for library projects, the android
+   * test artifact and .apk is used. The validations needed to make sure that is possible to provide
+   * this support are already part of [AndroidRunConfigurationBase.validate]
    */
-  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String>? = Pair(java.lang.Boolean.TRUE, null)
+  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String>? =
+    Pair(java.lang.Boolean.TRUE, null)
 
   /**
-   * Compose preview run configuration is considered a test configuration in order to use the test artifact when performing apk related
-   * validations, because non-test configurations use the main artifact instead, and that would cause validations to fail for library
-   * projects, as the main artifact would produce an .aar file instead of an .apk file, and as a consequence, this run configuration
-   * wouldn't be able to be executed in library projects.
+   * Compose preview run configuration is considered a test configuration in order to use the test
+   * artifact when performing apk related validations, because non-test configurations use the main
+   * artifact instead, and that would cause validations to fail for library projects, as the main
+   * artifact would produce an .aar file instead of an .apk file, and as a consequence, this run
+   * configuration wouldn't be able to be executed in library projects.
    */
   override fun isTestConfiguration() = true
-  override val testCompileMode: TestCompileType get() = TestCompileType.ANDROID_TESTS
+  override val testCompileMode: TestCompileType
+    get() = TestCompileType.ANDROID_TESTS
 
   override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
     return emptyList()
   }
 
-  /**
-   * Represents where this Run Configuration was triggered from.
-   */
+  /** Represents where this Run Configuration was triggered from. */
   enum class TriggerSource(val eventType: ComposeDeployEvent.ComposeDeployEventType) {
     UNKNOWN(ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE),
     TOOLBAR(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_TOOLBAR),
@@ -93,26 +99,29 @@ open class ComposePreviewRunConfiguration(
     }
 
   init {
-    // This class is open just to be inherited in the tests, and the derived class is available when it needs to be accessed
-    // TODO(b/152183413): limit the search to the library scope. We currently use the global scope because SpecificActivityLaunch.State only
+    // This class is open just to be inherited in the tests, and the derived class is available when
+    // it needs to be accessed
+    // TODO(b/152183413): limit the search to the library scope. We currently use the global scope
+    // because SpecificActivityLaunch.State only
     //                    accepts either project or global scope.
-    @Suppress("LeakingThis")
-    setLaunchActivity(activityName, true)
+    @Suppress("LeakingThis") setLaunchActivity(activityName, true)
   }
 
   override fun updateExtraRunStats(runStats: RunStats) {
     super.updateExtraRunStats(runStats)
-    val studioEvent = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.COMPOSE_DEPLOY)
-      .setComposeDeployEvent(ComposeDeployEvent.newBuilder().setType(triggerSource.eventType))
+    val studioEvent =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.COMPOSE_DEPLOY)
+        .setComposeDeployEvent(ComposeDeployEvent.newBuilder().setType(triggerSource.eventType))
     runStats.addAdditionalOnCommitEvent(studioEvent)
   }
 
   private fun updateActivityExtraFlags() {
     ACTIVITY_EXTRA_FLAGS =
-      (composableMethodFqn?.let { "--es composable $it" } ?: "") +
-      (providerClassFqn?.let { " --es parameterProviderClassName $it" } ?: "") +
-      (providerIndex.takeIf { it >= 0 }?.let { " --ei parameterProviderIndex $it" } ?: "")
+      (composableMethodFqn?.let { "--es composable $it" }
+        ?: "") +
+        (providerClassFqn?.let { " --es parameterProviderClassName $it" } ?: "") +
+        (providerIndex.takeIf { it >= 0 }?.let { " --ei parameterProviderIndex $it" } ?: "")
   }
 
   override fun isProfilable() = false
@@ -121,9 +130,7 @@ open class ComposePreviewRunConfiguration(
     super.readExternal(element)
 
     element.getChild(CONFIGURATION_ELEMENT_NAME)?.let {
-      it.getAttribute(COMPOSABLE_FQN_ATR_NAME)?.let { attr ->
-        composableMethodFqn = attr.value
-      }
+      it.getAttribute(COMPOSABLE_FQN_ATR_NAME)?.let { attr -> composableMethodFqn = attr.value }
     }
   }
 
@@ -140,7 +147,11 @@ open class ComposePreviewRunConfiguration(
   override fun validate(executor: Executor?): MutableList<ValidationError> {
     val errors = super.validate(executor)
     if (!isValidComposableSet()) {
-      errors.add(ValidationError.fatal(message("run.configuration.no.valid.composable.set", composableMethodFqn ?: "")))
+      errors.add(
+        ValidationError.fatal(
+          message("run.configuration.no.valid.composable.set", composableMethodFqn ?: "")
+        )
+      )
     }
     return errors
   }
@@ -148,15 +159,18 @@ open class ComposePreviewRunConfiguration(
   override fun getConfigurationEditor() = ComposePreviewSettingsEditor(project, this)
 
   /**
-   * Returns whether [composableMethodFqn] points to a `@Composable` function annotated with `@Preview`.
+   * Returns whether [composableMethodFqn] points to a `@Composable` function annotated with
+   * `@Preview`.
    */
   private fun isValidComposableSet(): Boolean {
     val composableFqn = composableMethodFqn ?: return false
 
-    JavaPsiFacade.getInstance(project).findClass(composableFqn.substringBeforeLast("."), GlobalSearchScope.projectScope(project))
+    JavaPsiFacade.getInstance(project)
+      .findClass(composableFqn.substringBeforeLast("."), GlobalSearchScope.projectScope(project))
       ?.findMethodsByName(composableFqn.substringAfterLast("."), true)
       ?.forEach { method ->
-        if (method.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true) return@isValidComposableSet true
+        if (method.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true)
+          return@isValidComposableSet true
       }
 
     return false

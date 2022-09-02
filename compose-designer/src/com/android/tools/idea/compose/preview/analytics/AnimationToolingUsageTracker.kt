@@ -23,36 +23,39 @@ import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import java.util.concurrent.Executor
 import java.util.function.Consumer
 
-/**
- * Usage tracker implementation for the Compose Animation tooling.
- */
+/** Usage tracker implementation for the Compose Animation tooling. */
 interface AnimationToolingUsageTracker {
   fun logEvent(event: AnimationToolingEvent): AndroidStudioEvent.Builder
 
   companion object {
     private val NOP_TRACKER = AnimationToolingNopTracker()
     private val MANAGER =
-      DesignerUsageTrackerManager<AnimationToolingUsageTracker, DesignSurface<*>>(::InternalAnimationToolingUsageTracker, NOP_TRACKER)
+      DesignerUsageTrackerManager<AnimationToolingUsageTracker, DesignSurface<*>>(
+        ::InternalAnimationToolingUsageTracker,
+        NOP_TRACKER
+      )
 
     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
   }
 }
 
 /**
- * Empty [AnimationToolingUsageTracker] implementation, used when the user is not opt-in or in tests.
+ * Empty [AnimationToolingUsageTracker] implementation, used when the user is not opt-in or in
+ * tests.
  */
 private class AnimationToolingNopTracker : AnimationToolingUsageTracker {
   override fun logEvent(event: AnimationToolingEvent) = event.createAndroidStudioEvent()
 }
 
 /**
- * Default [AnimationToolingUsageTracker] implementation that sends the event to the analytics backend.
+ * Default [AnimationToolingUsageTracker] implementation that sends the event to the analytics
+ * backend.
  */
 private class InternalAnimationToolingUsageTracker(
   private val executor: Executor,
   private val surface: DesignSurface<*>?,
   private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>
-  ) : AnimationToolingUsageTracker {
+) : AnimationToolingUsageTracker {
   override fun logEvent(event: AnimationToolingEvent): AndroidStudioEvent.Builder {
     event.createAndroidStudioEvent().setApplicationId(surface).let {
       executor.execute { studioEventTracker.accept(it) }
@@ -62,7 +65,8 @@ private class InternalAnimationToolingUsageTracker(
 }
 
 /**
- * Represents a [ComposeAnimationToolingEvent] to be tracked, and uses the builder pattern to create it.
+ * Represents a [ComposeAnimationToolingEvent] to be tracked, and uses the builder pattern to create
+ * it.
  */
 class AnimationToolingEvent(type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) {
 
@@ -78,9 +82,7 @@ class AnimationToolingEvent(type: ComposeAnimationToolingEvent.ComposeAnimationT
   }
 }
 
-/**
- * Creates and returns an [AndroidStudioEvent.Builder] from an [AnimationToolingEvent].
- */
+/** Creates and returns an [AndroidStudioEvent.Builder] from an [AnimationToolingEvent]. */
 private fun AnimationToolingEvent.createAndroidStudioEvent(): AndroidStudioEvent.Builder {
   return AndroidStudioEvent.newBuilder()
     .setKind(AndroidStudioEvent.EventKind.COMPOSE_ANIMATION_TOOLING)

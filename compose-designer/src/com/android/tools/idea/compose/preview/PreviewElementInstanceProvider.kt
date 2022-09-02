@@ -20,27 +20,22 @@ import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.preview.PreviewElementProvider
 
 /**
- * Interface to be implemented by classes providing instances of [ComposePreviewElement] as [ComposePreviewElementInstance].
+ * Interface to be implemented by classes providing instances of [ComposePreviewElement] as
+ * [ComposePreviewElementInstance].
  */
-interface PreviewElementInstanceProvider: PreviewElementProvider<ComposePreviewElementInstance> {
-  /**
-   * Returns a [Sequence] of [ComposePreviewElementInstance]s.
-   */
+interface PreviewElementInstanceProvider : PreviewElementProvider<ComposePreviewElementInstance> {
+  /** Returns a [Sequence] of [ComposePreviewElementInstance]s. */
   override suspend fun previewElements(): Sequence<ComposePreviewElementInstance>
 }
 
-/**
- * [PreviewElementProvider] that does not contain [ComposePreviewElement]s.
- */
+/** [PreviewElementProvider] that does not contain [ComposePreviewElement]s. */
 object EmptyPreviewElementInstanceProvider : PreviewElementInstanceProvider {
   override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = emptySequence()
 }
 
 /**
- * Returns the list of available group names in this [PreviewElementProvider]. If this provider does any filtering, the groups
- * returned here will be the ones after the filtering is applied.
+ * Returns the list of available group names in this [PreviewElementProvider]. If this provider does
+ * any filtering, the groups returned here will be the ones after the filtering is applied.
  */
 fun Sequence<ComposePreviewElement>.groupNames(): Set<String> =
-  mapNotNull { it.displaySettings.group }
-    .filter { it.isNotBlank() }
-    .toSet()
+  mapNotNull { it.displaySettings.group }.filter { it.isNotBlank() }.toSet()

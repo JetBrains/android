@@ -27,16 +27,19 @@ import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
 
 /**
- * [EntryPoint] implementation to mark `@Preview` functions as entry points and avoid them being flagged as unused.
+ * [EntryPoint] implementation to mark `@Preview` functions as entry points and avoid them being
+ * flagged as unused.
  */
 class PreviewEntryPoint : EntryPoint() {
   private var ADD_PREVIEW_TO_ENTRIES: Boolean = true
 
-  override fun isEntryPoint(refElement: RefElement, psiElement: PsiElement): Boolean = isEntryPoint(psiElement)
+  override fun isEntryPoint(refElement: RefElement, psiElement: PsiElement): Boolean =
+    isEntryPoint(psiElement)
 
   override fun isEntryPoint(psiElement: PsiElement): Boolean =
     psiElement is PsiMethod &&
-    (psiElement.hasAnnotation(COMPOSE_PREVIEW_ANNOTATION_FQN) || psiElement.toUElement(UMethod::class.java).hasPreviewElements())
+      (psiElement.hasAnnotation(COMPOSE_PREVIEW_ANNOTATION_FQN) ||
+        psiElement.toUElement(UMethod::class.java).hasPreviewElements())
 
   override fun readExternal(element: Element) = element.deserializeInto(this)
 
@@ -51,5 +54,4 @@ class PreviewEntryPoint : EntryPoint() {
   override fun setSelected(selected: Boolean) {
     this.ADD_PREVIEW_TO_ENTRIES = selected
   }
-
 }

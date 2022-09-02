@@ -36,52 +36,62 @@ internal class SpringPickerPropertyModel(
   project: Project,
   module: Module,
   resolvedCall: ResolvedCall<*>,
-) : PsiCallPropertyModel(
-  project = project,
-  module = module,
-  resolvedCall = resolvedCall,
-  psiPropertiesProvider = SpringPropertiesProvider,
-  tracker = NoOpTracker
-) {
+) :
+  PsiCallPropertyModel(
+    project = project,
+    module = module,
+    resolvedCall = resolvedCall,
+    psiPropertiesProvider = SpringPropertiesProvider,
+    tracker = NoOpTracker
+  ) {
 
-  override val inspectorBuilder: PsiPropertiesInspectorBuilder = object : PsiPropertiesInspectorBuilder() {
-    override val editorProvider: EditorProvider<PsiPropertyItem> =
-      PsiEditorProvider(PsiEnumProvider(EnumSupportValuesProvider.EMPTY), SpringControlTypeProvider)
-  }
+  override val inspectorBuilder: PsiPropertiesInspectorBuilder =
+    object : PsiPropertiesInspectorBuilder() {
+      override val editorProvider: EditorProvider<PsiPropertyItem> =
+        PsiEditorProvider(
+          PsiEnumProvider(EnumSupportValuesProvider.EMPTY),
+          SpringControlTypeProvider
+        )
+    }
 
   override fun getData(dataId: String): Any? = null
 }
 
 /**
- * [PsiPropertiesProvider] for the Preview annotation. Provides specific implementations for known parameters of the annotation.
+ * [PsiPropertiesProvider] for the Preview annotation. Provides specific implementations for known
+ * parameters of the annotation.
  */
 private object SpringPropertiesProvider : PsiPropertiesProvider {
   override fun invoke(
     project: Project,
     model: PsiCallPropertyModel,
     resolvedCall: ResolvedCall<*>
-  ): Collection<PsiPropertyItem> =
-    runReadAction {
-      resolvedCall.valueArguments.toList().sortedBy { (descriptor, _) ->
-        descriptor.index
-      }.map { (descriptor, resolved) ->
-        val argumentExpression = (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
-        when (descriptor.name.asString()) {
-          PARAMETER_THRESHOLD,
-          PARAMETER_RATIO,
-          PARAMETER_STIFFNESS -> FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, null)
-          else -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, null)
-        }
+  ): Collection<PsiPropertyItem> = runReadAction {
+    resolvedCall.valueArguments.toList().sortedBy { (descriptor, _) -> descriptor.index }.map {
+      (descriptor, resolved) ->
+      val argumentExpression =
+        (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
+      when (descriptor.name.asString()) {
+        PARAMETER_THRESHOLD, PARAMETER_RATIO, PARAMETER_STIFFNESS ->
+          FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, null)
+        else ->
+          PsiCallParameterPropertyItem(
+            project,
+            model,
+            resolvedCall,
+            descriptor,
+            argumentExpression,
+            null
+          )
       }
     }
+  }
 }
 
 private object SpringControlTypeProvider : PsiPropertyItemControlTypeProvider {
   override fun invoke(property: PsiPropertyItem): ControlType =
     when (property.name) {
-      PARAMETER_RATIO,
-      PARAMETER_STIFFNESS,
-      PARAMETER_THRESHOLD -> ControlType.COMBO_BOX
+      PARAMETER_RATIO, PARAMETER_STIFFNESS, PARAMETER_THRESHOLD -> ControlType.COMBO_BOX
       else -> ControlType.TEXT_EDITOR
     }
 }

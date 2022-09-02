@@ -26,7 +26,8 @@ import com.android.tools.property.panel.impl.ui.PropertyComboBox
 import javax.swing.JComponent
 
 /**
- * Custom EditorProvider for PsiProperties, makes sure that we use the correct component and renderer to instantiate Dropdowns.
+ * Custom EditorProvider for PsiProperties, makes sure that we use the correct component and
+ * renderer to instantiate Dropdowns.
  */
 internal class PsiEditorProvider(
   enumSupportProvider: EnumSupportProvider<PsiPropertyItem>,
@@ -45,8 +46,7 @@ internal class PsiEditorProvider(
       val comboBox = PropertyComboBox(model, asTableCellEditor)
       comboBox.renderer = enumSupport.renderer
       Pair(model, addActionButtonBinding(model, comboBox))
-    }
-    else {
+    } else {
       // Use a specific component for DropDown
       val model = PsiDropDownModel(property, enumSupport)
       val comboBox = PsiPropertyDropDown(model, asTableCellEditor, enumSupport.renderer)
@@ -55,7 +55,5 @@ internal class PsiEditorProvider(
   }
 }
 
-/**
- * [ControlTypeProvider] for [PsiPropertyItem]s that provides a text editor for every property.
- */
+/** [ControlTypeProvider] for [PsiPropertyItem]s that provides a text editor for every property. */
 internal typealias PsiPropertyItemControlTypeProvider = ControlTypeProvider<PsiPropertyItem>

@@ -33,11 +33,12 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
-class AnimationCard(previewState: AnimationPreviewState,
-                    val surface: DesignSurface<*>,
-                    override val state: ElementState,
-                    private val tracker: ComposeAnimationEventTracker)
-  : JPanel(TabularLayout("*", "30px,30px")), Card {
+class AnimationCard(
+  previewState: AnimationPreviewState,
+  val surface: DesignSurface<*>,
+  override val state: ElementState,
+  private val tracker: ComposeAnimationEventTracker
+) : JPanel(TabularLayout("*", "30px,30px")), Card {
 
   // Collapsed view:
   //   Expand button
@@ -45,8 +46,8 @@ class AnimationCard(previewState: AnimationPreviewState,
   //   |   |                            Duration of the transition
   //   ↓   ↓                            ↓
   // ⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽
-  //⎹  ▶  transitionName                  100ms ⎹ ⬅ component
-  //⎹     ❄️  ↔️  [Start State]  to  [End State]⎹
+  // ⎹  ▶  transitionName                  100ms ⎹ ⬅ component
+  // ⎹     ❄️  ↔️  [Start State]  to  [End State]⎹
   //  ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅
   //      ↑    ↑
   //      |    StateComboBox - AnimatedVisibilityComboBox or StartEndComboBox.
@@ -55,25 +56,23 @@ class AnimationCard(previewState: AnimationPreviewState,
   //
   // Expanded view:
   // ⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽
-  //⎹  ▼  transitionName                  100ms ⎹
-  //⎹     ❄️  ↔️  [Start State]  to  [End State]⎹
-  //⎹                                           ⎹
-  //⎹                                           ⎹
-  //⎹                                           ⎹
-  //⎹                                           ⎹
+  // ⎹  ▼  transitionName                  100ms ⎹
+  // ⎹     ❄️  ↔️  [Start State]  to  [End State]⎹
+  // ⎹                                           ⎹
+  // ⎹                                           ⎹
+  // ⎹                                           ⎹
+  // ⎹                                           ⎹
   //  ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅ ̅̅ ̅ ̅ ̅̅̅
 
   override val component: JPanel = this
   var openInTabListeners: MutableList<() -> Unit> = mutableListOf()
   override var expandedSize = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
-  private val firstRow = JPanel(TabularLayout("30px,*,Fit","30px")).apply {
-    border = JBUI.Borders.empty(0, 0, 0, 8)
-  }
+  private val firstRow =
+    JPanel(TabularLayout("30px,*,Fit", "30px")).apply { border = JBUI.Borders.empty(0, 0, 0, 8) }
 
-  private val secondRow = JPanel(TabularLayout("30px,Fit,*", "30px")).apply {
-    border = JBUI.Borders.empty(0, 25, 0, 8)
-  }
+  private val secondRow =
+    JPanel(TabularLayout("30px,Fit,*", "30px")).apply { border = JBUI.Borders.empty(0, 25, 0, 8) }
 
   override fun getCurrentHeight() =
     if (state.expanded) expandedSize else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
@@ -81,9 +80,10 @@ class AnimationCard(previewState: AnimationPreviewState,
   var durationLabel: Component? = null
   override fun setDuration(durationMillis: Int?) {
     durationLabel?.let { firstRow.remove(it) }
-    durationLabel = JBLabel("${durationMillis ?: "_"}ms").apply { foreground = UIUtil.getContextHelpForeground() }.also {
-      firstRow.add(it, TabularLayout.Constraint(0, 2))
-    }
+    durationLabel =
+      JBLabel("${durationMillis ?: "_"}ms")
+        .apply { foreground = UIUtil.getContextHelpForeground() }
+        .also { firstRow.add(it, TabularLayout.Constraint(0, 2)) }
   }
 
   fun addOpenInTabListener(listener: () -> Unit) {
@@ -99,7 +99,12 @@ class AnimationCard(previewState: AnimationPreviewState,
     firstRow.add(expandButton, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
 
-    val freezeToolbar = SingleButtonToolbar(surface, "FreezeAnimationCard", FreezeAction(previewState, state, tracker))
+    val freezeToolbar =
+      SingleButtonToolbar(
+        surface,
+        "FreezeAnimationCard",
+        FreezeAction(previewState, state, tracker)
+      )
     secondRow.add(freezeToolbar, TabularLayout.Constraint(0, 0))
     add(firstRow, TabularLayout.Constraint(0, 0))
     add(secondRow, TabularLayout.Constraint(1, 0))
@@ -114,16 +119,17 @@ class AnimationCard(previewState: AnimationPreviewState,
     }
   }
 
-  private inner class ExpandAction()
-    : AnActionButton(message("animation.inspector.action.expand"), UIUtil.getTreeCollapsedIcon()) {
+  private inner class ExpandAction() :
+    AnActionButton(message("animation.inspector.action.expand"), UIUtil.getTreeCollapsedIcon()) {
 
     override fun actionPerformed(e: AnActionEvent) {
       state.expanded = !state.expanded
       if (state.expanded) {
         tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.EXPAND_ANIMATION_CARD)
-      }
-      else {
-        tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.COLLAPSE_ANIMATION_CARD)
+      } else {
+        tracker(
+          ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.COLLAPSE_ANIMATION_CARD
+        )
       }
     }
 
@@ -134,8 +140,7 @@ class AnimationCard(previewState: AnimationPreviewState,
         if (state.expanded) {
           icon = UIUtil.getTreeExpandedIcon()
           text = message("animation.inspector.action.collapse")
-        }
-        else {
+        } else {
           icon = UIUtil.getTreeCollapsedIcon()
           text = message("animation.inspector.action.expand")
         }

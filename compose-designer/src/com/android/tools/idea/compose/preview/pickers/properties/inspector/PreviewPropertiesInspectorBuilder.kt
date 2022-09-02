@@ -64,26 +64,33 @@ internal class PreviewPropertiesInspectorBuilder(
   override val editorProvider: EditorProvider<PsiPropertyItem> =
     PsiEditorProvider(PsiEnumProvider(enumSupportValuesProvider), PreviewControlTypeProvider)
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<PsiPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<PsiPropertyItem>
+  ) {
     val allProps = properties.values.associateBy { it.name }.toMutableMap()
-    val previewProperties = mutableListOf<PsiPropertyItem>().apply {
-      allProps.remove(PARAMETER_NAME)?.let { add(it) }
-      allProps.remove(PARAMETER_GROUP)?.let { add(it) }
-    }
+    val previewProperties =
+      mutableListOf<PsiPropertyItem>().apply {
+        allProps.remove(PARAMETER_NAME)?.let { add(it) }
+        allProps.remove(PARAMETER_GROUP)?.let { add(it) }
+      }
 
     allProps.remove(PARAMETER_WIDTH_DP)
     allProps.remove(PARAMETER_HEIGHT_DP)
 
-    val deviceProperties = mutableMapOf<String, PsiPropertyItem>().apply {
-      allProps.remove(PARAMETER_HARDWARE_DEVICE)?.let { put(PARAMETER_HARDWARE_DEVICE, it) }
-      allProps.remove(PARAMETER_HARDWARE_ORIENTATION)?.let { put(PARAMETER_HARDWARE_ORIENTATION, it) }
-      allProps.remove(PARAMETER_HARDWARE_DENSITY)?.let { put(PARAMETER_HARDWARE_DENSITY, it) }
-      allProps.remove(PARAMETER_HARDWARE_WIDTH)?.let { put(PARAMETER_HARDWARE_WIDTH, it) }
-      allProps.remove(PARAMETER_HARDWARE_HEIGHT)?.let { put(PARAMETER_HARDWARE_HEIGHT, it) }
-      allProps.remove(PARAMETER_HARDWARE_DIM_UNIT)?.let { put(PARAMETER_HARDWARE_DIM_UNIT, it) }
-      allProps.remove(PARAMETER_HARDWARE_IS_ROUND)?.let { put(PARAMETER_HARDWARE_IS_ROUND, it) }
-      allProps.remove(PARAMETER_HARDWARE_CHIN_SIZE)?.let { put(PARAMETER_HARDWARE_CHIN_SIZE, it) }
-    }
+    val deviceProperties =
+      mutableMapOf<String, PsiPropertyItem>().apply {
+        allProps.remove(PARAMETER_HARDWARE_DEVICE)?.let { put(PARAMETER_HARDWARE_DEVICE, it) }
+        allProps.remove(PARAMETER_HARDWARE_ORIENTATION)?.let {
+          put(PARAMETER_HARDWARE_ORIENTATION, it)
+        }
+        allProps.remove(PARAMETER_HARDWARE_DENSITY)?.let { put(PARAMETER_HARDWARE_DENSITY, it) }
+        allProps.remove(PARAMETER_HARDWARE_WIDTH)?.let { put(PARAMETER_HARDWARE_WIDTH, it) }
+        allProps.remove(PARAMETER_HARDWARE_HEIGHT)?.let { put(PARAMETER_HARDWARE_HEIGHT, it) }
+        allProps.remove(PARAMETER_HARDWARE_DIM_UNIT)?.let { put(PARAMETER_HARDWARE_DIM_UNIT, it) }
+        allProps.remove(PARAMETER_HARDWARE_IS_ROUND)?.let { put(PARAMETER_HARDWARE_IS_ROUND, it) }
+        allProps.remove(PARAMETER_HARDWARE_CHIN_SIZE)?.let { put(PARAMETER_HARDWARE_CHIN_SIZE, it) }
+      }
     val remainingProperties = allProps.values
 
     // Main preview parameters
@@ -100,48 +107,48 @@ internal class PreviewPropertiesInspectorBuilder(
 }
 
 private fun InspectorPanel.addSectionLabel(display: String) {
-  val separatorPanel = JPanel(GridBagLayout()).apply {
-    val gbc = GridBagConstraints().apply {
-      gridwidth = GridBagConstraints.REMAINDER
-      fill = GridBagConstraints.HORIZONTAL
-      weightx = 1.0
+  val separatorPanel =
+    JPanel(GridBagLayout()).apply {
+      val gbc =
+        GridBagConstraints().apply {
+          gridwidth = GridBagConstraints.REMAINDER
+          fill = GridBagConstraints.HORIZONTAL
+          weightx = 1.0
+        }
+      isOpaque = false
+      add(JSeparator(), gbc)
     }
-    isOpaque = false
-    add(JSeparator(), gbc)
-  }
-  val labelPanel = JPanel().apply {
-    layout = BorderLayout()
-    isOpaque = false
-    val label = JLabel(display)
-    label.border = JBUI.Borders.empty(8)
-    label.font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL).deriveFont(Font.BOLD)
-    add(label, BorderLayout.WEST)
-    add(separatorPanel)
-  }
+  val labelPanel =
+    JPanel().apply {
+      layout = BorderLayout()
+      isOpaque = false
+      val label = JLabel(display)
+      label.border = JBUI.Borders.empty(8)
+      label.font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL).deriveFont(Font.BOLD)
+      add(label, BorderLayout.WEST)
+      add(separatorPanel)
+    }
   addComponent(labelPanel)
 }
 
-
-/**
- * [PsiPropertyItemControlTypeProvider] for properties of the Preview annotation.
- */
+/** [PsiPropertyItemControlTypeProvider] for properties of the Preview annotation. */
 private object PreviewControlTypeProvider : PsiPropertyItemControlTypeProvider {
-  override fun invoke(property: PsiPropertyItem): ControlType = when (property.name) {
-    PARAMETER_API_LEVEL,
-    PARAMETER_LOCALE,
-    PARAMETER_HARDWARE_DEVICE,
-    PARAMETER_HARDWARE_ORIENTATION,
-    PARAMETER_HARDWARE_DIM_UNIT,
-    PARAMETER_HARDWARE_DENSITY,
-    PARAMETER_UI_MODE,
-    PARAMETER_DEVICE -> ControlType.DROPDOWN
-    PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
-    PARAMETER_HARDWARE_IS_ROUND,
-    PARAMETER_SHOW_DECORATION,
-    PARAMETER_SHOW_SYSTEM_UI,
-    PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN
-    PARAMETER_GROUP,
-    PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
-    else -> ControlType.TEXT_EDITOR
-  }
+  override fun invoke(property: PsiPropertyItem): ControlType =
+    when (property.name) {
+      PARAMETER_API_LEVEL,
+      PARAMETER_LOCALE,
+      PARAMETER_HARDWARE_DEVICE,
+      PARAMETER_HARDWARE_ORIENTATION,
+      PARAMETER_HARDWARE_DIM_UNIT,
+      PARAMETER_HARDWARE_DENSITY,
+      PARAMETER_UI_MODE,
+      PARAMETER_DEVICE -> ControlType.DROPDOWN
+      PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
+      PARAMETER_HARDWARE_IS_ROUND,
+      PARAMETER_SHOW_DECORATION,
+      PARAMETER_SHOW_SYSTEM_UI,
+      PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN
+      PARAMETER_GROUP, PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
+      else -> ControlType.TEXT_EDITOR
+    }
 }

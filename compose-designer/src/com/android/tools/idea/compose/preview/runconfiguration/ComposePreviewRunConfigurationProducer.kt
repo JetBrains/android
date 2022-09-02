@@ -37,47 +37,59 @@ import org.jetbrains.kotlin.resolve.constants.KClassValue
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /**
- * Producer of [ComposePreviewRunConfiguration] for `@Composable` functions annotated with [PREVIEW_ANNOTATION_FQN]. The configuration
- * created is initially named after the `@Composable` function, and its fully qualified name is properly set in the configuration.
+ * Producer of [ComposePreviewRunConfiguration] for `@Composable` functions annotated with
+ * [PREVIEW_ANNOTATION_FQN]. The configuration created is initially named after the `@Composable`
+ * function, and its fully qualified name is properly set in the configuration.
  *
- * The [ConfigurationContext] where the [ComposePreviewRunConfiguration] is created from can be any descendant of the `@Composable` function
- * in the PSI tree, such as its annotations, function name or even the keyword "fun".
+ * The [ConfigurationContext] where the [ComposePreviewRunConfiguration] is created from can be any
+ * descendant of the `@Composable` function in the PSI tree, such as its annotations, function name
+ * or even the keyword "fun".
  */
-open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer<ComposePreviewRunConfiguration>() {
+open class ComposePreviewRunConfigurationProducer :
+  LazyRunConfigurationProducer<ComposePreviewRunConfiguration>() {
   final override fun getConfigurationFactory() =
     runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
 
-  public final override fun setupConfigurationFromContext(configuration: ComposePreviewRunConfiguration,
-                                                          context: ConfigurationContext,
-                                                          sourceElement: Ref<PsiElement>): Boolean {
+  public final override fun setupConfigurationFromContext(
+    configuration: ComposePreviewRunConfiguration,
+    context: ConfigurationContext,
+    sourceElement: Ref<PsiElement>
+  ): Boolean {
     configuration.setLaunchActivity(COMPOSE_PREVIEW_ACTIVITY_FQN, true)
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
       configuration.composableMethodFqn = it.composePreviewFunctionFqn()
-      // We don't want to be able to create a run configuration from individual source set modules so we use their container module instead
+      // We don't want to be able to create a run configuration from individual source set modules
+      // so we use their container module instead
       configuration.setModule(context.module.getHolderModule())
       updateConfigurationTriggerToGutterIfNeeded(configuration, context)
 
       it.valueParameters.forEach { parameter ->
-        parameter.annotationEntries.firstOrNull { annotation ->
-          annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
-        }?.let { previewParameter ->
-          previewParameter.providerClassName()?.let { providerClass ->
-            configuration.providerClassFqn = providerClass
-            return@forEach
+        parameter.annotationEntries
+          .firstOrNull { annotation ->
+            annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
           }
-        }
+          ?.let { previewParameter ->
+            previewParameter.providerClassName()?.let { providerClass ->
+              configuration.providerClassFqn = providerClass
+              return@forEach
+            }
+          }
       }
       return true
     }
     return false
   }
 
-  final override fun isConfigurationFromContext(configuration: ComposePreviewRunConfiguration, context: ConfigurationContext): Boolean {
+  final override fun isConfigurationFromContext(
+    configuration: ComposePreviewRunConfiguration,
+    context: ConfigurationContext
+  ): Boolean {
     context.containingComposePreviewFunction()?.let {
       val createdFromContext = configuration.composableMethodFqn == it.composePreviewFunctionFqn()
       if (createdFromContext) {
-        // Handle configurations that already exist (e.g. that could have been created from the Preview toolbar).
+        // Handle configurations that already exist (e.g. that could have been created from the
+        // Preview toolbar).
         updateConfigurationTriggerToGutterIfNeeded(configuration, context)
       }
       return createdFromContext
@@ -87,24 +99,33 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
 }
 
 /**
- * When producing the configuration from the gutter icon, update its [ComposePreviewRunConfiguration.TriggerSource] so we can keep track.
+ * When producing the configuration from the gutter icon, update its
+ * [ComposePreviewRunConfiguration.TriggerSource] so we can keep track.
  */
-private fun updateConfigurationTriggerToGutterIfNeeded(configuration: ComposePreviewRunConfiguration, context: ConfigurationContext) {
+private fun updateConfigurationTriggerToGutterIfNeeded(
+  configuration: ComposePreviewRunConfiguration,
+  context: ConfigurationContext
+) {
   if (PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(context.dataContext) is EditorGutter) {
     configuration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER
   }
 }
 
-/**
- * Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter.
- */
+/** Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter. */
 private fun KtAnnotationEntry.providerClassName(): String? {
-  val annotationDescriptor = analyze(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this) ?: return null
-  val argument = annotationDescriptor.allValueArguments.entries.firstOrNull { it.key.asString() == "provider" }?.value ?: return null
+  val annotationDescriptor =
+    analyze(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this) ?: return null
+  val argument =
+    annotationDescriptor.allValueArguments.entries
+      .firstOrNull { it.key.asString() == "provider" }
+      ?.value
+      ?: return null
   return (argument.value as? KClassValue.Value.NormalClass)?.classId?.asSingleFqName()?.asString()
 }
 
 private fun KtNamedFunction.composePreviewFunctionFqn() = "${getClassName()}.${name}"
 
 private fun ConfigurationContext.containingComposePreviewFunction() =
-  psiLocation?.let { location -> location.getNonStrictParentOfType<KtNamedFunction>()?.takeIf { it.isValidComposePreview() } }
+  psiLocation?.let { location ->
+    location.getNonStrictParentOfType<KtNamedFunction>()?.takeIf { it.isValidComposePreview() }
+  }

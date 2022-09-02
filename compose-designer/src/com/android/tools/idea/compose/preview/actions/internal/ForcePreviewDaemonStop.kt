@@ -19,9 +19,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Internal action that forces the stopping of all the [FastPreviewManager] daemons.
- */
+/** Internal action that forces the stopping of all the [FastPreviewManager] daemons. */
 @Suppress("ComponentNotRegistered") // Registered in compose-designer.xml
 class ForcePreviewDaemonStop : AnAction("Force Preview Daemon Stop") {
   override fun actionPerformed(e: AnActionEvent) {
