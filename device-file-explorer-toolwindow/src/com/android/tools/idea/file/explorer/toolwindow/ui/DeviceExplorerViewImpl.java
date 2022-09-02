@@ -240,7 +240,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   private void setupPanel() {
-    myPanel.getComponent().setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     myLoadingPanel.add(myPanel.getComponent(), BorderLayout.CENTER);
 
     myPanel.getDeviceCombo().setRenderer(myDeviceRenderer.getDeviceNameListRenderer());
