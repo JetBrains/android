@@ -181,9 +181,13 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   }
 }
 
-class RecordingOption @JvmOverloads constructor(val title: String, val description: String,
-                                                val startAction: Runnable, val stopAction: Runnable? = null) {
+open class RecordingOption @JvmOverloads constructor(val title: String, val description: String,
+                                                     val startAction: Runnable, val stopAction: Runnable? = null) {
   override fun toString() = title
 }
+
+// Singleton object for the prototype display value
+// of the custom config dropdown.
+object PrototypeDisplayRecordingOption: RecordingOption("", "", {})
 
 private operator fun<T> ListModel<T>?.contains(item: T?): Boolean = this != null && (0 until size).any { getElementAt(it) == item }
