@@ -145,6 +145,12 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     });
 
     reloadPairings();
+
+    if (myTable.isEmpty()) {
+      return;
+    }
+
+    myTable.setRowSelectionInterval(0, 0);
   }
 
   @UiThread
