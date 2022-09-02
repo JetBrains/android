@@ -111,8 +111,7 @@ class SimpleComposeProjectScenarios {
         val finalRenderResult = renderTask.render().get(5, TimeUnit.SECONDS)
         val clickPixel = finalRenderResult.renderedImage.getPixel(clickX, clickY)
         // Not the same as in the initial render (there is a ripple)
-        // TODO(b/189093606): re-enable the assertion once ripples are fixed in layoutlib
-        //Assert.assertNotEquals(clickPixel, firstRenderPixel)
+        Assert.assertNotEquals(clickPixel, firstRenderPixel)
         // Not black and not white
         Assert.assertNotEquals(clickPixel or 0xFFFFFF, 0)
         Assert.assertNotEquals(clickPixel, 0xFFFFFFFF)
