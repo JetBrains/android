@@ -88,9 +88,11 @@ internal class SpringPickerLineMarkerProviderTest {
         lineMarkerInfo ->
         lineMarkerInfo.lineMarkerTooltip == "SpringSpec configuration picker"
       }
+/* b/244774018
     assertEquals(3, springLineMarkerInfos.size)
     assertEquals("SpringSpec<Float>()", springLineMarkerInfos[0].element!!.parent.parent.text)
     assertEquals("spring<Float>()", springLineMarkerInfos[1].element!!.parent.parent.text)
     assertEquals("FloatSpringSpec", springLineMarkerInfos[2].element!!.text)
+b/244774018 */
   }
 }
