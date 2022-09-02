@@ -1128,6 +1128,11 @@ public class AvdManagerConnection {
     }
   }
 
+  public final @NotNull ListenableFuture<@NotNull Boolean> wipeUserDataAsync(@NotNull AvdInfo avd) {
+    return Futures.submit(() -> wipeUserData(avd), AppExecutorUtil.getAppExecutorService());
+  }
+
+  @Slow
   public boolean wipeUserData(@NotNull AvdInfo avdInfo) {
     if (!initIfNecessary()) {
       return false;

@@ -65,7 +65,6 @@ public final class WipeDataItemTest {
     item.doClick();
 
     // Assert
-    Mockito.verify(myConnection, Mockito.never()).wipeUserData(myAvd);
     Mockito.verify(myTable, Mockito.never()).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY);
   }
 
@@ -84,7 +83,6 @@ public final class WipeDataItemTest {
     item.doClick();
 
     // Assert
-    Mockito.verify(myConnection, Mockito.never()).wipeUserData(myAvd);
     Mockito.verify(myTable, Mockito.never()).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY);
   }
 
@@ -92,6 +90,7 @@ public final class WipeDataItemTest {
   public void wipeDataItem() throws Exception {
     // Arrange
     Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd));
+    Mockito.when(myConnection.wipeUserDataAsync(myAvd)).thenReturn(Futures.immediateFuture(true));
 
     Mockito.when(myTable.reloadDevice(TestVirtualDevices.PIXEL_5_API_31_KEY))
       .thenReturn(Futures.immediateFuture(TestVirtualDevices.PIXEL_5_API_31_KEY));
@@ -109,8 +108,6 @@ public final class WipeDataItemTest {
 
     // Assert
     CountDownLatchAssert.await(latch);
-
-    Mockito.verify(myConnection).wipeUserData(myAvd);
     Mockito.verify(myTable).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY);
   }
 

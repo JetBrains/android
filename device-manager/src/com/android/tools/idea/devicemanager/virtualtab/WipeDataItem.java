@@ -20,9 +20,8 @@ import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.Key;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.openapi.ui.JBMenuItem;
@@ -30,6 +29,7 @@ import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.Component;
+import java.util.concurrent.Executor;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -84,10 +84,12 @@ final class WipeDataItem extends JBMenuItem {
         return;
       }
 
-      myGetDefaultAvdManagerConnection.get().wipeUserData(device.getAvdInfo());
+      Executor executor = EdtExecutorService.getInstance();
 
-      ListenableFuture<Key> future = table.reloadDevice(device.getKey());
-      Futures.addCallback(future, myNewSetSelectedDeviceFutureCallback.apply(table), EdtExecutorService.getInstance());
+      // noinspection UnstableApiUsage
+      FluentFuture.from(myGetDefaultAvdManagerConnection.get().wipeUserDataAsync(device.getAvdInfo()))
+        .transformAsync(succeeded -> table.reloadDevice(device.getKey()), executor)
+        .addCallback(myNewSetSelectedDeviceFutureCallback.apply(table), executor);
     });
   }
 
