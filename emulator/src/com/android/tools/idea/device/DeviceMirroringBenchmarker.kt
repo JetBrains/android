@@ -32,8 +32,10 @@ import java.awt.image.BufferedImage
 import java.util.Timer
 import kotlin.concurrent.scheduleAtFixedRate
 import kotlin.math.min
+import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
+import kotlin.math.sin
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -49,6 +51,8 @@ class DeviceMirroringBenchmarker(
     private val abstractDisplayView: AbstractDisplayView,
     touchRateHz: Int = 60,
     maxTouches: Int = 10_000,
+    step: Int = 1,
+    spikiness: Int = 1,
     private val timeSource: TimeSource = TimeSource.Monotonic,
     timer: Timer = Timer(),
   ): AbstractDisplayView.FrameListener {
@@ -58,6 +62,8 @@ class DeviceMirroringBenchmarker(
 
   init {
     require(maxTouches > 0) { "Must specify a positive value for maxTouches!" }
+    require(step > 0) { "Must specify a positive value for step!" }
+    require(spikiness >= 0) { "Must specify a non-negative value for spikiness!" }
   }
 
   // ┌───────┐  ┌───────┐  ┌───────┐  ┌───────┐  ┌────────┐
@@ -106,8 +112,7 @@ class DeviceMirroringBenchmarker(
 
   @Volatile private lateinit var touchableArea: Rectangle
   private val pointsToTouch: Iterator<Point> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    val step = (touchableArea.width * touchableArea.height / maxTouches.toDouble()).toInt().coerceIn(1, MAX_STEP)
-    touchableArea.spiralIn().chunked(step) {it.first()}.take(maxTouches).iterator()
+    touchableArea.scribble(maxTouches, step, spikiness).iterator()
   }
   private val numPointsToTouch by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     min(touchableArea.width * touchableArea.height, maxTouches)
@@ -241,7 +246,7 @@ class DeviceMirroringBenchmarker(
     listOf(imageRectangle.location, Point(imageRectangle.right, imageRectangle.bottom))
       // Scale them to device coordinates.
       .map { it.scaledUnbiased(size, abstractDisplayView.deviceDisplaySize) }
-      // Now use a known good function to transform them to the display view coordinates, if possible.
+      // Now transform them to the display view coordinates, if possible.
       .map { it.toDisplayViewCoordinates() ?: return null }
       // Now add each of these opposite points to the newly created Rectangle.
       .forEach(displayViewRectangle::add)
@@ -338,30 +343,34 @@ class DeviceMirroringBenchmarker(
     private val LOG = Logger.getInstance(DeviceMirroringBenchmarker::class.java)
     private const val BITS_PER_CHANNEL = 4
     private const val LATENCY_BITS_PER_CHANNEL = 2
-    private const val MAX_STEP = 50
     private val MAX_DURATION_FIND_TOUCHABLE_AREA = 1.seconds
 
     /**
-     * Returns a [Sequence] of [Point]s spiraling clockwise into the center of the [Rectangle], starting from
-     * the top left corner.
+     * Returns a [Sequence] of [Point]s scribbling sinusoidally back and forth across the [Rectangle].
      */
-    private fun Rectangle.spiralIn(): Sequence<Point> = sequence {
-      val p = Point(x - 1, y)
-      repeat(width) {
-        p.x += 1
-        yield(Point(p))
-      }
-      for (i in 1..min(width, height)) {
-        // Odd means down and left, even means up and right
-        repeat(height - i) {
-          p.y += -1 + 2 * (i % 2)
+    private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Sequence<Point> = sequence {
+      // Each row is width points, so make sure we have enough rows.
+      val numRows = if (numPoints > (width * height) / step) height else ((numPoints * step + width - 1) / width).coerceIn(1, height)
+      val targetStripeHeight = height / numRows.toDouble()
+      val p = Point()
+      // Scaling factor to compress x coordinates so we go from [0, 1) to [0, 2πn)
+      val xScalingFactor = 2 * Math.PI * spikiness
+      repeat(numRows) { rowIdx ->
+        val stripeStart = y + (targetStripeHeight * rowIdx).roundToInt().coerceIn(0, bottom)
+        val stripeEnd = y + (targetStripeHeight * (rowIdx + 1)).roundToInt().coerceIn(0, bottom)
+        val verticalMidpoint = (stripeEnd + stripeStart) / 2
+        val xCoords = if (rowIdx.isEven()) x until right else (x until right).reversed()
+        xCoords.forEach { xCoord ->
+          p.x = xCoord
+          // How far along are we in [0, 1) ?
+          val normalizedX = (xCoord - x) / width.toDouble()
+          val yDisplacement = sin(xScalingFactor * normalizedX) * targetStripeHeight / 2
+          p.y = (verticalMidpoint - yDisplacement).roundToInt().coerceIn(stripeStart, stripeEnd - 1)
           yield(Point(p))
         }
-        repeat(width - i) {
-          p.x += 1 - 2 * (i % 2)
-          yield(Point(p))
-        }
       }
-    }
+    }.chunked(step).map{ it.first() }.take(numPoints)
+
+    private fun Int.isEven() = this % 2 == 0
   }
 }

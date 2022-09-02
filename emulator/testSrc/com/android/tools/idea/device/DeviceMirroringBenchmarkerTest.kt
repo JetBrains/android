@@ -26,6 +26,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.anyLong
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -62,6 +63,16 @@ class DeviceMirroringBenchmarkerTest {
   @Test
   fun zeroMaxTouches_throwsIllegalArgumentException() {
     assertFailsWith<IllegalArgumentException> { createBenchmarker(maxTouches = 0) }
+  }
+
+  @Test
+  fun zeroStep_throwsIllegalArgumentException() {
+    assertFailsWith<IllegalArgumentException> { createBenchmarker(step = 0) }
+  }
+
+  @Test
+  fun negativeSpikiness_throwsIllegalArgumentException() {
+    assertFailsWith<IllegalArgumentException> { createBenchmarker(spikiness = -1) }
   }
 
   @Test
@@ -167,6 +178,38 @@ class DeviceMirroringBenchmarkerTest {
   }
 
   @Test
+  fun observesStepParameter() {
+    val step = 2  // Anything bigger and there aren't enough pixels
+    // First a normal benchmarker
+    val oneStepBenchmarker = createBenchmarker(maxTouches = step * MAX_TOUCHES)
+    oneStepBenchmarker.start()
+    view.notifyFrame(TOUCHABLE_AREA_FRAME)
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    repeat(step * MAX_TOUCHES) { taskCaptor.value.run() }
+    oneStepBenchmarker.stop()
+    assertThat(dispatchedTouches).hasSize(step * MAX_TOUCHES)
+    // Save these as we will reuse the mutable list.
+    val benchmarkerTouches = ArrayList(dispatchedTouches)
+    dispatchedTouches.clear()
+
+    // Now one that uses a step
+    val twoStepBenchmarker = createBenchmarker(maxTouches = MAX_TOUCHES, step = step)
+    twoStepBenchmarker.start()
+    view.notifyFrame(TOUCHABLE_AREA_FRAME)
+    verify(mockTimer, times(2)).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    repeat(MAX_TOUCHES) { taskCaptor.value.run() }
+    assertThat(dispatchedTouches).hasSize(MAX_TOUCHES)
+
+    benchmarkerTouches.forEachIndexed { i, touch ->
+      when (i % step) {
+        0 -> assertThat(dispatchedTouches).contains(touch)
+        else -> assertThat(dispatchedTouches).doesNotContain(touch)
+      }
+    }
+  }
+
+  @Test
   fun isDone() {
     benchmarker.start()
     view.notifyFrame(ALL_TOUCHABLE_FRAME)
@@ -250,11 +293,13 @@ class DeviceMirroringBenchmarkerTest {
     }
   }
 
-  private fun createBenchmarker(maxTouches: Int = MAX_TOUCHES) : DeviceMirroringBenchmarker {
+  private fun createBenchmarker(maxTouches: Int = MAX_TOUCHES, step: Int = 1, spikiness: Int = 1) : DeviceMirroringBenchmarker {
     return DeviceMirroringBenchmarker(
       abstractDisplayView = view,
       touchRateHz = TOUCH_RATE_HZ,
       maxTouches = maxTouches,
+      step = step,
+      spikiness = spikiness,
       timeSource = testTimeSource,
       timer = mockTimer)
       .apply {

@@ -27,6 +27,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.dialog
 import com.intellij.ui.dsl.builder.bindIntText
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.ui.layout.ComponentPredicate
 import com.intellij.ui.layout.not
 import java.awt.Component
@@ -60,6 +61,8 @@ class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val
   }
   private var touchRateHz = 60
   private var maxTouches = 10_000
+  private var step = 1
+  private var spikiness = 3
 
   private fun createPanel() = panel {
     panel {
@@ -68,11 +71,22 @@ class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val
         text("Hz")
       }
       row("Max input events") {
-        intTextField(1..Int.MAX_VALUE, 100) //.bindIntText(::maxTouches)
-          .bindIntText({ maxTouches }, { maxTouches = it })
+        intTextField(1..Int.MAX_VALUE, 100).bindIntText(::maxTouches)
+      }
+      row("Drag speed") {
+        intTextField(1 .. 10, 1).bindIntText(::step)
+        text("px/frame")
+      }
+      row("Spikiness") {
+        intTextField(0..100, 1).bindIntText(::spikiness)
+        text("oscillations/row")
       }
     }.enabledIf(isRunning.not())
     panel {
+      separator("Note")
+      row {
+        text("For accurate results, keep Android Studio visible until benchmarking is complete.").horizontalAlign(HorizontalAlign.CENTER)
+      }
       separator("Progress")
       row("Input events dispatched") {
         cell(dispatchedProgressBar)
@@ -109,7 +123,7 @@ class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val
 
     override fun actionPerformed(e: ActionEvent?) {
       dialogPanel.apply()
-      benchmarker = DeviceMirroringBenchmarker(view, touchRateHz, maxTouches).apply {
+      benchmarker = DeviceMirroringBenchmarker(view, touchRateHz, maxTouches, step, spikiness).apply {
         addOnProgressCallback { dispatchedProgress, receivedProgress ->
           dispatchedProgressBar.updateProgress(dispatchedProgress)
           receivedProgressBar.updateProgress(receivedProgress)
