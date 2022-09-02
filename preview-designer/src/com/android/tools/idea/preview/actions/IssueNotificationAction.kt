@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.InformationPopup
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
@@ -223,18 +224,7 @@ class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
 class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    ProblemsView.getToolWindow(project)?.show()
-  }
-}
-
-/**
- * [AnAction] that shows the "Problems" panel.
- */
-class ShowIssuesPanel : AnAction() {
-  override fun actionPerformed(e: AnActionEvent) {
-    e.getData(DESIGN_SURFACE)?.let { surface ->
-      surface.setIssuePanelVisibilityNoTracking(true, true)
-    }
+    IssuePanelService.getInstance(project).setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
   }
 }
 

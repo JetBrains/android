@@ -30,7 +30,6 @@ import com.android.tools.idea.preview.actions.IssueNotificationAction
 import com.android.tools.idea.preview.actions.PreviewStatusNotification
 import com.android.tools.idea.preview.actions.ReEnableFastPreview
 import com.android.tools.idea.preview.actions.ShowEventLogAction
-import com.android.tools.idea.preview.actions.ShowIssuesPanel
 import com.android.tools.idea.preview.actions.ShowProblemsPanel
 import com.android.tools.idea.preview.actions.actionLink
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -130,10 +129,8 @@ fun defaultCreateInformationPopup(
             dataContext
           ),
           when (it) {
-            is PreviewStatusNotification.SyntaxError ->
+            is PreviewStatusNotification.SyntaxError, PreviewStatusNotification.RenderIssues ->
               actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
-            is PreviewStatusNotification.RenderIssues ->
-              actionLink(message("action.view.problems"), ShowIssuesPanel(), dataContext)
             else -> null
           },
           if (isAutoDisabled)
