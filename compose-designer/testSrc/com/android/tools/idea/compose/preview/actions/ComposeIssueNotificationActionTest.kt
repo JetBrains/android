@@ -25,6 +25,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
+import com.android.tools.idea.preview.actions.PreviewStatusNotification
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
@@ -216,15 +217,9 @@ internal class ComposeIssueNotificationActionTest {
   @Test
   fun `check InformationPopup states`() {
     val fastPreviewManager = projectRule.project.fastPreviewManager
-    val dataContext = DataContext {
-      when (it) {
-        COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
-        else -> null
-      }
-    }
     // Default state check
     run {
-      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
+      val popup = defaultCreateInformationPopup(projectRule.project, context)!!
       assertEquals("The preview is up to date", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
@@ -232,7 +227,7 @@ internal class ComposeIssueNotificationActionTest {
     // Even the status is out of date, we do not report it when fast preview is enabled
     run {
       composePreviewManager.currentStatus = originStatus.copy(isOutOfDate = true)
-      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
+      val popup = defaultCreateInformationPopup(projectRule.project, context)!!
       assertEquals("The preview is up to date", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
@@ -242,7 +237,7 @@ internal class ComposeIssueNotificationActionTest {
       fastPreviewManager.disable(DisableReason("error"))
       try {
         composePreviewManager.currentStatus = originStatus.copy(isOutOfDate = true)
-        val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
+        val popup = defaultCreateInformationPopup(projectRule.project, context)!!
         assertEquals(
           "The code might contain errors or might not work with Preview Live Edit.",
           popup.labelsDescription()
@@ -266,7 +261,7 @@ internal class ComposeIssueNotificationActionTest {
       fastPreviewManager.disable(ManualDisabledReason)
       try {
         composePreviewManager.currentStatus = originStatus.copy(isOutOfDate = true)
-        val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
+        val popup = defaultCreateInformationPopup(projectRule.project, context)!!
         assertEquals("The preview is out of date", popup.labelsDescription())
         assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
       } finally {
@@ -282,7 +277,7 @@ internal class ComposeIssueNotificationActionTest {
           isOutOfDate =
             true // Leaving out of date to true to verify it does not take precedence over refresh
         )
-      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
+      val popup = defaultCreateInformationPopup(projectRule.project, context)!!
       assertEquals("The preview is updating...", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
@@ -295,7 +290,7 @@ internal class ComposeIssueNotificationActionTest {
           isOutOfDate =
             true // Leaving out of date to true to verify it does not take precedence over refresh
         )
-      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
+      val popup = defaultCreateInformationPopup(projectRule.project, context)!!
       assertEquals(
         "The preview will not update while your project contains syntax errors.",
         popup.labelsDescription()
@@ -311,7 +306,7 @@ internal class ComposeIssueNotificationActionTest {
     // Verify render issues status
     run {
       composePreviewManager.currentStatus = originStatus.copy(hasRuntimeErrors = true)
-      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
+      val popup = defaultCreateInformationPopup(projectRule.project, context)!!
       assertEquals(
         "Some problems were found while rendering the preview",
         popup.labelsDescription()
