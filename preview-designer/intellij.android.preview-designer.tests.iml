@@ -15,5 +15,5 @@
     <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.glance-designer" />
+  <component name="TestModuleProperties" production-module="intellij.android.preview-designer" />
 </module>

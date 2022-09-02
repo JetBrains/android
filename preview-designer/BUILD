@@ -25,7 +25,7 @@ iml_module(
     iml_files = ["intellij.android.preview-designer.tests.iml"],
     resources = ["testSrc/META-INF"],
     tags = ["no_test_windows"],
-    test_friends = ["//tools/adt/idea/glance-designer:intellij.android.glance-designer"],
+    test_friends = ["//tools/adt/idea/preview-designer:intellij.android.preview-designer"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
