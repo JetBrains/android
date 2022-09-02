@@ -579,7 +579,7 @@ public final class StudioFlags {
     "Enable the \"Device Monitor\" tool window",
     "Enable the \"Device Monitor\" tool window which shows the list of JDWP proceses of Android Devices.\n" +
     "Changing the value of this flag requires restarting Android Studio.",
-    true);
+    false);
 
   public static final Flag<Boolean> ADBLIB_MIGRATION_DEVICE_EXPLORER = Flag.create(
     RUNDEBUG,
