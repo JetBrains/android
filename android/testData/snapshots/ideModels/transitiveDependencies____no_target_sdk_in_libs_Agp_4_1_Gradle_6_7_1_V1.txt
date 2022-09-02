@@ -12,8 +12,8 @@ MODULE                        : project
                 qName                         : :app
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -146,8 +146,8 @@ MODULE                        : project
                 qName                         : :javalib1
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/javalib1
                 buildDir                      : <ROOT>/javalib1/build [-]
                 buildFile                     : <ROOT>/javalib1/build.gradle
@@ -185,8 +185,8 @@ MODULE                        : project
                             - files                       : <ROOT>/javalib1/build/classes/java/main [-]
                             - files                       : <ROOT>/javalib1/build/resources/main [-]
                         - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -218,8 +218,8 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/javalib1/build/classes/java/test [-]
                             - files                       : <ROOT>/javalib1/build/resources/test [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                 artifactsByConfiguration
@@ -250,8 +250,8 @@ MODULE                        : project
                 qName                         : :javalib2
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/javalib2
                 buildDir                      : <ROOT>/javalib2/build [-]
                 buildFile                     : <ROOT>/javalib2/build.gradle
@@ -275,8 +275,8 @@ MODULE                        : project
                             - files                       : <ROOT>/javalib2/build/classes/java/main [-]
                             - files                       : <ROOT>/javalib2/build/resources/main [-]
                         - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -295,8 +295,8 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/javalib2/build/classes/java/test [-]
                             - files                       : <ROOT>/javalib2/build/resources/test [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                 artifactsByConfiguration
@@ -327,8 +327,8 @@ MODULE                        : project
                 qName                         : :library1
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library1
                 buildDir                      : <ROOT>/library1/build [-]
                 buildFile                     : <ROOT>/library1/build.gradle
@@ -461,8 +461,8 @@ MODULE                        : project
                 qName                         : :library2
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library2
                 buildDir                      : <ROOT>/library2/build [-]
                 buildFile                     : <ROOT>/library2/build.gradle

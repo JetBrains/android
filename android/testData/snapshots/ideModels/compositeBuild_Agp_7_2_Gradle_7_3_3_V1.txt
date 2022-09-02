@@ -26,8 +26,8 @@ MODULE                        : TestCompositeLib1
                 qName                         : :app
                 group                         : com.test.composite1
                 version                       : 1.0
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/TestCompositeLib1/app
                 buildDir                      : <ROOT>/TestCompositeLib1/app/build [-]
                 buildFile                     : <ROOT>/TestCompositeLib1/app/build.gradle
@@ -247,8 +247,8 @@ MODULE                        : TestCompositeLib1
                 qName                         : :lib
                 group                         : com.test.composite1
                 version                       : 1.0
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/TestCompositeLib1/lib
                 buildDir                      : <ROOT>/TestCompositeLib1/lib/build [-]
                 buildFile                     : <ROOT>/TestCompositeLib1/lib/build.gradle
@@ -3074,8 +3074,8 @@ MODULE                        : TestCompositeLib3
                 qName                         : :app
                 group                         : TestCompositeLib3
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/TestCompositeLib3/app
                 buildDir                      : <ROOT>/TestCompositeLib3/app/build [-]
                 buildFile                     : <ROOT>/TestCompositeLib3/app/build.gradle
@@ -3295,8 +3295,8 @@ MODULE                        : TestCompositeLib3
                 qName                         : :lib
                 group                         : com.test.composite3
                 version                       : 1.0
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/TestCompositeLib3/lib
                 buildDir                      : <ROOT>/TestCompositeLib3/lib/build [-]
                 buildFile                     : <ROOT>/TestCompositeLib3/lib/build.gradle
@@ -5196,8 +5196,8 @@ MODULE                        : com.test.compositeNest3.compositeNest
         qName                         : compositeNest
         group                         : com.test.compositeNest3
         version                       : 1.0
-        sourceCompatibility           : 11
-        targetCompatibility           : 11
+        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         projectDir                    : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
         buildDir                      : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build
         buildFile                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build.gradle
@@ -5221,8 +5221,8 @@ MODULE                        : com.test.compositeNest3.compositeNest
                     - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
                     - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main [-]
                 - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             test                          : test (DefaultExternalSourceSet)
                 sources
                     TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -5241,8 +5241,8 @@ MODULE                        : com.test.compositeNest3.compositeNest
                 - dependencies                : DefaultFileCollectionDependency
                     - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/test [-]
                     - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/test [-]
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         externalSystemId              : GRADLE
         - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
         artifactsByConfiguration
@@ -5289,8 +5289,8 @@ MODULE                        : composite2
         qName                         : composite2
         group                         : com.test.composite2
         version                       : 1.0
-        sourceCompatibility           : 11
-        targetCompatibility           : 11
+        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         projectDir                    : <ROOT>/TestCompositeLib2
         buildDir                      : <ROOT>/TestCompositeLib2/build
         buildFile                     : <ROOT>/TestCompositeLib2/build.gradle
@@ -5314,8 +5314,8 @@ MODULE                        : composite2
                     - files                       : <ROOT>/TestCompositeLib2/build/classes/java/main [-]
                     - files                       : <ROOT>/TestCompositeLib2/build/resources/main [-]
                 - artifacts                   : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             test                          : test (DefaultExternalSourceSet)
                 sources
                     TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -5334,8 +5334,8 @@ MODULE                        : composite2
                 - dependencies                : DefaultFileCollectionDependency
                     - files                       : <ROOT>/TestCompositeLib2/build/classes/java/test [-]
                     - files                       : <ROOT>/TestCompositeLib2/build/resources/test [-]
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         externalSystemId              : GRADLE
         - artifacts                   : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
         artifactsByConfiguration
@@ -5382,8 +5382,8 @@ MODULE                        : composite4
         qName                         : composite4
         group                         : com.test.composite4
         version                       : 1.0
-        sourceCompatibility           : 11
-        targetCompatibility           : 11
+        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         projectDir                    : <ROOT>/TestCompositeLib4
         buildDir                      : <ROOT>/TestCompositeLib4/build
         buildFile                     : <ROOT>/TestCompositeLib4/build.gradle
@@ -5407,8 +5407,8 @@ MODULE                        : composite4
                     - files                       : <ROOT>/TestCompositeLib4/build/classes/java/main [-]
                     - files                       : <ROOT>/TestCompositeLib4/build/resources/main [-]
                 - artifacts                   : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             test                          : test (DefaultExternalSourceSet)
                 sources
                     TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -5427,8 +5427,8 @@ MODULE                        : composite4
                 - dependencies                : DefaultFileCollectionDependency
                     - files                       : <ROOT>/TestCompositeLib4/build/classes/java/test [-]
                     - files                       : <ROOT>/TestCompositeLib4/build/resources/test [-]
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         externalSystemId              : GRADLE
         - artifacts                   : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
         artifactsByConfiguration
@@ -5475,8 +5475,8 @@ MODULE                        : compositeNest
         qName                         : compositeNest
         group                         : com.test.compositeNest1
         version                       : 1.0
-        sourceCompatibility           : 11
-        targetCompatibility           : 11
+        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         projectDir                    : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
         buildDir                      : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build
         buildFile                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build.gradle
@@ -5500,8 +5500,8 @@ MODULE                        : compositeNest
                     - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main [-]
                     - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/main [-]
                 - artifacts                   : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             test                          : test (DefaultExternalSourceSet)
                 sources
                     TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -5520,8 +5520,8 @@ MODULE                        : compositeNest
                 - dependencies                : DefaultFileCollectionDependency
                     - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/test [-]
                     - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/test [-]
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         externalSystemId              : GRADLE
         - artifacts                   : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
         artifactsByConfiguration
@@ -5556,8 +5556,8 @@ MODULE                        : project
                 qName                         : :app
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -5780,8 +5780,8 @@ MODULE                        : project
                 qName                         : :lib
                 group                         : com.test.composite
                 version                       : 1.0
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build [-]
                 buildFile                     : <ROOT>/lib/build.gradle

@@ -12,8 +12,8 @@ MODULE                        : project
                 qName                         : :app
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -789,8 +789,8 @@ MODULE                        : project
                 qName                         : :dyn_feature
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/dyn_feature
                 buildDir                      : <ROOT>/dyn_feature/build [-]
                 buildFile                     : <ROOT>/dyn_feature/build.gradle
@@ -993,8 +993,8 @@ MODULE                        : project
                 qName                         : :lib
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build [-]
                 buildFile                     : <ROOT>/lib/build.gradle
@@ -1126,16 +1126,16 @@ MODULE                        : project
                 qName                         : :nested1
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 childProjects
                     deep                          : :nested1:deep (DefaultExternalProject)
                         name                          : deep
                         qName                         : :nested1:deep
                         group                         : project.nested1
                         version                       : unspecified
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         projectDir                    : <ROOT>/nested1/deep
                         buildDir                      : <ROOT>/nested1/deep/build [-]
                         buildFile                     : <ROOT>/nested1/deep/build.gradle
@@ -1393,16 +1393,16 @@ MODULE                        : project
                 qName                         : :nested2
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 childProjects
                     deep                          : :nested2:deep (DefaultExternalProject)
                         name                          : deep
                         qName                         : :nested2:deep
                         group                         : project.nested2
                         version                       : unspecified
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         projectDir                    : <ROOT>/nested2/deep
                         buildDir                      : <ROOT>/nested2/deep/build [-]
                         buildFile                     : <ROOT>/nested2/deep/build.gradle
@@ -1540,8 +1540,8 @@ MODULE                        : project
                                 qName                         : :nested2:trans:deep2
                                 group                         : project.nested2.trans
                                 version                       : unspecified
-                                sourceCompatibility           : 11
-                                targetCompatibility           : 11
+                                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                 projectDir                    : <ROOT>/nested2/trans/deep2
                                 buildDir                      : <ROOT>/nested2/trans/deep2/build [-]
                                 buildFile                     : <ROOT>/nested2/trans/deep2/build.gradle

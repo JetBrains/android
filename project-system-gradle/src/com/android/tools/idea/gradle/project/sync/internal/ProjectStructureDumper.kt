@@ -546,7 +546,7 @@ private fun String.toSystemIndependent() = FileUtils.toSystemIndependentPath(thi
 class DumpProjectAction : DumbAwareAction("Dump Project Structure") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
-    val dumper = ProjectDumper()
+    val dumper = ProjectDumper(projectJdk = ProjectRootManager.getInstance(project).projectSdk)
     dumper.dumpProject(project)
     val dump = dumper.toString().trimIndent()
     val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_dump")

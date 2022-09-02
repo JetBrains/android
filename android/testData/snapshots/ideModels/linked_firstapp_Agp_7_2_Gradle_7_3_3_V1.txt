@@ -13,16 +13,16 @@ MODULE                        : My_First_App
                 qName                         : :app
                 group                         : My First App
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 childProjects
                     mysharedlibrary               : :app:mysharedlibrary (DefaultExternalProject)
                         name                          : mysharedlibrary
                         qName                         : :app:mysharedlibrary
                         group                         : My First App.app
                         version                       : unspecified
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         projectDir                    : <ROOT>/shared/mysharedlibrary
                         buildDir                      : <ROOT>/shared/mysharedlibrary/build [-]
                         buildFile                     : <ROOT>/shared/mysharedlibrary/build.gradle

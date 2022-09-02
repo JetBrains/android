@@ -25,6 +25,8 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.projectRoots.JavaSdk
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
@@ -41,7 +43,8 @@ class ProjectDumper(
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
   private val devBuildHome: File = File(PathManager.getCommunityHomePath()),
   private val kotlinPlugin: File? = KotlinArtifacts.instance.kotlincDirectory,
-  private val additionalRoots: Map<String, File> = emptyMap()
+  private val additionalRoots: Map<String, File> = emptyMap(),
+  private val projectJdk: Sdk? = null,
 ) {
   private val gradleCache: File = getGradleCacheLocation()
   private val userM2: File = getUserM2Location()
@@ -62,6 +65,7 @@ class ProjectDumper(
     additionalRoots.forEach { (key, value) ->
       println("<$key>        <== ${value.absolutePath}")
     }
+    println("<JDK>        <== ${projectJdk?.name}")
   }
 
   private val output = StringBuilder()
@@ -249,6 +253,9 @@ class ProjectDumper(
       this.replace(it.value, "<VERSION>")
     } ?: this
 
+  fun String.replaceSourceAndTargetCompatibility(): String = projectJdk?.let {
+    replace(JavaSdk.getInstance().getVersion(it)!!.maxLanguageLevel.toJavaVersion().toFeatureString(), "<PROJECT_JDK_FEATURE_LEVEL>")
+  } ?: this
   fun String.replaceJavaVersion(): String? = replace(Regex("17|11|1\\.8"), "<JAVA_VERSION>")
   fun String.replaceJdkVersion(): String? = replace(Regex("1\\.8\\.0_[0-9]+|11\\.0\\.[0-9]+|17\\.0\\.[0-9]+"), "<JDK_VERSION>")
     .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")

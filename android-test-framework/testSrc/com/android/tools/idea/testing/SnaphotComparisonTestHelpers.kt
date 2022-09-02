@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.internal.dumpProject
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil.toSystemDependentName
 import com.intellij.util.PathUtil.toSystemIndependentName
@@ -45,7 +46,8 @@ fun Project.saveAndDump(
     androidSdk = getSdk().toFile(),
     offlineRepos = getOfflineM2Repositories(),
     additionalRoots = additionalRoots,
-    devBuildHome = TestUtils.getWorkspaceRoot().toFile()
+    devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
+    projectJdk = ProjectRootManager.getInstance(this).projectSdk,
   )
 
   dumpToAction(this, dumper)

@@ -12,8 +12,8 @@ MODULE                        : project_sm_src
                 qName                         : :app
                 group                         : project_sm_src
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>_sm_src/app
                 buildDir                      : <ROOT>_sm_src/app/build [-]
                 buildFile                     : <ROOT>_sm_src/app/build.gradle

@@ -9,8 +9,8 @@ MODULE                        : gradle_project_1
                 qName                         : :app
                 group                         : gradle_project_1
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/gradle_project_1/app
                 buildDir                      : <ROOT>/gradle_project_1/app/build [-]
                 buildFile                     : <ROOT>/gradle_project_1/app/build.gradle
@@ -1444,8 +1444,8 @@ MODULE                        : gradle_project_name
                 qName                         : :app
                 group                         : gradle_project_name
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/gradle_project_2/app
                 buildDir                      : <ROOT>/gradle_project_2/app/build [-]
                 buildFile                     : <ROOT>/gradle_project_2/app/build.gradle

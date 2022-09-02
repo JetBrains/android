@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth
+import com.intellij.openapi.roots.ProjectRootManager
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -82,9 +83,11 @@ class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(
     Truth.assertThat(allVariantsSyncAndroidModel).isNotNull()
     // Assert that we fetched all the variants of the module in this case.
     Truth.assertThat(allVariantsSyncAndroidModel!!.variants.size).isEqualTo(12)
-
     // Dump the GradleAndroidModel.
-    val dumper = ProjectDumper(additionalRoots = mapOf("ROOT" to File(project.basePath!!)))
+    val dumper = ProjectDumper(
+      additionalRoots = mapOf("ROOT" to File(project.basePath!!)),
+      projectJdk = ProjectRootManager.getInstance(project).projectSdk,
+    )
     val modelFactory = GradleAndroidModel.createFactory(project, fromLibraryTable(gradleModules.libraries!!))
     dumper.dumpAllVariantsSyncAndroidModuleModel(
       modelFactory(allVariantsSyncAndroidModel),

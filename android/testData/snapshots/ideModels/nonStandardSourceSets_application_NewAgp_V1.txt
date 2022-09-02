@@ -13,8 +13,8 @@ MODULE                        : application
                 qName                         : :app
                 group                         : application
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/application/app
                 buildDir                      : <ROOT>/application/app/build [-]
                 buildFile                     : <ROOT>/application/app/build.gradle

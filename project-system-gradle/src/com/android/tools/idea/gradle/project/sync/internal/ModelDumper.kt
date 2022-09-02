@@ -229,6 +229,10 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
       doDump(propertyName, v.split(':'), defaultValue)
     }
 
+    fun processSourceAndTargetCompatibility(v: String) {
+      prop(propertyName) { v.replaceSourceAndTargetCompatibility() }
+    }
+
     fun processNullValue() {
       prop(propertyName) { "<null>" }
     }
@@ -249,6 +253,8 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
     when {
       propertyName == "classpath" && v is String ->
         processClasspathValue(v)
+      (propertyName == "sourceCompatibility" || propertyName == "targetCompatibility") && v is String ->
+        processSourceAndTargetCompatibility(v)
       !mapEntry && isIgnorableDefaultValue(v) ->
         Unit
       mapEntry && isIgnorableDefaultValue(v) ->

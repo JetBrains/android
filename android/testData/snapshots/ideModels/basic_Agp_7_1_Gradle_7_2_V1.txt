@@ -1197,8 +1197,8 @@ MODULE                        : project
         name                          : project
         qName                         : project
         version                       : unspecified
-        sourceCompatibility           : 11
-        targetCompatibility           : 11
+        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle

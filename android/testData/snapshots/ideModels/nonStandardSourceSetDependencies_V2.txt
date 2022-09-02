@@ -24,8 +24,8 @@ MODULE                        : NonStandardSourceSetDependencies
                 qName                         : :app
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -241,8 +241,8 @@ MODULE                        : NonStandardSourceSetDependencies
                 qName                         : :common
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/common
                 buildDir                      : <ROOT>/common/build
                 buildFile                     : <ROOT>/common/build.gradle
@@ -463,8 +463,8 @@ MODULE                        : NonStandardSourceSetDependencies
                 qName                         : :feature-a
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/feature-a
                 buildDir                      : <ROOT>/feature-a/build [-]
                 buildFile                     : <ROOT>/feature-a/build.gradle
@@ -685,8 +685,8 @@ MODULE                        : NonStandardSourceSetDependencies
                 qName                         : :feature-b
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/feature-b
                 buildDir                      : <ROOT>/feature-b/build [-]
                 buildFile                     : <ROOT>/feature-b/build.gradle
@@ -1185,8 +1185,8 @@ MODULE                        : NonStandardSourceSetDependencies
                 qName                         : :lib
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build
                 buildFile                     : <ROOT>/lib/build.gradle

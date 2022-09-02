@@ -13,8 +13,8 @@ MODULE                        : project
                 qName                         : :app
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -128,8 +128,8 @@ MODULE                        : project
                 qName                         : :library
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library
                 buildDir                      : <ROOT>/library/build [-]
                 buildFile                     : <ROOT>/library/build.gradle
@@ -239,8 +239,8 @@ MODULE                        : project
                 qName                         : :library-remote
                 group                         : com.example.google
                 version                       : 1.0
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library-remote
                 buildDir                      : <ROOT>/library-remote/build [-]
                 buildFile                     : <ROOT>/library-remote/build.gradle
@@ -352,8 +352,8 @@ MODULE                        : project
                 qName                         : :lint
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lint
                 buildDir                      : <ROOT>/lint/build [-]
                 buildFile                     : <ROOT>/lint/build.gradle
@@ -453,8 +453,8 @@ MODULE                        : project
                             - files                       : <ROOT>/lint/build/classes/java/main [-]
                             - files                       : <ROOT>/lint/build/resources/main [-]
                         - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -473,8 +473,8 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/lint/build/classes/java/test [-]
                             - files                       : <ROOT>/lint/build/resources/test [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
                 artifactsByConfiguration
@@ -504,8 +504,8 @@ MODULE                        : project
                 qName                         : :lintpublish
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lintpublish
                 buildDir                      : <ROOT>/lintpublish/build [-]
                 buildFile                     : <ROOT>/lintpublish/build.gradle
@@ -559,8 +559,8 @@ MODULE                        : project
                             - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
                             - files                       : <ROOT>/lintpublish/build/resources/main [-]
                         - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -579,8 +579,8 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/lintpublish/build/classes/java/test [-]
                             - files                       : <ROOT>/lintpublish/build/resources/test [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                 artifactsByConfiguration
@@ -610,8 +610,8 @@ MODULE                        : project
                 qName                         : :lintpublish-remote
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lintpublish-remote
                 buildDir                      : <ROOT>/lintpublish-remote/build [-]
                 buildFile                     : <ROOT>/lintpublish-remote/build.gradle
@@ -665,8 +665,8 @@ MODULE                        : project
                             - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
                             - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
                         - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -685,8 +685,8 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/lintpublish-remote/build/classes/java/test [-]
                             - files                       : <ROOT>/lintpublish-remote/build/resources/test [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                 artifactsByConfiguration

@@ -59,6 +59,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
@@ -757,7 +758,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
 class DumpProjectIdeModelAction : DumbAwareAction("Dump Project IDE Models") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
-    val dumper = ProjectDumper()
+    val dumper = ProjectDumper(projectJdk = ProjectRootManager.getInstance(project).projectSdk)
     dumper.dumpAndroidIdeModel(project, { null }, { null }, { null }, { null })
     val dump = dumper.toString().trimIndent()
     val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_ide_models_dump")
