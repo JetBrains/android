@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.InformationPopup
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
@@ -283,18 +284,7 @@ private class BuildAndRefresh(composePreviewManager: ComposePreviewManager) : An
 private class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    ProblemsView.getToolWindow(project)?.show()
-  }
-}
-
-/**
- * [AnAction] that shows the "Problems" panel.
- */
-private class ShowIssuesPanel : AnAction() {
-  override fun actionPerformed(e: AnActionEvent) {
-    e.getData(DESIGN_SURFACE)?.let { surface ->
-      surface.setIssuePanelVisibilityNoTracking(true, true)
-    }
+    IssuePanelService.getInstance(project).setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
   }
 }
 
@@ -329,8 +319,8 @@ fun defaultCreateInformationPopup(
             .replace("&&", "&") + getBuildAndRefreshShortcut().asString(), // Remove any ampersand escaping for tooltips (not needed in these links)
           BuildAndRefresh(composePreviewManager), dataContext),
         when (it) {
-          is ComposePreviewStatusNotification.SyntaxError -> actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
-          is ComposePreviewStatusNotification.RenderIssues -> actionLink(message("action.view.problems"), ShowIssuesPanel(), dataContext)
+          is ComposePreviewStatusNotification.SyntaxError, ComposePreviewStatusNotification.RenderIssues ->
+            actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
           else -> null
         },
         if (isAutoDisabled)
