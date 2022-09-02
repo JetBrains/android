@@ -79,12 +79,12 @@ public class AndroidProfilerToolWindow implements Disposable {
   private static final String HIDE_STOP_PROMPT = "profilers.hide.stop.prompt";
 
   @NotNull
-  private static final Notification OPEN_FILE_FAILURE_NOTIFICATION = new Notification.Builder(
+  private static final Notification OPEN_FILE_FAILURE_NOTIFICATION = new Notification(
+    Notification.Severity.ERROR,
     "Failed to open file",
     "The profiler was unable to open the selected file. Please try opening it " +
-    "again or select a different file.")
-    .setSeverity(Notification.Severity.ERROR)
-    .build();
+    "again or select a different file.",
+    null);
 
   private static final String NO_CLIENT_TITLE = "Initialization failed";
   private static final String NO_CLIENT_MESSAGE = "To start the profiler, close all other Android Studio projects.";
