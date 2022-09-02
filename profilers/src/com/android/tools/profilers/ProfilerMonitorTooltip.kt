@@ -13,25 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers
 
-import com.android.tools.adtui.model.TooltipModel;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.adtui.model.TooltipModel
 
 /**
- * Base class for tooltip used in a {@link ProfilerMonitor}.
- * @param <M> the profiler monitor where the tooltip is used in.
+ * Base class for tooltip used in a [ProfilerMonitor].
+ * @param <M> the profiler monitor where the tooltip is used in. </M>
  */
-public abstract class ProfilerMonitorTooltip<M extends ProfilerMonitor> implements TooltipModel {
-  @NotNull
-  private final M myMonitor;
-
-  public ProfilerMonitorTooltip(@NotNull M monitor) {
-    myMonitor = monitor;
-  }
-
-  @NotNull
-  public M getMonitor() {
-    return myMonitor;
-  }
-}
+abstract class ProfilerMonitorTooltip<M : ProfilerMonitor>(val monitor: M) : TooltipModel
